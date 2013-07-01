@@ -49,7 +49,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals';
     
     
     /**
@@ -76,7 +76,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
-    	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
+    	$this->FLD('term', 'time(uom=days)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
     }
@@ -126,8 +126,10 @@ class sales_QuotationsDetails extends core_Detail {
     {
        $form = &$data->form;
        $rec = &$form->rec;
-       (Request::get('edit')) ? $title = tr("Редактиране") : $title = tr("Добавяне");
-       $form->title = $title . " " . tr("|на запис в Оферта|* №{$rec->quotationId}");
+       
+       $title = (Request::get('edit')) ? "Редактиране" : "Добавяне";
+       $masterLink = sales_Quotations::getLink($form->rec->quotationId);
+       $form->title = $title . " " . "на артикул в" . " |*" . $masterLink;
        
        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
        $Policy = cls::get($rec->policyId);
@@ -179,7 +181,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price){
-	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
+	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
+	    			$form->setField('price', 'mandatory');
 	    		}
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
@@ -376,18 +379,12 @@ class sales_QuotationsDetails extends core_Detail {
     	
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
-    	if(!$rec->quantity){
-    		$row->quantity = '???';
-    	}
-    	
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
     	$uomId = $pInfo->productRec->measureId;
     	$row->uomShort = cat_UoM::getShortName($uomId);
     	$row->price = $double->toVerbal($rec->vatPrice);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
-    	} else {
-    		$row->amount = '???';
     	}
     	
     	if($rec->discount){
@@ -474,5 +471,18 @@ class sales_QuotationsDetails extends core_Detail {
     		
     		$this->save($dRec);
     	}
+    }
+    
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	// Нотифицираме продуктовия мениджър че продукта вече е използван
+    	$productMan = cls::get($rec->policyId)->getProductMan();
+    	$productRec = $productMan::fetch($rec->productId);
+    	$productRec->lastUsedOn = dt::now();
+    	$productMan::save($productRec);
     }
 }
