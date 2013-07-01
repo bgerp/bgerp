@@ -36,6 +36,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
+        expect($mvc instanceof core_Master, 'Документите трябва да са наследници на core_Master', get_class($mvc));
+        
         // Добавяме полета свързани с организацията на документооборота
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
         $mvc->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
