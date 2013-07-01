@@ -130,7 +130,8 @@ table{
 }
 
 .wide #subMenu{
-	padding-top:0.1em;
+	padding-top:1px;
+	line-height:normal;
 }
 
 .narrow #submenu{
@@ -141,6 +142,7 @@ table{
 	background-color: #ddd;
 	padding: 5px;
 	border-bottom: solid 2px $blue;
+	line-height:normal;
 }
 
 .wide #mainMenu{
@@ -173,13 +175,13 @@ table{
 .menuRow {
 	color: #997;
 	font-family: Arial;
-	padding: 3px;
+	padding: 1px;
 	text-decoration: none;
 	font-weight: bold;
 }
 
 #mainMenu a  { /*nav при wide*/
-	padding:0.1em; 
+	padding:1px; 
 	text-decoration:none; 
 	font-weight:bold; 
 	font-family:arial; 
@@ -207,9 +209,9 @@ table{
 }
 
 .wide #subMenu a  {
-	padding:2px;
-	padding-left:3px;
-	padding-right:3px;
+	padding: 2px;
+	padding-left: 3px;
+	padding-right: 3px;
 	font-family:arial; 
 	border:solid 2px transparent;
 }
@@ -242,7 +244,8 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 }
 
 .wide #subMenu a.selected, .wide #subMenu a.selected:visited, .wide #subMenu a.selected:link { 
-	padding:1px 5px 2px 5px;
+	padding-left: 5px;
+	padding-right: 5px;
 	border:solid 2px $blue;
 	background-color:#ddd;
 	border-top:2px solid transparent;
