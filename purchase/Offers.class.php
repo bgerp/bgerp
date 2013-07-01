@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Оферти за покупки
  */
-class purchase_Offers extends core_Manager
+class purchase_Offers extends core_Master
 {
     
     
