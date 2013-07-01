@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     ДА Документи
  */
-class accda_Documents extends core_Manager
+class accda_Documents extends core_Master
 {
     
     
