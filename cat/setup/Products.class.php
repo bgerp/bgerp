@@ -39,12 +39,12 @@ class cat_setup_Products extends core_Mvc
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
                 
                 // Ако има запис с този 'name'
-                if($rec->id = $Products->fetchField(array("#name = '[#1#]'", $rec->name), 'id')){
+                if($rec->id = $Products->fetchField(array("#code = '[#1#]'", $rec->code), 'id')){
                  	$updated++;
                 } else {
                     $created++;
                 }
-               
+                
                 $Products->save($rec, NULL, 'IGNORE');
             }
             
