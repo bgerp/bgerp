@@ -576,6 +576,8 @@ class core_Form extends core_FieldSet
                     $attr['placeholder'] = tr($field->caption);
                 }
                 
+                $type = clone($field->type);
+                
                 if ($this->gotErrors($name)) {
                     
                     if($this->errors[$name]->ignorable) {
@@ -589,9 +591,10 @@ class core_Form extends core_FieldSet
                         $idForFocus = $attr['id'];
                         $firstError = TRUE;
                     }
+
+                    $type->error = TRUE;
                 }
                 
-                $type = clone($field->type);
                 
                 if ($field->maxRadio) {
                     setIfNot($type->params['maxRadio'], $field->maxRadio);
@@ -651,91 +654,8 @@ class core_Form extends core_FieldSet
         
         return $fieldsLayout;
     }
-    
-    
-    /**
-     * Рендира HTML инпут поле
-     */
-    function renderInput($name)
-    {
-        $field = $this->fields[$name];
-        
-        expect($field->kind, $name, 'Липсващо поле');
-        
-        $options = $field->options;
-        
-        $attr = $field->attr;
-        
-        if ($field->hint) {
-            $attr['title'] = tr($field->hint);
-        }
-        
-        if ($field->width) {
-            $attr['style'] .= "width:{$field->width};";
-        }
-        
-        if ($field->height) {
-            $attr['style'] .= "height:{$field->height};";
-        }
-        
-        if ($field->placeholder) {
-            $attr['placeholder'] = tr($field->placeholder);
-        } elseif ($this->view == 'horizontal') {
-            $attr['placeholder'] = tr($field->caption);
-        }
-        
-        if ($this->gotErrors($name)) {
-            
-            if($this->errors[$name]->ignorable) {
-                $attr['class'] .= ' inputWarning';
-            } else {
-                $attr['class'] .= ' inputError';
-            }
-        }
-        
-        $type = clone($field->type);
-        
-        if ($field->maxRadio) {
-            setIfNot($type->params['maxRadio'], $field->maxRadio);
-        }
-        
-        if ($field->maxColumns) {
-            setIfNot($type->params['maxColumns'], $field->maxColumns);
-        }
-        
-        if ($field->columns) {
-            setIfNot($type->params['columns'], $field->columns);
-        }
-        
-        if ($field->options) {
-            $type->options = $field->options;
-        }
-        
-        // Стойността на полето
-        $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
-        
-        // Ако има грешка за полето, 
-        // вземаме стойността от Request-а
-        if ($this->gotErrors($field->name)) {
-            $value = $attr['value'] = Request::get($field->name);
-        }
-        
-        // Рендиране на select или input полето
-        if (count($options) > 0 && !is_a($type, 'type_Key')) {
-            unset($attr['value']);
-            
-            $input = ht::createSmartSelect($options, $name, $value, $attr,
-                $type->params['maxRadio'],
-                $type->params['maxColumns'],
-                $type->params['columns']);
-        } else {
-            $input = $type->renderInput($name, $value, $attr);
-        }
-        
-        return $input;
-    }
-    
-    
+
+
     /**
      * Подготвя шаблона за инпут-полетата
      */
