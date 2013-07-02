@@ -77,7 +77,7 @@ class callcenter_Fax extends core_Manager
     /**
      * 
      */
-    var $listFields = 'id, faxNum, cid, contragent, createdOn=Изпратено->От, createdBy=Изпратено->На';
+    var $listFields = 'id, faxNum, contragent, cid, createdOn=Изпратено->От, createdBy=Изпратено->На';
     
     
 	/**
@@ -85,11 +85,11 @@ class callcenter_Fax extends core_Manager
      */
     function description()
     {
-        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Номер');
+        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Контрагент->Номер');
+        $this->FNC('contragent', 'varchar', 'caption=Контрагент->Име');
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Документ');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
-        $this->FNC('contragent', 'varchar', 'caption=Контрагент');
     }
     
     
