@@ -924,6 +924,24 @@ class core_Users extends core_Manager
     
     
     /**
+     * Проверява дали 2 потребителя са от един и същи екип
+     * 
+     * @param integer $user1 - id на първия потребител
+     * @param integer $user2 - id на втория потребител
+     * 
+     * @return boolean - Ако са от един и същи екип връща TRUE
+     */
+    static function isFromSameTeam($user1, $user2)
+    {
+        // Вземаме съотборниците на първия потребител
+        $teamMates = static::getTeammates($user1);
+        
+        // Проверяваме дали втория е при тях
+        return type_Keylist::isIn($user2, $teamMates);
+    }
+    
+    
+    /**
      * Всички потребители с дадена роля
      *
      * @param mixed $roleId ид на роля или масив от ид на роли
