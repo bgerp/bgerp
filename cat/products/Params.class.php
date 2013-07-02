@@ -122,7 +122,7 @@ class cat_products_Params extends cat_products_Detail
     	}
     	
         if($form->rec->paramId){
-        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId);
+        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($form->rec->paramId, 'cat_Params');
         } else {
         	$form->setField('paramValue', 'input=hidden');
         }

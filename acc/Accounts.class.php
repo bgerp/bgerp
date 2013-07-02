@@ -37,7 +37,7 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc,broker,designer';
+    var $canRead = 'admin,acc,cat,designer';
     
     
     /**
@@ -49,13 +49,13 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,broker,designer';
+    var $canAdd = 'admin,acc,cat,designer';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,broker,designer';
+    var $canView = 'admin,acc,cat,designer';
     
     
     /**

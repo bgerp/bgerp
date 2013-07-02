@@ -63,13 +63,13 @@ class cat_Params extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,broker';
+    var $canAdd = 'admin,acc,cat';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'admin,acc,cat';
     
     
     /**

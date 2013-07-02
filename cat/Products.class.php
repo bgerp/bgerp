@@ -94,19 +94,19 @@ class cat_Products extends core_Master {
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,cat,broker';
+    var $canAdd = 'admin,cat,cat';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,cat,broker';
+    var $canView = 'admin,cat,cat';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,cat,broker';
+    var $canList = 'admin,cat,cat';
     
     
     /**

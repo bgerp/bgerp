@@ -93,13 +93,13 @@ class techno_Specifications extends core_Master {
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,techno,broker';
+    var $canAdd = 'admin,techno,cat';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,techno,broker';
+    var $canList = 'admin,techno,cat';
     
     
     /**
