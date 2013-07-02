@@ -2,8 +2,10 @@
 	<tr>
 		<th width='4%'>№</th>
 		<th width='45%'>|Описание|*</th>
-		<th class='display-narrow'>|К-во|*</th>
-		<th class='display-wide'>|Количество|*</th>
+		
+		<th class='display-narrow quote-quantity'>|К-во|*</th>
+		<th class='display-wide quote-quantity'>|Количество|*</th>
+		
 		<th>|Цена|*</th>
 		<th class='display-wide'>|Стойност|*</th>
 		<th class='display-narrow'>|Ст-ст|*</th>
@@ -15,15 +17,17 @@
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
 		<!--ET_END productId-->
+		
 		<td class='misc-info' align='right' valign='top'>
 		<b>[#quantity#]</b> [#uomShort#]
 		<!--ET_BEGIN tolerance-->
 		<div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
 		<!--ET_END tolerance-->
 		<!--ET_BEGIN term-->
-		<div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#] &nbsp;|дни|*</b></div>
+		<div class='quiantity-misc'>|срок|* &nbsp;<b>[#term#]</b></div>
 		<!--ET_END term-->
 		</td>
+		
 		<td class='misc-info' align='right' valign='top'>
 		[#price#]
 		<!--ET_BEGIN discount-->

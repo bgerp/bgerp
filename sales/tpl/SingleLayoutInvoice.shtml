@@ -22,7 +22,7 @@
                         <div class='invInfo'>|Дата|* / Date</div>
                         <div class="bigData">[#date#]</div>
     					<div class='invInfo'>|Място|* / Place</div>
-                        <div class="bigData">[#dealPlace#]</div>
+                        <div class="bigData">[#place#]</div>
 						<div class='invInfo bigData'>
                         	<div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
                         	<span style='font-weight:normal;'>[#POS#]</span>
@@ -36,7 +36,8 @@
                 <tr>
                     <td class="cell">
                         <b>[#contragentName#]</b><br>
-                        <b>[#contragentCountry#]</b><br>
+                        <b>[#contragentCountryId#]</b><br>
+                        [#contragentPlace#], [#contragentPCode#]<br>
                         [#contragentAddress#]<br>
                     </td>
 
@@ -49,11 +50,20 @@
                 <tr>
                     <td class="cell">
                         <table cellpadding="0" cellspacing="2">
-                            <tbody><tr>
+                            <tbody>
+                            <!--ET_BEGIN contragentVatNo-->
+                            <tr>
                                 <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#contragentVatNo#]</td>
+                            </tr>
+                            <!--ET_END contragentVatNo-->
+                            <tr>
+                                <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
+                            </tr>
+                            <tr>
+                                <td class="bigData">[#contragentUiC#]</td>
                             </tr>
                             </tbody>
                         </table>
@@ -61,17 +71,20 @@
 
                     <td class="cell">
                         <table>
-                            <tbody><tr>
+                            <tbody>
+                            <!--ET_BEGIN MyCompanyVatNo-->
+                            <tr>
                                 <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
                             </tr>
                             <tr>
                                 <td class="bigData">[#MyCompanyVatNo#]</td>
                             </tr>
+                            <!--ET_END MyCompanyVatNo-->
                             <tr>
-                                <td><small><b>|Идентификационен номер|*</b></small></td>
+                                <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
                             </tr>
                             <tr>
-                                <td class="bigData">[#taxId#]</td>
+                                <td class="bigData">[#uicId#]</td>
                             </tr>
                             </tbody>
                         </table>            
@@ -107,7 +120,7 @@
 	                <td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></td>
                 </tr>
                 <tr>
-                	<td class='info-right'>|Данъчна основа|* :</td>
+                	<td class='info-right'>|Данъчна основа|* / TAX BASE :</td>
                 	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></td>
                 </tr>
                 <tr>
@@ -130,8 +143,8 @@
                 <tr>
                    <td class="topCell" valign="top" width="30%">
                    <div>|Доставка|* / <i>Delivery</i></div>
-                   <div>|Условие|*: [#deliveryId#]</div>
-                   <div>|Място|*: [#deliveryPlace#]</div>
+                   <div>|Условие|* / <i>Term</i> : [#deliveryId#]</div>
+                   <div>|Място|* / <i>Place</i><br />[#deliveryPlace#]</div>
                    <!--ET_BEGIN additionalInfo-->
                    <hr>
                    <div>|Бележки|* / <i>Notes</i></div>
@@ -145,9 +158,9 @@
                   </td>
                    <td class="topCell" valign="top" width="40%">
                         <div>|Плащане|* / <i>Payment</i></div>
-                        <div>|Начин|*: [#paymentMethodId#]</div>
-                        <div>|Валута|*: [#currencyId#]</div>
-                        <div>|Краен срок за плащане|*: <b>[#DUE_DATE#]</b></div>
+                        <div>|Начин|* / <i>Method</i> : [#paymentMethodId#]</div>
+                        <div>|Валута|* / <i>Currency</i> : [#currencyId#]</div>
+                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                         <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
                         <!--ET_END OVERDUE_INTEREST_RATE-->
@@ -187,7 +200,7 @@
                             </tr>
                              <!--ET_BEGIN vatDate-->  
                             <tr>
-                                <td class='invoice-vat-info'>|Дата на данъчното събитие|*:</td>
+                                <td class='invoice-vat-info'>|Дата на данъчното събитие|* / <i>Tax event date</i>:</td>
                             </tr>
                              
                             <tr>
