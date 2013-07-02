@@ -82,43 +82,43 @@ class cat_Products extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin,user';
+    var $canRead = 'user';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'admin,cat';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,cat,cat';
+    var $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,cat,cat';
+    var $canView = 'user';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,cat,cat';
+    var $canList = 'cat,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,cat';
+    var $canDelete = 'cat,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,cat';
+    var $canReject = 'cat,ceo';
     
     
     /**
