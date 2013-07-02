@@ -136,7 +136,7 @@ class cat_Products extends core_Master {
     /**
      * 
      */
-    var $canSingle = 'admin, cat';
+    var $canSingle = 'cat,ceo';
     
 	
     /** 
