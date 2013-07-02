@@ -92,7 +92,7 @@ class bgerp_Portal extends core_Manager
 
         $taskTitle = str_replace(' ', '&nbsp;', $taskTitle);
 
-        $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:20px;">
+        $tasksTpl = new ET('<div class="clearfix21 portal" style="background-color:#fffff0;margin-bottom:25px;">
             <div class="legend" style="background-color:#ffd;">' . $taskTitle . '&nbsp;' . crm_Profiles::createLink() . '&nbsp;[#SWITCH_BTN#]&nbsp;[#ADD_BTN#]</div>
             [#TASKS#]
             </div>');
