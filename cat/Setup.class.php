@@ -76,7 +76,7 @@ class cat_Setup
         $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "{$role}, ceo");
         
         $html .= $this->loadSetupData();
         
