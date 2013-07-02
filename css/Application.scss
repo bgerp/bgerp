@@ -712,6 +712,21 @@ div.mobile {
 .wide div.hFormField{
 	margin-bottom:2px;
 }
+
+.wide .doc_Search{
+	.listFilter{
+		padding-bottom:0;
+	}
+}
+
+.narrow .doc_Search{
+ 	.pages{
+ 		margin-bottom:0px;
+ 	}
+ 	.listTable{
+ 		margin-top:10px;
+ 	}
+ }
 /*край на стилове за форми*/
 
 
