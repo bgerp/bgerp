@@ -272,9 +272,13 @@ defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
 
 
 /**
- * Базова директория, където се намират под-директориите с временни файлове
+ * Базова директория, където се намират под-директориите с временни файлове.
+ *  
+ * По подразбиране използваме системната директория за временни файлове.
+ * 
+ * @see http://php.net/manual/en/function.sys-get-temp-dir.php
  */
-defIfNot('EF_TEMP_BASE_PATH', EF_ROOT_PATH . '/temp');
+defIfNot('EF_TEMP_BASE_PATH', sys_get_temp_dir());
 
 
 /**
