@@ -54,17 +54,17 @@ class type_Time extends type_Varchar {
         if(is_numeric($val)) {
             switch($this->params['uom']) {
                 case 'weeks': 
-                    $val = $val * 7 * 24 * 60;
+                    $val = $val * 7 * 24 * 60 * 60;
                     break;
                 case 'days':
-                    $val = $val * 24 * 60;
+                    $val = $val * 24 * 60 * 60;
                     break;
                 case 'hours':
-                    $val = $val * 60;
+                    $val = $val * 60 * 60;
                     break;
                 default:
                 case 'minutes':
-                    $val = $val;
+                    $val = $val * 60;
                     break;
             }
 
@@ -74,7 +74,7 @@ class type_Time extends type_Varchar {
         $val = strtolower(str::utf2ascii($val));
         
         // Проверка за стойности, означаващи 0, на момента, on time
-        $zeroArr = array('на момента', 'веднага', 'on time');
+        $zeroArr = array('na momenta', 'vednaga', 'on time');
         
         foreach($zeroArr as $w) {
             if($val == $w || $val == tr($w)) {
