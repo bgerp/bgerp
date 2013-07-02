@@ -23,6 +23,7 @@ class store_plg_Shippable extends core_Plugin
         
         $canShip = arr::make($mvc->canShip, TRUE);
         $canShip['store'] = 'store';
+        $canShip['admin'] = 'admin';
         
         $mvc->canShip = $canShip;
     }
