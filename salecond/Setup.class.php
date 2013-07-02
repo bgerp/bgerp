@@ -56,7 +56,6 @@ class salecond_Setup
     {
         $managers = array(
         	'salecond_PaymentMethods',
-        	'salecond_PaymentMethodDetails',
         	'salecond_DeliveryTerms',
         	'salecond_Parameters',
         	'salecond_ConditionsToCustomers',
@@ -89,6 +88,9 @@ class salecond_Setup
     {
     	// Зареждане на други условия за продажба от csv файл
     	$html .= salecond_Parameters::setup();
+    	
+    	// Зареждаме начините за плащане от csv файл
+    	$html .= salecond_PaymentMethods::loadData();
     	
     	return $html;
     }
