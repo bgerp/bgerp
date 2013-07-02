@@ -51,31 +51,31 @@ class cat_Params extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,user';
+    var $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,cat';
+    var $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,cat';
+    var $canView = 'user';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'cat,ceo';
     
     
     /**
