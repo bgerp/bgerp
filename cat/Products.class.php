@@ -25,7 +25,7 @@ class cat_Products extends core_Master {
     /**
      * Заглавие
      */
-    var $title = "Продукти в каталога";
+    var $title = "Артикули в каталога";
     
     
     /**
@@ -52,7 +52,7 @@ class cat_Products extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Продукт";
+    var $singleTitle = "Артикул";
     
     
     /**
@@ -217,7 +217,7 @@ class cat_Products extends core_Master {
 	    			$check = $mvc->checkIfCodeExists($rec->$code);
 	    			if($check && ($check->productId != $rec->id)
 	    				|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-	    				$form->setError($code, 'Има вече продукт с такъв код!');
+	    				$form->setError($code, 'Има вече артикул с такъв код!');
 			        }
     			}
     		}
@@ -578,7 +578,7 @@ class cat_Products extends core_Master {
     		$query->orWhere("#groups LIKE '%|{$groupId}|%'");
     	}
     	
-    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти в посочените групи');
+    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма артикули в посочените групи');
     	
     	while($rec = $query->fetch()){
 	    	$result[$rec->id] = $rec->name;
@@ -599,7 +599,7 @@ class cat_Products extends core_Master {
      */
     public static function getVat($productId, $date = NULL)
     {
-    	expect(static::fetch($productId), 'Няма такъв продукт');
+    	expect(static::fetch($productId), 'Няма такъв артикул');
     	
     	if(!$date){
     		$date = dt::now();
