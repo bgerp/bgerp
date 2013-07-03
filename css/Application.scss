@@ -97,6 +97,13 @@ table{
 		vertical-align:top;
 	}
 }
+.default-table{
+	border-collapse:separate;
+	line-height:normal;
+	td{
+		padding:2px;
+	}
+}
 /*край на common elements*/
 
 
