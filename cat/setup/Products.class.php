@@ -37,7 +37,7 @@ class cat_setup_Products extends core_Mvc
                 $rec->measureId = cat_UoM::fetchField("#name = '{$csvRow[2]}'", "id");
                 $rec->groups = $Groups->getKeylistBySysIds($csvRow[3]);
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
-                
+               
                 // Ако има запис с този 'name'
                 if($rec->id = $Products->fetchField(array("#code = '[#1#]'", $rec->code), 'id')){
                  	$updated++;
@@ -45,7 +45,7 @@ class cat_setup_Products extends core_Mvc
                     $created++;
                 }
                 
-                $Products->save($rec, NULL, 'IGNORE');
+                $Products->save($rec, NULL, 'REPLACE');
             }
             
             fclose($handle);

@@ -23,7 +23,6 @@ class cat_setup_Groups extends core_Mvc
     static function setup()
     {
         $csvFile = __DIR__ . "/csv/Groups.csv";
-    	
         $Groups = cls::get('cat_Groups');
         
         $created = $updated = 0;
@@ -46,7 +45,6 @@ class cat_setup_Groups extends core_Mvc
                
                 $Groups->save($rec, NULL, 'REPLACE');
             }
-            
             fclose($handle);
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
