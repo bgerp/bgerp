@@ -1697,7 +1697,7 @@ fieldset.sharing-history {
 }
 
 .cms-row .fourcol {
-	width: 30.73%;
+	width: 29.73%;
 }
 
 .cms-row .fivecol {
@@ -1713,15 +1713,7 @@ fieldset.sharing-history {
 }
 
 .cms-row .eightcol {
-	width: 65.3%;
-}
-.cms-row .eightcol-new {
-	width:71%;
-	margin-right:0;
-}
-
-.narrow .cms-row .eightcol-new {
-	width:70%;
+	width: 62%;
 }
 
 .cms-row .ninecol {
@@ -2367,16 +2359,16 @@ div.locImage{
 
 @media handheld, only screen and (max-width: 800px) { 
 	#cmsMenu a {
-		margin-left:5px;
-		margin-right:5px;
+		margin-left:6px !important;
+		margin-right:6px !important;
 		font-size:1em;
     }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
 	#cmsMenu a {
-		margin-left:3px;
-		margin-right:3px;
+		margin-left:4px !important;
+		margin-right:4px !important;
 		font-size:0.90em;
     }
     .narrow select{
@@ -2386,8 +2378,8 @@ div.locImage{
 
 @media handheld, only screen and (max-width: 700px) { 
 	#cmsMenu a { 
-		margin-left:2px;
-		margin-right:2px;
+		margin-left:3px !important
+		margin-right:3px !important;
 		font-size:0.85em;
     }
     .narrow select{
@@ -2397,8 +2389,8 @@ div.locImage{
 
 @media handheld, only screen and (max-width: 600px) { 
 	#cmsMenu a {
-		margin-left:2px;
-		margin-right:2px;
+		margin-left:1px !important;
+		margin-right:1px !important;
 		font-size:0.8em;
     }
     .narrow select{
