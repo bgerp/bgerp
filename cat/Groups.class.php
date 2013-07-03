@@ -20,7 +20,7 @@ class cat_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи на продуктите";
+    var $title = "Групи на артикулите";
     
     
     /**
