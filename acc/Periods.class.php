@@ -54,13 +54,13 @@ class acc_Periods extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc';
+    var $canRead = 'ceo,acc';
     
     
     /**
      * Кой може да пише?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'ceo,acc';
     
     
     /**

@@ -70,7 +70,7 @@ class sales_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "{$role}, ceo");
         
         return $html;
     }

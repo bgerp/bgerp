@@ -45,25 +45,25 @@ class salecond_PaymentMethods extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, salecond';
+    var $canRead = 'ceo, salecond';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, salecond';
+    var $canEdit = 'ceo, salecond';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, salecond';
+    var $canAdd = 'ceo, salecond';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, salecond';
+    var $canDelete = 'ceo, salecond';
     
     
     /**

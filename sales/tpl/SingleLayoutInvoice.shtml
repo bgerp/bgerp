@@ -31,7 +31,7 @@
                         	<!--ET_END origin-->
                         </div>
                     </td>
-                    <td class="cell" width="35%"><b></b> </td>
+                    <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
                 </tr>           
                 <tr>
                     <td class="cell">
@@ -120,7 +120,7 @@
 	                <td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></td>
                 </tr>
                 <tr>
-                	<td class='info-right'>|Данъчна основа|* / TAX BASE :</td>
+                	<td class='info-right'>|Данъчна основа|* / Tax base :</td>
                 	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></td>
                 </tr>
                 <tr>

@@ -80,7 +80,7 @@ class pos_Setup
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "{$role}, ceo");
         
         return $html;
     }

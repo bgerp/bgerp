@@ -26,12 +26,12 @@ class hr_Wrapper extends plg_ProtoWrapper
     function description()
     {
                 
-        $this->TAB('hr_EmployeeContracts', 'Назначения', 'admin,hr');
-        $this->TAB('hr_Positions', 'Длъжности', 'admin,hr');
-        $this->TAB('hr_Departments', 'Структура', 'admin,hr');
+        $this->TAB('hr_EmployeeContracts', 'Назначения', 'ceo,hr');
+        $this->TAB('hr_Positions', 'Длъжности', 'ceo,hr');
+        $this->TAB('hr_Departments', 'Структура', 'ceo,hr');
         //$this->TAB('hr_Shifts', 'График','admin,hr');
-        $this->TAB('hr_WorkingCycles', 'График', 'admin,dma,hr');
-        $this->TAB('hr_ContractTypes', 'Данни', 'admin,hr');
+        $this->TAB('hr_WorkingCycles', 'График', 'ceo,dma,hr');
+        $this->TAB('hr_ContractTypes', 'Данни', 'ceo,hr');
         
         $this->title = 'Персонал';
         //$this->title = 'HR « Персонал';

@@ -42,25 +42,25 @@ class pos_Favourites extends core_Manager {
 	/**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin, pos';
+    var $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'admin, pos';
+    var $canAdd = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, admin';
+    var $canEdit = 'pos, ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin, pos';
+    var $canReject = 'ceo, pos';
     
 	
 	/**

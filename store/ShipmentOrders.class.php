@@ -55,7 +55,7 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canRead = 'admin,store';
+    public $canRead = 'ceo,store';
     
     
     /**
@@ -63,7 +63,7 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canEdit = 'admin,store';
+    public $canEdit = 'ceo,store';
     
     
     /**
@@ -71,7 +71,7 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canAdd = 'admin,store';
+    public $canAdd = 'ceo,store';
     
     
     /**
@@ -79,13 +79,13 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canView = 'admin,store';
+    public $canView = 'ceo,store';
 
 
     /**
      * Кой може да го види?
      */
-    var $canViewprices = 'admin,acc';
+    var $canViewprices = 'ceo,acc';
     
     
     /**
@@ -93,7 +93,7 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canDelete = 'admin,store';
+    public $canDelete = 'ceo,store';
     
     
     /**
@@ -101,7 +101,7 @@ class store_ShipmentOrders extends core_Master
      * 
      * @var string|array
      */
-    public $canConto = 'admin,store';
+    public $canConto = 'ceo,store';
     
     
     /**

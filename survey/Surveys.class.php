@@ -62,7 +62,7 @@ class survey_Surveys extends core_Master {
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'survey, ceo, admin';
+    var $canRead = 'survey, ceo';
     
     
     /**
@@ -86,7 +86,7 @@ class survey_Surveys extends core_Master {
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'survey, ceo, admin';
+    var $canWrite = 'survey, ceo';
     
     
     /**

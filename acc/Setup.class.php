@@ -123,8 +123,8 @@ class acc_Setup
 
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, ceo");
+        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, ceo");
         
         $html .= $this->loadSetupData();
 

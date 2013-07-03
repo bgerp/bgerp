@@ -122,6 +122,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Кой може да качва файлове
+     */
+    var $canWrite = 'ceo,cat';
+    
+    
+    /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';

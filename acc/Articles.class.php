@@ -82,31 +82,31 @@ class acc_Articles extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'acc,admin';
+    var $canRead = 'acc,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'acc,admin';
+    var $canWrite = 'acc,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'acc,admin';
+    var $canDelete = 'acc,ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,admin';
+    var $canConto = 'acc,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'acc,admin';
+    var $canReject = 'acc,ceo';
     
     
     /**

@@ -47,13 +47,13 @@ class price_ConsumptionNormGroups extends core_Manager {
 	/**
 	* Кой може да чете
 	*/
-	var $canRead = 'price, admin';
+	var $canRead = 'price, ceo';
 	    
 	    
 	/**
 	* Кой може да пише
 	*/
-	var $canWrite = 'price, admin';
+	var $canWrite = 'price, ceo';
 	    
 	    
 	/**

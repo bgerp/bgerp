@@ -211,7 +211,7 @@ class price_ConsumptionNormDetails extends core_Detail {
 		if($action == 'add' && isset($rec->normId)){
 			$masterRec = $mvc->Master->fetch($rec->normId);
 			if($masterRec->state == 'draft'){
-				$res = 'price, admin';
+				$res = 'price, ceo';
 			}
 		}
 	}

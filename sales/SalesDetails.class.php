@@ -56,7 +56,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canRead = 'admin, sales';
+    public $canRead = 'ceo, sales';
     
     
     /**
@@ -64,7 +64,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canEdit = 'admin, sales';
+    public $canEdit = 'ceo, sales';
     
     
     /**
@@ -72,7 +72,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canAdd = 'admin, sales';
+    public $canAdd = 'ceo, sales';
     
     
     /**
@@ -80,7 +80,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canView = 'admin, sales';
+    public $canView = 'ceo, sales';
     
     
     /**
@@ -88,7 +88,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canDelete = 'admin, sales';
+    public $canDelete = 'ceo, sales';
     
     
     /**

@@ -38,31 +38,31 @@ class store_Products extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,store';
+    var $canRead = 'ceo,store';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'ceo,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,store';
+    var $canAdd = 'ceo,store';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,store';
+    var $canView = 'ceo,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,store';
+    var $canDelete = 'ceo,store';
     
     
     /**
@@ -150,7 +150,7 @@ class store_Products extends core_Manager
         $measureId = cat_Products::fetchField("#id = {$rec->name}", 'measureId');
         $measureShortName = cat_UoM::getShortName($measureId);
         
-        if (haveRole('admin,store')) {
+        if (haveRole('ceo,store')) {
             $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));
         }
         

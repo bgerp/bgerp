@@ -60,6 +60,12 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
+     * Кой може да качва файлове
+     */
+    var $canAdd = 'ceo,cat';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

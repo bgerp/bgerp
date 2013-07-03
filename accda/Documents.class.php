@@ -52,31 +52,31 @@ class accda_Documents extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,accda';
+    var $canRead = 'ceo,accda';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,accda';
+    var $canEdit = 'ceo,accda';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,accda';
+    var $canAdd = 'ceo,accda';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,accda';
+    var $canView = 'ceo,accda';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,accda';
+    var $canDelete = 'ceo,accda';
     
     
     /**

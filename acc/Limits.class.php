@@ -36,19 +36,19 @@ class acc_Limits extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc';
+    var $canRead = 'ceo,acc';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'admin,acc';
+    var $canWrite = 'ceo,acc';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'ceo,acc';
     
     
     /**

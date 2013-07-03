@@ -34,31 +34,31 @@ class trz_Fines extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,trz';
+    var $canRead = 'ceo,trz';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,trz';
+    var $canEdit = 'ceo,trz';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,trz';
+    var $canAdd = 'ceo,trz';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,trz';
+    var $canView = 'ceo,trz';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,trz';
+    var $canDelete = 'ceo,trz';
     
     
     /**

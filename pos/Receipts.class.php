@@ -57,19 +57,19 @@ class pos_Receipts extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin, pos';
+    var $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'pos, admin';
+    var $canAdd = 'pos, ceo';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, admin';
+    var $canEdit = 'pos, ceo';
     
 	
 	/**

@@ -327,7 +327,7 @@ class bank_DepositSlips extends core_Master
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($action == 'add' && (isset($rec) && $rec->originId)){
-    		$res = 'bank, ceo, admin';
+    		$res = 'bank, ceo';
     	}
     }
 }

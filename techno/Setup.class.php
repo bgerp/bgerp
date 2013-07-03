@@ -69,7 +69,7 @@ class techno_Setup
         $html .= $Bucket->createBucket('techno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_Specifications', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_Specifications', 'default', "{$role}, ceo");
         
         return $html;
     }

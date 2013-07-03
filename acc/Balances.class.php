@@ -45,13 +45,13 @@ class acc_Balances extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin,acc';
+    var $canList = 'ceo,acc';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc';
+    var $canRead = 'ceo,acc';
     
     
     /**

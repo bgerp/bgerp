@@ -75,7 +75,7 @@ class techno_Specifications extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin,techno';
+    var $canRead = 'ceo,techno';
     
     
     /**
@@ -93,31 +93,31 @@ class techno_Specifications extends core_Master {
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,techno,cat';
+    var $canAdd = 'ceo,techno,cat';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,techno,cat';
+    var $canList = 'ceo,techno,cat';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,techno';
+    var $canDelete = 'ceo,techno';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,techno';
+    var $canReject = 'ceo,techno';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canAjust = 'admin,techno';
+    var $canAjust = 'ceo,techno';
     
     
     /**
@@ -539,7 +539,7 @@ class techno_Specifications extends core_Master {
     		if(!isset($rec) || (isset($rec) && $rec->state != 'draft') || (isset($rec) && !$rec->data)){
     			$res = 'no_one';
     		}else {
-    			$res = 'admin, techno';
+    			$res = 'ceo, techno';
     		}
     	}
     	
@@ -555,7 +555,7 @@ class techno_Specifications extends core_Master {
     	
     	if($action == 'configure' && isset($rec)){
     		if($rec->state == 'draft'){
-    			$res = 'admin, techno';
+    			$res = 'ceo, techno';
     		} else {
     			$res = 'no_one';
     		}

@@ -93,6 +93,12 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Кой може да качва файлове
+     */
+    var $canWrite = 'ceo,cat';
+    
+    
+    /**
      * Кой може да го види?
      */
     var $canView = 'user';

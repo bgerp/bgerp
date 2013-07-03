@@ -55,25 +55,25 @@ class store_RackDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, store';
+    var $canRead = 'ceo, store';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, store';
+    var $canEdit = 'ceo, store';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, store';
+    var $canAdd = 'ceo, store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, store';
+    var $canDelete = 'ceo, store';
     
     
     /**

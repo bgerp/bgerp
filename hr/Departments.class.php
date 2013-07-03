@@ -45,13 +45,13 @@ class hr_Departments extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,hr';
+    var $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'admin,hr';
+    var $canWrite = 'ceo,hr';
     
     
     /**

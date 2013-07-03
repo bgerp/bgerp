@@ -37,31 +37,31 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc,cat,designer';
+    var $canRead = 'ceo,acc,cat,designer';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'ceo,acc';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,cat,designer';
+    var $canAdd = 'ceo,acc,cat,designer';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,cat,designer';
+    var $canView = 'ceo,acc,cat,designer';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'ceo,acc';
     
     
     /**

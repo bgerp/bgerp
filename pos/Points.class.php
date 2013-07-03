@@ -56,13 +56,13 @@ class pos_Points extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin, pos';
+    var $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'admin, pos';
+    var $canWrite = 'ceo, pos';
     
     
     /**

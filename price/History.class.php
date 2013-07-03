@@ -51,7 +51,7 @@ class price_History extends core_Manager
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,admin';
+    var $canRead = 'ceo';
     
     
     /**

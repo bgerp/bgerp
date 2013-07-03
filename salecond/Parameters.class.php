@@ -42,6 +42,24 @@ class salecond_Parameters extends core_Manager
     
     
     /**
+     * Кой може да чете
+     */
+    var $canRead = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canWrite = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    var $canAdd = 'ceo,salecond';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

@@ -44,6 +44,24 @@ class salecond_DeliveryTerms extends core_Master
     
     
     /**
+     * Кой може да чете
+     */
+    var $canRead = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canWrite = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    var $canAdd = 'ceo,salecond';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'trans_DeliveryTerms';

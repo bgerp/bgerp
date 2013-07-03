@@ -40,19 +40,19 @@ class acc_Items extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'ceo,acc';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'ceo,acc';
     
     
     /**
      * var $canList = 'admin,acc';
      */
-    var $canAdmin = 'admin,acc';
+    var $canAdmin = 'ceo,acc';
     
     
     /**
