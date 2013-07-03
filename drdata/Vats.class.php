@@ -427,4 +427,23 @@ class drdata_Vats extends core_Manager
         
         return FALSE;
     }
+    
+    
+    /**
+     * Функция връщаща ЕИК то по зададен Ват номер, Ако е подаден ЕИК се връща
+     * директно
+     * @param string $vatNo - Ват номер
+     * @return string - ЕИК номера извлечен от Ват-а, или ако е ЕИК
+     * директно го връща
+     */
+    public static function getUicByVatNo($vatNo)
+    {
+    	$self = cls::get(get_called_class());
+    	$vatNo = static::canonize($vatNo);
+    	if($self->check($vatNo) == 'valid'){
+    		return substr($vatNo, '2');
+    	}
+    	
+    	return $vatNo;
+    }
 }
