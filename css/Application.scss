@@ -284,6 +284,14 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	vertical-align: top;
 }
 
+.narrow .favicon{
+	display:inline-block;
+	position:relative;
+	top:1px;
+	margin-right:3px;
+}
+
+
 /* Стилове за елемента 'tab' от BGERP*/
 div.tab-control div.tab-row .tab {
 	font-family: arial;
