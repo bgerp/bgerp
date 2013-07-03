@@ -67,13 +67,13 @@ class catering_RequestDetails extends core_Detail
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'catering, admin, user';
+    var $canWrite = 'catering, ceo, user';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, admin, user';
+    var $canRead = 'catering, ceo, user';
     
     
     /**
@@ -95,8 +95,8 @@ class catering_RequestDetails extends core_Detail
     
     /**
      * Преди извличане на записите от БД
-     * Ако няма права admin,catering се показват заявките само за потребителя
-     * Ако има права admin,catering записите се сортират първо по $personId
+     * Ако няма права ceo,catering се показват заявките само за потребителя
+     * Ако има права ceo,catering записите се сортират първо по $personId
      * Ако заявката е със state=closed се скрива колоната за редакция на записите
      *
      * @param core_Mvc $mvc
@@ -106,7 +106,7 @@ class catering_RequestDetails extends core_Detail
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
-        if (!haveRole('admin,catering')) {
+        if (!haveRole('ceo,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
             // Filter by $personId
@@ -138,7 +138,7 @@ class catering_RequestDetails extends core_Detail
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // Prepare $personId
-        if (!haveRole('admin,catering')) {
+        if (!haveRole('ceo,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
             // set form title

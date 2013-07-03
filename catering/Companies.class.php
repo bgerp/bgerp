@@ -46,13 +46,13 @@ class catering_Companies extends core_Manager
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'catering,admin';
+    var $canWrite = 'catering,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering,admin';
+    var $canRead = 'catering,ceo';
     
     
     /**

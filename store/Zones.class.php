@@ -44,7 +44,7 @@ class store_Zones extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'ceo,store';
     
     
     /**

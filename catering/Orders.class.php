@@ -57,7 +57,7 @@ class catering_Orders extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, admin';
+    var $canRead = 'catering, ceo';
     
     
     /**

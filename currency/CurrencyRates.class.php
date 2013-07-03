@@ -48,7 +48,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Кой може да зарежда валутните курсове ръчно от ЕЦБ?
      */
-    var $canRetrieve = 'admin,currency,ceo';
+    var $canRetrieve = 'currency,ceo';
     
     /**
      * Работен кеш за вече изчислени валутни курсове

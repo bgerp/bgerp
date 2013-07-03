@@ -149,7 +149,7 @@ class cat_Groups extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	if(!haveRole('admin')){
+    	if(!haveRole('ceo')){
     		
     		// Кой може да променя мета пропъртитата на групите
     		$data->form->setField('meta', 'input=none');

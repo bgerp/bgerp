@@ -54,13 +54,13 @@ class catering_Requests extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'catering, admin, user';
+    var $canWrite = 'catering, ceo, user';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, admin, user';
+    var $canRead = 'catering, ceo, user';
     
     
     /**
@@ -163,10 +163,10 @@ class catering_Requests extends core_Master
             // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
         }
         
-        // END Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
+        // END Ако потребителя не е 'ceo' или 'catering' ще вижда сумата само на неговите поръчки за деня
         
-        // Ако потребителя е 'admin' или 'catering' показваме сумата от всички заявки за деня
-        if (haveRole('admin,catering')) {
+        // Ако потребителя е 'ceo' или 'catering' показваме сумата от всички заявки за деня
+        if (haveRole('ceo,catering')) {
             // Форматираме изгледа за 'totalPrice' в таблицата
             if ($rec->totalPrice == '') {
                 $row->totalPrice = number_format(0, 2, '.', ' ') . " лв";
@@ -177,7 +177,7 @@ class catering_Requests extends core_Master
             // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
         }
         
-        // END Ако потребителя е 'admin' или 'catering' показваме сумата от всички заявки за деня
+        // END Ако потребителя е 'ceo' или 'catering' показваме сумата от всички заявки за деня
         
         // Проверка за 'dateState'
         $dateTodayFull = dt::timestamp2Mysql(time());
@@ -334,7 +334,7 @@ class catering_Requests extends core_Master
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        if (!haveRole('admin,catering')) {
+        if (!haveRole('ceo,catering')) {
             $data->toolbar->removeBtn('btnAdd');
         }
     }

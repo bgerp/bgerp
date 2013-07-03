@@ -29,7 +29,7 @@ class acc_WrapperSettings extends plg_ProtoWrapper
         $this->TAB('acc_Periods', 'Периоди', 'ceo,acc');
         $this->TAB('acc_Lists', 'Номенклатури', 'ceo,acc');
         $this->TAB('acc_Items', 'Пера', 'ceo,acc');
-        $this->TAB('acc_Accounts', 'Сметки', 'ceo,acc,broker,designer');
+        $this->TAB('acc_Accounts', 'Сметки', 'ceo,acc,broker');
         $this->TAB('acc_Limits', 'Лимити', 'ceo,acc');
         $this->TAB('acc_Operations', 'Операции', 'ceo,acc');
             

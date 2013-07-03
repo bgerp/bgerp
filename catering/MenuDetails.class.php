@@ -66,25 +66,25 @@ class catering_MenuDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, catering';
+    var $canRead = 'ceo, catering';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, catering';
+    var $canEdit = 'ceo, catering';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, catering';
+    var $canAdd = 'ceo, catering';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, catering';
+    var $canDelete = 'ceo, catering';
     
     
     /**

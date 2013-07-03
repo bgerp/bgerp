@@ -76,7 +76,7 @@ class acc_Sales extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,acc,cat,designer';
+    var $canRead = 'ceo,acc,cat';
     
     
     /**
@@ -88,7 +88,7 @@ class acc_Sales extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,acc,cat,designer';
+    var $canAdd = 'ceo,acc,cat';
     
     
     /**
