@@ -57,8 +57,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
-	        'hr_NKID',
-	        'hr_NKPD'
         );
         
         // Роля ръководител на организация 
