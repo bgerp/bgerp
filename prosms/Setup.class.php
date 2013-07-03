@@ -62,7 +62,7 @@ class prosms_Setup
     function install()
     {   
         $managers = array(
-            'prosms_Dlr',
+            'prosms_SMS',
         );
         
         $instances = array();
@@ -71,12 +71,6 @@ class prosms_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-     
-        // Инсталираме плъгина и за изпращане през prosms - по подразбиране
-        $html .= $Plugins->forcePlugin('SMS изпращане', 'prosms_Plugin', 'sms_Sender', 'private');
         
         return $html;
     }
@@ -87,14 +81,7 @@ class prosms_Setup
      */
     function deinstall()
     {
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
         
-        // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('prosms_Plugin');
-        $html .= "<li>Премахване на prosms като изпращач на SMS-и";
-        
-        return $html;
-
+        return '';
     }
 }

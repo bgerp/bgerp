@@ -39,13 +39,14 @@ class mobio_Setup
         'MOBIO_URL' => array('url', 'mandatory'),
         );
     
+    
     /**
      * Инсталиране на пакета
      */
     function install()
     {   
         $managers = array(
-            'mobio_SmsDlr',
+            'mobio_SMS',
         );
         
         $instances = array();
@@ -54,13 +55,7 @@ class mobio_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-     
-        // Инсталираме плъгина и за изпращане през Mobio - по подразбиране
-        $html .= $Plugins->forcePlugin('SMS изпращане', 'mobio_SmsPlugin', 'sms_Sender', 'private');
-                
+        
         return $html;
     }
     
@@ -70,14 +65,7 @@ class mobio_Setup
      */
     function deinstall()
     {
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
         
-        // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('mobio_SmsPlugin');
-        $html .= "<li>Премахване на Mobio като изпращач на SMS-и";
-        
-        return $html;
-
+        return '';
     }
 }
