@@ -50,6 +50,7 @@ class callcenter_Setup
             'callcenter_InternalNum',
             'callcenter_ExternalNum',
             'callcenter_Fax',
+            'callcenter_SMS',
         );
         
         $instances = array();
@@ -63,8 +64,6 @@ class callcenter_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(2.04, 'Обслужване', 'КЦ', 'callcenter_Talks', 'default', "user");
         
-        core_Classes::add('callcenter_InternalNum');
-
         //инсталиране на кофата
 //        $Bucket = cls::get('fileman_Buckets');
 //        $html .= $Bucket->createBucket('callcenter', 'Прикачени файлове в КЦ', NULL, '300 MB', 'user', 'user');
