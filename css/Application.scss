@@ -2235,19 +2235,19 @@ div.locImage{
 
 
 /*стилове за състояния в колцентъра*/
-.dialStatus-opened {
+.dialStatus-opened, .sms-sended {
     background-color: #bbffcc;
 }
 
-.dialStatus-answered {
+.dialStatus-answered, .sms-received {
     background-color: #eee;
 }
 
-.dialStatus-failed {
+.dialStatus-failed, .sms-sendError {
     background-color: #feadad;
 }
 
-.dialStatus-busy{
+.dialStatus-busy, .sms-receiveError{
     background-color: #ffce84;
 }
 
@@ -2258,21 +2258,6 @@ div.locImage{
 .dialStatus-unknown {
     background-color: #eec8e9;
 }
-/*край на стилове за състояния в колцентъра*/
-.sms-received{
-    background-color: #eee;
-}
-.sms-sended{
-    background-color: #bbffcc;
-}
-.sms-receiveError{
-    background-color: #eec8e9;
-}
-.sms-sendError{
-    background-color: #feadad;
-}
-/*стилове за състояния на SMS' ите в колцентъра*/
-
 /*край на стилове за състояния на SMS' ите в колцентъра*/
 
 /*бъгфиксове*/
