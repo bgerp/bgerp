@@ -37,7 +37,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'admin,sales';
+    var $canAdd = 'ceo,sales';
     
     
     /**
@@ -321,6 +321,9 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
+    	
+    	// Променливи за определяне да се скриват ли някои колони
+    	$hasQuantityCol = $hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
 	    		list(, $optional) = explode("|", $index);
@@ -336,10 +339,20 @@ class sales_QuotationsDetails extends core_Detail {
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
+	    				$colQ = &$hasQuantityCol;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
+	    				
+	    				// слага се 'opt' в класа на колоната да се отличава
+	    				$rowTpl->replace('-opt', 'OPT');
+	    				$oTpl->replace('-opt', 'OPT');
 	    				$id = &$oCount;
+		    			$colQ = &$hasQuantityColOpt;
 	    			} 
+	    			
+	    			if($colQ !== TRUE && ($row->quantity)){
+	    				$colQ = TRUE;
+	    			}
 	    			
 	    			$row->index = $id++;
 	    			$rowTpl->placeObject($row);
@@ -348,6 +361,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    	}
     	}
+    	
     	if($data->total){
     		if($data->total->totalDisc){
     			$data->total->totalClass = 'oldAmount';
@@ -362,6 +376,14 @@ class sales_QuotationsDetails extends core_Detail {
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
     		$tpl->append($oTpl, 'OPTIONAL');
+    	}
+    	
+    	if(!$hasQuantityCol){
+    		$tpl->append(".quote-col {display:none;}", 'STYLES');
+    	}
+    	
+    	if(!$hasQuantityColOpt){
+    		$tpl->append(".quote-col-opt {display:none;}", 'STYLES');
     	}
     	
     	return $tpl;
@@ -380,8 +402,11 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	$uomId = $pInfo->productRec->measureId;
-    	$row->uomShort = cat_UoM::getShortName($uomId);
+    	if($rec->quantity){
+    		$uomId = $pInfo->productRec->measureId;
+    		$row->uomShort = cat_UoM::getShortName($uomId);
+    	}
+    	
     	$row->price = $double->toVerbal($rec->vatPrice);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);

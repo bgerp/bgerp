@@ -48,7 +48,7 @@ class sales_Quotations extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'admin,sales';
+    public $canRead = 'ceo,sales';
     
     
     /**
@@ -66,25 +66,25 @@ class sales_Quotations extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'admin,sales';
+    public $canEdit = 'ceo,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'admin,sales';
+    public $canAdd = 'ceo,sales';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'admin,sales';
+    public $canView = 'ceo,sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin,sales';
+    public $canDelete = 'ceo,sales';
     
     
     
