@@ -2259,7 +2259,21 @@ div.locImage{
     background-color: #eec8e9;
 }
 /*край на стилове за състояния в колцентъра*/
+.sms-received{
+    background-color: #eee;
+}
+.sms-sended{
+    background-color: #bbffcc;
+}
+.sms-receiveError{
+    background-color: #eec8e9;
+}
+.sms-sendError{
+    background-color: #feadad;
+}
+/*стилове за състояния на SMS' ите в колцентъра*/
 
+/*край на стилове за състояния на SMS' ите в колцентъра*/
 
 /*бъгфиксове*/
 .store_Racks td,.hr_ContractTypes td{
