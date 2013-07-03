@@ -129,7 +129,7 @@ class pos_Favourites extends core_Manager {
     	$double->params['decimals'] = 2;
     	
     	// Коя е текущата точка на продажба и нейния дефолт контрагент
-    	$posRec = pos_Points::fetch(pos_Points::getCurrent('id', NULL, FALSE));
+    	$posRec = pos_Points::fetch(pos_Points::getCurrent('id'));
     	$cache = core_Cache::get('pos_Favourites', "products{$posRec->id}");
     	if(!$cache){
     		$query = static::getQuery();
