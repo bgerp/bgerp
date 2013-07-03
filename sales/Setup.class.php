@@ -1,5 +1,8 @@
 <?php
-
+/**
+ *  Изглед за фактурата
+ */
+defIfNot('INV_LAYOUT', '');
 
 
 /**
@@ -9,7 +12,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -41,6 +44,14 @@ class sales_Setup
     var $info = "Продажби на продукти и стоки";
     
     
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'INV_LAYOUT' => array ('varchar'),
+	);
+	
+	
     /**
      * Инсталиране на пакета
      */

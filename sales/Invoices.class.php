@@ -70,25 +70,25 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, sales';
+    var $canRead = 'ceo, sales';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, sales';
+    var $canEdit = 'ceo, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, sales';
+    var $canAdd = 'ceo, sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, sales';
+    var $canDelete = 'ceo, sales';
     
     
     /**
@@ -434,7 +434,12 @@ class sales_Invoices extends core_Master
         $tpl->replace($ownCompanyData->company, 'MyCompany');
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
-        $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+        
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+    	} 
+    	$tpl->replace($uic, 'uicId');
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -445,9 +450,23 @@ class sales_Invoices extends core_Master
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
-    		
     		$mvc::prepareAdditionalInfo($rec);
     	}
+    }
+    
+    
+	/**
+     * Подготвя шаблона за единичния изглед
+     */
+    function renderSingleLayout_(&$data)
+    {
+    	$conf = core_Packs::getConfig('sales');
+        if($path = $conf->INV_LAYOUT){
+        	$res = getTplFromFile($path);
+        	return $res;
+        }
+        
+        return parent::renderSingleLayout_($data);
     }
     
     
@@ -502,10 +521,13 @@ class sales_Invoices extends core_Master
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	if($fields['-single']){
-    		/*if(!$row->contragentUiC = drdata_Vats::getUiCByVat($rec->contragentVatNo)){
-    			$row->contragentUiC = $row->contragentVatNo;
+    		
+    		// Ако е подаден Ват номер, намираме ЕИК-то от него
+    		$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+    		if($uic == $rec->contragentVatNo){
     			unset($row->contragentVatNo);
-    		}*/
+    		}
+    		$row->contragentUiC = $uic;
     		
     		// Номера се форматира в десеторазряден вид
     		$row->number = str_pad($row->number, '10', '0', STR_PAD_LEFT);

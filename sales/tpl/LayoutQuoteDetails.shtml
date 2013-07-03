@@ -3,12 +3,12 @@
 		<th width='4%'>№</th>
 		<th width='45%'>|Описание|*</th>
 		
-		<th class='display-narrow quote-quantity'>|К-во|*</th>
-		<th class='display-wide quote-quantity'>|Количество|*</th>
+		<th class='display-narrow quote-col[#OPT#]'>|К-во|*</th>
+		<th class='display-wide quote-col[#OPT#]'>|Количество|*</th>
 		
 		<th>|Цена|*</th>
-		<th class='display-wide'>|Стойност|*</th>
-		<th class='display-narrow'>|Ст-ст|*</th>
+		<th class='display-wide quote-col[#OPT#]'>|Стойност|*</th>
+		<th class='display-narrow quote-col[#OPT#]'>|Ст-ст|*</th>
 	</tr>
 <!--ET_BEGIN ROW-->
 [#ROW#]
@@ -18,7 +18,7 @@
 		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
 		<!--ET_END productId-->
 		
-		<td class='misc-info' align='right' valign='top'>
+		<td class='misc-info quote-col[#OPT#]' align='right' valign='top'>
 		<b>[#quantity#]</b> [#uomShort#]
 		<!--ET_BEGIN tolerance-->
 		<div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
@@ -34,7 +34,7 @@
 		<div class='discount'>- [#discount#] |ТО|*</div>
 		<!--ET_END discount-->
 		</td>
-		<td class='misc-info' align='right' valign='top'>
+		<td class='misc-info quote-col[#OPT#]' align='right' valign='top'>
 		[#amount#]
 		<!--ET_BEGIN discAmount-->
 		<div class='discount'>[#discAmount#]</div>

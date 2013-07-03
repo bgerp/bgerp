@@ -143,8 +143,12 @@
                 <tr>
                    <td class="topCell" valign="top" width="30%">
                    <div>|Доставка|* / <i>Delivery</i></div>
+                   <!--ET_BEGIN deliveryId-->
                    <div>|Условие|* / <i>Term</i> : [#deliveryId#]</div>
+                   <!--ET_END deliveryId-->
+                   <!--ET_BEGIN deliveryPlace-->
                    <div>|Място|* / <i>Place</i><br />[#deliveryPlace#]</div>
+                   <!--ET_END deliveryPlace-->
                    <!--ET_BEGIN additionalInfo-->
                    <hr>
                    <div>|Бележки|* / <i>Notes</i></div>
@@ -158,7 +162,9 @@
                   </td>
                    <td class="topCell" valign="top" width="40%">
                         <div>|Плащане|* / <i>Payment</i></div>
+                        <!--ET_BEGIN paymentMethodId-->
                         <div>|Начин|* / <i>Method</i> : [#paymentMethodId#]</div>
+                        <!--ET_END paymentMethodId-->
                         <div>|Валута|* / <i>Currency</i> : [#currencyId#]</div>
                         <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
@@ -223,7 +229,7 @@
                             <div style="padding-top:5px;">|Към продажба|* / <i>To sale</i></div>
                             <div class="bigData">[#TO_SALES#]</div>
                         </div>
-                           <!--ET_END TO_SALES-->  
+                        <!--ET_END TO_SALES-->  
                     </td>
                 </tr>        
                 </tbody>
