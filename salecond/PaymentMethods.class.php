@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @todo:     Да се документира този клас
@@ -84,19 +84,44 @@ class salecond_PaymentMethods extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
-        $this->FLD('description', 'varchar', 'caption=Описание, mandatory');
+        $this->FLD('description', 'varchar', 'caption=Описание, mandatory,width=100%');
         
-        $this->FLD('payAdvanceShare', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=6em');
-        $this->FLD('payAdvanceTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|7 дни)', 'caption=Авансово плащане->Срок');
+        $this->FLD('payAdvanceShare', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент');
+        $this->FLD('payAdvanceTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|7 дни)', 'caption=Авансово плащане->Срок,width=7em');
         
-        $this->FLD('payBeforeReceiveShare', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=6em');
-        $this->FLD('payBeforeReceiveTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|10 дни|15 дни|30 дни|45 дни)', 'caption=Плащане преди получаване->Срок');
+        $this->FLD('payBeforeReceiveShare', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент');
+        $this->FLD('payBeforeReceiveTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|10 дни|15 дни|30 дни|45 дни)', 'caption=Плащане преди получаване->Срок,width=7em');
         
-        $this->FLD('payBeforeInvShare', 'percent(min=0,max=1)', 'caption=Плащане след фактуриране->Дял,width=6em');
-        $this->FLD('payBeforeInvTerm', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок');
+        $this->FLD('payBeforeInvShare', 'percent(min=0,max=1)', 'caption=Плащане след фактуриране->Дял,width=7em,hint=Процент');
+        $this->FLD('payBeforeInvTerm', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em');
         
         $this->FLD('state', 'enum(draft,closed)', 'caption=Състояние, input=none');
         $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+	    	$rec = &$form->rec;
+	    	$total = 0;
+	    	$termArr = array('payAdvanceTerm', 'payBeforeReceiveTerm', 'payBeforeInvTerm');
+	    	$sharesArr = array('payAdvanceShare', 'payBeforeReceiveShare', 'payBeforeInvShare');
+	    	foreach($sharesArr as $i => $share){
+	    		if(empty($rec->$share) && isset($rec->$termArr[$i])){
+	    			$form->setError($share, 'Полето неможе да е празно, ако е въведен срок !');
+	    		} else {
+	    			$total += $rec->$share;
+	    		}
+	    	}
+	    	
+	    	if($total != 1){
+	    		$form->setError('payAdvanceShare,payBeforeReceiveShare,payBeforeInvShare', 'Въведените проценти трябва да правят 100 %');
+	    	}
+    	}
     }
     
     
@@ -151,138 +176,5 @@ class salecond_PaymentMethods extends core_Master
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща за дадена сделка конкретните дати и проценти за плащания по входни данни
-     *
-     * @param int $paymentMethodId
-     * @param string $orderDate
-     * @param string $transferDate
-     * @retutn array $paymentDatesAndRates
-     */
-    function getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate)
-    {
-        expect(is_int($paymentMethodId));
-        expect(is_string($orderDate));
-        expect(is_string($transferDate));
-        
-        // Вземаме детайлите (вноските) за конкретния метод
-        $queryPaymentMethodDetails = $this->PaymentMethodDetails->getQuery();
-        $where = "#paymentMethodId = {$paymentMethodId}";
-        
-        // брояч на вноските
-        $j = 0;
-        
-        // за всяка вноска
-        while($recPaymentMethodDetails = $queryPaymentMethodDetails->fetch($where)) {
-            // base
-            $payment[$j]['base'] = $recPaymentMethodDetails->base;
-            
-            // baseVerbal
-            $payment[$j]['baseVerbal'] = $this->PaymentMethodDetails->getVerbal($recPaymentMethodDetails, 'base');
-            
-            // prepare $baseDate 
-            // за beforeOrderDate и afterOrderDate - $orderDate; 
-            // за beforeTransferDate и afterTransferDate - $transferDate
-            switch ($recPaymentMethodDetails->base) {
-                case beforeOrderDate :
-                case afterOrderDate :
-                    $baseDate = $orderDate;
-                    $payment[$j]['baseDate'] = $baseDate;
-                    break;
-                case beforeTransferDate :
-                case afterTransferDate :
-                    $baseDate = $transferDate;
-                    $payment[$j]['baseDate'] = $baseDate;
-                    break;
-            }
-            
-            // days
-            $payment[$j]['days'] = $recPaymentMethodDetails->days;
-            
-            // BEGIN 'daysVerbal' and 'baseDatePaymentTerm'
-            switch ($recPaymentMethodDetails->round) {
-                case 'no' :
-                    // Ако 'base' е before (преди), то addDays става отрицателно
-                    switch($recPaymentMethodDetails->base) {
-                        case 'beforeOrderDate' :
-                        case 'beforeTransferDate' :
-                            $addDays = $recPaymentMethodDetails->days * (-1);
-                            break;
-                        
-                        case 'afterOrderDate' :
-                        case 'afterTransferDate' :
-                            $addDays = $recPaymentMethodDetails->days;
-                            break;
-                    }
-                    
-                    // ENDOF Ако 'base' е before (преди), то addDays става отрицателно
-                    
-                    // Изчислява дататa във формат 'd-m-Y' 
-                    $baseDatePaymentTerm = dt::addDays($addDays, $baseDate);
-                    $baseDatePaymentTerm = strtotime($baseDatePaymentTerm);
-                    $baseDatePaymentTerm = date('d-m-Y', $baseDatePaymentTerm);
-                    
-                    // Ако дните са положителни
-                    if ($recPaymentMethodDetails->days > 0) {
-                        switch ($recPaymentMethodDetails->base) {
-                            case 'beforeOrderDate' :
-                            case 'beforeTransferDate' :
-                                $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена преди \"{$payment[$j]['baseVerbal']}\"";
-                                $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";
-                                break;
-                            
-                            case 'afterOrderDate' :
-                            case 'afterTransferDate' :
-                                $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена след \"{$payment[$j]['baseVerbal']}\"";
-                                $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";
-                                break;
-                        }
-                    }
-                    
-                    // ENDOF Ако дните са положителни
-                    
-                    // Ако дните са нула
-                    if ($recPaymentMethodDetails->days == 0) {
-                        $payment[$j]['daysVerbal'] = "В деня на \"{$payment[$j]['baseVerbal']}\"";
-                        $payment[$j]['baseDatePaymentTerm'] = "На {$baseDate}\"";
-                    }
-                    break;
-                
-                case 'eom' :
-                    $lastDayOfMonth = date('t', strtotime($baseDatePaymentTerm));
-                    $baseDatePaymentTerm = $lastDayOfMonth . "-" . substr($baseDate, 3, 7);
-                    
-                    $payment[$j]['daysVerbal'] = "До края на месеца";
-                    $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}";
-                    break;
-            }
-            
-            // END 'daysVerbal' and 'baseDatePaymentTerm'            
-            
-            // rate
-            $payment[$j]['rate'] = $recPaymentMethodDetails->rate . " %";
-            
-            $j++;
-        }
-        unset($j);
-        
-        bp($payment);
-    }
-    
-    
-    /**
-     * Action-а изпълнява метода getPaymentDatesAndRate() за тест цели
-     */
-    function act_GetP()
-    {
-        // Dummy data for test
-        $orderDate = "01-09-2011";
-        $transferDate = "20-09-2011";
-        $paymentMethodId = 1;
-        
-        $this->getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate);
     }
 }
