@@ -46,31 +46,31 @@ class purchase_Requests extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,purchase';
+    var $canRead = 'ceo,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,purchase';
+    var $canEdit = 'ceo,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,purchase';
+    var $canAdd = 'ceo,purchase';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,purchase';
+    var $canView = 'ceo,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,purchase';
+    var $canDelete = 'ceo,purchase';
 
     
     /**
