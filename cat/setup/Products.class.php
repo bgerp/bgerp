@@ -51,7 +51,7 @@ class cat_setup_Products extends core_Mvc
             fclose($handle);
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            $res .= "Създадени {$created} нови продукта, обновени {$updated} съществуващи продукти.</li>";
+            $res .= "Създадени {$created} нови артикула, обновени {$updated} съществуващи артикули.</li>";
         } else {
         	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
