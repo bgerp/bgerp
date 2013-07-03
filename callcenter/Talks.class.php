@@ -233,17 +233,17 @@ class callcenter_Talks extends core_Master
         
         // В зависмост от състоянието на разгоравя, опделяме клас за реда в таблицата
         if (!$rec->dialStatus) {
-            $row->ROW_ATTR['class'] = 'dialStatus-opened';
+            $row->ROW_ATTR['class'] .= ' dialStatus-opened';
         } elseif ($rec->dialStatus == 'ANSWERED') {
-            $row->ROW_ATTR['class'] = 'dialStatus-answered';
+            $row->ROW_ATTR['class'] .= ' dialStatus-answered';
         } elseif ($rec->dialStatus == 'FAILED') {
-            $row->ROW_ATTR['class'] = 'dialStatus-failed';
+            $row->ROW_ATTR['class'] .= ' dialStatus-failed';
         } elseif ($rec->dialStatus == 'BUSY') {
-            $row->ROW_ATTR['class'] = 'dialStatus-busy';
+            $row->ROW_ATTR['class'] .= ' dialStatus-busy';
         } elseif ($rec->dialStatus == 'NO ANSWER') {
-            $row->ROW_ATTR['class'] = 'dialStatus-noanswer';
+            $row->ROW_ATTR['class'] .= ' dialStatus-noanswer';
         } else {
-            $row->ROW_ATTR['class'] = 'dialStatus-unknown';
+            $row->ROW_ATTR['class'] .= ' dialStatus-unknown';
         }
         
         // Ако не може да се определи номера
