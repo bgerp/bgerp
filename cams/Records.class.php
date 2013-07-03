@@ -69,13 +69,13 @@ class cams_Records extends core_Master
     /**
      * Права за писане
      */
-    var $canWrite = 'cams, admin';
+    var $canWrite = 'ceo,cams, admin';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'cams, admin';
+    var $canRead = 'ceo,cams, admin';
     
     // Ръчно не могат да се добавят записи
     //var $canEdit = 'no_one';

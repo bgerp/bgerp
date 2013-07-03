@@ -33,13 +33,13 @@ class cams_Positions extends core_Manager
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'cams, admin';
+    var $canWrite = 'ceo,cams, admin';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cams, admin';
+    var $canRead = 'ceo,cams, admin';
     
     
     /**

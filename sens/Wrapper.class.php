@@ -25,12 +25,10 @@ class sens_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        
-        
-        $this->TAB('sens_Sensors', 'Сензори', 'sens, admin');
-        $this->TAB('sens_IndicationsLog', 'Показания', 'sens, admin');
-        $this->TAB('sens_MsgLog', 'Съобщения', 'sens, admin');
-        $this->TAB('sens_Params', 'Параметри','sens, admin');
+        $this->TAB('sens_Sensors', 'Сензори', 'sens, ceo, admin');
+        $this->TAB('sens_IndicationsLog', 'Показания', 'sens, ceo, admin');
+        $this->TAB('sens_MsgLog', 'Съобщения', 'sens, ceo, admin');
+        $this->TAB('sens_Params', 'Параметри','sens, ceo, admin');
         $this->TAB('sens_Overviews', 'Мениджър изгледи');
         
         $this->title = 'Наблюдение';

@@ -44,13 +44,13 @@ class cams_Cameras extends core_Master
     /**
      * Права за писане
      */
-    var $canWrite = 'cams, admin';
+    var $canWrite = 'ceo,cams, admin';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'cams, admin';
+    var $canRead = 'ceo,cams, admin';
     
     
     /**
@@ -242,7 +242,7 @@ class cams_Cameras extends core_Master
      */
     function act_Settings()
     {
-        requireRole('admin');
+        requireRole('ceo,admin');
         
         $form = cls::get('core_Form');
         

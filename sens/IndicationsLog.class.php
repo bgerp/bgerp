@@ -40,13 +40,13 @@ class sens_IndicationsLog extends core_Manager
     /**
      * Права за запис
      */
-    var $canWrite = 'sens, admin';
+    var $canWrite = 'ceo,sens, admin';
     
     
     /**
      * Права за четене
      */
-    var $canRead = 'sens, admin';
+    var $canRead = 'ceo,sens, admin';
     
     
     /**
