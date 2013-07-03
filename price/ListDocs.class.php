@@ -228,13 +228,14 @@ class price_ListDocs extends core_Master
     	if($customerProducts){
     		foreach($customerProducts as $id => $product){
     			$productRec = cat_Products::fetch($id);
+    			if(!$productRec) continue;
 		    	if($rec->productGroups){
 		    		$aGroups = keylist::toArray($rec->productGroups);
 		    		$pGroups = keylist::toArray($productRec->groups);
 		    		$intersectArr = array_intersect($aGroups, $pGroups);
 		    		if(!count($intersectArr)) continue;
 		    	}
-	    		
+		    	
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
 		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
 		    	
