@@ -66,7 +66,7 @@ class support_Corrections extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, support';
+    var $canList = 'ceo, admin, support';
     
     
     /**
