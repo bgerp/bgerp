@@ -39,13 +39,13 @@ class cms_Content extends core_Manager
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cms,admin';
+    var $canWrite = 'cms,admin,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cms,admin';
+    var $canRead = 'cms,admin,ceo';
     
     
     

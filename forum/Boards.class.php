@@ -53,13 +53,13 @@ class forum_Boards extends core_Master {
 	/**
 	 * Кой може да листва дъските
 	 */
-	var $canRead = 'forum, cms, admin';
+	var $canRead = 'forum, cms, admin,ceo';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, cms, admin';
+	var $canWrite = 'forum, cms, admin,ceo';
 	
 	
 	/**

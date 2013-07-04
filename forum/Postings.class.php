@@ -65,7 +65,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, admin, cms, user';
+	var $canWrite = 'forum, admin, cms, user,ceo';
 	
 	
 	/**
