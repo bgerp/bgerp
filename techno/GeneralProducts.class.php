@@ -78,7 +78,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
 		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
-    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
+    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,hint=Процент');
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
