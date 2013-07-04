@@ -866,9 +866,9 @@ class type_Richtext extends type_Blob
         if(!stripos($url, '://')) return $url;
 
         if( core_Url::isLocal($url, $rest) ) {
-            $result = $this->internalUrl($url, str::limitLen(urldecode($url), 120), $rest);
+            $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
         } else {
-            $result = $this->externalUrl($url, str::limitLen(urldecode($url), 120));
+            $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));
         }
         return $result;
     }

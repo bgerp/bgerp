@@ -142,7 +142,7 @@ class core_App
 
                 if ((count($vUrl) - $id) % 2) {
                     if (!$q['id'] && !$name) {
-                        $q['id'] = urldecode($prm);
+                        $q['id'] = decodeUrl($prm);
                     } else {
                         if ($name) {
                             $q[$name] = $prm;
@@ -458,7 +458,7 @@ class core_App
             for ($i = $begin; $i < $cnt; $i += 2) {
                 $key = $arr[$i];
                 $value = $arr[$i + 1];
-                $value = urldecode($value);
+                $value = decodeUrl($value);
                 $key = explode(',', $key);
 
                 if (count($key) == 1) {

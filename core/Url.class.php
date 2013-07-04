@@ -85,7 +85,7 @@ class core_Url
                     continue;
                 }
                 list($sKey, $sValue) = explode('=', $sPair);
-                $parts['query_params'][$sKey] = urldecode($sValue);
+                $parts['query_params'][$sKey] = decodeUrl($sValue);
             }
         }
         
@@ -112,7 +112,7 @@ class core_Url
         }
         
         if ($parts['path']) {
-            setIfNot($parts, pathInfo(urldecode($parts['path'])));
+            setIfNot($parts, pathInfo(decodeUrl($parts['path'])));
         }
         
         // От http://data.iana.org/TLD/tlds-alpha-by-domain.txt
