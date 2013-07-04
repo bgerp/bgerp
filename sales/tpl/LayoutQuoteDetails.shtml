@@ -15,7 +15,7 @@
 <tr>
 	<td>[#tools#]<div class='tc'>[#index#]</div></td>
 		<!--ET_BEGIN productId-->
-		<td rowspan = '[#rowspan#]' valign='top'>[#productId#]</td>
+		<td rowspan = '[#rowspan#]' valign='top' class='product-id[#OPT#]'>[#productId#]</td>
 		<!--ET_END productId-->
 		
 		<td class='misc-info quote-col[#OPT#]' align='right' valign='top'>

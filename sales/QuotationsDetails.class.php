@@ -379,11 +379,11 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	if(!$hasQuantityCol){
-    		$tpl->append(".quote-col {display:none;}", 'STYLES');
+    		$tpl->append(".quote-col {display:none;} .product-id {width:65%;}", 'STYLES');
     	}
     	
     	if(!$hasQuantityColOpt){
-    		$tpl->append(".quote-col-opt {display:none;}", 'STYLES');
+    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt {width:65%;}", 'STYLES');
     	}
     	
     	return $tpl;
