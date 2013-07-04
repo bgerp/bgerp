@@ -891,7 +891,7 @@ class email_Sent extends core_Manager
      */
     static function absoluteUrlToReal($link)
     {
-        $link = urldecode($link);
+        $link = decodeUrl($link);
 
         //sbf директорията
         $sbfPath = str_ireplace(EF_INDEX_PATH, '', EF_SBF_PATH);
