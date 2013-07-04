@@ -139,4 +139,46 @@ class cat_products_Files extends cat_products_Detail
     {
         return static::renderDetail($data);
     }
+    
+    
+    /**
+     * Връща подходящ манипулатор на файла
+     * 
+     * @param integer $masterId - id на мастъра
+     * 
+     * @return fileHnd - Манипулатора на файла
+     */
+    static function getImgFh($masterId)
+    {
+        // Вземаме всички файлове за този мастър по дата на създаване
+        $query = static::getQuery();
+        $query->where(array("#productId = '[#1#]'", $masterId));
+        $query->orderBy('createdOn', 'DESC');
+        
+        // Обхождаме резулатите
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма файл прескачаме
+            if (!$rec->file) continue;
+            
+            // Вземаме информацията за файла
+            $fRec = fileman_Files::fetchByFh($rec->file);
+            
+            // Вземаме разширението
+            $ext = fileman_Files::getExt($fRec->name);
+            
+            // В долен регистър
+            $ext = strtolower($ext);
+            
+            // Масив с позволените разширения
+            $allowedExtArr['jpg'] = 'jpg';
+            $allowedExtArr['jpeg'] = 'jpeg';
+            $allowedExtArr['png'] = 'png';
+            $allowedExtArr['gif'] = 'gif';
+            $allowedExtArr['bmp'] = 'bmp';
+            
+            // Ако разширението е в позволените, връщаме манипулатора на файла
+            if ($allowedExtArr[$ext]) return $rec->file; 
+        }
+    }
 }

@@ -168,6 +168,7 @@ class cat_Products extends core_Master {
         						canConvert=Вложим,
         						fixedAsset=Дма,
         						canManifacture=Производим)', 'caption=Свойства->Списък,input=hidden');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         $this->setDbUnique('code');
     }
@@ -657,6 +658,29 @@ class cat_Products extends core_Master {
         while($grRec = $groupQuery->fetch()){
         	$grRec->productCnt = (int)$groupsCnt[$grRec->id];
         	cat_Groups::save($grRec);
+        }
+    }
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        // Ако не е зададено файл
+        if (!$fileHnd = $data->rec->photo) {
+            
+            // Вземаме файла от прикачените файлове на детайла
+            $fileHnd = cat_products_Files::getImgFh($data->rec->id);
+        }
+        
+        // Ако има манипулатор на файл
+        if ($fileHnd) {
+            
+            // Масив за размерите
+            $size = array(200, 150);
+
+            // Вземаме тумбнаил на файла
+            $data->row->image = thumbnail_Thumbnail::getImg($fileHnd, $size);
         }
     }
 }

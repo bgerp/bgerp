@@ -2,8 +2,17 @@
 [#SingleToolbar#]
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
+
 	<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] Артикул <b style="color:green;">[#name#]</b></div>
 
+	<!--ET_BEGIN image-->
+		<div class="productImage">
+			<div>  
+				[#image#]
+			</div>
+		</div>
+	<!--ET_END image-->
+	
 	<fieldset class="detail-info">
 		<legend class="groupTitle">|Описание|*</legend>
             <div class="groupList">
