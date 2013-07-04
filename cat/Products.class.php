@@ -180,16 +180,8 @@ class cat_Products extends core_Master {
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
-            
-            //Разделяме текста от последното число
-            preg_match("/(?'other'.+[^0-9])?(?'digit'[0-9]+)$/", $code, $match);
-            
-            //Ако сме отркили число
-            if ($match['digit']) {
-                
-                //Съединяваме тескта с инкрементиранета с единица стойност на последното число
-                $newCode = $match['other'] . ++$match['digit'];
-                
+            if ($newCode = str::increment($code)) {
+            	
                 //Проверяваме дали има такъв запис в системата
                 if (!$mvc->fetch("#code = '$newCode'")) {
                     $data->form->rec->code = $newCode;
