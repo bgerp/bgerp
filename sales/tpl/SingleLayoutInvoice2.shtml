@@ -29,8 +29,12 @@
             		<div class='contragent-info'>[#contragentName#]</div>
             		<div class='contragent-info'>[#contragentCountry#]</div>
             		<div class='contragent-info'>[#contragentAddress#]</div>
+            		 <!--ET_BEGIN contragentVatNo-->
             		<div class ='contragent-vat'>|номер по ЗДДС|* / <i>VAT ID</i></div>
             		<div class='contragent-info'>[#contragentVatNo#]</div>
+            		 <!--ET_END contragentVatNo-->
+            		<div class ='contragent-info' style='font-size:14px'><b>|ЕИК|* / <i>UIC</i></b></div>
+            		<div class='contragent-info'>[#contragentUiC#]</div>
             	</div>
             </div>
 			
@@ -60,7 +64,7 @@
 	                <td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></td>
                 </tr>
                 <tr>
-                	<td class='info-right'>|Данъчна основа|* :</td>
+                	<td class='info-right'>|Данъчна основа|* / Tax base :</td>
                 	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></td>
                 </tr>
                 <tr>
@@ -83,8 +87,12 @@
                 <tr>
                    <td class="topCell" valign="top" width="30%">
                    <div>|Доставка|* / <i>Delivery</i></div>
-                   <div>|Условие|*: [#deliveryId#]</div>
-                   <div>|Място|*: [#deliveryPlace#]</div>
+                   <!--ET_BEGIN deliveryId-->
+                   <div>|Условие|* / <i>Term</i> : [#deliveryId#]</div>
+                   <!--ET_END deliveryId-->
+                   <!--ET_BEGIN deliveryPlace-->
+                   <div>|Място|*/ <i>Place</i> : [#deliveryPlace#]</div>
+                   <!--ET_END deliveryPlace-->
                    <!--ET_BEGIN additionalInfo-->
                    <hr>
                    <div>|Бележки|* / <i>Notes</i></div>
@@ -98,9 +106,11 @@
                   </td>
                    <td class="topCell" valign="top" width="40%">
                         <div>|Плащане|* / <i>Payment</i></div>
-                        <div>|Начин|*: [#paymentMethodId#]</div>
-                        <div>|Валута|*: [#currencyId#]</div>
-                        <div>|Краен срок за плащане|*: <b>[#DUE_DATE#]</b></div>
+                        <!--ET_BEGIN paymentMethodId-->
+                        <div>|Начин|* / <i>Method</i> : [#paymentMethodId#]</div>
+                        <!--ET_END paymentMethodId-->
+                        <div>|Валута|* / <i>Currency</i> : [#currencyId#]</div>
+                        <div>|Краен срок за плащане|*/ <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
                         <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                         <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
                         <!--ET_END OVERDUE_INTEREST_RATE-->
@@ -138,7 +148,9 @@
 				                        [#MyAddress#] <br>
 					                 </div>
 					                 <div class='contragent-vat'>|номер по ЗДДС|* / <i>VAT ID</i></div>
-                            		 <div class="bigData">[#MyCompanyVatNo#]</div>
+                            		 <div>[#MyCompanyVatNo#]</div>
+                            		 <div style='font-size:14px;font-weight:bold'>|ЕИК|* / <i>UIC</i></div>
+                            		 <div>[#uicId#]</div>
                             	</td>
                             </tr>
                             <tr>
@@ -152,7 +164,7 @@
                             </tr>
                              <!--ET_BEGIN vatDate-->  
                             <tr>
-                                <td class='invoice-vat-info'>|Дата на данъчното събитие|*:</td>
+                                <td class='invoice-vat-info'>|Дата на данъчното събитие|*  / <i>Tax event date</i>:</td>
                             </tr>
                              
                             <tr>
