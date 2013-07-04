@@ -727,5 +727,42 @@ class core_Url
 
         return $result;
     }
-
+    
+    
+    /**
+     * Аналогична фунция на urldecode()
+     * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
+     * 
+     * @param URL $url
+     * 
+     * @return URL
+     */
+    static function decodeUrl($url)
+    {
+        // Декодираме URL' то
+        $decodedUrl = urldecode($url);
+        
+        // Проверяваме дали е валиден UTF-8
+        if (mb_check_encoding($decodedUrl, 'UTF-8')) {
+            
+            // Ако е валиден връщаме резултата
+            return $decodedUrl;
+        }
+        
+        try {
+            
+            // Използваме наша функция за конвертиране
+            $decodedUrl = i18n_Charset::convertToUtf8($decodedUrl);
+        } catch (Exception $e) { }
+        
+        // Проверяваме дали е валиден UTF-8
+        if (mb_check_encoding($decodedUrl, 'UTF-8')) {
+            
+            // Ако е валиден връщаме резултата
+            return $decodedUrl;
+        }
+        
+        // Ако все още не е валидно URL, връщаме оригиналното
+        return $url;
+    }
 }

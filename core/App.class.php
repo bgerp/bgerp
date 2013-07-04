@@ -1307,6 +1307,20 @@ function defIfNot($name, $value = NULL)
 
 
 /**
+ * Аналогична фунция на urldecode()
+ * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
+ * 
+ * @param URL $url
+ * 
+ * @return URL
+ */ 
+function decodeUrl($url)
+{
+    return core_Url::decodeUrl($url);
+}
+
+
+/**
  * @todo Чака за документация...
  * @deprecated
  */
