@@ -439,7 +439,7 @@ class drdata_Vats extends core_Manager
     public static function getUicByVatNo($vatNo)
     {
     	$self = cls::get(get_called_class());
-    	$vatNo = static::canonize($vatNo);
+    	$vatNo = $self->canonize($vatNo);
     	if($self->check($vatNo) == 'valid'){
     		return substr($vatNo, '2');
     	}
