@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'salecond_PaymentMethods' -
+ * Клас 'salecond_PaymentMethods' - Начини на плащане
  *
  *
  * @category  bgerp
@@ -12,7 +12,6 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class salecond_PaymentMethods extends core_Master
 {
@@ -27,7 +26,7 @@ class salecond_PaymentMethods extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name';
+    var $listFields = 'id, name, description';
     
     
     /**
@@ -87,15 +86,14 @@ class salecond_PaymentMethods extends core_Master
         $this->FLD('description', 'varchar', 'caption=Описание, mandatory,width=100%');
         
         $this->FLD('payAdvanceShare', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент');
-        $this->FLD('payAdvanceTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|7 дни)', 'caption=Авансово плащане->Срок,width=7em');
+        $this->FLD('payAdvanceTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|7 дни)', 'caption=Авансово плащане->Срок,width=7em,hint=дни');
         
         $this->FLD('payBeforeReceiveShare', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент');
-        $this->FLD('payBeforeReceiveTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|10 дни|15 дни|30 дни|45 дни)', 'caption=Плащане преди получаване->Срок,width=7em');
+        $this->FLD('payBeforeReceiveTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|10 дни|15 дни|30 дни|45 дни)', 'caption=Плащане преди получаване->Срок,width=7em,hint=дни');
         
         $this->FLD('payBeforeInvShare', 'percent(min=0,max=1)', 'caption=Плащане след фактуриране->Дял,width=7em,hint=Процент');
-        $this->FLD('payBeforeInvTerm', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em');
+        $this->FLD('payBeforeInvTerm', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни');
         
-        $this->FLD('state', 'enum(draft,closed)', 'caption=Състояние, input=none');
         $this->setDbUnique('name');
     }
     
@@ -149,7 +147,7 @@ class salecond_PaymentMethods extends core_Master
     
     
 	/**
-     * Зареждане на началните празници в базата данни
+     * Зареждане на началните данни
      */
     static function loadData()
     {
@@ -170,7 +168,7 @@ class salecond_PaymentMethods extends core_Master
             
             fclose($handle);
             
-            $res .= "<li style='color:green;'>Създадени са {$created} начина за плащане, обновени са {$updated}</li>";
+            $res .= "<li style='color:green;'>Създадени са {$created} начина на плащане, обновени са {$updated}</li>";
         } else {
             $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
