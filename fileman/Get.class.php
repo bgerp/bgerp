@@ -259,7 +259,7 @@ class fileman_Get extends core_Manager {
 
                 preg_match($fPattern, $rec->url, $matches);
 
-                $fileName = urldecode($matches[0]);
+                $fileName = decodeUrl($matches[0]);
             }
             // bp($headers, $matches, $fPattern, $rec->url);
 
