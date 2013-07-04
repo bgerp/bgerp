@@ -25,13 +25,6 @@
 				</dl>
              </div>
         </fieldset>
-		
-		<!--ET_BEGIN meta-->
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Мета данни|*</legend>
-				<div class="groupList">[#meta#]</div>
-			</fieldset>
-		<!--ET_END meta-->
 			
 		<!--ET_BEGIN info-->
 		<fieldset class="detail-info">
@@ -48,6 +41,12 @@
         </fieldset>
 		<!--ET_END groups-->
 	
+		<!--ET_BEGIN meta-->
+			<fieldset class="detail-info">
+				<legend class="groupTitle">|Свойства|*</legend>
+				<div class="groupList">[#meta#]</div>
+			</fieldset>
+		<!--ET_END meta-->
 	[#DETAILS#]
 	</div>
 	</div>
