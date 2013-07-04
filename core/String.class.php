@@ -373,7 +373,8 @@ class core_String
 	    	//Ако е открито число
 	        if (isset($match['1'])) {
 	        	$numLen = strlen($match['1']);
-	        	$other = str_replace($match['1'], "", $str);
+	        	$numIndex = strrpos($str, $match['1']);
+	        	$other = substr($str,0, $numIndex);
 	        	
 	            // Съединяване на текста с инкрементирана с единица стойност на последното число
 	            return $other . str_pad(++$match['1'], $numLen, "0", STR_PAD_LEFT);
