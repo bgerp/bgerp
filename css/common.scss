@@ -1031,12 +1031,10 @@ a.button, input[type="button"], input[type="submit"] {
 @-moz-document url-prefix() {
 	a.button, input[type="button"], input[type="submit"] {
 		height:1.86em !important;
-		padding-top:0 !important;
 	}
 	
 	.narrow a.button, .narrow input[type="button"], .narrow input[type="submit"]{
 		height:1.76em !important;
-		padding-top:0 !important;
 	}
 }
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
