@@ -193,6 +193,9 @@ select, input, textarea{
 	border: solid 1px #9999ff;
 	font-size: 1.07em;
 }
+.narrow select, .narrow input, .narrow textarea{
+	font-size:1em;	
+}
 
 select.combo {  
 	position: absolute; 
@@ -1026,8 +1029,8 @@ a.button, input[type="button"], input[type="submit"] {
 
 @-moz-document url-prefix() {
 	a.button, input[type="button"], input[type="submit"]{
-		height:1.85em !important;
-		padding-top:0;
+		height:1.76em !important;
+		padding-top:0 !important;
 	}
 }
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
@@ -1035,7 +1038,7 @@ a.button, input[type="button"], input[type="submit"] {
 	border:1px solid #999; 
 	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
-    height:auto;
+    height:1.8em;
     margin-top:0;
     margin-botoom:0;
 }
