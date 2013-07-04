@@ -424,8 +424,41 @@ class techno_Specifications extends core_Master {
     		
         	// Може да се променят с само на чернова
         	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
-        	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
+        	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings,title=Промяна на характеристиките на спецификацията');
     	}
+    	
+    	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
+    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копира спецификацията в нов тред');
+    	}
+    }
+    
+    
+    /**
+     * Екшън копиращ дадена спецификация в нов тред. Ако името
+     * на старата спецификация завършва на число го инкрементира,
+     * в новата, ако няма добавя "v2" в заглавието на спецификация
+     */
+    function act_Copy()
+    {
+    	$this->requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active');
+    	
+    	// Копието е нов документ(чернова), в същата папка в нов тред
+    	unset($rec->id, $rec->containerId);
+    	$rec->state = 'draft';
+    	
+    	// Промяна на името на копието
+    	$data = unserialize($rec->data);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	$newTitle = str::increment($rec->title);
+    	$data->title = $rec->title = ($newTitle) ? $newTitle : $rec->title . " v2";
+    	$rec->data = $technoClass->serialize($data);
+    	
+    	// Запис и редирект
+    	$this->save($rec);
+    	return Redirect(array($this, 'single', $rec->id), FALSE, 'Спецификацията е успешно копирана');
     }
     
     
