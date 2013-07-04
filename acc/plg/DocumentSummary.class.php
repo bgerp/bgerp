@@ -146,18 +146,20 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 0;
     	$queryCopy = clone $data->query;
-    	$queryCopy->where("#state != 'draft'"); 
     	$queryCopy->show = array();
     	$queryCopy->groupBy = array();
     	$queryCopy->executed = FALSE;
-    	
+    	$queryCopy2 = clone $data->query;
+    	$queryCopy->where("#state = 'active'");
+    	$queryCopy2->where("#state = 'draft'");
     	$fieldsArr = $mvc->selectFields("#summary");
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	while($rec = $queryCopy->fetch()){
     		static::prepareSummary($mvc, $fieldsArr, $rec, $res, $baseCurrency);
     	}
     	
-    	$res['count'] = (object)array('caption' => tr('Документи'), 'measure' => tr('бр'), 'quantity' => $queryCopy->count());
+    	$res['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $queryCopy->count());
+    	$res['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $queryCopy2->count());
     	$tpl = static::renderSummary($res);
     	
     	return FALSE;
