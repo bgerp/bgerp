@@ -1,8 +1,12 @@
 
 .accordian {
     margin-left: 0px;
-    width: 320px;
-  
+    width: 320px;  
+}
+
+.narrow .accordian{
+	width:auto;
+	max-width:350px;
 }
 
 .accordian ul{
@@ -32,6 +36,11 @@ li.dimension{
 	min-width:308px;
 	margin-bottom: 0.3em;
 }
+.narrow .dimension .button{
+	background-image:none !important;
+	padding-left:0.3em !important;
+	min-width:100%;
+}
 
 li.btns-title{
 	background: rgb(153,153,255); /* Old browsers */
@@ -52,7 +61,7 @@ li.btns-title{
 }
 
 .narrow li.btns-title{
-	font-size:16px;
+	font-size:0.9em;
 }
 
 .btns-title:first-child{
@@ -67,10 +76,6 @@ li.last-title{
 li.last-title.active{
 	border-radius:0;
 	border-bottom:none;
-}
-
-.narrow .dimension .button{
-	font-size:14px;
 }
 
 .btns-icon{
