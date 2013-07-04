@@ -564,6 +564,17 @@ div.alphabet div.tab-row .tab{
  }
 /*край на таб alphabet*/
 
+/*стилове за cat*/
+div.productImage {
+	padding:10px 0px 8px 8px;
+	float:right;
+}
+
+.narrow div.productImage {
+	padding:10px  8px  8px 0px;
+	float:left;
+}
+/*край на стилове за cat*/
 
 /*стилове за CRM*/
 div.crmImage {
