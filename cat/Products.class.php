@@ -668,11 +668,17 @@ class cat_Products extends core_Master {
         // Ако има манипулатор на файл
         if ($fileHnd) {
             
-            // Масив за размерите
-            $size = array(200, 150);
-
+            // Fancy ефект за картинката
+            $Fancybox = cls::get('fancybox_Fancybox');
+            
+            // Размер на thumbnail' а
+            $tArr = array(200, 150);
+            
+            // Максималния размер на изображението
+            $mArr = array(600, 450);
+            
             // Вземаме тумбнаил на файла
-            $data->row->image = thumbnail_Thumbnail::getImg($fileHnd, $size);
+            $data->row->image = $Fancybox->getImage($fileHnd, $tArr, $mArr);
         }
     }
 }
