@@ -74,7 +74,7 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * OPTIONAL - да, където може изпозлвай криптиране
  * MANDATORY - да, използвай задължително
  */
-defIfNot('EF_HTTPS', 'OPTIONAL');
+defIfNot('EF_HTTPS', 'NO');
 
 
 /**
