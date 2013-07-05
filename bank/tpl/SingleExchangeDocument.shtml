@@ -22,7 +22,7 @@
 				<div class="amounts">
 					<table class='default-table'>
 					<tr>
-						<td>|Обърнати |*:</td>
+						<td>|Обменени |*:</td>
 					</tr>
 					<!--ET_BEGIN creditQuantity-->
 						<tr>
