@@ -107,7 +107,14 @@ class acc_journal_EntrySide
             count($d) <= 3,
             "{$this->type}: Макс 3 пера",  array('data'=>$transactionData)
         );
-        
+            
+        // Изтриваме празните позиции за пера
+        foreach (array_keys($d) as $i) {
+            if (is_null($d[$i])) {
+                unset($d[$i]);
+            }
+        }
+            
         $data->items = $d;
         
         // Делегираме работата по инитициализацията на метода init()
