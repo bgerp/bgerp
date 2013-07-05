@@ -125,8 +125,8 @@
                                 <td>
                                     <table>
                                         <tr>
-                                            <td style="text-align: right;">Обща сума:</td>
-                                            <td><b>[#amountDeal#]</b> [#chargeVat#]</td>
+                                            <td style="text-align: right;">Обща сума [#chargeVat#]:</td>
+                                            <td><b>[#amountDeal#]</b></td>
                                         </tr>
                                         <!--ET_BEGIN amountPaid-->
                                         <tr>
