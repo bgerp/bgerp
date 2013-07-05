@@ -63,9 +63,9 @@ class clickatell_Setup
     var $configDescription = array (
         'CLICKATELL_URL' => array('url'),
         'CLICKATELL_CHECK_URL' => array('url'),
-        'CLICKATELL_APIID' => array('varchar'),
-        'CLICKATELL_USERNAME' => array('varchar'),
-        'CLICKATELL_PASSWORD' => array('varchar'),
+        'CLICKATELL_APIID' => array('varchar', 'mandatory'),
+        'CLICKATELL_USERNAME' => array('varchar', 'mandatory'),
+        'CLICKATELL_PASSWORD' => array('varchar', 'mandatory'),
     );
     
     
