@@ -360,6 +360,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$rowTpl->append2master();
 	    		}
 	    	}
+    	} else {
+    		$hasQuantityCol = $hasQuantityColOpt = TRUE;
     	}
     	
     	if($data->total){
