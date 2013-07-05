@@ -2152,11 +2152,11 @@ div.locImage{
 
 .narrow .portal-filter{
 	margin-left:5px;
-	height: 1.0em;
+	min-width:20px;
 }
 
 .portal-filter .hFormField {
-	width: 9em;
+	width: 7.5em;
 	border: solid 1px #ccc;
 	float: right;
 	display: block;
@@ -2165,12 +2165,16 @@ div.locImage{
 	margin: 0px 0 0px 7px; 	
 	background: rgba(255, 255, 255, 0.7);
 	@include border-radius(3px);
-	display1:none;
+}
+
+.narrow .portal-filter .hFormField{
+	height:auto;	
+	position: relative;
+	top: -1px;
 }
 
 .portal-filter .hFormField input {
 	height: 1.4em;
-    width: 9em;
 	border: none !important;
 	background:none;
 	font-size:0.9em;
@@ -2178,8 +2182,13 @@ div.locImage{
 	top:-1px;
 	line-height:1.3em;
 	margin-top:0px !important;
-    width: 8.5em !important;
+    width: 7em !important;
     outline:none !important;
+}
+
+.narrow .portal-filter .hFormField input {
+	width:87% !important;
+	height:1.3em;
 }
 
 @-moz-document url-prefix() { 
@@ -2213,13 +2222,12 @@ div.locImage{
 	width: 16px;
 	height:20px;
 	margin-right:0;
-	right: 0px !important;
+	right: -4px !important;
     top: 0em !important;
 	position: absolute;
 	border: none;
 	outline:none !important;
 	background-color: transparent !important;
-	background-position: center center;
 	cursor: pointer;
 	display: inline-block;
 
@@ -2230,9 +2238,11 @@ div.locImage{
 }
 
 .narrow .portal-filter .button{
-	height:1.45em;
+	height:1.5em;
 	padding:2px 0;
-	background-color:rgb(221, 221, 221) !important;
+	right: 0px !important;
+	border:none;
+	background-position: center 2px;
 }
 /*край на търсене в портала*/
 
