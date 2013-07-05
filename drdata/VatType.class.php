@@ -51,7 +51,7 @@ class drdata_VatType extends type_Varchar
         
         if ($status == 'unknown') {
             $res['warning'] = $status;
-        } elseif ($status != 'valid' && $status != 'not_vat' && $status != 'bulstat') {
+        } elseif ($status != 'valid'  && $status != 'bulstat') {
             $res['error'] = $status;
         }
         
