@@ -462,6 +462,8 @@ class sales_Invoices extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
         if($path = $conf->INV_LAYOUT){
+        	//$path = basename($path);
+        	//expect($res = getTplFromFile("sales/tpl/" . $path), 'Няма такъв файл');
         	$res = getTplFromFile($path);
         	return $res;
         }
