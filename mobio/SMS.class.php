@@ -67,7 +67,7 @@ class mobio_SMS extends core_Manager
 	 */
 	function description()
 	{
-	    $this->FLD('uid', 'varchar(16)', 'caption=Хендлър, input=none');
+	    $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
 	    $this->FLD('data', 'blob(compress, serialize)');
 	    
 	    $this->setDbUnique('uid');

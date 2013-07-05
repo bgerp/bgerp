@@ -2,19 +2,19 @@
 
 
 /**
- * Пращане на SMS' и чрез prosms
- * 
+ * Пращане на SMS' и от clickatell
+ *
  * @category  vendors
- * @package   prosms
+ * @package   clickatell
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class prosms_SMS extends core_Manager
+class clickatell_SMS extends core_Manager
 {
-	
     
+	
     /**
      * Кой има право да чете?
      */
@@ -48,7 +48,7 @@ class prosms_SMS extends core_Manager
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
-    
+	
     
 	/**
 	 * Интерфейсния клас за изпращане на SMS
@@ -59,7 +59,7 @@ class prosms_SMS extends core_Manager
 	/**
 	 * 
 	 */
-	var $title = 'proSMS';
+	var $title = 'Clickatell';
 	
 	
 	/**
@@ -90,56 +90,59 @@ class prosms_SMS extends core_Manager
      * $nRes['msg'] - Статуса
      */
     function sendSMS($number, $message, $sender, $params=array())
-    {
+    {    
         // Конфигурацията на модула
-    	$conf = core_Packs::getConfig('prosms');
+    	$conf = core_Packs::getConfig('clickatell');
     	
     	// Масива, който ще връщаме
         $nRes = array();
         
         // Ако константата за УРЛ-то е зададена
-        if ($conf->PROSMS_URL != '') {
+        if ($conf->CLICKATELL_URL != '') {
             
             // Вземаме шаблона
-            $tpl = new ET($conf->PROSMS_URL);
-            
+            $tpl = new ET($conf->CLICKATELL_URL);
+
             // Заместваме данните
-            $tpl->placeArray(array('USER' => urlencode($conf->PROSMS_USER), 'PASS' => urlencode($conf->PROSMS_PASS), 'FROM' => urlencode($sender), 'ID' => $uid, 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message)));
-            
+            $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message), 'APIID' => $conf->CLICKATELL_APIID, 'USERNAME' => $conf->CLICKATELL_USERNAME, 'PASSWORD' => $conf->CLICKATELL_PASSWORD));
+
             // Вземаме съдържанието
             $url = $tpl->getContent();
             
-            // Опитваме се да изпратим
-            $ctx = stream_context_create(array('http' => array('timeout' => 5)));
+            // Изпращаме съобщението
+            $ret = file($url);
             
-            // Вземаме резултата
-            $res = file_get_contents($url, 0, $ctx);
+            // Резултата, който се е върнал
+            $retRes = $ret[0];
             
-            // Ако има грешки
-            if ((int)$res != 0) {
+            // Друг начин за изпращане
+//            // Опитваме се да изпратим
+//            $ctx = stream_context_create(array('http' => array('timeout' => 5)));
+//            
+//            // Вземаме резултата
+//            $retRes = file_get_contents($url, 0, $ctx);
+
+            // Разделяме стринга
+            $sendStatusArr = explode(":", $retRes);
+     
+            // Ако изпращането е било успешно
+            if ($sendStatusArr[0] == "ID") {
+                
+                // Сетваме променливите
+                $nRes['sended'] = TRUE;
+                $nRes['uid'] = trim($sendStatusArr[1]);
+                $nRes['msg'] = tr("Успешно изпратен SMS");
+                
+                // Създаваме запис в модела
+                $nRec = new stdClass();
+                $nRec->uid = $nRes['uid'];
+                $nRec->data = $params;
+                static::save($nRec);
+            } else {
                 
                 // Сетваме променливите
                 $nRes['sended'] = FALSE;
                 $nRes['msg'] = tr("Не може да се изпрати");
-            } else {
-                
-                // Ако няма грешки
-                
-                // Опитваме се да генерираме уникален номер
-                do {
-                    $uid = static::getUid();
-                } while (static::fetch("#uid = '{$uid}'", 'id'));
-                
-                // Сетваме променливите
-                $nRes['sended'] = TRUE;
-                $nRes['msg'] = tr("Успешно изпратен SMS");
-                $nRes['uid'] = $uid;
-                
-                // Създаваме запис в модела
-                $nRec = new stdClass();
-                $nRec->uid = $uid;
-                $nRec->data = $params;
-                static::save($nRec);
             }
         } else {
             
@@ -158,15 +161,6 @@ class prosms_SMS extends core_Manager
     
     
     /**
-     * Връща уникално id
-     */
-    static function getUid()
-    {
-        return $uid = str::getRand('aaaaaa') . 'prosms';
-    }
-    
-    
-    /**
      * Интерфейсен метод
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
@@ -174,18 +168,30 @@ class prosms_SMS extends core_Manager
     function act_Delivery()
     {
         // Вземаме променливите
-        $uid = request::get('idd', 'varchar');
-        $status = request::get('status', 'varchar');
-        $code = request::get('code', 'varchar');
+        $uid = Request::get('apiMsgId', 'varchar');
+        $code = Request::get('status', 'varchar');
+        $timestamp = Request::get('timestamp', 'int');
+        
+        // Други променливи, които се пращат
+        $apiId = Request::get('api_id', 'varchar');
+        $cliMsgId = Request::get('cliMsgId', 'varchar');
+        $to = Request::get('to', 'varchar');
+        $from = Request::get('from', 'varchar');
+        $charge = Request::get('charge', 'varchar');
         
         // Очакваме да има такъв запис
         expect($rec = static::fetch(array("#uid = '[#1#]'", $uid)), "Невалидна заявка.");
         
-        // Ако не е получен успешно
-        if ((int)$code !== 0) {
-            $status = 'receiveError';
-        } else {
+        // Ако е получен успешно
+        if ($code == '004') {
+            
+            // Статуса
             $status = 'received';
+            
+        } else {
+            
+            // Грешка при получаване
+            $status = 'receiveError';
         }
         
         // Ако има зададен клас и фунцкия
@@ -193,9 +199,49 @@ class prosms_SMS extends core_Manager
             try {
                 
                 // Извикваме я
-                call_user_func(array($rec->data['class'], $rec->data['function']), $rec->uid, $status);
+                call_user_func(array($rec->data['class'], $rec->data['function']), $rec->uid, $status, $timestamp);
                 
             } catch (Exception $e) { }
         }
+    }
+    
+    
+    /**
+     * Екшън за проверка на връзката с услугата
+     */
+    function act_Check()
+    {
+        // Очакваме да има роля admin
+        expect(haveRole('admin'));
+        
+        // Конфигурацията на модула
+    	$conf = core_Packs::getConfig('clickatell');
+    	
+    	// Ако константата за УРЛ-то е зададена
+        expect($conf->CLICKATELL_CHECK_URL != '');
+        
+        // Вземаме шаблона
+        $tpl = new ET($conf->CLICKATELL_CHECK_URL);
+
+        // Заместваме данните
+        $tpl->placeArray(array('APIID' => $conf->CLICKATELL_APIID, 'USERNAME' => $conf->CLICKATELL_USERNAME, 'PASSWORD' => $conf->CLICKATELL_PASSWORD));
+
+        // Вземаме съдържанието
+        $url = $tpl->getContent();
+        
+        try {
+            
+            // Изпращаме заявката
+            $ret = @file($url);
+        } catch (Exception $e) { }
+        
+        // Вземаме резултата
+        $sess = explode(":",$ret[0]);
+        
+        // Очакваме да е ОК
+        expect($sess[0] == "OK", 'Не може да се ауторизира', $ret);
+        
+        // Връщаме съобщението
+        return tr('Clickatell работи коректно');
     }
 }
