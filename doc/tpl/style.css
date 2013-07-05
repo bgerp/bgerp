@@ -26,6 +26,10 @@ li.dimension{
 	border-right: solid 1px #bbb;
 }
 
+.narrow li.dimension{
+	padding:0;
+}
+
 .last-dimention{
 	border-bottom: solid 1px #bbb;
 	border-radius:0 0 5px 5px;
@@ -40,12 +44,25 @@ li.dimension{
 .narrow .dimension .button{
 	background-image:none !important;
 	background:none;
-	padding-left:0.3em !important;
+	padding-left:0.7em !important;
 	border:none;
 	min-width:100%;
-	padding-top:0;
+	padding-top:0 !important;
 	padding-bottom:0;
-	height:1.2em;
+	height:1em;
+	line-height:1em;
+}
+
+.narrow .btn-group{
+	border-top: dotted 1px #CCC !important;
+}
+
+.narrow .btn-group:first-child{
+	border-top:none !important;
+}
+
+.narrow .btn-group:hover{
+	background-color: #FFC !important;
 }
 
 li.btns-title{
