@@ -33,7 +33,7 @@ class techno_Specifications extends core_Master {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank,
-                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search, doc_SharablePlg';
 
 	
     /**
@@ -147,6 +147,7 @@ class techno_Specifications extends core_Master {
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
+    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
     }
     
     
@@ -344,15 +345,17 @@ class techno_Specifications extends core_Master {
     		$cover = doc_Folders::fetchCoverClassName($rec->folderId);
     	}
     	
+    	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
+    	
     	if($cover != 'doc_UnsortedFolders'){
 			$form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
     		$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
     		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
 		}
-    	
-         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-         $retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
-         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+		
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
@@ -368,6 +371,7 @@ class techno_Specifications extends core_Master {
 	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
         		$quantities = array($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
 	            unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
+        		$rec->sharedUsers = $fRec->sharedUsers;
         		
 	            // Записваме мастър - данните
 	            $this->save($rec);
