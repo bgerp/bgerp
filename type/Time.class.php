@@ -206,7 +206,7 @@ class type_Time extends type_Varchar {
         
         if($v == 0) {
             
-            return '0 ' . tr('мин.');
+            return tr('веднага');
         }
 
         if($weeks > 0) {
