@@ -313,12 +313,16 @@ class techno_GeneralProducts extends core_Manager {
 	    $res = new stdClass();
 	    $res->productRec = $data;
 	    
-    	$res->meta = array();
-    	$meta = explode(',', $data->meta);
-    	foreach($meta as $value){
-    		$res->meta[$value] = TRUE;
-    	}
-    	
+	    if($data->meta){
+	    	$meta = explode(',', $data->meta);
+	    	$newArr = array();
+	    	foreach($meta as $value){
+	    		$res->meta[$value] = TRUE;
+	    	}
+	    } else {
+	    	$res->meta = FALSE;
+	    }
+	    
 	    if(!$packagingId) {
 	    	$res->packagings = array();
 	    } else {
@@ -331,19 +335,15 @@ class techno_GeneralProducts extends core_Manager {
     
     /**
      * Връща ддс-то на продукта
-     * @param int $id - ид на продукт
+     * @param int $data - сериализараната информация от драйвъра
      * @param datetime $date - към дата
      */
     public function getVat($data, $date = NULL)
     {
-    	if(empty($data)) return NULL;
-    	if(is_string($data)){
-    		$data = unserialize($data);
-    	}
-    	
+    	$data = unserialize($data);
     	$vatId = cat_Params::fetchIdBySysId('vat');
     	if($vat = $data->params[$vatId]){
-    		return $vat / 100;
+    		return $vat;
     	}
     	
     	// Връщаме ДДС-то от периода
@@ -410,28 +410,5 @@ class techno_GeneralProducts extends core_Manager {
         
         $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
-    }
-    
-    
-    /**
-     * Помага за генериране на последваща оферта
-     * Връща масив от вида [име_на_поле] => [количество]
-     * Първия елемент е задължително [currencyId] - валута в която
-     * е цената на артикула
-     * За всяка една от тези стойностти в генерираната оферта
-     * се добавя по един ред
-     * @return array
-     */
-    public function getFollowingQuoteInfo($data)
-    {
-    	$data = unserialize($data);
-    	$array = array('currencyId' => $data->currencyId);
-    	foreach(range(1, 3) as $n){
-	    	if($q = $data->{"quantity{$n}"}){
-	    		$array["quantity{$n}"] = $q;
-	    	}
-    	}
-    	
-    	return $array;
     }
 }

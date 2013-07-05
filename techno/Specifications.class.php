@@ -39,7 +39,7 @@ class techno_Specifications extends core_Master {
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    //var $onlyFirstInThread = TRUE;
     
     
     /**
@@ -148,6 +148,31 @@ class techno_Specifications extends core_Master {
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
+    	
+    	// В кой тред е пораждащата фактура
+    	$this->FLD('invThread', 'int', 'input=none');
+    }
+    
+    
+    /**
+     * Ако спецификацията се създава в тред с първи документ, който
+     * не е спецификация то, тя се рутира в нов тред, същата папка
+     * А пораждащата фактура остава в първия тред
+     */
+    function on_BeforeRoute($mvc, &$res, $rec)
+    {
+    	if(empty($rec->id)){
+    		try{
+    			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    			if($firstDoc->className != 'techno_Specifications'){
+    				$firstDocRec = $firstDoc->fetch();
+    				$rec->folderId = $firstDocRec->folderId;
+    				$rec->invThread = $rec->threadId;
+    				unset($rec->threadId);
+    			}
+    		}
+    		catch(Exception $e){}
+    	}
     }
     
     
@@ -193,6 +218,9 @@ class techno_Specifications extends core_Master {
 	    		$url['folderId'] = $folderId;
 	    	} elseif($originId = Request::get('originId')){
 	    		$url['originId'] = $originId;
+	    	}
+	    	if($threadId = Request::get('threadId')){
+	    		$url['threadId'] = $threadId;
 	    	}
 	    	$tpl->append(ht::createBtn($title, $url));
 	    	$tpl->append("<br />");
@@ -328,6 +356,8 @@ class techno_Specifications extends core_Master {
     		expect($technoId = Request::get('technoId', 'int'));
 	    	$folderId = Request::get('folderId', 'int');
 	    	$originId = Request::get('originId', 'int');
+	    	$threadId = Request::get('threadId', 'int');
+	    	
 	    	$rec = new stdClass();
 	    	$rec->prodTehnoClassId = $technoId;
 	    	if($folderId){
@@ -335,6 +365,9 @@ class techno_Specifications extends core_Master {
 	    	}
 	    	if($originId){
 	    		$rec->origin = $originId;
+	    	}
+    		if($threadId){
+	    		$rec->threadId = $threadId;
 	    	}
     	}
     	
@@ -384,6 +417,7 @@ class techno_Specifications extends core_Master {
         		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
         		if($rec->common != 'yes' && $hasQuantities){
         			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId} AND #threadId = {$rec->threadId}", 'id');
+        			
         			if($qId){
         				
         				// Ако има оферта в треда и има въведени к-ва -> ъпдейтва се наличната офертата
@@ -401,9 +435,18 @@ class techno_Specifications extends core_Master {
 	        }
         }
         
-        $params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-        $folderLink = doc_Folders::getVerbalLink($params);
-        $form->title = "Спецификация на универсален продукт в|* {$folderLink}";
+        if($rec->folderId){
+        	$params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+        	$link = doc_Folders::getVerbalLink($params);
+        } elseif($rec->threadId){
+        	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        	$handle = $firstDoc->getHandle();
+        	$params = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        	$params['#'] = $handle;
+        	$link = ht::createLink($handle, $params);
+        }
+        
+        $form->title = "Спецификация на универсален продукт в|* {$link}";
         
         return $this->renderWrapping($form->renderHtml());
     }
@@ -432,7 +475,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копира спецификацията в нов тред');
+    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копира спецификацията в нов тред,warning=Сигурнили сте че искате да копирате документа ?');
     	}
     }
     
@@ -456,7 +499,13 @@ class techno_Specifications extends core_Master {
     	// Промяна на името на копието
     	$data = unserialize($rec->data);
     	$technoClass = cls::get($rec->prodTehnoClassId);
-    	$newTitle = str::increment($rec->title);
+    	$i = 0;
+    	while(!static::fetch("#title = '{$newTitle}'")){
+    		$newTitle = str::increment($rec->title);
+    		//bp();
+    		$i++;
+    	}
+    	bp($i,$rec->title,$newTitle);
     	$data->title = $rec->title = ($newTitle) ? $newTitle : $rec->title . " v2";
     	$rec->data = $technoClass->serialize($data);
     	
@@ -479,7 +528,7 @@ class techno_Specifications extends core_Master {
     	$qRec = new stdClass();
 	    $qRec->folderId = $rec->folderId;
 		$qRec->originId = $rec->containerId;
-		$qRec->threadId = $rec->threadId;
+		$qRec->threadId = isset($rec->invThread) ? $rec->invThread : $rec->threadId;
 		$Quotations->populateDefaultData($qRec);
 	    $qRec->rate = round(currency_CurrencyRates::getRate($qRec->date, NULL, NULL), 4);
 	    $qRec->paymentCurrencyId = acc_Periods::getBaseCurrencyCode($qRec->date);
@@ -504,7 +553,8 @@ class techno_Specifications extends core_Master {
     {
     	$technoId = static::fetchField($id, 'prodTehnoClassId');
     	$technoClass = cls::get($technoId);
-    	return $technoClass->getVat($id, $date);
+    	$rec = static::fetch($id);
+    	return $technoClass->getVat($rec->data, $date);
     }
     
     
@@ -614,22 +664,5 @@ class techno_Specifications extends core_Master {
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
-    }
-    
-    
-    /**
-     * Помага за генериране на последваща оферта
-     * Връща масив от вида [име_на_поле] => [количество]
-     * Първия елемент е задължително [currencyId] - валута в която
-     * е цената на артикула
-     * За всяка една от тези стойностти в генерираната оферта
-     * се добавя по един ред
-     * @return array
-     */
-	public function getFollowingQuoteInfo($id)
-	{
-    	$rec = static::fetch($id);
-    	$technoClass = cls::get($rec->prodTehnoClassId);
-    	return $technoClass->getFollowingQuoteInfo($rec->data);
     }
 }

@@ -167,7 +167,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	$rec = &$form->rec;
 	    	$Policy = cls::get($rec->policyId);
 	    	$productMan = $Policy->getProductMan();
-	    	if(!$rec->vatPercent){
+	    	if(!$rec->vatPercent){ // @TODO да го махнали
 	    		$rec->vatPercent = $productMan::getVat($rec->productId, $masterRec->date);
 	    	}
 	    	
