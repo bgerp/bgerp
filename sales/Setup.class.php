@@ -1,5 +1,8 @@
 <?php
-
+/**
+ *  Изглед за фактурата
+ */
+defIfNot('INV_LAYOUT', '');
 
 
 /**
@@ -9,7 +12,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,6 +45,14 @@ class sales_Setup
     
     
     /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'INV_LAYOUT' => array ('varchar'),
+	);
+	
+	
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -70,7 +81,7 @@ class sales_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "{$role}, ceo");
         
         return $html;
     }

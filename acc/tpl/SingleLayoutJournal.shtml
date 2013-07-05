@@ -1,7 +1,7 @@
 <div class="singleView" style="display:inline-block">
        		[#SingleToolbar#] 
             <h2>[#SingleTitle#]</h2>
-            <table width="100%" cellpadding="2px">
+            <table width="100%" cellpadding="2px" class='default-table'>
 	            <tr>
 	            <td valign="top" style="padding-right: 5em;">
 		            <table>

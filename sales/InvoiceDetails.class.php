@@ -55,13 +55,13 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'sales, admin';
+    var $canWrite = 'sales, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'sales, admin';
+    var $canRead = 'sales, ceo';
     
     
     /**

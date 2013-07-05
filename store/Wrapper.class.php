@@ -26,16 +26,16 @@ class store_Wrapper extends plg_ProtoWrapper
     {
       
 
-            $this->TAB('store_Stores', 'Складове', 'admin,store');
-            $this->TAB('store_ShipmentOrders', 'Експедиция', 'admin,store');
+            $this->TAB('store_Stores', 'Складове', 'ceo,store');
+            $this->TAB('store_ShipmentOrders', 'Експедиция', 'ceo,store');
 
-            $this->TAB('store_Movements', 'Движения', 'admin,store');
-            $this->TAB('store_Pallets', 'Палети', 'admin,store');
-            $this->TAB('store_Racks', 'Стелажи', 'admin,store');
-            $this->TAB('store_Zones', 'Зони', 'admin,store');
-            $this->TAB('store_Products', 'Продукти', 'admin,store');
-            $this->TAB('store_Stores', 'Складове', 'admin,store');
-            $this->TAB('store_PalletTypes', 'Видове палети', 'admin,store');
+            $this->TAB('store_Movements', 'Движения', 'ceo,store');
+            $this->TAB('store_Pallets', 'Палети', 'ceo,store');
+            $this->TAB('store_Racks', 'Стелажи', 'ceo,store');
+            $this->TAB('store_Zones', 'Зони', 'ceo,store');
+            $this->TAB('store_Products', 'Продукти', 'ceo,store');
+            $this->TAB('store_Stores', 'Складове', 'ceo,store');
+            $this->TAB('store_PalletTypes', 'Видове палети', 'ceo,store');
             $this->TAB('store_Documents', 'Документи');
         
             $this->title = 'Склад';

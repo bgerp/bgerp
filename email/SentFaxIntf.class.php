@@ -15,7 +15,7 @@ class email_SentFaxIntf
     
     
     /**
-     * Добавя скрипт за конвертиране на файлове
+     * Метод за изпращане на факсове
      */
     function sendFax($data, $fax)
     {

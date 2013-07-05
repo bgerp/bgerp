@@ -75,13 +75,13 @@ class price_ConsumptionNorms extends core_Master {
     /**
      * Кой може да чете
      */
-    var $canRead = 'price, admin';
+    var $canRead = 'price, ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'price, admin';
+    var $canWrite = 'price, ceo';
     
     
 	/**

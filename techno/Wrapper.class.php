@@ -22,7 +22,7 @@ class techno_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('techno_Specifications', 'Спецификации', 'admin,techno');
+        $this->TAB('techno_Specifications', 'Спецификации', 'ceo,techno');
     	$this->title = 'Спецификации';
     }
 }

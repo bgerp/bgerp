@@ -67,8 +67,8 @@ class cash_Cases extends core_Master {
      */
     var $rowToolsField = 'tools';
 
-    var $canRead = 'cash, admin';
-    var $canWrite = 'cash, admin';
+    var $canRead = 'ceo';
+    var $canWrite = 'ceo';
     
     
     /**
@@ -92,7 +92,7 @@ class cash_Cases extends core_Master {
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title');
-        $this->FLD('cashier', 'user(roles=cash|admin)', 'caption=Касиер');
+        $this->FLD('cashier', 'user(roles=cash|ceo)', 'caption=Касиер');
     }
     
     

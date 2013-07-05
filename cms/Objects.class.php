@@ -32,13 +32,13 @@ class cms_Objects extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'cms,admin';
+    var $canWrite = 'cms,admin,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'cms,admin';
+    var $canRead = 'cms,admin,ceo';
     
 
     /**

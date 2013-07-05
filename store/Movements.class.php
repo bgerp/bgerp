@@ -38,31 +38,31 @@ class store_Movements extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,store';
+    var $canRead = 'ceo,store';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'ceo,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,store';
+    var $canAdd = 'ceo,store';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,store';
+    var $canView = 'ceo,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,store';
+    var $canDelete = 'ceo,store';
     
     
     /**
@@ -124,7 +124,7 @@ class store_Movements extends core_Manager
         if ($rec->id && ($action == 'edit')) {
             if ($do = Request::get('do')) {
                 if ($do == 'palletMove') {
-                    $requiredRoles = 'store,admin';
+                    $requiredRoles = 'store,ceo';
                 }
             } else {
                 $requiredRoles = 'no_one';
@@ -134,7 +134,7 @@ class store_Movements extends core_Manager
         if ($action == 'add') {
             if ($do = Request::get('do')) {
                 if ($do == 'palletMove') {
-                    $requiredRoles = 'store,admin';
+                    $requiredRoles = 'store,ceo';
                 }
             } else {
                 $requiredRoles = 'no_one';

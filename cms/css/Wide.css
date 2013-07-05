@@ -33,6 +33,7 @@ body{
 	-moz-border-radius:5px;
 	border-radius: 5px;
 	margin-left:15px;
+	line-height:normal;
 }
 
 #cmsMenu a:hover {
@@ -97,7 +98,9 @@ img, object, embed {
 img {
 	height: auto;
 }
-
+.cms-row{
+	padding-top:20px;
+}
 .richtext h2 { 
 	background-color: #ddf;
 }

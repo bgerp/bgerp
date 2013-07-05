@@ -79,7 +79,7 @@ class survey_Setup
         $html .= $Bucket->createBucket('survey_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "{$role}, ceo");
         
         return $html;
     }

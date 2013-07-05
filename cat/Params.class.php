@@ -51,31 +51,31 @@ class cat_Params extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,user';
+    var $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,broker';
+    var $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'user';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'cat,ceo';
     
     
     /**
@@ -84,7 +84,7 @@ class cat_Params extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изборим)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
@@ -184,5 +184,31 @@ class cat_Params extends core_Manager
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Помощна функция връщаща инстанция на класа от системата
+     * отговарящ на типа на параметъра с опции зададените стойности
+     * ако е enum или същите като предложения. Използва се и от
+     * salecond_ConditionsToCustomers
+     * @param int $paramId - ид на параметър
+     * @param string $className - в кой мениджър се намрират параметрите
+     * @return core_Type $Type - типа от системата
+     */
+    public static function getParamTypeClass($id, $className)
+    {
+    	expect($Class = cls::get($className));
+    	expect($rec = $Class::fetch($id));
+    	$Varchar = cls::get('type_Varchar');
+        $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
+        $options = explode(',', $rec->options);
+	    foreach($options as $i => &$opt){
+	        $opt = $Varchar->toVerbal($opt);
+	    }
+        $options = array('' => '') + array_combine($options, $options);
+	    expect($Type = cls::get("type_{$rec->type}", array($optType => $options)), "Няма тип \"type_{$rec->type}\" в системата");
+    	
+	    return $Type;
     }
 }

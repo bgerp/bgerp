@@ -21,9 +21,9 @@ class blogm_Wrapper extends plg_ProtoWrapper
 	 */
 	function description()
 	{
-		$this->TAB(array('blogm_Articles', 'list'), 'Статии', 'admin,blog');
-		$this->TAB('blogm_Comments', 'Коментари', 'blog,admin');
-		$this->TAB('blogm_Categories', 'Категории', 'admin,blog');
-		$this->TAB('blogm_Links', 'Препратки', 'admin,blog');
+		$this->TAB(array('blogm_Articles', 'list'), 'Статии', 'admin,blog,ceo');
+		$this->TAB('blogm_Comments', 'Коментари', 'blog,admin,ceo');
+		$this->TAB('blogm_Categories', 'Категории', 'admin,blog,ceo');
+		$this->TAB('blogm_Links', 'Препратки', 'admin,blog,ceo');
 	}
 }

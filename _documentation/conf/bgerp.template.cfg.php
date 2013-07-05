@@ -68,20 +68,27 @@
 // Git бранч
    defIfNot('BGERP_GIT_BRANCH', '[#BGERP_GIT_BRANCH#]');
    
-   // Имейла по подразбиране
-// defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
+// Ще се използва ли HTTPS - NO, OPTIONAL, MANDATORY
+# defIfNot('EF_HTTPS', '[#EF_HTTPS#]');
+
+// Порта по подразбиране за HTTPS е 443
+# defIfNot('EF_HTTPS_PORT', '[#EF_HTTPS_PORT#]');
+   
+   
+// Имейла по подразбиране
+# defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
 
 // Домейн  по подразбиране
 // defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '[#BGERP_DEFAULT_EMAIL_DOMAIN#]');
 
 // Пощенска кутия по подразбиране
-// defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
+# defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
 
 // Хост по подразбиране
-// defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
+# defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
 
 // Парола по подразбиране
-// defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
+# defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
    
 
 

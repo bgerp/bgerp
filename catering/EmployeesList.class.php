@@ -52,13 +52,13 @@ class catering_EmployeesList extends core_Manager
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'catering, admin';
+    var $canWrite = 'catering, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, admin' ;
+    var $canRead = 'catering, ceo' ;
     
     
     /**
@@ -77,8 +77,8 @@ class catering_EmployeesList extends core_Manager
     
     /**
      * Преди извличане на записите от БД
-     * Ако потребителя не е admin или catering показваме само неговия запис
-     * Ако потребителя е admin или catering показваме списък от всички служители
+     * Ако потребителя не е ceo или catering показваме само неговия запис
+     * Ако потребителя е ceo или catering показваме списък от всички служители
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
@@ -87,7 +87,7 @@ class catering_EmployeesList extends core_Manager
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
-        if (!haveRole('admin,catering')) {
+        if (!haveRole('ceo,catering')) {
             $personId = $this->getPersonIdForCurrentUser();
             
             $data->query->where("#id = '{$personId}'");

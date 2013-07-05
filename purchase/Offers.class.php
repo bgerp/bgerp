@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Оферти за покупки
  */
-class purchase_Offers extends core_Manager
+class purchase_Offers extends core_Master
 {
     
     
@@ -59,31 +59,31 @@ class purchase_Offers extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,purchase';
+    var $canRead = 'ceo,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,purchase';
+    var $canEdit = 'ceo,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,purchase';
+    var $canAdd = 'ceo,purchase';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,purchase';
+    var $canView = 'ceo,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,purchase';
+    var $canDelete = 'ceo,purchase';
     
     
     /**

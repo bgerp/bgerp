@@ -42,25 +42,25 @@ class pos_Favourites extends core_Manager {
 	/**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin, pos';
+    var $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'admin, pos';
+    var $canAdd = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, admin';
+    var $canEdit = 'pos, ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin, pos';
+    var $canReject = 'ceo, pos';
     
 	
 	/**
@@ -129,7 +129,7 @@ class pos_Favourites extends core_Manager {
     	$double->params['decimals'] = 2;
     	
     	// Коя е текущата точка на продажба и нейния дефолт контрагент
-    	$posRec = pos_Points::fetch(pos_Points::getCurrent('id', NULL, FALSE));
+    	$posRec = pos_Points::fetch(pos_Points::getCurrent('id'));
     	$cache = core_Cache::get('pos_Favourites', "products{$posRec->id}");
     	if(!$cache){
     		$query = static::getQuery();

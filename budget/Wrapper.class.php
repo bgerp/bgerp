@@ -24,10 +24,10 @@ class budget_Wrapper extends plg_ProtoWrapper
     {
        
         
-        $this->TAB('budget_Assets', 'Парични средства', 'admin,budget');
-        $this->TAB('budget_IncomeExpenses', 'Приходи / Разходи', 'admin,budget');
-        $this->TAB('budget_Balances', 'Баланс', 'admin,budget');
-        $this->TAB('budget_Reports', 'По подразделения / Дейности', 'admin,budget');
+        $this->TAB('budget_Assets', 'Парични средства', 'ceo,budget');
+        $this->TAB('budget_IncomeExpenses', 'Приходи / Разходи', 'ceo,budget');
+        $this->TAB('budget_Balances', 'Баланс', 'ceo,budget');
+        $this->TAB('budget_Reports', 'По подразделения / Дейности', 'ceo,budget');
         
        
         $this->title = 'Бюджетиране « Финанси';

@@ -78,11 +78,16 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
 		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
-    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,unit=%');
+    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,hint=Процент');
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
-		
+		$form->FNC('meta', 'set(canSell=Продаваем,
+        						canBuy=Купуваем,
+        						canStore=Складируем,
+        						canConvert=Вложим,
+        						fixedAsset=Дма,
+        						canManifacture=Производим)', 'caption=Свойства->Списък,input');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
@@ -100,7 +105,8 @@ class techno_GeneralProducts extends core_Manager {
     public function getAddParamForm($data)
     {
     	$form = cls::get('core_Form');
-    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory');
+    	$form->formAttr['id'] = 'addParamSpec';
+    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
@@ -143,50 +149,25 @@ class techno_GeneralProducts extends core_Manager {
     
     
     /**
-     * Изчислява цената на продукта по формулата:
-     * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
-     *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
-     * @param int $customerClass - контрагент клас
-     * @param int $customerId - контрагент Ид
+     * Връща информация за ед цена на продукта, отстъпката и таксите
      * @param stdClass $data - дата от модела
      * @param int $packagingId - ид на опаковка
      * @param double quantity - количество
      * @param datetime $datetime - дата
-     * @return stdClass $price - цена и отстъпка на продукта
+     * @return stdClass $priceInfo - информация за цената на продукта
+     * 				[price]- начална цена
+     * 				[discount]  - отстъпка
+     * 				[tax]     - нач. такси
      */
-    public function getPrice($customerClass, $customerId, $data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
+    public function getPrice($data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
-    	if($data){
-    		if(is_string($data)){
-    			$data = unserialize($data);
-    		}
+    	$data = unserialize($data);
+    	$obj = new stdClass();
+    	$obj->price = $data->price;
+    	$obj->discount = $data->discount;
+    	$obj->tax = ($data->bTaxes) ? $data->bTaxes : 0;
     		
-    		if($data->price){
-    			$price = new stdClass();
-    			if($data->price){
-    				$price->price = $data->price;
-    			}
-    			if($data->discount){
-    				$price->discount = $data->discount;
-    			}
-    			
-    			if($price->price) {
-    				$minCharge =  salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    				$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    				
-    				if(empty($data->bTaxes)) {
-    					$data->bTaxes = 0;
-    				}
-    				
-    				$calcPrice = ($data->bTaxes * (1 + $maxCharge) 
-    					+ $quantity * $data->price * (1 + $minCharge)) / $quantity;
-    				$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
-    				return $price;
-    			}
-    		}
-    	}
-    	
-    	return FALSE;
+    	return $obj;
     }
     
     
@@ -274,6 +255,7 @@ class techno_GeneralProducts extends core_Manager {
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
         $fields = $this->getEditForm($data)->selectFields("");
+        
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
     		$row->$name = $fld->type->toVerbal($data->$name);
@@ -306,8 +288,8 @@ class techno_GeneralProducts extends core_Manager {
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
 	        
-			$editUrl = array($this, 'configure', $specificationId, 'edit' => $paramId,'ret_url' => TRUE);
-	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId,'ret_url' => TRUE);
+			$editUrl = array($this, 'configure', $specificationId, 'paramId' => $paramId, 'edit' => TRUE, 'ret_url' => TRUE);
+	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
 	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
@@ -330,12 +312,19 @@ class techno_GeneralProducts extends core_Manager {
     	$data = unserialize($data);
 	    $res = new stdClass();
 	    $res->productRec = $data;
+	    
+    	$res->meta = array();
+    	$meta = explode(',', $data->meta);
+    	foreach($meta as $value){
+    		$res->meta[$value] = TRUE;
+    	}
+    	
 	    if(!$packagingId) {
 	    	$res->packagings = array();
 	    } else {
 	    	return NULL;
 	    }
-	    	
+	   	
 	    return $res;
     }
     
@@ -382,12 +371,32 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	$form = $this->getAddParamForm($data);
+        
+    	if(Request::get('edit')){
+        	$paramId = Request::get('paramId');
+        	$form->rec->paramValue = $data->params[$paramId];
+        	$form->rec->paramId = $paramId;
+        	$form->setReadOnly('paramId');
+        	$action = tr('Редактиране');
+        } else {
+        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
+        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['addParamSpec'].elements['paramValue'].value ='';this.form.submit();"));
+	    	$paramOptions = $this->getRemainingOptions($data);
+	    	$form->setOptions('paramId', array('' => '') + $paramOptions);
+        	$action = tr('Добавяне');
+        }
+        
+        if($paramId = Request::get('paramId')){
+        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($paramId, 'cat_Params');
+        } else {
+        	$form->setField('paramValue', 'input=hidden');
+        }
+        
         $fRec = $form->input();
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('configure', $rec)){
         		
         		// Проверка дали въведените стойности за правилни
-        		cat_products_Params::isValueValid($form);
         		if(!$form->gotErrors()){
         			
         			// Записваме въведените данни в пропъртито data на река
@@ -398,17 +407,6 @@ class techno_GeneralProducts extends core_Manager {
         		}
         	}
         }
-        
-    	if($paramId = Request::get('edit')){
-        	$form->rec->paramValue = $data->params[$paramId];
-        	$form->rec->paramId = $paramId;	
-    		$form->setReadOnly('paramId');
-    		$action = tr('Редактиране');
-    	} else {
-    		$paramOptions = $this->getRemainingOptions($data);
-    		$form->setOptions('paramId', $paramOptions);
-    		$action = tr('Дoбавяне');
-    	}
         
         $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());

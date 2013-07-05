@@ -51,19 +51,19 @@ class price_Groups extends core_Master
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'price,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'price,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'user';
+    var $canDelete = 'price,ceo';
     
 
     /**

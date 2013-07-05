@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   salecond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -39,6 +39,24 @@ class salecond_Parameters extends core_Manager
      * Заглавие в единствено число
      */
     var $singleTitle = "Търговски параметри";
+    
+    
+    /**
+     * Кой може да чете
+     */
+    var $canRead = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canWrite = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    var $canAdd = 'ceo,salecond';
     
     
     /**

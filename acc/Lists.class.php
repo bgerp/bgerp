@@ -26,7 +26,7 @@ class acc_Lists extends core_Manager {
     /**
      * Кои роли имат пълни права за този мениджър?
      */
-    var $canAdmin = 'admin,acc';
+    var $canAdmin = 'ceo,acc';
     
     
     /**

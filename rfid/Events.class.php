@@ -37,31 +37,31 @@ class rfid_Events extends core_Manager {
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,rfid';
+    var $canRead = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,rfid';
+    var $canEdit = 'ceo,admin,rfid';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,rfid';
+    var $canAdd = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,rfid';
+    var $canView = 'ceo,admin,rfid';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,rfid';
+    var $canDelete = 'ceo,admin,rfid';
     
     
     /**

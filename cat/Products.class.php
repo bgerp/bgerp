@@ -25,7 +25,7 @@ class cat_Products extends core_Master {
     /**
      * Заглавие
      */
-    var $title = "Продукти в каталога";
+    var $title = "Артикули в каталога";
     
     
     /**
@@ -52,7 +52,7 @@ class cat_Products extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Продукт";
+    var $singleTitle = "Артикул";
     
     
     /**
@@ -82,43 +82,49 @@ class cat_Products extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin,user';
+    var $canRead = 'user';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'admin,cat';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,cat,broker';
+    var $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,cat,broker';
+    var $canView = 'user';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,cat,broker';
+    var $canList = 'cat,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,cat';
+    var $canDelete = 'cat,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,cat';
+    var $canReject = 'cat,ceo';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
+    var $canWrite = 'ceo,cat';
     
     
     /**
@@ -136,7 +142,7 @@ class cat_Products extends core_Master {
     /**
      * 
      */
-    var $canSingle = 'admin, cat';
+    var $canSingle = 'cat,ceo';
     
 	
     /** 
@@ -162,6 +168,7 @@ class cat_Products extends core_Master {
         						canConvert=Вложим,
         						fixedAsset=Дма,
         						canManifacture=Производим)', 'caption=Свойства->Списък,input=hidden');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         $this->setDbUnique('code');
     }
@@ -173,16 +180,8 @@ class cat_Products extends core_Master {
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
-            
-            //Разделяме текста от последното число
-            preg_match("/(?'other'.+[^0-9])?(?'digit'[0-9]+)$/", $code, $match);
-            
-            //Ако сме отркили число
-            if ($match['digit']) {
-                
-                //Съединяваме тескта с инкрементиранета с единица стойност на последното число
-                $newCode = $match['other'] . ++$match['digit'];
-                
+            if ($newCode = str::increment($code)) {
+            	
                 //Проверяваме дали има такъв запис в системата
                 if (!$mvc->fetch("#code = '$newCode'")) {
                     $data->form->rec->code = $newCode;
@@ -211,7 +210,7 @@ class cat_Products extends core_Master {
 	    			$check = $mvc->checkIfCodeExists($rec->$code);
 	    			if($check && ($check->productId != $rec->id)
 	    				|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
-	    				$form->setError($code, 'Има вече продукт с такъв код!');
+	    				$form->setError($code, 'Има вече артикул с такъв код!');
 			        }
     			}
     		}
@@ -572,7 +571,7 @@ class cat_Products extends core_Master {
     		$query->orWhere("#groups LIKE '%|{$groupId}|%'");
     	}
     	
-    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма продукти в посочените групи');
+    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма артикули в посочените групи');
     	
     	while($rec = $query->fetch()){
 	    	$result[$rec->id] = $rec->name;
@@ -593,7 +592,7 @@ class cat_Products extends core_Master {
      */
     public static function getVat($productId, $date = NULL)
     {
-    	expect(static::fetch($productId), 'Няма такъв продукт');
+    	expect(static::fetch($productId), 'Няма такъв артикул');
     	
     	if(!$date){
     		$date = dt::now();
@@ -651,6 +650,35 @@ class cat_Products extends core_Master {
         while($grRec = $groupQuery->fetch()){
         	$grRec->productCnt = (int)$groupsCnt[$grRec->id];
         	cat_Groups::save($grRec);
+        }
+    }
+    
+    /**
+     * Подготовка за рендиране на единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        // Ако не е зададено файл
+        if (!$fileHnd = $data->rec->photo) {
+            
+            // Вземаме файла от прикачените файлове на детайла
+            $fileHnd = cat_products_Files::getImgFh($data->rec->id);
+        }
+        
+        // Ако има манипулатор на файл
+        if ($fileHnd) {
+            
+            // Fancy ефект за картинката
+            $Fancybox = cls::get('fancybox_Fancybox');
+            
+            // Размер на thumbnail' а
+            $tArr = array(200, 150);
+            
+            // Максималния размер на изображението
+            $mArr = array(600, 450);
+            
+            // Вземаме тумбнаил на файла
+            $data->row->image = $Fancybox->getImage($fileHnd, $tArr, $mArr);
         }
     }
 }

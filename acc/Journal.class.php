@@ -51,7 +51,7 @@ class acc_Journal extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,acc';
+    var $canRead = 'ceo,acc';
     
     
     /**

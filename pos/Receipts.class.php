@@ -57,19 +57,19 @@ class pos_Receipts extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin, pos';
+    var $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'pos, admin';
+    var $canAdd = 'pos, ceo';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, admin';
+    var $canEdit = 'pos, ceo';
     
 	
 	/**
@@ -260,7 +260,7 @@ class pos_Receipts extends core_Master {
     public static function getProducts($id, $count = FALSE)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
-    	$posRec = pos_Points::fetch($rec->pointId);
+    	$policyId = price_ListToCustomers::getClassId();
     	
     	$products = array();
     	$totalQuantity = 0;
@@ -284,7 +284,7 @@ class pos_Receipts extends core_Master {
 	    	
 	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
-	    		'policyId' => $posRec->policyId,
+	    		'policyId' => $policyId,
 	    		'productId' => $rec->productId,
 		    	'price' => $rec->price,
 	    		'vatPrice' => $rec->price * $rec->param,

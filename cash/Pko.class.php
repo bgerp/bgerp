@@ -94,7 +94,7 @@ class cash_Pko extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,admin';
+    var $canConto = 'acc,ceo';
     
     
     var $canRevert = 'cash, ceo';

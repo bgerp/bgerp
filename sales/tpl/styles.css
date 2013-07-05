@@ -181,6 +181,9 @@
 	font-size:14px;
 }
 
+.richtext table{
+	clear:both; 
+}
 @media print{
 	.document{
 		padding:0px;

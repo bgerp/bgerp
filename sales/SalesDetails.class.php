@@ -56,7 +56,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canRead = 'admin, sales';
+    public $canRead = 'ceo, sales';
     
     
     /**
@@ -64,7 +64,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canEdit = 'admin, sales';
+    public $canEdit = 'ceo, sales';
     
     
     /**
@@ -72,7 +72,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canAdd = 'admin, sales';
+    public $canAdd = 'ceo, sales';
     
     
     /**
@@ -80,7 +80,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canView = 'admin, sales';
+    public $canView = 'ceo, sales';
     
     
     /**
@@ -88,7 +88,7 @@ class sales_SalesDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canDelete = 'admin, sales';
+    public $canDelete = 'ceo, sales';
     
     
     /**
@@ -479,6 +479,15 @@ class sales_SalesDetails extends core_Detail
             if (empty($rec->packPrice)) {
                 // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
                 // няма нужда от конвертиране.
+                
+                // Възможно е, обаче, ценоразписа да не върне цена. В този случай трябва да
+                // да сигнализираме на потребителя, че полето за цена е задължително и да не 
+                // допускаме записи без цени.
+                
+                if (empty($policyInfo->price)) {
+                    $form->setError('price', 'Продукта няма цена в избраната ценова политика');
+                }
+                
                 $rec->price = $policyInfo->price;
             } else {
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата

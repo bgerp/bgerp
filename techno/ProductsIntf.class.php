@@ -55,12 +55,15 @@ class techno_ProductsIntf
     
     
     /**
-     * Връща цената на продукта, спрямо вече генерирания запис
-     * @param string $data - сериализирана информация върната от метода
-     * serialize
-     * @param id $packagingId - id на опаковка
-     * @param int $quantity - к-во
+     * Връща информация за ед цена на продукта, отстъпката и таксите
+     * @param stdClass $data - дата от модела
+     * @param int $packagingId - ид на опаковка
+     * @param double quantity - количество
      * @param datetime $datetime - дата
+     * @return stdClass $priceInfo - информация за цената на продукта
+     * 				[price]- начална цена
+     * 				[discount]  - отстъпка
+     * 				[tax]     - нач. такси
      */
     public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {

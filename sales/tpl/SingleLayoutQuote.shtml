@@ -8,7 +8,7 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table border = '0'id='quot-table'>
+	<table border = '0' id='quot-table'>
 	<tr>
 		<td id='quot-title-td' style="vertical-align:top">
 		<div class='quote_title'>|ОФЕРТА|*</div>

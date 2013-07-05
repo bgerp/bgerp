@@ -57,8 +57,6 @@ class hr_Setup extends core_ProtoSetup
             'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
-	        'hr_NKID',
-	        'hr_NKPD'
         );
         
         // Роля ръководител на организация 
@@ -78,7 +76,7 @@ class hr_Setup extends core_ProtoSetup
         $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', NULL, '1GB', 'user', 'hr');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "admin, ceo, {$role}");
+        $html .= $Menu->addItem(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, {$role}");
         
         return $html;
     }

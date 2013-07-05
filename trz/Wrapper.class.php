@@ -23,13 +23,13 @@ class trz_Wrapper extends plg_ProtoWrapper
     function description()
     {
              
-        $this->TAB('trz_Salaries', 'Заплати', 'admin,trz');
-        $this->TAB('trz_Bonuses', 'Премии', 'admin,trz');
-        $this->TAB('trz_Sickdays', 'Болнични', 'admin,trz');
-        $this->TAB('trz_Requests', 'Отпуски', 'admin,trz');
-        $this->TAB('trz_Trips', 'Командировки', 'admin,trz');
-        $this->TAB('trz_Fines', 'Глоби', 'admin,trz');
-        $this->TAB('trz_Payrolls', 'Ведомост за заплати', 'admin,trz');
+        $this->TAB('trz_Salaries', 'Заплати', 'ceo,trz');
+        $this->TAB('trz_Bonuses', 'Премии', 'ceo,trz');
+        $this->TAB('trz_Sickdays', 'Болнични', 'ceo,trz');
+        $this->TAB('trz_Requests', 'Отпуски', 'ceo,trz');
+        $this->TAB('trz_Trips', 'Командировки', 'ceo,trz');
+        $this->TAB('trz_Fines', 'Глоби', 'ceo,trz');
+        $this->TAB('trz_Payrolls', 'Ведомост за заплати', 'ceo,trz');
         
               
         $this->title = 'ТРЗ « Персонал';

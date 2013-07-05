@@ -56,7 +56,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canRead = 'admin, store';
+    public $canRead = 'ceo, store';
     
     
     /**
@@ -64,7 +64,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canEdit = 'admin, store';
+    public $canEdit = 'ceo, store';
     
     
     /**
@@ -72,7 +72,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canAdd = 'admin, store';
+    public $canAdd = 'ceo, store';
     
     
     /**
@@ -80,7 +80,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canView = 'admin, store';
+    public $canView = 'ceo, store';
     
     
     /**
@@ -88,7 +88,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * 
      * @var string|array
      */
-    public $canDelete = 'admin, store';
+    public $canDelete = 'ceo, store';
     
     
     /**

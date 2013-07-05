@@ -30,6 +30,13 @@
 				<td colspan='1'><i>[#eanCode#]</i></td>
 			</tr>
 			<!--ET_END eanCode-->
+			
+			<!--ET_BEGIN meta-->
+			<tr>
+				<td width='30%'>|Свойства|*</td>
+				<td colspan='1'><i>[#meta#]</i></td>
+			</tr>
+			<!--ET_END meta-->
 		</table>
 		<!--ET_END OTHERS-->
 	</li>

@@ -22,10 +22,10 @@ class survey_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-       $this->TAB('survey_Surveys', 'Анкети', 'admin, survey');
-       $this->TAB('survey_Alternatives', 'Въпроси', 'admin, survey');
-       $this->TAB('survey_Options', 'Опции', 'admin, survey');
-       $this->TAB('survey_Votes', 'Гласуване', 'admin, survey');
+       $this->TAB('survey_Surveys', 'Анкети', 'admin, ceo, survey');
+       $this->TAB('survey_Alternatives', 'Въпроси', 'admin, ceo, survey');
+       $this->TAB('survey_Options', 'Опции', 'admin, ceo, survey');
+       $this->TAB('survey_Votes', 'Гласуване', 'admin, ceo, survey');
        $this->title = 'Анкети';
     }
 }

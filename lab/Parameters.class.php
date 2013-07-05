@@ -46,13 +46,13 @@ class lab_Parameters extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'lab,admin';
+    var $canWrite = 'lab,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,admin';
+    var $canRead = 'lab,ceo';
     
     /**
      * Полетата, които ще се показват в единичния изглед

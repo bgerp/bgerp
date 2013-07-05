@@ -37,7 +37,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'admin,sales';
+    var $canAdd = 'ceo,sales';
     
     
     /**
@@ -49,7 +49,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals';
     
     
     /**
@@ -74,9 +74,9 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
-        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,width=8em;');
+        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em;');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
-    	$this->FLD('term', 'int', 'caption=Срок,unit=дни,width=8em;');
+    	$this->FLD('term', 'time(uom=days)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
     }
@@ -126,8 +126,10 @@ class sales_QuotationsDetails extends core_Detail {
     {
        $form = &$data->form;
        $rec = &$form->rec;
-       (Request::get('edit')) ? $title = tr("Редактиране") : $title = tr("Добавяне");
-       $form->title = $title . " " . tr("|на запис в Оферта|* №{$rec->quotationId}");
+       
+       $title = (Request::get('edit')) ? "Редактиране" : "Добавяне";
+       $masterLink = sales_Quotations::getLink($form->rec->quotationId);
+       $form->title = $title . " " . "на артикул в" . " |*" . $masterLink;
        
        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
        $Policy = cls::get($rec->policyId);
@@ -171,19 +173,16 @@ class sales_QuotationsDetails extends core_Detail {
 	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
 	    	
-    		if($rec->discount){
-	    		if($rec->discount < 0) {
-	    			$form->setError('discount', 'Неможе да се въведе отрицателно число');
-	    		}
-	    	} else {
-	    		$rec->discount = $price->discount;
+    		if(!$rec->discount){
+    			$rec->discount = $price->discount;
 	    	}
 	    		
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price){
-	    			$form->setError('price', 'Неможе да се изчисли цената за този клиент');
+	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
+	    			$form->setField('price', 'mandatory');
 	    		}
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
@@ -322,6 +321,9 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
+    	
+    	// Променливи за определяне да се скриват ли някои колони
+    	$hasQuantityCol = $hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
 	    		list(, $optional) = explode("|", $index);
@@ -337,10 +339,20 @@ class sales_QuotationsDetails extends core_Detail {
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
+	    				$colQ = &$hasQuantityCol;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
+	    				
+	    				// слага се 'opt' в класа на колоната да се отличава
+	    				$rowTpl->replace('-opt', 'OPT');
+	    				$oTpl->replace('-opt', 'OPT');
 	    				$id = &$oCount;
+		    			$colQ = &$hasQuantityColOpt;
 	    			} 
+	    			
+	    			if($colQ !== TRUE && ($row->quantity)){
+	    				$colQ = TRUE;
+	    			}
 	    			
 	    			$row->index = $id++;
 	    			$rowTpl->placeObject($row);
@@ -349,6 +361,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    	}
     	}
+    	
     	if($data->total){
     		if($data->total->totalDisc){
     			$data->total->totalClass = 'oldAmount';
@@ -363,6 +376,14 @@ class sales_QuotationsDetails extends core_Detail {
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
     		$tpl->append($oTpl, 'OPTIONAL');
+    	}
+    	
+    	if(!$hasQuantityCol){
+    		$tpl->append(".quote-col {display:none;} .product-id {width:65%;}", 'STYLES');
+    	}
+    	
+    	if(!$hasQuantityColOpt){
+    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt {width:65%;}", 'STYLES');
     	}
     	
     	return $tpl;
@@ -380,18 +401,22 @@ class sales_QuotationsDetails extends core_Detail {
     	
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
-    	if(!$rec->quantity){
-    		$row->quantity = '???';
+    	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
+    	if($rec->quantity){
+    		$uomId = $pInfo->productRec->measureId;
+    		$row->uomShort = cat_UoM::getShortName($uomId);
     	}
     	
-    	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	$uomId = $pInfo->productRec->measureId;
-    	$row->uomShort = cat_UoM::getShortName($uomId);
     	$row->price = $double->toVerbal($rec->vatPrice);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
+    	}
+    	
+    	if($rec->discount){
+    		$row->price = "<span class='oldAmount' style='text-decoration:none'>{$row->price}</span>";
+    		$row->discount = "<span class='newAmount'>{$row->discount}</span>";
     	} else {
-    		$row->amount = '???';
+    		$row->price = "<b>{$row->price}</b>";
     	}
     	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
@@ -471,5 +496,18 @@ class sales_QuotationsDetails extends core_Detail {
     		
     		$this->save($dRec);
     	}
+    }
+    
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	// Нотифицираме продуктовия мениджър че продукта вече е използван
+    	$productMan = cls::get($rec->policyId)->getProductMan();
+    	$productRec = $productMan::fetch($rec->productId);
+    	$productRec->lastUsedOn = dt::now();
+    	$productMan::save($productRec);
     }
 }

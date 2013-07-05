@@ -20,6 +20,11 @@ class cat_products_Packagings extends cat_products_Detail
      * Заглавие
      */
     var $title = 'Опаковки';
+    
+    
+    /**
+     * Единично заглавие
+     */
     var $singleTitle = 'Опаковка';
  
     
@@ -30,8 +35,13 @@ class cat_products_Packagings extends cat_products_Detail
         sizeWidth=, sizeHeight=, sizeDepth=, dimention=Габарити, 
         eanCode=, customCode=,tools=Пулт';
     
+    
+    /**
+     * Поле за редактиране
+     */
     var $rowToolsField = 'tools';
 
+    
     /**
      * Плъгини за зареждане
      */
@@ -42,6 +52,18 @@ class cat_products_Packagings extends cat_products_Detail
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = 'cat_Products';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
+    var $canAdd = 'ceo,cat';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
+    var $canDelete = 'ceo,cat';
     
     
     /**

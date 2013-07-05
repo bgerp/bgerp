@@ -70,31 +70,31 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, sales';
+    var $canRead = 'ceo, sales';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, sales';
+    var $canEdit = 'ceo, sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, sales';
+    var $canAdd = 'ceo, sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, sales';
+    var $canDelete = 'ceo, sales';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice2.shtml';
+    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
     
     
     /**
@@ -275,28 +275,24 @@ class sales_Invoices extends core_Master
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
-    	if(!empty($rec->originId)){
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		if($rec->type == 'invoice'){
-    			expect(cls::haveInterface('store_ShipmentIntf', $origin->className));
-    			$products = $origin->getShipmentProducts();
-    		} else {
-    			// Ако е ДИ или КИ и се генерира от фактура
-    			$products = $mvc->sales_InvoiceDetails->getInvoiceData($origin->that);
-    			if($rec->changeAmount) {
-    				$mvc->applyAmountChange($products, $rec);
-    				return;
-    			}
-    		}
-    	
-    	} elseif($rec->docType && $rec->docId) {
+    	if($rec->docType && $rec->docId) {
     		
     		// Ако се генерира от пос продажба
     		$origin = cls::get($rec->docType);
     		$products = $origin->getShipmentProducts($rec->docId);
+    	} else {
+    		try{
+    			$origin = static::getOrigin($rec, 'store_ShipmentIntf');
+    		} catch(Exception $e){
+    			//Ако фактурата е начало на нишка то getOrigin  ще даде грешка
+    			return;
+    		}
+    		if(cls::haveInterface('store_ShipmentIntf', $origin->className)){
+    			$products = $origin->getShipmentProducts();
+    		}
     	}
     	
-    	if(isset($products) && count($products) != 0){
+    	if(count($products) != 0){
 	    	
     		// Записваме информацията за продуктите в детайла
 	    	foreach ($products as $product){
@@ -438,8 +434,12 @@ class sales_Invoices extends core_Master
         $tpl->replace($ownCompanyData->company, 'MyCompany');
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
-        $tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
         
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+    	} 
+    	$tpl->replace($uic, 'uicId');
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -450,9 +450,23 @@ class sales_Invoices extends core_Master
     static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
-    		
     		$mvc::prepareAdditionalInfo($rec);
     	}
+    }
+    
+    
+	/**
+     * Подготвя шаблона за единичния изглед
+     */
+    function renderSingleLayout_(&$data)
+    {
+    	$conf = core_Packs::getConfig('sales');
+        if($path = $conf->INV_LAYOUT){
+        	$res = getTplFromFile($path);
+        	return $res;
+        }
+        
+        return parent::renderSingleLayout_($data);
     }
     
     
@@ -507,6 +521,17 @@ class sales_Invoices extends core_Master
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	if($fields['-single']){
+    		
+    		// Ако е подаден Ват номер, намираме ЕИК-то от него
+    		$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+    		if($uic == $rec->contragentVatNo){
+    			unset($row->contragentVatNo);
+    		}
+    		$row->contragentUiC = $uic;
+    		
+    		// Номера се форматира в десеторазряден вид
+    		$row->number = str_pad($row->number, '10', '0', STR_PAD_LEFT);
+    		
 	    	if($rec->dealValue){
 	    		$row->baseAmount = $double->toVerbal($rec->baseAmount);
 	    		
@@ -519,7 +544,7 @@ class sales_Invoices extends core_Master
 				$row->total = $double->toVerbal($rec->total);
 				
 				$SpellNumber = cls::get('core_SpellNumber');
-				$row->amountVerbal = $SpellNumber->asCurrency($rec->total, 'bg', FALSE);
+				$row->amountVerbal = $SpellNumber->asCurrency($rec->total, 'bg');
 	    	}
 	    	
 	    	if($rec->accountId){
@@ -611,10 +636,10 @@ class sales_Invoices extends core_Master
         // Задължително условие е папката, в която се създава новата ф-ра да е известна
         expect($folderId = $rec->folderId);
         
-         // Извличаме данните на контрагент по подразбиране
-         $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
-         $sourceObjectId = doc_Folders::fetchCoverId($folderId);
-         $contragentData = $sourceClass::getContragentData($sourceObjectId);
+        // Извличаме данните на контрагент по подразбиране
+        $sourceClass    = doc_Folders::fetchCoverClassName($folderId);
+        $sourceObjectId = doc_Folders::fetchCoverId($folderId);
+        $contragentData = $sourceClass::getContragentData($sourceObjectId);
         
     	$contragentClass = cls::get($sourceClass);
     	if($contragentClass->shouldChargeVat($sourceObjectId)){
@@ -629,28 +654,22 @@ class sales_Invoices extends core_Master
         	$rec->contragentCountryId = $myCompany->countryId;
         }
         
-        if (!empty($contragentData->company)) {
-            // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
-            $rec->contragentAddress = trim(
-                sprintf("%s %s %s", 
-					$contragentData->pCode,
-                    $contragentData->place,
-                    $contragentData->address
-                )
-            );
-            
+        if($contragentData->person){
+        	$rec->contragentName = $contragentData->person;
+        	$rec->contragentAddress = $contragentData->pAddress;
+        } elseif($contragentData->company){
+        	$rec->contragentName = $contragentData->company;
+            $rec->contragentAddress = $contragentData->address;
             $rec->contragentVatNo = $contragentData->vatNo;
-        } elseif (!empty($contragentData->person)) {
-            // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
-            $rec->contragentAddress = $contragentData->pAddress;
         }
+        
+        $rec->contragentPCode = $contragentData->pCode;
+        $rec->contragentPlace = $contragentData->place;
         
         $rec->currencyId = drdata_Countries::fetchField($rec->contragentCountryId, 'currencyCode');
         if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-	        	$form->setDefault('accountId', $ownAcc);
-	        } 
+	        $form->setDefault('accountId', $ownAcc);
+	    } 
     }
     
     

@@ -20,7 +20,7 @@ class cat_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи на продуктите";
+    var $title = "Групи на артикулите";
     
     
     /**
@@ -77,31 +77,37 @@ class cat_Groups extends core_Master
     /**
      * Права
      */
-    var $canRead = 'admin,user';
+    var $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,acc,broker';
+    var $canAdd = 'cat,ceo';
+    
+    
+    /**
+     * Кой може да качва файлове
+     */
+    var $canWrite = 'ceo,cat';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'user';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'cat,ceo';
 
 
     /**
@@ -143,7 +149,7 @@ class cat_Groups extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	if(!haveRole('admin')){
+    	if(!haveRole('ceo')){
     		
     		// Кой може да променя мета пропъртитата на групите
     		$data->form->setField('meta', 'input=none');

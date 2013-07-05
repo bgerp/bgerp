@@ -34,31 +34,31 @@ class budget_Assets extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,budget';
+    var $canRead = 'ceo,budget';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,budget';
+    var $canEdit = 'ceo,budget';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,budget';
+    var $canAdd = 'ceo,budget';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,budget';
+    var $canView = 'ceo,budget';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,budget';
+    var $canDelete = 'ceo,budget';
     
     
     /**

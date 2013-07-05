@@ -84,6 +84,12 @@ class bank_CashWithdrawOrders extends core_Master
     
     
     /**
+     * Кой може да създава
+     */
+    var $canAdd = 'no_one';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'bank, ceo';
@@ -286,5 +292,16 @@ class bank_CashWithdrawOrders extends core_Master
     	$self = cls::get(get_called_class());
     	
     	return $self->abbr . $rec->id;
+    }
+    
+    
+	/**
+     * След проверка на ролите
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    {
+    	if($action == 'add' && (isset($rec) && $rec->originId)){
+    		$res = 'bank, ceo';
+    	}
     }
 }

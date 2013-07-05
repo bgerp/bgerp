@@ -27,9 +27,9 @@ class cams_Wrapper extends plg_ProtoWrapper
     {
      
         
-        $this->TAB('cams_Cameras', 'Камери', 'cams, admin');
-        $this->TAB('cams_Records', 'Записи', 'cams, admin');
-        $this->TAB('cams_Positions', 'Позиции', 'cams, admin');
+        $this->TAB('cams_Cameras', 'Камери', 'ceo, cams, admin');
+        $this->TAB('cams_Records', 'Записи', 'ceo, cams, admin');
+        $this->TAB('cams_Positions', 'Позиции', 'ceo, cams, admin');
         
         $this->title = 'Камери';
     

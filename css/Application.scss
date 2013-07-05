@@ -48,6 +48,13 @@ $history-bg:#fefec2;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
+
+@mixin crm-icon(){
+	padding-top:3px;
+	padding-left:21px; ;
+	background-repeat:no-repeat;
+	background-position: 3px 4px;
+}
  /*common elements*/
  dl {
 	margin:0;
@@ -90,6 +97,13 @@ table{
 		vertical-align:top;
 	}
 }
+.default-table{
+	border-collapse:separate;
+	line-height:normal;
+	td{
+		padding:2px;
+	}
+}
 /*край на common elements*/
 
 
@@ -123,7 +137,8 @@ table{
 }
 
 .wide #subMenu{
-	padding-top:0.1em;
+	padding-top:1px;
+	line-height:normal;
 }
 
 .narrow #submenu{
@@ -134,6 +149,7 @@ table{
 	background-color: #ddd;
 	padding: 5px;
 	border-bottom: solid 2px $blue;
+	line-height:normal;
 }
 
 .wide #mainMenu{
@@ -166,13 +182,13 @@ table{
 .menuRow {
 	color: #997;
 	font-family: Arial;
-	padding: 3px;
+	padding: 1px;
 	text-decoration: none;
 	font-weight: bold;
 }
 
 #mainMenu a  { /*nav при wide*/
-	padding:0.1em; 
+	padding:1px; 
 	text-decoration:none; 
 	font-weight:bold; 
 	font-family:arial; 
@@ -200,9 +216,9 @@ table{
 }
 
 .wide #subMenu a  {
-	padding:2px;
-	padding-left:3px;
-	padding-right:3px;
+	padding: 2px;
+	padding-left: 3px;
+	padding-right: 3px;
 	font-family:arial; 
 	border:solid 2px transparent;
 }
@@ -235,7 +251,8 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 }
 
 .wide #subMenu a.selected, .wide #subMenu a.selected:visited, .wide #subMenu a.selected:link { 
-	padding:1px 5px 2px 5px;
+	padding-left: 5px;
+	padding-right: 5px;
 	border:solid 2px $blue;
 	background-color:#ddd;
 	border-top:2px solid transparent;
@@ -274,6 +291,14 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	vertical-align: top;
 }
 
+.narrow .favicon{
+	display:inline-block;
+	position:relative;
+	top:1px;
+	margin-right:3px;
+}
+
+
 /* Стилове за елемента 'tab' от BGERP*/
 div.tab-control div.tab-row .tab {
 	font-family: arial;
@@ -301,6 +326,15 @@ div.tab-control div.tab-row .tab {
 		top: 0px;
 		font-weight: bold;
 	}
+}
+
+.narrow div.tab-control div.tab-row .tab{
+	font-size:0.9em;
+	line-height:1;
+}
+
+.narrow div.alphabet div.tab-row .tab{
+	font-size:0.6em;
 }
 
 .narrow div.tab-control div.tab-row .tab:first-child{
@@ -535,6 +569,17 @@ div.alphabet div.tab-row .tab{
  }
 /*край на таб alphabet*/
 
+/*стилове за cat*/
+div.productImage {
+	padding:10px 0px 8px 8px;
+	float:right;
+}
+
+.narrow div.productImage {
+	padding:10px  8px  8px 0px;
+	float:left;
+}
+/*край на стилове за cat*/
 
 /*стилове за CRM*/
 div.crmImage {
@@ -562,6 +607,34 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 #crm_Persons-EditForm  input {
 	max-width: 600px;
 }
+
+div.telephone { 
+	@include crm-icon();
+	background-image:url('../img/16/telephone.png');
+}
+
+div.fax { 
+	@include crm-icon();
+	background-image:url('../img/16/fax.png');
+}
+
+div.email { 
+	@include crm-icon();
+	background-image:url('../img/16/email_link.png');
+}
+
+div.mobile { 
+	@include crm-icon();
+	background-image:url('../img/16/mobile.png');
+}
+
+.telephone a, .fax a, .email a, .mobile a {
+	color:#031;
+}
+
+.telephone a:hover, .fax a:hover, .email a:hover, .mobile a:hover {
+	color: #093;
+}
 /*край на стилове за CRM*/
 
 
@@ -571,7 +644,11 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
+	vertical-align:middle !important;
 	@include border-radius4(5px, 5px, 0, 0);
+	img{
+		vertical-align:middle !important;
+	}
 }
 
 .narrow .vertical .formTitle {
@@ -670,6 +747,21 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 .wide div.hFormField{
 	margin-bottom:2px;
 }
+
+.wide .doc_Search{
+	.listFilter{
+		padding-bottom:0;
+	}
+}
+
+.narrow .doc_Search{
+ 	.pages{
+ 		margin-bottom:0px;
+ 	}
+ 	.listTable{
+ 		margin-top:10px;
+ 	}
+ }
 /*край на стилове за форми*/
 
 
@@ -1640,7 +1732,7 @@ fieldset.sharing-history {
 }
 
 .cms-row .fourcol {
-	width: 30.73%;
+	width: 29.73%;
 }
 
 .cms-row .fivecol {
@@ -1656,15 +1748,7 @@ fieldset.sharing-history {
 }
 
 .cms-row .eightcol {
-	width: 65.3%;
-}
-.cms-row .eightcol-new {
-	width:71%;
-	margin-right:0;
-}
-
-.narrow .cms-row .eightcol-new {
-	width:70%;
+	width: 62%;
 }
 
 .cms-row .ninecol {
@@ -2065,15 +2149,14 @@ div.locImage{
 	float:right;
 	outline:none !important;
 }
+
 .narrow .portal-filter{
 	margin-left:5px;
-	height: 1.0em;
-	top:-2px;
-	right:-2px;
-	position:relative;
+	min-width:20px;
 }
+
 .portal-filter .hFormField {
-	width: 9em;
+	width: 7.5em;
 	border: solid 1px #ccc;
 	float: right;
 	display: block;
@@ -2082,12 +2165,16 @@ div.locImage{
 	margin: 0px 0 0px 7px; 	
 	background: rgba(255, 255, 255, 0.7);
 	@include border-radius(3px);
-	display1:none;
+}
+
+.narrow .portal-filter .hFormField{
+	height:auto;	
+	position: relative;
+	top: -1px;
 }
 
 .portal-filter .hFormField input {
 	height: 1.4em;
-    width: 9em;
 	border: none !important;
 	background:none;
 	font-size:0.9em;
@@ -2095,8 +2182,13 @@ div.locImage{
 	top:-1px;
 	line-height:1.3em;
 	margin-top:0px !important;
-    width: 8.5em !important;
+    width: 7em !important;
     outline:none !important;
+}
+
+.narrow .portal-filter .hFormField input {
+	width:87% !important;
+	height:1.3em;
 }
 
 @-moz-document url-prefix() { 
@@ -2130,13 +2222,12 @@ div.locImage{
 	width: 16px;
 	height:20px;
 	margin-right:0;
-	right: 0px !important;
+	right: -4px !important;
     top: 0em !important;
 	position: absolute;
 	border: none;
 	outline:none !important;
 	background-color: transparent !important;
-	background-position: center center;
 	cursor: pointer;
 	display: inline-block;
 
@@ -2147,9 +2238,11 @@ div.locImage{
 }
 
 .narrow .portal-filter .button{
-	height:1.45em;
+	height:1.5em;
 	padding:2px 0;
-	background-color:rgb(221, 221, 221) !important;
+	right: 0px !important;
+	border:none;
+	background-position: center 2px;
 }
 /*край на търсене в портала*/
 
@@ -2186,20 +2279,20 @@ div.locImage{
 
 
 /*стилове за състояния в колцентъра*/
-.dialStatus-opened {
+.dialStatus-opened, .sms-sended {
     background-color: #bbffcc;
 }
 
-.dialStatus-answered {
+.dialStatus-answered, .sms-received {
     background-color: #eee;
 }
 
-.dialStatus-failed {
+.dialStatus-failed, .sms-sendError {
     background-color: #feadad;
 }
 
-.dialStatus-busy{
-    background-color: #b1e5fb;
+.dialStatus-busy, .sms-receiveError{
+    background-color: #ffce84;
 }
 
 .dialStatus-noanswer {
@@ -2209,8 +2302,7 @@ div.locImage{
 .dialStatus-unknown {
     background-color: #eec8e9;
 }
-/*край на стилове за състояния в колцентъра*/
-
+/*край на стилове за състояния на SMS' ите в колцентъра*/
 
 /*бъгфиксове*/
 .store_Racks td,.hr_ContractTypes td{
@@ -2251,6 +2343,15 @@ div.locImage{
 	width:100%;
 	text-align:left;
 }
+
+
+.free-text {
+	max-width: 600px;
+	text-align: justify;
+	line-height: 120%;
+	margin-bottom: 10px;
+ }
+
 /*край на бъгфиксове*/
 
 
@@ -2310,42 +2411,42 @@ div.locImage{
 
 @media handheld, only screen and (max-width: 800px) { 
 	#cmsMenu a {
-		margin-left:5px;
-		margin-right:5px;
+		margin-left:6px !important;
+		margin-right:6px !important;
 		font-size:1em;
     }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
 	#cmsMenu a {
-		margin-left:3px;
-		margin-right:3px;
+		margin-left:4px !important;
+		margin-right:4px !important;
 		font-size:0.90em;
     }
     .narrow select{
-    	padding-left:2px;
+    	padding-left:4px;
     }
 }
 
 @media handheld, only screen and (max-width: 700px) { 
 	#cmsMenu a { 
-		margin-left:2px;
-		margin-right:2px;
+		margin-left:3px !important;
+		margin-right:3px !important;
 		font-size:0.85em;
     }
     .narrow select{
-    	padding-left:2px;
+    	padding-left:4px;
     }
 }
 
 @media handheld, only screen and (max-width: 600px) { 
 	#cmsMenu a {
-		margin-left:2px;
-		margin-right:2px;
+		margin-left:1px !important;
+		margin-right:1px !important;
 		font-size:0.8em;
     }
     .narrow select{
-    	padding-left:2px;
+    	padding-left:4px;
     }
 }
 
@@ -2388,17 +2489,6 @@ div.locImage{
 		max-width: 750px;
 		line-height: 1.2em;
 		margin-top: 0px;
-	}
-	.document {
-		border: none;
-		background: #ffffff;
-		@include no-shadow();
-		padding: 10px 25px 15px 25px;
-		margin-bottom: 20px;
-		float: none;
-		margin-right: 10px;
-		margin-top: 10px;
-		min-width: 0px;
 	}
 	.linkWithIcon, .docBgIcon,.button{
 		padding-left:0 !important;
@@ -2463,6 +2553,19 @@ div.locImage{
 	}
 }
 
-.printing .docBgIcon{
-	padding:0;
+.printing{
+	.docBgIcon{
+		padding:0;
+	}
+	.document {
+		border: none;
+		background: #ffffff;
+		@include no-shadow();
+		padding: 10px 25px 15px 25px;
+		margin-bottom: 20px;
+		float: none;
+		margin-right: 10px;
+		margin-top: 10px;
+		min-width: 0px;
+	}
 }

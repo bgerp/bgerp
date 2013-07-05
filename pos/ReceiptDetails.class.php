@@ -580,7 +580,7 @@ class pos_ReceiptDetails extends core_Detail {
 			$materRec = $mvc->Master->fetch($rec->receiptId);
 			
 			if($materRec->state == 'draft') {
-				$res = 'pos, ceo, admin';
+				$res = 'pos, ceo';
 			}
 		}
 	}

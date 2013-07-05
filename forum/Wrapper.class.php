@@ -20,8 +20,8 @@ class forum_Wrapper extends plg_ProtoWrapper
 	 */
 	function description()
 	{
-		$this->TAB('forum_Categories', 'Категории', 'forum,admin');
-		$this->TAB('forum_Boards', 'Дъски', 'admin,forum');
-		$this->TAB('forum_Postings', 'Постинги', 'forum,admin');
+		$this->TAB('forum_Categories', 'Категории', 'forum,admin,ceo');
+		$this->TAB('forum_Boards', 'Дъски', 'admin,forum,ceo');
+		$this->TAB('forum_Postings', 'Постинги', 'forum,admin,ceo');
 	}
 }

@@ -529,7 +529,7 @@ class bgerp_Menu extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div id='mainMenu'>
-                     <div class='menuRow clearfix21'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
+                     <div class='menuRow clearfix21'><img class='favicon' src=".sbf("img/favicon.ico").">[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
                 </div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
         } else {

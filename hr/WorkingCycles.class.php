@@ -58,13 +58,13 @@ class hr_WorkingCycles extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,dma';
+    var $canRead = 'ceo,dma';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'admin,dma';
+    var $canWrite = 'ceo,dma';
 
 
     var $singleFields = 'id,name,cycleDuration,info';

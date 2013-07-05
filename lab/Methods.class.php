@@ -47,13 +47,13 @@ class lab_Methods extends core_Master
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'lab,admin';
+    var $canWrite = 'lab,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,admin';
+    var $canRead = 'lab,ceo';
     
     
     /**

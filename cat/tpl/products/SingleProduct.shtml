@@ -2,8 +2,17 @@
 [#SingleToolbar#]
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
-	<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] Продукт <b style="color:green;">[#name#]</b></div>
 
+	<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] Артикул <b style="color:green;">[#name#]</b></div>
+
+	<!--ET_BEGIN image-->
+		<div class="productImage">
+			<div>  
+				[#image#]
+			</div>
+		</div>
+	<!--ET_END image-->
+	
 	<fieldset class="detail-info">
 		<legend class="groupTitle">|Описание|*</legend>
             <div class="groupList">
@@ -16,13 +25,6 @@
 				</dl>
              </div>
         </fieldset>
-		
-		<!--ET_BEGIN meta-->
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Мета данни|*</legend>
-				<div class="groupList">[#meta#]</div>
-			</fieldset>
-		<!--ET_END meta-->
 			
 		<!--ET_BEGIN info-->
 		<fieldset class="detail-info">
@@ -39,6 +41,12 @@
         </fieldset>
 		<!--ET_END groups-->
 	
+		<!--ET_BEGIN meta-->
+			<fieldset class="detail-info">
+				<legend class="groupTitle">|Свойства|*</legend>
+				<div class="groupList">[#meta#]</div>
+			</fieldset>
+		<!--ET_END meta-->
 	[#DETAILS#]
 	</div>
 	</div>

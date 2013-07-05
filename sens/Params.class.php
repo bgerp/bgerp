@@ -32,13 +32,13 @@ class sens_Params extends core_Manager
     /**
      * Права за писане
      */
-    var $canWrite = 'sens, admin';
+    var $canWrite = 'ceo,sens, admin';
     
     
     /**
      * Права за запис
      */
-    var $canRead = 'sens, admin';
+    var $canRead = 'ceo,sens, admin';
     
     
     /**

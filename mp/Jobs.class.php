@@ -33,31 +33,31 @@ class mp_Jobs extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,mp';
+    var $canRead = 'ceo,mp';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,mp';
+    var $canEdit = 'ceo,mp';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,mp';
+    var $canAdd = 'ceo,mp';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,mp';
+    var $canView = 'ceo,mp';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,mp';
+    var $canDelete = 'ceo,mp';
     
     
     /**

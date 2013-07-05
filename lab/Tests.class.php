@@ -64,19 +64,19 @@ class lab_Tests extends core_Master
     /**
      * Роли, които могат да записват
      */
-    var $canWrite = 'lab,admin';
+    var $canWrite = 'lab,ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'lab,admin';
+    var $canRead = 'lab,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'lab,admin';
+    var $canReject = 'lab,ceo';
     
     
     /**

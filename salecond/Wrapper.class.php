@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   trans
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,9 +23,9 @@ class salecond_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('salecond_DeliveryTerms', 'Доставки');
-    	$this->TAB('salecond_PaymentMethods', 'Плащания');    
-        $this->TAB('salecond_Parameters', 'Параметри');
+        $this->TAB('salecond_DeliveryTerms', 'Доставки', 'salecond,ceo');
+    	$this->TAB('salecond_PaymentMethods', 'Плащания', 'salecond,ceo');    
+        $this->TAB('salecond_Parameters', 'Параметри', 'salecond,ceo');
    		
         $this->title = 'Терминология';
     }

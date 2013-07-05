@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -56,7 +56,6 @@ class salecond_Setup
     {
         $managers = array(
         	'salecond_PaymentMethods',
-        	'salecond_PaymentMethodDetails',
         	'salecond_DeliveryTerms',
         	'salecond_Parameters',
         	'salecond_ConditionsToCustomers',
@@ -74,7 +73,7 @@ class salecond_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "{$role}, ceo");
         
         $html .= $this->loadSetupData();
         
@@ -89,6 +88,9 @@ class salecond_Setup
     {
     	// Зареждане на други условия за продажба от csv файл
     	$html .= salecond_Parameters::setup();
+    	
+    	// Зареждаме начините за плащане от csv файл
+    	$html .= salecond_PaymentMethods::loadData();
     	
     	return $html;
     }

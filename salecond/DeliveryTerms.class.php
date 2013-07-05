@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   salecond
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -41,6 +41,24 @@ class salecond_DeliveryTerms extends core_Master
      * @todo Чака за документация...
      */
     var $canSingle = 'user';
+    
+    
+    /**
+     * Кой може да чете
+     */
+    var $canRead = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canWrite = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    var $canAdd = 'ceo,salecond';
     
     
     /**

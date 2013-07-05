@@ -33,7 +33,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_LastUsedKeys';
                     
  
     /**
@@ -96,7 +96,7 @@ class price_GroupOfProducts extends core_Detail
     function description()
     {
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,silent,mandatory');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,silent,mandatory,hint=Само продаваеми продукти');
         $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
     }
 
@@ -199,8 +199,12 @@ class price_GroupOfProducts extends core_Detail
 	        $groupName = price_Groups::getTitleById($rec->groupId);
 	        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
         }
+        
+        // За опции се слагат само продаваемите продукти
+        $products = cat_Products::makeArray4Select(NULL, "#meta LIKE '%canSell%'");
+        $data->form->setOptions('productId', $products);
     }
-
+    
 
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)

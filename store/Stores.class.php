@@ -47,31 +47,31 @@ class store_Stores extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin,store';
+    var $canRead = 'ceo,store';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'ceo,store';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,store';
+    var $canAdd = 'ceo,store';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin,store';
+    var $canView = 'ceo,store';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'ceo,acc';
     
     
     /**
@@ -123,14 +123,14 @@ class store_Stores extends core_Master
     
     
     /**
-     * Ако потребителя на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
+     * Ако потребителя на е с роля 'ceo' скриваме полетата 'tools' и 'selectedPlg'
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
     static function on_AfterPrepareListFields($mvc, $data)
     {
-        if (!haveRole('admin')) {
+        if (!haveRole('ceo')) {
             unset($data->listFields['tools']);
             unset($data->listFields['selectedPlg']);
         }

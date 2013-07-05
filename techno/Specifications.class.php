@@ -33,7 +33,7 @@ class techno_Specifications extends core_Master {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank,
-                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search, doc_SharablePlg';
 
 	
     /**
@@ -75,7 +75,7 @@ class techno_Specifications extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'admin,techno';
+    var $canRead = 'ceo,techno';
     
     
     /**
@@ -93,31 +93,31 @@ class techno_Specifications extends core_Master {
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'admin,techno,broker';
+    var $canAdd = 'ceo,techno,cat';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'admin,techno,broker';
+    var $canList = 'ceo,techno,cat';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin,techno';
+    var $canDelete = 'ceo,techno';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'admin,techno';
+    var $canReject = 'ceo,techno';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canAjust = 'admin,techno';
+    var $canAjust = 'ceo,techno';
     
     
     /**
@@ -147,6 +147,7 @@ class techno_Specifications extends core_Master {
 		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
+    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
     }
     
     
@@ -344,14 +345,17 @@ class techno_Specifications extends core_Master {
     		$cover = doc_Folders::fetchCoverClassName($rec->folderId);
     	}
     	
+    	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
+    	
     	if($cover != 'doc_UnsortedFolders'){
 			$form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
     		$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
     		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
 		}
-    	
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', array($this, 'list'), array('class' => 'btn-cancel'));
+		
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
     	$fRec = $form->input();
         if($form->isSubmitted()) {
@@ -367,6 +371,7 @@ class techno_Specifications extends core_Master {
 	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
         		$quantities = array($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
 	            unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
+        		$rec->sharedUsers = $fRec->sharedUsers;
         		
 	            // Записваме мастър - данните
 	            $this->save($rec);
@@ -423,8 +428,41 @@ class techno_Specifications extends core_Master {
     		
         	// Може да се променят с само на чернова
         	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
-        	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings');
+        	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings,title=Промяна на характеристиките на спецификацията');
     	}
+    	
+    	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
+    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копира спецификацията в нов тред');
+    	}
+    }
+    
+    
+    /**
+     * Екшън копиращ дадена спецификация в нов тред. Ако името
+     * на старата спецификация завършва на число го инкрементира,
+     * в новата, ако няма добавя "v2" в заглавието на спецификация
+     */
+    function act_Copy()
+    {
+    	$this->requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active');
+    	
+    	// Копието е нов документ(чернова), в същата папка в нов тред
+    	unset($rec->id, $rec->containerId);
+    	$rec->state = 'draft';
+    	
+    	// Промяна на името на копието
+    	$data = unserialize($rec->data);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	$newTitle = str::increment($rec->title);
+    	$data->title = $rec->title = ($newTitle) ? $newTitle : $rec->title . " v2";
+    	$rec->data = $technoClass->serialize($data);
+    	
+    	// Запис и редирект
+    	$this->save($rec);
+    	return Redirect(array($this, 'single', $rec->id), FALSE, 'Спецификацията е успешно копирана');
     }
     
     
@@ -473,6 +511,9 @@ class techno_Specifications extends core_Master {
     /**
      * Връща цената за посочения продукт към посочения
      * клиент на посочената дата
+     * Цената се изчислява по формулата формулата:
+     * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
+     *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
      * 
      * @return object
      * $rec->price  - цена
@@ -482,7 +523,26 @@ class techno_Specifications extends core_Master {
     {
     	$rec = $this->fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
-    	return $technoClass->getPrice($customerClass, $customerId, $rec->data, $packagingId, $quantity, $datetime);
+    	$priceInfo = $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
+    	if($priceInfo->price){
+    		$price = new stdClass();
+    		if($priceInfo->discount){
+    			$price->discount = $priceInfo->discount;
+    		}
+    		
+    		$minCharge =  salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    		$calcPrice = ($priceInfo->tax * (1 + $maxCharge) 
+    					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
+    		
+    		$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
+    		return $price;
+    	}
+    	
+    	return FALSE;
     }
     
     
@@ -517,7 +577,7 @@ class techno_Specifications extends core_Master {
     		if(!isset($rec) || (isset($rec) && $rec->state != 'draft') || (isset($rec) && !$rec->data)){
     			$res = 'no_one';
     		}else {
-    			$res = 'admin, techno';
+    			$res = 'ceo, techno';
     		}
     	}
     	
@@ -533,7 +593,7 @@ class techno_Specifications extends core_Master {
     	
     	if($action == 'configure' && isset($rec)){
     		if($rec->state == 'draft'){
-    			$res = 'admin, techno';
+    			$res = 'ceo, techno';
     		} else {
     			$res = 'no_one';
     		}

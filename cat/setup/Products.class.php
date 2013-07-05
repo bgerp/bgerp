@@ -37,21 +37,21 @@ class cat_setup_Products extends core_Mvc
                 $rec->measureId = cat_UoM::fetchField("#name = '{$csvRow[2]}'", "id");
                 $rec->groups = $Groups->getKeylistBySysIds($csvRow[3]);
                 $rec->createdBy = -1;     // Записите направени от системния потребител (-1) не могат да се редактират
-                
+               
                 // Ако има запис с този 'name'
-                if($rec->id = $Products->fetchField(array("#name = '[#1#]'", $rec->name), 'id')){
+                if($rec->id = $Products->fetchField(array("#code = '[#1#]'", $rec->code), 'id')){
                  	$updated++;
                 } else {
                     $created++;
                 }
-               
-                $Products->save($rec, NULL, 'IGNORE');
+                
+                $Products->save($rec, NULL, 'REPLACE');
             }
             
             fclose($handle);
             
             $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            $res .= "Създадени {$created} нови продукта, обновени {$updated} съществуващи продукти.</li>";
+            $res .= "Създадени {$created} нови артикула, обновени {$updated} съществуващи артикули.</li>";
         } else {
         	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }

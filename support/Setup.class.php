@@ -69,7 +69,7 @@ class support_Setup
         
         // Добавяме менюто
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "{$role}, admin, ceo");
         
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
