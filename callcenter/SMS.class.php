@@ -115,7 +115,7 @@ class callcenter_SMS extends core_Master
         $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Мобилен номер, mandatory');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
-        $this->FLD('uid', 'varchar(16)', 'caption=Хендлър, input=none');
+        $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
         $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none');
         $this->FLD('receivedTime', 'datetime', 'caption=Получено на, input=none');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас, input=none');
@@ -184,8 +184,17 @@ class callcenter_SMS extends core_Master
         $params['class'] = $mvc->className;
         $params['function'] = 'update';
         
+        // Вземаме информация за номера
+        $mobileNumArr = drdata_PhoneType::toArray($rec->mobileNum);
+        
+        // Очакваме да има такъв масив
+        expect($mobileNumArr);
+        
+        // Обединяваме кода и номера
+        $mobileNum = $mobileNumArr[0]->countryCode . $mobileNumArr[0]->areaCode . $mobileNumArr[0]->number;
+
         // Изпращаме SMS'a
-        $sendStatusArr = $service->sendSMS($rec->mobileNum, $rec->text, $rec->sender, $params);
+        $sendStatusArr = $service->sendSMS($mobileNum, $rec->text, $rec->sender, $params);
         
         // Ако е изпратен успешно
         if ($sendStatusArr['sended']) {
@@ -222,15 +231,25 @@ class callcenter_SMS extends core_Master
      * callBack фунцкия
      * Използва се от изпращачите за обновяване на състоянието
      */
-    function update($uid, $status)
+    static function update($uid, $status, $receivedTimestamp = NULL)
     {
         // Вземаме записа
         $rec = static::fetch(array("#uid = '[#1#]'", $uid));
         
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
-        $rec->receivedTime = dt::verbal2mysql();;
-
+        
+        // Ако няма време на получаване
+        if (!$receivedTimestamp) {
+            
+            // Вземаме текущото време
+            $rec->receivedTime = dt::verbal2mysql();
+        } else {
+            
+            // Преобразуваме времето
+            $rec->receivedTime = dt::timestamp2Mysql($receivedTimestamp);
+        }
+        
         // Ъпдейтваме записите
         static::save($rec, NULL, 'UPDATE');
     }
