@@ -136,17 +136,18 @@ class sales_TransactionSourceImpl
     protected function fetchSaleData($id)
     {
         $rec = $this->class->fetchRec($id);
-        
-        expect($rec->id);
-        
-        // Извличаме детайлите на продажбата
-        /* @var $detailQuery core_Query */
-        $detailQuery = sales_SalesDetails::getQuery();
-        $detailQuery->where("#saleId = '{$rec->id}'");
+
         $rec->details  = array();
         
-        while ($dRec = $detailQuery->fetch()) {
-            $rec->details[] = $dRec;
+        if (!empty($rec->id)) {
+            // Извличаме детайлите на продажбата
+            /* @var $detailQuery core_Query */
+            $detailQuery = sales_SalesDetails::getQuery();
+            $detailQuery->where("#saleId = '{$rec->id}'");
+            
+            while ($dRec = $detailQuery->fetch()) {
+                $rec->details[] = $dRec;
+            }
         }
         
         return $rec;

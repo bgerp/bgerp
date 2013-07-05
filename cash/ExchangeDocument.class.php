@@ -93,7 +93,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, cash';
+    var $canConto = 'acc, cash, ceo';
     
     
     /**
@@ -231,7 +231,8 @@ class cash_ExchangeDocument extends core_Master
     public static function getTransaction($id)
     {
     	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
+        
         $entry = array(
             'amount' => $rec->debitQuantity * $rec->debitPrice,
             'debit' => array(

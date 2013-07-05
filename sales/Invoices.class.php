@@ -404,7 +404,7 @@ class sales_Invoices extends core_Master
         if (empty($rec->vatDate)) {
             $rec->vatDate = $rec->date;
         }
-        
+            
         if (!empty($rec->folderId)) {
             // Създаване / обновяване на перото за контрагента
             $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
@@ -867,33 +867,44 @@ class sales_Invoices extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetchRec($id));
+        
+        if (empty($rec->folderId)) {
+            return FALSE;
+        }
+        
         static::prepareAdditionalInfo($rec);
-        $contragentItem = acc_Items::fetch($rec->contragentAccItemId);
+        
+        // Създаване / обновяване на перото за контрагента
+        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+        $contragentId    = doc_Folders::fetchCoverId($rec->folderId);
         
         $result = (object)array(
             'reason' => "Фактура №{$rec->number}", // основанието за ордера
             'valior' => $rec->date,   // датата на ордера
-            );
+        );
 		
         $entries = array();
+        
         if($rec->vatAmount){
         	$entries[] = array(
-                    'amount' => $rec->vatAmount,  // равностойноста на сумата в основната валута
-                    
-                    'debit' => array(
-                        '411', // дебитната сметка
-                           array($contragentItem->classId, $contragentItem->objectId),
-                            array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
-                        'quantity' => $rec->vatAmount,
-                    ),
-                    
-                    'credit' => array(
-                        '4532', // кредитна сметка
-                        'quantity' => $rec->vatAmount,
-                    ));
+                'amount' => $rec->vatAmount,  // равностойноста на сумата в основната валута
+                
+                'debit' => array(
+                    '411', // дебитната сметка
+                        array($contragentClass, $contragentId),
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
+                    'quantity' => $rec->vatAmount,
+                ),
+                
+                'credit' => array(
+                    '4532', // кредитна сметка;
+                    'quantity' => $rec->vatAmount,
+                )
+    	    );
         }
         
       	$result->entries = $entries;
+      	
       	return $result;
     }
     

@@ -346,7 +346,7 @@ class cash_Rko extends core_Master
     public static function getTransaction($id)
     {
        	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
         
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(

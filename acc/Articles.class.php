@@ -226,10 +226,8 @@ class acc_Articles extends core_Master
         $result = NULL;
         
         if ($r = $query->fetch("#articleId = {$id}")) {
-            $rec = (object) array(
-                'id' => $r->articleId,
-                'totalAmount' => $r->sumAmount
-            );
+            $rec = self::fetch($id);
+            $rec->totalAmount = $r->sumAmount;
             
             $result = self::save($rec);
         }
@@ -251,12 +249,11 @@ class acc_Articles extends core_Master
      */
     public static function getTransaction($id)
     {
-        // Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
-        self::updateAmount($id);
-        
         // Извличаме мастър-записа
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($id);
+        
         expect($rec);     // @todo да връща грешка
+
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
@@ -264,31 +261,33 @@ class acc_Articles extends core_Master
             'entries' => array()
         );
         
-        // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
-        // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
-        // детайлите на журнала.
-        $query = acc_ArticleDetails::getQuery();
-        
-        while ($entry = $query->fetch("#articleId = {$id}")) {
-            $result->entries[] = array(
-                'amount' => $entry->amount,
+        if (!empty($rec->id)) {
+            // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
+            // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
+            // детайлите на журнала.
+            $query = acc_ArticleDetails::getQuery();
             
-                'debit' => array(
-                    acc_journal_Account::byId($entry->debitAccId),
-                    $entry->debitEnt1, // Перо 1
-                    $entry->debitEnt2, // Перо 2
-                    $entry->debitEnt3, // Перо 3
-                    'quantity' => $entry->debitQuantity,
-                ),
-            
-                'credit' => array(
-                    acc_journal_Account::byId($entry->creditAccId),
-                    $entry->creditEnt1, // Перо 1
-                    $entry->creditEnt2, // Перо 2
-                    $entry->creditEnt3, // Перо 3
-                    'quantity' => $entry->creditQuantity,
-                ),
-            );
+            while ($entry = $query->fetch("#articleId = {$rec->id}")) {
+                $result->entries[] = array(
+                    'amount' => $entry->amount,
+                
+                    'debit' => array(
+                        acc_journal_Account::byId($entry->debitAccId),
+                        $entry->debitEnt1, // Перо 1
+                        $entry->debitEnt2, // Перо 2
+                        $entry->debitEnt3, // Перо 3
+                        'quantity' => $entry->debitQuantity,
+                    ),
+                
+                    'credit' => array(
+                        acc_journal_Account::byId($entry->creditAccId),
+                        $entry->creditEnt1, // Перо 1
+                        $entry->creditEnt2, // Перо 2
+                        $entry->creditEnt3, // Перо 3
+                        'quantity' => $entry->creditQuantity,
+                    ),
+                );
+            }
         }
         
         return $result;
