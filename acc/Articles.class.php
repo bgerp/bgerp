@@ -217,9 +217,11 @@ class acc_Articles extends core_Master
      */
     private static function updateAmount($id)
     {
+        /* @var $query core_Query */
         $query = acc_ArticleDetails::getQuery();
         $query->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
         $query->show('articleId, sumAmount');
+        $query->groupBy('articleId');
         
         $result = NULL;
         
