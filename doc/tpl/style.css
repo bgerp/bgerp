@@ -36,10 +36,16 @@ li.dimension{
 	min-width:308px;
 	margin-bottom: 0.3em;
 }
+
 .narrow .dimension .button{
 	background-image:none !important;
+	background:none;
 	padding-left:0.3em !important;
+	border:none;
 	min-width:100%;
+	padding-top:0;
+	padding-bottom:0;
+	height:1.2em;
 }
 
 li.btns-title{
