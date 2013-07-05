@@ -457,10 +457,13 @@ class cat_Products extends core_Master {
     	$res->productRec = $productRec;
     	
     	// Добавяне на мета данните за продукта
-    	$res->meta = array();
-    	$meta = explode(',', $productRec->meta);
-    	foreach($meta as $value){
-    		$res->meta[$value] = TRUE;
+    	if($productRec->meta){
+	    	$meta = explode(',', $productRec->meta);
+	    	foreach($meta as $value){
+	    		$res->meta[$value] = TRUE;
+	    	}
+    	} else {
+    		$res->meta = FALSE;
     	}
     	
     	$Packagings = cls::get('cat_products_Packagings');
@@ -490,6 +493,36 @@ class cat_Products extends core_Master {
     	
     	// Връщаме информацията за продукта
     	return $res;
+    }
+    
+    
+    /**
+     * Помощен метод връщаш обединение на мета данните на масив от
+     * продукти
+     * @param array $products - маисив от продукти.
+     * @return array $union - обединение на мета данните на тези продукти
+     */
+    public static function getProductsMetaData($products)
+    {
+    	$union = array();
+    	expect(is_array($products), 'Не е подаден масив');
+    	foreach($products as $rec){
+    		if(count($union) == 6) break;
+    		
+    		if(isset($rec->policyId)){
+    			$productMan = cls::get($rec->policyId)->getProductMan();
+    		} else {
+    			$productMan = get_called_class();
+    		}
+    		
+    		$id = (isset($rec->productId)) ? $rec->productId : $rec->id;
+    		$pInfo = $productMan::getProductInfo($id);
+    		if($pInfo->meta){
+    			$union = array_merge($union, $pInfo->meta);
+    		}
+    	}
+    	
+    	return $union;
     }
     
     
