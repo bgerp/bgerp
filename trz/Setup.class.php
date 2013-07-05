@@ -26,7 +26,7 @@ class trz_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trz_Salaries';
+    var $startCtr = 'trz_SalaryPayroll';
     
     
     /**
@@ -47,13 +47,12 @@ class trz_Setup
     function install()
     {
         $managers = array(
-            'trz_Salaries',
+            'trz_SalaryPayroll',
             'trz_Bonuses',
             'trz_Sickdays',
             'trz_Trips',
             'trz_Fines',
-            'trz_Payrolls',
-        	'trz_Orders',
+            'trz_Orders',
             'trz_Requests',
         );
         
@@ -70,7 +69,7 @@ class trz_Setup
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2.32, 'Персонал', 'ТРЗ', 'trz_Salaries', 'default', "{$role}, ceo");
+        $html .= $Menu->addItem(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "{$role}, ceo");
         
         return $html;
     }

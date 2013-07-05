@@ -3,32 +3,32 @@
 
 
 /**
- * Мениджър на ведомости за заплати
+ * Мениджър на заплати
  *
  *
  * @category  bgerp
  * @package   trz
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Ведомости за заплати
+ * @title     Заплати
  */
-class trz_Payrolls extends core_Manager
+class trz_SalaryPayroll extends core_Manager
 {
     
     
     /**
      * Заглавие
      */
-    var $title = 'Ведомост за заплати';
+    var $title = 'Заплати';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
+                    trz_Wrapper, trz_SalaryWrapper';
     
     
     /**
@@ -91,4 +91,5 @@ class trz_Payrolls extends core_Manager
 
         return $this->renderWrapping($underConstructionImg);
     }
+    
 }

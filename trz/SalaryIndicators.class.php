@@ -8,13 +8,13 @@
  *
  * @category  bgerp
  * @package   trz
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Заплати
  */
-class trz_Salaries extends core_Manager
+class trz_SalaryIndicators extends core_Manager
 {
     
     
@@ -28,7 +28,7 @@ class trz_Salaries extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
-                    trz_Wrapper';
+                    trz_Wrapper, trz_SalaryWrapper';
     
     
     /**
