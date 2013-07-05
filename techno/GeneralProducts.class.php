@@ -82,7 +82,12 @@ class techno_GeneralProducts extends core_Manager {
 		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
-		
+		$form->FNC('meta', 'set(canSell=Продаваем,
+        						canBuy=Купуваем,
+        						canStore=Складируем,
+        						canConvert=Вложим,
+        						fixedAsset=Дма,
+        						canManifacture=Производим)', 'caption=Свойства->Списък,input');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
@@ -250,6 +255,7 @@ class techno_GeneralProducts extends core_Manager {
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
         $fields = $this->getEditForm($data)->selectFields("");
+        
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
     		$row->$name = $fld->type->toVerbal($data->$name);
@@ -306,12 +312,19 @@ class techno_GeneralProducts extends core_Manager {
     	$data = unserialize($data);
 	    $res = new stdClass();
 	    $res->productRec = $data;
+	    
+    	$res->meta = array();
+    	$meta = explode(',', $data->meta);
+    	foreach($meta as $value){
+    		$res->meta[$value] = TRUE;
+    	}
+    	
 	    if(!$packagingId) {
 	    	$res->packagings = array();
 	    } else {
 	    	return NULL;
 	    }
-	    	
+	   	
 	    return $res;
     }
     
