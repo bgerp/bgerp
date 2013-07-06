@@ -265,6 +265,7 @@ class cal_Tasks extends core_Master
         } else {
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
         }
+
         $data->query->where("#state = 'active'");
         $data->query->orderBy("timeStart=DESC");
         
@@ -279,7 +280,7 @@ class cal_Tasks extends core_Master
  
         if (is_array($data->recs)) {
             foreach($data->recs  as   &$rec) {
-                 $rec->state = '';
+                $rec->state = '';
             }    
         }
 
@@ -383,29 +384,13 @@ class cal_Tasks extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action === 'list'){
-        	
-	        if($data->listFilter->rec->selectedUsers != 'all_users') {
-	        	
+        if($data->action == 'list'){
+            if($data->listFilter->rec->selectedUsers != 'all_users') {
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	       }
+            }
         }
-        
-        if(!$data->listFilter->rec->selectedUsers) {
-      	
-		  $data->listFilter->rec->selectedUsers = 
-		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
-	  	}
-       
-        if($data->listFilter->rec->selectedUsers) {
-          
-	        $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	        $data->query->orWhere('#sharedUsers IS NULL OR #sharedUsers = ""');
-          
-        } 
     }
     
     
@@ -427,7 +412,11 @@ class cal_Tasks extends core_Master
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->input('selectedUsers', 'silent');
-        
+
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+	  	}
+      
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
