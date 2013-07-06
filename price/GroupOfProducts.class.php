@@ -95,8 +95,8 @@ class price_GroupOfProducts extends core_Detail
      */
     function description()
     {
-        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,silent,mandatory,hint=Само продаваеми продукти');
+        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,silent');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|21:00)', 'caption=В сила oт');
     }
 
@@ -184,6 +184,15 @@ class price_GroupOfProducts extends core_Detail
         if(!$rec->id) {
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
         }
+        
+        if($rec->groupId) {
+	        $groupName = price_Groups::getTitleById($rec->groupId);
+	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
+        }
+        
+        // За опции се слагат само продаваемите продукти
+        $products = cat_Products::makeArray4Select(NULL, "#meta LIKE '%canSell%'");
+        $data->form->setOptions('productId', $products);
 
         if($data->masterMvc instanceof cat_Products) {
             $data->form->title = "Добавяне в ценова група";
@@ -194,15 +203,6 @@ class price_GroupOfProducts extends core_Detail
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
         }
-        
-        if($rec->groupId) {
-	        $groupName = price_Groups::getTitleById($rec->groupId);
-	        $data->form->title = '|Добавяне на артикул към|* "' . $groupName . '"';
-        }
-        
-        // За опции се слагат само продаваемите продукти
-        $products = cat_Products::makeArray4Select(NULL, "#meta LIKE '%canSell%'");
-        $data->form->setOptions('productId', $products);
     }
     
 
