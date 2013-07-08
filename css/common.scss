@@ -815,7 +815,8 @@ div.richtext .code code{
 	border: 1px solid #ccc;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0 2px;
-	padding: 0 5px;
+	padding: 2px 5px 0;
+	display:inline;
 }
 
 .wide div.rich-text{
