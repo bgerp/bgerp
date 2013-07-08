@@ -211,4 +211,23 @@ class cat_Params extends core_Manager
     	
 	    return $Type;
     }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Params.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "type", 
+	    	2 => "suffix", 
+	    	3 => "sysId");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
+    }
 }

@@ -229,6 +229,14 @@ class cat_Products extends core_Master {
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
+    	if(isset($rec->csv_measureId) && strlen($rec->csv_measureId) != 0){
+    		$rec->measureId = cat_UoM::fetchField("#name = '{$rec->csv_measureId}'", "id");
+    	}
+    	
+    	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
+    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    	}
+    	
     	if($rec->groups){
     		
     		// Ако има групи се обновяват, мета данните му
@@ -713,5 +721,24 @@ class cat_Products extends core_Master {
             // Вземаме тумбнаил на файла
             $data->row->image = $Fancybox->getImage($fileHnd, $tArr, $mArr);
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Products.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "code", 
+	    	2 => "csv_measureId", 
+	    	3 => "csv_groups",);
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

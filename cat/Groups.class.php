@@ -191,12 +191,12 @@ class cat_Groups extends core_Master
      * Връща keylist от id-та на групи, съответстващи на даден стрингов
      * списък от sysId-та, разделени със запетайки
      */
-    function getKeylistBySysIds($list, $strict = FALSE)
+    static function getKeylistBySysIds($list, $strict = FALSE)
     {
         $sysArr = arr::make($list);
 
         foreach($sysArr as $sysId) {
-            $id = self::fetchField("#sysId = '{$sysId}'", 'id');
+            $id = static::fetchField("#sysId = '{$sysId}'", 'id');
             if($strict) {
                 expect($id, $sysId, $list);
             }
@@ -210,5 +210,24 @@ class cat_Groups extends core_Master
         }
 
         return $keylist;
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Groups.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "info", 
+	    	2 => "sysId", 
+	    	3 => "meta");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

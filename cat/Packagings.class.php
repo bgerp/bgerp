@@ -91,6 +91,8 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentGlass', 'percent', 'caption=Стъкло');
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
+        
+        $this->setDbUnique("name");
     }
 
 
@@ -110,5 +112,20 @@ class cat_Packagings extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Packagings.csv";
+    	$fields = array(0 => "name");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }
