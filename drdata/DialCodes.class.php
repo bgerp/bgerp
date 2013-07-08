@@ -45,50 +45,33 @@ class drdata_DialCodes extends core_Manager {
         $this->setDbIndex('country');
     }
     
+
+    /**
+     * Изчистване на данните преди запис
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+        $rec->areaCode = trim($rec->areaCode);
+    }
+    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMVC(&$mvc, &$html)
+    static function on_AfterSetupMVC(&$mvc, &$res)
     {
-        if(!$mvc->fetch("1=1") || Request::get('Full')) {
-            
-            // Увеличаваме паметта на PHP
-            ini_set('memory_limit', '1000000000');
-            
-            // Изтриваме съдържанието й
-            $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
-            
-            // Намираме директорията, където е текущия файл
-            $dir = dirname(__FILE__);
-            
-            // Вкарваме първия източник на данни
-            $file = file_get_contents($dir . "/data/DialingCodes.dat");
-            
-            // Парсираме CSV съдържанието
-            $lines = explode("\n", $file);
-            
-            $cnt = 0;
-            
-            // Ред по ред го вкарваме в таблицата
-            foreach($lines as $row) {
-                
-                if(!strpos($row, "|")) continue;
-                
-                $rec = new stdClass();
-                
-                list($rec->country, $rec->countryCode, $rec->area, $rec->areaCode) = explode('|', $row);
-                
-                $rec->areaCode = trim($rec->areaCode);
-                
-                $mvc->save($rec);
-                
-                $cnt++;
-            }
-            
-            $html .= "<li>Imported $cnt rows";
-            
-            return $html;
-        }
+        // Вкарваме първия източник на данни
+        $file = "drdata/data/DialingCodes.dat";
+        
+        // Колонките на файла с данни отнесени към полетата на модела
+        $fields = array('country', 'countryCode', 'area', 'areaCode');
+        
+        // Разделителят е специфичен     
+        $format = array('delimiter' => '|');
+        
+        // Импорт на данните
+        $cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields, NULL, $format);        
+
+        $res .= $cntObj->html;
     }
 }

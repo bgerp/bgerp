@@ -57,8 +57,8 @@ class drdata_Setup extends core_Manager {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-            'SENDER_HOST' => array ('identifier', 'mandatory'),
-            'SENDER_EMAIL'   => array ('email', 'mandatory'),
+            'SENDER_HOST'   => array ('identifier', 'mandatory'),
+            'SENDER_EMAIL'  => array ('email', 'mandatory'),
         );
     
     /**

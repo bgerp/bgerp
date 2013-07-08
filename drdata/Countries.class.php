@@ -60,7 +60,7 @@ class drdata_Countries extends core_Manager {
         $this->FLD('capital', 'varchar', 'caption=Столица');
         $this->FLD('currencyCode', 'varchar(3)', 'caption=Валута->Код');
         $this->FLD('currencyName', 'varchar', 'caption=Валута->Име');
-        $this->FLD('telCode', 'varchar(3)', 'caption=Tел. код');
+        $this->FLD('telCode', 'varchar(6)', 'caption=Tел. код');
         $this->FLD('letterCode2', 'varchar(3)', 'caption=ISO 3166-1->2,rem=ISO 3166-1 2 буквен код');
         $this->FLD('letterCode3', 'varchar(3)', 'caption=ISO 3166-1->3, rem=ISO 3166-1 3 буквен код');
         $this->FLD('isoNumber', 'int', 'caption=ISO 3166-1->N, rem=ISO Номер');
@@ -145,38 +145,32 @@ class drdata_Countries extends core_Manager {
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        if(!$mvc->fetch("1=1") || Request::get('Full')) {
-            
-            // Подготвяме пътя до файла с данните
-            $dataCsvFile = dirname (__FILE__) . "/data/countrylist.csv";
-            
-            // Изтриваме съдържанието й
-            $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
+        // Подготвяме пътя до файла с данните
+        $file = "drdata/data/countrylist.csv";
 
-            // Кои колонки ще вкарваме
-            $fields = array(
-                1 => "commonName",
-                2 => "commonNameBg",
-                3 => "formalName",
-                4 => "type",
-                6 => "sovereignty",
-                7 => "capital",
-                8 => "currencyCode",
-                9 => "currencyName",
-                10 => "telCode",
-                11 => "letterCode2",
-                12 => "letterCode3",
-                13 => "isoNumber",
-                14 => "domain"
-            );
-            
+        // Кои колонки ще вкарваме
+        $fields = array(
+            1 => "commonName",
+            2 => "commonNameBg",
+            3 => "formalName",
+            4 => "type",
+            6 => "sovereignty",
+            7 => "capital",
+            8 => "currencyCode",
+            9 => "currencyName",
+            10 => "telCode",
+            11 => "letterCode2",
+            12 => "letterCode3",
+            13 => "isoNumber",
+            14 => "domain"
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
 
-            $importedRecs = csv_Lib::import($mvc, $dataCsvFile, $fields);
-            
-            if($importedRecs) {
-                $res .= "<li style='color:green'> Импортирана е информация за {$importedRecs} държави.";
-            }
-        }
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res .= $cntObj->html;
     }
 
     public static function getIdByName($country)

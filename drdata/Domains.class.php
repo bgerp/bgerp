@@ -67,27 +67,25 @@ class drdata_Domains extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        if(!$mvc->fetch("1=1") || Request::get('Full')) {
-            
-            // Подготвяме пътя до файла с данните
-            $dataCsvFile = dirname (__FILE__) . "/data/publicdomains.csv";
-            
-            // Кои колонки ще вкарваме
-            $fields = array(
-                0 => "domain",
-            );
-            
-            $defaults = array(
-                'isPublicMail' => 'static',
-                'state' => 'active',
-            );
-            
-            $importedRecs = csv_Lib::import($mvc, $dataCsvFile, $fields, array(), $defaults);
-            
-            if($importedRecs) {
-                $res .= "<li style='color:green'>Импортирана е информация за {$importedRecs} публични имейл домейни.";
-            }
-        }
+        // Подготвяме пътя до файла с данните
+        $file = "drdata/data/publicdomains.csv";
+             
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "domain",
+        );
+        
+        $defaults = array(
+            'isPublicMail' => 'static',
+            'state' => 'active',
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields, $defaults);
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res .= $cntObj->html;
     }
     
     
