@@ -87,7 +87,7 @@ class techno_GeneralProducts extends core_Manager {
         						canStore=Складируем,
         						canConvert=Вложим,
         						fixedAsset=Дма,
-        						canManifacture=Производим)', 'caption=Свойства->Списък,input');
+        						canManifacture=Производим)', 'caption=Свойства->Списък,input,columns=2');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
