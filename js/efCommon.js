@@ -814,7 +814,7 @@ function setMinHeight()
 
 		if(document.getElementById('packWrapper')) {
 			var pw = document.getElementById('packWrapper');
-			var h = (ch - fct - 98) + 'px';
+			var h = (ch - fct - 116) + 'px';
 			pw.style.minHeight = h;
 		}
 	}
