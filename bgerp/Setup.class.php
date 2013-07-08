@@ -136,8 +136,12 @@ class bgerp_Setup {
         // Извършваме инициализирането на всички включени в списъка пакети
         foreach(arr::make($packs) as $p) {
             if(cls::load($p . '_Setup', TRUE)) {
-                $html .= $Packs->setupPack($p);
-            }
+                try {
+                    $html .= $Packs->setupPack($p);
+                } catch(core_exception_Expect $exp) {
+                    $html = "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>" . $html;
+                }
+             }
         }
 
         // Извършваме инициализирането на всички включени в списъка пакети
