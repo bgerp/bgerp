@@ -18,12 +18,12 @@ class core_ObjectConfiguration
     /**
      * Описание на конфигурацията
      */
-    private $_description = array();
+    var $_description = array();
     
     /**
      * Стойности на константите
      */
-    private $_data = array();
+    var $_data = array();
     
     /**
      * Конструктор
@@ -63,10 +63,11 @@ class core_ObjectConfiguration
         if(!isset($value) && defined($name)) {
 
             $value = constant($name);
-
         }
-
-        expect(isset($value), "Недефинирана константа $name", $this->_description, $this->_data);
+        
+        if($this->_description[$name]) {
+            expect(isset($value), "Недефинирана константа $name", $this->_description, $this->_data);
+        }
 
         return $value;
     }
