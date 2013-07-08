@@ -610,11 +610,12 @@ div.hFormField {
 	color:white;
 }
 
-.wide .checkbox, .wide .radiobutton, .wide input[type=checkbox], .wide input[type=radio] { 
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow:none;
 	margin:3px 3px 3px 4px;
 	background-color:transparent;
+	outline:none;
 }
 
 .narrow .formAll {
