@@ -147,32 +147,17 @@ class salecond_PaymentMethods extends core_Master
     
     
 	/**
-     * Зареждане на началните данни
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    static function loadData()
+    static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$csvFile = __DIR__ . "/csv/PaymentMethods.csv";
-        $created = $updated = 0;
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         	while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-                $rec = new stdClass();
-              	$rec->name= $csvRow[0];
-               	$rec->description= $csvRow[1];
-               	if($rec->id = static::fetchField(array("#name = '[#1#]'", $rec->name), 'id')){
-               		$updated++;
-               	} else {
-               		$created++;
-               	}
-                static::save($rec);
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li style='color:green;'>Създадени са {$created} начина на плащане, обновени са {$updated}</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	$file = "salecond/csv/PaymentMethods.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "description");
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

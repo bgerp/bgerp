@@ -75,24 +75,7 @@ class salecond_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "{$role}, ceo");
         
-        $html .= $this->loadSetupData();
-        
         return $html;
-    }
-    
-    
-    /**
-     * Инициализране на началните данни
-     */
-    function loadSetupData()
-    {
-    	// Зареждане на други условия за продажба от csv файл
-    	$html .= salecond_Parameters::setup();
-    	
-    	// Зареждаме начините за плащане от csv файл
-    	$html .= salecond_PaymentMethods::loadData();
-    	
-    	return $html;
     }
     
     

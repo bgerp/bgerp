@@ -99,36 +99,22 @@ class salecond_Parameters extends core_Manager
     }
     
     
-    /**
-     * Начални данни за инициализация
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    public static function setup()
+    static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$csvFile = __DIR__ . "/csv/Parameters.csv";
-        $created = $updated = 0;
-        if(($handle = @fopen($csvFile, "r")) !== FALSE) {
-          while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-              $rec = new stdClass();
-              $rec->name = $csvRow[0];
-              $rec->type = $csvRow[1];
-              $rec->sysId = $csvRow[2];
-              $rec->default = $csvRow[3];
-              if($rec->id = static::fetchField("#sysId = '{$rec->sysId}'", 'id')){
-              	$updated++;
-           } else {
-                $created++;
-           }
-         
-           static::save($rec);
-		}
-            
-        fclose($handle);
-           $res .= "<li style='color:green;'>Създадени са записи за {$created} търговски параметри. Обновени {$updated}</li>";
-        } else {
-           $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	$file = "salecond/csv/Parameters.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "type", 
+	    	2 => "sysId", 
+	    	3 => "default");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
     
     
