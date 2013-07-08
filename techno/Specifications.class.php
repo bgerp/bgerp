@@ -491,7 +491,7 @@ class techno_Specifications extends core_Master {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
-    	$q = static::getQuery();
+    	
     	// Копието е нов документ(чернова), в същата папка в нов тред
     	unset($rec->id, $rec->containerId);
     	$rec->state = 'draft';
@@ -503,7 +503,7 @@ class techno_Specifications extends core_Master {
     	if(!str::increment($newTitle)){
     		$newTitle .= " v2";
     	}
-    	while(static::fetch("#title = '{$newTitle}'")){
+    	while($this->fetch("#title = '{$newTitle}'")){
     		$newTitle = str::increment($newTitle);
     	}
     	$rec->title = $data->title = $newTitle;
