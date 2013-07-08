@@ -624,8 +624,8 @@ if ($step == 'setup') {
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-    echo ($texts['styles']);
-    
+//    echo ($texts['styles']);
+    contentFlush ($texts['styles']);
     $opts = array(
       'http'=>array(
         'method'=>"GET",
@@ -1162,10 +1162,17 @@ function setupProcess()
  */
 function setupKeyValid()
 {
-    // При грешка с базата данни връща валиден сетъп ключ
-    $res = dataBaseStat();
+    // При празна база връща валиден setup ключ
+    $DB = new core_Db();
     
-    if ($res === FALSE && !setupProcess()) {
+    try {
+        $DB->connect(FALSE);
+    } catch (core_exception_Expect $e) {
+
+        return TRUE;
+    }
+    
+    if ($DB->databaseEmpty() && !setupProcess()) {
         return TRUE;
     }
     
@@ -1189,26 +1196,16 @@ function setupKeyValid()
 
 /**
  * Връща броя на таблиците и редовете в базата
- * или false ако няма база
  * 
  * @return array
  */
 function dataBaseStat()
 {
-    mysql_connect(EF_DB_HOST, EF_DB_USER, EF_DB_PASS);
+    $DB = new core_Db();
 
-    $recordsRes = mysql_query("SELECT SUM(TABLE_ROWS) AS RECS
-                                    FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . EF_DB_NAME ."'");
-    $rows = mysql_fetch_object($recordsRes);
-    // Ако няма база или няма записи в нея пускаме Сетъп-а
-    if (!$rows->RECS) {
-        return FALSE;
-    }
-            
-    $tablesRes = mysql_query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". EF_DB_NAME ."';");
+    $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->dbName ."';");
     
-    $tables = mysql_fetch_object($tablesRes);
+    $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
 }
