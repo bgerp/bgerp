@@ -253,18 +253,18 @@ tr.zebra1 {
 
 /* Общи стилове за линковете */
 a {
+  &:link, &:visited {
+    text-decoration: none;
+    color: $blue;
+  }
   &:hover {
-  color: #f90;
+  	color: #f90;
   }
   &.out {
     color: #0066ff;
     &:visited {
       color: #6600cc;
     }
-  }
-  &:link, &:visited {
-    text-decoration: none;
-    color: $blue;
   }
 }
 
