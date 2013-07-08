@@ -114,7 +114,16 @@ class bgerp_Notifications extends core_Manager
         
         bgerp_Notifications::save($rec);
     }
+
     
+    /**
+     * Сортиране по най-ново известие
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy("#modifiedOn", 'DESC');  
+    }
+           
     
     /**
      * Отбелязва съобщение за прочетено
@@ -142,7 +151,7 @@ class bgerp_Notifications extends core_Manager
         
         while($rec = $query->fetch()) {
             $rec->state = 'closed';
-            bgerp_Notifications::save($rec, 'state');
+            bgerp_Notifications::save($rec, 'state,modifiedOn');
         }
     }
     

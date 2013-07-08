@@ -95,6 +95,15 @@ class bgerp_Recently extends core_Manager
         
         bgerp_Recently::save($rec);
     }
+    
+    
+    /**
+     * Сортиране по най-ново 'последно'
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy("#last", 'DESC');  
+    }
 
     
     /**
