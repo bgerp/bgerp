@@ -91,11 +91,12 @@ class sens_Params extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        // Прочитаме CSV файла 
-        $csvFile = dirname (__FILE__) . "/data/Params.csv";
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($mvc, "sens/data/Params.csv"); 
             
-        $nAffected = csv_Lib::import($mvc, $csvFile);
-            
-        $res .= "<li>Добавени са {$nAffected} параметри за сензорите.</li>";
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        $res .= $cntObj->html;
     }
+
 }
