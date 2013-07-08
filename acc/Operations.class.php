@@ -238,4 +238,35 @@ class acc_Operations extends core_Manager
             }
         }
     }
+    
+    
+	/**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(isset($rec->csv_documentSrc) && strlen($rec->csv_documentSrc) != 0){
+    		$rec->documentSrc = core_Classes::fetchIdByName($rec->csv_documentSrc);
+    	}
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "acc/setup/csv/Operations.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "csv_documentSrc", 
+	    	2 => "debitAccount", 
+	    	3 => "creditAccount",
+	    	4 => "systemId");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
+    }
 }
