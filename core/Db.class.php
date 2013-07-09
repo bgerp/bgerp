@@ -151,15 +151,6 @@ class core_Db extends core_BaseClass
             	}
                 error("Грешка при избиране на база <b>{$this->dbName}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
-            
-            // Ако при възникване на грешка базата е празна 
-            // - редиректваме към сетъп-а и получаваме права за сетъпване
-            if ($this->databaseEmpty()) {
-                if ($redirectOnErr) {
-                    redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-                }
-                //error("Празна база <b>{$this->dbName}</b>", mysql_error(), 'ПРАЗНА БАЗАТА ДАННИ');
-            }
         }
         
         return $this->link;
@@ -662,7 +653,12 @@ class core_Db extends core_BaseClass
         }
         
         if (mysql_errno($this->link) > 0) {
-                
+            // Ако при възникване на грешка базата е празна
+            // - редиректваме към сетъп-а и получаваме права за сетъпване
+            if ($this->databaseEmpty()) {
+                redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+            }
+            
             if (!$silent) {
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
