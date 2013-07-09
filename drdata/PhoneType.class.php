@@ -87,8 +87,10 @@ class drdata_PhoneType extends type_Varchar {
     {
         $Phones = cls::get('drdata_Phones');
 
-        setIfNot($code, $params['code'], '359');
-
+        $conf = core_Packs::getConfig('drdata');
+        
+        $code = $conf->COUNTRY_PHONE_CODE;
+        
         $result = $Phones->parseTel($str, $code);
 
         return $result;

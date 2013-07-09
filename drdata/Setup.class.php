@@ -13,6 +13,12 @@ defIfNot("SENDER_EMAIL", '??????');
 
 
 /**
+ * Стандартен и-мейл на изпращача
+ */
+defIfNot("COUNTRY_PHONE_CODE", '359');
+
+
+/**
  * class drdata_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -59,6 +65,7 @@ class drdata_Setup extends core_Manager {
     var $configDescription = array(
             'SENDER_HOST'   => array ('identifier', 'mandatory'),
             'SENDER_EMAIL'  => array ('email', 'mandatory'),
+            'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory'),
         );
     
     /**
