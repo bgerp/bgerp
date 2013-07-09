@@ -85,7 +85,7 @@ class callcenter_Fax extends core_Manager
      */
     function description()
     {
-        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Контрагент->Номер');
+        $this->FLD('faxNum', 'bglocal_PhoneType', 'caption=Контрагент->Номер');
         $this->FNC('contragent', 'varchar', 'caption=Контрагент->Име');
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Документ');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');

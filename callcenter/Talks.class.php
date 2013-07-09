@@ -122,7 +122,7 @@ class callcenter_Talks extends core_Master
      */
     function description()
     {
-        $this->FLD('callerNum', 'drdata_PhoneType', 'caption=Позвъняващ, width=100%');
+        $this->FLD('callerNum', 'bglocal_PhoneType', 'caption=Позвъняващ, width=100%');
         $this->FLD('calledNum', 'varchar', 'caption=Търсен');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
@@ -292,7 +292,7 @@ class callcenter_Talks extends core_Master
         $uniqId = Request::get('uniqueId');
         
         // Вземаме номера, на инициатора
-        $callerNumArr = drdata_PhoneType::toArray($callerNum);
+        $callerNumArr = bglocal_PhoneType::toArray($callerNum);
         
         // Създаваме обекта, който ще използваме
         $nRec = new stdClass();

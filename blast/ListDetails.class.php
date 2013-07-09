@@ -289,10 +289,10 @@ class blast_ListDetails extends core_Detail
                     $type = 'email';
                     break;
                 case 'fax' :
-                    $type = 'drdata_PhoneType';
+                    $type = 'bglocal_PhoneType';
                     break;
                 case 'mobile' :
-                    $type = 'drdata_PhoneType';
+                    $type = 'bglocal_PhoneType';
                     break;
                 case 'country' :
                     $type = 'varchar';
