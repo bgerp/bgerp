@@ -93,59 +93,10 @@ class bglocal_Banks extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        $data = array(
-            array('name' => 'Инвестбанк АД',  'bic' => 'IORTBGSF'),
-            array('name' => 'Общинска банка АД', 'bic' => 'SOMBBGSF'),
-            array('name' => 'ИНГ Банк Н.В. - кл. София', 'bic' => 'INGBBGSF'),
-            array('name' => 'Първа инвестиционна банка АД ', 'bic' => 'FINVBGSF'),
-            array('name' => 'Райфайзенбанк (България) ЕАД', 'bic' => 'RZBBBGSF'),
-            array('name' => 'Българо-американска кредитна банка АД', 'bic' => 'BGUSBGSF'),
-            array('name' => 'Банка Пиреос България АД', 'bic' => 'PIRBBGSF'),
-            array('name' => 'МКБ Юнионбанк АД', 'bic' => 'CBUNBGSF'),
-            array('name' => 'Обединена българска банка АД', 'bic' => 'UBBSBGSF'),
-            array('name' => 'Регионална Инвестиционна банка - клон България', 'bic' => 'RIBRBG22'),
-            array('name' => 'Корпоративна търговска банка АД', 'bic' => 'KORPBGSF'),
-            array('name' => 'ПроКредит Банк (България) АД', 'bic' => 'PRCBBGSF'),
-            array('name' => 'Търговска банка Д АД', 'bic' => 'DEMIBGSF'),
-            array('name' => 'Ситибанк Н. А. - клон София', 'bic' => 'CITIBGSF'),
-            array('name' => 'Токуда Банк АД', 'bic' => 'CREXBGSF'),
-            array('name' => 'Банка ДСК ЕАД', 'bic' => 'STSABGSF'),
-            array('name' => 'ТИ БИ АЙ Банк ЕАД', 'bic' => 'WEBKBGSF'),
-            array('name' => 'Те-Дже Зираат Банкасъ - клон София', 'bic' => 'TCZBBGSF'),
-            array('name' => 'ИШБАНК АГ- клон София КЧТ', 'bic' => 'ISBKBGSF'),
-            array('name' => 'Сосиете Женерал Експресбанк АД', 'bic' => 'TTBBBG22'),
-            array('name' => 'БНП Париба С. А. - клон София', 'bic' => 'BNPABGSX'),
-            array('name' => 'Интернешънъл Асет Банк АД', 'bic' => 'IABGBGSF'),
-            array('name' => 'Креди Агрикол България ЕАД', 'bic' => 'BINVBGSF'),
-            array('name' => 'Алианц Банк България АД', 'bic' => 'BUINBGSF'),
-            array('name' => 'Българска банка за развитие АД',    'bic' => 'NASBBGSF'),
-            array('name' => 'УниКредит Булбанк АД', 'bic' => 'UNCRBGSF'),
-            array('name' => 'Българска народна банка', 'bic' => 'BNBGBGSF'),
-            array('name' => 'Централна кооперативна банка АД', 'bic' => 'CECBBGSF'),
-            array('name' => 'СИБАНК ЕАД',    'bic' => 'BUIBBGSF'),
-            array('name' => 'Алфа банка - клон България', 'bic' => 'CRBABGSF'),
-            array('name' => 'Юробанк И Еф Джи България АД', 'bic' => 'BPBIBGSF'),
-            array('name' => 'Българска народна банка (BG)', 'bic' => 'BNBGBGSD'),
-            );
-            
-    	if(!$mvc->fetch("1=1")) {
-            
-            $nAffected = 0;
-            
-            foreach ($data as $rec) {
-                $rec = (object)$rec;
-                
-                if (!$mvc->fetch("#bic='{$rec->bic}'")) {
-                    if ($mvc->save($rec)) {
-                        $nAffected++;
-                    }
-                }
-            }
-        }
-        
-        if ($nAffected) {
-            $res .= "<li>Добавени са {$nAffected} записа.</li>";
-        }
+        $file = "bglocal/data/Banks.csv";
+    	$fields = array(0 => "name", 1 => "bic");
+    	$cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+    	$res .= $cntObj->html;
     }
     
     

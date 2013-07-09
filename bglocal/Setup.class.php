@@ -51,7 +51,7 @@ class bglocal_Setup extends core_Manager {
         $managers = array(
             
             //'bglocal_Mvr',
-          	//'bglocal_Banks',
+          	'bglocal_Banks',
             //'bglocal_Address',
        		'bglocal_NKID',
             'bglocal_NKPD',
