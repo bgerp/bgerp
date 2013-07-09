@@ -39,7 +39,9 @@ class type_Time extends type_Varchar {
      */
     var $cellAttr = 'align="right"';
    
-     
+    // Стойности, означаващи 0, на момента, on time
+    protected $zeroArr = array('na momenta', 'vednaga', 'on time');
+    
     
     /**
      * Конвертира от вербална стойност
@@ -74,9 +76,7 @@ class type_Time extends type_Varchar {
         $val = strtolower(str::utf2ascii($val));
         
         // Проверка за стойности, означаващи 0, на момента, on time
-        $zeroArr = array('na momenta', 'vednaga', 'on time');
-        
-        foreach($zeroArr as $w) {
+        foreach($this->zeroArr as $w) {
             if($val == $w || $val == tr($w)) {
                 return 0;
             }
@@ -205,8 +205,14 @@ class type_Time extends type_Varchar {
 
         
         if($v == 0) {
-            
-            return tr('веднага');
+        	// Ако времето е нула връщаме тази стойност от опциите
+        	// отговаряща на 0 време
+        	$suggestions = explode('|', $this->params['suggestions']);
+            foreach ($suggestions as $string){
+            	if(in_array(strtolower(str::utf2ascii($string)), $this->zeroArr)){
+            		return tr($string);
+            	}
+            }
         }
 
         if($weeks > 0) {

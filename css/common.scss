@@ -571,7 +571,7 @@ div.hFormField {
     border:solid 1px #aaa;
 }
 
-.vertical input{
+.vertical input, .vertical textarea{
 	margin-left:0;
 }
 
@@ -610,11 +610,12 @@ div.hFormField {
 	color:white;
 }
 
-.wide .checkbox, .wide .radiobutton, .wide input[type=checkbox], .wide input[type=radio] { 
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow:none;
 	margin:3px 3px 3px 4px;
 	background-color:transparent;
+	outline:none;
 }
 
 .narrow .formAll {
@@ -625,6 +626,14 @@ div.hFormField {
 	margin-top:0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
+}
+
+.formFields table td{
+	padding-bottom:7px !important;
+}
+
+.narrow .formFields table td{
+	padding-bottom:3px!important;
 }
 
 .formFields input:focus, textarea:focus, select:focus { 
@@ -814,7 +823,8 @@ div.richtext .code code{
 	border: 1px solid #ccc;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0 2px;
-	padding: 0 5px;
+	padding: 2px 5px 0;
+	display:inline;
 }
 
 .wide div.rich-text{

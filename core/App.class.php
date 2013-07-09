@@ -967,24 +967,27 @@ class core_App
             return;
         }
 
-        header('Content-Type: text/html; charset=UTF-8');
 
-        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+        $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
         "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
         "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
         "<font color=red>$breakFile</font></h1>";
 
-        echo $html;
+        $errHtml .= $html;
 
-        echo "<h2>Стек</h2>";
+        $errHtml .= "<h2>Стек</h2>";
 
-        echo core_Exception_Expect::getTraceAsHtml($stack);
+        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
 
-        echo static::renderStack($stack);
+        $errHtml .= static::renderStack($stack);
 
-        echo core_Debug::getLog();
-
-        exit(-1);
+        $errHtml .= core_Debug::getLog();
+        file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml ."<br>" . date("Y-m-d H:i:s"));
+        
+        header('Content-Type: text/html; charset=UTF-8');
+        echo($errHtml);
+        
+       exit(-1);
     }
 
 
