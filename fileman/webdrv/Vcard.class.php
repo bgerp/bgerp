@@ -277,7 +277,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	        }
 	        
 	        // Инстанция на класа
-	        $Phone = cls::get('bglocal_PhoneType');
+	        $Phone = cls::get('drdata_PhoneType');
 	        
 	        // Обхождаме всички телефони в масива
 	        foreach ((array)$vcardArr['tel'] as $type => $phonesArr) {
