@@ -87,7 +87,7 @@ class techno_GeneralProducts extends core_Manager {
         						canStore=Складируем,
         						canConvert=Вложим,
         						fixedAsset=Дма,
-        						canManifacture=Производим)', 'caption=Свойства->Списък,input');
+        						canManifacture=Производим)', 'caption=Свойства->Списък,input,columns=2');
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
@@ -222,6 +222,7 @@ class techno_GeneralProducts extends core_Manager {
     private function getTpl($row, $params = array(), $short)
     {
     	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
+    	
     	if(count($row->params)){
     		$paramBlock = $tpl->getBlock('PARAMS');
     		foreach($row->params as $id => $arr){
@@ -271,6 +272,15 @@ class techno_GeneralProducts extends core_Manager {
         		$row->params[$paramId] = $arr;
     		}
     	}
+    	
+    	$specState = techno_Specifications::fetchField($data->specificationId, 'state');
+    	if($specState == 'draft' && !Mode::is('printing')){
+    		$url = array('techno_Specifications', 'single', $data->specificationId);
+    		$icon = ht::createElement('img', array('title' => 'Към спецификацията', 'src' => sbf('img/16/specification.png', "")));
+    		//bp($icon);
+    		$row->link = ht::createLink($icon, $url);
+    	}
+    	
     	return $row;
     }
     

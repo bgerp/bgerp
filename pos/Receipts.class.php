@@ -440,9 +440,15 @@ class pos_Receipts extends core_Master {
    	 */
     public static function getTransaction($id)
     {
-    	expect($rec = static::fetch($id));
-    	$products = static::getProducts($id);
-    	$posRec = pos_Points::fetch($rec->pointId);
+    	expect($rec = static::fetchRec($id));
+    	
+    	if ($rec->id) {
+    	    $products = static::getProducts($rec->id);
+    	} else {
+    	    $products = array();
+    	}
+    	
+    	$posRec   = pos_Points::fetch($rec->pointId);
     	$totalVat = 0;
     	
     	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
@@ -485,25 +491,26 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$entries[] = array(
-                    'amount' => $totalVat,  // равностойноста на сумата в основната валута
-                    
-                    'debit' => array(
-                        '501',  // Сметка "501. Каси"
-	                		array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
-	                		array('currency_Currencies', $currencyId), 
-	                	'quantity' => $totalVat, 
-                    ),
-                    
-                    'credit' => array(
-                        '4532', // кредитна сметка
-                        'quantity' => $totalVat,
-                    ));
+            'amount' => $totalVat,  // равностойноста на сумата в основната валута
+            
+            'debit' => array(
+                '501',  // Сметка "501. Каси"
+            		array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
+            		array('currency_Currencies', $currencyId), 
+            	'quantity' => $totalVat, 
+            ),
+            
+            'credit' => array(
+                '4532', // кредитна сметка
+                'quantity' => $totalVat,
+            )
+	    );
     	
     	$transaction = (object)array(
-                'reason'  => 'Касова бележка #' . $rec->id,
-                'valior'  => $rec->createdOn,
-                'entries' => $entries, 
-            );
+            'reason'  => 'Касова бележка #' . $rec->id,
+            'valior'  => $rec->createdOn,
+            'entries' => $entries, 
+        );
       
       return $transaction;
     }

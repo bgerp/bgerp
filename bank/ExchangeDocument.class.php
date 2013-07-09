@@ -92,7 +92,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, bank';
+    var $canConto = 'acc, bank, ceo';
     
     
     /**
@@ -241,9 +241,11 @@ class bank_ExchangeDocument extends core_Master
     public static function getTransaction($id)
     {
     	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
+        
         $cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
         $dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
+        
         $entry = array(
             'amount' => $rec->debitQuantity * $rec->debitPrice,
             'debit' => array(
@@ -278,10 +280,11 @@ class bank_ExchangeDocument extends core_Master
      */
     public static function finalizeTransaction($id)
     {
-        $rec = (object)array(
-            'id' => $id,
-            'state' => 'closed'
-        );
+        $rec = self::fetchRec($id);
+        
+        expect($rec->id);
+        
+        $rec->state = 'closed';
         
         return self::save($rec);
     }

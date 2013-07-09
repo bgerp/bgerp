@@ -351,7 +351,11 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
-        self::on_AfterConto($mvc, $res, $id);
+        $rec = $mvc->fetchRec($id);
+        
+        if ($rec->state == 'rejected') {
+            self::on_AfterConto($mvc, $res, $id);
+        }
     }
     
     
@@ -371,13 +375,8 @@ class acc_plg_Contable extends core_Plugin
         
         $rec = $mvc->fetchRec($rec);
         
-        if (empty($rec->id)) {
-            $transaction = FALSE;
-            return;
-        }
-        
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-        $transaction       = $transactionSource->getTransaction($rec->id);
+        $transaction       = $transactionSource->getTransaction($rec);
         
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         

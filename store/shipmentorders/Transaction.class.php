@@ -100,8 +100,6 @@ class store_shipmentorders_Transaction
     {
         $rec = $this->class->fetchRec($id);
         
-        expect($rec->id);
-        
         // Извличаме базовата продажба
         expect($sale = $this->class->getOrigin($rec));
         expect($sale->getInstance() instanceof sales_Sales);
@@ -110,14 +108,18 @@ class store_shipmentorders_Transaction
         $rec->currencyCode = $sale->rec('currencyId');
         $rec->currencyId   = currency_Currencies::getIdByCode($rec->currencyCode);
         
-        // Извличаме детайлите на продажбата
-        /* @var $detailQuery core_Query */
-        $detailQuery = store_ShipmentOrderDetails::getQuery();
-        $detailQuery->where("#shipmentId = '{$rec->id}'");
-        $rec->details  = array();
+        $rec->details = array();
         
-        while ($dRec = $detailQuery->fetch()) {
-            $rec->details[] = $dRec;
+        if (!empty($rec->id)) {
+            // Извличаме детайлите на продажбата
+            /* @var $detailQuery core_Query */
+            $detailQuery = store_ShipmentOrderDetails::getQuery();
+            $detailQuery->where("#shipmentId = '{$rec->id}'");
+            $rec->details  = array();
+            
+            while ($dRec = $detailQuery->fetch()) {
+                $rec->details[] = $dRec;
+            }
         }
         
         return $rec;

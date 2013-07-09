@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Продуктови параметри
@@ -210,5 +210,24 @@ class cat_Params extends core_Manager
 	    expect($Type = cls::get("type_{$rec->type}", array($optType => $options)), "Няма тип \"type_{$rec->type}\" в системата");
     	
 	    return $Type;
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Params.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "type", 
+	    	2 => "suffix", 
+	    	3 => "sysId");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

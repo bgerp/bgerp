@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Опаковки
@@ -91,6 +91,8 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentGlass', 'percent', 'caption=Стъкло');
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
+        
+        $this->setDbUnique("name");
     }
 
 
@@ -110,5 +112,20 @@ class cat_Packagings extends core_Manager
                 $requiredRoles = 'no_one';
             }
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Packagings.csv";
+    	$fields = array(0 => "name");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

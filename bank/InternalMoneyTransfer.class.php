@@ -98,7 +98,7 @@ class bank_InternalMoneyTransfer extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, bank';
+    var $canConto = 'acc, bank, ceo';
     
     
     /**
@@ -356,7 +356,8 @@ class bank_InternalMoneyTransfer extends core_Master
     public static function getTransaction($id)
     {
     	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
+        
         ($rec->debitCase) ? $debitArr = array('cash_Cases', $rec->debitCase) : $debitArr = array('bank_OwnAccounts', $rec->debitBank);
         $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);

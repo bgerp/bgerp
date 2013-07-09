@@ -84,6 +84,12 @@ class price_ConsumptionNorms extends core_Master {
     var $canWrite = 'price, ceo';
     
     
+    /**
+     * Кой може да пише
+     */
+    var $canAdd = 'price, ceo';
+    
+    
 	/**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -112,7 +118,7 @@ class price_ConsumptionNorms extends core_Master {
      * За продуктите от кои групи могат да бъдат правени Разходни норми
      * @see cat_Groups
      */
-    public static $normProductGroups = array('productsStandard', 'prefabrications', 'services');
+    public static $normProductGroups = array('products', 'prefabrications', 'services');
     
     
     /**
@@ -617,6 +623,7 @@ class price_ConsumptionNorms extends core_Master {
      */
 	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
+		
 		if($action == 'activate') {
 			$query = $mvc->price_ConsumptionNormDetails->getQuery();
 			$query->where("#normId = {$rec->id}");
@@ -626,6 +633,10 @@ class price_ConsumptionNorms extends core_Master {
 				// съставки никой неможе да активира
 				$res = 'no_one';
 			}
+		}
+		
+		if($action == 'add') {
+			$res = $mvc->canAdd;
 		}
 	}
 	

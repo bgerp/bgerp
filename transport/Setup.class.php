@@ -1,24 +1,21 @@
 <?php
 
-defIfNot('PRICE_LIST_COST', 1);
-
-defIfNot('PRICE_LIST_CATALOG', 2);
 
 
 /**
- * Инсталиране на модул 'price'
+ * Транспорт - инсталиране / деинсталиране
  *
- * Ценови политики на фирмата
  *
  * @category  bgerp
- * @package   price
- * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @package   transport
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class price_Setup
+class transport_Setup
 {
+    
     
     /**
      * Версия на пакета
@@ -29,7 +26,7 @@ class price_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'price_Lists';
+    var $startCtr = 'transport_Requests';
     
     
     /**
@@ -41,7 +38,7 @@ class price_Setup
     /**
      * Описание на модула
      */
-    var $info = "Ценови политики, ценоразписи, разходни норми";
+    var $info = "Транспортни операции";
     
     
     /**
@@ -50,20 +47,15 @@ class price_Setup
     function install()
     {
         $managers = array(
-            'price_Groups',
-            'price_GroupOfProducts',
-            'price_Lists',
-            'price_ListToCustomers',
-            'price_ListRules',
-            'price_History',
-        	'price_ConsumptionNorms',
-        	'price_ConsumptionNormDetails',
-        	'price_ConsumptionNormGroups',
-        	'price_ListDocs',
+        	'transport_Requests', 
+        	'transport_Shipment', 
+       		'transport_Claims', 
+       		'transport_Registers', 
+            
         );
         
         // Роля за power-user на този модул
-        $role = 'price';
+        $role = 'transport';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -74,8 +66,9 @@ class price_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "{$role}, ceo");
-
+        
+        $html .= $Menu->addItem(3.6, 'Логистика', 'Транспорт', 'transport_Requests', 'default', "{$role}, ceo");
+        
         return $html;
     }
     
@@ -89,18 +82,5 @@ class price_Setup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    /**
-     * Инициализране на началните данни
-     */
-    function loadSetupData()
-    {
-    	
-    	$html .= price_setup_Groups::setup();
-    	
-    	$html .= price_ListRules::setup();
-    	
-    	return $html;
     }
 }

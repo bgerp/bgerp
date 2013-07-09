@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -199,8 +199,8 @@ class cat_Products extends core_Master {
         //Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
-            if (preg_match('/[^0-9a-zа-я\- ]/iu', $rec->code)) {
-                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета и интервали!');
+            if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
+                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
             }
            
         	foreach(array('eanCode', 'code') as $code) {
@@ -229,6 +229,14 @@ class cat_Products extends core_Master {
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
+    	if(isset($rec->csv_measureId) && strlen($rec->csv_measureId) != 0){
+    		$rec->measureId = cat_UoM::fetchField("#name = '{$rec->csv_measureId}'", "id");
+    	}
+    	
+    	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
+    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    	}
+    	
     	if($rec->groups){
     		
     		// Ако има групи се обновяват, мета данните му
@@ -713,5 +721,24 @@ class cat_Products extends core_Master {
             // Вземаме тумбнаил на файла
             $data->row->image = $Fancybox->getImage($fileHnd, $tArr, $mArr);
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/Products.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "code", 
+	    	2 => "csv_measureId", 
+	    	3 => "csv_groups",);
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

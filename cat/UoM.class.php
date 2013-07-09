@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -174,5 +174,38 @@ class cat_UoM extends core_Manager
     	}
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	// Ако се импортира от csv файл, заместваме основната
+    	// единица с ид-то и от системата
+    	if(isset($rec->csv_baseUnitId) && strlen($rec->csv_baseUnitId) != 0){
+    		$rec->baseUnitId = static::fetchField("#name = '{$rec->csv_baseUnitId}'", 'id');
+    	}
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$file = "cat/csv/UoM.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "shortName", 
+	    	2 => "csv_baseUnitId", 
+	    	3 => "baseUnitRatio",
+	    	4 => "state");
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

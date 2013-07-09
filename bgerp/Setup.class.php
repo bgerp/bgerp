@@ -95,7 +95,7 @@ class bgerp_Setup {
         );
         
         $instances = array();
-        
+
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
@@ -108,7 +108,7 @@ class bgerp_Setup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,acc,currency,doc,cms,
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,doc,acc,currency,cms,
                   email,crm, cat, price, blast,rfid,hr,trz,lab,sales,mp,store,salecond,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,callcenter";
@@ -132,27 +132,41 @@ class bgerp_Setup {
                 }
             }
         }
-        
-        // Извършваме инициализирането на всички включени в списъка пакети
-        foreach(arr::make($packs) as $p) {
-            if(cls::load($p . '_Setup', TRUE)) {
-                try {
-                    $html .= $Packs->setupPack($p);
-                } catch(core_exception_Expect $exp) {
-                    $html = "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>" . $html;
-                }
-             }
-        }
 
-        // Извършваме инициализирането на всички включени в списъка пакети
-        foreach(arr::make($packs) as $p) {
-            if(cls::load($p . '_Setup', TRUE)) {
-                $packsInst[$p] = cls::get($p . '_Setup');
-                if(method_exists($packsInst[$p], 'loadSetupData')) {
-                    $packsInst[$p]->loadSetupData();
+        do {
+            $haveError = FALSE;
+            $loop++;
+            // Извършваме инициализирането на всички включени в списъка пакети
+            foreach(arr::make($packs) as $p) {
+                if(cls::load($p . '_Setup', TRUE) && !$isSetup[$p]) {
+                    try {
+                        $html .= $Packs->setupPack($p);
+                        $isSetup[$p] = TRUE;
+                    } catch(core_exception_Expect $exp) {
+                        $html = "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>" . $html;
+                        //$html .= $exp->getAsHtml();
+                        $haveError = TRUE;
+                    }
+                 }
+            }
+        
+            // Извършваме инициализирането на всички включени в списъка пакети
+            foreach(arr::make($packs) as $p) {
+                if(cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
+                    $packsInst[$p] = cls::get($p . '_Setup');
+                    if(method_exists($packsInst[$p], 'loadSetupData')) {
+                        try {
+                            $packsInst[$p]->loadSetupData();
+                            $isLoad[$p] = TRUE;
+                        } catch(core_exception_Expect $exp) {
+                            $html = "<h3 style='color:red'>Грешка при зареждане данните на пакета {$p}</h3>" . $html;
+                            $haveError = TRUE;
+                            //$html .= $exp->getAsHtml();
+                        }
+                    }
                 }
             }
-        }
+        } while ($haveError && ($loop<5));
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на бележките
         $Bucket = cls::get('fileman_Buckets');

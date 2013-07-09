@@ -604,10 +604,6 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 	background: #ffffe8;
 }
 
-#crm_Persons-EditForm  input {
-	max-width: 600px;
-}
-
 div.telephone { 
 	@include crm-icon();
 	background-image:url('../img/16/telephone.png');

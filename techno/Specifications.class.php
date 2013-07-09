@@ -499,14 +499,14 @@ class techno_Specifications extends core_Master {
     	// Промяна на името на копието
     	$data = unserialize($rec->data);
     	$technoClass = cls::get($rec->prodTehnoClassId);
-    	//$i = 0;
-    	//while(!static::fetch("#title = '{$newTitle}'")){
-    	$newTitle = str::increment($rec->title);
-    		//bp();
-    		//$i++;
-    	//}
-    	//bp($i,$rec->title,$newTitle);
-    	$data->title = $rec->title = ($newTitle) ? $newTitle : $rec->title . " v2";
+    	$newTitle = $rec->title;
+    	if(!str::increment($newTitle)){
+    		$newTitle .= " v2";
+    	}
+    	while($this->fetch("#title = '{$newTitle}'")){
+    		$newTitle = str::increment($newTitle);
+    	}
+    	$rec->title = $data->title = $newTitle;
     	$rec->data = $technoClass->serialize($data);
     	
     	// Запис и редирект

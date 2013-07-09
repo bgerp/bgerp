@@ -123,54 +123,17 @@ class salecond_DeliveryTerms extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 		// Изтриваме съдържанието й
-		$mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
-		
-    	$res .= static::loadData();
-       
-    }
-    
-    
-    /**
-     * Зареждане на началните празници в базата данни
-     */
-    static function loadData()
-    {
+    	$file = "salecond/csv/DeliveryTerms.csv";
+    	$fields = array( 
+	    	0 => "term", 
+	    	1 => "codeName", 
+	    	2 => "forSeller", 
+	    	3 => "forBuyer", 
+	    	4 => "transport");
     	
-        $csvFile = __DIR__ . "/csv/DeliveryTerms.csv";
-        
-        $created = $updated = 0;
-        
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         
-            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-               
-                $rec = new stdClass();
-              
-               
-                $rec->term = $csvRow[0];
-               
-                $rec->codeName = $csvRow[1];
-                
-                $rec->forSeller = $csvRow[2]; 
-                
-                $rec->forBuyer = $csvRow[3];
-              
-                $rec->transport = $csvRow[4];
-                            
-                
-                static::save($rec);
-
-                $ins++;
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li style='color:green;'>Създадени са записи за {$ins} транспортни условия</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
 }

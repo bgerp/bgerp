@@ -12,7 +12,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -78,8 +78,6 @@ class cat_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "{$role}, ceo");
         
-        $html .= $this->loadSetupData();
-        
         return $html;
     }
     
@@ -93,29 +91,5 @@ class cat_Setup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
-    }
-    
-    
-	/**
-     * Инициализране на началните данни
-     */
-    function loadSetupData()
-    {
-    	// Зареждане на Мерни единици от csv файл
-    	$html .= cat_setup_UoM::setup();
-    	
-    	// Зареждане на Опаковки от csv файл
-        $html .= cat_setup_Packagings::setup();
-        
-        // Зареждане на Категории от csv файл
-        $html .= cat_setup_Groups::setup();
-
-        // Зареждане на Продукти от csv файл
-        $html .= cat_setup_Products::setup();
-        
-        // Зареждане на Параметри от csv файл
-        $html .= cat_setup_Params::setup();
-        
-        return $html;
     }
 }

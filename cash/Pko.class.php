@@ -94,7 +94,7 @@ class cash_Pko extends core_Master
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,ceo';
+    var $canConto = 'acc,cash,ceo';
     
     
     var $canRevert = 'cash, ceo';
@@ -331,7 +331,7 @@ class cash_Pko extends core_Master
     public static function getTransaction($id)
     {
        	// Извличаме записа
-        expect($rec = self::fetch($id));
+        expect($rec = self::fetchRec($id));
        
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object)array(
