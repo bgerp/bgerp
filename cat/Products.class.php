@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -199,8 +199,8 @@ class cat_Products extends core_Master {
         //Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
-            if (preg_match('/[^0-9a-zа-я\- ]/iu', $rec->code)) {
-                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета и интервали!');
+            if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
+                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
             }
            
         	foreach(array('eanCode', 'code') as $code) {
