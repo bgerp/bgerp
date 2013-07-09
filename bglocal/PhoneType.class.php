@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_PhoneType extends type_Varchar {
+class bglocal_PhoneType extends type_Varchar {
 
 
     /**
