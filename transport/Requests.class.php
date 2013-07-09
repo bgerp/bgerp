@@ -64,7 +64,7 @@ class transport_Requests extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, number, contract, from, to, fromDate, toDate';
     
     
     /**
@@ -78,18 +78,12 @@ class transport_Requests extends core_Manager
      */
     function description()
     {
+    	$this->FLD('number','varchar', 'caption=Номер на заявката, mandatory');
+    	$this->FLD('contract','varchar', 'caption=По договор');
+    	$this->FLD('from','keylist(mvc=crm_Locations, select=title)', 'caption=Локация->От');
+    	$this->FLD('to','varchar', 'caption=Локация->До');
+    	$this->FLD('fromDate','datetime', 'caption=Дата->Товарене');
+    	$this->FLD('toDate','datetime', 'caption=Дата->Доставака');
     }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
 }

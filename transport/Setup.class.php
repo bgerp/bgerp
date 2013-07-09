@@ -69,6 +69,12 @@ class transport_Setup
         
         $html .= $Menu->addItem(3.6, 'Логистика', 'Транспорт', 'transport_Requests', 'default', "{$role}, ceo");
         
+        
+        //инсталиране на кофата
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('Transport', 'Прикачени файлове в транспорт', NULL, '300 MB', 'user', 'user');
+        
+        
         return $html;
     }
     
