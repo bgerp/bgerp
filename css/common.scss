@@ -1839,4 +1839,19 @@ div.folder-cover{
 } 
 /*край на потребителски профил*/
 
+/* Стилове за diff между html текстове */
+	span.del { 
+		background-color:#fcc;
+                text-decoration:line-through;
+                color:#777;
+	}
+	span.ins { 
+                background-color:#cfc;
+	}
+	span.cng { 
+		background-color:#ffc;
+	}
+/* Край на стилове за diff */
+
+
 @import "inputs";
