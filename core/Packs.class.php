@@ -673,7 +673,7 @@ class core_Packs extends core_Manager
 
         if($form->isSubmitted()) {
             
-            $data = array();
+            // $data = array();
 
             foreach($description as $field => $params) {
                 $data[$field] = $form->rec->{$field};
@@ -725,13 +725,11 @@ class core_Packs extends core_Manager
     	
     	if(count($data)) {
     		foreach($data as $key => $value) {
-    			// if(!isset($exData[$key])) { Новозададените данни са с предимство
-    				$data[$key] = $value;
-    			//}
+                $exData[$key] = $value;
     		}
     	}
     	
-    	$rec->configData = serialize($data);
+    	$rec->configData = serialize($exData);
     	
     	return self::save($rec);   	
     }

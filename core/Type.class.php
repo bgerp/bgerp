@@ -396,8 +396,25 @@ class core_Type extends core_BaseClass
             $r = "($r) {$openBracket}";
 
             if (count($o)) {
+                
+                // Променлива, с която отбелязваме, че обикаляме за първи път масива
+                $firstTime = TRUE;
+                
+                // Обхождаме масива
                 foreach ($o as $name => $value) {
-                    $r .= "$name : " . static::mixedToString($value);
+                    
+                    // Ако сме за първи път
+                    if ($firstTime) {
+                        
+                        // Променяме стойността
+                        $firstTime = FALSE;
+                    } else {
+                        
+                        // Добавяме в началото
+                        $r .= ", ";
+                    }
+                    
+                    $r .= "|{$name}| : " . static::mixedToString($value);
                 }
             }
             $r .= "{$closeBracket}";

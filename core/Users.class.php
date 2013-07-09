@@ -74,7 +74,7 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * OPTIONAL - да, където може изпозлвай криптиране
  * MANDATORY - да, използвай задължително
  */
-defIfNot('EF_HTTPS', 'OPTIONAL');
+defIfNot('EF_HTTPS', 'NO');
 
 
 /**
@@ -289,7 +289,7 @@ class core_Users extends core_Manager
         
         if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP'){
         		
-        	static::createHttpsUrl();
+        	static::redirectToEnableHttps();
         }
     	
         if (Request::get('popup')) {
@@ -924,6 +924,24 @@ class core_Users extends core_Manager
     
     
     /**
+     * Проверява дали 2 потребителя са от един и същи екип
+     * 
+     * @param integer $user1 - id на първия потребител
+     * @param integer $user2 - id на втория потребител
+     * 
+     * @return boolean - Ако са от един и същи екип връща TRUE
+     */
+    static function isFromSameTeam($user1, $user2)
+    {
+        // Вземаме съотборниците на първия потребител
+        $teamMates = static::getTeammates($user1);
+        
+        // Проверяваме дали втория е при тях
+        return type_Keylist::isIn($user2, $teamMates);
+    }
+    
+    
+    /**
      * Всички потребители с дадена роля
      *
      * @param mixed $roleId ид на роля или масив от ид на роли
@@ -1003,12 +1021,9 @@ class core_Users extends core_Manager
         if($requiredRoles !== 'every_one'){
         	
         	if(EF_HTTPS == 'MANDATORY' && $connection == 'HTTP' && $_GET){
-        		
-        		static::createHttpsUrl();
-        		//$currUrl = core_App::getSelfURL();
-        		//$newUrl = toUrl(str_replace("http", "https", $currUrl));
-        		
-        		//return  Redirect($newUrl);
+        		//bp(EF_HTTPS == 'MANDATORY', $connection == 'HTTP', $_GET, $_POST);
+        		static::redirectToEnableHttps();
+
         	}
         }
         
@@ -1265,6 +1280,13 @@ class core_Users extends core_Manager
         return $id;
     }
     
+    function act_Test()
+    {
+    	$url = core_App::getSelfURL();
+    	self::redirectToEnableHttps();
+    	
+    }
+    
     
 	/**
      * Проверявамед дали потребителя е активен
@@ -1277,12 +1299,39 @@ class core_Users extends core_Manager
     }
 
     
-    static public function createHttpsUrl()
+    /**
+     * Прехвърля url–то на схема https
+     */
+    static public function redirectToEnableHttps()
     {
-    	$currUrl = core_App::getSelfURL();
-        $newUrl = toUrl(str_replace("http", "https", $currUrl));
-        		
+    	$url = core_App::getSelfURL();
+    	
+        $newUrl = static::setHttpsInUrl($url);
+   
         return  Redirect($newUrl);
+    }
+    
+    
+    /**
+     * Променя схемата на url-то от http към https
+     * @param string $url
+     */
+    static public function setHttpsInUrl($url)
+    {
+    	$currUrl = core_Url::parseUrl($url);
+    	
+    	$currUrl[scheme] = 'https';
+
+    	if($currUrl[port] != "443" && $currUrl[scheme] === 'https'){
+    		
+        	$newUrl = $currUrl[scheme]. "://" . $currUrl[host] . ":" . $currUrl[port]. $currUrl[path] . "?" . $currUrl[query];
+    		
+    	} else {
+    		
+    		$newUrl = $currUrl[scheme]. "://" . $currUrl[host] . $currUrl[path] . "?" . $currUrl[query];
+    	}
+    	
+    	return $newUrl;
     }
     
 }

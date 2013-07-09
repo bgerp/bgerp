@@ -875,7 +875,7 @@ class core_Mvc extends core_FieldSet
             unset($indexes['PRIMARY']);
  
             // Добавяме индексите
-            if (count($this->dbIndexes)) {
+            if (is_array($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
                     if($indexes[$name]) {
                         $exFields = $indexes[$name][$indRec->type];

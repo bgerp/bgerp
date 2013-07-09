@@ -142,7 +142,7 @@ class core_App
 
                 if ((count($vUrl) - $id) % 2) {
                     if (!$q['id'] && !$name) {
-                        $q['id'] = urldecode($prm);
+                        $q['id'] = decodeUrl($prm);
                     } else {
                         if ($name) {
                             $q[$name] = $prm;
@@ -458,7 +458,7 @@ class core_App
             for ($i = $begin; $i < $cnt; $i += 2) {
                 $key = $arr[$i];
                 $value = $arr[$i + 1];
-                $value = urldecode($value);
+                $value = decodeUrl($value);
                 $key = explode(',', $key);
 
                 if (count($key) == 1) {
@@ -967,24 +967,27 @@ class core_App
             return;
         }
 
-        header('Content-Type: text/html; charset=UTF-8');
 
-        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+        $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
         "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
         "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
         "<font color=red>$breakFile</font></h1>";
 
-        echo $html;
+        $errHtml .= $html;
 
-        echo "<h2>Стек</h2>";
+        $errHtml .= "<h2>Стек</h2>";
 
-        echo core_Exception_Expect::getTraceAsHtml($stack);
+        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
 
-        echo static::renderStack($stack);
+        $errHtml .= static::renderStack($stack);
 
-        echo core_Debug::getLog();
-
-        exit(-1);
+        $errHtml .= core_Debug::getLog();
+        file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml ."<br>" . date("Y-m-d H:i:s"));
+        
+        header('Content-Type: text/html; charset=UTF-8');
+        echo($errHtml);
+        
+       exit(-1);
     }
 
 
@@ -1303,6 +1306,20 @@ function setIfNot(&$p1, $p2)
 function defIfNot($name, $value = NULL)
 {
     return core_App::defIfNot($name, $value);
+}
+
+
+/**
+ * Аналогична фунция на urldecode()
+ * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
+ * 
+ * @param URL $url
+ * 
+ * @return URL
+ */ 
+function decodeUrl($url)
+{
+    return core_Url::decodeUrl($url);
 }
 
 

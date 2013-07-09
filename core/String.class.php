@@ -355,5 +355,32 @@ class core_String
         
         return $str;
     }
-
+	
+    
+    /**
+     *  Инкрементиране с еденица на стринг, чиято последна част е число
+     *  Ако стринга не завършва на числова част връща се FALSE
+     *  @param str $string - стринга който се подава
+     *  @return mixed string/FALSE - инкрементирания стринг или FALSE
+     */
+    public static function increment($str)
+    {
+    	if(is_string($str)){
+    		
+	    	//Разделяне на текста от последното число
+	    	preg_match("/.+?(\d+)$/", $str, $match);
+	    	
+	    	//Ако е открито число
+	        if (isset($match['1'])) {
+	        	$numLen = strlen($match['1']);
+	        	$numIndex = strrpos($str, $match['1']);
+	        	$other = substr($str,0, $numIndex);
+	        	
+	            // Съединяване на текста с инкрементирана с единица стойност на последното число
+	            return $other . str_pad(++$match['1'], $numLen, "0", STR_PAD_LEFT);
+	        }
+    	}
+    	
+        return FALSE;
+    }
 }

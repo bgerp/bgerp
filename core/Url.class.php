@@ -85,7 +85,7 @@ class core_Url
                     continue;
                 }
                 list($sKey, $sValue) = explode('=', $sPair);
-                $parts['query_params'][$sKey] = urldecode($sValue);
+                $parts['query_params'][$sKey] = decodeUrl($sValue);
             }
         }
         
@@ -112,7 +112,7 @@ class core_Url
         }
         
         if ($parts['path']) {
-            setIfNot($parts, pathInfo(urldecode($parts['path'])));
+            setIfNot($parts, pathInfo(decodeUrl($parts['path'])));
         }
         
         // От http://data.iana.org/TLD/tlds-alpha-by-domain.txt
@@ -727,5 +727,42 @@ class core_Url
 
         return $result;
     }
-
+    
+    
+    /**
+     * Аналогична фунция на urldecode()
+     * Прави опити за конвертиране в UTF-8. Ако не успее връща оригиналното URL.
+     * 
+     * @param URL $url
+     * 
+     * @return URL
+     */
+    static function decodeUrl($url)
+    {
+        // Декодираме URL' то
+        $decodedUrl = urldecode($url);
+        
+        // Проверяваме дали е валиден UTF-8
+        if (mb_check_encoding($decodedUrl, 'UTF-8')) {
+            
+            // Ако е валиден връщаме резултата
+            return $decodedUrl;
+        }
+        
+        try {
+            
+            // Използваме наша функция за конвертиране
+            $decodedUrl = i18n_Charset::convertToUtf8($decodedUrl);
+        } catch (Exception $e) { }
+        
+        // Проверяваме дали е валиден UTF-8
+        if (mb_check_encoding($decodedUrl, 'UTF-8')) {
+            
+            // Ако е валиден връщаме резултата
+            return $decodedUrl;
+        }
+        
+        // Ако все още не е валидно URL, връщаме оригиналното
+        return $url;
+    }
 }

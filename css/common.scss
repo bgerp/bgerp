@@ -193,6 +193,9 @@ select, input, textarea{
 	border: solid 1px #9999ff;
 	font-size: 1.07em;
 }
+.narrow select, .narrow input, .narrow textarea{
+	font-size:1em;	
+}
 
 select.combo {  
 	position: absolute; 
@@ -250,18 +253,18 @@ tr.zebra1 {
 
 /* Общи стилове за линковете */
 a {
+  &:link, &:visited {
+    text-decoration: none;
+    color: $blue;
+  }
   &:hover {
-  color: #f90;
+  	color: #f90;
   }
   &.out {
     color: #0066ff;
     &:visited {
       color: #6600cc;
     }
-  }
-  &:link, &:visited {
-    text-decoration: none;
-    color: $blue;
   }
 }
 
@@ -568,7 +571,7 @@ div.hFormField {
     border:solid 1px #aaa;
 }
 
-.vertical input{
+.vertical input, .vertical textarea{
 	margin-left:0;
 }
 
@@ -607,11 +610,12 @@ div.hFormField {
 	color:white;
 }
 
-.wide .checkbox, .wide .radiobutton, .wide input[type=checkbox], .wide input[type=radio] { 
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow:none;
 	margin:3px 3px 3px 4px;
 	background-color:transparent;
+	outline:none;
 }
 
 .narrow .formAll {
@@ -622,6 +626,14 @@ div.hFormField {
 	margin-top:0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
+}
+
+.formFields table td{
+	padding-bottom:7px !important;
+}
+
+.narrow .formFields table td{
+	padding-bottom:3px!important;
 }
 
 .formFields input:focus, textarea:focus, select:focus { 
@@ -811,7 +823,8 @@ div.richtext .code code{
 	border: 1px solid #ccc;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0 2px;
-	padding: 0 5px;
+	padding: 2px 5px 0;
+	display:inline;
 }
 
 .wide div.rich-text{
@@ -959,7 +972,7 @@ table.listTable>tbody>tr:hover  {
 
 table.listTable>tbody>tr>td {
     border: 1px solid #bbb;
-    padding: 3px;
+    padding: 5px 3px 2px;
     line-height:normal; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
@@ -967,10 +980,15 @@ table.listTable>tbody>tr>td {
 
 table.listTable>thead>tr>th {
     border: 1px solid #bbb;
-    padding: 5px;
+    padding: 3px;
     background-color:#e0e0e0;
     font-weight:bold;
     vertical-align:middle;
+    line-height:normal;
+}
+
+table.listTable .button{
+	margin-bottom:4px;
 }
 
 .listTitle {
@@ -1014,7 +1032,7 @@ a.button, input[type="button"], input[type="submit"] {
     text-decoration:none;
     cursor:pointer;
     font-size: 0.8em;
-    padding:0.3em;
+    padding:0.2em 0.5em;
     height:2em;
     font-family: Arial,sans-serif;
     overflow:visible;
@@ -1025,9 +1043,18 @@ a.button, input[type="button"], input[type="submit"] {
 }
 
 @-moz-document url-prefix() {
-	a.button, input[type="button"], input[type="submit"]{
-		height:1.85em !important;
-		padding-top:0;
+	a.button, input[type="button"], input[type="submit"] {
+		height:1.86em !important;
+		padding-top:0 !important;
+	}
+	
+	.narrow a.button, .narrow input[type="button"], .narrow input[type="submit"]{
+		height:1.76em !important;
+		padding-top:0 !important;
+	}
+	
+	input[type="button"].picker-search-button{
+		padding-top:0.2em !important;
 	}
 }
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
@@ -1035,7 +1062,7 @@ a.button, input[type="button"], input[type="submit"] {
 	border:1px solid #999; 
 	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
-    height:auto;
+    height:1.8em;
     margin-top:0;
     margin-botoom:0;
 }
@@ -1222,7 +1249,7 @@ input[type=radio]:checked + label {
 }
 
 .wide h2 .btn-settings{
-	font-size: 0.6em;
+	font-size: 0.55em;
 	top: -0.2em;
 	position: relative;
 }
@@ -1691,7 +1718,7 @@ div.folder-cover{
 }
 
 .narrow .folder-cover{
-	line-height:1.5em;
+	line-height:1.3em;
 	margin-left:0px;
 	margin-top:8px;
 	min-width:350px;
@@ -1702,7 +1729,7 @@ div.folder-cover{
 		padding:3px 7px 7px 7px;
 	}
 	select{
-		font-size:1.2em;
+		font-size:1.3em;
 	}
 	.tab-page{
 		padding:0 !important;
