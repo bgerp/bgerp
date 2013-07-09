@@ -75,35 +75,17 @@ class pos_Payments extends core_Manager {
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$csvFile = __DIR__ . "/csv/PaymentMethods.csv";
-        $created = $updated = 0;
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                $rec = new stdClass();
-                $rec->id = $csvRow [0];
-                $rec->title = $csvRow [1];
-                $rec->state = $csvRow [2];
-                $rec->change = $csvRow [3];
-               	if ($rec->id = static::fetchField(array("#title = '[#1#]'", $rec->title), 'id')) {
-                    $updated++;
-                } else {
-                    $created++;
-                }
-                
-                static::save($rec, NULL, 'replace');
-            }
-            
-            fclose($handle);
-            
-            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
-            
-            $res .= "Създадени {$created} нови Платежни метода, обновени {$updated} съществуващи метода.</li>";
-        } else {
-            
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	$file = "pos/csv/PaymentMethods.csv";
+    	$fields = array( 
+	    	0 => "id", 
+	    	1 => "title", 
+	    	2 => "state", 
+	    	3 => "change",);
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
     
     
