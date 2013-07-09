@@ -745,15 +745,15 @@ class sales_Sales extends core_Master
         if (empty($row->amountDeal)) {
             $row->amountDeal = '0.00';
         }
-        $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
+        $row->amountDeal = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDeal;
         
         if (!empty($rec->amountPaid)) {
-            $row->amountPaid = $row->currencyId . ' ' . $row->amountPaid;
+            $row->amountPaid = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountPaid;
         }
         
         $amountType = $mvc->getField('amountDeal')->type;
         
-        $row->amountToPay = $row->currencyId . ' ' 
+        $row->amountToPay = '<span class="cCode">' . $row->currencyId . '</span> ' 
             . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
