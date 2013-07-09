@@ -328,9 +328,8 @@ div.tab-control div.tab-row .tab {
 	}
 }
 
-.narrow div.tab-control div.tab-row .tab{
-	font-size:0.9em;
-	line-height:1;
+.narrow div.tab-control div.tab-row .tab.selected{
+		padding: 4px 5px 6px 5px;
 }
 
 .narrow div.alphabet div.tab-row .tab{
@@ -372,6 +371,9 @@ div.tab-control div.tab-page {
 
 
 /*таб alphabet*/
+div.alphabet{
+	margin-bottom:5px;
+}
 
 div.alphabet div.tab-row .tab {
 	background: #ddd;
@@ -419,6 +421,8 @@ div.alphabet div.tab-row .tab{
 }
 .narrow div.alphabet  div.tab-row {
 	width: 340px;
+	float:left;
+	padding-bottom:5px;
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
@@ -653,6 +657,7 @@ div.mobile {
 
 .wide .path-title{
 	font-size:0.86em;
+	padding-bottom:3px;
 }
 
 .narrow .path-title{
@@ -723,12 +728,8 @@ div.mobile {
 	color:#888;
 }
 
-.wide .listFilter{
-	padding-bottom:	10px;
-}
-
 .formFields{
-	margin-bottom:0;
+	margin-bottom:13px;
 }
 
 .form-filter-btn{
@@ -752,7 +753,8 @@ div.mobile {
 
 .narrow .doc_Search{
  	.pages{
- 		margin-bottom:0px;
+ 		padding-top:3px;
+ 		margin-bottom:13px;
  	}
  	.listTable{
  		margin-top:10px;
@@ -1137,7 +1139,7 @@ td.portal-date {
 
 /*стилове за тулбар*/
 .wide .listToolbar {
-	margin-top: 15px;
+	margin-top: 13px;
 }
 
 .listTable .toolbar .button{
