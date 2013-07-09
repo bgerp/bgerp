@@ -17,7 +17,7 @@
  * @since     v 0.1
  * @todo:     да се поиска разрешението от автора за izpolzwaneto в GPL проект
  */
-class drdata_BulgarianEGN {
+class bglocal_BulgarianEGN {
     
     /**
      * @var string

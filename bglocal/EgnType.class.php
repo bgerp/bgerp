@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_EgnType extends type_Varchar
+class bglocal_EgnType extends type_Varchar
 {
     
     
@@ -34,7 +34,7 @@ class drdata_EgnType extends type_Varchar
         $value = trim($value);
         
         try {
-            $Egn = new drdata_BulgarianEGN($value);
+            $Egn = new bglocal_BulgarianEGN($value);
         } catch(Exception $e) {
             $err = $e->getMessage();
         }
@@ -44,7 +44,7 @@ class drdata_EgnType extends type_Varchar
         
         if($err) {
             $res['error'] = $err;
-            $Lnc = new drdata_BulgarianLNC();
+            $Lnc = new bglocal_BulgarianLNC();
             
             if ($Lnc->isLnc($value) === TRUE) {
                 unset($res['error']);
@@ -65,7 +65,7 @@ class drdata_EgnType extends type_Varchar
         if(!$value) return NULL;
         
         try {
-            $Egn = new drdata_BulgarianEGN($value);
+            $Egn = new bglocal_BulgarianEGN($value);
         } catch(Exception $e) {
             $err = $e->getMessage();
         }

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class drdata_BulgarianLNC
+class bglocal_BulgarianLNC
 {
     
     

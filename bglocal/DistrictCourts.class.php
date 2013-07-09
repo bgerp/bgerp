@@ -14,14 +14,14 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class drdata_DistrictCourts extends core_Manager
+class bglocal_DistrictCourts extends core_Manager
 {
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, drdata_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, bglocal_Wrapper';
     
     
     /**

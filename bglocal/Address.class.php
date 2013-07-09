@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class drdata_Address extends core_MVC
+class bglocal_Address extends core_MVC
 {
     static $places = array (
         "aitos" => "Айтос",

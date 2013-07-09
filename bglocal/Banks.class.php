@@ -12,14 +12,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class drdata_Banks extends core_Manager
+class bglocal_Banks extends core_Manager
 {
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, drdata_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, bglocal_Wrapper';
     
     
     /**
