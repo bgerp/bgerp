@@ -80,7 +80,7 @@ class callcenter_ExternalNum extends core_Manager
      */
     function description()
     {
-        $this->FLD('number', 'bglocal_PhoneType', 'caption=Номер');
+        $this->FLD('number', 'drdata_PhoneType', 'caption=Номер');
         $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс)', 'caption=Тип');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
@@ -147,7 +147,7 @@ class callcenter_ExternalNum extends core_Manager
             foreach ((array)$numberArr as $num) {
                 
                 // Вземаме детайлна информация за номерата
-                $numberDetArr = bglocal_PhoneType::toArray($num);
+                $numberDetArr = drdata_PhoneType::toArray($num);
                 
                 // Обхождаме резултата
                 foreach ($numberDetArr as $numberDet) {
@@ -217,7 +217,7 @@ class callcenter_ExternalNum extends core_Manager
     static function getLastRecForNum($number, $type=FALSE)
     {
         // Вземаме номера, на инициатора
-        $numberArr = bglocal_PhoneType::toArray($number);
+        $numberArr = drdata_PhoneType::toArray($number);
         
         // Ако има номер
         if (!$numberArr[0]) return ;

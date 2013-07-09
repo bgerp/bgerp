@@ -300,7 +300,7 @@ class email_FaxSent extends core_Manager
         $data->form->title = 'Изпращане на факс';
         
         $data->form->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input,caption=Услуга');
-        $data->form->FNC('faxTo', 'bglocal_PhoneType', 'input,caption=До,mandatory,width=785px');
+        $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px');
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
@@ -414,7 +414,7 @@ class email_FaxSent extends core_Manager
         if ($form->isSubmitted()) {
             
             // Ако не може да се намеи нито един факс номер
-            if (!count(bglocal_PhoneType::toArray($form->rec->faxTo))) {
+            if (!count(drdata_PhoneType::toArray($form->rec->faxTo))) {
                 
                 // Добавяме съобщение за грешка
                 $form->setError('faxTo', "Не сте въвели валиден факс номер.");
@@ -433,7 +433,7 @@ class email_FaxSent extends core_Manager
     static function faxToArray($faxTo)
     {   
         // Преобразуваме стринга в масив с факс номера
-        $faxesArr = bglocal_PhoneType::toArray($faxTo);
+        $faxesArr = drdata_PhoneType::toArray($faxTo);
         
         // Обхождаме масива
         foreach ($faxesArr as $key => $faxArr) {

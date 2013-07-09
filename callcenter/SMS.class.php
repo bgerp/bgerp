@@ -112,7 +112,7 @@ class callcenter_SMS extends core_Master
     {
         $this->FLD('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory');
         $this->FLD('sender', 'varchar(255)', 'caption=Изпращач, mandatory');
-        $this->FLD('mobileNum', 'bglocal_PhoneType', 'caption=Мобилен номер, mandatory');
+        $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Мобилен номер, mandatory');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
@@ -142,7 +142,7 @@ class callcenter_SMS extends core_Master
         if ($form->isSubmitted()) {
             
             // Вземаме номера
-            $phoneArr = bglocal_PhoneType::toArray($rec->mobileNum);
+            $phoneArr = drdata_PhoneType::toArray($rec->mobileNum);
             
             // Ако няма номер
             if (!$phoneArr[0]) {
@@ -185,7 +185,7 @@ class callcenter_SMS extends core_Master
         $params['function'] = 'update';
         
         // Вземаме информация за номера
-        $mobileNumArr = bglocal_PhoneType::toArray($rec->mobileNum);
+        $mobileNumArr = drdata_PhoneType::toArray($rec->mobileNum);
         
         // Очакваме да има такъв масив
         expect($mobileNumArr);

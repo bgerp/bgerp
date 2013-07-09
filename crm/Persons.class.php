@@ -189,15 +189,15 @@ class crm_Persons extends core_Master
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData');
-        $this->FLD('buzTel', 'bglocal_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
-        $this->FLD('buzFax', 'bglocal_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
+        $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,class=contactData');
+        $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,class=contactData');
         $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData');
 
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
-        $this->FLD('tel', 'bglocal_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData');
-        $this->FLD('mobile', 'bglocal_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData');
-        $this->FLD('fax', 'bglocal_PhoneType', 'caption=Лични комуникации->Факс,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData');
+        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
 
         // Допълнителна информация
@@ -1478,7 +1478,7 @@ class crm_Persons extends core_Master
            $params[$i] = arr::make($p);
        }
 
-       $tels = bglocal_PhoneType::toArray($tels);
+       $tels = drdata_PhoneType::toArray($tels);
 
        foreach ($tels as $tel) {
            if ($tel->mobile) {
