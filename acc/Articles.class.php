@@ -306,22 +306,8 @@ class acc_Articles extends core_Master
         
         return self::save($rec, 'state');
     }
-    
-    
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
-    }
-    
+
+
     /****************************************************************************************
      *                                                                                      *
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *

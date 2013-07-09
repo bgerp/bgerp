@@ -108,15 +108,4 @@ class acc_TransactionSourceIntf
     {
         return $this->class->finalizeTransaction($id);
     }
-    
-    
-    /**
-     * Нотификация за сторнирана счетоводна транзакция.
-     *
-     * @param int $id ид на документ
-     */
-    function rejectTransaction($id)
-    {
-        return $this->class->rejectTransaction($id);
-    }
 }

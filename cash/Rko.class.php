@@ -399,21 +399,6 @@ class cash_Rko extends core_Master
     }
     
     
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
-    }
-    
-    
    	/*
      * Реализация на интерфейса doc_DocumentIntf
      */
