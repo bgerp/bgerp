@@ -26,7 +26,7 @@ class page_InternalLayout extends core_ET
     function page_InternalLayout()
     {
          // Задаваме лейаута на страницата
-        $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
+        $this->core_ET("<div class='clearfix21 main-container <!--ET_BEGIN WHOLEPAGE-->[#WHOLEPAGE#]<!--ET_END WHOLEPAGE-->'><div id=\"framecontentTop\"  class=\"container\">" .
             "[#bgerp_Menu::renderMenu#]" .
             "</div>" .
             "<div id=\"maincontent\"><div>" .
