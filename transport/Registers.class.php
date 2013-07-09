@@ -64,7 +64,7 @@ class transport_Registers extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, numberRequest, number, type, date, fitNoteFile, description';
     
     
     /**
