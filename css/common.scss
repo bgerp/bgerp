@@ -193,9 +193,6 @@ select, input, textarea{
 	border: solid 1px #9999ff;
 	font-size: 1.07em;
 }
-.narrow select, .narrow input, .narrow textarea{
-	font-size:1em;	
-}
 
 select.combo {  
 	position: absolute; 
@@ -330,18 +327,19 @@ a.profile {
 /* Стилове за странициране 'hlp_Pager' */
 .pages{
 	clear:both;
-	margin:10px 2px 10px 2px;
+	margin:15px 2px 13px 2px;
 }
 
 .narrow .portal .pages{
 	clear:both;
-	margin:13px 0 8px;
+	margin:13px 0 5px;
 }
 
-.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, 
-.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages{
-	margin-top:0;
-	margin-bottom:15px;
+.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, .wide .cat_Products .pages, 
+.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages, 
+.wide .callcenter_Talks .pages, .wide .callcenter_Fax .pages , .wide .callcenter_SMS .pages, .wide .callcenter_InternalNum .pages{
+	margin-top:5px;
+	margin-bottom:16px;
 }
 
 a.pager {
@@ -480,7 +478,7 @@ div.tab-control .tab-title {
 
 .wide .formFields table {
 	width:100%;
-	margin:5px 0 10px;
+	margin:5px 0 0px;
 }
 
 .narrow .formFields table{
@@ -510,11 +508,14 @@ div.hFormField {
 }
 
 .narrow .horizontal .formFields div {
-	margin-bottom: 7px;
+	margin-bottom: 10px;
 }
 
 .wide .horizontal .formToolbar { 
 	float:left;
+}
+.narrow .horizontal{
+	margin-bottom:10px;
 }
 
 .formFieldCaption{
@@ -523,7 +524,7 @@ div.hFormField {
 }
 
 .vertical .formFieldCaption { 
-	padding: 0.4em 0.4em 0.5em;
+	padding: 0.3em 0.4em 0.5em;
 	white-space: nowrap;
 	width:1px;
 	vertical-align:top;
@@ -992,12 +993,12 @@ table.listTable .button{
 }
 
 .listTitle {
-	margin-bottom:10px;
+	margin-bottom:12px;
 	font-size:1.3em;
 }
 
 .listToolbar {
-	margin-top:10px;
+	margin-top:13px;
 }
 
 .narrow .listFilter{
@@ -1057,6 +1058,7 @@ a.button, input[type="button"], input[type="submit"] {
 		padding-top:0.2em !important;
 	}
 }
+
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
 	background-color:#eee; 
 	border:1px solid #999; 
@@ -1096,6 +1098,7 @@ a.button, input[type="button"], input[type="submit"] {
 	@include rounded(top,left,5px);
 	@include rounded(bottom,left,5px);
 }
+
 .narrow .toolbar div .button:last-child{
 	@include rounded(top, right, 5px );
 	@include rounded(bottom, right, 5px);
@@ -1318,8 +1321,9 @@ input[type=radio]:checked + label {
 	background-position:center center;
 	background-image:url(../img/16/toggle-expand.png) !important;
 	background-repeat:no-repeat !important;
-	padding:0.2em 0.7em !important;
-	width:1.8em;
+	padding-left:0.5em !important;
+	padding-right:0.5em !important;
+	width:1.9em;
 }
 
 .more-btn.show-btn{
@@ -1711,7 +1715,9 @@ div.folder-cover{
 		line-height:0.9em;
 		padding-bottom:0;
 	}
-	
+	.tab{
+		font-size:0.7em !important;
+	}
 	.tab-page .detail-info{
 		margin-bottom: 0 !important;
 	}
