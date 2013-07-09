@@ -325,8 +325,12 @@ class doc_Search extends core_Manager
         $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
         
         $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
-    
-        $row->title = ht::createLink(str::limitLen($docRow->title, 70),
+        
+        if(mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
+            $attr['title'] = $docRow->title;
+        }
+
+        $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle),
             array('doc_Containers', 'list',
                 'threadId' => $rec->threadId,
                 'folderId' => $rec->folderId,

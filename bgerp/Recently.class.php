@@ -17,7 +17,12 @@
 class bgerp_Recently extends core_Manager
 {
     
-    
+    /**
+     * Максимална дължина на показваните заглавия 
+     */
+    const maxLenTitle = 70;
+
+
     /**
      * Необходими мениджъри
      */
@@ -157,7 +162,10 @@ class bgerp_Recently extends core_Manager
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
                 $threadRec = doc_Threads::fetch($docRec->threadId);
                 $state     = $threadRec->state;
-                $row->title = ht::createLink(str::limitLen($docRow->title, 70),
+                if(mb_strlen($docRow->title) > self::maxLenTitle) {
+                    $attr['title'] = $docRow->title;
+                }
+                $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
                     array($docProxy->instance, 'single',
                         'id' => $docRec->id),
                     NULL, $attr);

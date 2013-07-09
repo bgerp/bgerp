@@ -16,6 +16,10 @@
 class doc_Folders extends core_Master
 {
     
+    /**
+     * Максимална дължина на показваните заглавия 
+     */
+    const maxLenTitle = 48;
     
     /**
      * Плъгини за зареждане
@@ -222,7 +226,13 @@ class doc_Folders extends core_Master
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
         $attr['class'] = 'linkWithIcon';
-        $row->title = str::limitLen($row->title, 48);
+        
+        
+        if(mb_strlen($row->title) > self::maxLenTitle) {
+            $attr['title'] = $row->title;
+        }
+
+        $row->title = str::limitLen($row->title, self::maxLenTitle);
         
         $haveRight = $mvc->haveRightFor('single', $rec);
         

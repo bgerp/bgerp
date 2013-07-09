@@ -14,7 +14,14 @@
  * @since     v 0.11
  */
 class doc_Threads extends core_Manager
-{
+{   
+
+
+    /**
+     * Максимална дължина на показваните заглавия 
+     */
+    const maxLenTitle = 70;
+    
     
     /**
      * Плъгини за зареждане
@@ -294,8 +301,12 @@ class doc_Threads extends core_Manager
         
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
-        
-        $row->title = ht::createLink(str::limitLen($docRow->title, 70),
+
+        if(mb_strlen($docRow->title) > self::maxLenTitle) {
+            $attr['title'] = $docRow->title;
+        }
+
+        $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId,
