@@ -194,8 +194,8 @@ class crm_Companies extends core_Master
         
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData');
+        $this->FLD('tel', 'bglocal_PhoneType', 'caption=Телефони,class=contactData');
+        $this->FLD('fax', 'bglocal_PhoneType', 'caption=Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
@@ -433,7 +433,7 @@ class crm_Companies extends core_Master
             }
             
             if($rec->place) {
-                $rec->place = drdata_Address::canonizePlace($rec->place);
+                $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
             
             if($rec->regCompanyFileYear && $rec->regDecisionDate) {
@@ -1182,10 +1182,10 @@ class crm_Companies extends core_Master
         if ($ownCompany->tel && $contrData->tel) {
             
             // Масив с телефони на нашата компания
-            $oTelArr = drdata_PhoneType::toArray($ownCompany->tel);
+            $oTelArr = bglocal_PhoneType::toArray($ownCompany->tel);
             
             // Масив с телефони на контрагента
-            $cTelArr = drdata_PhoneType::toArray($contrData->tel);
+            $cTelArr = bglocal_PhoneType::toArray($contrData->tel);
             
             // Обхождаме масива с телефони на нашата фирма
             foreach ($oTelArr as $oTel) {
@@ -1218,10 +1218,10 @@ class crm_Companies extends core_Master
         if ($ownCompany->fax && $contrData->fax) {
             
             // Масив с факсове на нашата компания
-            $oFaxArr = drdata_PhoneType::toArray($ownCompany->fax);
+            $oFaxArr = bglocal_PhoneType::toArray($ownCompany->fax);
             
             // Масив с факсове на контрагента
-            $cFaxArr = drdata_PhoneType::toArray($contrData->fax);
+            $cFaxArr = bglocal_PhoneType::toArray($contrData->fax);
 
             // Обхождаме масива с факсове на нашата фирма
             foreach ($oFaxArr as $oFax) {

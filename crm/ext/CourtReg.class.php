@@ -118,12 +118,12 @@ class crm_ext_CourtReg extends core_Detail
         
         $form->setSuggestions('regCompanyFileYear', $years);
         
-        $dcQuery = drdata_DistrictCourts::getQuery();
+        $dcQuery = bglocal_DistrictCourts::getQuery();
         
         while($dcRec = $dcQuery->fetch()) {
-            $dcName = drdata_DistrictCourts::getVerbal($dcRec, 'type');
+            $dcName = bglocal_DistrictCourts::getVerbal($dcRec, 'type');
             $dcName .= ' - ';
-            $dcName .= drdata_DistrictCourts::getVerbal($dcRec, 'city');
+            $dcName .= bglocal_DistrictCourts::getVerbal($dcRec, 'city');
             $dcSug[$dcName] = $dcName;
         }
         

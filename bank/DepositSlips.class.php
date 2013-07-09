@@ -277,7 +277,7 @@ class bank_DepositSlips extends core_Master
 	{
 		if($form->isSubmitted()){
 		    if(!$form->rec->beneficiaryBank){
-				 $form->rec->beneficiaryBank = drdata_Banks::getBankName($form->rec->beneficiaryIban);
+				 $form->rec->beneficiaryBank = bglocal_Banks::getBankName($form->rec->beneficiaryIban);
 			}
 		}
 	}

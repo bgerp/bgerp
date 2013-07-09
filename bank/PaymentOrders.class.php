@@ -221,10 +221,10 @@ class bank_PaymentOrders extends core_Master
     {
     	if($form->isSubmitted()){
     		if(!$form->rec->execBank){
-		    	$form->rec->execBank = drdata_Banks::getBankName($form->rec->ordererIban);
+		    	$form->rec->execBank = bglocal_Banks::getBankName($form->rec->ordererIban);
 		    }
 		    if(!$form->rec->execBankBic){
-		    	$form->rec->execBankBic = drdata_Banks::getBankBic($form->rec->ordererIban);
+		    	$form->rec->execBankBic = bglocal_Banks::getBankBic($form->rec->ordererIban);
 		    }
     	}
     }
@@ -240,8 +240,8 @@ class bank_PaymentOrders extends core_Master
     	if($fields['-single']) {
     		
     		// Извличаме името на банката и BIC-а на получателя от IBAN-а му
-	    	$row->contragentBank = drdata_Banks::getBankName($rec->beneficiaryIban);
-	    	$row->contragentBankBic = drdata_Banks::getBankBic($rec->beneficiaryIban);
+	    	$row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
+	    	$row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
 	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието

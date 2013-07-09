@@ -241,10 +241,10 @@ class bank_OwnAccounts extends core_Master {
     	
     	$acc = bank_Accounts::fetch($ownAcc->bankAccountId);
     	if(!$acc->bank) {
-    		$acc->bank = drdata_Banks::getBankName($acc->iban);
+    		$acc->bank = bglocal_Banks::getBankName($acc->iban);
     	}
     	if(!$acc->bic) {
-    		$acc->bic = drdata_Banks::getBankBic($acc->iban);
+    		$acc->bic = bglocal_Banks::getBankBic($acc->iban);
     	}
     	
     	return $acc;
