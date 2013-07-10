@@ -71,7 +71,11 @@ class csv_Lib
                     $res->created++;
                     continue;
                 }
-
+                
+                
+				// Обработка на записа преди импортиране
+				$mvc->invoke('BeforeImportRec', array(&$rec));
+                
                 if(!$mvc->isUnique($rec, $conflictFields, $exRec)) {
                     $rec->id = $exRec->id;
                     $flagUpdate = TRUE;
@@ -82,7 +86,7 @@ class csv_Lib
                 
                 // По подразбиране записът е добавен от системния потребител
                 setIfNot($rec->createdBy, -1);
-
+				
                 // Ако нямаме запис с посочените уникални стойности, вкарваме новия
                 $mvc->save($rec);
                 
