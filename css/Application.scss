@@ -1601,6 +1601,26 @@ fieldset.sharing-history {
 
 
 /* CMS */
+/*външни стилове за ширина*/
+.narrow #cmsTop {
+	min-width:520px;
+	height:141px !important;
+}
+
+#cmsMenu {
+    min-width:520px;
+}
+
+#cmsBottom {
+	min-width:520px;
+}
+
+#maincontent {
+	min-width:510px;
+}
+
+/*край на външни стилове за ширина*/
+
 #cmsTop {
 	background-repeat: no-repeat;
 	display: block;
