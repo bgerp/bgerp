@@ -586,21 +586,6 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-       
-        if ($rec) {
-            static::reject($id);
-        }
-    }
-    
-    
-    /**
      * Имплементиране на интерфейсен метод ( @see acc_TransactionSourceIntf )
      */
     static function on_AfterGetLink($mvc, &$res, $id)

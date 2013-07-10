@@ -433,7 +433,7 @@ class crm_Companies extends core_Master
             }
             
             if($rec->place) {
-                $rec->place = drdata_Address::canonizePlace($rec->place);
+                $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
             
             if($rec->regCompanyFileYear && $rec->regDecisionDate) {

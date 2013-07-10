@@ -107,13 +107,13 @@ class crm_ext_IdCards extends core_Detail
             $form->setDefault('country', $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id'));
         }
 
-        $mvrQuery = drdata_Mvr::getQuery();
+        $mvrQuery = bglocal_Mvr::getQuery();
 
         $mvrSug[''] = '';
         
         while($mvrRec = $mvrQuery->fetch()) {
             $mvrName = 'МВР - ';
-            $mvrName .= drdata_Mvr::getVerbal($mvrRec, 'city');
+            $mvrName .= bglocal_Mvr::getVerbal($mvrRec, 'city');
             $mvrSug[$mvrName] = $mvrName;
         }
 

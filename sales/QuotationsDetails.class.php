@@ -367,6 +367,8 @@ class sales_QuotationsDetails extends core_Detail {
     	if($data->total){
     		if($data->total->totalDisc){
     			$data->total->totalClass = 'oldAmount';
+    		} else {
+    			$data->total->total = "<b>{$data->total->total}</b>";
     		}
     		$dTpl->placeObject($data->total);
     	}

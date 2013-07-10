@@ -64,7 +64,7 @@ class transport_Registers extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, numberRequest, number, type, date, fitNoteFile, description';
     
     
     /**
@@ -78,18 +78,31 @@ class transport_Registers extends core_Manager
      */
     function description()
     {
+    	$this->FLD('numberRequest','key(mvc=transport_Requests, select=number)', 'caption=Номер на заявката');
+    	$this->FLD('number','varchar', 'caption=Номер на документа');
+    	$this->FLD('type','enum(invoice=Търговска фактура,
+    							proform invoice=Проформа фактура,
+    							packingList=Опаковъчен лист,
+    							formA=Сертификат за произход,
+    							EUR1=EUR сертификат/ формуляр,
+    							declaration=Декларация върху фактурата,
+    							import=Вносни разрешителни,
+    							health=Фитосанитарен, Ветеринарен, Здравен Сертификат,
+    							quality=Сертификат за качество,
+    							insurance=Застрахователна полица,
+    							dangerous=Разрешително за опасен товар,
+    							ADR=ADR документи,
+    							CMR=CMR товарителница,
+    							TIR=Карнет  TIR,
+    							ATA=Карнет ATA,
+    							CPD=Карнет CPD,
+    							importExport=Удостоверение за износ/внос,
+    							agreement=Декларация за съответствие,
+    							weight=Сертификат за тегло)', 'caption=Тип на документа');
+    	$this->FLD('date','datetime', 'caption=Дата');
+    	$this->FLD('fitNoteFile', 'fileman_FileType(bucket=Transport)', 'caption=Файл');
+    	$this->FLD('description','richtext(bucket=Transport)', 'caption=Описание');
     }
     
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
-    }
+   
 }

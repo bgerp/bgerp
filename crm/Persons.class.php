@@ -173,7 +173,7 @@ class crm_Persons extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Единен Граждански Номер
-        $this->FLD('egn', 'drdata_EgnType', 'caption=ЕГН');
+        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН');
 
         // Дата на раждане
         $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден');
@@ -405,7 +405,7 @@ class crm_Persons extends core_Master
             static::checkSimilarWarning($mvc, $form);
 
             if($rec->place) {
-                $rec->place = drdata_Address::canonizePlace($rec->place);
+                $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
         }
     }
@@ -1695,7 +1695,7 @@ class crm_Persons extends core_Master
             
             // Опитваме се да форматираме населеното място
             if($rec->place) {
-                $rec->place = drdata_Address::canonizePlace($rec->place);
+                $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
             
             // Записваме данните
@@ -1900,7 +1900,7 @@ class crm_Persons extends core_Master
     
         if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
             try {
-                $Egn = new drdata_BulgarianEGN($rec->egn);
+                $Egn = new bglocal_BulgarianEGN($rec->egn);
             } catch(Exception $e) {
                 $err = $e->getMessage();
             }

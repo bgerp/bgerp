@@ -43,7 +43,7 @@ li.dimension{
 
 .narrow .dimension .button{
 	background-image:none !important;
-	background:none;
+	background:none !important;
 	padding-left:0.7em !important;
 	border:none;
 	min-width:100%;
@@ -51,6 +51,8 @@ li.dimension{
 	padding-bottom:0;
 	height:1em;
 	line-height:1em;
+	outline:none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .narrow .btn-group{
@@ -62,7 +64,7 @@ li.dimension{
 }
 
 .narrow .btn-group:hover{
-	background-color: #FFC !important;
+	background-color: #ffff93 !important;
 }
 
 li.btns-title{

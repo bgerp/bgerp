@@ -64,7 +64,7 @@ class transport_Shipment extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, number, state';
     
     
     /**
@@ -78,18 +78,11 @@ class transport_Shipment extends core_Manager
      */
     function description()
     {
+    	$this->FLD('number','key(mvc=transport_Requests, select=number)', 'caption=Номер на заявката');
+    	$this->FLD('state','enum(1=Производство,
+    							 2=Склад,
+    							 3=На път,
+    							 4=Доставена)', 'caption=Състояние');
     }
     
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
-    }
 }

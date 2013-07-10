@@ -1204,7 +1204,7 @@ class email_Incomings extends core_Master
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
         
-        $addrParse = cls::get('drdata_Address');
+        $addrParse = cls::get('bglocal_Address');
         $ap = $addrParse->extractContact($msg->textPart);
         
         $contragentData = new stdClass();

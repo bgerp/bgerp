@@ -136,7 +136,7 @@ class bank_Accounts extends core_Master {
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
         // ако те се разминават с тези в системата
     	if($form->isSubmitted()){
-    		$bank = drdata_Banks::getBankName($form->rec->iban);
+    		$bank = bglocal_Banks::getBankName($form->rec->iban);
 	        if(!$form->rec->bank){
 	        	$form->rec->bank = $bank;
 	        } else {
@@ -145,7 +145,7 @@ class bank_Accounts extends core_Master {
 	        	}
 	        }
 	        
-	        $bic = drdata_Banks::getBankBic($form->rec->iban);
+	        $bic = bglocal_Banks::getBankBic($form->rec->iban);
     		if(!$form->rec->bic){
 	        	$form->rec->bic = $bic;
 	        } else {

@@ -151,6 +151,14 @@ class cat_Products extends core_Master {
 	var $searchFields = 'name, code';
 	
 	
+	/**
+	 * Шаблон (ET) за заглавие на продукт
+	 * 
+	 * @var string
+	 */
+	public $recTitleTpl = '[#name#] ([#code#])';
+	
+	
     /**
      * Описание на модела
      */

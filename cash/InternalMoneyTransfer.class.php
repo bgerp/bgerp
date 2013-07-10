@@ -377,21 +377,6 @@ class cash_InternalMoneyTransfer extends core_Master
     }
     
     
-    /**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
-    }
-    
-    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка

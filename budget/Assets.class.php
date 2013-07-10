@@ -78,6 +78,8 @@ class budget_Assets extends core_Manager
      */
     function description()
     {
+    	$this->FLD('number','int', 'caption=Номер на операцията, input=none');
+    	$this->FLD('period','int', 'caption=Номер на операцията, input=none');
     }
     
     

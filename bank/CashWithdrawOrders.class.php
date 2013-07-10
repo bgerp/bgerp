@@ -126,7 +126,7 @@ class bank_CashWithdrawOrders extends core_Master
     	$this->FLD('execBankBranch', 'varchar(255)', 'caption=От->Клон,width=16em');
         $this->FLD('execBankAdress', 'varchar(255)', 'caption=От->Адрес,width=16em');
     	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
-    	$this->FLD('proxyEgn', 'drdata_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
+    	$this->FLD('proxyEgn', 'bglocal_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
     	$this->FLD('proxyIdCard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
     }
     

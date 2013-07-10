@@ -64,7 +64,7 @@ class transport_Claims extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, number, title';
     
     
     /**
@@ -78,18 +78,10 @@ class transport_Claims extends core_Manager
      */
     function description()
     {
+    	$this->FLD('number','key(mvc=transport_Requests, select=number)', 'caption=Номер на заявката');
+    	$this->FLD('title','varchar', 'caption=Заглавие');
+    	$this->FLD('description','richtext(bucket=Transport)', 'caption=Описание');
     }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
+   
 }

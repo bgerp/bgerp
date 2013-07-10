@@ -367,65 +367,59 @@ class cal_Holidays extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 		// Изтриваме съдържанието й
-		$mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
-		
-    	$res .= static::loadData();
-        $res .= "<li> " . static::updateCalendarHolidays() . "</li>";
-    }
-    
-    
-    /**
-     * Зареждане на началните празници в базата данни
-     */
-    static function loadData()
-    {
     	
-        $csvFile = __DIR__ . "/data/Holidais.csv";
-        
-        $created = $updated = 0;
-        
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         
-            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-               
-                $rec = new stdClass();
-              
-                $rec->key = $csvRow[0]; 
-                $rec->day = $csvRow[1];
-                if($csvRow[2] > 0){
-                	$rec->base = str_pad((int) $csvRow[2], 2, '0', STR_PAD_LEFT);
-                } else {
-                	$rec->base = $csvRow[2];
-                }
-                
-                $rec->weekday = $csvRow[3]; 
-                
-                if($csvRow[4] != ''){
-                	$rec->year = $csvRow[4];
-                }
-                
-                $rec->title = $csvRow[5];
-                $rec->type = $csvRow[6];
-                $rec->info = str_replace('\"', '"', $csvRow[7]);
-                $rec->nameday = $csvRow[8];             
-                
-                static::save($rec);
-
-                $ins++;
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li style='color:green;'>Създадени са записи за {$ins} празници или специални дни</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	// Подготвяме пътя до файла с данните 
+    	$file = "bglocal/data/Holidais.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "key", 
+    		1 => "day",
+    		2 => "csv_base",
+    		3 => "weekday", 
+    		4 => "csv_year", 
+    		5 => "title",
+    		6 => "type", 
+    		7 => "csv_info", 
+    		8 => "nameday", 
+    		
+    	);
+    	
+    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+    	
+    	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+    	
+ 		
     }
     
-
+    static function on_BeforeSave($mvc, $res, $rec)
+    {
+    	if(isset($rec->csv_base) && strlen($rec->csv_base) != 0){
+    		if($rec->csv_base > 0){
+    			$rec->base = str_pad((int) $rec->csv_base, 2, '0', STR_PAD_LEFT);
+    		} else {
+    			$rec->base = $rec->csv_base;
+    		}
+    	}
+    	
+    	if(isset($rec->csv_year)){
+    		if($rec->csv_year != ""){
+    			$rec->year = $rec->csv_year;
+    		}
+    	}
+    	
+    	if(isset($rec->csv_info) && strlen($rec->csv_info) != 0){
+    		$rec->info = str_replace('\"', '"', $rec->csv_info);
+    	}
+    	
+    }
+    
+   
     /**
      * Доподготвя вербалните стойности
      */

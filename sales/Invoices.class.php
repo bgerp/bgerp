@@ -907,17 +907,4 @@ class sales_Invoices extends core_Master
       	
       	return $result;
     }
-    
-    
-    /**
-     * @see acc_TransactionSourceIntf::rejectTransaction
-     */
-    public static function rejectTransaction($id)
-    {
-        $rec = self::fetch($id, 'id,state,valior');
-        
-        if ($rec) {
-            static::reject($id);
-        }
-    }
 }
