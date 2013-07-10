@@ -665,4 +665,18 @@ class techno_Specifications extends core_Master {
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
     }
+    
+    
+    public static function countUses($dMvc, $id)
+    {
+    	$classId = static::getClassId();
+    	$quoteQuery = $dMvc::getQuery();
+    	$quoteQuery->EXT('state', $dMvc->Master, "externalKey={$dMvc->masterKey}");
+    	$quoteQuery->where("#state != 'rejected'");
+    	$quoteQuery->where("#productId = {$id}");
+    	$quoteQuery->where("#policyId = {$classId}");
+    	$quoteQuery->groupBy('quotationId');
+    	$quoteQuery->show('quotationId');
+    	bp($quoteQuery->fetchAll());
+    }
 }
