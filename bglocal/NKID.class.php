@@ -57,56 +57,26 @@ class bglocal_NKID extends core_Master
         $this->setDbUnique('key');
     }
     
+    
+    /**
+     * Преди запис
+     */
+    static function on_BeforeSave($mvc, $res, $rec)
+    {
+    	if(isset($rec->csv_title) && strlen($rec->csv_title)){
+    		$rec->title = $rec->key. " ". $rec->csv_title;
+    	}
+    }
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 		
-    	$res .= static::loadData();
-        
+ 		$file = "bglocal/data/nkid.csv";
+    	$fields = array(0 => "key", 1 => "csv_title");
+    	$cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
+    	$res .= $cntObj->html;
     }
-    
-    
-    /**
-     * Зареждане на началните празници в базата данни
-     */
-    static function loadData()
-    {
-    	
-        $csvFile = __DIR__ . "/data/nkid.csv";
-        
-        $created = $updated = 0;
-        
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         
-            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-               
-                $rec = new stdClass();
-              
-                $rec->key = $csvRow[0]; 
-                $rec->title = $csvRow[0]. " ". $csvRow[1];
-
-                $exRec = self::fetch("#key = '{$rec->key}'");
-                
-                if($exRec) {
-                	$rec->id = $exRec->id;
-                	$updated++;
-                } else {
-                	$created++;
-                }
-                static::save($rec);
-
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li style='color:green;'>Създадени са записи за {$created} кода по НКИД. Обновени са {$updated} кода по НКИД.</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
-    }
-
 }
