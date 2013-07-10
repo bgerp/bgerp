@@ -45,6 +45,12 @@
   color: #000;
   text-decoration: none;
 }
+
+.narrow .chzn-container-single .chzn-single{
+	padding-top:2px;
+	padding-bottom:1px;
+}
+
 .chzn-container-single .chzn-default {
   color: #999;
 }
@@ -378,3 +384,5 @@
 }
 
 /* @end */
+
+
