@@ -64,7 +64,8 @@ class budget_Reports extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, location, department, activity, fromDate, toDate, state, accountId,
+                       baseQuantity, baseAmount, debitQuantity, debitAmount';
     
     
     /**
@@ -78,18 +79,21 @@ class budget_Reports extends core_Manager
      */
     function description()
     {
-    }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
+    	$this->FLD('location','key(mvc=crm_Locations, select=title)', 'caption=Подразделение->Локация');
+    	$this->FLD('department','key(mvc=hr_Departments, select=name)', 'caption=Подразделение->Отдел');
+       	$this->FLD('activity','enum(1=Производство,
+    								2=Администрация,
+    								3=Маркетинг,
+    								4=Логистика)', 'caption=Видове дейности->Дейност');
+    	$this->FLD('fromDate', 'date', 'caption=Период->от');
+        $this->FLD('toDate', 'date', 'caption=Период->до');
+        $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип');
+        $this->FLD('accountId', 'key(mvc=acc_Accounts,select=title)', 'caption=Сметка->име');
+        $this->FLD('baseQuantity', 'double', 'caption=База->К-во');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
+        $this->FLD('debitQuantity', 'double', 'caption=Оборот->К-во');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Оборот->Сума');
 
-        return $this->renderWrapping($underConstructionImg);
     }
+ 
 }
