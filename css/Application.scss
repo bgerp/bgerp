@@ -1602,20 +1602,20 @@ fieldset.sharing-history {
 
 /* CMS */
 /*външни стилове за ширина*/
-.narrow #cmsTop {
+#all .narrow #cmsTop {
 	min-width:520px;
 	height:141px !important;
 }
 
-#cmsMenu {
+#all #cmsMenu {
     min-width:520px;
 }
 
-#cmsBottom {
+#all #cmsBottom {
 	min-width:520px;
 }
 
-#maincontent {
+#all #maincontent {
 	min-width:510px;
 }
 
