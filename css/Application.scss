@@ -1592,6 +1592,9 @@ ul.history {
 		&.fax b {
 			background-color: #050;
 		}
+		&.used b {
+			background-color: #FF9999;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
