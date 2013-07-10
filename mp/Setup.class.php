@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_Setup
+class mp_Setup extends core_ProtoSetup
 {
     
     
@@ -42,33 +42,26 @@ class mp_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'mp_Jobs',
             'mp_Tasks',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'mp';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(3.2, 'Производство', 'Планиране', 'mp_Jobs', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
-    
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'mp';
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.3, 'Производство', 'Планиране', 'mp_Jobs', 'default', "mp, ceo"),
+        );   
+   
     
     /**
      * Де-инсталиране на пакета
