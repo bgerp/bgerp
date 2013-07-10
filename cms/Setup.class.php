@@ -32,7 +32,7 @@ defIfNot('CMS_SHARE', '');
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Setup
+class cms_Setup extends core_ProtoSetup
 {
     
     
@@ -73,13 +73,11 @@ class cms_Setup
 	
 	);
 
-    
+	
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'cms_Content',
             'cms_Objects',
             'cms_Articles',
@@ -87,17 +85,28 @@ class cms_Setup
          	'cms_GalleryGroups',
             'cms_GalleryImages',
          );
-        
-        // Роля за power-user на този модул
-        $role = 'cms';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+
+         
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'cms';
+
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
+        );
+ 
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
@@ -113,10 +122,7 @@ class cms_Setup
          // Замества абсолютните линкове с титлата на документа
         core_Plugins::installPlugin('Галерии и картинки в RichText', 'cms_plg_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на cms_plg_RichTextPlg към полетата за RichEdit - (Активно)";
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "{$role}, ceo, admin");
-        
+
         return $html;
     }
     
