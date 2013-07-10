@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class catering_Setup
+class catering_Setup extends core_ProtoSetup
 {
     
     
@@ -51,11 +51,9 @@ class catering_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'catering_Menu',
             'catering_MenuDetails',
             'catering_Companies',
@@ -64,24 +62,21 @@ class catering_Setup
             'catering_RequestDetails',
             'catering_Orders'
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'catering';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.39, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'catering';
+
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.39, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "catering, ceo"),
+        );
+
     
     /**
      * Де-инсталиране на пакета
