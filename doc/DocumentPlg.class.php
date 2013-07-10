@@ -89,6 +89,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Forward'] = 'log_Documents';
             $mvc->details['Print'] = 'log_Documents';
             $mvc->details['Changed'] = 'log_Documents';
+            $mvc->details['Used'] = 'log_Documents';
         }
     }
     
