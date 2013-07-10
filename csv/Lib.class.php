@@ -72,6 +72,8 @@ class csv_Lib
                     continue;
                 }
 
+                $conflictFields = array();
+
                 if(!$mvc->isUnique($rec, $conflictFields, $exRec)) {
                     $rec->id = $exRec->id;
                     $flagUpdate = TRUE;
