@@ -167,6 +167,12 @@ class log_Documents extends core_Manager
     
     
     /**
+     * Екшън за използване
+     */
+    const ACTION_USED = 'used';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -184,6 +190,7 @@ class log_Documents extends core_Manager
             self::ACTION_DOWNLOAD . '=сваляне',
             self::ACTION_CHANGE . '=промяна',
             self::ACTION_FORWARD . '=препращане',
+            self::ACTION_USED . '=използване',
         );
         
         // Тип на събитието
@@ -1091,7 +1098,7 @@ class log_Documents extends core_Manager
      */
     public static function pushAction($actionData)
     {
-        Mode::push('action', (object)$actionData);
+    	Mode::push('action', (object)$actionData);
     }
     
     
@@ -1411,7 +1418,7 @@ class log_Documents extends core_Manager
         
         // Добавяме запис в лога
         core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
-        
+       
         return $rec;
     }
     
@@ -1694,16 +1701,19 @@ class log_Documents extends core_Manager
         $download = self::ACTION_DOWNLOAD;
         $change = self::ACTION_CHANGE;
         $forward = self::ACTION_FORWARD;
+        $used = self::ACTION_USED;
         
         $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
-            if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward)) {
+            if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward) && ($rec->action != $used)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
+            
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
             $data[$rec->containerId]->summary[$change] += count($rec->data->{$change});
             $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
+            $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
 
@@ -1772,6 +1782,7 @@ class log_Documents extends core_Manager
                 static::ACTION_DOWNLOAD => array('сваляне', 'сваляния'),
                 static::ACTION_CHANGE => array('промяна', 'промени'),
                 static::ACTION_FORWARD => array('препратен', 'препратени'),
+                static::ACTION_USED => array('използване', 'използвания'),
             );
         }
 
@@ -1787,6 +1798,7 @@ class log_Documents extends core_Manager
                 static::ACTION_DOWNLOAD    => static::ACTION_DOWNLOAD,
                 static::ACTION_CHANGE    => static::ACTION_CHANGE,
                 static::ACTION_FORWARD    => static::ACTION_FORWARD,
+                static::ACTION_USED => static::ACTION_USED,
             );
         }
         
@@ -1803,12 +1815,10 @@ class log_Documents extends core_Manager
             $actionVerbal = tr($actionVerbal);
             $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr);
-            
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         
         $html = "<ul class=\"history summary\">{$html}</ul>";
-        
         return $html;
     }
     
@@ -2156,5 +2166,131 @@ class log_Documents extends core_Manager
         }
 
         return FALSE;
+    }
+    
+	function prepareUsed($data)
+    {
+    	// Ако сме в режим принтиране
+        // Да не се изпълнява
+        if (Request::get('Printing')) return ;
+        
+        // Вземаме cid от URL' то
+        $cid = Request::get('Cid', 'int');
+        
+        // Ако не листваме данните за съответния контейнер
+        if ($data->masterData->rec->containerId != $cid) return ;
+        
+        // Името на таба
+        $data->TabCaption = 'Използване';
+        
+        // Екшъна
+        $action = static::ACTION_USED;
+        
+        // Вземаме записите
+        $recs = static::getRecs($cid, $action);
+
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            return;
+        }
+       
+        $rows = array();
+        foreach ($recs as $rec) {
+        	foreach ($rec->data->used as $d){
+        		$row = new stdClass();
+	        	$row->link = ht::createLink($d->title, 
+	        	array($d->class, 'single', $d->id), NULL, array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon})"));
+	        	$row->author = $d->author;
+	        	$row->lastUsedOn = dt::mysql2verbal($d->lastUsedOn);
+	        	$rows[] = $row;
+        	}
+        }
+        
+        $data->rows = $rows;
+    }
+    
+	function renderUsed($data)
+    {
+    	// Ако няма записи
+        if (!$data->rows) return ;
+        
+        // Вземаме шаблона за детайлите с попълнена титла
+        $tpl = static::getLogDetailTpl();
+        
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $sendTpl = $inst->get($data->rows, 'lastUsedOn=Последно, link=Документ, author=От');
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($sendTpl, 'content');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Маркира даден документ като използван в друг
+     * @param core_Master $usedClass - Инстанция на класа, който ще
+     * се отбелязва
+     * @param int $usedId - ид на изпозлвания документ
+     * @param core_Manager $docClass - инстанция на класа,
+     * в който е вкаран
+     * @param int $docId - ид на документа в който участва другия
+     */
+    static function used(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
+    {
+    	$uRec = $usedClass->fetch($usedId);
+    	$docRow = $docClass->getDocumentRow($docId);
+    	
+    	$inClass = (object)array(
+    				'class' => $docClass->className, 
+    				'id' => $docId,
+    				'icon' => sbf($docClass->singleIcon),
+    				'title' => $docRow->title,
+    				'author' => $docRow->author);
+    	
+        $rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = 'used' AND #threadId = {$uRec->threadId}");
+       
+        if (!$rec) {
+              // Създаваме обект с данни
+              $rec = (object)array(
+                   'action' => 'used',
+                   'containerId' => $uRec->containerId,
+                   'threadId' => $uRec->threadId,
+                   'data' => new stdClass(),
+               );    
+        }
+        
+        if($rec->data->used){
+        	$update = FALSE;
+        	foreach($rec->data->used as $i => $d){
+        		unset($d->lastUsedOn);
+        		if($d == $inClass){
+        			$rec->data->used[$i]->lastUsedOn = $uRec->lastUsedOn;
+        			$update = TRUE;
+        			break;
+        		}
+        	}
+        }
+        
+        if(!$update){
+        	$inClass->lastUsedOn = $uRec->lastUsedOn;
+        	$rec->data->used[] = $inClass;
+        }
+        
+        // Пушваме съответното действие
+        static::pushAction($rec);
+		
+        // Съобщение в лога
+        $msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+        
+        //static::flushActions();
+        return $rec;
     }
 }
