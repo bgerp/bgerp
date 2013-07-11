@@ -21,7 +21,7 @@ defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos/themes/default');
  * @license   GPL 3
  * @since     v 0.1
  */
-class pos_Setup
+class pos_Setup extends core_ProtoSetup
 {
     
     
@@ -49,12 +49,22 @@ class pos_Setup
     var $info = "Точки на Продажба";
     
     
+    
     /**
-     * Инсталиране на пакета
+     * Описание на конфигурационните константи за този модул
      */
-    function install()
-    {
-        $managers = array(
+    var $configDescription = array(
+            
+            'POS_WAT_PERCENT' => array ('double', 'mandatory'),
+         
+    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory'),
+        );
+    
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
             'pos_Points',
         	'pos_Receipts',
             'pos_ReceiptDetails',
@@ -63,25 +73,33 @@ class pos_Setup
         	'pos_Reports',
         	'pos_Payments',
         );
-        
-        // Роля за power-user на този модул
-        $role = 'pos';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'pos';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "pos, ceo"),
+        );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
+                                
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Търговия', 'POS', 'pos_Points', 'default', "{$role}, ceo");
-        
+         
         return $html;
     }
     

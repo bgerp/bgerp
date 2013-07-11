@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno_Setup
+class techno_Setup extends core_ProtoSetup
 {
     
     
@@ -42,24 +42,33 @@ class techno_Setup
     
     
     /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+        	'techno_Specifications',
+        );
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'techno';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.21, 'Производство', 'Технологии', 'techno_Specifications', 'default', "techno, ceo"),
+        );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $managers = array(
-        	'techno_Specifications',
-        );
-        
-        // Роля за power-user на този модул
-        $role = 'techno';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+    	$html = parent::install();
         
         // Добавяме Продуктовия драйвър в core_Classes
         core_Classes::add('techno_GeneralProducts');
@@ -67,9 +76,7 @@ class techno_Setup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('techno_GeneralProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.1, 'Производство', 'Технологии', 'techno_Specifications', 'default', "{$role}, ceo");
+
         
         return $html;
     }
