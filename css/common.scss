@@ -1130,6 +1130,8 @@ input[type=checkbox]:checked + label {
 input[type=radio] + label {
 	color:#666;  
 	background-color:transparent !important;
+	display: inline-block;
+	padding-top: 7px;
 }
 
 input[type=radio]:checked + label {
