@@ -71,7 +71,7 @@ class lab_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(2.45, 'Обслужване', 'Лаборатория', 'lab_Tests', 'default', "lab, ceo"),
+            array(2.45, 'Обслужване', 'Лаб', 'lab_Tests', 'default', "lab, ceo"),
         );
 
         
