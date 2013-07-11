@@ -37,7 +37,7 @@ defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахна
  * @license   GPL 3
  * @since     v 0.1
  */
-class blast_Setup
+class blast_Setup extends core_ProtoSetup
 {
     
     
@@ -85,12 +85,11 @@ class blast_Setup
            'BGERP_BLAST_SUCCESS_REMOVED'   => array ('text')
         );
     
+    
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'blast_Lists',
             'blast_ListDetails',
             'blast_Emails',
@@ -99,30 +98,36 @@ class blast_Setup
             'blast_Letters',
             'blast_LetterDetails'
         );
+
         
-        // Роля ръководител на организация 
-        // Достъпни са му всички папки и документите в тях
-        $role = 'blast';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'blast';
+ 
+    
+   /**
+	* Инсталиране на пакета
+	*/
+	function install()
+	{
+		$html = parent::install();
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('csvContacts', 'CSV контактни данни', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "admin, ceo, {$role}");
+		return $html;
+	}
         
-        return $html;
-    }
-    
-    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "admin, ceo, blast"),
+        );   
+
+        
     /**
      * Де-инсталиране на пакета
      */
