@@ -2266,11 +2266,14 @@ class log_Documents extends core_Manager
                );    
         }
         
+        // Ако има вече запис за участие в този документ, обновява се
+        // само полето 'lastUsedOn'
         if($rec->data->used){
         	$update = FALSE;
         	foreach($rec->data->used as $i => $d){
-        		unset($d->lastUsedOn);
-        		if($d == $inClass){
+        		$copy = clone $d;
+        		unset($copy->lastUsedOn);
+        		if($copy == $inClass){
         			$rec->data->used[$i]->lastUsedOn = $uRec->lastUsedOn;
         			$update = TRUE;
         			break;
@@ -2290,7 +2293,6 @@ class log_Documents extends core_Manager
         $msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
         core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
         
-        //static::flushActions();
         return $rec;
     }
 }
