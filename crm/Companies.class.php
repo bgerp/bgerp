@@ -200,6 +200,7 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,class=contactData');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
@@ -442,6 +443,10 @@ class crm_Companies extends core_Master
                 if($dYears > 1) {
                     $form->setWarning('regCompanyFileYear,regDecisionDate', "Годината на регистрацията на фирмата и фирменото дело се различават твърде много.");
                 }
+            }
+            
+            if($rec->vatId && empty($rec->uicId)){
+            	$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
             }
         }
     }
@@ -985,6 +990,7 @@ class crm_Companies extends core_Master
             $contrData->company = $company->name;
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
+            $contrData->uicId = $company->uicId;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');
