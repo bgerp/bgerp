@@ -601,7 +601,7 @@ class crm_Companies extends core_Master
         $classId = static::getClassId();
         
         // Добавяме в КЦ
-        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
+        callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
     }
     
     

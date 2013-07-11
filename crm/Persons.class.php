@@ -631,7 +631,7 @@ class crm_Persons extends core_Master
         $classId = static::getClassId();
         
         // Добавяме номерата в КЦ
-        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
+        callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
     }
 
 
@@ -1900,7 +1900,7 @@ class crm_Persons extends core_Master
     
         if(isset($rec->egn) && !($y>0 || $m>0 || $d>0)) {
             try {
-                $Egn = new bglocal_BulgarianEGN($rec->egn);
+                $Egn = new drdata_BulgarianEGN($rec->egn);
             } catch(Exception $e) {
                 $err = $e->getMessage();
             }
