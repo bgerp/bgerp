@@ -264,13 +264,13 @@ class price_ListDocs extends core_Master
     		
     		// Изчисляваме цената за продукта в основна мярка
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
-    		if(!$price) continue;
-    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
-    		$product->price = $price + ($price * $vat);
     		
-    		$product->price = currency_CurrencyRates::convertAmount($product->price, $rec->date, NULL, $rec->currencyId);
-                    
-	    	$rec->details->rows[] = $product;
+    		if($price) {
+    			$vat = ($rec->vat == 'yes') ? $product->vat : 0;
+    			$product->price = $price + ($price * $vat);
+    			$product->price = currency_CurrencyRates::convertAmount($product->price, $rec->date, NULL, $rec->currencyId);
+                $rec->details->rows[] = $product;
+    		}
     		
     		// За всяка от избраните опаковки
     		foreach($packArr as $packId){
