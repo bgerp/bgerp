@@ -345,6 +345,19 @@ class doc_DocumentPlg extends core_Plugin
         if($containerId) {
             doc_Containers::update($containerId);
         }
+        
+        if($rec->state == 'active'){
+        	
+        	// При активация, ако има изпозлвани документи в mvc-то
+        	// се записват като използвани в лога
+	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
+	    	if(count($usedDocuments)){
+	    		$Log = cls::get('log_Documents');
+	    		foreach($usedDocuments as $used){
+	    			$Log::used($used->class, $used->id, $mvc, $rec->id);
+	    		}
+	    	}
+        }
     }
     
     
@@ -1171,7 +1184,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Изпълнява се, акодефиниран метод getContragentData
+     * Изпълнява се, ако е дефиниран метод getContragentData
      */
     function on_AfterGetDefaultEmailBody($mvc, $data, $id)
     {
@@ -1559,5 +1572,22 @@ class doc_DocumentPlg extends core_Plugin
         foreach ($chainContainers as $cc) {
             $chain[] = doc_Containers::getDocument($cc->id);
         }
+    }
+    
+    
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getUsedDocs()
+     * Намира всички цитирания на документи в полета Richtext
+     * и ги подготвя във вид подходящ за маркиране като използвани
+     */
+    function on_AfterGetUsedDocs($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetch($id);
+    	$docs = doc_RichTextPlg::getDocsInRichtextFields($mvc, $rec);
+    	if(count($docs)){
+	    	foreach ($docs as $doc){
+	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	}
+    	}
     }
 }

@@ -26,6 +26,7 @@ class doc_ContragentDataIntf
      * $obj->country    - Името на държавата
      * $obj->countryId  - Id' то на
      * $obj->vatNo      - ДДС номер на компанията
+     * $obj->uicId      - Национален номер на компанията
      * $obj->pCode      - код
      * $obj->place      -
      * $obj->email      - Имейл

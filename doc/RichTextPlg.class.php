@@ -246,4 +246,32 @@ class doc_RichTextPlg extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Връща всички документи които са цитирани във всички richtext полета
+     * на даден мениджър
+     * @param core_Mvc $mvc - мениджър
+     * @param stdClass $rec - запис, за който проверяваме
+     * @return array - Масив с ключове - разпознатите хендъли и стойности - масиви от вида
+     *                       	array(
+     *                             'name' => хендъл, също като ключа
+     *                             'mvc'  => мениджър на документа с този хендъл
+     *                             'rec'  => запис за документа с този хендъл
+     *                          ) 
+     */
+    public static function getDocsInRichtextFields(core_Mvc $mvc, $rec)
+    {
+    	$all = '';
+    	$rec = $mvc->fetch($rec->id);
+    	$fields = $mvc->selectFields();
+    	foreach ($fields as $name => $fld){
+    		if($fld->type instanceof type_Richtext){
+    			$all .= $rec->{$name};
+    		}
+    	}
+    	
+    	// Намират се всички цитирания на документи в поле richtext
+    	return static::getAttachedDocs($all);
+    }
 }
