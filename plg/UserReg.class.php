@@ -89,15 +89,15 @@ class plg_UserReg extends core_Plugin
         if (strtolower($act) == 'login' && !Request::get('popup')) {
             
             // TODO: стила да отиде в CSS
-            $style = "style='font-weight:bold;border-bottom:solid 1px #ccc;padding:2px;'";
+            $className = "class=login-links";
             
             $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($mvc, 'resetPassForm')) .
-                "' {$style}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
+                "' {$className}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
             
             $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($mvc, 'registerNewUser')) .
-                "'  {$style}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
+                "'  {$className}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
         }
     }
     

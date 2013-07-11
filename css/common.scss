@@ -270,6 +270,16 @@ a {
 }
 /* край на общи стилове за линковете */
 
+/*login links*/
+.login-links{
+	font-weight:bold;
+	border-bottom:solid 1px #ccc;
+	padding:2px;
+	margin-bottom:10px;
+	display:inline-block;
+}
+
+/*Край на login links*/
 
 /*Хипервръзки към профилите на потребители*/
 a.profile {
