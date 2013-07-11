@@ -64,6 +64,8 @@ class plg_Select extends core_Plugin
     {
         if($act == 'dowithselected') {
             
+            Request::setProtected('Selected');
+
             $mvc->requireRightFor('list');
             
             $row = Request::get('row');
@@ -125,7 +127,7 @@ class plg_Select extends core_Plugin
                             'ret_url' => Request::get('ret_url')),
                         NULL,
                         NULL,
-                        "class=btn-$action"));
+                        "ef_icon=img/16/{$action}.png"));
                  $res->append("</td></tr>");
 
             }
