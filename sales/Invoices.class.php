@@ -462,9 +462,9 @@ class sales_Invoices extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
         if($path = $conf->INV_LAYOUT){
-        	//$path = basename($path);
-        	//expect($res = getTplFromFile("sales/tpl/" . $path), 'Няма такъв файл');
-        	$res = getTplFromFile($path);
+        	$path = basename($path);
+        	expect($res = getTplFromFile("/sales/tpl/{$path}"), 'Няма такъв файл');
+        	
         	return $res;
         }
         
@@ -906,5 +906,29 @@ class sales_Invoices extends core_Master
       	$result->entries = $entries;
       	
       	return $result;
+    }
+    
+    
+	/**
+     * Връща масив от изпозлваните документи в офертата
+     * @param int $id - ид на оферта
+     * @return param $res - масив с използваните документи
+     * 					['class'] - Инстанция на документа
+     * 					['id'] - Ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+    	$res = array();
+    	$dQuery = $this->sales_InvoiceDetails->getQuery();
+    	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
+    	$dQuery->where("#state != 'rejected' AND #invoiceId = '{$id}'");
+    	$dQuery->groupBy('productId,policyId');
+    	while($dRec = $dQuery->fetch()){
+    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+    		}
+    	}
+    	return $res;
     }
 }

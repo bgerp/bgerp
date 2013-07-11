@@ -69,7 +69,10 @@
 			<li>|Офертата е валидна до [#validFor#] дни след датата на издаване|*</li>
 		<!--ET_END validFor-->
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
-		<li>|Условие на доставка|*: [#deliveryTermId#] [#deliveryPlace#]</li>
+		<li>|Условие на доставка|*: [#deliveryTermId#]</li>
+		<!--ET_BEGIN deliveryPlace-->
+		<li>|Място на доставка|*: [#deliveryPlace#]</li>
+		<!--ET_END deliveryPlace-->
 		<!--ET_BEGIN others-->
 		[#others#]
 		<!--ET_END others-->

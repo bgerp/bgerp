@@ -1063,4 +1063,28 @@ class sales_Sales extends core_Master
         
         self::save($saleRec);
     }
+    
+    
+	/**
+     * Връща масив от изпозлваните документи в офертата
+     * @param int $id - ид на оферта
+     * @return param $res - масив с използваните документи
+     * 					['class'] - Инстанция на документа
+     * 					['id'] - Ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+    	$res = array();
+    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery->EXT('state', 'sales_Sales', 'externalKey=saleId');
+    	$dQuery->where("#state != 'rejected' AND #saleId = '{$id}'");
+    	$dQuery->groupBy('productId,policyId');
+    	while($dRec = $dQuery->fetch()){
+    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+    		}
+    	}
+    	return $res;
+    }
 }

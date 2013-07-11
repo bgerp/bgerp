@@ -512,12 +512,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$productMan = cls::get($rec->policyId)->getProductMan();
     	$productRec = $productMan::fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
-    	$productMan::save($productRec);
-    	
-    	$Log = cls::get('log_Documents');
-    	if($productMan instanceof techno_Specifications){
-    		$Log::used($productMan, $rec->productId, $mvc->Master, $rec->{$mvc->masterKey});
-    	}
-    	
+    	$productMan->save_($productRec);
     }
 }
