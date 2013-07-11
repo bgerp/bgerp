@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Setup
+class cat_Setup extends core_ProtoSetup
 {
     
     
@@ -45,11 +45,9 @@ class cat_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'cat_UoM',
             'cat_Groups',
             'cat_Products',
@@ -59,29 +57,37 @@ class cat_Setup
             'cat_Params',
             'cat_Packagings',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'cat';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'cat';
+ 
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat, ceo"),
+        );
+    
         
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "{$role}, ceo");
+        $html .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
         
         return $html;
     }
     
-    
+           
     /**
      * Де-инсталиране на пакета
      */
