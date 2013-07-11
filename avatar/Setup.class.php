@@ -14,7 +14,8 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class avatar_Setup extends core_Manager {
+class avatar_Setup extends core_ProtoSetup
+{
     
     
     /**
@@ -52,6 +53,8 @@ class avatar_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -82,6 +85,8 @@ class avatar_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

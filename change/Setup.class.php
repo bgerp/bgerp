@@ -11,7 +11,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class change_Setup extends core_Manager {
+class change_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -39,21 +40,21 @@ class change_Setup extends core_Manager {
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'change_Log',
         );
         
-        $instances = array();
+
+    /**
+     * Де-инсталиране на пакета
+     */
+    function deinstall()
+    {
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
         
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
+        return $res;
     }
 }
