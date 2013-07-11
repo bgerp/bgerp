@@ -492,7 +492,7 @@ class email_Outgoings extends core_Master
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие,width=750px,formOrder=3', array('attr' => array('data-role' => 'list' )));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/move.png');
         
         // Ако има права за ипзващне на факс
         if (email_FaxSent::haveRightFor('send')) {
@@ -834,7 +834,7 @@ class email_Outgoings extends core_Master
         $forward = Request::get('forward');
         
         // Добавяме бутона изпрати
-        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
                 
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;

@@ -429,7 +429,7 @@ class store_Racks extends core_Master
         
         // Ако има права за delete добавяме линк с икона за delete
         if ($mvc->haveRightFor('delete', $rec)) {
-            $delImg = "<img src=" . sbf('img/16/delete-icon.png') . " style='position: relative; top: 1px;'>";
+            $delImg = "<img src=" . sbf('img/16/delete.png') . " style='position: relative; top: 1px;'>";
             $delUrl = toUrl(array($mvc, 'delete', $rec->id, 'ret_url' => TRUE));
             $delLink = ht::createLink($delImg, $delUrl);
             

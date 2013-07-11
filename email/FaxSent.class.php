@@ -306,7 +306,7 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
-        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/arrow_right.png');
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/move.png');
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {

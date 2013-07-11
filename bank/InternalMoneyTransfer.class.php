@@ -196,7 +196,7 @@ class bank_InternalMoneyTransfer extends core_Master
     	$form->method = 'GET';
     	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations, key=systemId, select=name)', 'input,caption=Операция');
     	$form->title = 'Нов Вътрешен банков трансфер';
-        $form->toolbar->addSbBtn('Напред', '', array('class'=>'btn-next'), 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), 'ef_icon = img/16/close16.png');
         
         $options = acc_Operations::getPossibleOperations(get_called_class());

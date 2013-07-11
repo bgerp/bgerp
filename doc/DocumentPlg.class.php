@@ -153,7 +153,7 @@ class doc_DocumentPlg extends core_Plugin
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl
                     ),
-                    'class=btn-posting', 'onmouseup=saveSelectedTextToSession();');
+                    'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png');
             }
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране

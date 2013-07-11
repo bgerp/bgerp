@@ -293,11 +293,11 @@ class doc_Containers extends core_Manager
             
             if($data->threadRec->state == 'opened') {
                 // TODO може да се направи бутона да не е активен
-                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close_bulb.png');
+                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
-                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open_bulb.png');
+                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png');
             }
-            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/arrow_right.png');
+            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png');
         }
     }
     

@@ -296,7 +296,7 @@ class techno_GeneralProducts extends core_Manager {
     	if(techno_Specifications::haveRightFor('configure', $specificationId) && !Mode::is('printing')) {
     		
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
-			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+			$deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Изтриване') . "\">";
 	        
 			$editUrl = array($this, 'configure', $specificationId, 'paramId' => $paramId, 'edit' => TRUE, 'ret_url' => TRUE);
 	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);

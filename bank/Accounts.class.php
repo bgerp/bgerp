@@ -257,7 +257,7 @@ class bank_Accounts extends core_Master {
                     	// Добавяне на линк за изтриване
                         $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16'  height='16'>";
+                        $img = "<img src=" . sbf('img/16/delete.png') . " width='16'  height='16'>";
                         $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете сметката?', 'title=' . tr('Изтриване на банкова сметка')), 'content');
                         $tpl->append('</span>', 'content');
                     }
