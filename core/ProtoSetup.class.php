@@ -148,10 +148,9 @@ class core_ProtoSetup
             }
         }
 
-//        if(Request::get('pack')) {
-
-            $html .= $this->loadSetupData();
- //       }
+//      if(Request::get('pack')) {
+//         $html .= $this->loadSetupData();
+//      }
         
         return $html;
     }

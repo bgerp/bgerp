@@ -24,7 +24,7 @@ if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
 }
 
 // Колко време е валидно заключването - в секунди
-DEFINE ('SETUP_LOCK_PERIOD', 600);
+DEFINE ('SETUP_LOCK_PERIOD', 120);
 
 defIfNot('BGERP_GIT_BRANCH', 'dev');
 
@@ -49,8 +49,8 @@ if (setupKeyValid() && !setupProcess()) {
     // Стартиран setup режим - неоторизиран потребител - връща подходящо съобщение и излиза
     // Не спираме bgERP-a на потребителите по време на сетъп процес
     
-    return;
-    // halt("Процес на обновяване - опитайте по късно.");
+    //return;
+    halt("Процес на обновяване - опитайте по късно.");
 }
 
 // На коя стъпка се намираме в момента?
@@ -619,13 +619,13 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 149700;
-    $totalTables = 248;
+    $totalRecords = 154653;
+    $totalTables = 241;
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
-//    echo ($texts['styles']);
-    contentFlush ($texts['styles']);
+    echo ($texts['styles']);
+//    contentFlush ($texts['styles']);
     $opts = array(
       'http'=>array(
         'method'=>"GET",
@@ -782,18 +782,17 @@ if($step == start) {
     
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-        
-    $Plugins = cls::get('core_Plugins');
-    $Plugins->setupMVC();
 
-    $Classes = cls::get('core_Classes');
-    $Classes->setupMVC();
-    
-    $Packs = cls::get('core_Lg');
-    $Packs->setupMVC();
+    $ef = new core_Setup();
+    try {
+        $res = $ef->install();
+        file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'OK' . $res);
+    } catch (core_exception_Expect $e) {
+        file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getAsHtml());
+    }
     
     $Packs = cls::get('core_Packs');
-    $Packs->setupMVC();
+    //$Packs->setupMVC();
     $Packs->checkSetup();
     
     // за сега стартираме пакета bgERP за пълно обновяване
@@ -1203,8 +1202,12 @@ function dataBaseStat()
 {
     $DB = new core_Db();
 
-    $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->dbName ."';");
+    $recordsRes = $DB->query("SELECT SUM(TABLE_ROWS) AS RECS
+            FROM INFORMATION_SCHEMA.TABLES
+            WHERE TABLE_SCHEMA = '" . $DB->dbName ."'");
+    $rows = $DB->fetchObject($recordsRes);
     
+    $tablesRes = $DB->query("SELECT COUNT(*) TABLES FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '". $DB->dbName ."';");
     $tables = $DB->fetchObject($tablesRes);
     
     return array($tables->TABLES, $rows->RECS);
