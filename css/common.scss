@@ -1066,8 +1066,7 @@ a.button, input[type="button"], input[type="submit"] {
 	}
 }
 
-.narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
-	background-color:#eee; 
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
 	border:1px solid #999; 
 	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
