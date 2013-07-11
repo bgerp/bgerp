@@ -1,8 +1,4 @@
 <?php
-/**
- * Отстъпка за периода
- */
-defIfNot('POS_WAT_PERCENT', '20');
 
 /**
  *  Константа за тема по-подразбиране на блога
@@ -54,9 +50,6 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-            
-            'POS_WAT_PERCENT' => array ('double', 'mandatory'),
-         
     		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory'),
         );
     
