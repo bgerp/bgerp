@@ -522,13 +522,23 @@ class core_Query extends core_FieldSet
         
         $this->getShowFields();
         
-        $query = "DELETE " . "`" . $this->mvc->dbTableName . "`.* " . "FROM";
+        $orderBy = $this->getOrderBy();
+        $limit   = $this->getLimit();
+        
+        $dbTableName = '';
+        
+        // Нито ORDER BY, нито LIMIT се допуска при "multiple table syntax"
+        if (empty($orderBy) && empty($limit)) {
+            $tableName = "`" . $this->mvc->dbTableName . "`.* ";
+        }
+        
+        $query = "DELETE " . $dbTableName . "FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
         $query .= $wh->h;
-        $query .= $this->getOrderBy();
-        $query .= $this->getLimit();
+        $query .= $orderBy;
+        $query .= $limit;
         
         $db = $this->mvc->db;
         

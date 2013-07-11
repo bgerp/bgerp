@@ -227,7 +227,7 @@ class core_Master extends core_Manager
                     $data->rec->id,
                     'ret_url' => toUrl(array($this), 'local')
                 ),
-                'id=btnDelete,warning=Наистина ли желаете да изтриете документа?,order=31', 'ef_icon = img/16/delete-icon.png');
+                'id=btnDelete,warning=Наистина ли желаете да изтриете документа?,order=31', 'ef_icon = img/16/delete.png');
         }
         
         return $data;

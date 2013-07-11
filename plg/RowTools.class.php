@@ -82,7 +82,7 @@ class plg_RowTools extends core_Plugin
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
-            $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+            $deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Изтриване') . "\">";
             $deleteUrl = array(
 	            $mvc,
 	            'delete',

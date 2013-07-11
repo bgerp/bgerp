@@ -52,7 +52,7 @@ class core_String
         return $text;
     }
     
-    
+
     /**
      * Функция за генериране на случаен низ. Приема като аргумент шаблон за низа,
      * като символите в шаблона имат следното значение:
@@ -383,4 +383,18 @@ class core_String
     	
         return FALSE;
     }
+
+    
+    /** 
+     * Циклене по UTF-8 низове
+     */
+    static function nextChar($string, &$pointer)
+    {
+        $c = mb_substr(substr($string, $pointer, 5), 0, 1);
+
+        $pointer += strlen($c);
+
+        return $c;
+    }
+
 }

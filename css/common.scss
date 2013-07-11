@@ -193,9 +193,6 @@ select, input, textarea{
 	border: solid 1px #9999ff;
 	font-size: 1.07em;
 }
-.narrow select, .narrow input, .narrow textarea{
-	font-size:1em;	
-}
 
 select.combo {  
 	position: absolute; 
@@ -330,18 +327,19 @@ a.profile {
 /* Стилове за странициране 'hlp_Pager' */
 .pages{
 	clear:both;
-	margin:10px 2px 10px 2px;
+	margin:15px 2px 13px 2px;
 }
 
 .narrow .portal .pages{
 	clear:both;
-	margin:13px 0 8px;
+	margin:13px 0 5px;
 }
 
-.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, 
-.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages{
-	margin-top:0;
-	margin-bottom:15px;
+.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, .wide .cat_Products .pages, 
+.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages, 
+.wide .callcenter_Talks .pages, .wide .callcenter_Fax .pages , .wide .callcenter_SMS .pages, .wide .callcenter_InternalNum .pages{
+	margin-top:5px;
+	margin-bottom:16px;
 }
 
 a.pager {
@@ -480,7 +478,7 @@ div.tab-control .tab-title {
 
 .wide .formFields table {
 	width:100%;
-	margin:5px 0 10px;
+	margin:5px 0 0px;
 }
 
 .narrow .formFields table{
@@ -510,11 +508,16 @@ div.hFormField {
 }
 
 .narrow .horizontal .formFields div {
-	margin-bottom: 7px;
+	margin-bottom: 10px;
 }
 
 .wide .horizontal .formToolbar { 
 	float:left;
+	margin-bottom:13px;
+}
+
+.narrow .horizontal{
+	margin-bottom:10px;
 }
 
 .formFieldCaption{
@@ -523,7 +526,7 @@ div.hFormField {
 }
 
 .vertical .formFieldCaption { 
-	padding: 0.4em 0.4em 0.5em;
+	padding: 0.3em 0.4em 0.5em;
 	white-space: nowrap;
 	width:1px;
 	vertical-align:top;
@@ -853,6 +856,11 @@ div.richtext li {
     margin-left:1.5em;
     padding-top:0.2em;
 }
+.narrow div.richtext li{
+	line-height:1.3em;
+	padding-top:0;
+	margin-top: -10px;
+}
 
 div.richtext ul { 
 	margin-top: -20px;
@@ -992,12 +1000,12 @@ table.listTable .button{
 }
 
 .listTitle {
-	margin-bottom:10px;
+	margin-bottom:12px;
 	font-size:1.3em;
 }
 
 .listToolbar {
-	margin-top:10px;
+	margin-top:13px;
 }
 
 .narrow .listFilter{
@@ -1057,8 +1065,8 @@ a.button, input[type="button"], input[type="submit"] {
 		padding-top:0.2em !important;
 	}
 }
-.narrow a.button, .narrow input[type=button], .narrow input[type=submit]	{
-	background-color:#eee; 
+
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
 	border:1px solid #999; 
 	@include border-radius(5px);
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
@@ -1096,6 +1104,7 @@ a.button, input[type="button"], input[type="submit"] {
 	@include rounded(top,left,5px);
 	@include rounded(bottom,left,5px);
 }
+
 .narrow .toolbar div .button:last-child{
 	@include rounded(top, right, 5px );
 	@include rounded(bottom, right, 5px);
@@ -1120,6 +1129,8 @@ input[type=checkbox]:checked + label {
 input[type=radio] + label {
 	color:#666;  
 	background-color:transparent !important;
+	display: inline-block;
+	padding-top: 7px;
 }
 
 input[type=radio]:checked + label {
@@ -1138,41 +1149,6 @@ input[type=radio]:checked + label {
 .wide .noicon {
     padding-right: 3px !important; /* IE6 */
     padding-left: 3px !important; /* IE6 */
-}
-
-.wide .btn-folder { 
-    background-image:url('../img/16/folder.png');
-    @include btn-style();
-}
-
-.wide .btn-folder-y {
-    background-image:url('../img/16/folder-y.png');
-    @include btn-style();
-}
-
-.wide .btn-delete{
-	background-image:url('../img/16/delete-icon.png');
-	@include btn-style();
-}
-
-.wide .btn-open {
-	background-image: url("../img/16/open_bulb.png");
-	@include btn-style();
-}
-
-.wide .btn-close {
-	background-image: url("../img/16/close_bulb.png");
-	@include btn-style();
-}
-
-.wide .btn-move {
-  background-image: url("../img/16/arrow_right.png");
-  @include btn-style();
-}
-
-
-.wide .btn-next,  .wide input.btn-prev {
-    float: right;
 }
 
 .wide .btn-with-selected {
@@ -1204,43 +1180,10 @@ input[type=radio]:checked + label {
     @include btn-style();
 }
 
-/**/
-.wide .btn-software-update {
-    background-image:url('../img/16/software-update.png');
-    @include btn-style();
-}
-
 .wide .btn-reject { 
-    background-image:url('../img/16/delete.png');
+    background-image:url('../img/16/reject.png');
     @include btn-style();
 	float: right;
-}
-/**/
-.wide .btn-posting { 
-	background-image:url('../img/16/comment_add.png');
-	@include btn-style();
-}
-
-.wide .btn-zoho{
-	@include btn-style();
-}
-
-/**/
-.wide .btn-export  { 
-	background-image:url('../img/16/table_export.png');
-	@include btn-style();
-}
-
-/**/
-.wide .btn-task  {
-	background-image:url('../img/16/sheduled-task-icon.png');
-	@include btn-style();
-}
-
-/**/
-.wide .btn-createLink { 
-    background-image:url('../img/16/link.png');
-    @include btn-style();
 }
 
 .wide .btn-settings { 
@@ -1252,33 +1195,6 @@ input[type=radio]:checked + label {
 	font-size: 0.55em;
 	top: -0.2em;
 	position: relative;
-}
-
-/**/
-.wide .btn-task-close { 
-    background-image:url('../img/16/media-playback-stop.png');
-    @include btn-style();
-}
-
-/**/
-.wide .btn-reload { 
-    background-image:url('../img/16/clock_go.png');
-   @include btn-style();
-}
-/**/
-.wide .btn-active {
-    background-image:url('../img/16/active_bulb.png');
-    @include btn-style();
-}
-/**/
-.wide .btn-html { 
-    background-image:url('../img/16/file_extension_html.png');
-    @include btn-style();
-}
-/**/
-.wide .btn-assign {
-    background-image:url('../img/16/assign.png');
-    @include btn-style();
 }
 
 .linkWithIcon{
@@ -1318,8 +1234,9 @@ input[type=radio]:checked + label {
 	background-position:center center;
 	background-image:url(../img/16/toggle-expand.png) !important;
 	background-repeat:no-repeat !important;
-	padding:0.2em 0.7em !important;
-	width:1.8em;
+	padding-left:0.5em !important;
+	padding-right:0.5em !important;
+	width:1.9em;
 }
 
 .more-btn.show-btn{
@@ -1711,7 +1628,9 @@ div.folder-cover{
 		line-height:0.9em;
 		padding-bottom:0;
 	}
-	
+	.tab{
+		font-size:0.7em !important;
+	}
 	.tab-page .detail-info{
 		margin-bottom: 0 !important;
 	}
@@ -1749,104 +1668,19 @@ div.folder-cover{
 /*край на стилове за корици*/
 
 
-/*потребителски профил*/
-.user-profile{
-	max-width:860px;
-	border:1px solid #ccc;
-	border-radius:5px;
-	background:#f1f1f1;	
-	margin-top:15px;
-	.user-title{
-		position:relative;
-		padding:70px 20px 10px 132px;
-		font-size:1.3em;
-		text-shadow:1px 1px 2px rgba(0,0,0,0.7);
-		background: rgb(234,234,234); /* Old browsers */
-		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
-		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(234,234,234,1)), color-stop(100%,rgba(97,97,98,1))); /* Chrome,Safari4+ */
-		background: -webkit-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Chrome10+,Safari5.1+ */
-		background: -o-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Opera 11.10+ */
-		background: -ms-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* IE10+ */
-		background: linear-gradient(to bottom, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* W3C */
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eaeaea', endColorstr='#616162',GradientType=0 ); /* IE6-9 */
-		color:#fff;
-		font-weight:bold;
-		border-radius:5px 5px 0 0;
+/* Стилове за diff между html текстове */
+	span.del { 
+		background-color:#fcc;
+                text-decoration:line-through;
+                color:#777;
 	}
-   .profile-image>a, .profile-image div{
-		position:absolute;
-		top:15px;
-		left:15px;
-		width:100px;
-		height:100px;
-		@include border-radius(3px);
-		border:3px solid #fff;
-		box-shadow:0 1px 4px rgba(0,0,0,0.5);
-		display:block;
-		text-align:center;
-		background:#fff;
-		overflow:hidden;
-		img{
-			width:auto;
-			height:100px;
-		}
+	span.ins { 
+                background-color:#cfc;
 	}
-	.linkWithIcon{
-		height:19px;
-		padding-top:1px;
+	span.cng { 
+		background-color:#ffc;
 	}
-	> .groupList{
-		margin-left:10px;
-	}
-	.card-profile{
-		margin:0 10px 10px;
-	}
-	.fright{
-		margin-left:10px;
-	}
-	.inner-holder{
-		padding:15px 15px 15px 15px;
-	}
-	.detail-info{
-		background:#fff;
-	}
-	.detail-info.portal .dt{
-		width:1%;
-		min-width:85px
-	}
-}
-.narrow .user-profile{
-	margin-top:7px; 
-	min-width:100px;
-	max-width:600px;
-	.user-title{
-		font-size:1.1em;
-		padding:70px 20px 10px 127px;
-	}
-	table .dt{
-		padding-right:5px;
-	}
-	.profile-image>a, .profile-image div{
-		left:10px;
-		top:10px;
-	}
-	.detail-info{
-		font-size:0.8em;
-		min-width:90%;
-	}
-	.inner-holder{
-		padding:10px;
-	}
-	.linkWithIcon{
-		height:auto;
-		padding-top:1px;
-		
-	}
-	.fleft,.fright{
-		float:none;
-		margin-left:0;
-	}
-} 
-/*край на потребителски профил*/
+/* Край на стилове за diff */
+
 
 @import "inputs";
