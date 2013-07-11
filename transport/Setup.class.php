@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class transport_Setup
+class transport_Setup extends core_ProtoSetup
 {
     
     
@@ -42,33 +42,36 @@ class transport_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
         	'transport_Requests', 
         	'transport_Shipment', 
        		'transport_Claims', 
        		'transport_Registers', 
             
         );
-        
-        // Роля за power-user на този модул
-        $role = 'transport';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(3.6, 'Логистика', 'Транспорт', 'transport_Requests', 'default', "{$role}, ceo");
-        
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'transport';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.6, 'Логистика', 'Транспорт', 'transport_Requests', 'default', "transport, ceo"),
+        );
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
         
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
