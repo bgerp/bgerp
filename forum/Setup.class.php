@@ -25,7 +25,7 @@ defIfNot('FORUM_POSTS_PER_PAGE', '10');
  * @license   GPL 3
  * @since     v 0.1
  */
-class forum_Setup
+class forum_Setup extends core_ProtoSetup
 {
 
 
@@ -54,32 +54,42 @@ class forum_Setup
 
 	
 	/**
-	 * Инсталиране на пакета
-	*/
-	function install()
-	{
-		$managers = array(
+     * Описание на конфигурационните константи за този модул
+     */
+    var $configDescription = array(
+            
+            'FORUM_DEFAULT_THEME' => array ('varchar', 'mandatory'),
+         
+    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory'),
+    
+    		'GREETING_MESSAGE' => array ('text', 'mandatory'),
+         
+    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory'),
+        );
+    
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+   var $managers = array(
 				'forum_Boards',
 				'forum_Postings',
 				'forum_Categories',
 		);
+    
 
-		// Роля за power-user на този модул
-		$role = 'forum';
-		$html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'forum';
+    
 
-		$instances = array();
-
-		foreach ($managers as $manager) {
-			$instances[$manager] = &cls::get($manager);
-			$html .= $instances[$manager]->setupMVC();
-		}
-        
-        $Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms, {$role}, admin, ceo");
-
-		return $html;
-	}
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
+        );
 	
 	
 	/**
