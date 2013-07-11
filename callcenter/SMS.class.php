@@ -211,7 +211,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме последния запис за номера
-        $extRec = callcenter_ExternalNum::getLastRecForNum($rec->mobileNum);
+        $extRec = callcenter_Numbers::getRecForNum($rec->mobileNum);
         
         // Вземаме класа и id' то на контрагента
         $rec->classId = $extRec->classId;
