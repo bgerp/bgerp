@@ -207,6 +207,6 @@ class doc_DocumentIntf
      */
     function getUsedDocs($id)
     {
-    	
+    	return $this->class->getUsedDocs($id);
     }
 }
