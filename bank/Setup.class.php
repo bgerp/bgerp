@@ -1,12 +1,5 @@
 <?php
 
-
-/**
- * На колко процента разлика между очакваната и въведената сума при
- * превалутиране да сетва предупреждение
- */
-defIfNot('BANK_EXCHANGE_DIFFERENCE', '5');
-
 /**
  * class bank_Setup
  *
@@ -53,16 +46,6 @@ class bank_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Банкови сметки, операции и справки";
-    
-    
-    /**
-     * Описание на конфигурационните константи за този модул
-     */
-    var $configDescription = array(
-            
-            //Задаване на основна валута
-            'BANK_EXCHANGE_DIFFERENCE' => array ('double', 'mandatory'),
-        );
     
 	
 	/**
