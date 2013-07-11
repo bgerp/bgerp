@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class support_Setup
+class support_Setup extends core_ProtoSetup
 {
     
     
@@ -38,14 +38,11 @@ class support_Setup
      */
     var $info = "Сигнали";
     
-    
+        
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        // Инсталиране на мениджърите
-        $managers = array(
+    var $managers = array(
             'support_Issues',
             'support_Components',
             'support_Systems',
@@ -55,21 +52,28 @@ class support_Setup
             'support_Ratings',
             'support_Resolutions',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+    
 
-        // Добавяме роля за поддръжка на модула support
-        $role = 'support';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        // Добавяме менюто
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "{$role}, admin, ceo");
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'support';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.14, 'Обслужване', 'Поддръжка', 'support_Issues', 'default', "support, admin, ceo"),
+        );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+      	$html = parent::install();
         
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
