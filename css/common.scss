@@ -856,6 +856,11 @@ div.richtext li {
     margin-left:1.5em;
     padding-top:0.2em;
 }
+.narrow div.richtext li{
+	line-height:1.3em;
+	padding-top:0;
+	margin-top: -10px;
+}
 
 div.richtext ul { 
 	margin-top: -20px;
