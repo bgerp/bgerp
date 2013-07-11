@@ -22,7 +22,7 @@ class callcenter_Wrapper extends plg_ProtoWrapper
         $this->TAB('callcenter_Talks', 'Разговори');
         $this->TAB('callcenter_Fax', 'Факсове');
         $this->TAB('callcenter_SMS', 'СМС');
-        $this->TAB('callcenter_InternalNum', 'Данни');
+        $this->TAB('callcenter_Numbers', 'Номера');
         
         $this->title = 'КЦ';
     }

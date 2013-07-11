@@ -47,10 +47,9 @@ class callcenter_Setup
         // Инсталиране на мениджърите
         $managers = array(
             'callcenter_Talks',
-            'callcenter_InternalNum',
-            'callcenter_ExternalNum',
             'callcenter_Fax',
             'callcenter_SMS',
+            'callcenter_Numbers',
         );
         
         $instances = array();
@@ -62,7 +61,7 @@ class callcenter_Setup
 
         // Добавяме менюто
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.04, 'Обслужване', 'КЦ', 'callcenter_Talks', 'default', "user");
+        $html .= $Menu->addItem(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', "user");
         
         //инсталиране на кофата
 //        $Bucket = cls::get('fileman_Buckets');
