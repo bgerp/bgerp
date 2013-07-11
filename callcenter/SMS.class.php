@@ -84,7 +84,7 @@ class callcenter_SMS extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = '';
+    var $singleIcon = 'img/16/sms.png';
 
     
     /**
@@ -116,7 +116,7 @@ class callcenter_SMS extends core_Master
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none, hint=Статус на съобщението');
         $this->FLD('receivedTime', 'datetime', 'caption=Получено на, input=none');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас, input=none');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер, input=none');
