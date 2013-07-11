@@ -1151,41 +1151,6 @@ input[type=radio]:checked + label {
     padding-left: 3px !important; /* IE6 */
 }
 
-.wide .btn-folder { 
-    background-image:url('../img/16/folder.png');
-    @include btn-style();
-}
-
-.wide .btn-folder-y {
-    background-image:url('../img/16/folder-y.png');
-    @include btn-style();
-}
-
-.wide .btn-delete{
-	background-image:url('../img/16/delete-icon.png');
-	@include btn-style();
-}
-
-.wide .btn-open {
-	background-image: url("../img/16/open_bulb.png");
-	@include btn-style();
-}
-
-.wide .btn-close {
-	background-image: url("../img/16/close_bulb.png");
-	@include btn-style();
-}
-
-.wide .btn-move {
-  background-image: url("../img/16/arrow_right.png");
-  @include btn-style();
-}
-
-
-.wide .btn-next,  .wide input.btn-prev {
-    float: right;
-}
-
 .wide .btn-with-selected {
     background-image:url('../img/16/checked.png');
     @include btn-style();
@@ -1215,43 +1180,10 @@ input[type=radio]:checked + label {
     @include btn-style();
 }
 
-/**/
-.wide .btn-software-update {
-    background-image:url('../img/16/software-update.png');
-    @include btn-style();
-}
-
 .wide .btn-reject { 
-    background-image:url('../img/16/delete.png');
+    background-image:url('../img/16/reject.png');
     @include btn-style();
 	float: right;
-}
-/**/
-.wide .btn-posting { 
-	background-image:url('../img/16/comment_add.png');
-	@include btn-style();
-}
-
-.wide .btn-zoho{
-	@include btn-style();
-}
-
-/**/
-.wide .btn-export  { 
-	background-image:url('../img/16/table_export.png');
-	@include btn-style();
-}
-
-/**/
-.wide .btn-task  {
-	background-image:url('../img/16/sheduled-task-icon.png');
-	@include btn-style();
-}
-
-/**/
-.wide .btn-createLink { 
-    background-image:url('../img/16/link.png');
-    @include btn-style();
 }
 
 .wide .btn-settings { 
@@ -1263,33 +1195,6 @@ input[type=radio]:checked + label {
 	font-size: 0.55em;
 	top: -0.2em;
 	position: relative;
-}
-
-/**/
-.wide .btn-task-close { 
-    background-image:url('../img/16/media-playback-stop.png');
-    @include btn-style();
-}
-
-/**/
-.wide .btn-reload { 
-    background-image:url('../img/16/clock_go.png');
-   @include btn-style();
-}
-/**/
-.wide .btn-active {
-    background-image:url('../img/16/active_bulb.png');
-    @include btn-style();
-}
-/**/
-.wide .btn-html { 
-    background-image:url('../img/16/file_extension_html.png');
-    @include btn-style();
-}
-/**/
-.wide .btn-assign {
-    background-image:url('../img/16/assign.png');
-    @include btn-style();
 }
 
 .linkWithIcon{
