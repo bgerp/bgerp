@@ -10,7 +10,7 @@ defIfNot('LOG_DOCUMENTS_DAYS', 5);
 /**
  * История от събития, свързани с документите
  *
- * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане
+ * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане, използване
  *
  *
  * @category  bgerp
@@ -2168,6 +2168,10 @@ class log_Documents extends core_Manager
         return FALSE;
     }
     
+    
+    /**
+     * Подготовка на таба за използвания
+     */
 	function prepareUsed($data)
     {
     	// Ако сме в режим принтиране
@@ -2200,11 +2204,21 @@ class log_Documents extends core_Manager
         $rows = array();
         foreach ($recs as $rec) {
         	foreach ($rec->data->used as $d){
+        		$class = $d->class;
         		$row = new stdClass();
+        		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
+        		$state = $class::fetchField($d->id, 'state');
+        		if($state == 'rejected'){
+	        		$row->ROW_ATTR['class'] = 'state-rejected';
+	        		$iconStles['style'] .= "opacity:0.5";
+	        	}
+        		
 	        	$row->link = ht::createLink($d->title, 
-	        	array($d->class, 'single', $d->id), NULL, array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon})"));
+	        	array($class, 'single', $d->id), NULL, $iconStles);
 	        	$row->author = $d->author;
-	        	$row->lastUsedOn = dt::mysql2verbal($d->lastUsedOn);
+	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
+	        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
+	        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
 	        	$rows[] = $row;
         	}
         }
@@ -2212,6 +2226,10 @@ class log_Documents extends core_Manager
         $data->rows = $rows;
     }
     
+    
+    /**
+     * Рендиране на таба за използвания
+     */
 	function renderUsed($data)
     {
     	// Ако няма записи
@@ -2235,15 +2253,16 @@ class log_Documents extends core_Manager
     
     /**
      * Маркира даден документ като използван в друг
-     * @param core_Master $usedClass - Инстанция на класа, който ще
-     * се отбелязва
+     * @param core_Master $usedClass - Инстанция на класа,
+     *  който ще се отбелязва
      * @param int $usedId - ид на изпозлвания документ
      * @param core_Manager $docClass - инстанция на класа,
      * в който е вкаран
      * @param int $docId - ид на документа в който участва другия
      */
-    static function used(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
+    public static function used(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
     {
+    	$action = static::ACTION_USED;
     	$uRec = $usedClass->fetch($usedId);
     	$docRow = $docClass->getDocumentRow($docId);
     	
@@ -2252,39 +2271,20 @@ class log_Documents extends core_Manager
     				'id' => $docId,
     				'icon' => sbf($docClass->singleIcon),
     				'title' => $docRow->title,
-    				'author' => $docRow->author);
+    				'author' => $docRow->author,
+    				'lastUsedOn' => dt::now(),);
     	
-        $rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = 'used' AND #threadId = {$uRec->threadId}");
-       
-        if (!$rec) {
-              // Създаваме обект с данни
-              $rec = (object)array(
-                   'action' => 'used',
-                   'containerId' => $uRec->containerId,
-                   'threadId' => $uRec->threadId,
-                   'data' => new stdClass(),
-               );    
+        $rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
+       	if (!$rec) {
+           // Създаваме обект с данни
+           $rec = (object)array(
+                 'action' => $action,
+                 'containerId' => $uRec->containerId,
+                 'threadId' => $uRec->threadId,
+                 'data' => new stdClass(),
+           );    
         }
-        
-        // Ако има вече запис за участие в този документ, обновява се
-        // само полето 'lastUsedOn'
-        if($rec->data->used){
-        	$update = FALSE;
-        	foreach($rec->data->used as $i => $d){
-        		$copy = clone $d;
-        		unset($copy->lastUsedOn);
-        		if($copy == $inClass){
-        			$rec->data->used[$i]->lastUsedOn = $uRec->lastUsedOn;
-        			$update = TRUE;
-        			break;
-        		}
-        	}
-        }
-        
-        if(!$update){
-        	$inClass->lastUsedOn = $uRec->lastUsedOn;
-        	$rec->data->used[] = $inClass;
-        }
+        $rec->data->{$action}[] = $inClass;
         
         // Пушваме съответното действие
         static::pushAction($rec);
