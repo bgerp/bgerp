@@ -23,9 +23,9 @@ class bgerp_DealIntf
      * @param int $id ид на документ
      * @return bgerp_iface_DealResponse
      */
-    public function getInfo($id)
+    public function getDealInfo($id)
     {
-        return $this->class->getInfo($id);
+        return $this->class->getDealInfo($id);
     }
     
 }
