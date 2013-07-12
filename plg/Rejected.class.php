@@ -39,6 +39,8 @@ class plg_Rejected extends core_Plugin
         if(!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         }
+
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => 'Оттегляне', 'restore' => 'Възстановяване'); 
     }
     
     
@@ -214,6 +216,17 @@ class plg_Rejected extends core_Plugin
             if($rec->createdBy == -1 && $action == 'reject') {
                 $requiredRoles = 'no_one';
             }
+            
+            // Не могат да се оттеглят оттеглени записи
+            if($action == 'reject' && $rec->state == 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+
+            // Не могат да се възстановяват не-оттеглении записи
+            if($action == 'restore' && $rec->state != 'rejected') {
+                $requiredRoles = 'no_one';
+            }
+
         }
     }
 }
