@@ -185,16 +185,10 @@ class callcenter_SMS extends core_Master
         $params['function'] = 'update';
         
         // Вземаме информация за номера
-        $mobileNumArr = drdata_PhoneType::toArray($rec->mobileNum);
+        $rec->mobileNum = callcenter_Numbers::getNumberStr($rec->mobileNum);
         
-        // Очакваме да има такъв масив
-        expect($mobileNumArr);
-        
-        // Обединяваме кода и номера
-        $mobileNum = $mobileNumArr[0]->countryCode . $mobileNumArr[0]->areaCode . $mobileNumArr[0]->number;
-
         // Изпращаме SMS'a
-        $sendStatusArr = $service->sendSMS($mobileNum, $rec->text, $rec->sender, $params);
+        $sendStatusArr = $service->sendSMS($rec->mobileNum, $rec->text, $rec->sender, $params);
         
         // Ако е изпратен успешно
         if ($sendStatusArr['sended']) {
