@@ -17,7 +17,7 @@ defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv/");
  * @license   GPL 3
  * @since     v 0.1
  */
-class fconv_Setup
+class fconv_Setup extends core_ProtoSetup 
 {
     
     
