@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Задаване на основна валута
+ * Задаване на локация
  */
 defIfNot('WUND_DEFAULT_LOCATION', 'Bulgaria/Sofia');
 
@@ -20,7 +20,7 @@ defIfNot('WUND_DEFAULT_LOCATION', 'Bulgaria/Sofia');
  * @license   GPL 3
  * @since     v 0.1
  */
-class wund_Setup
+class wund_Setup extends core_ProtoSetup
 {
     
     
@@ -66,24 +66,21 @@ class wund_Setup
        
         );
     
+        
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'wund_Forecasts',
+        );
     
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $managers = array(
-            'wund_Forecasts',
-        );
-        
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+       	$html = parent::install();
+       	
         //Данни за работата на cron
         $rec = new stdClass();
         $rec->systemId = 'Get weather Forecasts';
@@ -119,7 +116,9 @@ class wund_Setup
      */
     function deinstall()
     {
-         
-        return;
+       // Изтриване на пакета от менюто
+       $res .= bgerp_Menu::remove($this);
+        
+       return $res;
     }
 }

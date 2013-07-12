@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class vedicom_Setup
+class vedicom_Setup extends core_ProtoSetup
 {
     
     
@@ -57,29 +57,21 @@ class vedicom_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'vedicom_Weight'
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-                
-        return $html;
-    }
-    
+ 
     
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
+    	// Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }
