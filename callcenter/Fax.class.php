@@ -108,7 +108,7 @@ class callcenter_Fax extends core_Manager
         $rec = new stdClass();
         $rec->classId = $extRec->classId;
         $rec->contragentId = $extRec->contragentId;
-        $rec->faxNum = $faxNum;
+        $rec->faxNum = callcenter_Numbers::getNumberStr($faxNum);
         $rec->cid = $cid;
         
         static::save($rec);
