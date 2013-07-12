@@ -429,10 +429,14 @@ class techno_GeneralProducts extends core_Manager {
     function getUsedDocs($data)
     {
     	$data = unserialize($data);
-    	$usedDocs =  doc_RichTextPlg::getAttachedDocs($data->description);
-    	foreach ($usedDocs as $doc){
-    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+    	if($usedDocs = doc_RichTextPlg::getAttachedDocs($data->description)) {
+	    	foreach ($usedDocs as $doc){
+	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	}
+    	} else {
+    		$res = array();
     	}
+    	
     	return $res;
     }
 }
