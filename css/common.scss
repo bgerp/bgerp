@@ -845,7 +845,7 @@ div.richtext .code code{
 	max-width:810px;
 }
 
-.narrow  div.richtext {
+.narrow  div.rich-text {
 	overflow:visible;
 	max-width: auto;
 	white-space:pre-line;
@@ -865,11 +865,6 @@ div.richtext li {
     padding:0px;
     margin-left:1.5em;
     padding-top:0.2em;
-}
-.narrow div.richtext li{
-	line-height:1.3em;
-	padding-top:0;
-	margin-top: -10px;
 }
 
 div.richtext ul { 
