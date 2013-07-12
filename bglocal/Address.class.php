@@ -306,19 +306,19 @@ class bglocal_Address extends core_MVC
         static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($regards)) {
-            $regards =  str::utf2ascii(file_get_contents(__DIR__ . "/data/regards.txt"));
+        	$regards = getFileContent('bglocal/data/regards.txt');
         }
         
         if(empty($companyTypes)) {
-            $companyTypes = str::utf2ascii(file_get_contents(__DIR__ . "/data/companyTypes.txt"));
+        	$companyTypes = getFileContent('bglocal/data/companyTypes.txt');
         }
         
         if(empty($companyWords)) {
-            $companyWords = str::utf2ascii(file_get_contents(__DIR__ . "/data/companyWords.txt"));
+        	$companyWords = getFileContent('bglocal/data/companyWords.txt');
         }
         
         if(empty($givenNames)) {
-            $givenNames = str::utf2ascii(file_get_contents(__DIR__ . "/data/givenNames.txt"));
+        	$givenNames = getFileContent('bglocal/data/givenNames.txt');
         }
         
         $div = array('@NO_DIV@', '|');
@@ -417,15 +417,15 @@ class bglocal_Address extends core_MVC
         static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($companyTypes)) {
-            $companyTypes = str::utf2ascii(file_get_contents(__DIR__ . "/data/companyTypes.txt"));
+        	$companyTypes = getFileContent('bglocal/data/companyTypes.txt');
         }
         
         if(empty($companyWords)) {
-            $companyWords = str::utf2ascii(file_get_contents(__DIR__ . "/data/companyWords.txt"));
+        	$companyWords = getFileContent('bglocal/data/companyWords.txt');
         }
         
         if(empty($givenNames)) {
-            $givenNames = str::utf2ascii(file_get_contents(__DIR__ . "/data/givenNames.txt"));
+        	$givenNames = getFileContent('bglocal/data/givenNames.txt');
         }
         
         if(strpos(trim($line), '>') === 0) return;

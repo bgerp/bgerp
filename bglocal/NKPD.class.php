@@ -57,58 +57,27 @@ class bglocal_NKPD extends core_Master
         $this->setDbUnique('key');
     }
     
+    
+    /**
+     * Изпълнява се преид импортирването на запис
+     */
+    static function on_BeforeImportRec($mvc, $rec)
+    {
+    	if(isset($rec->csv_key)){
+    		$rec->key = $rec->csv_key.$rec->csv_title;
+    		$rec->title = $rec->key. " " .$rec->csv_position;
+    	}
+    }
+    
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
- 	
-		
-    	$res .= static::loadData();
-        
-    }
-    
-    
-    /**
-     * Зареждане на началните празници в базата данни
-     */
-    static function loadData()
-    {
-    	
-        $csvFile = __DIR__ . "/data/nkpd.csv";
-        
-        $created = $updated = 0;
-        
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         
-            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-               
-                $rec = new stdClass();
-              
-                $rec->key = $csvRow[0].$csvRow[1]; 
-                $rec->title = $csvRow[0].$csvRow[1]. " ". $csvRow[2];
-                
-                $exRec = self::fetch("#key = '{$rec->key}'");
-                
-                if($exRec) {
-                	$rec->id = $exRec->id;
-                	$updated++;
-                } else {
-                	$created++;
-                }
-                   
-                static::save($rec);
-
-    
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li style='color:green;'>Създадени са записи за {$created} кода по НКПД. Обновени са {$updated} кода по НКПД.</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+ 		$file = "bglocal/data/nkpd.csv";
+    	$fields = array(0 => "csv_key", 1 => "csv_title", 2 => "csv_position");
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
     }
 }

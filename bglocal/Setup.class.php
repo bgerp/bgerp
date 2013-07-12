@@ -15,7 +15,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bglocal_Setup extends core_Manager {
+class bglocal_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -27,7 +28,7 @@ class bglocal_Setup extends core_Manager {
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'drdata_Countries';
+    var $startCtr = 'bglocal_Banks';
     
     
     /**
@@ -43,12 +44,9 @@ class bglocal_Setup extends core_Manager {
 
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        
-        $managers = array(
+    var $managers = array(
             
             //'bglocal_Mvr',
           	'bglocal_Banks',
@@ -56,21 +54,22 @@ class bglocal_Setup extends core_Manager {
        		'bglocal_NKID',
             'bglocal_NKPD',
             //'bglocal_DistrictCourts'
-        
-        
-        
+
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-             	             
-        }
-        
-        return $html;
-    }
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    //var $roles = 'currency';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    /*var $menuItems = array(
+            array(2.2, 'Финанси', 'Валути', 'currency_Currencies', 'default', "currency, ceo"),
+        );*/
     
     
     /**
@@ -78,6 +77,9 @@ class bglocal_Setup extends core_Manager {
      */
     function deinstall()
     {
-        return "Пакета drdata е разкачен";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }

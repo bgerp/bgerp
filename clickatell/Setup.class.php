@@ -41,8 +41,8 @@ defIfNot('CLICKATELL_PASSWORD', '');
  * @license   GPL 3
  * @since     v 0.1
  */
-class clickatell_Setup
-{
+class clickatell_Setup extends core_ProtoSetup
+{ 
     
     
     /**
@@ -70,31 +70,21 @@ class clickatell_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {   
-        $managers = array(
+    var $managers = array(
             'clickatell_SMS',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
-    
+   
     
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
         
-        return '';
+        return $res;
     }
 }

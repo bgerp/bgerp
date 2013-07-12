@@ -34,7 +34,7 @@ defIfNot('OFFICE_JODCONVERTER_VERSION', '3.0b4');
  * @license   GPL 3
  * @since     v 0.1
  */
-class docoffice_Setup
+class docoffice_Setup extends core_ProtoSetup
 {
     
     
@@ -65,24 +65,23 @@ class docoffice_Setup
     	'OFFICE_CONVERTER_PYTHON' => array ('varchar', ''),
     );
     
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'docoffice_Jodconverter',
+            'docoffice_Unoconv',
+        );
+
         
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $managers = array(
-            'docoffice_Jodconverter',
-            'docoffice_Unoconv',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+      	$html = parent::install();
+      	
         // Проверяваме дали офис пакета е инсталиран и работи коректно
         if (docoffice_Office::startOffice()) {
             $html .= "<li style='color:green'>Офис пакета работи коректно.";  
