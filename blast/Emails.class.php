@@ -837,7 +837,7 @@ class blast_Emails extends core_Master
         $tpl = $form->renderHtml();
 
         // Добавяме превю на първия бласт имейл, който ще изпратим
-        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div>[#BLAST_HTML#]<pre class=\"document\">[#BLAST_TEXT#]</pre></div>");
+        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div>[#BLAST_HTML#]<pre class=\"document\">[#BLAST_TEXT#]</pre></div>");
 
         // Конвертираме към въведения енкодинг
         if ($emailRec->encoding == 'ascii') {
