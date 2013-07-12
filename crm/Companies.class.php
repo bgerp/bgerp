@@ -194,7 +194,7 @@ class crm_Companies extends core_Master
         
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData,silent');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
@@ -365,13 +365,6 @@ class crm_Companies extends core_Master
             
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
-        }
-        
-        // Aко в рекуста е зададен номера
-        if ($number = Request::get('tel')) {
-            
-            // Сетваме го
-            $form->setDefault('tel', $number);
         }
     }
     
