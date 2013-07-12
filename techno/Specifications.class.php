@@ -415,7 +415,9 @@ class techno_Specifications extends core_Master {
         		$this->save($rec);
         		
         		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
-        		if($rec->common != 'yes' && $hasQuantities){
+        		$price = $technoClass->getPrice($fRec->data);
+        		
+        		if($rec->common != 'yes' && $hasQuantities && isset($price->price)){
         			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId}", 'id');
         			
         			if($qId){
