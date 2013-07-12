@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class google_Setup 
+class google_Setup extends core_ProtoSetup
 {
     
     
@@ -54,6 +54,8 @@ class google_Setup
      */
     function install()
     {
+    	$htmp = parent::install();
+    	
         //
         // Инсталиране на плъгин за автоматичен превод
         //
@@ -68,6 +70,8 @@ class google_Setup
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
     

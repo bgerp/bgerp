@@ -12,7 +12,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class gdocs_Setup extends core_Manager {
+class gdocs_Setup  extends core_ProtoSetup 
+{
     
     
     /**
@@ -44,6 +45,8 @@ class gdocs_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -59,6 +62,8 @@ class gdocs_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

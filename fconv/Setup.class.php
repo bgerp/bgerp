@@ -53,29 +53,14 @@ class fconv_Setup
         // 
        'FCONV_TEMP_PATH'   => array ('varchar')
         );
-
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
         
-        // Инсталиране на мениджърите
-        $managers = array(
+        
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
             'fconv_Processes',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        
-        return $html;
-    }
     
     
     /**

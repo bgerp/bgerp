@@ -15,7 +15,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class gen_Setup extends core_Manager {
+class gen_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -47,6 +48,8 @@ class gen_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -71,6 +74,8 @@ class gen_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
