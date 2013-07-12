@@ -65,7 +65,7 @@ class editwatch_Setup extends core_ProtoSetup
      */
     function install()
     {
-    	$html = paren::install();
+    	$html = parent::install();
     	
         // Установяваме страните;
         $Editors = cls::get('editwatch_Editors');
