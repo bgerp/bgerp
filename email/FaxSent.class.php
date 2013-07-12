@@ -102,7 +102,7 @@ class email_FaxSent extends core_Manager
 
         //Ако нито един клас не имплементира интерфейса
         if (!$clsCount) {
-            core_Statuses::add('Нямате инсталирана факс услуга.', 'warning');   
+            core_Statuses::add(tr('Нямате инсталирана факс услуга|*.'), 'warning');   
             
             redirect(getRetUrl());
         }
@@ -233,10 +233,10 @@ class email_FaxSent extends core_Manager
 
             // Създаваме съобщение, в зависимост от състоянието на изпращане
             if (empty($failure)) {
-                $msg = 'Успешно изпратено до: ' . implode(', ', $success);
+                $msg = tr('Успешно изпратено до|*: ') . implode(', ', $success);
                 $statusType = 'notice';
             } else {
-                $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+                $msg = tr('Грешка при изпращане до|*: ') . implode(', ', $failure);
                 $statusType = 'warning';
             }
             
@@ -260,7 +260,7 @@ class email_FaxSent extends core_Manager
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на факса, който ще изпратим
-        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div>");
+        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div>");
 
         $Email = cls::get('email_Outgoings');
         
@@ -306,7 +306,7 @@ class email_FaxSent extends core_Manager
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
         
         // Подготвяме лентата с инструменти на формата
-        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/arrow_right.png');
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save','ef_icon = img/16/move.png');
         
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {

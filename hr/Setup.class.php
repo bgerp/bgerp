@@ -45,11 +45,9 @@ class hr_Setup extends core_ProtoSetup
 
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+   var $managers = array(
             'hr_WorkingCycles',
             'hr_WorkingCycleDetails',
             'hr_Shifts',
@@ -58,29 +56,35 @@ class hr_Setup extends core_ProtoSetup
             'hr_ContractTypes',
             'hr_EmployeeContracts',
         );
+
         
-        // Роля ръководител на организация 
-        // Достъпни са му всички папки и документите в тях
-        $role = 'hr';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'hr';
+
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, hr"),
+        );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {  
+    	$html = parent::install(); 
+    	 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', NULL, '1GB', 'user', 'hr');
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.31, 'Персонал', 'HR', 'hr_EmployeeContracts', 'default', "ceo, {$role}");
-        
         return $html;
     }
-    
     
     /**
      * Де-инсталиране на пакета

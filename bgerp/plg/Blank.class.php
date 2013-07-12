@@ -122,6 +122,8 @@ class bgerp_plg_Blank extends core_Plugin
             $companyLogoPath = sbf($companyLogo, '"', TRUE);
         } 
         
+        // За генериране на PDF логото трябва да е с абсолютен път
+        
         return $companyLogoPath;
     }
 }

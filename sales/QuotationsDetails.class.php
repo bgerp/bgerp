@@ -64,6 +64,12 @@ class sales_QuotationsDetails extends core_Detail {
     public $listFields = 'productId, quantity, price, discount, tolerance, term, optional, amount, discAmount';
     
     
+    /**
+     * Кой таб да бъде отворен
+     */
+    var $currentTab = 'Оферти';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -512,6 +518,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$productMan = cls::get($rec->policyId)->getProductMan();
     	$productRec = $productMan::fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
-    	$productMan::save($productRec);
+    	$productMan->save_($productRec);
     }
 }

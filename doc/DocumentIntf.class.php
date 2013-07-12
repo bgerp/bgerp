@@ -195,4 +195,18 @@ class doc_DocumentIntf
         
         return $this->class->getAttachments($rec);
     }
+    
+    
+    /**
+     * Връща масив от изпозлваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $id - ид на документ
+     * @return param $res - масив с използваните документи
+     * 					['class'] - инстанция на документа
+     * 					['id'] - ид на документа
+     */
+    function getUsedDocs($id)
+    {
+    	return $this->class->getUsedDocs($id);
+    }
 }

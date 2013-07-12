@@ -90,9 +90,9 @@
                    <!--ET_BEGIN deliveryId-->
                    <div>|Условие|* / <i>Term</i> : [#deliveryId#]</div>
                    <!--ET_END deliveryId-->
-                   <!--ET_BEGIN deliveryPlace-->
-                   <div>|Място|*/ <i>Place</i> : [#deliveryPlace#]</div>
-                   <!--ET_END deliveryPlace-->
+                   <!--ET_BEGIN deliveryPlaceId-->
+                   <div>|Място|* / <i>Place</i> : [#deliveryPlaceId#]</div>
+                   <!--ET_END deliveryPlaceId-->
                    <!--ET_BEGIN additionalInfo-->
                    <hr>
                    <div>|Бележки|* / <i>Notes</i></div>

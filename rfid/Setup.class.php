@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class rfid_Setup
+class rfid_Setup extends core_ProtoSetup
 {
     
     
@@ -45,39 +45,31 @@ class rfid_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'rfid_Readers',
             'rfid_Events',
             'rfid_Tags',
             'rfid_Holders',
             'rfid_Ownerships'
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'rfid';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        // Добавяне на класовете за различните драйвери за четците
-        // core_Classes::add('rfid_driver_RfidNrj');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.4, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, ceo,admin");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'rfid';
+
     
-    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.4, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "rfid, ceo,admin"),
+        );
+
+        
     /**
      * Де-инсталиране на пакета
      */

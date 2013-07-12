@@ -49,7 +49,7 @@ defIfNot('CAMS_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
  * @license   GPL 3
  * @since     v 0.1
  */
-class cams_Setup
+class cams_Setup extends core_ProtoSetup
 {
     
     
@@ -76,6 +76,7 @@ class cams_Setup
      */
     var $info = "Видео наблюдение и записване";
     
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -99,37 +100,43 @@ class cams_Setup
             // Колко да е минималното дисково пространство
             'CAMS_MIN_DISK_SPACE'   => array ('int', 'mandatory'),
         );
+            
+        
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'cams_Cameras',
+            'cams_Records',
+            'cams_Positions'
+        );
     
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'cams';
     
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.4, 'Мониторинг', 'Камери', 'cams_Cameras', 'default', "cams, ceo, admin"),
+        );
+    
+        
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $managers = array(
-            'cams_Cameras',
-            'cams_Records',
-            'cams_Positions'
-        );
-        
-        // Роля за power-user на този модул
-        $role = 'cams';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+        $html = parent::install();
+              
         core_Classes::add('cams_driver_UIC');
         core_Classes::add('cams_driver_Mockup');
         core_Classes::add('cams_driver_Edimax');
         core_Classes::add('cams_driver_UIC9272');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $Menu->addItem(3.4, 'Мониторинг', 'Камери', 'cams_Cameras', 'default', "{$role}, ceo, admin");
         
         return $html;
     }

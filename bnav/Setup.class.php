@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bnav_Setup
+class bnav_Setup extends core_ProtoSetup
 {
     
     
@@ -49,7 +49,7 @@ class bnav_Setup
      */
     function install()
     { 
-        $html = '';
+        $html = parent::install();
     	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -69,6 +69,7 @@ class bnav_Setup
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
          // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

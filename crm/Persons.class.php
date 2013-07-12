@@ -195,7 +195,7 @@ class crm_Persons extends core_Master
 
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData,silent');
         $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
@@ -631,7 +631,7 @@ class crm_Persons extends core_Master
         $classId = static::getClassId();
         
         // Добавяме номерата в КЦ
-        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
+        callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
     }
 
 

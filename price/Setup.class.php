@@ -17,7 +17,7 @@ defIfNot('PRICE_LIST_CATALOG', 2);
  * @license   GPL 3
  * @since     v 0.1
  */
-class price_Setup
+class price_Setup extends core_ProtoSetup
 {
     
     /**
@@ -45,11 +45,21 @@ class price_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Описание на конфигурационните константи за този модул
      */
-    function install()
-    {
-        $managers = array(
+    var $configDescription = array(
+            
+            //Задаване на основна валута
+            'PRICE_LIST_COST' => array ('int', 'mandatory'),
+         
+    		'PRICE_LIST_CATALOG' => array ('int', 'mandatory'),
+        );
+    
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
             'price_Groups',
             'price_GroupOfProducts',
             'price_Lists',
@@ -61,24 +71,21 @@ class price_Setup
         	'price_ConsumptionNormGroups',
         	'price_ListDocs',
         );
-        
-        // Роля за power-user на този модул
-        $role = 'price';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "{$role}, ceo");
-
-        return $html;
-    }
     
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'price';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.44, 'Артикули', 'Ценообразуване', 'price_Lists', 'default', "price, ceo"),
+        );
+
     
     /**
      * Де-инсталиране на пакета
@@ -96,6 +103,7 @@ class price_Setup
      */
     function loadSetupData()
     {
+    	$html = parent::loadSetupData();
     	
     	$html .= price_setup_Groups::setup();
     	

@@ -69,4 +69,18 @@ class techno_ProductsIntf
     {
     	return $this->class->getPrice($data, $packagingId, $quantity, $datetime);
     }
+    
+    
+	/**
+     * Връща масив от изпозлваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					['class'] - инстанция на документа
+     * 					['id'] - ид на документа
+     */
+    function getUsedDocs($data)
+    {
+    	return $this->class->getUsedDocs($data);
+    }
 }

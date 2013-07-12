@@ -144,7 +144,7 @@ class techno_Specifications extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
-		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
+		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Тип,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
@@ -415,8 +415,10 @@ class techno_Specifications extends core_Master {
         		$this->save($rec);
         		
         		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
-        		if($rec->common != 'yes' && $hasQuantities){
-        			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId} AND #threadId = {$rec->threadId}", 'id');
+        		$price = $technoClass->getPrice($fRec->data);
+        		
+        		if($rec->common != 'yes' && $hasQuantities && isset($price->price)){
+        			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId}", 'id');
         			
         			if($qId){
         				
@@ -664,5 +666,16 @@ class techno_Specifications extends core_Master {
     	$rec = static::fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
+    }
+    
+    
+    /**
+     * @see techno_ProductsIntf::getUsedDocs
+     */
+    function getUsedDocs_($id)
+    {
+    	$rec = static::fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getUsedDocs($rec->data);
     }
 }

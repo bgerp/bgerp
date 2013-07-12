@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_Setup
+class purchase_Setup extends core_ProtoSetup
 {
     
     
@@ -41,37 +41,31 @@ class purchase_Setup
     var $info = "Покупки - доставки на стоки, материали и консумативи";
     
     
-    /**
-     * Инсталиране на пакета
+   /**
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
 //             'purchase_Offers',
             'purchase_Requests',
             'purchase_RequestDetails',
             'purchase_Debt',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'purchase';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(3.3, 'Логистика', 'Доставки', 'purchase_Offers', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'purchase';
     
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.3, 'Логистика', 'Доставки', 'purchase_Offers', 'default', "purchase, ceo"),
+        );
+
+        
     /**
      * Де-инсталиране на пакета
      */

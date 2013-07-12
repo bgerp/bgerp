@@ -76,7 +76,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         }
         
         $form->title = 'Основание за създаване';
-        $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next'), 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png');
         
         $form = $form->renderHtml();

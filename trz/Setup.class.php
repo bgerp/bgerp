@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trz_Setup
+class trz_Setup extends core_ProtoSetup
 {
     
     
@@ -42,11 +42,9 @@ class trz_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'trz_SalaryPayroll',
             'trz_Bonuses',
             'trz_Sickdays',
@@ -55,26 +53,22 @@ class trz_Setup
             'trz_Orders',
             'trz_Requests',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'budget';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'trz';
+
     
-    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.32, 'Персонал', 'ТРЗ', 'trz_SalaryPayroll', 'default', "trz, ceo"),
+        );
+
+        
     /**
      * Де-инсталиране на пакета
      */

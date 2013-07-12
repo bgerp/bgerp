@@ -43,7 +43,7 @@ defIfNot('BLOGM_ARTICLE_SHARE', '');
  * @license   GPL 3
  * @since     v 0.1
  */
-class blogm_Setup
+class blogm_Setup extends core_ProtoSetup
 {
 
 
@@ -91,28 +91,38 @@ class blogm_Setup
 	
 	
 	/**
-	 * Инсталиране на пакета
-	*/
-	function install()
-	{
-		$managers = array(
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
 				'blogm_Articles',
 				'blogm_Categories',
 				'blogm_Comments',
 				'blogm_Links',
 		);
+	
+		
+		
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'blog';
+    
 
-		// Роля за power-user на този модул
-		$role = 'blog';
-		$html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-
-		$instances = array();
-
-		foreach ($managers as $manager) {
-			$instances[$manager] = &cls::get($manager);
-			$html .= $instances[$manager]->setupMVC();
-		}
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.5, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, blog, admin, ceo"),
+        );
         
+        
+   /**
+	* Инсталиране на пакета
+	*/
+	function install()
+	{
+		$html = parent::install();
+
         // Ако няма категории, създаваме някакви 
         if(!blogm_Categories::fetch('1=1')) {
             $cat = array('Новини' => 'Новостите за нашата фирма',
@@ -132,8 +142,6 @@ class blogm_Setup
         $Bucket = cls::get('fileman_Buckets');
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
-		$Menu  = cls::get('bgerp_Menu');
-		$html .= $Menu->addItem(3.5, 'Сайт', 'Блог', 'blogm_Articles', 'list', "cms, {$role}, admin, ceo");
 
 		return $html;
 	}

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class incoming_Setup
+class incoming_Setup extends core_ProtoSetup
 {
     
     
@@ -42,30 +42,39 @@ class incoming_Setup
     
     
     /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+            'incoming_Documents',
+        );
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    //var $roles = '';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "ceo"),
+        );
+    
+        
+    /**
      * Инсталиране на пакета
      */
     function install()
     {
-        // Инсталиране на мениджърите
-        $managers = array(
-            'incoming_Documents',
-        );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+        $html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Добавяне на плъгина за създаване на входящи документи
         $html .= $Plugins->installPlugin('Създаване на входящ документ', 'incoming_CreateDocumentPlg', 'fileman_Files', 'private');  
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.24, 'Документи', 'Входящи', 'incoming_Documents', 'default', "ceo");
         
         return $html;
     }

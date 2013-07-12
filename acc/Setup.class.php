@@ -27,7 +27,7 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_Setup
+class acc_Setup extends core_ProtoSetup
 {
     
     
@@ -68,12 +68,11 @@ class acc_Setup
         'ACC_DEFAULT_VAT_RATE' => array('percent')
     );
     
+    
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'acc_Lists',
             'acc_Items',
             'acc_Periods',
@@ -89,18 +88,30 @@ class acc_Setup
             'acc_JournalDetails',
         	'acc_Operations',
         );
-        
-        // Роля за power-user на този модул
-        $role = 'acc';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'acc';
+
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
+            array(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+        );
+ 
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
 
         //Данни за работата на cron
         $rec = new stdClass();
@@ -121,10 +132,6 @@ class acc_Setup
             $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
         }
 
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, ceo");
-        $html .= $Menu->addItem(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, ceo");
         
         $html .= $this->loadSetupData();
 
@@ -137,9 +144,11 @@ class acc_Setup
      */
     function loadSetupData()
     {
+    	$html = parent::loadSetupData();
+    	
         $Periods = cls::get('acc_Periods');
 
-        $html .= $Periods->loadSetupData();
+        //$html .= $Periods->loadSetupData();
 
         //Зарежда данни за инициализация от CSV файл за acc_Lists
         $html .= acc_setup_Lists::loadData();

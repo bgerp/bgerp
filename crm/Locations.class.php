@@ -92,7 +92,7 @@ class crm_Locations extends core_Master {
             storage=Склад,
             factory=Фабрика,
             other=Друг)', 'caption=Тип,mandatory,width=15.4em');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Юрисдикция,mandatory');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Държава');
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес');
@@ -270,7 +270,7 @@ class crm_Locations extends core_Master {
                         // Добавяне на линк за изтриване
                         $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16' height='16'>";
+                        $img = "<img src=" . sbf('img/16/delete.png') . " width='16' height='16'>";
                         $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете локацията?', 'title=' . tr('Изтриване на локация')), 'content');
                         $tpl->append('</span>', 'content');
                     }

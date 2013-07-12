@@ -1,9 +1,4 @@
 <?php
-/**
- * На колко процента разлика между очакваната и въведената сума при
- * превалутиране да сетва предупреждение
- */
-defIfNot('BANK_EXCHANGE_DIFFERENCE', '5');
 
 /**
  * class bank_Setup
@@ -19,7 +14,7 @@ defIfNot('BANK_EXCHANGE_DIFFERENCE', '5');
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_Setup
+class bank_Setup extends core_ProtoSetup
 {
     
     
@@ -54,11 +49,9 @@ class bank_Setup
     
 	
 	/**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'bank_Accounts',
             'bank_OwnAccounts',
             'bank_IncomeDocument',
@@ -70,23 +63,20 @@ class bank_Setup
         	'bank_DepositSlips',
         );
         
-        // Роля за power-user на този модул
-        $role = 'bank';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'bank';
+
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.2, 'Финанси', 'Банки', 'bank_OwnAccounts', 'default', "bank, ceo"),
+        );
+        
     
     /**
      * Де-инсталиране на пакета

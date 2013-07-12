@@ -172,7 +172,7 @@ class blast_Emails extends core_Master
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
-        $this->FLD('sendPerMinute', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
+        $this->FLD('sendPerMinute', 'int(min=1, max=100)', 'caption=Изпращания в минута, input=none, mandatory');
         $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
@@ -837,7 +837,7 @@ class blast_Emails extends core_Master
         $tpl = $form->renderHtml();
 
         // Добавяме превю на първия бласт имейл, който ще изпратим
-        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div>[#BLAST_HTML#]<pre class=\"document\">[#BLAST_TEXT#]</pre></div>");
+        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div>[#BLAST_HTML#]<pre class=\"document\">[#BLAST_TEXT#]</pre></div>");
 
         // Конвертираме към въведения енкодинг
         if ($emailRec->encoding == 'ascii') {

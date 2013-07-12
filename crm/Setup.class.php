@@ -30,7 +30,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class crm_Setup
+class crm_Setup extends core_ProtoSetup
 {
     
     
@@ -75,12 +75,11 @@ class crm_Setup
             'BGERP_OWN_COMPANY_COUNTRY' => array ('text')
         );
     
+        
     /**
-     * Скрипт за инсталиране
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'crm_Groups',
             'crm_Companies',
             'crm_Persons',
@@ -90,21 +89,29 @@ class crm_Setup
             'crm_Profiles',
             'crm_Locations',
         );
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'crm';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "crm, user"),
+        );
+ 
+    /**
+     * Скрипт за инсталиране
+     */
+    function install()
+    {
         
-        // Роля за power-user на този модул
-        $role = 'crm';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', "user");
-        
+        $html = parent::install();
+                
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg,png', '3MB', 'user', 'every_one');

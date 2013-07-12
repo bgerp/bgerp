@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class budget_Setup
+class budget_Setup extends core_ProtoSetup
 {
     
     
@@ -42,35 +42,28 @@ class budget_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'budget_Assets',
             'budget_IncomeExpenses',
             'budget_Balances',
             'budget_Reports',
         );
-        
-        // Роля за power-user на този модул
-        $role = 'budget';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $html .= $Menu->addItem(2.2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'budget'; 
+  
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "budget, ceo"),
+        );    
+
     
     /**
      * Де-инсталиране на пакета

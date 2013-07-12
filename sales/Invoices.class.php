@@ -152,7 +152,7 @@ class sales_Invoices extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
         $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
-        $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
+        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
@@ -462,9 +462,9 @@ class sales_Invoices extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
         if($path = $conf->INV_LAYOUT){
-        	//$path = basename($path);
-        	//expect($res = getTplFromFile("sales/tpl/" . $path), 'Няма такъв файл');
-        	$res = getTplFromFile($path);
+        	$path = basename($path);
+        	expect($res = getTplFromFile("/sales/tpl/{$path}"), 'Няма такъв файл');
+        	
         	return $res;
         }
         
@@ -672,6 +672,9 @@ class sales_Invoices extends core_Master
         if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 	        $form->setDefault('accountId', $ownAcc);
 	    } 
+	    
+	    $locations = crm_Locations::getContragentOptions($sourceClass, $sourceObjectId);
+        $form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     }
     
     
@@ -906,5 +909,29 @@ class sales_Invoices extends core_Master
       	$result->entries = $entries;
       	
       	return $result;
+    }
+    
+    
+	/**
+     * Връща масив от изпозлваните документи в офертата
+     * @param int $id - ид на оферта
+     * @return param $res - масив с използваните документи
+     * 					['class'] - Инстанция на документа
+     * 					['id'] - Ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+    	$res = array();
+    	$dQuery = $this->sales_InvoiceDetails->getQuery();
+    	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
+    	$dQuery->where("#state != 'rejected' AND #invoiceId = '{$id}'");
+    	$dQuery->groupBy('productId,policyId');
+    	while($dRec = $dQuery->fetch()){
+    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+    		}
+    	}
+    	return $res;
     }
 }

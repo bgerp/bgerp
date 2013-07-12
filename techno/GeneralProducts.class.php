@@ -25,7 +25,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Универсален драйвър";
+    var $title = "Универсален продукт";
     
     
     /**
@@ -74,8 +74,8 @@ class techno_GeneralProducts extends core_Manager {
     	$form = cls::get('core_Form');
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
     	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
-		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input');
-    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Ед. Себестойност,width=8em,mandatory,input');
+		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input,mandatory');
+    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Себестойност,width=8em,input');
 		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
 		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
     	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,hint=Процент');
@@ -106,11 +106,8 @@ class techno_GeneralProducts extends core_Manager {
     {
     	$form = cls::get('core_Form');
     	$form->formAttr['id'] = 'addParamSpec';
-    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
+    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
-    	
         return $form;
     }
     
@@ -296,7 +293,7 @@ class techno_GeneralProducts extends core_Manager {
     	if(techno_Specifications::haveRightFor('configure', $specificationId) && !Mode::is('printing')) {
     		
 	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
-			$deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . " alt=\"" . tr('Изтриване') . "\">";
+			$deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Изтриване') . "\">";
 	        
 			$editUrl = array($this, 'configure', $specificationId, 'paramId' => $paramId, 'edit' => TRUE, 'ret_url' => TRUE);
 	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);
@@ -372,12 +369,13 @@ class techno_GeneralProducts extends core_Manager {
     	expect($rec = $Specifications->fetch($id));
     	$Specifications->requireRightFor('configure', $rec);
     	$data = unserialize($rec->data);
+    	$retUrl = array('techno_Specifications', 'single', $id, "#" => "Sp{$id}");
     	
     	if($paramId = Request::get('delete')){
     		unset($data->params[$paramId]);
     		$rec->data = $this->serialize($data);
 	        $Specifications->save($rec);
-	        return followRetUrl();
+	        return Redirect($retUrl);
     	}
     	
     	$form = $this->getAddParamForm($data);
@@ -402,6 +400,9 @@ class techno_GeneralProducts extends core_Manager {
         	$form->setField('paramValue', 'input=hidden');
         }
         
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
         $fRec = $form->input();
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('configure', $rec)){
@@ -420,5 +421,23 @@ class techno_GeneralProducts extends core_Manager {
         
         $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
+    }
+    
+    
+	/**
+     * @see techno_ProductsIntf::getUsedDocs
+     */
+    function getUsedDocs($data)
+    {
+    	$data = unserialize($data);
+    	if($usedDocs = doc_RichTextPlg::getAttachedDocs($data->description)) {
+	    	foreach ($usedDocs as $doc){
+	    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+	    	}
+    	} else {
+    		$res = array();
+    	}
+    	
+    	return $res;
     }
 }

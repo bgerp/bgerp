@@ -137,7 +137,7 @@ class cat_Groups extends core_Master
         						canBuy=Купуваеми,
         						canStore=Складируеми,
         						canConvert=Вложими,
-        						fixedAsset=Дма,
+        						fixedAsset=ДМА,
         						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique("sysId");

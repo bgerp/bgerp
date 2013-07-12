@@ -15,7 +15,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Setup
+class salecond_Setup  extends core_ProtoSetup
 {
     
     
@@ -50,35 +50,30 @@ class salecond_Setup
         
         
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
         	'salecond_PaymentMethods',
         	'salecond_DeliveryTerms',
         	'salecond_Parameters',
         	'salecond_ConditionsToCustomers',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'salecond';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'salecond';
+
     
-    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "salecond, ceo"),
+        );
+
+        
     /**
      * Де-инсталиране на пакета
      */

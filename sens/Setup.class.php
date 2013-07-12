@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sens_Setup
+class sens_Setup extends core_ProtoSetup
 {
     
     
@@ -51,11 +51,9 @@ class sens_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'sens_Sensors',
             'sens_IndicationsLog',
             'sens_MsgLog',
@@ -63,18 +61,29 @@ class sens_Setup
             'sens_Overviews',
             'sens_OverviewDetails'
         );
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'sens';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "sens, ceo,admin"),
+        );
+    
         
-        // Роля за power-user на този модул
-        $role = 'sens';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
+                                 
         // Добавяме наличните драйвери
         $drivers = array(
             'sens_driver_Mockup',
@@ -90,10 +99,7 @@ class sens_Setup
             $drvObject->setParams();
             unset($drvObject);
         }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $Menu->addItem(3.4, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, ceo,admin");
-        
+         
         $Cron = cls::get('core_Cron');
         
         $rec = new stdClass();

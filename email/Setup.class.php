@@ -51,7 +51,7 @@ defIfNot('SPAM_SA_SCORE_LIMIT', 7);
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Setup
+class email_Setup extends core_ProtoSetup
 {
     
     
@@ -110,14 +110,12 @@ class email_Setup
 
             
         );
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
         
-        $managers = array(
+        
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
             'email_Incomings',
             'email_Outgoings',
             'email_Inboxes',
@@ -133,30 +131,34 @@ class email_Setup
             'email_Unparsable',
             'email_Salutations',
         );
-        
+    
 
-        // Роля ръководител на организация 
-        // Достъпни са му всички папки и документите в тях
-        $roleE = 'email';
-        $html .= core_Roles::addRole($roleE) ? "<li style='color:green'>Добавена е роля <b>$roleE</b></li>" : '';
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'email, fax';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, email, fax, user"),
+        );
         
-        $roleF = 'fax';
-        $html .= core_Roles::addRole($roleF) ? "<li style='color:green'>Добавена е роля <b>$roleF</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+       
+        $html = parent::install();
+            
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', "admin, {$roleE}, {$roleF}, user");
-        
+             
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

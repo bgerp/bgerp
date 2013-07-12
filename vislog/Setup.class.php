@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class vislog_Setup
+class vislog_Setup extends core_ProtoSetup
 {
     
     
@@ -43,33 +43,29 @@ class vislog_Setup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'vislog_HistoryResources',
             'vislog_History',
             'vislog_Referer',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        // Меню
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.5, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms");
-        
-        return $html;
 
-        return $html;
-    }
+        
+    /**
+     * Роли за достъп до модула
+     */
+    //var $roles = 'vislog';
     
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.5, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms"),
+        );
+
+        
     /**
      * Де-инсталиране на пакета
      */

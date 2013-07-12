@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class accda_Setup
+class accda_Setup extends core_ProtoSetup
 {
     
     
@@ -40,36 +40,30 @@ class accda_Setup
      */
     var $info = "Дълготрайни активи";
     
-    
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'accda_Da',
             'accda_Groups',
             'accda_Documents',
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'accda';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.1, 'Счетоводство', 'ДА', 'accda_Da', 'default', "{$role}, ceo");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'accda';
+
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.1, 'Счетоводство', 'ДА', 'accda_Da', 'default', "accda, ceo"),
+        );
     
+        
     /**
      * Де-инсталиране на пакета
      */

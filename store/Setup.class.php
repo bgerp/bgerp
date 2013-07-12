@@ -16,7 +16,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Setup
+class store_Setup extends core_ProtoSetup
 {
     
     
@@ -42,14 +42,12 @@ class store_Setup
      * Описание на модула
      */
     var $info = "Палетно складово стопанство";
-    
+        
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var  $managers = array(
             'store_Stores',
             'store_Movements',
             'store_Pallets',
@@ -63,24 +61,32 @@ class store_Setup
             'store_ShipmentOrders',
             'store_ShipmentOrderDetails',
         );
-        
-        // Роля за power-user на този модул
-        $role = 'store';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'store';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.3, 'Логистика', 'Складове', 'store_Stores', 'default', "store, ceo"),
+        );
+    
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+       $html = parent::install();
+                   
         core_Classes::add('store_ArrangeStrategyTop');
         core_Classes::add('store_ArrangeStrategyBottom');
         core_Classes::add('store_ArrangeStrategyMain');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.3, 'Логистика', 'Складове', 'store_Stores', 'default', "{$role}, ceo");
         
         return $html;
     }

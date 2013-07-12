@@ -321,7 +321,7 @@ div.tab-control div.tab-row .tab {
 		border-top: 2px solid $blue;
 		border-bottom: none;
 		z-index: 3;
-		padding: 4px 5px 5px 5px;
+		padding: 4px 5px 6px 5px;
 		margin: 1px -16px -3px 18px;
 		top: 0px;
 		font-weight: bold;
@@ -572,6 +572,112 @@ div.alphabet div.tab-row .tab{
   padding: 1px 7px 2px; 
  }
 /*край на таб alphabet*/
+
+
+
+/*потребителски профил*/
+.user-profile{
+	max-width:860px;
+	border:1px solid #ccc;
+	border-radius:5px;
+	background:#f1f1f1;	
+	margin-top:15px;
+	.user-title{
+		position:relative;
+		padding:70px 20px 10px 132px;
+		font-size:1.3em;
+		text-shadow:1px 1px 2px rgba(0,0,0,0.7);
+		background: rgb(234,234,234); /* Old browsers */
+		background: -moz-linear-gradient(top, rgba(234,234,234,1) 0%, rgba(97,97,98,1) 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(234,234,234,1)), color-stop(100%,rgba(97,97,98,1))); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* IE10+ */
+		background: linear-gradient(to bottom, rgba(234,234,234,1) 0%,rgba(97,97,98,1) 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eaeaea', endColorstr='#616162',GradientType=0 ); /* IE6-9 */
+		color:#fff;
+		font-weight:bold;
+		border-radius:5px 5px 0 0;
+	}
+   .profile-image>a, .profile-image div{
+		position:absolute;
+		top:15px;
+		left:15px;
+		width:100px;
+		height:100px;
+		@include border-radius(3px);
+		border:3px solid #fff;
+		box-shadow:0 1px 4px rgba(0,0,0,0.5);
+		display:block;
+		text-align:center;
+		background:#fff;
+		overflow:hidden;
+		img{
+			width:auto;
+			height:100px;
+		}
+	}
+	.linkWithIcon{
+		height:19px;
+		padding-top:1px;
+	}
+	> .groupList{
+		margin-left:10px;
+	}
+	.card-profile{
+		margin:0 10px 10px;
+	}
+	.fright{
+		margin-left:10px;
+	}
+	.inner-holder{
+		padding:15px 15px 15px 15px;
+	}
+	.detail-info{
+		background:#fff;
+	}
+	.detail-info.portal .dt{
+		width:1%;
+		min-width:85px
+	}
+}
+.narrow .user-profile{
+	margin-top:7px; 
+	min-width:100px;
+	max-width:600px;
+	.user-title{
+		font-size:1.1em;
+		padding:70px 20px 10px 127px;
+	}
+	table .dt{
+		padding-right:5px;
+	}
+	.profile-image>a, .profile-image div{
+		left:10px;
+		top:10px;
+	}
+	.detail-info{
+		font-size:0.9em;
+		min-width:90%;
+		line-height:1.2em;
+	}
+	.inner-holder{
+		padding:10px;
+	}
+	.linkWithIcon{
+		height:auto;
+		padding-top:1px;
+	}
+	table .dt{
+		line-height:1.2em;
+	}
+	.fleft,.fright{
+		float:none;
+		margin-left:0;
+	}
+} 
+/*край на потребителски профил*/
+
 
 /*стилове за cat*/
 div.productImage {
@@ -902,6 +1008,10 @@ td.portal-date {
 	}
 }
 
+pre.document{
+	white-space:pre-line;
+}
+
 .narrow .document{
 	min-width:200px;
 	width: 100%;
@@ -963,6 +1073,7 @@ td.portal-date {
 
 .antetka {
 	margin-top: 10px;
+	margin-bottom:5px;
 	margin-left:1px;
 	padding: 5px;
 	border: solid 1px #ddd;
@@ -1486,6 +1597,9 @@ ul.history {
 		&.fax b {
 			background-color: #050;
 		}
+		&.used b {
+			background-color: #FF9999;
+		}
 	}
 	.detailed b {
 		background-color: #ccc;
@@ -1601,6 +1715,26 @@ fieldset.sharing-history {
 
 
 /* CMS */
+/*външни стилове за ширина*/
+#all .narrow #cmsTop {
+	min-width:520px;
+	height:141px !important;
+}
+
+#all #cmsMenu {
+    min-width:520px;
+}
+
+#all #cmsBottom {
+	min-width:520px;
+}
+
+#all #maincontent {
+	min-width:510px;
+}
+
+/*край на външни стилове за ширина*/
+
 #cmsTop {
 	background-repeat: no-repeat;
 	display: block;
@@ -1654,6 +1788,7 @@ fieldset.sharing-history {
 
 #cmsNavigation div.nav_item {
 	padding: 1px;
+	line-height:normal;
 	font-family: Trebuchet MS, Geneva, Tahoma, sans-serif;
 }
 
@@ -2349,6 +2484,10 @@ div.locImage{
 	line-height: 120%;
 	margin-bottom: 10px;
  }
+
+.preview-holder .document{
+	width:850px !important;
+}
 
 /*край на бъгфиксове*/
 

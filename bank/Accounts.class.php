@@ -116,6 +116,12 @@ class bank_Accounts extends core_Master {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
                 $cCode = $countryRec->currencyCode;
                 $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
+            } else {
+            	
+            	// По дефолт е основната валута в системата
+            	$conf = core_Packs::getConfig('currency');
+            	$defaultCurrencyId = currency_Currencies::getIdByCode($conf->CURRENCY_BASE_CODE);
+            	$data->form->setDefault('currencyId', $defaultCurrencyId);
             }
                     
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
@@ -257,7 +263,7 @@ class bank_Accounts extends core_Master {
                     	// Добавяне на линк за изтриване
                         $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16'  height='16'>";
+                        $img = "<img src=" . sbf('img/16/delete.png') . " width='16'  height='16'>";
                         $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете сметката?', 'title=' . tr('Изтриване на банкова сметка')), 'content');
                         $tpl->append('</span>', 'content');
                     }

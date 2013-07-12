@@ -84,7 +84,7 @@ class callcenter_SMS extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = '';
+    var $singleIcon = 'img/16/sms.png';
 
     
     /**
@@ -116,7 +116,7 @@ class callcenter_SMS extends core_Master
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none, hint=Статус на съобщението');
         $this->FLD('receivedTime', 'datetime', 'caption=Получено на, input=none');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас, input=none');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер, input=none');
@@ -185,16 +185,10 @@ class callcenter_SMS extends core_Master
         $params['function'] = 'update';
         
         // Вземаме информация за номера
-        $mobileNumArr = drdata_PhoneType::toArray($rec->mobileNum);
+        $rec->mobileNum = callcenter_Numbers::getNumberStr($rec->mobileNum);
         
-        // Очакваме да има такъв масив
-        expect($mobileNumArr);
-        
-        // Обединяваме кода и номера
-        $mobileNum = $mobileNumArr[0]->countryCode . $mobileNumArr[0]->areaCode . $mobileNumArr[0]->number;
-
         // Изпращаме SMS'a
-        $sendStatusArr = $service->sendSMS($mobileNum, $rec->text, $rec->sender, $params);
+        $sendStatusArr = $service->sendSMS($rec->mobileNum, $rec->text, $rec->sender, $params);
         
         // Ако е изпратен успешно
         if ($sendStatusArr['sended']) {
@@ -211,7 +205,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме последния запис за номера
-        $extRec = callcenter_ExternalNum::getLastRecForNum($rec->mobileNum);
+        $extRec = callcenter_Numbers::getRecForNum($rec->mobileNum);
         
         // Вземаме класа и id' то на контрагента
         $rec->classId = $extRec->classId;

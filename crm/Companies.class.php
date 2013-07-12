@@ -194,12 +194,13 @@ class crm_Companies extends core_Master
         
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData,silent');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,class=contactData');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
@@ -443,6 +444,10 @@ class crm_Companies extends core_Master
                     $form->setWarning('regCompanyFileYear,regDecisionDate', "Годината на регистрацията на фирмата и фирменото дело се различават твърде много.");
                 }
             }
+            
+            if($rec->vatId && empty($rec->uicId)){
+            	$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+            }
         }
     }
     
@@ -596,7 +601,7 @@ class crm_Companies extends core_Master
         $classId = static::getClassId();
         
         // Добавяме в КЦ
-        callcenter_ExternalNum::updateNumbers($numbersArr, $classId, $rec->id);
+        callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
     }
     
     
@@ -985,6 +990,7 @@ class crm_Companies extends core_Master
             $contrData->company = $company->name;
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
+            $contrData->uicId = $company->uicId;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');

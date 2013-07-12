@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cal_Setup
+class cal_Setup extends core_ProtoSetup
 {
     
     
@@ -48,35 +48,30 @@ class cal_Setup
     
     
     /**
-     * Скрипт за инсталиране
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'cal_Calendar',
             'cal_Tasks',
             'cal_TaskProgresses',
             'cal_Holidays',
         	'cal_Reminders'
         );
+
         
-        // Роля за power-user на този модул
-        $role = 'user';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', "{$role}, admin");
-        
-        return $html;
-    }
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'user';
+
     
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.33, 'Указател', 'Календар', 'cal_Calendar', 'default', "user, admin"),
+        );
+
     
     /**
      * Деинсталиране

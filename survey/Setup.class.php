@@ -2,13 +2,6 @@
 
 
 /**
- * До колко минути след първото гласуване, потребителя може да си смени
- * гласа
- */
-defIfNot('SURVEY_VOTE_CHANGE', '2');
-
-
-/**
  * class survey_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -22,7 +15,7 @@ defIfNot('SURVEY_VOTE_CHANGE', '2');
  * @license   GPL 3
  * @since     v 0.1
  */
-class survey_Setup
+class survey_Setup extends core_ProtoSetup
 {
     
     
@@ -44,11 +37,35 @@ class survey_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Анкети и Гласувания";
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var  $managers = array(
+            'survey_Surveys',
+            'survey_Alternatives',
+            'survey_Votes',
+        	'survey_Options',
+        );
+    
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'survey';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "survey, ceo"),
+        );
     
 	
 	/**
@@ -56,30 +73,11 @@ class survey_Setup
      */
     function install()
     {
-        $managers = array(
-            'survey_Surveys',
-            'survey_Alternatives',
-            'survey_Votes',
-        	'survey_Options',
-        );
-        
-        // Роля за power-user на този модул
-        $role = 'survey';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
+        $html = parent::install();
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('survey_Images', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.46, 'Обслужване', 'Анкети', 'survey_Surveys', 'default', "{$role}, ceo");
         
         return $html;
     }

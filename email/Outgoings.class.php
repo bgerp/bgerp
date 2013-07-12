@@ -238,7 +238,7 @@ class email_Outgoings extends core_Master
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на имейла, който ще изпратим
-        $preview = new ET("<div style='width:896px'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div>");
+        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div>");
        
         $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
         $preview->append(core_Type::escape($this->getEmailText($data->rec, $lg)) , 'EMAIL_TEXT');
@@ -418,7 +418,7 @@ class email_Outgoings extends core_Master
         
         // Ако има успешно изпращане
         if ($success) {
-            $msg = 'Успешно изпратено до: ' . implode(', ', $success);
+            $msg = tr('Успешно изпратено до|*: ') . implode(', ', $success);
             $statusType = 'notice';
             
             // Добавяме статус
@@ -427,7 +427,7 @@ class email_Outgoings extends core_Master
         
         // Ако има провалено изпращане
         if ($failure) {
-            $msg = 'Грешка при изпращане до: ' . implode(', ', $failure);
+            $msg = tr('Грешка при изпращане до|*: ') . implode(', ', $failure);
             $statusType = 'warning';   
             
             // Добавяме статус
@@ -492,7 +492,7 @@ class email_Outgoings extends core_Master
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие,width=750px,formOrder=3', array('attr' => array('data-role' => 'list' )));
         
         // Подготвяме лентата с инструменти на формата
-        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/move.png');
         
         // Ако има права за ипзващне на факс
         if (email_FaxSent::haveRightFor('send')) {
@@ -834,7 +834,7 @@ class email_Outgoings extends core_Master
         $forward = Request::get('forward');
         
         // Добавяме бутона изпрати
-        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/arrow_right.png');
+        $form->toolbar->addSbBtn('Изпрати', 'sending', array('order'=>'10'), 'ef_icon = img/16/move.png');
                 
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;

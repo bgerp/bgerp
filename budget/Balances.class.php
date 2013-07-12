@@ -64,7 +64,9 @@ class budget_Balances extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, fromDate, toDate, state, accountId,
+                       baseQuantity, baseAmount, debitQuantity, debitAmount, creditQuantity, 
+                       creditAmount, blQuantity, blAmount';
     
     
     /**
@@ -78,18 +80,19 @@ class budget_Balances extends core_Manager
      */
     function description()
     {
+    	
+        $this->FLD('fromDate', 'date', 'caption=Период->от');
+        $this->FLD('toDate', 'date', 'caption=Период->до');
+        $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип');
+        $this->FLD('accountId', 'key(mvc=acc_Accounts,select=title)', 'caption=Сметка->име');
+        $this->FLD('baseQuantity', 'double', 'caption=База->К-во');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во');
+        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->К-во');
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
     }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
-    }
+ 
 }
