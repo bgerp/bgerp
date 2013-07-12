@@ -20,7 +20,7 @@ class core_App
             if (!core_Mode::is('screenMode')) {
                 core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
             }
-
+            
             // Генерираме съдържанието
             $content = core_Request::forward();
 
@@ -28,11 +28,16 @@ class core_App
             $Wrapper = core_Cls::get('page_Wrapper');
 
             $Wrapper->render($content);
-
-            static::shutdown();    // Край на работата на скрипта
+            
+            // Край на работата на скрипта
+            static::shutdown();
         }
-        catch (core_Exception_Expect $e)
+        catch (core_exception_Expect $e)
         {
+            if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
+                // При празна база редиректваме безусловно към сетъп-а
+                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+            }
             echo $e->getAsHtml();
         }
     }
