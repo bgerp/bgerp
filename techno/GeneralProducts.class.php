@@ -421,4 +421,18 @@ class techno_GeneralProducts extends core_Manager {
         $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
     }
+    
+    
+	/**
+     * @see techno_ProductsIntf::getUsedDocs
+     */
+    function getUsedDocs($data)
+    {
+    	$data = unserialize($data);
+    	$usedDocs =  doc_RichTextPlg::getAttachedDocs($data->description);
+    	foreach ($usedDocs as $doc){
+    		$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+    	}
+    	return $res;
+    }
 }

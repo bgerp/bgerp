@@ -665,4 +665,15 @@ class techno_Specifications extends core_Master {
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getProductInfo($rec->data, $packagingId);
     }
+    
+    
+    /**
+     * @see techno_ProductsIntf::getUsedDocs
+     */
+    function getUsedDocs_($id)
+    {
+    	$rec = static::fetch($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
+    	return $technoClass->getUsedDocs($rec->data);
+    }
 }
