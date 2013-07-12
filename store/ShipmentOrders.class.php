@@ -804,4 +804,27 @@ class store_ShipmentOrders extends core_Master
         
         return $products;
     }
+    
+	/**
+     * Връща масив от изпозлваните документи в офертата
+     * @param int $id - ид на оферта
+     * @return param $res - масив с използваните документи
+     * 					['class'] - Инстанция на документа
+     * 					['id'] - Ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+    	$res = array();
+    	$dQuery = $this->store_ShipmentOrderDetails->getQuery();
+    	$dQuery->EXT('state', 'store_ShipmentOrders', 'externalKey=shipmentId');
+    	$dQuery->where("#state != 'rejected' AND #shipmentId = '{$id}'");
+    	$dQuery->groupBy('productId,policyId');
+    	while($dRec = $dQuery->fetch()){
+    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+    		}
+    	}
+    	return $res;
+    }
 }
