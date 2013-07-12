@@ -2,13 +2,6 @@
 
 
 /**
- * До колко минути след първото гласуване, потребителя може да си смени
- * гласа
- */
-defIfNot('SURVEY_VOTE_CHANGE', '2');
-
-
-/**
  * class survey_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -44,21 +37,11 @@ class survey_Setup extends core_ProtoSetup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Анкети и Гласувания";
     
-    
-    /**
-     * Описание на конфигурационните константи за този модул
-     */
-    var $configDescription = array(
-            
-            //Задаване на основна валута
-            'SURVEY_VOTE_CHANGE' => array ('int', 'mandatory'),
-             );
     
     /**
      * Списък с мениджърите, които съдържа пакета
