@@ -58,6 +58,12 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
+     * Кои полета да се извличат при изтриване
+     */
+    var $fetchFieldsBeforeDelete = 'id,number';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_saveAndNew, plg_Created';
@@ -81,7 +87,7 @@ class callcenter_Numbers extends core_Manager
     function description()
     {
         
-        $this->FLD('number', 'drdata_PhoneType', 'caption=Номер, mandatory, width=100%');
+        $this->FLD('number', 'drdata_PhoneType', 'caption=Номер, mandatory, width=100%, silent');
         $this->FLD('type', 'enum(tel=Телефон, mobile=Мобилен, fax=Факс, internal=Вътрешен)', 'caption=Тип');
         $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
         $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
@@ -257,6 +263,16 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
+     * 
+     */
+    static function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->deletedItems[$rec->id] = $rec;
+        }
+    }
+    
+    /**
      * Връща подадения номер като стринг като пълен номер
      * 
      * @param string $number - Номера
@@ -331,6 +347,28 @@ class callcenter_Numbers extends core_Manager
                 callcenter_Talks::updateRecsForNum($numStr, $rec->id);
             }
         }
+        
+        // Ако имаме променини или добавени номера
+        if(count($mvc->deletedItems)) {
+            
+            // Обхождаме масива
+            foreach ((array)$mvc->deletedItems as $id => $rec) {
+                
+                // Ако е вътрешен
+                if ($rec->type == 'internal') {
+                    
+                    // Записваме номера
+                    $numStr = $rec->number;
+                } else {
+                    
+                    // Вземаме пълния номер
+                    $numStr = static::getNumberStr($rec->number);
+                }
+                
+                // Обновяваме записите в Централата
+                callcenter_Talks::updateRecsForNum($numStr);
+            }
+        }
     }
     
     
@@ -400,13 +438,6 @@ class callcenter_Numbers extends core_Manager
             // Да е избран потребителя, който редактираме
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
-        }
-        
-        // Aко в рекуста е зададен номера
-        if ($number = Request::get('number')) {
-            
-            // Сетваме го
-            $form->setDefault('number', $number);
         }
     }
 
