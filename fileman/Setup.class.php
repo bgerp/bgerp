@@ -166,7 +166,7 @@ class fileman_Setup extends core_ProtoSetup
             //'fileman_Buckets',
     
             // Установяваме файловете;
-            'fileman_Files',
+            //'fileman_Files',
     
             // Установяване на детайлите на файловете
             'fileman_FileDetails',
@@ -192,6 +192,9 @@ class fileman_Setup extends core_ProtoSetup
     	
     	// Кофа 
         $Buckets = cls::get('fileman_Buckets');
+        
+        // Установяваме файловете;
+        $Files = cls::get('fileman_Files');
         
         // Конвертира старите имена, които са на кирилица
         if(Request::get('Full')) {
