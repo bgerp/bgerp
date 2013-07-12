@@ -102,7 +102,7 @@ class email_FaxSent extends core_Manager
 
         //Ако нито един клас не имплементира интерфейса
         if (!$clsCount) {
-            core_Statuses::add('Нямате инсталирана факс услуга.', 'warning');   
+            core_Statuses::add(tr('Нямате инсталирана факс услуга|*.'), 'warning');   
             
             redirect(getRetUrl());
         }
