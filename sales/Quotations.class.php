@@ -140,7 +140,7 @@ class sales_Quotations extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
-        $this->FLD('deliveryPlace', 'varchar(128)', 'caption=Доставка->Място,width=8em');
+        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,width=10em');
         
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
@@ -169,7 +169,10 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $mvc->populateDefaultData($data->form->rec);
+       $rec = &$data->form->rec;
+       $mvc->populateDefaultData($rec);
+       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+       $data->form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     }
 	
     

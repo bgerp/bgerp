@@ -152,7 +152,7 @@ class sales_Invoices extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
         $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
-        $this->FLD('deliveryPlace', 'varchar', 'caption=Доставка->Място');
+        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); // TODO plg_Recently
@@ -672,6 +672,9 @@ class sales_Invoices extends core_Master
         if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 	        $form->setDefault('accountId', $ownAcc);
 	    } 
+	    
+	    $locations = crm_Locations::getContragentOptions($sourceClass, $sourceObjectId);
+        $form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
     }
     
     
