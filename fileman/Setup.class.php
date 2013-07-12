@@ -106,7 +106,8 @@ defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 5);
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_Setup extends core_Manager {
+class fileman_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -156,43 +157,42 @@ class fileman_Setup extends core_Manager {
     
     );
     
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+     		// Установяваме папките;
+            //'fileman_Buckets',
+    
+            // Установяваме файловете;
+            'fileman_Files',
+    
+            // Установяване на детайлите на файловете
+            'fileman_FileDetails',
+    
+    		// Установяваме версиите;
+            'fileman_Versions',
+    
+		    // Установяваме данните;
+		    'fileman_Data',
+    
+		    // Установяваме свалянията;
+		    'fileman_Download',
+    
+		    // Установяваме индексите на файловете
+		    'fileman_Indexes'
+        );
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        // Установяваме папките;
+    	$html = parent::install();
+    	
+    	// Кофа 
         $Buckets = cls::get('fileman_Buckets');
-        $html .= $Buckets->setupMVC();
         
-        // Установяваме файловете;
-        $Files = cls::get('fileman_Files');
-        $html .= $Files->setupMVC();
-        
-        // Установяване на детайлите на файловете
-        $FileDetails = cls::get('fileman_FileDetails');
-        $html .= $FileDetails->setupMVC();
-        
-        // Установяваме версиите;
-        $Versions = cls::get('fileman_Versions');
-        $html .= $Versions->setupMVC();
-        
-        // Установяваме данните;
-        $Data = cls::get('fileman_Data');
-        $html .= $Data->setupMVC();
-        
-        // Установяваме свалянията;
-        $Download = cls::get('fileman_Download');
-        $html .= $Download->setupMVC();
-        
-        // Установяваме индексите на файловете
-        $Info = cls::get('fileman_Indexes');
-        $html .= $Info->setupMVC();
-        
-        // Установяваме вземанията от URL;
-        // $Get = cls::get('fileman_Get');
-        // $html .= $Get->setupMVC();
-                
         // Конвертира старите имена, които са на кирилица
         if(Request::get('Full')) {
             $query = $Files->getQuery();

@@ -14,7 +14,8 @@
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class thumbnail_Setup extends core_Manager {
+class thumbnail_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -30,23 +31,21 @@ class thumbnail_Setup extends core_Manager {
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        // Установяваме папките;
-        $Thumbnail = cls::get('thumbnail_Thumbnail');
-        $html .= $Thumbnail->setupMVC();
-        
-        return $html;
-    }
-    
+    var $managers = array(
+            'thumbnail_Thumbnail',
+        );
+
     
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
-        return "<h4>Пакета thumbnail е деинсталиран</h4>";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }
