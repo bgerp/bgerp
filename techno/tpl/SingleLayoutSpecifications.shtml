@@ -12,7 +12,7 @@
 			[#data#]
 			<table class='styled-table'>
 			<tr>
-				<td>|Технолог|*:</td>
+				<td>|Тип|*:</td>
 				<td>[#prodTehnoClassId#]</td>
 			</tr>
 			<tr>

@@ -25,7 +25,7 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Универсален драйвър";
+    var $title = "Универсален продукт";
     
     
     /**

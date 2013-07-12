@@ -144,7 +144,7 @@ class techno_Specifications extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, input=hidden');
-		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Технолог,input=hidden,silent');
+		$this->FLD('prodTehnoClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Тип,input=hidden,silent');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
