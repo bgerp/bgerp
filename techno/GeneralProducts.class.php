@@ -108,9 +108,6 @@ class techno_GeneralProducts extends core_Manager {
     	$form->formAttr['id'] = 'addParamSpec';
     	$form->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
         $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
-    	
         return $form;
     }
     
@@ -372,12 +369,13 @@ class techno_GeneralProducts extends core_Manager {
     	expect($rec = $Specifications->fetch($id));
     	$Specifications->requireRightFor('configure', $rec);
     	$data = unserialize($rec->data);
+    	$retUrl = array('techno_Specifications', 'single', $id, "#" => "Sp{$id}");
     	
     	if($paramId = Request::get('delete')){
     		unset($data->params[$paramId]);
     		$rec->data = $this->serialize($data);
 	        $Specifications->save($rec);
-	        return followRetUrl();
+	        return Redirect($retUrl);
     	}
     	
     	$form = $this->getAddParamForm($data);
@@ -401,6 +399,9 @@ class techno_GeneralProducts extends core_Manager {
         } else {
         	$form->setField('paramValue', 'input=hidden');
         }
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
         $fRec = $form->input();
         if($form->isSubmitted()) {
