@@ -18,7 +18,7 @@ defIfNot('STATUSES_TOAST_MESSAGE_VERSION', '0.3.0f');
  * @license   GPL 3
  * @since     v 0.1
  */
-class statuses_Setup
+class statuses_Setup extends core_ProtoSetup
 {
     
     
@@ -46,6 +46,8 @@ class statuses_Setup
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -61,6 +63,8 @@ class statuses_Setup
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

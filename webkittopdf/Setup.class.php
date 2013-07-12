@@ -42,7 +42,7 @@ defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
  * @license   GPL 3
  * @since     v 0.1
  */
-class webkittopdf_Setup
+class webkittopdf_Setup extends core_ProtoSetup
 {
     
     
@@ -86,31 +86,23 @@ class webkittopdf_Setup
            'WEBKIT_TO_PDF_SCREEN_BIT'   => array ('int'),
         );
     
-    
+        
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'webkittopdf_Converter'
         );
         
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-                
-        return $html;
-    }
-    
     
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
+    	// Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }
