@@ -169,7 +169,9 @@
                                     );
                                     showPicker();
                                 } else {
-                                    alert("Geocode не беше успешен поради следната причина: " + status);
+                                	if(status != 'ZERO_RESULTS'){
+                                		alert("Geocode не беше успешен поради следната причина: " + status);
+                                	}
                                 }
                             });
                         }
