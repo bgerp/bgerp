@@ -401,6 +401,13 @@ class callcenter_Numbers extends core_Manager
             $userId = crm_Profiles::fetchField($form->rec->contragentId, 'userId');
             $form->setDefault('userId', $userId);
         }
+        
+        // Aко в рекуста е зададен номера
+        if ($number = Request::get('number')) {
+            
+            // Сетваме го
+            $form->setDefault('number', $number);
+        }
     }
 
 

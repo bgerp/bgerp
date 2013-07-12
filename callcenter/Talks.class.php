@@ -131,9 +131,9 @@ class callcenter_Talks extends core_Master
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
         $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
         $this->FLD('uniqId', 'varchar', 'caption=Номер');
-        $this->FLD('startTime', 'datetime', 'caption=Време->Начало');
-        $this->FLD('answerTime', 'datetime', 'allowEmpty, caption=Време->Отговор');
-        $this->FLD('endTime', 'datetime', 'allowEmpty, caption=Време->Край');
+        $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Време->Начало');
+        $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
+        $this->FLD('endTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Край');
         $this->FLD('callType', 'type_Enum(incoming=Входящ, outgoing=Изходящ)', 'allowEmpty, caption=Тип на разговора, hint=Тип на обаждането');
         
         $this->FNC('duration', 'time', 'caption=Време->Продължителност');
@@ -172,6 +172,11 @@ class callcenter_Talks extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {    
+        
+        // Добавяме стил за телефони        
+        $row->callerNum = "<div class='telephone'>" . $row->callerNum . "</div>";
+        $row->calledNum = "<div class='telephone'>" . $row->calledNum . "</div>";
+        
         // Ако има данни за търсещия
         if ($rec->callerData) {
          
@@ -187,6 +192,16 @@ class callcenter_Talks extends core_Master
                 // Добавяме данните
                 $row->callerData = $callerNumRow->contragent;
             }
+        } else {
+            
+            // Уникално id
+            $uniqId = $rec->id . 'caller';
+            
+            // Шаблона
+            $template = static::getTemplateForAddNum($rec->callerNum, $uniqId);
+            
+            // Заместваме номера
+            $row->callerNum = $template->replace($row->callerNum, 'NUM_PLACE');
         }
         
         // Ако има данни за търсения
@@ -204,6 +219,16 @@ class callcenter_Talks extends core_Master
                 // Добавяме данните
                 $row->calledData = $calledNumRow->contragent;
             }
+        } else {
+            
+            // Уникално id
+            $uniqId = $rec->id . 'called';
+            
+            // Шаблона
+            $template = static::getTemplateForAddNum($rec->calledNum, $uniqId);
+            
+            // Заместваме номера
+            $row->calledNum = $template->replace($row->calledNum, 'NUM_PLACE');
         }
         
         // Ако сме в тесен режим
@@ -230,10 +255,6 @@ class callcenter_Talks extends core_Master
                 $row->startTime .= $div . $duration;
             }
         }
-        
-        // Добавяме стил за телефони        
-        $row->callerNum = "<div class='telephone'>" . $row->callerNum . "</div>";
-        $row->calledNum = "<div class='telephone'>" . $row->calledNum . "</div>";
         
         // В зависмост от състоянието на разгоравя, опделяме клас за реда в таблицата
         if (!$rec->dialStatus) {
@@ -667,6 +688,60 @@ class callcenter_Talks extends core_Master
             // Променяме полетата, които ще се показват
             $data->listFields = arr::make('id=№, callerNum=Позвъняващ, calledNum=Търсен, startTime=Време');
         }
+    }
+    
+    
+    /**
+     * Връща шаблон с линкове за добавяне на номера във фирма, лица или номера
+     * 
+     * @param string $num - Номера, за който се отнася
+     * @param string $uniqId - Уникално id
+     * 
+     * @return core_ET - Шаблон
+     */
+    static function getTemplateForAddNum($num, $uniqId)
+    {
+        // Ако не е валиден номер
+        // Третираме го като вътрешен
+        if (!drdata_PhoneType::toArray($num)) {
+            
+            // Аттрибути за стилове 
+            $numbersAttr['class'] .= 'linkWithIcon';
+            $numbersAttr['style'] = 'background-image:url(' . sbf("img/16/add1-16.png") . ');';
+            $numbersAttr['title'] = tr('Добави към потребител');
+            
+            // Създаваме линк
+            $text = ht::createLink('Добави', array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
+        } else {
+            
+            // Инстанция на фирмата
+            $Companies = cls::get('crm_Companies');
+            
+            // Аттрибути за стилове 
+            $companiesAttr['class'] .= 'linkWithIcon';
+            $companiesAttr['style'] = 'background-image:url(' . sbf($Companies->getIcon()) . ');';
+            $companiesAttr['title'] = tr('Нова фирма');
+            
+            // Добавяме линк към създаване на фирми
+            $text = ht::createLink('Фирма', array($Companies, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
+            
+            // Инстанция на лица
+            $Persons = cls::get('crm_Persons');
+            
+            // Аттрибути за стилове 
+            $personsAttr['class'] .= 'linkWithIcon';
+            $personsAttr['style'] = 'background-image:url(' . sbf($Persons->getIcon()) . ');';
+            $personsAttr['title'] = tr('Ново лице');
+            
+            // Добавяме линк към създаване на лица
+            $text .= " | ". ht::createLink('Лице', array($Persons, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+        }
+        
+        // Шаблона
+        $tepmplate = new ET("<div onmouseover=\"show('{$uniqId}', 'block');\"><div onmouseout=\"hide('$uniqId');\">[#NUM_PLACE#] 
+        		<div style='display:none;' id='{$uniqId}'>{$text}</div></div></div");
+        
+        return $tepmplate;
     }
     
     

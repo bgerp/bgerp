@@ -366,6 +366,13 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
+        
+        // Aко в рекуста е зададен номера
+        if ($number = Request::get('tel')) {
+            
+            // Сетваме го
+            $form->setDefault('tel', $number);
+        }
     }
     
     
