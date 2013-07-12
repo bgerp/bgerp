@@ -28,7 +28,7 @@ defIfNot('CSSTOINLINE_CSSTOINLINE_VERSION', '1.0.3');
  * @license   GPL 3
  * @since     v 0.1
  */
-class csstoinline_Setup
+class csstoinline_Setup extends core_ProtoSetup
 {
     
     
@@ -53,26 +53,14 @@ class csstoinline_Setup
         'CSSTOINLINE_CONVERTER_CLASS' => array ('class(interface=csstoinline_ConverterIntf, select=title)', 'mandatory'),
     );
     
-        
+    
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'csstoinline_CssToInline',
             'csstoinline_Emogrifier',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
     
     
     /**
