@@ -88,7 +88,11 @@ class core_Db extends core_BaseClass
      */
     const MYSQL_UNKNOWN_COLUMN = 1054;
 
-
+    function __construct()
+    {
+        $this->init();
+    }
+    
      /**
      * Инициализиране на обекта
      * @param string $dbName
@@ -115,12 +119,17 @@ class core_Db extends core_BaseClass
      *
      * @return resource
      */
-    function connect()
+    function connect($redirectOnErr = true)
     {
+
         if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
-            redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-            //error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass);
+            if (!$link) {
+//	            if ($redirectOnErr) {
+	//            	redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+	  //          }
+	            error("Грешка при свързване с MySQL сървър <b>{$this->dbHost}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            }
             
             // След успешно осъществяване на връзката изтриваме паролата
             // с цел да не се появи случайно при някой забравен bp()
@@ -135,9 +144,11 @@ class core_Db extends core_BaseClass
             mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
             
             // Избираме указаната база от данни на сървъра
-            if (!mysql_select_db($this->dbName)) {
-            	redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-                //error("Грешка при избиране на база {$this->dbName}", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            if (!mysql_select_db("{$this->dbName}", $this->link)) {
+        //    	if ($redirectOnErr) {
+          //  		redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+            //	}
+                error("Грешка при избиране на база <b>{$this->dbName}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
         }
         
@@ -632,22 +643,40 @@ class core_Db extends core_BaseClass
      */
     function checkForErrors($action, $silent = FALSE)
     {
-        global $_GET;
+        global $_GET, $setupFlag;
         
-        if (!$silent && mysql_errno($this->link) > 0) {
-            // Ако има грешка при извикване от крон-а - игнорираме.
-            if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
-            	
-            	return;
-            }
+        // Ако има грешка при извикване от крон-а - игнорираме.
+        if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+        	
+        	return;
+        }
+        
+        if (mysql_errno($this->link) > 0) {
+            // Ако при възникване на грешка базата е празна
+            // - редиректваме към сетъп-а и получаваме права за сетъпване
+//             if ($this->databaseEmpty()) {
+//                 if (!$setupFlag) {
+//                     redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+//                 }
+//             }
+
+//            if (!$silent) {
+                $errno = mysql_errno($this->link);
+                $error = mysql_error($this->link);
                 
-            $errno = mysql_errno($this->link);
-            $error = mysql_error($this->link);
                 
-            error("Грешка {$errno} в БД при " . $action, array(
-                    "query" => $this->query,
-                    "error" => $error
-                ), 'ГРЕШКА В БАЗАТА ДАННИ');
+                
+                $err = new core_exception_Expect("Грешка {$errno} в БД при " . $action, TRUE);
+                $err->class  = 'core_Db';
+                $err->errNum = $errno;
+                
+                throw $err;
+                
+                error("Грешка {$errno} в БД при " . $action, array(
+                        "query" => $this->query,
+                        "error" => $error
+                    ), 'ГРЕШКА В БАЗАТА ДАННИ');
+//            }
         }
 
         return mysql_errno();
@@ -672,14 +701,16 @@ class core_Db extends core_BaseClass
 
     /**
      * Празна ли е базата данни?
-     * @param string $databaseName
+     * 
      * @return bool
      */
-    function databaseEmpty($databaseName)
+    static function databaseEmpty()
     {
-        $dbRes = $this->query("SELECT SUM(TABLE_ROWS) AS RECS
+    	$db = new core_Db();
+    	
+        $dbRes = $db->query("SELECT SUM(TABLE_ROWS) AS RECS
                                     FROM INFORMATION_SCHEMA.TABLES 
-                                    WHERE TABLE_SCHEMA = '" . $databaseName ."'", TRUE);
+                                    WHERE TABLE_SCHEMA = '" . $db->dbName ."'", TRUE);
         
         if(!is_resource($dbRes)) {
         
@@ -687,11 +718,12 @@ class core_Db extends core_BaseClass
         }
         
         // Извличаме резултата
-        $rows = $this->fetchObject();
+        $rows = $db->fetchObject();
         
-        $this->freeResult($dbRes);
+        $db->freeResult($dbRes);
         
         if (!$rows->RECS) {
+            
         	return TRUE;
         }
         

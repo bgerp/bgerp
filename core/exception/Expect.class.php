@@ -46,7 +46,7 @@ class core_exception_Expect extends Exception
  
         $text = core_App::isDebug() ? $msg : $this->errorTitle;
 
-        core_Message::redirect($text, 'page_Error');
+        die($text);
     }
 
 

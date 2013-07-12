@@ -168,8 +168,9 @@ class core_Query extends core_FieldSet
      * @param string $field - Името на полето
      * @param array $arr - Масив с всички данни
      * @param boolean $or - Дали да е 'OR' 
+     * @param boolean $orToPrevious - Дали да се залепи с 'OR' към предишния where
      */
-    function whereArr($field, $condArr, $or = FALSE)
+    function whereArr($field, $condArr, $or = FALSE, $orToPrevious=FALSE)
     {
         // Ако е масив
         if (is_array($condArr)) {
@@ -181,7 +182,7 @@ class core_Query extends core_FieldSet
             foreach ($condArr as $cond) {
                 
                 // Ако за първи път
-                if ($first || !$or) {
+                if (($first || !$or) && !$orToPrevious) {
                     
                     // Добавяме във where
                     $this->where(array("#{$field} = '[#1#]'", $cond));
@@ -204,10 +205,11 @@ class core_Query extends core_FieldSet
      * 
      * @param string $field - Името на полето
      * @param array $arr - Масив с всички данни
+     * @param boolean $orToPrevious - Дали да се залепи с 'OR' към предишния where
      */
-    function orWhereArr($field, $condArr)
+    function orWhereArr($field, $condArr, $orToPrevious = FALSE)
     {
-        $this->whereArr($field, $condArr, TRUE);
+        $this->whereArr($field, $condArr, TRUE, $orToPrevious);
     }
     
     
@@ -522,13 +524,23 @@ class core_Query extends core_FieldSet
         
         $this->getShowFields();
         
-        $query = "DELETE " . "`" . $this->mvc->dbTableName . "`.* " . "FROM";
+        $orderBy = $this->getOrderBy();
+        $limit   = $this->getLimit();
+        
+        $dbTableName = '';
+        
+        // Нито ORDER BY, нито LIMIT се допуска при "multiple table syntax"
+        if (empty($orderBy) && empty($limit)) {
+            $tableName = "`" . $this->mvc->dbTableName . "`.* ";
+        }
+        
+        $query = "DELETE " . $dbTableName . "FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
         $query .= $wh->h;
-        $query .= $this->getOrderBy();
-        $query .= $this->getLimit();
+        $query .= $orderBy;
+        $query .= $limit;
         
         $db = $this->mvc->db;
         
