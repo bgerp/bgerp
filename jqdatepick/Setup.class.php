@@ -18,7 +18,8 @@ defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class jqdatepick_Setup extends core_Manager {
+class jqdatepick_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -59,6 +60,8 @@ class jqdatepick_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -74,6 +77,8 @@ class jqdatepick_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

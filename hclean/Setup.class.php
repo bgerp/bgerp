@@ -20,7 +20,8 @@ defIfNot('HCLEAN_PLACE_CSS_TO_INLINE', 'yes');
  * @license   GPL 3
  * @since     v 0.1
  */
-class hclean_Setup extends core_Manager {
+class hclean_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -62,6 +63,8 @@ class hclean_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         //Създаваме директорията, необходима за работа на hclean_Purifier
         $html .= hclean_Purifier::mkdir();
         
@@ -80,6 +83,8 @@ class hclean_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

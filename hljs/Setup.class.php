@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class hljs_Setup
+class hljs_Setup extends core_ProtoSetup
 {
     
     
@@ -32,6 +32,8 @@ class hljs_Setup
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -47,6 +49,8 @@ class hljs_Setup
      */
     function deinstall()
     {
+    	$html = parent::deonstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

@@ -19,7 +19,8 @@ defIfNot('VKI_version', '1.28');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class keyboard_Setup extends core_Manager {
+class keyboard_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -60,6 +61,8 @@ class keyboard_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -78,6 +81,8 @@ class keyboard_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
