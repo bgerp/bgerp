@@ -1034,3 +1034,23 @@ function addCmdRefresh(form)
 
 	form.appendChild(input);
 }
+
+
+/**
+ * Показва скритите елементи
+ */
+function show(id,type)
+{
+	element=document.getElementById(id);
+	element.style.display=type;
+}
+
+
+/**
+ * Скрива елементите
+ */
+function hide(id)
+{
+	element=document.getElementById(id);
+	element.style.display="none";
+}
