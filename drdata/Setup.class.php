@@ -32,7 +32,8 @@ defIfNot("COUNTRY_PHONE_CODE", '359');
  * @license   GPL 3
  * @since     v 0.1
  */
-class drdata_Setup extends core_Manager {
+class drdata_Setup extends core_ProtoSetup
+{
     
     
     /**
@@ -67,14 +68,12 @@ class drdata_Setup extends core_Manager {
             'SENDER_EMAIL'  => array ('email', 'mandatory'),
             'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory'),
         );
-    
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
+
         
-        $managers = array(
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
             'drdata_Countries',
             'drdata_IpToCountry',
             'drdata_DialCodes',
@@ -83,16 +82,6 @@ class drdata_Setup extends core_Manager {
         	
         
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
     
     
     /**
@@ -100,6 +89,9 @@ class drdata_Setup extends core_Manager {
      */
     function deinstall()
     {
-        return "Пакета drdata е разкачен";
+         // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }

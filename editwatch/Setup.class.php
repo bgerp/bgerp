@@ -18,7 +18,8 @@ defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class editwatch_Setup extends core_Manager {
+class editwatch_Setup extends core_ProtoSetup 
+{
     
     
     /**
@@ -64,6 +65,8 @@ class editwatch_Setup extends core_Manager {
      */
     function install()
     {
+    	$html = paren::install();
+    	
         // Установяваме страните;
         $Editors = cls::get('editwatch_Editors');
         $html .= $Editors->setupMVC();
@@ -83,6 +86,8 @@ class editwatch_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

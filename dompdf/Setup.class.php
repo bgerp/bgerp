@@ -43,7 +43,7 @@ defIfNot('DOMPDF_LOG_OUTPUT_FILE', DOMPDF_TEMP_DIR . "/log.htm");
  * @license   GPL 3
  * @since     v 0.1
  */
-class dompdf_Setup
+class dompdf_Setup extends core_ProtoSetup
 {
     
     
@@ -79,24 +79,13 @@ class dompdf_Setup
             'DOMPDF_DPI'   => array ('int'),
         );
     
+        
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'dompdf_Converter'
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
     
     
     /**
@@ -104,5 +93,9 @@ class dompdf_Setup
      */
     function deinstall()
     {
+    	// Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }

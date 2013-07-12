@@ -23,7 +23,7 @@ defIfNot('MAX_ALLOWED_ATTACHMENTS_IN_FAX', 10);
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 3
  */
-class efax_Setup
+class efax_Setup extends core_ProtoSetup
 {
     /**
      *  Версия на пакета
@@ -42,6 +42,8 @@ class efax_Setup
      */
     function install()
     {
+    	$html = parent::install();
+    	
         $efax = core_Classes::add('efax_Sender');
         
         if ($efax) {
@@ -59,6 +61,9 @@ class efax_Setup
      */
     function deinstall()
     {
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }
