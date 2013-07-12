@@ -172,7 +172,7 @@ class blast_Emails extends core_Master
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
-        $this->FLD('sendPerMinute', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
+        $this->FLD('sendPerMinute', 'int(min=1, max=100)', 'caption=Изпращания в минута, input=none, mandatory');
         $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
