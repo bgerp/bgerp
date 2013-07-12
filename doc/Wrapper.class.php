@@ -27,10 +27,10 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB('doc_Folders', 'Папки');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
-        $originId    = request::get('originId', 'int');
-        $containerId = request::get('containerId', 'int');
-        $threadId    = request::get('threadId', 'int');
-        $folderId    = request::get('folderId', 'int');
+        $originId    = Request::get('originId', 'int');
+        $containerId = Request::get('containerId', 'int');
+        $threadId    = Request::get('threadId', 'int');
+        $folderId    = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
         
         if(!$threadId) {
             $threadId = $invoker->threadId;
@@ -92,7 +92,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         if($threadId) {
             if(doc_Threads::haveRightFor('single', $threadId)) {
-                $folderId = request::get('folderId', 'int');
+                $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
