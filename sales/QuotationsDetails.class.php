@@ -64,6 +64,12 @@ class sales_QuotationsDetails extends core_Detail {
     public $listFields = 'productId, quantity, price, discount, tolerance, term, optional, amount, discAmount';
     
     
+    /**
+     * Кой таб да бъде отворен
+     */
+    var $currentTab = 'Оферти';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
