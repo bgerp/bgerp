@@ -19,7 +19,7 @@ defIfNot('OEMBED_MAX_WIDTH', 600);
  * @license   GPL 3
  * @since     v 0.1
  */
-class oembed_Setup
+class oembed_Setup extends core_ProtoSetup
 {
 
 
@@ -61,7 +61,7 @@ class oembed_Setup
      */
     function install()
     {
-        $html = '';
+        $html = parent::install();
         
         $Cache = cls::get('oembed_Cache');
         $html .= $Cache->setupMVC();
@@ -79,6 +79,8 @@ class oembed_Setup
     
     function deinstall()
     {
+    	$html = parent::deinstall();
+    	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         

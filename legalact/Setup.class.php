@@ -17,7 +17,7 @@ defIfNot('LEGALACT_DOCS_ROOT', 'c:/test/docs/');
  * @license   GPL 3
  * @since     v 0.1
  */
-class legalact_Setup
+class legalact_Setup extends core_ProtoSetup
 {
     
     
@@ -54,33 +54,28 @@ class legalact_Setup
         'LEGALACT_DOCS_ROOT' => array ('varchar', 'mandatory'),
     );
     
-        
+    
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var  $managers = array(
             'legalact_Acts',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        // Роля за power-user на този модул
-        $role = 'legal';        
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Производство', 'Съдилища', 'legalact_Acts', 'default', 'ceo,admin,legal');
-
-        return $html;
-    }
     
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'legal';
+    
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.81, 'Система', 'Съдилища', 'legalact_Acts', 'default', 'ceo,admin,legal'),
+        );
+
     
     /**
      * Де-инсталиране на пакета
