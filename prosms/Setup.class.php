@@ -34,7 +34,7 @@ defIfNot('PROSMS_PASS', '');
  * @license   GPL 3
  * @since     v 0.1
  */
-class prosms_Setup
+class prosms_Setup extends core_ProtoSetup
 {
     
     
@@ -56,32 +56,23 @@ class prosms_Setup
         'PROSMS_PASS' => array('password', 'mandatory'),
         );
     
+        
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {   
-        $managers = array(
+    var $managers = array(
             'prosms_SMS',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
-    
+
     
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
         
-        return '';
+        return $res;
     }
 }

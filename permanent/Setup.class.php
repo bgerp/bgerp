@@ -17,7 +17,8 @@ defIfNot('DATA_MAX_UNCOMPRESS', 10000);
  * @license   GPL 3
  * @since     v 0.1
  */
-class permanent_Setup {
+class permanent_Setup extends core_ProtoSetup
+{
     
     
     /**
@@ -53,24 +54,13 @@ class permanent_Setup {
             'DATA_MAX_UNCOMPRESS' => array ('int', 'mandatory'),
         );
     
+        
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-        $managers = array(
+    var $managers = array(
             'permanent_Data'
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
     
     
     /**
@@ -79,6 +69,9 @@ class permanent_Setup {
     function deinstall()
     {
         
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }

@@ -26,7 +26,8 @@ defIfNot(RECENTLY_MAX_KEEPING_DAYS, 60);
  * @license   GPL 3
  * @since     v 0.1
  */
-class recently_Setup {
+class recently_Setup extends core_ProtoSetup
+{
     
     
     /**
@@ -70,6 +71,8 @@ class recently_Setup {
      */
     function install()
     {
+    	$html = parent::install();
+    	
         // Установяваме мениджъра;
         $Values = cls::get('recently_Values');
         $html .= $Values->setupMVC();
@@ -89,6 +92,9 @@ class recently_Setup {
      */
     function deinstall()
     {
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }
