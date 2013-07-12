@@ -2212,9 +2212,8 @@ class log_Documents extends core_Manager
 	        		$row->ROW_ATTR['class'] = 'state-rejected';
 	        		$iconStles['style'] .= "opacity:0.5";
 	        	}
-        		
-	        	$row->link = ht::createLink($d->title, 
-	        	array($class, 'single', $d->id), NULL, $iconStles);
+        		$row->link = ht::createLink($d->title, array($class, 'single', $d->id), NULL, $iconStles);
+	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
 	        	$row->author = $d->author;
 	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
 	        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
