@@ -208,7 +208,7 @@ class type_Keylist extends core_Type {
                         $v->title = transliterate($v->title);
                     }
                     
-                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . $v->title . "</td></tr>";
+                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>";
                     $i = 0;
                 } else {
                     $attrCB['id'] = $name . "_" . $key;
