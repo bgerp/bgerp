@@ -200,14 +200,17 @@ class cat_Params extends core_Manager
     {
     	expect($Class = cls::get($className));
     	expect($rec = $Class::fetch($id));
-    	$Varchar = cls::get('type_Varchar');
-        $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
-        $options = explode(',', $rec->options);
-	    foreach($options as $i => &$opt){
-	        $opt = $Varchar->toVerbal($opt);
-	    }
-        $options = array('' => '') + array_combine($options, $options);
-	    expect($Type = cls::get("type_{$rec->type}", array($optType => $options)), "Няма тип \"type_{$rec->type}\" в системата");
+        if($rec->options) {
+            $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
+            $options = explode(',', $rec->options);
+            foreach($options as $i => &$opt){
+                $opt = type_Varchar::escape($opt);
+            }
+            $options = array('' => '') + array_combine($options, $options);
+            $os = array($optType => $options);
+        }
+
+	    expect($Type = cls::get("type_{$rec->type}", $os), "Няма тип \"type_{$rec->type}\" в системата");
     	
 	    return $Type;
     }
