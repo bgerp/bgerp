@@ -82,9 +82,9 @@ class core_Pager extends core_BaseClass
         setIfNot($this->pageVar, 'P');
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         if(Mode::is('screenMode', 'narrow')) {
-            setIfNot($this->pagesAround, 3);
+            setIfNot($this->pagesAround, 1);
         } else {
-            setIfNot($this->pagesAround, 5);
+            setIfNot($this->pagesAround, 2);
         }
 
     }
@@ -245,7 +245,7 @@ class core_Pager extends core_BaseClass
             $start = 1;
         }
         
-        $end = $this->getPage() + $this->pagesAround - 1;
+        $end = $this->getPage() + $this->pagesAround;
         
         if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 2) {
             $end = $this->getPagesCount();
