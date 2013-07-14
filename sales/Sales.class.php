@@ -182,8 +182,8 @@ class sales_Sales extends core_Master
             'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
             'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
-        $this->FLD('isInstantShipment', 'enum(no=По-късно,yes=На момента)', 
-            'input, maxRadio=2, columns=2, caption=Експедиция');
+        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 
+            'input, maxRadio=2, columns=2, caption=Доставка->Документ');
         
         /*
          * Плащане
@@ -194,10 +194,10 @@ class sales_Sales extends core_Master
             'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)',
-            'caption=Плащане->Банкова сметка');
+            'caption=Плащане->Банкова с-ка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
             'caption=Плащане->Каса');
-        $this->FLD('isInstantPayment', 'enum(no=Не,yes=Да)', 'input,maxRadio=2, columns=2, caption=Плащане на момента');
+        $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input,maxRadio=2, columns=2, caption=Плащане->Документ');
         
         /*
          * Наш персонал
