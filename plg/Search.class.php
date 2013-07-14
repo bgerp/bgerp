@@ -127,14 +127,20 @@ class plg_Search extends core_Plugin
                 
                 if(!$w) continue;
                 
+                $wordBegin = ' ';
+                $wordEnd = '';
+
                 if($w{0} == '"') {
-                    $exact = ' ';
                     $w = substr($w, 1);
-                    
                     if(!$w) continue;
-                } else {
-                    $exact = '';
-                }
+                    $wordEnd = ' ';
+                }  
+                
+                if($w{0} == '*') {
+                    $w = substr($w, 1);
+                    if(!$w) continue;
+                    $wordBegin = '';
+                } 
                 
                 if($w{0} == '-') {
                     $w = substr($w, 1);
@@ -146,8 +152,9 @@ class plg_Search extends core_Plugin
                 }
                 
                 $w = static::normalizeText($w);
+                $w = str_replace('*', '%', $w);
                
-                $query->where("#{$field} {$like} '% {$w}{$exact}%'");
+                $query->where("#{$field} {$like} '%{$wordBegin}{$w}{$wordEnd}%'");
             }
         }
     }
@@ -167,7 +174,7 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
-        $str = preg_replace('/[^a-zа-я0-9]+/', ' ', " {$str} ");
+        $str = preg_replace('/[^a-zа-я0-9\*]+/', ' ', " {$str} ");
 
         return trim($str);
     }
