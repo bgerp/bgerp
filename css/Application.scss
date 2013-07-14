@@ -51,9 +51,9 @@ $history-bg:#fefec2;
 
 @mixin crm-icon(){
 	padding-top:3px;
-	padding-left:21px; ;
+	padding-left:22px; ;
 	background-repeat:no-repeat;
-	background-position: 3px 4px;
+	background-position: 3px center;
 }
  /*common elements*/
  dl {
@@ -716,12 +716,12 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 
 div.telephone { 
 	@include crm-icon();
-	background-image:url('../img/16/telephone.png');
+	background-image:url('../img/16/telephone2.png');
 }
 
 div.fax { 
 	@include crm-icon();
-	background-image:url('../img/16/fax.png');
+	background-image:url('../img/16/fax2.png');
 }
 
 div.email { 
@@ -731,7 +731,8 @@ div.email {
 
 div.mobile { 
 	@include crm-icon();
-	background-image:url('../img/16/mobile.png');
+	background-image:url('../img/16/mobile2.png');
+	background-position: 5px center;
 }
 
 .telephone a, .fax a, .email a, .mobile a {
