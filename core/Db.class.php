@@ -666,7 +666,7 @@ class core_Db extends core_BaseClass
                 
                 
                 
-                $err = new core_exception_Expect("Грешка {$errno} в БД при " . $action, TRUE);
+                $err = new core_exception_Expect("Грешка {$errno} в БД при " . $action, array($this->query, $error));
                 $err->class  = 'core_Db';
                 $err->errNum = $errno;
                 
