@@ -354,7 +354,12 @@ a.profile {
 
 a.pager {
     font-weight:bold;
-    padding: 3px; 
+    font-size:1.05em;
+    padding: 2px;
+    margin-left:-2px;
+    margin-right:4px;
+    border:solid  1px transparent; 
+    @include border-radius(4px);
     cursor:pointer;
     &:hover {
 	    border:solid  1px #aaaaaa; 
@@ -367,14 +372,14 @@ a.pager {
 	    border:solid 1px #aaaaaa;
 	    @include border-radius(4px);
 	    padding:2px;
-	    background-color:#ffffee;
+	    background-color:#ffffcc;
 	    font-weight:bold;
 	}
 }
 
 .narrow a.pager { 
-	font-size: 0.9em;
-	margin:0.1em;
+	font-size: 0.95em;
+	margin:0.2em;
 	margin-left:0;
 }
 /*край на стилове за странициране 'hlp_Pager' */
@@ -428,6 +433,11 @@ div.tab-control div.tab-page {
 
 div.tab-control .tab-title {
 	font-weight: bold;
+}
+
+select.tab-control {
+    @include rounded(top, left, 3px);
+    @include rounded(top, right, 3px);
 }
 
 .index-category{
@@ -486,16 +496,16 @@ div.tab-control .tab-title {
     padding-left:1em;
 }
 
-.wide .formFields table {
+.formFields>table{
+	width:100%;
+}
+
+.wide .formFields>table {
 	width:100%;
 	margin:5px 0 0px;
 }
 
-.narrow .formFields table{
-	width:100%;
-}
-
-.formFields table .richedit-toolbar{
+.formFields>table .richedit-toolbar{
 	margin-bottom:5px;
 }
 
@@ -568,7 +578,8 @@ div.hFormField {
 }
 
 .vertical .formSection {
-	padding:15px; 
+	padding:15px;
+    padding-bottom:0px;
     color:black;
     background-color:#ffe;
     vertical-align:top;
@@ -623,13 +634,6 @@ div.hFormField {
 	color:white;
 }
 
-.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
-	border: none !important;
-	box-shadow:none;
-	margin:3px 3px 3px 4px;
-	background-color:transparent;
-	outline:none;
-}
 
 .narrow .formAll {
     display:table;
@@ -641,8 +645,8 @@ div.hFormField {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
-.formFields table td{
-	padding-bottom:7px !important;
+.formFields>table>tbody>tr>td {
+	padding-bottom:10px !important;
 }
 
 .narrow .formFields table td{
@@ -661,15 +665,29 @@ div.hFormField {
 .inputWarning {
     border:solid 1px #ff9900;
 }
-.keylist td{
-	padding:2px;
+
+/*
+ * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
+ * вляво
+ */
+table.keylist {
+	
+    width: auto;
+	td {
+	   padding:0.2em 1em 0 0.2em;
+	}
 }
-.keylist-group {
+
+td.keylist-group>div {
     padding: 4px !important;
     font-size:0.9em;
     font-weight:bold;
     background-color:#eeeeff;
     color: #333;
+}
+
+td.keylist-group {
+    padding-bottom:5px !important;
 }
 
 .warningMsg {
@@ -1119,27 +1137,31 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
     background-color:#ffb; 
 }
 
-input[type=checkbox] + label {
-	color:#666;
-}
 
 .narrow input[type=checkbox] + label {
 	background-color:transparent !important; 
 }
 
-input[type=checkbox]:checked + label {
-	color:#000;
-} 
-
-input[type=radio] + label {
-	color:#666;  
-	background-color:transparent !important;
-	display: inline-block;
-	padding-top: 7px;
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
+	border: none !important;
+	box-shadow:none;
+	margin:3px 3px 3px 4px;
+    padding-top:4px !important;
+	background-color:transparent;
+	outline:none;
 }
 
-input[type=radio]:checked + label {
+input[type=radio] + label, input[type=checkbox] + label {
+	color:#777; 
+	background-color:transparent !important;
+	display: inline-block;
+	margin-bottom: 7px;
+}
+
+ 
+input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	color:#000;
+    text-shadow: 1px 1px 1px #aaa;
 }
 
 .narrow input[type=radio]:checked + label {
@@ -1686,6 +1708,3 @@ div.folder-cover{
 		background-color:#ffc;
 	}
 /* Край на стилове за diff */
-
-
-@import "inputs";
