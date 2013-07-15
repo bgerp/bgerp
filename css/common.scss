@@ -1932,7 +1932,6 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	background:#fcfae8;
 	box-shadow:1px 1px 6px rgba(0,0,0,0.4);
 	.pack-title{
-		margin-top: 3px;
 		display: inline-block;
 		&:hover{
 			text-decoration:underline;
@@ -1946,6 +1945,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 		height:2.4em;
 	}
 	b{
+		margin-top: 3px;
 		font-size:1.2em;
 	}
 	.elem-img{
