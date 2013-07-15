@@ -183,4 +183,28 @@ class techno_Parameters extends core_Manager {
     	
         return $tpl;
     }
+    
+    
+    /**
+     * Рендиране на параметрите
+     * @param array $rows - масив с параметри
+     * @param core_ET $tpl - шаблон
+     * @param bool $short - дали шаблона е за кратък изглед или не
+     */
+    public static function renderParameters($rows, &$tpl, $short)
+    {
+    	if(count($rows)){
+    		$paramBlock = $tpl->getBlock('PARAMS');
+    		foreach($rows as $id => $arr){
+    			$blockCl = clone($paramBlock);
+    			$blockCl->replace($arr['paramId'], 'paramId');
+    			$blockCl->replace($arr['paramValue'], 'paramValue');
+    			if(!$short){
+    				$blockCl->replace($arr['tools'], 'tools');
+    			}
+    			$blockCl->removeBlocks();
+    			$tpl->append($blockCl, 'PARAMS');
+    		}
+    	}
+    }
 }

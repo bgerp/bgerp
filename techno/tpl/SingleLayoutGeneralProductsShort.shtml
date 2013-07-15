@@ -1,7 +1,7 @@
 <div class='general-product'>
 <ul class='list-info'>
 	<li>
-	<span class='list-title'>[#title#]</span><span style='margin-left:5px'>[#link#]</span></li>
+	<span class='list-title'>[#title#]</span></li>
 	<li class='list-description-short'>	
 		<!--ET_BEGIN image-->
 		<span class='product-image'>
@@ -27,6 +27,15 @@
 		</ul>
 	</li>
 	<!--ET_END OTHERS-->
+	<li>
+	|Компоненти|*
+		<ol>
+			<!--ET_BEGIN COMPONENT-->
+			[#COMPONENT#]
+			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>
+			<!--ET_END COMPONENT-->
+		</ol>
+	</li>
 </ul>
 <div class='clearfix21'></div>
 </div>
