@@ -930,6 +930,20 @@ a.profile {
     margin-bottom:10px;
 }
 
+.warningMsg {
+    background:yellow;
+    padding:5px;
+    border:dotted 1px green;
+    color:green;
+}
+
+.errorMsg {
+    background:yellow;
+    padding:5px; 
+    border:dotted 1px red; 
+    color:red;
+}
+
 .narrow .formInfo, .narrow .formFields, .narrow .formWarning{
     margin-bottom:3px;
 }
@@ -953,6 +967,7 @@ a.profile {
 div.hFormField { 
 	float:left;
 	margin-right:0.3em;
+	margin-bottom:2px;
 }
 
 .narrow div.hFormField{
@@ -993,11 +1008,6 @@ div.hFormField {
 	}
 }
 
-.narrow .vertical .formTitle{
-	font-size:  1.2em; 
-    font-family: Verdana;
-	background-image:none;
-}
 
 .vertical .formFieldCaption { 
 	padding: 0.4em 0.4em 0.3em;
@@ -1019,12 +1029,20 @@ div.hFormField {
     color:white;
 }
 
-.vertical .formSection {
-	padding:15px; 
-	padding-bottom:0px;
+.vertical .formSection {	
+	border-left: solid 1px #bbb;
+	border-right: solid 1px #bbb;
+	background-image:url('../img/yellow.png'); 
+	background-color:#ffe;
+	padding:15px;
+    padding-bottom:0px;
     color:black;
-    background-color:#ffe;
     vertical-align:top;
+}
+
+.narrow .vertical .formSection {
+	padding:5px;
+	background-image:none;
 }
 
 .vertical input, .vertical textarea{
@@ -1035,9 +1053,6 @@ div.hFormField {
     padding:0 6px 3px 6px !important;
     background-color:#ffe;
     border:none;
-    input {
-	    margin-right:5px;
-	}
 }
 .toolbarHide{
 	margin-top:5px !important;
@@ -1078,43 +1093,35 @@ div.hFormField {
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
 
-.narrow .formFields table td{
-	padding-bottom:3px!important;
-}
-
 .formFields input:focus, textarea:focus, select:focus { 
     outline: none;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
 }
 
-.inputError {
-    border:solid 1px red;
+.formFields>table>tbody>tr>td {
+	padding-bottom:7px !important;
 }
 
-.inputWarning {
-    border:solid 1px #ff9900;
+.narrow .formFields table td{
+	padding-bottom:3px! important;
 }
 
-.keylist-group {
-    padding: 4px !important;
-    font-size:0.9em;
-    font-weight:bold;
-    background-color:#eeeeff;
-    color: #333;
+.formFields>table{
+	width:100%;
 }
 
-.warningMsg {
-    background:yellow;
-    padding:5px;
-    border:dotted 1px green;
-    color:green;
+.wide .formFields>table {
+	margin:5px 0 0px;
 }
 
-.errorMsg {
-    background:yellow;
-    padding:5px; 
-    border:dotted 1px red; 
-    color:red;
+.formFields>table .richedit-toolbar{
+	margin-bottom:5px;
+}
+
+.narrow .vertical .formTitle{
+	font-size:  1.2em; 
+    font-family: Verdana;
+    background-image:none; 
 }
 
 .docBgIcon {
@@ -1147,17 +1154,32 @@ div.hFormField {
 	border-top: none;
 	padding:0 6px 3px 6px !important;
     background-color:#ffe;
+    input {
+	    margin-right:5px;
+	}
 }
 
-.vertical .formSection {
-	border-left: solid 1px #bbb;
-	border-right: solid 1px #bbb;
-	background-image:url('../img/yellow.png'); 
+.toolbar #btnDelete{
+	margin-right:0;
 }
 
-.narrow .vertical .formSection {
-	padding:5px;
-	background-image:none;
+.narrow .ListToolbar, .narrow .SingleToolbar { 
+	margin-top: 10px;
+}
+
+.wide .doc_Containers .toolbar {
+	margin-top: 3px;
+	margin-bottom:3px;
+}
+
+.narrow .toolbar{
+	white-space:nowrap;
+	margin:0px 0 5px 0;
+	
+}
+
+.narrow table.listTable .toolbar{
+	padding: 4px 4px 8px;
 }
 
 .wide .vertical .formTable {
@@ -1209,9 +1231,6 @@ div.hFormField {
 	margin-left:0;
 }
 
-.wide div.hFormField{
-	margin-bottom:2px;
-}
 
 .wide .doc_Search{
 	.listFilter{
@@ -1228,41 +1247,26 @@ div.hFormField {
  		margin-top:10px;
  	}
  }
-/*край на стилове за форми*/
  
 
-/*стилове за тулбар*/
-.wide .listToolbar {
-	margin-top: 13px;
+/*
+ * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
+ * вляво
+ */
+table.keylist td {
+	padding: 0.4em 0.2em 0 0.2em;
 }
 
-.toolbar #btnDelete{
-	margin-right:0;
+td.keylist-group>div {
+    padding: 4px !important;
+    font-size:0.9em;
+    font-weight:bold;
+    background-color:#eeeeff;
+    color: #333;
 }
 
-
-
-.narrow .ListToolbar, .narrow .SingleToolbar { 
-	margin-top: 10px;
-}
-
-.wide .doc_Containers .toolbar {
-	margin-top: 3px;
-	margin-bottom:3px;
-}
-
-.narrow .toolbar{
-	white-space:nowrap;
-	margin:0px 0 5px 0;
-	
-}
-.narrow .listToolbar{
-	margin-top:10px;
-}
-.narrow table.listTable .toolbar{
-	padding: 4px 4px 8px;
-}
-/*край на стилове за тулбар*/
+/*край на стилове за показване на формите */
+ 
 
 
 /* Стилове за странициране 'hlp_Pager' */
@@ -1385,174 +1389,6 @@ select.tab-control {
 
 /*край на default стилове за елента tab*/
 
-
-/* Стилове за показване на формите */
-
-
-.formFields>table{
-	width:100%;
-}
-
-.wide .formFields>table {
-	margin:5px 0 0px;
-}
-
-.formFields>table .richedit-toolbar{
-	margin-bottom:5px;
-}
-
-.wide .horizontal .formFields {
-	float:left; 
-}
-
-div.hFormField { 
-	float:left;
-	margin-right:0.3em;
-}
-
-.narrow div.hFormField{
-	float:none;
-	margin:0;
-}
-
-.narrow .horizontal .formFields div {
-	margin-bottom: 10px;
-}
-
-.wide .horizontal .formToolbar { 
-	float:left;
-	margin-bottom:13px;
-}
-
-.narrow .horizontal{
-	margin-bottom:10px;
-}
-
-.formFieldCaption{
-	padding:0.5em;
-	width:1%;
-}
-
-.vertical .formGroup {
-    padding:5px;
-    margin: 10px 0 5px;
-    background-color: #99f;
-	color:white;
-    border-radius: 3px;
-}
-
-.narrow .vertical .formTitle{
-	font-size:  1.2em; 
-    font-family: Verdana; 
-}
-
-.vertical .formAll { 
-    background-color:blue;
-    color:white;
-}
-
-.vertical .formSection {
-	padding:15px;
-    padding-bottom:0px;
-    color:black;
-    background-color:#ffe;
-    vertical-align:top;
-}
-
-.vertical input, .vertical textarea{
-	margin-left:0;
-}
-
-
-.formToolbar input { 
-    margin-right:10px;
-}
-
-.narrow .vertical .formToolbar input{
-    margin-right:5px;
-}
-
-.formToolbar .btn-add{
-	margin-top:-3px;
-}
-
-.wide form[method="post"] input[type="submit"] {
-	border: solid 1px $quiet-gray !important;
-	background-color: #99f !important;
-	color: white;
-}
-
-.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
-	border:solid 1px $quiet-gray;
-	background-color:#999;
-	color:white;
-}
-
-.narrow form[method=post] input[type=submit]:first-child { 
-	background-color:#99f;
-	color:white;
-}
-
-.narrow .formAll {
-    display:table;
-}
-
-.formFields input, textarea, select { 
-	margin-top:0px;
-    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
-}
-
-.formFields input:focus, textarea:focus, select:focus { 
-    outline: none;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
-}
-
-.formFields>table>tbody>tr>td {
-	padding-bottom:7px !important;
-}
-
-.narrow .formFields table td{
-	padding-bottom:3px!important;
-}
-
-/*
- * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
- * вляво
- */
-table.keylist td {
-	padding: 0.4em 0.2em 0 0.2em;
-}
-
-td.keylist-group>div {
-    padding: 4px !important;
-    font-size:0.9em;
-    font-weight:bold;
-    background-color:#eeeeff;
-    color: #333;
-}
-
-.warningMsg {
-    background:yellow;
-    padding:5px;
-    border:dotted 1px green;
-    color:green;
-}
-
-.errorMsg {
-    background:yellow;
-    padding:5px; 
-    border:dotted 1px red; 
-    color:red;
-}
-
-.docBgIcon {
-	padding-left:22px !important;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
- 	padding:0.1em;
- }
-/*край на стилове за показване на формите */
 
 
 /* Стилове за елемента 'RichEdit' */
@@ -1865,7 +1701,7 @@ table.listTable {
 	font-size:1.3em;
 }
 
-.listToolbar {
+.wide .listToolbar {
 	margin-top:13px;
 }
 
