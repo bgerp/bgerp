@@ -494,6 +494,39 @@ class callcenter_Talks extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
+        // Функционално поле за търсене по статус и тип на разговора
+        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input');
+        
+        // Опции за търсене
+        $options['all'] = '&nbsp;';
+        
+        // Опциите за входящи разговори
+        $incomings = new stdClass();
+        $incomings->title = tr('Входящи');
+        $incomings->attr = array('class' => 'team');
+        $incomings->keylist = 'incomings';
+        
+        $options['incoming'] = $incomings;
+        $options['incoming_ANSWERED'] = tr('Отговорено');
+        $options['incoming_NO ANSWER'] = tr('Без отговор');
+        $options['incoming_BUSY'] = tr('Заето');
+        $options['incoming_FAILED'] = tr('Прекъснато');
+        
+        // Опциите за изходящи разговоири
+        $outgoings = new stdClass();
+        $outgoings->title = tr('Изходящи');
+        $outgoings->attr = array('class' => 'team');
+        $incomings->keylist = 'outgoings';
+        
+        $options['outgoing'] = $outgoings;
+        $options['outgoing_ANSWERED'] = tr('Отговорено');
+        $options['outgoing_NO ANSWER'] = tr('Без отговор');
+        $options['outgoing_BUSY'] = tr('Заето');
+        $options['outgoing_FAILED'] = tr('Прекъснато');
+        
+        // Задаваме опциите
+        $data->listFilter->setOptions('dialStatusType', $options);
+        
         // Ако имаме тип на обаждането
         if ($typeOptions = &$data->listFilter->getField('callType')->type->options) {
             
@@ -522,9 +555,9 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, dialStatus, callType';
+        $data->listFilter->showFields = 'search, usersSearch, dialStatusType';
         
-        $data->listFilter->input('search, usersSearch, dialStatus, callType', 'silent');
+        $data->listFilter->input('search, usersSearch, dialStatusType', 'silent');
     }
 
     
@@ -574,25 +607,30 @@ class callcenter_Talks extends core_Master
                 }
     		}
     		
-            // Ако филтрираме по тип на звънене
-            if($filter->callType && $filter->callType != 'all') {
+            // Ако се търси по статус или вид
+            if ($filter->dialStatusType && $filter->dialStatusType != 'all') {
                 
-                // Търсим по тип на звънене
-                $data->query->where("#callType = '{$filter->callType}'");
+                $dialStatusType = $filter->dialStatusType;
+                
+                // Разделяме статуса от типа
+                list($callType, $dialStatus) = explode('_', $dialStatusType);
+                
+                // Търсим по типа
+                $data->query->where(array("#callType = '[#1#]'", $callType));
                 
                 // Ако търсим по входящи
-                if ($filter->callType == 'incoming') {
+                if ($callType == 'incoming') {
                     
                     // Търсим по статус
                     $data->query->orWhere("#callType IS NULL");
                 }
-            }
-    		
-            // Ако филтрираме по статус на обаждане
-            if($filter->dialStatus && $filter->dialStatus != 'all') {
                 
-                // Търсим по статус на обаждане
-                $data->query->where("#dialStatus = '{$filter->dialStatus}'");
+                // Ако е избран статуса на разговора
+                if ($dialStatus) {
+                    
+                    // Търсим по статус на обаждане
+                    $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
+                }
             }
         }
     }
