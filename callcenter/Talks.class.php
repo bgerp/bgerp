@@ -102,19 +102,25 @@ class callcenter_Talks extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'callerNum, calledNum, dialStatus, startTime';
+    var $searchFields = 'externalNum, internalNum, dialStatus, startTime';
     
     
     /**
      * 
      */
-    var $listFields = 'id, callerNum, callerData, calledNum, calledData, startTime, duration';
+    var $listFields = 'singleLink=-, externalNum, externalData, internalNum, internalData, startTime, duration';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsField = 'singleLink';
     
     
     /**
      * Полетата, които ще се показват в единичния изглед
      */
-//    var $singleFields = 'callerNum, contragent, calledNum, users, dialStatus, uniqId, startTime, answerTime, endTime, duration';
+//    var $singleFields = 'externalNum, contragent, internalNum, users, dialStatus, uniqId, startTime, answerTime, endTime, duration';
     
     
 	/**
@@ -122,11 +128,11 @@ class callcenter_Talks extends core_Master
      */
     function description()
     {
-        $this->FLD('callerNum', 'drdata_PhoneType', 'caption=Позвъняващ->Номер, width=100%');
-        $this->FLD('callerData', 'key(mvc=callcenter_Numbers)', 'caption=Позвъняващ->Име, width=100%');
+        $this->FLD('externalNum', 'drdata_PhoneType', 'caption=Външен->Номер, width=100%, oldFieldName=callerNum');
+        $this->FLD('externalData', 'key(mvc=callcenter_Numbers)', 'caption=Външен->Контакт, width=100%, oldFieldName=callerData');
         
-        $this->FLD('calledNum', 'drdata_PhoneType', 'caption=Търсен->Номер, width=100%');
-        $this->FLD('calledData', 'key(mvc=callcenter_Numbers)', 'caption=Търсен->Име, width=100%');
+        $this->FLD('internalNum', 'drdata_PhoneType', 'caption=Вътрешен->Номер, width=100%, oldFieldName=calledNum');
+        $this->FLD('internalData', 'key(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
         
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
         $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
@@ -174,60 +180,60 @@ class callcenter_Talks extends core_Master
     {    
         
         // Добавяме стил за телефони        
-        $row->callerNum = "<div class='telephone'>" . $row->callerNum . "</div>";
-        $row->calledNum = "<div class='telephone'>" . $row->calledNum . "</div>";
+        $row->externalNum = "<div class='telephone'>" . $row->externalNum . "</div>";
+        $row->internalNum = "<div class='telephone'>" . $row->internalNum . "</div>";
         
         // Ако има данни за търсещия
-        if ($rec->callerData) {
+        if ($rec->externalData) {
          
             // Вземаме записа
-            $numRec = callcenter_Numbers::fetch($rec->callerData);
+            $numRec = callcenter_Numbers::fetch($rec->externalData);
             
             // Вербалния запис
-            $callerNumRow = callcenter_Numbers::recToVerbal($numRec);
+            $externalNumRow = callcenter_Numbers::recToVerbal($numRec);
             
             // Ако има открити данни
-            if ($callerNumRow->contragent) {
+            if ($externalNumRow->contragent) {
              
                 // Добавяме данните
-                $row->callerData = $callerNumRow->contragent;
+                $row->externalData = $externalNumRow->contragent;
             }
         } else {
             
             // Ако има номер
-            if ($rec->callerNum) {
+            if ($rec->externalNum) {
                 // Уникално id
                 $uniqId = $rec->id . 'caller';
                 
                 // Добавяме линка
-                $row->callerData = static::getTemplateForAddNum($rec->callerNum, $uniqId);
+                $row->externalData = static::getTemplateForAddNum($rec->externalNum, $uniqId);
             }
         }
         
         // Ако има данни за търсения
-        if ($rec->calledData) {
+        if ($rec->internalData) {
          
             // Вземаме записа
-            $numRec = callcenter_Numbers::fetch($rec->calledData);
+            $numRec = callcenter_Numbers::fetch($rec->internalData);
             
             // Вербалния запис
-            $calledNumRow = callcenter_Numbers::recToVerbal($numRec);
+            $internalNumRow = callcenter_Numbers::recToVerbal($numRec);
             
             // Ако има открити данни
-            if ($calledNumRow->contragent) {
+            if ($internalNumRow->contragent) {
              
                 // Добавяме данните
-                $row->calledData = $calledNumRow->contragent;
+                $row->internalData = $internalNumRow->contragent;
             }
         } else {
             
             // Ако има номер
-            if ($rec->calledNum) {
+            if ($rec->internalNum) {
                 // Уникално id
                 $uniqId = $rec->id . 'called';
                 
                 // Добавяме линка
-                $row->calledData = static::getTemplateForAddNum($rec->calledNum, $uniqId);
+                $row->internalData = static::getTemplateForAddNum($rec->internalNum, $uniqId);
             }
         }
         
@@ -238,8 +244,8 @@ class callcenter_Talks extends core_Master
             $div = "<div style='margin-top:5px;'>";
             
             // Добавяме данните към номерата
-            $row->callerNum .=  $div. $row->callerData . "</div>";
-            $row->calledNum .= $div . $row->calledData . "</div>";
+            $row->externalNum .=  $div. $row->externalData . "</div>";
+            $row->internalNum .= $div . $row->internalData . "</div>";
             
             // Ако има продължителност
             if ($rec->duration) {
@@ -266,10 +272,10 @@ class callcenter_Talks extends core_Master
         }
         
         // Ако не може да се определи номера
-        if (!$rec->callerNum) {
+        if (!$rec->externalNum) {
             
             // Добавяме, че е скрит номер
-            $row->callerNum = tr('Скрит номер');
+            $row->externalNum = tr('Скрит номер');
         }
     }
     
@@ -295,7 +301,7 @@ class callcenter_Talks extends core_Master
     {
         // Вземаме всички записи за съответния номер
         $query = static::getQuery();
-        $query->where(array("#callerNum = '[#1#]' || #calledNum = '[#1#]'", $numStr));
+        $query->where(array("#externalNum = '[#1#]' || #internalNum = '[#1#]'", $numStr));
         
         // Ако id на номера
         if (!$numId) {
@@ -309,17 +315,17 @@ class callcenter_Talks extends core_Master
         while ($rec = $query->fetch()) {
             
             // Ако номера на позвъняващия отговара
-            if ($rec->callerNum == $numStr) {
+            if ($rec->externalNum == $numStr) {
                 
                 // Променяме данните
-                $rec->callerData = $numId;
+                $rec->externalData = $numId;
             }
             
             // Ако номера на търсения отговара
-            if ($rec->calledNum == $numStr) {
+            if ($rec->internalNum == $numStr) {
                 
                 // Променяме данните
-                $rec->calledData = $numId;
+                $rec->internalData = $numId;
             }
             
             // Записваме
@@ -348,38 +354,38 @@ class callcenter_Talks extends core_Master
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
-        $calledNum = Request::get('extension');
-        $callerNum = Request::get('callerId');
+        $internalNum = Request::get('extension');
+        $externalNum = Request::get('callerId');
         $dialStatus = Request::get('dialstatus');
         $uniqId = Request::get('uniqueId');
         $outgoing = Request::get('outgoing');
-                
+        
         // Създаваме обекта, който ще използваме
         $nRec = new stdClass();
         
         // Вземаме записите за позвъняващия номера
-        $cRec = callcenter_Numbers::getRecForNum($callerNum);
+        $cRec = callcenter_Numbers::getRecForNum($externalNum);
         
         // Ако има такъв запис
         if ($cRec) {
             
             // Вземаме данните за контрагента
-            $nRec->callerData = $cRec->id;
+            $nRec->externalData = $cRec->id;
         }
         
         // Вземаме записите за търсения номера
-        $dRec = callcenter_Numbers::getRecForNum($calledNum);
+        $dRec = callcenter_Numbers::getRecForNum($internalNum);
         
         // Ако има такъв запис
         if ($dRec) {
             
             // Вземаме данните за контрагента
-            $nRec->calledData = $dRec->id;
+            $nRec->internalData = $dRec->id;
         }
         
         // Добавяме останалите променливи
-        $nRec->callerNum = callcenter_Numbers::getNumberStr($callerNum);
-        $nRec->calledNum = callcenter_Numbers::getNumberStr($calledNum);
+        $nRec->externalNum = callcenter_Numbers::getNumberStr($externalNum);
+        $nRec->internalNum = callcenter_Numbers::getNumberStr($internalNum);
         $nRec->uniqId = $uniqId;
         $nRec->startTime = $startTime;
         
@@ -466,10 +472,10 @@ class callcenter_Talks extends core_Master
         $url = array('callcenter_Talks', 'list');
         $customUrl = $url;
         
-        $calledNum = $rec->calledNum;
+        $internalNum = $rec->internalNum;
         
         // Вземаме потребителите, които отговарят за съответния номер
-        $usersArr = callcenter_Numbers::getUserForNum($calledNum);
+        $usersArr = callcenter_Numbers::getUserForNum($internalNum);
         
         // Обхождаме всички потребители
         foreach ((array)$usersArr as $user) {
@@ -558,8 +564,8 @@ class callcenter_Talks extends core_Master
                     if (count((array)$numbersArr)) {
                         
                         // Показваме обажданията към и от тях
-                        $data->query->orWhereArr('callerNum', $numbersArr);
-        			    $data->query->orWhereArr('calledNum', $numbersArr, TRUE);
+                        $data->query->orWhereArr('externalNum', $numbersArr);
+        			    $data->query->orWhereArr('internalNum', $numbersArr, TRUE);
                     } else {
                         
                         // Не показваме нищо
@@ -622,14 +628,14 @@ class callcenter_Talks extends core_Master
                 }
             
                 // Ако има търсен номер и е в масива
-                if ($rec->callerNum && in_array($rec->callerNum, $numbersArr)) {
+                if ($rec->externalNum && in_array($rec->externalNum, $numbersArr)) {
                     
                     // Имаме права
                     $haveRole = TRUE;
                 }
                 
                 // Ако има търсещ номер и е в масива
-                if ($rec->calledNum && in_array($rec->calledNum, $numbersArr)) {
+                if ($rec->internalNum && in_array($rec->internalNum, $numbersArr)) {
                     
                     // Имаме права
                     $haveRole = TRUE;
@@ -686,7 +692,7 @@ class callcenter_Talks extends core_Master
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('id=№, callerNum=Позвъняващ, calledNum=Търсен, startTime=Време');
+            $data->listFields = arr::make('singleLink=-, externalNum=Външен, internalNum=Вътрешен, startTime=Време');
         }
     }
     
@@ -802,7 +808,7 @@ class callcenter_Talks extends core_Master
             'p' => CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
             'extension' => '540',
-            'callerId' => '539',
+            'callerId' => '0887605397',
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );
