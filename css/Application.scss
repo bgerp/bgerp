@@ -1677,7 +1677,7 @@ fieldset.sharing-history {
 /* CMS */
 /*външни стилове за ширина*/
  .narrow  #all #cmsTop {
-	min-width:520px;
+	min-width:522px;
 	height:141px !important;
 }
 
@@ -2530,6 +2530,9 @@ div.locImage{
     .narrow select{
     	padding-left:4px;
     }
+     .narrow #cmsTop{
+    	margin-top:-1px;
+    }
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2540,6 +2543,9 @@ div.locImage{
     }
     .narrow select{
     	padding-left:4px;
+    }
+    .narrow #cmsTop{
+    	margin-top:-1px;
     }
 }
 
