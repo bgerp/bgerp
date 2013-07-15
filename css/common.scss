@@ -464,6 +464,27 @@ table {
     border-spacing:0;
 }
 
+/*reseting webkit differences*/
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+    select {
+	    -webkit-appearance: none;
+	    background-image:url('../img/16/darrow.png') !important;
+	    background-repeat:no-repeat !important;
+	 	background-position:center right !important;
+	    padding-right:1em;
+	    -webkit-border-radius:0;
+	    height: 1.45em;
+    }
+     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input[type=""] {
+		border-radius:0;
+		margin:0;
+	}
+	textarea{
+		-webkit-border-radius:0;
+	}
+}
+
 /*our reset and common classes*/
 body{
 	background-color: #ddd;
@@ -494,27 +515,6 @@ legend img {
 .narrow input.contactData {
 	width:100%;
 }
-/*reseting webkit differences*/
-
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-    select {
-	    -webkit-appearance: none;
-	    background-image:url('../img/16/darrow.png') !important;
-	    background-repeat:no-repeat !important;
-	 	background-position:center right !important;
-	    padding-right:1em;
-	    -webkit-border-radius:0;
-	    height: 1.45em;
-    }
-     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input[type=""] {
-		border-radius:0;
-		margin:0;
-	}
-	textarea{
-		-webkit-border-radius:0;
-	}
-}
-
 
 select{
 	margin-left:0;
@@ -543,6 +543,12 @@ select, input, textarea{
 	font-size: 1.07em;
 }
 
+select.combo {  
+	position: absolute; 
+    visibility:hidden;
+    overflow:hidden;
+}
+
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow:none;
@@ -552,10 +558,16 @@ select, input, textarea{
 	outline:none;
 }
 
-select.combo {  
-	position: absolute; 
-    visibility:hidden;
-    overflow:hidden;
+input[type=radio] + label, input[type=checkbox] + label {
+  color:#777;
+  margin-bottom: 7px;
+  background-color:transparent !important;
+  display: inline-block;
+}
+
+input[type=radio]:checked + label, input[type=checkbox]:checked + label {
+   color:#000;
+   text-shadow: 1px 1px 1px #aaa;
 }
 
 .top-table{
@@ -597,6 +609,7 @@ tr.zebra1 {
     clear: both;
     visibility: hidden;
 }
+
 .fright{
 	float:right;
 }
@@ -604,7 +617,7 @@ tr.zebra1 {
 .fleft{
 	float:left;
 }
-/*end of reset*/
+/*end of our common styles*/
 
 /* BUTTONS */
 a.button, input[type="button"], input[type="submit"] {
@@ -640,6 +653,10 @@ a.button, input[type="button"], input[type="submit"] {
     margin-botoom:0;
 }
 
+a.button:hover, input:hover[type=button] , input:hover[type=submit]{
+    background-color:#ffb; 
+}
+
 .narrow .toolbar .button{
 	border-right:1px solid #999;
 	border-left:none;
@@ -673,33 +690,6 @@ a.button, input[type="button"], input[type="submit"] {
 .narrow .toolbar div .button:last-child{
 	@include rounded(top, right, 5px );
 	@include rounded(bottom, right, 5px);
-}
-
-a.button:hover, input:hover[type=button] , input:hover[type=submit]{
-    background-color:#ffb; 
-}
-
-input[type=checkbox] + label {
-	color:#666;
-}
-
-.narrow input[type=checkbox] + label {
-	background-color:transparent !important; 
-}
-
-input[type=radio] + label {
-	color:#666;  
-	background-color:transparent !important;
-	display: inline-block;
-	padding-top: 7px;
-}
-
-input[type=radio]:checked + label {
-	color:#000;
-}
-
-.narrow input[type=radio]:checked + label {
-		background-color:transparent !important;
 }
 
 .btn-disabled { 
@@ -807,6 +797,13 @@ input[type=radio]:checked + label {
 	background-image:url(../img/16/toggle2.png) !important;
 }
 
+.docBgIcon {
+	padding-left:22px !important;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+ 	padding:0.1em;
+}
+
 /* Общи стилове за линковете */
 a {
   &:link, &:visited {
@@ -890,6 +887,8 @@ a.profile {
 
 
 /* Стилове за показване на формите */
+
+/*грешки и предупреждения*/
 .formError {
     border:solid 1px red; 
     background-color:#ff6;
@@ -952,16 +951,53 @@ a.profile {
     padding-left:1em;
 }
 
-.formFields table {
+/* край на грешки и предупреждения*/
+
+/*общи стилове за елементите на формите*/
+.formFields{
+	margin-bottom:13px;
+}
+
+.formFields > table {
 	width:100%;
 }
 
-.formFields table .richedit-toolbar{
-	margin-bottom:5px;
+.wide .formFields > table {
+	margin:5px 0 0px;
 }
 
-.wide .horizontal .formFields {
-	float:left; 
+.form-filter-btn{
+	margin-top:5px;
+	margin-bottom:10px;
+}
+
+.narrow .form-filter-btn{
+	margin-left:0;
+}
+
+.wide .listTopContainer .formTable { 
+	@include no-shadow();
+	border-collapse:separate;
+}
+
+.narrow .listTopContainer .formTable{
+	border-collapse:separate;
+}
+
+.wide .groupList{
+	line-height:1.4em;	
+}
+
+.groupList .listTable{
+	margin-bottom:0;
+}
+
+.right-align{
+	min-width:120px; 
+	text-align:right;
+	line-height:18px;
+	padding-right:15px;
+	color:#888;
 }
 
 div.hFormField { 
@@ -975,24 +1011,127 @@ div.hFormField {
 	margin:0;
 }
 
-.narrow .horizontal .formFields div {
-	margin-bottom: 10px;
+.formFields > table > tbody > tr > td {
+	padding-bottom:7px !important;
 }
 
-.wide .horizontal .formToolbar { 
-	float:left;
-	margin-bottom:13px;
+.narrow .formFields table > tbody > tr > td{
+	padding-bottom:3px !important;
 }
 
-.narrow .horizontal{
-	margin-bottom:10px;
+.formFields > table .richedit-toolbar{
+	margin-bottom:5px;
 }
 
-.formFieldCaption{
-	padding:0.5em;
-	width:1%;
+.narrow .formAll {
+    display:table;
 }
 
+.formFields input, textarea, select { 
+	margin-top:0px;
+    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
+}
+
+.formFields input:focus, textarea:focus, select:focus { 
+    outline: none;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
+}
+
+/*общи стилове за елементите на формите*/
+
+/*тулбар*/
+.toolbarHide{
+	margin-top:5px !important;
+}
+
+.formToolbar input { 
+    margin-right:10px;
+}
+
+.wide .listToolbar {
+	margin-top:13px;
+}
+
+.narrow .listFilter{
+	margin-left: -3px;
+}
+
+.narrow .tab-page .listFilter{
+	margin-left:0;
+}
+
+.listSummary {
+	padding-bottom:5px; 
+	float:right;
+}
+
+.listPager{
+	padding-bottom:5px; 
+	clear:both;
+}
+
+.listTopContainer {
+	width:100%;
+}
+
+.narrow .ListToolbar, .narrow .SingleToolbar { 
+	margin-top: 10px;
+}
+
+.wide .doc_Containers .toolbar {
+	margin-top: 3px;
+	margin-bottom:3px;
+}
+
+.narrow .toolbar{
+	white-space:nowrap;
+	margin:5px 0 5px 0;
+}
+
+.narrow table.listTable .toolbar{
+	padding: 4px 4px 8px;
+}
+
+.wide .doc_Search{
+	.listFilter{
+		padding-bottom:0;
+	}
+}
+
+.narrow .doc_Search{
+ 	.pages{
+ 		padding-top:3px;
+ 		margin-bottom:13px;
+ 	}
+ 	.listTable{
+ 		margin-top:10px;
+ 	}
+}
+.toolbar #btnDelete{
+	margin-right:0;
+}
+
+.wide form[method="post"] input[type="submit"] {
+	border: solid 1px $quiet-gray !important;
+	background-color: #99f !important;
+	color: white;
+}
+
+.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
+	border:solid 1px $quiet-gray;
+	background-color:#999;
+	color:white;
+}
+
+.narrow form[method=post] input[type=submit]:first-child { 
+	background-color:#99f;
+	color:white;
+}
+/*край на тулбар*/
+
+
+/*вертикални форми*/
 .vertical .formTitle { 
     padding:10px;
     font-size:1.2em;
@@ -1008,6 +1147,11 @@ div.hFormField {
 	}
 }
 
+.narrow .vertical .formTitle{
+	font-size:  1.2em; 
+    font-family: Verdana;
+    background-image:none; 
+}
 
 .vertical .formFieldCaption { 
 	padding: 0.4em 0.4em 0.3em;
@@ -1045,99 +1189,15 @@ div.hFormField {
 	background-image:none;
 }
 
-.vertical input, .vertical textarea{
-	margin-left:0;
+.wide .vertical .formTable {
+	@include border-radius(5px);
+    @include shadow4(2px,2px,8px,3px,#aab);
+    margin-bottom:20px;
+    border-collapse:separate;
 }
 
-.narrow .vertical .formToolbar { 
-    padding:0 6px 3px 6px !important;
-    background-color:#ffe;
-    border:none;
-}
-.toolbarHide{
-	margin-top:5px !important;
-}
-
-.formToolbar input { 
-    margin-right:10px;
-}
-
-.formToolbar .btn-add{
-	margin-top:-3px;
-}
-
-.wide form[method="post"] input[type="submit"] {
-	border: solid 1px $quiet-gray !important;
-	background-color: #99f !important;
-	color: white;
-}
-
-.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
-	border:solid 1px $quiet-gray;
-	background-color:#999;
-	color:white;
-}
-
-.narrow form[method=post] input[type=submit]:first-child { 
-	background-color:#99f;
-	color:white;
-}
-
-.narrow .formAll {
-    display:table;
-}
-
-.formFields input, textarea, select { 
-	margin-top:0px;
-    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
-}
-
-.formFields input:focus, textarea:focus, select:focus { 
-    outline: none;
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
-}
-
-.formFields>table>tbody>tr>td {
-	padding-bottom:7px !important;
-}
-
-.narrow .formFields table td{
-	padding-bottom:3px! important;
-}
-
-.formFields>table{
-	width:100%;
-}
-
-.wide .formFields>table {
-	margin:5px 0 0px;
-}
-
-.formFields>table .richedit-toolbar{
-	margin-bottom:5px;
-}
-
-.narrow .vertical .formTitle{
-	font-size:  1.2em; 
-    font-family: Verdana;
-    background-image:none; 
-}
-
-.docBgIcon {
-	padding-left:22px !important;  
-	background-repeat:no-repeat !important;
-	background-position: 3px center;
- 	padding:0.1em;
- }
-
-.wide .path-title{
-	font-size:0.86em;
-	padding-bottom:3px;
-}
-
-.narrow .path-title{
-	font-size:0.8em;
+.narrow .vertical .formTable {
+	 border-collapse:separate;
 }
 
 .vertical .formToolbar {
@@ -1157,107 +1217,69 @@ div.hFormField {
     input {
 	    margin-right:5px;
 	}
-}
-
-.toolbar #btnDelete{
-	margin-right:0;
-}
-
-.narrow .ListToolbar, .narrow .SingleToolbar { 
-	margin-top: 10px;
-}
-
-.wide .doc_Containers .toolbar {
-	margin-top: 3px;
-	margin-bottom:3px;
-}
-
-.narrow .toolbar{
-	white-space:nowrap;
-	margin:0px 0 5px 0;
-	
-}
-
-.narrow table.listTable .toolbar{
-	padding: 4px 4px 8px;
-}
-
-.wide .vertical .formTable {
-	@include border-radius(5px);
-    @include shadow4(2px,2px,8px,3px,#aab);
-    margin-bottom:20px;
-    border-collapse:separate;
-}
-
-.narrow .vertical .formTable {
-	 border-collapse:separate;
-}
-
-.wide .listTopContainer .formTable { 
-	@include no-shadow();
-	border-collapse:separate;
-}
-
-.narrow .listTopContainer .formTable{
-	border-collapse:separate;
-}
-
-.wide .groupList{
-	line-height:1.4em;	
-}
-
-.groupList .listTable{
-	margin-bottom:0;
-}
-
-.right-align{
-	min-width:120px; 
-	text-align:right;
-	line-height:18px;
-	padding-right:15px;
-	color:#888;
-}
-
-.formFields{
-	margin-bottom:13px;
-}
-
-.form-filter-btn{
-	margin-top:5px;
-	margin-bottom:10px;
-}
-
-.narrow .form-filter-btn{
-	margin-left:0;
-}
-
-
-.wide .doc_Search{
-	.listFilter{
-		padding-bottom:0;
+	.toolbar{
+		margin-top:0;
 	}
 }
 
-.narrow .doc_Search{
- 	.pages{
- 		padding-top:3px;
- 		margin-bottom:13px;
- 	}
- 	.listTable{
- 		margin-top:10px;
- 	}
- }
- 
+.vertical .formTable select{
+	margin-right:3px;
+}
+/*край на вертикални форми*/
+
+
+/*хоризонтални форми*/
+.wide .horizontal .formToolbar { 
+	float:left;
+	margin-bottom:13px;
+}
+
+.wide .horizontal .formFields {
+	float:left; 
+}
+
+.narrow .horizontal{
+	margin-bottom:10px;
+}
+
+.narrow .horizontal .formFields div {
+	margin-bottom: 10px;
+}
+/*край на хоризонтални форми*/
+
+
+/*Загвавие, състоящо се от пътека*/
+.wide .path-title{
+	font-size:0.9em;
+	margin-top:2px;
+}
+
+.narrow .path-title{
+	font-size:0.9em;
+}
+/*Загвавие, състоящо се от пътека*/
 
 /*
  * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
  * вляво
  */
-table.keylist td {
-	padding: 0.4em 0.2em 0 0.2em;
+table.keylist{
+	width:100%;
+	td {
+		padding: 0.4em 0.2em 0 0.2em;
+	}
 }
 
-td.keylist-group>div {
+.narrow table.keylist td {
+	padding-top:0.1em;
+	padding-bottom:0 !important;
+}
+
+td.keylist-group{
+	padding:0 !important;
+}
+
+td.keylist-group > div {
     padding: 4px !important;
     font-size:0.9em;
     font-weight:bold;
@@ -1701,31 +1723,6 @@ table.listTable {
 	font-size:1.3em;
 }
 
-.wide .listToolbar {
-	margin-top:13px;
-}
-
-.narrow .listFilter{
-	margin-left: -3px;
-}
-
-.narrow .tab-page .listFilter{
-	margin-left:0;
-}
-
-.listSummary {
-	padding-bottom:5px; 
-	float:right;
-}
-
-.listPager{
-	padding-bottom:5px; 
-	clear:both;
-}
-
-.listTopContainer {
-	width:100%;
-}
 /* край на стилове за елемента 'list Table' */
 
 
@@ -1770,9 +1767,6 @@ div.rowtools {
 	position:relative;
 	top:2px;
    }
-    
-/*край на BUTTONS*/
-
 
 /*нотификации*/
 div.notification-info {
