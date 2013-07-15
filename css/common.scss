@@ -906,7 +906,7 @@ a.profile {
  
  .narrow .formError {
  	width:auto;
- 	margin:4px 4px 3px 4px;
+ 	margin:4px;
     padding:5px; 
     font-family:Arial,Verdana;
     ul{
@@ -914,8 +914,16 @@ a.profile {
     }
 }
 
- .formError li.ignored{
+.formError li.ignored{
     color:#aaa;
+}
+
+.inputError {
+    border:solid 1px red;
+}
+
+.inputWarning {
+    border:solid 1px #ff9900;
 }
 
 .formInfo, .formWarning  {
@@ -1132,6 +1140,7 @@ div.hFormField {
 	border-top: none;
 	background-image:url('../img/formToolbarBg.jpg');
 }
+
 .narrow .vertical .formToolbar {
 	background-image: none;
 	border: solid 1px #bbb;
@@ -1378,53 +1387,7 @@ select.tab-control {
 
 
 /* Стилове за показване на формите */
-.formError {
-    border:solid 1px red; 
-    background-color:#ff6;
-    font-size:0.9em;
-    padding:10px; 
-  	@include border-radius(5px);
- }
- 
- .wide .formError{
- 	@include border-radius(5px); 
-    text-align:left;
-    min-width:300px;
- }
- 
- .narrow .formError {
- 	width:auto;
- 	margin:4px;
-    padding:5px; 
-    font-family:Arial,Verdana;
-    ul{
-    	margin-left: 10px;
-    }
-}
 
- .formError li.ignored{
-    color:#aaa;
-}
-
-.formInfo, .formFields, .formWarning, .formError  {
-    margin-bottom:10px;
-}
-
-.narrow .formInfo, .narrow .formFields, .narrow .formWarning, .formError{
-    margin-bottom:3px;
-}
-
-.inputError {
-    border:solid 1px red;
-}
-
-.inputWarning {
-    border:solid 1px #ff9900;
-}
-
-.narrow .formError ul {
-    padding-left:1em;
-}
 
 .formFields>table{
 	width:100%;
@@ -1557,6 +1520,9 @@ div.hFormField {
  * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
  * вляво
  */
+table.keylist td {
+	padding: 0.4em 0.2em 0 0.2em;
+}
 
 td.keylist-group>div {
     padding: 4px !important;
