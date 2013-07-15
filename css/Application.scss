@@ -571,6 +571,142 @@ div.alphabet div.tab-row .tab{
 /*край на таб alphabet*/
 
 
+/*стилове за корици*/
+div.cover{
+	min-width: 600px;
+	max-width: 750px;
+	@include border-radius(5px);
+	border:1px solid #ccc;
+	padding:0 20px 20px;
+	margin-top: 16px;
+}
+
+div.folder-cover{
+	background-image:url('../img/cover-bg.png');
+	display: inline-block;
+	min-width: 510px;
+	max-width: 750px;
+	margin-top: 16px;
+	line-height:1.2em;
+	position:relative;
+	border:1px solid #ccc;
+	padding:20px 20px 20px 20px;
+	@include border-radius4(0px,25px,0px,0px);
+	box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
+	&.state-opened{
+		background-image:url('../img/cover-bg-green.png');
+	}
+	&.state-active{
+		background-image:url('../img/cover-bg-yellow.png');
+	}
+	.detail-info{
+		background:none;
+	}
+	.groupTitle {
+		color: #333;
+		font-weight: bold;
+	}
+	.groupList{
+		font-size:0.95em;
+	}
+	.label {
+		color: #777777;
+		font-size: 13px;
+		width: 70px;
+		float: left;
+	}
+	a.sky:link, a.sky:visited, a.sky:visited{
+		font-size: 13px;
+		color: #4a66b0;
+		text-decoration: none;
+	}
+	a.sky:hover {
+		font-size: 13px;
+		color: #4a6z6b0;
+		text-decoration: underline;
+	}
+	.fancybox img {
+		background: #f0f0f0;
+		border: solid 1px #dddddd;
+		padding: 3px;
+		padding: 10px;
+	}
+	.block_title {
+		border-bottom: solid 1px #dddddd;
+		padding: 7px;
+		@include border-radius4(0,15px,0,0);
+		font-size: 1.35em;
+		color: #433;
+		margin-bottom:10px;
+		text-shadow: 1px 1px 1px #ddd;
+		img {
+			vertical-align:bottom;
+		}
+	}
+	.block_left {
+		clear: left;
+		font-size: 12px;
+		padding: 0 10px 10px 0;
+		min-width: 250px;
+		float: left;
+		margin-right: 20px;
+		position: relative;
+		.address {
+			max-width: 240px;
+			margin-bottom: 15px;
+		}
+	}
+	.block_right {
+		min-width: 100px;
+		font-size: 12px;
+		padding: 0 0 10px 10px;
+		float: left;
+	}
+	h2{
+		margin:0 0 20px 0;
+	}
+	.alphabet{
+		line-height:0.9em;
+		padding-bottom:0;
+	}
+	.tab{
+		font-size:0.7em !important;
+	}
+	.tab-page .detail-info{
+		margin-bottom: 0 !important;
+	}
+}
+
+.narrow .folder-cover{
+	line-height:1.3em;
+	margin-left:0px;
+	margin-top:8px;
+	min-width:350px;
+	max-width: 750px;
+	font-size:0.9em;
+	padding:10px 10px 12px 10px;
+	.detail-info{
+		padding:3px 7px 7px 7px;
+	}
+	select{
+		font-size:1.3em;
+	}
+	.tab-page{
+		padding:0 !important;
+	}
+	.tab-page .portal.detail-info{
+		margin-left:2px;
+	}
+}
+
+.special-title{
+	padding:10px !important;
+	font-size:0.9em;
+	line-height:1.1em;
+	@include border-radius4(3px,3px,0,0);
+	box-shadow:0 1px 2px rgba(0,0,0,0.2);
+}
+/*край на стилове за корици*/
 
 /*потребителски профил*/
 .user-profile{
