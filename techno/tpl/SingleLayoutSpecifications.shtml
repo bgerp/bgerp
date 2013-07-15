@@ -9,7 +9,6 @@
 	</div>
 	<!--ET_END header-->
 	<div class='general-product'>
-			[#data#]
 			<table class='styled-table'>
 			<tr>
 				<td>|Тип|*:</td>
@@ -25,6 +24,7 @@
 				<td>[#common#]</td>
 			</tr>
 			<!--ET_END common-->
+			[#data#]
 			</table>
 		<div>|Създаване на|* [#createdDate#] |от|* [#createdBy#]</div>
 	</div>
