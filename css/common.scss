@@ -804,6 +804,50 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 	background-position: 3px center;
  	padding:0.1em;
 }
+.wide .icon { 
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background-repeat: no-repeat;
+	background-position: left center;
+}
+.addRoute{
+   	display:inline-block;
+   	width:16px;
+   	height:16px;
+   	padding-left:5px !important;
+	position:relative;
+	top:2px;
+}
+
+/*бутони с инструменти*/
+div.rowtools { 
+	display:inline;
+	width:100%; 
+}
+ 
+.rowtools .r {
+	vertical-align:middle;
+	display:table-cell;
+	text-align:right;
+}
+ 
+.rowtools .l {
+	vertical-align:middle;
+	display:table-cell;
+	text-align:left;
+	img {
+		vertical-align:middle;
+		margin-right:5px;
+		border:none;
+	}
+}
+
+.rowtools .nw {
+	white-space:nowrap;
+}
+/*край на бутони*/
+
 
 /* Общи стилове за линковете */
 a {
@@ -1946,48 +1990,6 @@ table.listTable {
 
 /* край на стилове за елемента 'list Table' */
 
-
-div.rowtools { 
-	display:inline;
-	width:100%; 
-}
- 
-.rowtools .r {
-	vertical-align:middle;
-	display:table-cell;
-	text-align:right;
-}
- 
-.rowtools .l {
-	vertical-align:middle;
-	display:table-cell;
-	text-align:left;
-	img {
-		vertical-align:middle;
-		margin-right:5px;
-		border:none;
-	}
-}
-
-.rowtools .nw {
-	white-space:nowrap;
-}
-
-.wide .icon { 
-	display: inline-block;
-	height: 16px;
-	width: 16px;
-	background-repeat: no-repeat;
-	background-position: left center;
-}
-.addRoute{
-   	display:inline-block;
-   	width:16px;
-   	height:16px;
-   	padding-left:5px !important;
-	position:relative;
-	top:2px;
-   }
 
 /*нотификации*/
 div.notification-info {
