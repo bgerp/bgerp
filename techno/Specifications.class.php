@@ -644,6 +644,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if($action == 'configure' && isset($rec)){
+    		
     		if($rec->state == 'draft'){
     			$res = 'ceo, techno';
     		} else {

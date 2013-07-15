@@ -99,40 +99,6 @@ class techno_GeneralProducts extends core_Manager {
     }
     
     
-    /**
-     * Връщане на форма за добавяне на нови параметри
-     */
-    public function getAddParamForm($data)
-    {
-    	$form = cls::get('core_Form');
-    	$form->formAttr['id'] = 'addParamSpec';
-    	$form->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
-        $form->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
-        return $form;
-    }
-    
-    
-    /**
-     * Помощен метод за показване само на тези параметри, които
-     * не са добавени към продукта
-     * @param stdClass $data - десериализираната информация
-     * @return array $options - масив с опции
-     */
-    private function getRemainingOptions($data)
-    {
-        $options = cat_Params::makeArray4Select();
-        if(count($options)){
-      	   foreach($options as $id => $value){
-      		 if(isset($data->params[$id])){
-      			unset($options[$id]);
-      		 } 
-      	   }
-        }
-      
-      return $options;
-    }
-    
-    
 	/**
      * Връща сериализиран вариант на данните, които представят
      * дадено изделие или услуга
@@ -194,7 +160,7 @@ class techno_GeneralProducts extends core_Manager {
     		
     		if(techno_Specifications::haveRightFor('configure', $data->specificationId) && !Mode::is('printing')){
     			$img = sbf('img/16/add.png');
-    			$addUrl = array($this, 'configure', $data->specificationId, 'ret_url' => TRUE);
+    			$addUrl = array('techno_Parameters', 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
     		}
 	    }
@@ -246,10 +212,6 @@ class techno_GeneralProducts extends core_Manager {
      */
     private function toVerbal($data)
     {
-    	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
-    	
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
         $fields = $this->getEditForm($data)->selectFields("");
@@ -259,16 +221,8 @@ class techno_GeneralProducts extends core_Manager {
     		$row->$name = $fld->type->toVerbal($data->$name);
     	}
     	
-    	if($data->params){
-    		foreach($data->params as $paramId => $value){
-    			$arr['paramId'] = cat_Params::getTitleById($paramId);
-    			$arr['paramValue'] = (is_numeric($value)) ? $double->toVerbal($value) : $varchar->toVerbal($value);
-    			$suffix = $varchar->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
-    			$arr['paramValue'] .= " &nbsp;{$suffix}";
-    			$arr['tools'] = $this->getParamTools($paramId, $data->specificationId);
-        		$row->params[$paramId] = $arr;
-    		}
-    	}
+    	// Вербализиране на параметрите, ако има
+    	techno_Parameters::getVerbal($data->params, $data->specificationId, $row->params);
     	
     	// Добавяне на линк за сингъла на спецификацията
     	$specState = techno_Specifications::fetchField($data->specificationId, 'state');
@@ -279,32 +233,6 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	return $row;
-    }
-    
-    
-    /**
-     * Създаване на туулбара на параметрите
-     * @param int $paramId - ид на параметър
-     * @param int $specificationId - ид на спецификация
-     * @return core_ET $tpl - туулбара за редакция
-     */
-    private function getParamTools($paramId, $specificationId)
-    {
-    	if(techno_Specifications::haveRightFor('configure', $specificationId) && !Mode::is('printing')) {
-    		
-	        $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
-			$deleteImg = "<img src=" . sbf('img/16/delete.png') . " alt=\"" . tr('Изтриване') . "\">";
-	        
-			$editUrl = array($this, 'configure', $specificationId, 'paramId' => $paramId, 'edit' => TRUE, 'ret_url' => TRUE);
-	        $deleteUrl = array($this, 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);
-
-	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
-    		
-	        $tpl = new ET($editLink . " " . $deleteLink);
-    	}
-    	
-        return $tpl;
     }
     
     
@@ -356,71 +284,6 @@ class techno_GeneralProducts extends core_Manager {
     	// Връщаме ДДС-то от периода
     	$period = acc_Periods::fetchByDate($date);
     	return $period->vatRate;
-    }
-    
-    
-    /**
-     * Екшън за добавяне, изтриване и редактиране на параметри
-     */
-    function act_Configure()
-    {
-    	$Specifications = cls::get('techno_Specifications');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $Specifications->fetch($id));
-    	$Specifications->requireRightFor('configure', $rec);
-    	$data = unserialize($rec->data);
-    	$retUrl = array('techno_Specifications', 'single', $id, "#" => "Sp{$id}");
-    	
-    	if($paramId = Request::get('delete')){
-    		unset($data->params[$paramId]);
-    		$rec->data = $this->serialize($data);
-	        $Specifications->save($rec);
-	        return Redirect($retUrl);
-    	}
-    	
-    	$form = $this->getAddParamForm($data);
-        
-    	if(Request::get('edit')){
-        	$paramId = Request::get('paramId');
-        	$form->rec->paramValue = $data->params[$paramId];
-        	$form->rec->paramId = $paramId;
-        	$form->setReadOnly('paramId');
-        	$action = tr('Редактиране');
-        } else {
-        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
-        	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['addParamSpec'].elements['paramValue'].value ='';this.form.submit();"));
-	    	$paramOptions = $this->getRemainingOptions($data);
-	    	$form->setOptions('paramId', array('' => '') + $paramOptions);
-        	$action = tr('Добавяне');
-        }
-        
-        if($paramId = Request::get('paramId')){
-        	$form->fields['paramValue']->type = cat_Params::getParamTypeClass($paramId, 'cat_Params');
-        } else {
-        	$form->setField('paramValue', 'input=hidden');
-        }
-        
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
-        
-        $fRec = $form->input();
-        if($form->isSubmitted()) {
-        	if($Specifications->haveRightFor('configure', $rec)){
-        		
-        		// Проверка дали въведените стойности за правилни
-        		if(!$form->gotErrors()){
-        			
-        			// Записваме въведените данни в пропъртито data на река
-		            $data->params[$fRec->paramId] = $fRec->paramValue;
-	        		$rec->data = $this->serialize($data);
-		            $Specifications->save($rec);
-		            return  Redirect(array($Specifications, 'single', $rec->id));
-        		}
-        	}
-        }
-        
-        $form->title = "{$action} на параметри към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
-    	return $Specifications->renderWrapping($form->renderHtml());
     }
     
     
