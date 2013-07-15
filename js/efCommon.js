@@ -1037,20 +1037,11 @@ function addCmdRefresh(form)
 
 
 /**
- * Показва скритите елементи
+ * Променя visibility атрибута на елементите
  */
-function show(id,type)
+function changeVisibility(id, type)
 {
 	element=document.getElementById(id);
-	element.style.display=type;
-}
 
-
-/**
- * Скрива елементите
- */
-function hide(id)
-{
-	element=document.getElementById(id);
-	element.style.display="none";
+	element.style.visibility=type;
 }
