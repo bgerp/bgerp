@@ -1087,4 +1087,75 @@ class sales_Sales extends core_Master
     	}
     	return $res;
     }
+
+
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = new sales_model_Sale(self::fetchRec($id));
+        
+        /* @var $query core_Query */
+        $query = sales_SalesDetails::getQuery();
+        
+        /* @var $detailRecs sales_model_SaleDetail[] */
+        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
+        
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->delivery->location     = $rec->deliveryLocationId;
+        $result->agreed->delivery->term         = $rec->deliveryTermId;
+        $result->agreed->delivery->time         = $rec->deliveryTime;
+        $result->agreed->payment->method        = $rec->paymentMethodId;
+        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
+        $result->agreed->payment->caseId        = $rec->caseId;
+        
+        
+        if ($rec->isInstantPayment == 'yes') {
+            $result->paid->amount   = $rec->amountDeal;
+            $result->paid->currency = $rec->currencyId;
+            $result->paid->payment->method        = $rec->paymentMethodId;
+            $result->paid->payment->bankAccountId = $rec->bankAccountId;
+            $result->paid->payment->caseId        = $rec->caseId;
+        }
+
+        if ($rec->isInstantShipment == 'yes') {
+            $result->shipped->amount   = $rec->amountDeal;
+            $result->shipped->currency = $rec->currencyId;
+            $result->shipped->delivery->location     = $rec->deliveryLocationId;
+            $result->shipped->delivery->term         = $rec->deliveryTermId;
+            $result->shipped->delivery->time         = $rec->deliveryTime;
+        }
+        
+        foreach ($detailRecs as $dRec) {
+            /* @var $p bgerp_iface_DealProduct */
+            $p = new stdClass();
+            
+            $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $p->productId   = $dRec->productId;
+            $p->packagingId = $dRec->packagingId;
+            $p->discount    = $dRec->discount;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $dRec->quantity;
+            $p->price       = $dRec->price;
+            
+            $result->agreed->products[] = $p;
+            
+            if ($rec->isInstantShipment == 'yes') {
+                $result->shipped->products[] = clone $p;
+            }
+        }
+        
+        return $result;
+    }
 }

@@ -520,7 +520,7 @@ class sales_SalesDetails extends core_Detail
      * @param int|string|object $Policy
      * @return core_Manager
      */
-    protected static function getProductManager($Policy)
+    public static function getProductManager($Policy)
     {
         if (is_scalar($Policy)) {
             $Policy = cls::get($Policy);
