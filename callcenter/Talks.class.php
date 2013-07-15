@@ -194,14 +194,14 @@ class callcenter_Talks extends core_Master
             }
         } else {
             
-            // Уникално id
-            $uniqId = $rec->id . 'caller';
-            
-            // Шаблона
-            $template = static::getTemplateForAddNum($rec->callerNum, $uniqId);
-            
-            // Заместваме номера
-            $row->callerNum = $template->replace($row->callerNum, 'NUM_PLACE');
+            // Ако има номер
+            if ($rec->callerNum) {
+                // Уникално id
+                $uniqId = $rec->id . 'caller';
+                
+                // Добавяме линка
+                $row->callerData = static::getTemplateForAddNum($rec->callerNum, $uniqId);
+            }
         }
         
         // Ако има данни за търсения
@@ -221,14 +221,14 @@ class callcenter_Talks extends core_Master
             }
         } else {
             
-            // Уникално id
-            $uniqId = $rec->id . 'called';
-            
-            // Шаблона
-            $template = static::getTemplateForAddNum($rec->calledNum, $uniqId);
-            
-            // Заместваме номера
-            $row->calledNum = $template->replace($row->calledNum, 'NUM_PLACE');
+            // Ако има номер
+            if ($rec->calledNum) {
+                // Уникално id
+                $uniqId = $rec->id . 'called';
+                
+                // Добавяме линка
+                $row->calledData = static::getTemplateForAddNum($rec->calledNum, $uniqId);
+            }
         }
         
         // Ако сме в тесен режим
@@ -692,26 +692,32 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * Връща шаблон с линкове за добавяне на номера във фирма, лица или номера
+     * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
      * 
      * @param string $num - Номера, за който се отнася
      * @param string $uniqId - Уникално id
      * 
-     * @return core_ET - Шаблон
+     * @return string - Тага за заместване
      */
     static function getTemplateForAddNum($num, $uniqId)
     {
+        // Иконата за добавяме
+        $background = 'background-image:url(' . sbf("img/16/add1-16.png") . ');';
+        
         // Ако не е валиден номер
         // Третираме го като вътрешен
         if (!drdata_PhoneType::toArray($num)) {
             
             // Аттрибути за стилове 
             $numbersAttr['class'] .= 'linkWithIcon';
-            $numbersAttr['style'] = 'background-image:url(' . sbf("img/16/add1-16.png") . ');';
+            $numbersAttr['style'] = $background;
             $numbersAttr['title'] = tr('Добави към потребител');
             
+            // Икона на телефон
+            $phonesImg = "<img src=" . sbf('img/16/telephone.png') . " width='16' height='16'>";
+            
             // Създаваме линк
-            $text = ht::createLink('Добави', array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
+            $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
         } else {
             
             // Инстанция на фирмата
@@ -719,29 +725,38 @@ class callcenter_Talks extends core_Master
             
             // Аттрибути за стилове 
             $companiesAttr['class'] .= 'linkWithIcon';
-            $companiesAttr['style'] = 'background-image:url(' . sbf($Companies->getIcon()) . ');';
+            $companiesAttr['style'] = $background;
             $companiesAttr['title'] = tr('Нова фирма');
             
+            // Икона на фирмите
+            $companiesImg = "<img src=" . sbf($Companies->getIcon()) . " width='16' height='16'>";
+            
             // Добавяме линк към създаване на фирми
-            $text = ht::createLink('Фирма', array($Companies, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
+            $text = ht::createLink($companiesImg, array($Companies, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
             
             // Инстанция на лица
             $Persons = cls::get('crm_Persons');
             
             // Аттрибути за стилове 
             $personsAttr['class'] .= 'linkWithIcon';
-            $personsAttr['style'] = 'background-image:url(' . sbf($Persons->getIcon()) . ');';
+            $personsAttr['style'] = $background;
             $personsAttr['title'] = tr('Ново лице');
             
+            // Икона на изображенията
+            $personsImg = "<img src=" . sbf($Persons->getIcon()) . " width='16' height='16'>";
+            
             // Добавяме линк към създаване на лица
-            $text .= " | ". ht::createLink('Лице', array($Persons, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+            $text .= " | ". ht::createLink($personsImg, array($Persons, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
         }
         
-        // Шаблона
-        $tepmplate = new ET("<div onmouseover=\"show('{$uniqId}', 'block');\"><div onmouseout=\"hide('$uniqId');\">[#NUM_PLACE#] 
-        		<div style='display:none;' id='{$uniqId}'>{$text}</div></div></div");
+        // Дали да се показва или не
+        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
         
-        return $tepmplate;
+        // Резултата
+        $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
+        		<div style='visibility:{$visibility};' id='{$uniqId}'>{$text}</div></div";
+        
+        return $res;
     }
     
     
