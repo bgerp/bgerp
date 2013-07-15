@@ -623,7 +623,7 @@ class cat_Products extends core_Master {
     	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма артикули в посочените групи');
     	
     	while($rec = $query->fetch()){
-	    	$result[$rec->id] = $rec->name;
+	    	$result[$rec->id] = static::getTitleById($rec->id);
 	    }
 	    
 	    return $result;
