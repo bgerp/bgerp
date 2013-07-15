@@ -163,10 +163,10 @@ class fileman_Setup extends core_ProtoSetup
      */
     var $managers = array(
      		// Установяваме папките;
-            //'fileman_Buckets',
+            'fileman_Buckets',
     
             // Установяваме файловете;
-            //'fileman_Files',
+            'fileman_Files',
     
             // Установяване на детайлите на файловете
             'fileman_FileDetails',
