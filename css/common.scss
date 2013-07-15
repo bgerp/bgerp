@@ -1000,13 +1000,10 @@ div.hFormField {
 
 .vertical .formSection {
 	padding:15px; 
+	padding-bottom:0px;
     color:black;
     background-color:#ffe;
     vertical-align:top;
-}
-
-.narrow .vertical .formSection {
-	padding:10px;
 }
 
 .vertical input, .vertical textarea{
@@ -1020,6 +1017,9 @@ div.hFormField {
     input {
 	    margin-right:5px;
 	}
+}
+.toolbarHide{
+	margin-top:5px !important;
 }
 
 .formToolbar input { 
@@ -1121,9 +1121,10 @@ div.hFormField {
 }
 .narrow .vertical .formToolbar {
 	background-image: none;
-	padding: 8px;
 	border: solid 1px #bbb;
 	border-top: none;
+	padding:0 6px 3px 6px !important;
+    background-color:#ffe;
 }
 
 .vertical .formSection {
@@ -1458,13 +1459,6 @@ div.hFormField {
 	width:1%;
 }
 
-.vertical .formFieldCaption { 
-	padding: 0.3em 0.4em 0.5em;
-	white-space: nowrap;
-	width:1px;
-	vertical-align:top;
-}
-
 .vertical .formGroup {
     padding:5px;
     margin: 10px 0 5px;
@@ -1491,19 +1485,10 @@ div.hFormField {
     vertical-align:top;
 }
 
-.narrow .vertical .formSection {
-	padding:10px;
-}
-
 .vertical input, .vertical textarea{
 	margin-left:0;
 }
 
-.narrow .vertical .formToolbar { 
-    padding:0 6px 3px 6px !important;
-    background-color:#ffe;
-    border:none;
-}
 
 .formToolbar input { 
     margin-right:10px;
@@ -1570,11 +1555,6 @@ div.hFormField {
  * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
  * вляво
  */
-table.keylist {
-	td {
-	   padding:0em 1em 0 0.2em;
-	}
-}
 
 td.keylist-group>div {
     padding: 4px !important;
@@ -1582,10 +1562,6 @@ td.keylist-group>div {
     font-weight:bold;
     background-color:#eeeeff;
     color: #333;
-}
-
-td.keylist-group {
-    padding-bottom:5px !important;
 }
 
 .warningMsg {
@@ -1923,11 +1899,6 @@ table.listTable {
 .narrow table.listTable{
 	margin-bottom:5px;
 }
-.narrow .toolbar{
-	white-space:nowrap;
-	margin: 0px 0px 2px 0px ;
-	padding:0px 0px 3px 0px;
-}
 
 .narrow .listTable .toolbar {
 	margin: 5px 4px 5px 4px;
@@ -2167,7 +2138,6 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	}
 }
 
-
 .more-btn{
 	float:left;
 	margin-top:0;
@@ -2182,10 +2152,6 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 
 .more-btn.show-btn{
 	background-image:url(../img/16/toggle2.png) !important;
-}
-
-.toolbarHide{
-	margin-top:5px !important;
 }
 
 div.rowtools { 
@@ -2443,7 +2409,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	small{
 		font-size:0.8em;
 		line-height:1.15em;
-		margin: 0.3em;
+		margin: 0.1em;
 		height: 3em;
 	}
 	b{
@@ -2456,6 +2422,9 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 			padding:0 0.5em 0.2em;
 			margin:0;
 		}
+	}
+	.pack-title{
+		margin-top:0;
 	}
 	.elem-img{
 		width:74px;
