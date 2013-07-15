@@ -282,9 +282,6 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	padding-bottom:5px;
 }
 
-.narrow .ListToolbar, .narrow .SingleToolbar { 
-	margin-top: 10px;
-}
 
 .wide table.top-table td{
 	border: none;
@@ -746,128 +743,6 @@ div.mobile {
 
 
 /*стилове за форми*/
-.vertical .formTitle {
-	background-color: #99f;
-	border: solid 1px #88e;
-	border-bottom: none;
-	padding: 8px;
-	vertical-align:middle !important;
-	@include border-radius4(5px, 5px, 0, 0);
-	img{
-		vertical-align:middle !important;
-	}
-}
-
-.narrow .vertical .formTitle {
-	background-image:none;
-}
-
-.wide .path-title{
-	font-size:0.86em;
-	padding-bottom:3px;
-}
-
-.narrow .path-title{
-	font-size:0.8em;
-}
-
-.vertical .formToolbar {
-	padding: 8px;
-	@include border-radius4(0px, 0px, 5px, 5px);
-	border: solid 1px #bbb;
-	border-top: none;
-	background-image:url('../img/formToolbarBg.jpg');
-}
-.narrow .vertical .formToolbar {
-	background-image: none;
-	padding: 8px;
-	border: solid 1px #bbb;
-	border-top: none;
-}
-
-.vertical .formSection {
-	border-left: solid 1px #bbb;
-	border-right: solid 1px #bbb;
-	background-image:url('../img/yellow.png'); 
-}
-
-.narrow .vertical .formSection {
-	padding:5px;
-}
-
-.narrow .formSection{
-	background-image:none;
-}
-
-.wide .vertical .formTable {
-	@include border-radius(5px);
-    @include shadow4(2px,2px,8px,3px,#aab);
-    margin-bottom:20px;
-    border-collapse:separate;
-}
-
-.narrow .vertical .formTable {
-	 border-collapse:separate;
-}
-
-.wide .listTopContainer .formTable { 
-	@include no-shadow();
-	border-collapse:separate;
-}
-
-.narrow .listTopContainer .formTable{
-	border-collapse:separate;
-}
-
-.wide .groupList{
-	line-height:1.4em;	
-}
-
-.groupList .listTable{
-	margin-bottom:0;
-}
-
-.right-align{
-	min-width:120px; 
-	text-align:right;
-	line-height:18px;
-	padding-right:15px;
-	color:#888;
-}
-
-.formFields{
-	margin-bottom:13px;
-}
-
-.form-filter-btn{
-	margin-top:5px;
-	margin-bottom:10px;
-}
-
-.narrow .form-filter-btn{
-	margin-left:0;
-}
-
-.wide div.hFormField{
-	margin-bottom:2px;
-}
-
-.wide .doc_Search{
-	.listFilter{
-		padding-bottom:0;
-	}
-}
-
-.narrow .doc_Search{
- 	.pages{
- 		padding-top:3px;
- 		margin-bottom:13px;
- 	}
- 	.listTable{
- 		margin-top:10px;
- 	}
- }
-/*край на стилове за форми*/
 
 
 option.team {
@@ -1199,9 +1074,6 @@ pre.document{
 	border-collapse:collapse;
 }
 
-.innerTable td{
-	padding:5px;
-}
 
 .rowData {
 	font-size:0.9em;
@@ -1215,9 +1087,6 @@ pre.document{
 	border:1px solid #000;
 }
 
-.footer-notes td{
-	padding:5px;
-}
 
 #invoice-info{
 	border-left:1px solid #000;
@@ -1232,52 +1101,6 @@ pre.document{
 	border-right:1px solid #000;
 }
 /*край на стилове за документи*/
-
-
-/*стилове за листова таблица*/
-.listTable{
-  	.document h2 {
-		margin-top: 3px;
-     }
-	 .toolbar {
-		padding: 4px 5px 5px;
-	 }
-	 td,th{
-	 	border-color:#000;
-	 }
-}
-/*край на стилове за листова таблица*/
-
-
-/*стилове за тулбар*/
-.wide .listToolbar {
-	margin-top: 13px;
-}
-
-.listTable .toolbar .button{
-	margin:0px 5px 0px 0;
-}
-
-.toolbar #btnDelete{
-	margin-right:0;
-}
-
-.narrow .toolbar{
-	white-space:nowrap;
-	margin: 0px 0px 2px 0px ;
-	padding:0px 0px 3px 0px;
-}
-
-.narrow .listTable .toolbar {
-	margin: 5px 4px 5px 4px;
-	padding-top:0px;
-}
-
-.wide .doc_Containers .toolbar {
-	margin-top: 3px;
-	margin-bottom:3px;
-}
-/*край на стилове за тулбар*/
 
 
 /*стилове за календара в портала*/
@@ -1717,7 +1540,7 @@ fieldset.sharing-history {
 
 /* CMS */
 /*външни стилове за ширина*/
-#all .narrow #cmsTop {
+ .narrow  #all #cmsTop {
 	min-width:520px;
 	height:141px !important;
 }
@@ -2196,10 +2019,6 @@ div.locImage{
 	display:inline-block;
 }
 
-#doc_Comments-EditForm .formTitle{
-	border: none;
-	@include border-radius4(5px,5px, 0, 0);
-}
 
 .btn-group .button{
 	display:inline-block;
