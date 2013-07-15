@@ -21,7 +21,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Заплати';
+    var $title = 'Показатели';
     
     
     /**
@@ -64,7 +64,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, periodId, personId, departmentId, positionId, value';
     
     
     /**
@@ -78,18 +78,11 @@ class trz_SalaryIndicators extends core_Manager
      */
     function description()
     {
+    	$this->FLD('periodId',    'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,width=100%');
+    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,mandatory,width=100%');
+    	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Отдел,mandatory,width=100%');
+    	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Длъжност,mandatory,width=100%');
+    	$this->FLD('value',    'double', 'caption=Стойност,mandatory,width=100%');
     }
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
-    
 }

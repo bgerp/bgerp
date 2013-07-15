@@ -46,6 +46,8 @@ class trz_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'trz_SalaryPayroll',
+		    'trz_SalaryIndicators',
+		    'trz_SalaryRules',
             'trz_Bonuses',
             'trz_Sickdays',
             'trz_Trips',

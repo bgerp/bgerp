@@ -21,7 +21,7 @@ class trz_SalaryPayroll extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Заплати';
+    var $title = 'Ведомост';
     
     
     /**
@@ -64,7 +64,7 @@ class trz_SalaryPayroll extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, periodId, ruleId, personId, amount';
     
     
     /**
@@ -78,18 +78,10 @@ class trz_SalaryPayroll extends core_Manager
      */
     function description()
     {
-    }
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
+    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,width=100%');
+    	 $this->FLD('ruleId',    'key(mvc=trz_SalaryRules, select=conditionExpr)', 'caption=Правило,mandatory,width=100%');
+    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,mandatory,width=100%');
+    	 $this->FLD('amount',    'double', 'caption=Сума,mandatory,width=100%');
     }
     
 }

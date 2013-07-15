@@ -21,7 +21,7 @@ class trz_SalaryRules extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Заплати';
+    var $title = ' Правила';
     
     
     /**
@@ -64,7 +64,7 @@ class trz_SalaryRules extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'tools=Пулт, from, to, personId, departmentId, positionId, conditionExpr, amountExpr';
     
     
     /**
@@ -78,18 +78,14 @@ class trz_SalaryRules extends core_Manager
      */
     function description()
     {
+    	$this->FLD('from',    'date', 'caption=Период->От,mandatory,width=100%');
+    	$this->FLD('to',    'date', 'caption=Период->До,mandatory,width=100%');
+    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,mandatory,width=100%');
+    	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Отдел,mandatory,width=100%');
+    	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Длъжност,mandatory,width=100%');
+    	$this->FLD('conditionExpr',    'text', 'caption=Условие,mandatory,width=100%');
+    	$this->FLD('amountExpr',    'text', 'caption=Сума,mandatory,width=100%');
+    	
     }
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
-    
 }
