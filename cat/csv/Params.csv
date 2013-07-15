@@ -6,3 +6,4 @@
 Дебелина,double,микрон,thickness
 Обем,double,литри,volume
 ДДС,percent,%,vat
+Н. такси,double,лв,bTax
