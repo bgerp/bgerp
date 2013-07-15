@@ -67,52 +67,401 @@ $quiet-gray:#888;
 }
  /*край на общи функции и параметри*/
 
-/*reset*/
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	vertical-align: baseline;
+/*! normalize.css v2.1.2 | MIT License | git.io/normalize */
+
+/* ==========================================================================
+   HTML5 display definitions
+   ========================================================================== */
+
+/**
+ * Correct `block` display not defined in IE 8/9.
+ */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+    display: block;
 }
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-	display: block;
+
+/**
+ * Correct `inline-block` display not defined in IE 8/9.
+ */
+
+audio,
+canvas,
+video {
+    display: inline-block;
 }
+
+/**
+ * Prevent modern browsers from displaying `audio` without controls.
+ * Remove excess height in iOS 5 devices.
+ */
+
+audio:not([controls]) {
+    display: none;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 8/9.
+ */
+
+[hidden] {
+    display: none;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/**
+ * 1. Set default font family to sans-serif.
+ * 2. Prevent iOS text size adjust after orientation change, without disabling
+ *    user zoom.
+ */
+
+html {
+    font-family: sans-serif; /* 1 */
+    -ms-text-size-adjust: 100%; /* 2 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+}
+
+/**
+ * Remove default margin.
+ */
 
 body {
-	line-height: 1;
+    margin: 0;
 }
 
-ol li, ul li{
-	line-height:120%;
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+/**
+ * Address `outline` inconsistency between Chrome and other browsers.
+ */
+
+a:focus {
+    outline: thin dotted;
 }
 
-blockquote, q {
-	quotes: none;
+/**
+ * Improve readability when focused and also mouse hovered in all browsers.
+ */
+
+a:active,
+a:hover {
+    outline: 0;
 }
 
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+/**
+ * Address variable `h1` font-size and margin within `section` and `article`
+ * contexts in Firefox 4+, Safari 5, and Chrome.
+ */
+
+h1 {
+    font-size: 2em;
+    margin: 0.67em 0;
 }
+
+/**
+ * Address styling not present in IE 8/9, Safari 5, and Chrome.
+ */
+
+abbr[title] {
+    border-bottom: 1px dotted;
+}
+
+/**
+ * Address style set to `bolder` in Firefox 4+, Safari 5, and Chrome.
+ */
+
+b,
+strong {
+    font-weight: bold;
+}
+
+/**
+ * Address styling not present in Safari 5 and Chrome.
+ */
+
+dfn {
+    font-style: italic;
+}
+
+/**
+ * Address differences between Firefox and other browsers.
+ */
+
+hr {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 0;
+}
+
+/**
+ * Address styling not present in IE 8/9.
+ */
+
+mark {
+    background: #ff0;
+    color: #000;
+}
+
+/**
+ * Correct font family set oddly in Safari 5 and Chrome.
+ */
+
+code,
+kbd,
+pre,
+samp {
+    font-family: monospace, serif;
+    font-size: 1em;
+}
+
+/**
+ * Improve readability of pre-formatted text in all browsers.
+ */
+
+pre {
+    white-space: pre-wrap;
+}
+
+/**
+ * Set consistent quote types.
+ */
+
+q {
+    quotes: "\201C" "\201D" "\2018" "\2019";
+}
+
+/**
+ * Address inconsistent and variable font size in all browsers.
+ */
+
+small {
+    font-size: 80%;
+}
+
+/**
+ * Prevent `sub` and `sup` affecting `line-height` in all browsers.
+ */
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+/* ==========================================================================
+   Embedded content
+   ========================================================================== */
+
+/**
+ * Remove border when inside `a` element in IE 8/9.
+ */
+
+img {
+    border: 0;
+}
+
+/**
+ * Correct overflow displayed oddly in IE 9.
+ */
+
+svg:not(:root) {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Figures
+   ========================================================================== */
+
+/**
+ * Address margin not present in IE 8/9 and Safari 5.
+ */
+
+figure {
+    margin: 0;
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
+/**
+ * Define consistent border, margin, and padding.
+ */
+
+fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: 0.35em 0.625em 0.75em;
+}
+
+/**
+ * 1. Correct `color` not being inherited in IE 8/9.
+ * 2. Remove padding so people aren't caught out if they zero out fieldsets.
+ */
+
+legend {
+    border: 0; /* 1 */
+    padding: 0; /* 2 */
+}
+
+/**
+ * 1. Correct font family not being inherited in all browsers.
+ * 2. Correct font size not being inherited in all browsers.
+ * 3. Address margins set differently in Firefox 4+, Safari 5, and Chrome.
+ */
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit; /* 1 */
+    font-size: 100%; /* 2 */
+    margin: 0; /* 3 */
+}
+
+/**
+ * Address Firefox 4+ setting `line-height` on `input` using `!important` in
+ * the UA stylesheet.
+ */
+
+button,
+input {
+    line-height: normal;
+}
+
+/**
+ * Address inconsistent `text-transform` inheritance for `button` and `select`.
+ * All other form control elements do not inherit `text-transform` values.
+ * Correct `button` style inheritance in Chrome, Safari 5+, and IE 8+.
+ * Correct `select` style inheritance in Firefox 4+ and Opera.
+ */
+
+button,
+select {
+    text-transform: none;
+}
+
+/**
+ * 1. Avoid the WebKit bug in Android 4.0.* where (2) destroys native `audio`
+ *    and `video` controls.
+ * 2. Correct inability to style clickable `input` types in iOS.
+ * 3. Improve usability and consistency of cursor style between image-type
+ *    `input` and others.
+ */
+
+button,
+html input[type="button"], /* 1 */
+input[type="reset"],
+input[type="submit"] {
+    -webkit-appearance: button; /* 2 */
+    cursor: pointer; /* 3 */
+}
+
+/**
+ * Re-set default cursor for disabled elements.
+ */
+
+button[disabled],
+html input[disabled] {
+    cursor: default;
+}
+
+/**
+ * 1. Address box sizing set to `content-box` in IE 8/9.
+ * 2. Remove excess padding in IE 8/9.
+ */
+
+input[type="checkbox"],
+input[type="radio"] {
+    box-sizing: border-box; /* 1 */
+    padding: 0; /* 2 */
+}
+
+/**
+ * 1. Address `appearance` set to `searchfield` in Safari 5 and Chrome.
+ * 2. Address `box-sizing` set to `border-box` in Safari 5 and Chrome
+ *    (include `-moz` to future-proof).
+ */
+
+input[type="search"] {
+    -webkit-appearance: textfield; /* 1 */
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box; /* 2 */
+    box-sizing: content-box;
+}
+
+/**
+ * Remove inner padding and search cancel button in Safari 5 and Chrome
+ * on OS X.
+ */
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+/**
+ * Remove inner padding and border in Firefox 4+.
+ */
+
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+/**
+ * 1. Remove default vertical scrollbar in IE 8/9.
+ * 2. Improve readability and alignment in all browsers.
+ */
+
+textarea {
+    overflow: auto; /* 1 */
+    vertical-align: top; /* 2 */
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+/**
+ * Remove most spacing between table cells.
+ */
 
 table {
-	border-collapse: collapse;
-	border-spacing: 0;
+    border-collapse: collapse;
+    border-spacing:0;
 }
 
 /*our reset and common classes*/
@@ -194,11 +543,21 @@ select, input, textarea{
 	font-size: 1.07em;
 }
 
+.checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
+	border: none !important;
+	box-shadow:none;
+	margin:3px 3px 3px 4px;
+	padding-top:4px !important;
+	background-color:transparent;
+	outline:none;
+}
+
 select.combo {  
 	position: absolute; 
     visibility:hidden;
     overflow:hidden;
 }
+
 .top-table{
 	border-collapse:separate;
 	border-spacing:5px;
@@ -247,6 +606,190 @@ tr.zebra1 {
 }
 /*end of reset*/
 
+/* BUTTONS */
+a.button, input[type="button"], input[type="submit"] {
+	margin-right: 0.5em;
+	margin-left:0;
+    color:$dark-blue;
+    font-weight:bold;
+    text-decoration:none;
+    cursor:pointer;
+    font-size: 0.8em;
+    padding:0.2em 0.5em;
+    height:2em;
+    font-family: Arial,sans-serif;
+    overflow:visible;
+    display:inline-block;
+    background-color:#ddd; 
+    border:1px solid #bbb; 
+    @include border-radius(3px);
+}
+
+@-moz-document url-prefix() {
+	.wide a.button, .wide input[type="button"], .wide input[type="submit"] {
+		padding-top:0.1em !important;
+	}
+}
+
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
+	border:1px solid #999; 
+	@include border-radius(5px);
+    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+    height:1.8em;
+    margin-top:0;
+    margin-botoom:0;
+}
+
+.narrow .toolbar .button{
+	border-right:1px solid #999;
+	border-left:none;
+	margin-right:0 !important;
+	@include border-radius(0);
+}
+
+.narrow .toolbar .btn-left { 
+    @include rounded(top, right, 0px);
+    @include rounded(bottom, right, 0px);
+	margin:0px !important;
+}
+
+.narrow .toolbar .btn-right {
+	@include rounded(top, left, 0px) ;
+	@include rounded(bottom, left, 0px);
+	margin:0px 0px 0 0 !important;
+}
+
+.narrow .toolbar .btn-middle { 
+	@include border-radius(0px);
+	margin:0px !important;
+}
+
+.narrow .toolbar div .button:first-child{
+	border-left:1px solid #999;
+	@include rounded(top,left,5px);
+	@include rounded(bottom,left,5px);
+}
+
+.narrow .toolbar div .button:last-child{
+	@include rounded(top, right, 5px );
+	@include rounded(bottom, right, 5px);
+}
+
+a.button:hover, input:hover[type=button] , input:hover[type=submit]{
+    background-color:#ffb; 
+}
+
+input[type=checkbox] + label {
+	color:#666;
+}
+
+.narrow input[type=checkbox] + label {
+	background-color:transparent !important; 
+}
+
+input[type=radio] + label {
+	color:#666;  
+	background-color:transparent !important;
+	display: inline-block;
+	padding-top: 7px;
+}
+
+input[type=radio]:checked + label {
+	color:#000;
+}
+
+.narrow input[type=radio]:checked + label {
+		background-color:transparent !important;
+}
+
+.btn-disabled { 
+	color:#bbb !important;
+	cursor:default !important;
+}
+
+.wide .noicon {
+    padding-right: 3px !important; /* IE6 */
+    padding-left: 3px !important; /* IE6 */
+}
+
+.wide .btn-with-selected {
+    background-image:url('../img/16/checked.png');
+    @include btn-style();
+}
+
+.wide .btn-with-selected-disabled {
+    background-image:url('../img/16/unchecked.png');
+    @include btn-style();
+}
+
+.btn-with-selected-disabled:hover {
+	background-color:#ddd !important;
+}
+
+.btn-with-selected-disabled{
+	color:#999 !important;
+	cursor:default !important;
+}
+
+.btn-with-selected-disabled:hover {
+	background-color:#ddd !important;
+}
+
+.wide .btn-bin {
+    float:right;
+    background-image:url('../img/16/bin_closed.png');
+    @include btn-style();
+}
+
+.wide .btn-reject { 
+    background-image:url('../img/16/reject.png');
+    @include btn-style();
+	float: right;
+}
+
+.wide .btn-settings { 
+	background-image:url('../img/16/settings.png');
+	@include btn-style();
+}
+
+.wide h2 .btn-settings{
+	font-size: 0.55em;
+	top: -0.2em;
+	position: relative;
+}
+
+.linkWithIcon{
+	padding-left:22px !important;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+	&.sick{
+	background-image:url('../img/16/sick.png');
+	}
+	&.trip{
+	background-image:url('../img/16/working-travel.png');
+	}
+	&.leave{
+	background-image:url('../img/16/leaves.png');
+	}
+	&.home{
+	background-image:url('../img/16/house_blue.png');
+	}
+	&.office{
+	background-image:url('../img/16/company-building-icon.png');
+	}
+	&.work{
+	background-image:url('../img/16/clock_green.png');
+	}
+	&.after-work{
+	background-image:url('../img/16/clock_red.png');
+	}
+	&.birthday{
+	background-image:url('../img/16/birthday.png');
+	}
+	&.nameday{
+	background-image:url('../img/16/orthodox.png');
+	}
+}
 
 /* Общи стилове за линковете */
 a {
@@ -268,18 +811,14 @@ a {
 .narrow a:hover {
   color: $red;
 }
-/* край на общи стилове за линковете */
 
-/*login links*/
 .login-links{
 	font-weight:bold;
 	border-bottom:solid 1px #ccc;
 	padding:2px;
-	margin-bottom:10px;
-	display:inline-block;
 }
+/* край на общи стилове за линковете */
 
-/*Край на login links*/
 
 /*Хипервръзки към профилите на потребители*/
 a.profile {
@@ -332,6 +871,390 @@ a.profile {
 	}
 }
 /*край на хипервръзки към профилите на потребители*/
+
+
+/* Стилове за показване на формите */
+.formError {
+    border:solid 1px red; 
+    background-color:#ff6;
+    font-size:0.9em;
+    padding:10px; 
+  	@include border-radius(5px);
+ }
+ 
+ .wide .formError{
+    text-align:left;
+    min-width:300px;
+ }
+ 
+ .narrow .formError {
+ 	width:auto;
+ 	margin:4px;
+    padding:5px; 
+    font-family:Arial,Verdana;
+    ul{
+    	margin-left: 10px;
+    }
+}
+
+ .formError li.ignored{
+    color:#aaa;
+}
+
+.formInfo, .formWarning, .formError  {
+    margin-bottom:10px;
+}
+
+.narrow .formInfo, .narrow .formFields, .narrow .formWarning, .formError  {
+    margin-bottom:3px;
+}
+
+.narrow .formError ul {
+    padding-left:1em;
+}
+
+.formFields table {
+	width:100%;
+}
+
+.formFields table .richedit-toolbar{
+	margin-bottom:5px;
+}
+
+.wide .horizontal .formFields {
+	float:left; 
+}
+
+.narrow form small{
+	line-height:130%;
+}
+
+div.hFormField { 
+	float:left;
+	margin-right:0.3em;
+}
+
+.narrow div.hFormField{
+	float:none;
+	margin:0;
+}
+
+.narrow .horizontal .formFields div {
+	margin-bottom: 10px;
+}
+
+.wide .horizontal .formToolbar { 
+	float:left;
+	margin-bottom:13px;
+}
+
+.narrow .horizontal{
+	margin-bottom:10px;
+}
+
+.formFieldCaption{
+	padding:0.5em;
+	width:1%;
+}
+
+.vertical .formTitle { 
+    padding:10px;
+    font-size:1.2em;
+    color:white;
+    background-color: #99f;
+	border: solid 1px #88e;
+	border-bottom: none;
+	padding: 8px;
+	vertical-align:middle !important;
+	@include border-radius4(5px, 5px, 0, 0);
+	img{
+		vertical-align:middle !important;
+	}
+}
+
+.narrow .vertical .formTitle{
+	font-size:  1.2em; 
+    font-family: Verdana;
+	background-image:none;
+}
+
+.vertical .formFieldCaption { 
+	padding: 0.4em 0.4em 0.3em;
+	white-space: nowrap;
+	width:1px;
+	vertical-align:top;
+}
+
+.vertical .formGroup {
+    padding:5px;
+    margin: 10px 0 5px;
+    background-color: #99f;
+	color:white;
+    border-radius: 3px;
+}
+
+.vertical .formAll { 
+    background-color:blue;
+    color:white;
+}
+
+.vertical .formSection {
+	padding:15px; 
+    color:black;
+    background-color:#ffe;
+    vertical-align:top;
+}
+
+.narrow .vertical .formSection {
+	padding:10px;
+}
+
+.vertical .formToolbar {
+    padding:5px; 
+    background-color:#ccc; 
+    border:solid 1px #aaa;
+}
+
+.vertical input, .vertical textarea{
+	margin-left:0;
+}
+
+.narrow .vertical .formToolbar { 
+    padding:0 6px 3px 6px !important;
+    background-color:#ffe;
+    border:none;
+    input {
+	    margin-right:5px;
+	}
+}
+
+.formToolbar input { 
+    margin-right:10px;
+}
+
+.formToolbar .btn-add{
+	margin-top:-3px;
+}
+
+.wide form[method="post"] input[type="submit"] {
+	border: solid 1px $quiet-gray !important;
+	background-color: #99f !important;
+	color: white;
+}
+
+.wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
+	border:solid 1px $quiet-gray;
+	background-color:#999;
+	color:white;
+}
+
+.narrow form[method=post] input[type=submit]:first-child { 
+	background-color:#99f;
+	color:white;
+}
+
+.narrow .formAll {
+    display:table;
+}
+
+.formFields input, textarea, select { 
+	margin-top:0px;
+    -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
+}
+
+.formFields table td{
+	padding-bottom:7px !important;
+}
+
+.narrow .formFields table td{
+	padding-bottom:3px!important;
+}
+
+.formFields input:focus, textarea:focus, select:focus { 
+    outline: none;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
+}
+
+.inputError {
+    border:solid 1px red;
+}
+
+.inputWarning {
+    border:solid 1px #ff9900;
+}
+
+.keylist-group {
+    padding: 4px !important;
+    font-size:0.9em;
+    font-weight:bold;
+    background-color:#eeeeff;
+    color: #333;
+}
+
+.warningMsg {
+    background:yellow;
+    padding:5px;
+    border:dotted 1px green;
+    color:green;
+}
+
+.errorMsg {
+    background:yellow;
+    padding:5px; 
+    border:dotted 1px red; 
+    color:red;
+}
+
+.docBgIcon {
+	padding-left:22px !important;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+ 	padding:0.1em;
+ }
+
+.wide .path-title{
+	font-size:0.86em;
+	padding-bottom:3px;
+}
+
+.narrow .path-title{
+	font-size:0.8em;
+}
+
+.vertical .formToolbar {
+	padding: 8px;
+	@include border-radius4(0px, 0px, 5px, 5px);
+	border: solid 1px #bbb;
+	border-top: none;
+	background-image:url('../img/formToolbarBg.jpg');
+}
+.narrow .vertical .formToolbar {
+	background-image: none;
+	padding: 8px;
+	border: solid 1px #bbb;
+	border-top: none;
+}
+
+.vertical .formSection {
+	border-left: solid 1px #bbb;
+	border-right: solid 1px #bbb;
+	background-image:url('../img/yellow.png'); 
+}
+
+.narrow .vertical .formSection {
+	padding:5px;
+}
+
+.narrow .formSection{
+	background-image:none;
+}
+
+.wide .vertical .formTable {
+	@include border-radius(5px);
+    @include shadow4(2px,2px,8px,3px,#aab);
+    margin-bottom:20px;
+    border-collapse:separate;
+}
+
+.narrow .vertical .formTable {
+	 border-collapse:separate;
+}
+
+.wide .listTopContainer .formTable { 
+	@include no-shadow();
+	border-collapse:separate;
+}
+
+.narrow .listTopContainer .formTable{
+	border-collapse:separate;
+}
+
+.wide .groupList{
+	line-height:1.4em;	
+}
+
+.groupList .listTable{
+	margin-bottom:0;
+}
+
+.right-align{
+	min-width:120px; 
+	text-align:right;
+	line-height:18px;
+	padding-right:15px;
+	color:#888;
+}
+
+.formFields{
+	margin-bottom:13px;
+}
+
+.form-filter-btn{
+	margin-top:5px;
+	margin-bottom:10px;
+}
+
+.narrow .form-filter-btn{
+	margin-left:0;
+}
+
+.wide div.hFormField{
+	margin-bottom:2px;
+}
+
+.wide .doc_Search{
+	.listFilter{
+		padding-bottom:0;
+	}
+}
+
+.narrow .doc_Search{
+ 	.pages{
+ 		padding-top:3px;
+ 		margin-bottom:13px;
+ 	}
+ 	.listTable{
+ 		margin-top:10px;
+ 	}
+ }
+/*край на стилове за форми*/
+ 
+
+/*стилове за тулбар*/
+.wide .listToolbar {
+	margin-top: 13px;
+}
+
+.listTable .toolbar .button{
+	margin:0px 5px 0px 0;
+}
+
+.toolbar #btnDelete{
+	margin-right:0;
+}
+
+.narrow .toolbar{
+	white-space:nowrap;
+	margin: 0px 0px 2px 0px ;
+	padding:0px 0px 3px 0px;
+}
+
+.narrow .listTable .toolbar {
+	margin: 5px 4px 5px 4px;
+	padding-top:0px;
+}
+
+
+.narrow .ListToolbar, .narrow .SingleToolbar { 
+	margin-top: 10px;
+}
+
+.wide .doc_Containers .toolbar {
+	margin-top: 3px;
+	margin-bottom:3px;
+}
+/*край на стилове за тулбар*/
 
 
 /* Стилове за странициране 'hlp_Pager' */
@@ -864,8 +1787,6 @@ div.richtext .code code{
 }
 
 .narrow  div.rich-text {
-	overflow:visible;
-	max-width: auto;
 	white-space:pre-line;
 }
 
@@ -991,35 +1912,51 @@ div.richtextHide {
 table.listTable { 
     margin:0px 0 15px 0;
     border: 1px solid #bbb;
-    border-collapse: collapse;
+    > tbody > tr:hover  {
+	    background-color:#ffc;
+	}
+	> thead > tr > th {
+	    border: 1px solid #bbb;
+	    padding: 3px;
+	    background-color:#e0e0e0;
+	    font-weight:bold;
+	    vertical-align:middle;
+	    line-height:normal;
+	}
+	> tbody > tr > td {
+	    border: 1px solid #bbb;
+	    padding: 5px 3px 2px;
+	    line-height:normal; 
+	    font-family:Arial,Verdana;
+		vertical-align:middle;
+		max-width:400px;
+		word-wrap: break-word;
+	}
+    .toolbar {
+		padding: 4px 5px 5px;
+	}
+	.button{
+		margin-bottom:4px;
+	}
+	.toolbar .button{
+		margin:0px 5px 0px 0;
+	}
+	.document h2 {
+		margin-top: 3px;
+    }
 }
 .narrow table.listTable{
 	margin-bottom:5px;
 }
-
-table.listTable>tbody>tr:hover  {
-    background-color:#ffc;
+.narrow .toolbar{
+	white-space:nowrap;
+	margin: 0px 0px 2px 0px ;
+	padding:0px 0px 3px 0px;
 }
 
-table.listTable>tbody>tr>td {
-    border: 1px solid #bbb;
-    padding: 5px 3px 2px;
-    line-height:normal; 
-    font-family:Arial,Verdana;
-	vertical-align:middle;
-}
-
-table.listTable>thead>tr>th {
-    border: 1px solid #bbb;
-    padding: 3px;
-    background-color:#e0e0e0;
-    font-weight:bold;
-    vertical-align:middle;
-    line-height:normal;
-}
-
-table.listTable .button{
-	margin-bottom:4px;
+.narrow .listTable .toolbar {
+	margin: 5px 4px 5px 4px;
+	padding-top:0px;
 }
 
 .listTitle {
@@ -1053,6 +1990,7 @@ table.listTable .button{
 	width:100%;
 }
 /* край на стилове за елемента 'list Table' */
+
 
 /* BUTTONS */
 a.button, input[type="button"], input[type="submit"] {
@@ -1253,6 +2191,7 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 	background-image:url('../img/16/orthodox.png');
 	}
 }
+
 
 .more-btn{
 	float:left;
