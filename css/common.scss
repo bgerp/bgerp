@@ -1241,9 +1241,10 @@ div.hFormField {
 	margin-top: 3px;
 	margin-bottom:3px;
 }
+
 .narrow .toolbar{
 	white-space:nowrap;
-	margin:0px ;
+	margin:0px 0 5px 0;
 	
 }
 .narrow .listToolbar{
@@ -1545,7 +1546,7 @@ div.hFormField {
 }
 
 .formFields>table>tbody>tr>td {
-	padding-bottom:10px !important;
+	padding-bottom:7px !important;
 }
 
 .narrow .formFields table td{
