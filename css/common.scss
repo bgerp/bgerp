@@ -1012,8 +1012,7 @@ div.hFormField {
 }
 
 .formFields > table > tbody > tr > td {
-	padding-bottom:10px !important;
-	padding-top:0;
+	padding-bottom:7px !important;
 }
 
 .narrow .formFields table > tbody > tr > td{
@@ -1026,6 +1025,13 @@ div.hFormField {
 
 .narrow .formAll {
     display:table;
+}
+
+.formFieldCaption { 
+	padding: 0.4em 0.4em 0.3em;
+	white-space: nowrap;
+	width:1px;
+	vertical-align:top;
 }
 
 .formFields input, textarea, select { 
@@ -1152,13 +1158,6 @@ div.hFormField {
 	font-size:  1.2em; 
     font-family: Verdana;
     background-image:none; 
-}
-
-.vertical .formFieldCaption { 
-	padding: 0.3em 0.4em 0.3em;
-	white-space: nowrap;
-	width:1px;
-	vertical-align:top;
 }
 
 .vertical .formGroup {
