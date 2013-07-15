@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     ДА Групи
  */
-class accda_Groups extends core_Manager
+class accda_Groups extends core_Master
 {
     
     
@@ -47,7 +47,7 @@ class accda_Groups extends core_Manager
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,accda';
-    
+  
     
     /**
      * Кой има право да добавя?
@@ -70,13 +70,45 @@ class accda_Groups extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'id,name';
+    
+    
+    /**
+     * Дали да се превежда, транслитерира singleField полето
+     * 
+     * translate - Превежда
+     * transliterate - Транслитерира
+     */
+    var $langSingleField = 'translate';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
+
+     
+    /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/category-icon.png';
+    
+    
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'folder-cover';
+    
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
     
     
     /**
@@ -84,17 +116,20 @@ class accda_Groups extends core_Manager
      */
     function description()
     {
+    	$this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory');
+        $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
+        $this->FLD('productCnt', 'int', 'input=none');
+        
+        // Свойства присъщи на продуктите в групата
+        $this->FLD('meta', 'set(canSell=Продаваеми,
+        						canBuy=Купуваеми,
+        						canStore=Складируеми,
+        						canConvert=Вложими,
+        						fixedAsset=ДМА,
+        						canManifacture=Производими)', 'caption=Свойства->Списък,columns=2');
+        
+        $this->setDbUnique("sysId");
     }
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
 }

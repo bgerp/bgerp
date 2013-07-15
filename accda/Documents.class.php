@@ -82,7 +82,7 @@ class accda_Documents extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'id, docType, tools=Пулт';
     
     
     /**
@@ -112,6 +112,10 @@ class accda_Documents extends core_Master
      */
     function description()
     {
+    	$this->FLD('docType', 'enum(SR=протокол за въвеждане в експлоатация,
+                                       EN=протокол за промяна,
+                                       IM=амортизационен план,
+                                       OOP=протокол за ликвидация)', 'caption=Тип документ');
     }
     
     
@@ -127,19 +131,7 @@ class accda_Documents extends core_Master
 
         return $folderClass == 'store_Stores';
     }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
     
     /**
      * Интерфейсен метод на doc_DocumentIntf
