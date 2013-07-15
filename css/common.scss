@@ -1009,12 +1009,6 @@ div.hFormField {
 	padding:10px;
 }
 
-.vertical .formToolbar {
-    padding:5px; 
-    background-color:#ccc; 
-    border:solid 1px #aaa;
-}
-
 .vertical input, .vertical textarea{
 	margin-left:0;
 }
@@ -1061,10 +1055,6 @@ div.hFormField {
 	margin-top:0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
-}
-
-.formFields table td{
-	padding-bottom:7px !important;
 }
 
 .narrow .formFields table td{
@@ -1483,13 +1473,6 @@ div.hFormField {
     border-radius: 3px;
 }
 
-.vertical .formTitle { 
-    padding:    10px;
-    font-size:  20px;
-    background-color:blue;
-    color:white;
-}
-
 .narrow .vertical .formTitle{
 	font-size:  1.2em; 
     font-family: Verdana; 
@@ -1510,12 +1493,6 @@ div.hFormField {
 
 .narrow .vertical .formSection {
 	padding:10px;
-}
-
-.vertical .formToolbar {
-    padding:5px; 
-    background-color:#ccc; 
-    border:solid 1px #aaa;
 }
 
 .vertical input, .vertical textarea{
@@ -1594,8 +1571,6 @@ div.hFormField {
  * вляво
  */
 table.keylist {
-	
-    width: auto;
 	td {
 	   padding:0.2em 1em 0 0.2em;
 	}
