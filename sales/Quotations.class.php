@@ -140,7 +140,7 @@ class sales_Quotations extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
-        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,width=10em');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em');
         
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
@@ -171,10 +171,10 @@ class sales_Quotations extends core_Master
     {
        $rec = &$data->form->rec;
        $mvc->populateDefaultData($rec);
-       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
-       $data->form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
+       $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
+       $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
     }
-	
+    
     
     /**
      * Извиква се след въвеждането на данните от Request във формата
@@ -183,6 +183,7 @@ class sales_Quotations extends core_Master
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
+	    	
 		    if(!$rec->rate){
 			    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
 			}
@@ -191,6 +192,29 @@ class sales_Quotations extends core_Master
 			    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
 			    					  Сигурни ли сте че искате да запишете документа');
 			}
+		}
+    }
+    
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if($rec->deliveryPlaceId){
+		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
+		    	$newLocation = (object)array(
+		    						'title' => $rec->deliveryPlaceId,
+		    						'countryId' => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
+		    						'pCode' => $rec->pcode,
+		    						'place' => $rec->place,
+		    						'contragentCls' => $rec->contragentClassId,
+		    						'contragentId' => $rec->contragentId,
+		    						'type' => 'correspondence');
+		    		
+		    	// Ако локацията я няма в системата я записваме
+		    	crm_Locations::save($newLocation);
+		    }
 		}
     }
     
