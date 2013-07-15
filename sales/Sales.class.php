@@ -1087,7 +1087,7 @@ class sales_Sales extends core_Master
     	}
     	return $res;
     }
-
+    
 
     /**
      * Имплементация на @link bgerp_DealIntf::getDealInfo()
@@ -1103,7 +1103,7 @@ class sales_Sales extends core_Master
         /* @var $query core_Query */
         $query = sales_SalesDetails::getQuery();
         
-        /* @var $detailRecs sales_model_SaleDetail[] */
+        /* @var $detailRecs sales_model_SaleProduct[] */
         $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
         
         /* @var $result bgerp_iface_DealResponse */
@@ -1137,6 +1137,7 @@ class sales_Sales extends core_Master
             $result->shipped->delivery->time         = $rec->deliveryTime;
         }
         
+        /* @var $dRec sales_model_SaleProduct */
         foreach ($detailRecs as $dRec) {
             /* @var $p bgerp_iface_DealProduct */
             $p = new stdClass();
@@ -1158,4 +1159,92 @@ class sales_Sales extends core_Master
         
         return $result;
     }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     */
+    public function getAggregateDealInfo($id)
+    {
+        $rec = new sales_model_Sale(self::fetchRec($id));
+        
+        /* @var $query core_Query */
+        $query = sales_SalesDetails::getQuery();
+        
+        /* @var $detailRecs sales_model_SaleProduct[] */
+        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
+        
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->delivery->location     = $rec->deliveryLocationId;
+        $result->agreed->delivery->term         = $rec->deliveryTermId;
+        $result->agreed->delivery->time         = $rec->deliveryTime;
+        $result->agreed->payment->method        = $rec->paymentMethodId;
+        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
+        $result->agreed->payment->caseId        = $rec->caseId;
+        
+        $result->paid->amount   = $rec->amountPaid;
+        $result->paid->currency = $rec->currencyId;
+        $result->paid->payment->method        = $rec->paymentMethodId;
+        $result->paid->payment->bankAccountId = $rec->bankAccountId;
+        $result->paid->payment->caseId        = $rec->caseId;
+
+        $result->shipped->amount   = $rec->amountDelivered;
+        $result->shipped->currency = $rec->currencyId;
+        $result->shipped->delivery->location     = $rec->deliveryLocationId;
+        $result->shipped->delivery->term         = $rec->deliveryTermId;
+        $result->shipped->delivery->time         = $rec->deliveryTime;
+        
+        /* @var $dRec sales_model_SaleProduct */
+        foreach ($detailRecs as $dRec) {
+            /*
+             * Договорени продукти
+             *  
+             * @var $aProd bgerp_iface_DealProduct
+             */
+            $aProd = new stdClass();
+            
+            $aProd->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $aProd->productId   = $dRec->productId;
+            $aProd->packagingId = $dRec->packagingId;
+            $aProd->discount    = $dRec->discount;
+            $aProd->isOptional  = FALSE;
+            $aProd->quantity    = $dRec->quantity;
+            $aProd->price       = $dRec->price;
+            
+            $result->agreed->products[] = $aProd;
+            
+            /*
+             * Експедирани продукти
+             * 
+             * @var $sProd bgerp_iface_DealProduct
+             */
+            $sProd = clone $aProd;
+            $sProd->quantity = $dRec->quantityDelivered;
+            
+            $result->shipped->products[] = $sProd;
+            
+            /*
+             * Фактурирани продукти
+             * 
+             * @var $iProd bgerp_iface_DealProduct
+             */
+            $iProd = clone $aProd;
+            $iProd->quantity = $dRec->quantityInvoiced;
+            
+            $result->invoiced->products[] = $iProd;
+        }
+        
+        return $result;
+    }
+    
 }
