@@ -403,7 +403,8 @@ class techno_Specifications extends core_Master {
 	            $rec->title = $fRec->title;
 	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
         		$quantities = array($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
-	            unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
+	            
+        		unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
         		$rec->sharedUsers = $fRec->sharedUsers;
         		
 	            // Записваме мастър - данните
@@ -415,8 +416,8 @@ class techno_Specifications extends core_Master {
         		$this->save($rec);
         		
         		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
-        		$price = $technoClass->getPrice($fRec->data);
         		
+        		$price = $technoClass->getPrice($rec->data);
         		if($rec->common != 'yes' && $hasQuantities && isset($price->price)){
         			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId}", 'id');
         			
