@@ -560,7 +560,7 @@ select.combo {
 
 input[type=radio] + label, input[type=checkbox] + label {
   color:#777;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   background-color:transparent !important;
   display: inline-block;
 }
@@ -1013,6 +1013,7 @@ div.hFormField {
 
 .formFields > table > tbody > tr > td {
 	padding-bottom:10px !important;
+	padding-top:0;
 }
 
 .narrow .formFields table > tbody > tr > td{
@@ -1154,7 +1155,7 @@ div.hFormField {
 }
 
 .vertical .formFieldCaption { 
-	padding: 0.4em 0.4em 0.3em;
+	padding: 0.3em 0.4em 0.3em;
 	white-space: nowrap;
 	width:1px;
 	vertical-align:top;
