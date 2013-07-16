@@ -194,11 +194,17 @@ class callcenter_Talks extends core_Master
             
             // Ако има открити данни
             if ($externalNumRow->contragent) {
-             
+                
+                // Флаг, за да отбележим, че има данни
+                $haveExternalData = TRUE;
+                
                 // Добавяме данните
                 $row->externalData = $externalNumRow->contragent;
             }
-        } else {
+        } 
+        
+        // Ако флага не е дигнат
+        if (!$haveExternalData) {
             
             // Ако има номер
             if ($rec->externalNum) {
@@ -221,11 +227,17 @@ class callcenter_Talks extends core_Master
             
             // Ако има открити данни
             if ($internalNumRow->contragent) {
-             
+                 
+                // Флаг, за да отбележим, че има данни
+                $haveInternalData = TRUE;
+                
                 // Добавяме данните
                 $row->internalData = $internalNumRow->contragent;
             }
-        } else {
+        }
+        
+        // Ако флага не е дигнат 
+        if (!$haveInternalData) {
             
             // Ако има номер
             if ($rec->internalNum) {
@@ -846,7 +858,7 @@ class callcenter_Talks extends core_Master
             'p' => CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
             'extension' => '540',
-            'callerId' => '0887605397',
+            'callerId' => '539',
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );
