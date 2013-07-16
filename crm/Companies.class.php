@@ -593,14 +593,14 @@ class crm_Companies extends core_Master
         if ($rec->tel) {
             
             // Добавяме в масива
-            $numbersArr['tel'] = $rec->tel;
+            $numbersArr['tel'][] = $rec->tel;
         }
         
         // Ако има факс
         if ($rec->fax) {
             
             // Добавяме в масива
-            $numbersArr['fax'] = $rec->fax;
+            $numbersArr['fax'][] = $rec->fax;
         }
         
         // Вземаме id на класа

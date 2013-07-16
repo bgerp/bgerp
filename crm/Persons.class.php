@@ -596,35 +596,35 @@ class crm_Persons extends core_Master
         if ($rec->tel) {
             
             // Добавяме в масива
-            $numbersArr['tel'] = $rec->tel;
+            $numbersArr['tel'][] = $rec->tel;
         }
         
         // Ако има бизнес номер
         if ($rec->buzTel) {
             
             // Добавяме към телефона
-            $numbersArr['tel'] .= $numbersArr['tel'] ? ', ' . $rec->buzTel : $rec->buzTel;
+            $numbersArr['tel'][] = $rec->buzTel;
         }
         
         // Ако има факс
         if ($rec->fax) {
             
             // Добавяме факса
-            $numbersArr['fax'] = $rec->fax;
+            $numbersArr['fax'][] = $rec->fax;
         }
         
         // Ако има бизнес факс
         if ($rec->buzFax) {
             
             // Добавяме към факса
-            $numbersArr['fax'] .= $numbersArr['fax'] ? ', ' . $rec->buzFax : $rec->buzFax;
+            $numbersArr['fax'][] = $rec->buzFax;
         }
         
         // Ако има мобилен
         if ($rec->mobile) {
             
             // Добавяме мобилния
-            $numbersArr['mobile'] = $rec->mobile;
+            $numbersArr['mobile'][] = $rec->mobile;
         }
         
         // id на класа
