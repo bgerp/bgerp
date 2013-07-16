@@ -25,11 +25,11 @@ class currency_Currencies extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    //var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
-    //                 CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
-                     
-    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
+    var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
                      CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
+                     
+    //var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper,
+    //                 CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
     
     /**
      * Шаблон за единичния изглед
