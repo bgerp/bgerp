@@ -83,6 +83,12 @@ i.misc-values{
 	color:#040404;
 }
 
+table.styled-table tr.components-total:hover td{
+	background-color:transparent !important;
+}
+table.styled-table tr.components-total td.has-hover:hover{
+	background-color:#ffc !important;
+}
 th{
 	padding-bottom:4px;
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'techno_ProductsIntf' - Интерфейс за нестандартни продукти
+ * Клас 'techno_ProductsIntf' - Интерфейс за нестандартни арткули
  *
  *
  * @category  bgerp
@@ -15,7 +15,7 @@ class techno_ProductsIntf
 {
     /**
      * Връща форма, с която могат да се въвеждат параметри на
-     * определен клас не-стандартно изделие
+     * определен клас нестандартно изделие
      * @return core_Form $form - Формата на мениджъра
      */
     public function getEditForm($data)
@@ -29,10 +29,6 @@ class techno_ProductsIntf
      * дадено изделие или услуга
      * 
      * @param stdClass $data - Обект с данни от модела
-     * 		В $data трябва да има пропъртита:
-     * 		1.price - цена на продукта (задължително)
-     * 		2.discount - отстъпка
-     * 		3.vat - ДДС
      * @return blob $serialized - сериализирани данни на обекта
      */
     public function serialize($data)
@@ -63,7 +59,7 @@ class techno_ProductsIntf
      * @return stdClass $priceInfo - информация за цената на продукта
      * 				[price]- начална цена
      * 				[discount]  - отстъпка
-     * 				[tax]     - нач. такси
+     * 				[tax]     - нач. такса
      */
     public function getPrice($data, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
@@ -76,11 +72,36 @@ class techno_ProductsIntf
      * са включени в детайлите му)
      * @param int $data - сериализираната дата от документа
      * @return param $res - масив с използваните документи
-     * 					['class'] - инстанция на документа
-     * 					['id'] - ид на документа
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
      */
     function getUsedDocs($data)
     {
     	return $this->class->getUsedDocs($data);
+    }
+    
+    
+    /**
+     * Метод връщаш информация за продукта и неговите опаковки
+     * @param int $data - сериализирани данни
+     * @param int $packagingId - ид на опаковката, по дефолт NULL
+     * @return stdClass $res - обект с информация за продукта
+     * и опаковките му ако $packagingId не е зададено, иначе връща
+     * информацията за подадената опаковка
+     */
+    public static function getProductInfo($data, $packagingId = NULL)
+    {
+    	return $this->getProductInfo($data, $packagingId);
+    }
+    
+    
+    /**
+     * Връща ДДС-то на продукта
+     * @param int $data - сериализирани данни
+     * @param date $date - дата
+     */
+    public static function getVat($data, $date = NULL)
+    {
+    	return $this->getVat($data, $date);
     }
 }

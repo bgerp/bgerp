@@ -1,0 +1,45 @@
+<!--ET_BEGIN LONG-->
+<table class = 'styled-table' id='components-table'>
+	<!--ET_BEGIN addBtnComp-->
+	<tr>
+		<th colspan='6'>|Компоненти|* [#addBtnComp#]</th>
+	</tr>
+	<!--ET_END addBtnComp-->
+	<!--ET_BEGIN TH-->
+	[#TH#]
+	<tr>
+		<td><b>№</b></td>
+		<td><b>|Продукт|*</b></td>
+		<td><b>|К-во|*</b></td>
+		<td><b>|Цена|*</b></td>
+		<td><b>|Стойност|*</b></td>
+	</tr>
+	<!--ET_END TH-->
+	<!--ET_BEGIN COMPONENT-->
+	[#COMPONENT#]
+	<tr>
+		<td>[#num#] [#tools#]</td>
+		<td>[#componentId#]</td>
+		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
+		<td width='12%' align='right'>[#cPrice#]</td>
+		<td width='12%' align='right'>[#amount#]</td>
+	</tr>
+	<!--ET_END COMPONENT-->
+	<!--ET_BEGIN totalAmount-->
+	<tr class='components-total'>
+		<td colspan='3' style='border:0px;' class='no-hover'></td>
+		<td colspan='2' align='right' class='has-hover'><b>|Общо|*:</b> <span style='margin-left:5px'>[#totalAmount#]</span></td>
+	</tr>
+	<!--ET_END totalAmount-->
+	</table>
+<!--ET_END LONG-->
+
+<!--ET_BEGIN SHORT-->
+|Компоненти|*
+		<ol>
+			<!--ET_BEGIN COMPONENT-->
+			[#COMPONENT#]
+			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>
+			<!--ET_END COMPONENT-->
+		</ol>
+<!--ET_END SHORT-->

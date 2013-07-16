@@ -3,7 +3,8 @@
 
 
 /**
- * Документ "Спецификация"
+ * Документ "Спецификация" - нестандартен продукт или услуга
+ * изготвена според изискванията на даден клиент
  *
  *
  * @category  bgerp
@@ -35,12 +36,6 @@ class techno_Specifications extends core_Master {
     public $loadList = 'plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank,
                     doc_DocumentPlg, doc_ActivatePlg, doc_plg_BusinessDoc, plg_Search, doc_SharablePlg';
 
-	
-    /**
-     * Дали може да бъде само в началото на нишка
-     */
-    //var $onlyFirstInThread = TRUE;
-    
     
     /**
      * Наименование на единичния обект
@@ -100,12 +95,6 @@ class techno_Specifications extends core_Master {
      * Кой може да го разгледа?
      */
     var $canList = 'ceo,techno,cat';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo,techno';
     
     
     /**
@@ -450,7 +439,6 @@ class techno_Specifications extends core_Master {
         }
         
         $form->title = "Спецификация на универсален продукт в|* {$link}";
-        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -554,9 +542,8 @@ class techno_Specifications extends core_Master {
      */
     public static function getVat($id, $date = NULL)
     {
-    	$technoId = static::fetchField($id, 'prodTehnoClassId');
-    	$technoClass = cls::get($technoId);
-    	$rec = static::fetch($id);
+    	$rec = static::fetchRec($id);
+    	$technoClass = cls::get($rec->prodTehnoClassId);
     	return $technoClass->getVat($rec->data, $date);
     }
     
@@ -565,8 +552,8 @@ class techno_Specifications extends core_Master {
      * Връща цената за посочения продукт към посочения
      * клиент на посочената дата
      * Цената се изчислява по формулата формулата:
-     * ([Начални такси] * (1 + НадценкаМакс) + [Количество] * 
-     *  [Единична себестойност] *(1 + НадценкаМин)) / [Количество]
+     * ([начални такси] * (1 + [максимална надценка]) + [количество] * 
+     *  [единична себестойност] *(1 + [минимална надценка])) / [количество]
      * 
      * @return object
      * $rec->price  - цена
@@ -657,9 +644,9 @@ class techno_Specifications extends core_Master {
     
     /**
      * Метод връщаш информация за продукта и неговите опаковки
-     * @param int $id - Ид на продукта
-     * @param int $packagingId - Ид на опаковката, по дефолт NULL
-     * @return stdClass $res - Обект с информация за продукта
+     * @param int $id - ид на продукта
+     * @param int $packagingId - ид на опаковката, по дефолт NULL
+     * @return stdClass $res - обект с информация за продукта
      * и опаковките му ако $packagingId не е зададено, иначе връща
      * информацията за подадената опаковка
      */
@@ -672,7 +659,8 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * @see techno_ProductsIntf::getUsedDocs
+     * Връща изпозлваните документи
+     * (@see techno_ProductsIntf::getUsedDocs)
      */
     function getUsedDocs_($id)
     {
