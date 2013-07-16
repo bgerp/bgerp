@@ -90,7 +90,7 @@ class callcenter_Talks extends core_Master
     /**
      * Нов темплейт за показване
      */
-//    var $singleLayoutFile = '';
+    var $singleLayoutFile = 'callcenter/tpl/SingleLayoutTalks.shtml';
     
     
     /**
@@ -276,12 +276,15 @@ class callcenter_Talks extends core_Master
         
         // В зависмост от състоянието на разгоравя, опделяме клас за реда в таблицата
         if (!$rec->dialStatus) {
-            $row->ROW_ATTR['class'] .= ' dialStatus-opened';
+            $row->DialStatusClass .= ' dialStatus-opened';
         } elseif ($rec->dialStatus == 'ANSWERED') {
-            $row->ROW_ATTR['class'] .= ' dialStatus-answered';
+            $row->DialStatusClass .= ' dialStatus-answered';
         } else {
-            $row->ROW_ATTR['class'] .= ' dialStatus-failed';
+            $row->DialStatusClass .= ' dialStatus-failed';
         }
+        
+        // Добавяме класа
+        $row->ROW_ATTR['class'] = $row->DialStatusClass;
         
         // Ако не може да се определи номера
         if (!$rec->externalNum) {
