@@ -40,6 +40,34 @@
 		</table>
 		<!--ET_END OTHERS-->
 	</li>
+	<table class = 'styled-table' id='components-table'>
+	<!--ET_BEGIN COMPONENTS-->
+	[#COMPONENTS#]
+	<tr>
+		<th colspan='6'>|Компоненти|* [#addBtnComp#]</th>
+	</tr>
+	<tr>
+		<td><b>№</b></td>
+		<td><b>|Продукт|*</b></td>
+		<td><b>|К-во|*</b></td>
+		<td><b>|Цена|*</b></td>
+		<td><b>|Стойност|*</b></td>
+		<td></td>
+	</tr>
+	<!--ET_BEGIN COMPONENT-->
+	[#COMPONENT#]
+	<tr>
+		<td>[#num#]</td>
+		<td>[#componentId#]</td>
+		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
+		<td width='12%' align='right'>[#cPrice#]</td>
+		<td width='12%' align='right'>[#amount#]</td>
+		<td width='10%' align='right'>[#tools#]</td>
+	</tr>
+	<!--ET_END COMPONENT-->
+	<!--ET_END COMPONENTS-->
+	</table>
+	
 	<!--ET_BEGIN image-->
 	<li class='product-image'>
 	[#image#]

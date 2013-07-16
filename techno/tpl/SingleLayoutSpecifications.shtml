@@ -24,8 +24,8 @@
 				<td>[#common#]</td>
 			</tr>
 			<!--ET_END common-->
-			[#data#]
 			</table>
+			[#data#]
 		<div>|Създаване на|* [#createdDate#] |от|* [#createdBy#]</div>
 	</div>
 	<div class='details'>

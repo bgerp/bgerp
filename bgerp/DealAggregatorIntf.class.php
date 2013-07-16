@@ -28,7 +28,7 @@ class bgerp_DealAggregatorIntf
      * @param int $id ид на документ
      * @return bgerp_iface_DealResponse
      */
-    public function getAggregateInfo($id)
+    public function getAggregateDealInfo($id)
     {
         return $this->class->getAggregateDealInfo($id);
     }

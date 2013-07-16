@@ -126,9 +126,10 @@ class sales_SalesDetails extends core_Detail
         // Количество в основна мярка
         $this->FLD('quantity', 'float', 'caption=Количество,input=none');
         
-        $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
-        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
+        $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в брой опаковки)
         
+        $this->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
@@ -520,7 +521,7 @@ class sales_SalesDetails extends core_Detail
      * @param int|string|object $Policy
      * @return core_Manager
      */
-    protected static function getProductManager($Policy)
+    public static function getProductManager($Policy)
     {
         if (is_scalar($Policy)) {
             $Policy = cls::get($Policy);

@@ -151,6 +151,12 @@ class techno_GeneralProducts extends core_Manager {
     			$file = fileman_Files::fetchByFh($data->image);
     			$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
     		}
+    		
+	        // Добавяне на линк за сингъла на спецификацията
+	    	if(!Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
+	    		$url = array('techno_Specifications', 'single', $data->specificationId);
+	    		$row->title = ht::createLink($row->title, $url);
+	    	}
     	} else {
     		if($data->image){
     			$size = array(200, 350);
@@ -162,12 +168,16 @@ class techno_GeneralProducts extends core_Manager {
     			$img = sbf('img/16/add.png');
     			$addUrl = array('techno_Parameters', 'configure', $data->specificationId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
-    		}
+    			
+	    		$compUrl = array('techno_Components', 'configure', $data->specificationId, 'ret_url' => TRUE);
+	    		$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
+	    	}
 	    }
     	
     	$tpl = $this->getTpl($row, $data->params, $short);
     	if($addBtn){
     		$tpl->replace($addBtn, 'addBtn');
+    		$tpl->replace($compBtn, 'addBtnComp');
     	}
     	
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
@@ -185,20 +195,9 @@ class techno_GeneralProducts extends core_Manager {
     private function getTpl($row, $params = array(), $short)
     {
     	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
+    	techno_Parameters::renderParameters($row->params, $tpl, $short);
+    	techno_Components::renderParameters($row->components, $tpl, $short);
     	
-    	if(count($row->params)){
-    		$paramBlock = $tpl->getBlock('PARAMS');
-    		foreach($row->params as $id => $arr){
-    			$blockCl = clone($paramBlock);
-    			$blockCl->replace($arr['paramId'], 'paramId');
-    			$blockCl->replace($arr['paramValue'], 'paramValue');
-    			if(!$short){
-    				$blockCl->replace($arr['tools'], 'tools');
-    			}
-    			$blockCl->removeBlocks();
-    			$tpl->append($blockCl, 'PARAMS');
-    		}
-    	}
     	$tpl->placeObject($row);
     	
     	return $tpl;
@@ -215,7 +214,6 @@ class techno_GeneralProducts extends core_Manager {
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
         $fields = $this->getEditForm($data)->selectFields("");
-        
     	foreach($fields as $name => $fld){
     		if($name == 'image') continue;
     		$row->$name = $fld->type->toVerbal($data->$name);
@@ -223,14 +221,7 @@ class techno_GeneralProducts extends core_Manager {
     	
     	// Вербализиране на параметрите, ако има
     	techno_Parameters::getVerbal($data->params, $data->specificationId, $row->params);
-    	
-    	// Добавяне на линк за сингъла на спецификацията
-    	$specState = techno_Specifications::fetchField($data->specificationId, 'state');
-    	if($specState == 'draft' && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
-    		$url = array('techno_Specifications', 'single', $data->specificationId);
-    		$icon = ht::createElement('img', array('title' => 'Към спецификацията', 'src' => sbf('img/16/specification.png', "")));
-    		$row->link = ht::createLink($icon, $url);
-    	}
+    	techno_Components::getVerbal($data->components, $data->specificationId, $row->components);
     	
     	return $row;
     }

@@ -67,7 +67,14 @@ class cal_Tasks extends core_Master
      * Поле в което да се показва иконата за единичен изглед
      */
     var $rowToolsSingleField = 'title';
- 
+    
+    
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    var $fetchFieldsBeforeDelete = 'id';
+    
+    
     /**
      * Кой има право да го чете?
      */

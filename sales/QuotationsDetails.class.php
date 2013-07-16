@@ -412,6 +412,10 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
+    	if(!Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
+    		$row->productId = ht::createLink($row->productId, array($productMan, 'single', $rec->productId));
+    	}
+    	
     	if($rec->quantity){
     		$uomId = $pInfo->productRec->measureId;
     		$row->uomShort = cat_UoM::getShortName($uomId);

@@ -84,7 +84,7 @@ class crm_Locations extends core_Master {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=100%');
+        $this->FLD('title', 'varchar', 'caption=Наименование,width=100%');
         $this->FLD('type', 'enum(correspondence=За кореспонденция,
             headquoter=Главна квартира,
             shipping=За получаване на пратки,
@@ -138,10 +138,23 @@ class crm_Locations extends core_Master {
     {
         $rec = $form->rec;
         if(!$rec->gpsCoords && $rec->image){
+        	
         	if($gps = exif_Reader::getGps($rec->image)){
         		
         		// Ако има GPS коодинати в снимката ги извличаме
         		$rec->gpsCoords = $gps['lat'] . ", " . $gps['lon'];
+        	}
+        }
+        
+        if($form->isSubmitted()){
+        	if(empty($rec->title)){
+        		if(isset($rec->pCode) && isset($rec->place) && isset($rec->countryId)){
+        			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
+        			$rec->title = "{$rec->pCode} {$rec->place}, {$countryName}";
+        		} else {
+        			$form->setError('title', 'Не е избрано име за локацията! Изберете име или посочете държава, град и код');
+        			$form->setField('title', 'mandatory');
+        		}
         	}
         }
     }
@@ -347,9 +360,10 @@ class crm_Locations extends core_Master {
      * 
      * @param mixed $contragentClassId име, ид или инстанция на клас-мениджър на контрагент
      * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
+     * @param boolean $intKeys - дали ключовите да са инт или стринг
      * @return array масив от наименования на локации, ключ - ид на локации
      */
-    public static function getContragentOptions($contragentClassId, $contragentId)
+    public static function getContragentOptions($contragentClassId, $contragentId, $intKeys = TRUE)
     {
         $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
         
@@ -357,6 +371,10 @@ class crm_Locations extends core_Master {
             $rec = $rec->title;
         }
 
+        if(!$intKeys && count($locationRecs)){
+        	$locationRecs = array_combine($locationRecs, $locationRecs);
+        }
+        
         return $locationRecs;
     }
 

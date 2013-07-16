@@ -109,6 +109,12 @@ class crm_Companies extends core_Master
      */
     var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info';
     
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    var $fetchFieldsBeforeDelete = 'id,name';
+    
     
     /**
      * Кой  може да пише?

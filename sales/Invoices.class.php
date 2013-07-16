@@ -913,18 +913,18 @@ class sales_Invoices extends core_Master
     
     
 	/**
-     * Връща масив от изпозлваните документи в офертата
-     * @param int $id - ид на оферта
+     * Връща масив от използваните нестандартни артикули в фактурата
+     * @param int $id - ид на фактура
      * @return param $res - масив с използваните документи
-     * 					['class'] - Инстанция на документа
-     * 					['id'] - Ид на документа
+     * 					['class'] - инстанция на документа
+     * 					['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
     	$res = array();
     	$dQuery = $this->sales_InvoiceDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
-    	$dQuery->where("#state != 'rejected' AND #invoiceId = '{$id}'");
+    	$dQuery->where("#invoiceId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();

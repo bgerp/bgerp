@@ -45,6 +45,12 @@ class email_Incomings extends core_Master
      */
     var $singleTitle = 'Входящ имейл';
     
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    var $fetchFieldsBeforeDelete = 'id';
+    
     
     /**
      * Кой има право да чете?

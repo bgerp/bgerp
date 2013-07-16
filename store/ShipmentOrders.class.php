@@ -34,7 +34,7 @@ class store_ShipmentOrders extends core_Master
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
                           acc_TransactionSourceIntf=store_shipmentorders_Transaction,
-                          store_ShipmentIntf';
+                          store_ShipmentIntf, bgerp_DealIntf';
     
     
     /**
@@ -806,18 +806,18 @@ class store_ShipmentOrders extends core_Master
     }
     
 	/**
-     * Връща масив от изпозлваните документи в офертата
-     * @param int $id - ид на оферта
+     * Връща масив от използваните нестандартни артикули в ЕН-то
+     * @param int $id - ид на ЕН
      * @return param $res - масив с използваните документи
-     * 					['class'] - Инстанция на документа
-     * 					['id'] - Ид на документа
+     * 					['class'] - инстанция на документа
+     * 					['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
     	$res = array();
     	$dQuery = $this->store_ShipmentOrderDetails->getQuery();
     	$dQuery->EXT('state', 'store_ShipmentOrders', 'externalKey=shipmentId');
-    	$dQuery->where("#state != 'rejected' AND #shipmentId = '{$id}'");
+    	$dQuery->where("#shipmentId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();
@@ -826,5 +826,52 @@ class store_ShipmentOrders extends core_Master
     		}
     	}
     	return $res;
+    }
+    
+
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = new store_model_ShipmentOrder(self::fetchRec($id));
+        
+        /* @var $query core_Query */
+        $query = store_ShipmentOrderDetails::getQuery();
+        
+        /* @var $detailRecs store_model_ShipmentProduct[] */
+        $detailRecs = $query->fetchAll("#shipmentId = {$rec->id}");
+        
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->shipped->amount             = $rec->amountDelivered;
+        $result->shipped->delivery->location = $rec->locationId;
+        $result->shipped->delivery->term     = $rec->termId;
+        $result->shipped->delivery->time     = $rec->deliveryTime;
+        
+        /* @var $dRec sales_model_SaleProduct */
+        foreach ($detailRecs as $dRec) {
+            /* @var $p bgerp_iface_DealProduct */
+            $p = new stdClass();
+            
+            $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $p->productId   = $dRec->productId;
+            $p->packagingId = $dRec->packagingId;
+            $p->discount    = $dRec->discount;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $dRec->quantity;
+            $p->price       = $dRec->price;
+            
+            $result->shipped->products[] = $p;
+        }
+        
+        return $result;
     }
 }

@@ -1,0 +1,94 @@
+<?php
+
+class sales_model_SaleProduct
+{
+    /**
+     * @var int
+     */
+    public $id;
+    
+    /**
+     * @var int key(mvc=sales_Sales)
+     */
+    public $saleId;
+    
+    /**
+     * Ценова политика
+     * 
+     * @var int class(interface=price_PolicyIntf, select=title)
+     */
+    public $policyId;
+    
+    /**
+     * ИД на продукт
+     * 
+     * @var int
+     */
+    public $productId;
+    
+    /**
+     * Мярка
+     * 
+     * @var int key(mvc=cat_UoM)
+     */
+    public $uomId;
+    
+    /**
+     * Опаковка (ако има)
+     * 
+     * @var int key(mvc=cat_Packagings)
+     */
+    public $packagingId;
+    
+    /**
+     * Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
+     * няма стойност, приема се за единица.
+     * 
+     * @var double
+     */
+    public $quantityInPack;
+        
+    /**
+     * Количество (в основна мярка)
+     * 
+     * @var double
+     */
+    public $quantity;
+        
+    /**
+     * Експедирано количество (в основна мярка)
+     * 
+     * @var double
+     */
+    public $quantityDelivered;
+        
+    /**
+     * Фактурирано количество (в основна мярка)
+     * 
+     * @var double
+     */
+    public $quantityInvoiced;
+        
+    /**
+     * Цена за единица продукт в основна мярка
+     * 
+     * @var double
+     */
+    public $price;
+        
+    /**
+     * Процент отстъпка (0..1 => 0% .. 100%)
+     * 
+     * @var double
+     */
+    public $discount;
+    
+    public function __construct(stdClass $rec)
+    {
+        foreach (get_class_vars($this) as $prop) {
+            if (isset($rec->{$prop})) {
+                $this->{$prop} = $rec->{$prop};
+            }
+        }
+    }
+}
