@@ -1078,7 +1078,7 @@ class sales_Sales extends core_Master
     	$res = array();
     	$dQuery = $this->sales_SalesDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Sales', 'externalKey=saleId');
-    	$dQuery->where("#state != 'rejected' AND #saleId = '{$id}'");
+    	$dQuery->where("#saleId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();

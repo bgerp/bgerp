@@ -924,7 +924,7 @@ class sales_Invoices extends core_Master
     	$res = array();
     	$dQuery = $this->sales_InvoiceDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
-    	$dQuery->where("#state != 'rejected' AND #invoiceId = '{$id}'");
+    	$dQuery->where("#invoiceId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();

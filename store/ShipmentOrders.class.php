@@ -817,7 +817,7 @@ class store_ShipmentOrders extends core_Master
     	$res = array();
     	$dQuery = $this->store_ShipmentOrderDetails->getQuery();
     	$dQuery->EXT('state', 'store_ShipmentOrders', 'externalKey=shipmentId');
-    	$dQuery->where("#state != 'rejected' AND #shipmentId = '{$id}'");
+    	$dQuery->where("#shipmentId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();

@@ -451,7 +451,7 @@ class sales_Quotations extends core_Master
     	$res = array();
     	$dQuery = $this->sales_QuotationsDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Quotations', 'externalKey=quotationId');
-    	$dQuery->where("#state != 'rejected' AND #quotationId = '{$id}'");
+    	$dQuery->where("#quotationId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->policyId)->getProductMan();
