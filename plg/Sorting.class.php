@@ -108,8 +108,12 @@ class plg_Sorting extends core_Plugin
                 } else {
                     $startChar = '';
                 }
+                
+                $currUrl = getCurrentUrl();
+                $currUrl["Sort"] = $sort;
+                
                 $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
-                url::addParams($_SERVER['REQUEST_URI'], array("Sort" => $sort)) .
+                toUrl($currUrl) .
                 "' ><img  src=" . sbf($img) .
                 " width='16' height='16' border='0' alt='*'></a></div>";
                 
