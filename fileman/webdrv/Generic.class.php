@@ -115,7 +115,7 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return $content->errorProc;       
+            return tr($content->errorProc);       
         }
 
         // Сменяма wrapper'а да е празна страница
@@ -156,7 +156,7 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return $jpgArr->errorProc;       
+            return tr($jpgArr->errorProc);       
         }
 
         // Сменяма wrapper'а да е празна страница
@@ -234,7 +234,7 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return $barcodes->errorProc;       
+            return tr($barcodes->errorProc);       
         }
         
         // Ако е масив
@@ -288,7 +288,7 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return $content->errorProc;       
+            return tr($content->errorProc);       
         }
         
         // Парсираме информцията и превеждаме таговете на редовете
@@ -413,7 +413,7 @@ class fileman_webdrv_Generic extends core_Manager
             Mode::set('wrapper', 'page_PreText');
             
             // Връщаме съобщението за грешка
-            return $content->errorProc;       
+            return tr($content->errorProc);       
         }
 
         // Сменяма wrapper'а да е празна страница

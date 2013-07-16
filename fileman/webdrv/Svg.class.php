@@ -149,7 +149,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
         if (is_object($jpgArr) && $jpgArr->errorProc) {
             
             // Връщаме съобщението за грешка
-            return $jpgArr->errorProc;
+            return tr($jpgArr->errorProc);
         }
         
         // Вземаме записа на JPG изображението
