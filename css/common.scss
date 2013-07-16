@@ -11,6 +11,14 @@ $dark-blue:#036;
 $red:#c00;
 $quiet-gray:#888;
 $history-bg:#fefec2;
+$gray1:#eee; /*светло-сиво за фон*/
+$gray2:#e0e0e0; /*като фона на th на таблиците*/
+$gray3:#ddd; /*като mainmenu и бутони*/
+$gray4:#bbb; /*като фона на известията в мобилен и стандартен бордър*/
+$violet:#9999ff; /*лилаво от формите*/
+$beige:#ffffcc; /*бледо жълто от формите*/
+$orange:#f90; /*оранжево като при ховър на менюто*/
+
 
 @mixin border-radius($radius) {
     -moz-border-radius: $radius;
@@ -488,7 +496,7 @@ table {
 
 /*our reset and common classes*/
 body{
-	background-color: #ddd;
+	background-color: $gray3;
 	font-family:Helvetica,Arial,Verdana,Sans-serif;
 	font-size:16px; 
 }
@@ -540,7 +548,7 @@ select, input, textarea{
 	box-sizing:border-box;
 	-webkit-box-sizing:border-box;
 	-moz-box-sizing:border-box;
-	border: solid 1px #9999ff;
+	border: solid 1px $violet;
 	font-size: 1.07em;
 }
 
@@ -560,7 +568,7 @@ select.combo {
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
-  color:#777;
+  color:$quiet-gray;
   margin-bottom: 5px;
   background-color:transparent !important;
   display: inline-block;
@@ -577,7 +585,7 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 .readonly {
-	background:#ddd;
+	background:$gray3;
 	border:solid 1px #aaa;
 	min-width:100px;
 }
@@ -588,7 +596,7 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 tr.zebra0 { 
-    background-color:#eee;
+    background-color:$gray1;
 }
 
 tr.zebra1 {
@@ -634,8 +642,8 @@ a.button, input[type="button"], input[type="submit"] {
     font-family: Arial,sans-serif;
     overflow:visible;
     display:inline-block;
-    background-color:#ddd; 
-    border:1px solid #bbb; 
+    background-color:$gray3; 
+    border:1px solid $gray4; 
     @include border-radius(3px);
 }
 
@@ -694,7 +702,7 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 }
 
 .btn-disabled { 
-	color:#bbb !important;
+	color:$gray4 !important;
 	cursor:default !important;
 }
 
@@ -714,7 +722,7 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 }
 
 .btn-with-selected-disabled:hover {
-	background-color:#ddd !important;
+	background-color:$gray3 !important;
 }
 
 .btn-with-selected-disabled{
@@ -723,7 +731,7 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 }
 
 .btn-with-selected-disabled:hover {
-	background-color:#ddd !important;
+	background-color:$gray3 !important;
 }
 
 .wide .btn-bin {
@@ -747,6 +755,10 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 	font-size: 0.55em;
 	top: -0.2em;
 	position: relative;
+}
+
+table .button{
+	margin-bottom:2px;
 }
 
 .linkWithIcon{
@@ -856,7 +868,7 @@ a {
     color: $blue;
   }
   &:hover {
-  	color: #f90;
+  	color: $orange;
   }
   &.out {
     color: #0066ff;
@@ -967,7 +979,7 @@ a.profile {
 }
 
 .inputWarning {
-    border:solid 1px #ff9900;
+    border:solid 1px $orange;
 }
 
 .formInfo, .formWarning  {
@@ -1166,7 +1178,7 @@ div.hFormField {
 
 .wide form[method="post"] input[type="submit"] {
 	border: solid 1px $quiet-gray !important;
-	background-color: #99f !important;
+	background-color: $violet !important;
 	color: white;
 }
 
@@ -1177,7 +1189,7 @@ div.hFormField {
 }
 
 .narrow form[method=post] input[type=submit]:first-child { 
-	background-color:#99f;
+	background-color:$violet;
 	color:white;
 }
 /*край на тулбар*/
@@ -1188,7 +1200,7 @@ div.hFormField {
     padding:10px;
     font-size:1.2em;
     color:white;
-    background-color: #99f;
+    background-color: $violet;
 	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
@@ -1208,7 +1220,7 @@ div.hFormField {
 .vertical .formGroup {
     padding:5px;
     margin: 10px 0 5px;
-    background-color: #99f;
+    background-color: $violet;
 	color:white;
     border-radius: 3px;
 }
@@ -1219,10 +1231,10 @@ div.hFormField {
 }
 
 .vertical .formSection {	
-	border-left: solid 1px #bbb;
-	border-right: solid 1px #bbb;
+	border-left: solid 1px $gray4;
+	border-right: solid 1px $gray4;
 	background-image:url('../img/yellow.png'); 
-	background-color:#ffe;
+	background-color:$beige;
 	padding:15px;
     padding-bottom:0px;
     color:black;
@@ -1248,17 +1260,17 @@ div.hFormField {
 .vertical .formToolbar {
 	padding: 8px;
 	@include border-radius4(0px, 0px, 5px, 5px);
-	border: solid 1px #bbb;
+	border: solid 1px $gray4;
 	border-top: none;
 	background-image:url('../img/formToolbarBg.jpg');
 }
 
 .narrow .vertical .formToolbar {
 	background-image: none;
-	border: solid 1px #bbb;
+	border: solid 1px $gray4;
 	border-top: none;
 	padding:0 6px 3px 6px !important;
-    background-color:#ffe;
+    background-color: $beige;
     input {
 	    margin-right:5px;
 	}
@@ -1367,14 +1379,14 @@ a.pager {
 	    border:solid  1px #aaaaaa; 
 		@include border-radius(4px);
 	    padding:2px;   
-	    background-color:#eee;    
+	    background-color:$gray1;    
 	    text-decoration: none;
 	}
 	&.pagerSelected { 
 	    border:solid 1px #aaaaaa;
 	    @include border-radius(4px);
 	    padding:2px;
-	    background-color:#ffffcc;
+	    background-color:$beige;
 	    font-weight:bold;
 	}
 }
@@ -1412,8 +1424,8 @@ div.tab-control div.tab-row .tab {
 	margin: 1px -16px -1px 18px;
 	padding: 4px 5px 4px 5px;
 	float: left;
-	background: #ddd;
-	border: 1px solid #bbb;
+	background: $gray3;
+	border: 1px solid $gray4;
 	border-bottom: none;
 	z-index: 1;
 	white-space: nowrap;
@@ -1423,7 +1435,7 @@ div.tab-control div.tab-row .tab {
 	border-top: 2px solid $blue;
 	&.selected {
 		background: #ffffff;
-		border: 1px solid #bbb;
+		border: 1px solid $gray4;
 		border-top: 2px solid $blue;
 		border-bottom: none;
 		z-index: 3;
@@ -1451,7 +1463,7 @@ div.tab-control div.tab-row .tab {
 	
 div.tab-control div.tab-page {
 	clear: both;
-	border: 1px solid #bbb;
+	border: 1px solid $gray4;
 	background: #ffffff;
 	position: relative;
 	top: 1px;
@@ -1481,7 +1493,7 @@ div.alphabet{
 }
 
 div.alphabet div.tab-row .tab {
-	background: #ddd;
+	background: $gray3;
 	line-height:1.1em;
 	padding: 5px;
 	font-size:0.7em;
@@ -1495,13 +1507,13 @@ div.alphabet div.tab-row .tab {
 	&:hover {
 		margin-top: -1px;
 		margin-bottom:8px;
-		background-color: #ffffcc !important;
+		background-color: $beige !important;
 	}
 	&:hover a {
 		color: red !important;
 	}
 	&.selected {
-		background: #ffffcc;
+		background: $beige;
 		border: 1px solid #aaa;
 		top: 0px;
 		margin: 2px;
@@ -1551,7 +1563,7 @@ div.alphabet div.tab-page {
 				width: 100%
 			}
 			 .listTable td{
-				border:1px dotted #bbb !important;
+				border:1px dotted $gray4 !important;
 				text-align:center;
 				padding:2px;
 			}
@@ -1574,7 +1586,7 @@ div.alphabet div.tab-page {
 					background-color: #FEADAD;
 				}
 				&.state-closed{
-					background-color: #ddd;
+					background-color: $gray3;
 				}
 			}
 			.listTable th{
@@ -1582,14 +1594,14 @@ div.alphabet div.tab-page {
 				border-left:1px solid transparent !important;
 				border-right:1px solid transparent !important;
 				border-top:1px solid transparent !important;
-				border-bottom:1px dotted #bbb !important;
+				border-bottom:1px dotted $gray4 !important;
 				color:#333;
 				padding:5px 0;
 				&:first-child{
-					border-left:1px solid #bbb !important;
+					border-left:1px solid $gray4 !important;
 				}
 				&:last-child{
-					border-right:1px solid #bbb !important;
+					border-right:1px solid $gray4 !important;
 				}
 			}
 	}
@@ -1603,8 +1615,8 @@ div.alphabet div.tab-page {
 		display: inline;
 		margin: 1px -8px -1px 10px;
 		float: left;
-		background: #ddd;
-		border: 1px solid #bbb;
+		background: $gray3;
+		border: 1px solid $gray4;
 		border-bottom: none;
 		color:#999;
 		z-index: 1;
@@ -1623,11 +1635,11 @@ div.alphabet div.tab-page {
 			padding: 4px 5px 4px 5px;
 		}
 		&:hover a{
-			background-color:#FFC !important;
+			background-color:$beige !important;
 			color:#048 !important;
 		}
 		&:hover span{
-			background-color:#ddd !important;
+			background-color:$gray3 !important;
 		}
 		&.selected {
 			margin: 1px -8px -3px 10px;
@@ -1668,7 +1680,7 @@ div.alphabet div.tab-page {
 
 .index-category{
 	padding:3px; 
-	background-color:#ddd;
+	background-color:$gray3;
 }
 
 .index-subcategory{
@@ -1680,8 +1692,8 @@ div.alphabet div.tab-page {
 
 /* Стилове за елемента 'RichEdit' */
 span.richEdit div.richedit-toolbar {
-    background: #ddc; 
-    border: 1px solid #9999ff; 
+    background: $gray2; 
+    border: 1px solid $violet; 
     border-top: none; 
     padding: 5px; 
     font-size: 0.85em; 
@@ -1759,7 +1771,7 @@ div.rich-text {
     background-color:rgba(255, 255, 230, 0.5);
     color:#000;
     line-height:120%;
-    border:solid 1px #ddd;
+    border:solid 1px $gray3;
 	white-space: pre-wrap;
 }
 
@@ -1774,7 +1786,7 @@ div.rich-text {
 }
 
 div.richtext .code{
-	border:1px solid #ddd;
+	border:1px solid $gray3;
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
@@ -1798,7 +1810,7 @@ div.richtext .code code{
 
 .richtext .oneLineCode {
 	font-family: Courier New,monospace;
-	background-color: #ffe;
+	background-color: $beige;
 	border: 1px solid #ccc;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0 2px;
@@ -1878,7 +1890,7 @@ div.richtext ol ol {
 	color: #444;
 	white-space:pre-line;
 	padding: 2px 0 0 15px;
-	border-left: 5px solid #e0e0e0;
+	border-left: 5px solid $gray2;
 }
 
 .quote-title {
@@ -1955,20 +1967,20 @@ div.richtext ol ol {
 /* Стилове за елемента 'list Table' */
 table.listTable { 
     margin:0px 0 15px 0;
-    border: 1px solid #bbb;
+    border: 1px solid $gray4;
     > tbody > tr:hover  {
-	    background-color:#ffc;
+	    background-color:$beige;
 	}
 	> thead > tr > th {
-	    border: 1px solid #bbb;
+	    border: 1px solid $gray4;
 	    padding: 3px;
-	    background-color:#e0e0e0;
+	    background-color:$gray2;
 	    font-weight:bold;
 	    vertical-align:middle;
 	    line-height:normal;
 	}
 	> tbody > tr > td {
-	    border: 1px solid #bbb;
+	    border: 1px solid $gray4;
 	    padding: 5px 3px 2px;
 	    line-height:normal; 
 	    font-family:Arial,Verdana;
@@ -1998,8 +2010,8 @@ table.listTable {
 /*нотификации*/
 div.notification-info {
 	display: table;
-	border:solid 1px #f90;
-	background-color:#ffffcc;
+	border:solid 1px $orange;
+	background-color:$beige;
 	text-align:center;
 	font-weight:bold;
     margin:10px; 
@@ -2012,8 +2024,8 @@ div.notification-info {
 .narrow div.notification-info {
 	display: table;
 	margin:5px 0;
-	border:solid 1px #f90;
-	background-color:#ffffcc;
+	border:solid 1px $orange;
+	background-color:$beige;
 	padding:5px;
 	font-size: 1.5em; 
 	@include border-radius(0px);
@@ -2021,8 +2033,8 @@ div.notification-info {
 
 div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
     display: table;
-	border:solid 1px #f90;
-	background-color:#ffffcc;
+	border:solid 1px $orange;
+	background-color:$beige;
 	text-align:center;
 	font-weight:bold;
     margin:10px auto 0; 
@@ -2040,7 +2052,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 }
 
 div.statuses-success , div.statuses-error, div.statuses-warning{
-	background-color:#ffffcc;	
+	background-color:$beige;	
 }
 /*край на нотификации*/
 
@@ -2064,7 +2076,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-closed {
-    background-color: #eee;
+    background-color: $gray1;
 }
 
 .state-stopped, .state-blocked {
@@ -2246,6 +2258,6 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
         background-color:#cfc;
 	}
 	span.cng { 
-		background-color:#ffc;
+		background-color:$beige;
 	}
 /* Край на стилове за diff */
