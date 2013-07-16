@@ -947,6 +947,48 @@ a.profile {
 /*край на хипервръзки към профилите на потребители*/
 
 
+/* Стилове за елемента 'list Table' */
+table.listTable { 
+    margin:0px 0 15px 0;
+    border: 1px solid $gray4;
+    > tbody > tr:hover  {
+	    background-color:$beige;
+	}
+	> thead > tr > th {
+	    border: 1px solid $gray4;
+	    padding: 4px 3px 2px;
+	    background-color:$gray2;
+	    font-weight:bold;
+	    vertical-align:middle;
+	    line-height:normal;
+	}
+	> tbody > tr > td {
+	    border: 1px solid $gray4;
+	    padding: 4px 3px 2px;
+	    line-height:normal; 
+	    font-family:Arial,Verdana;
+		vertical-align:middle;
+		max-width:400px;
+		word-wrap: break-word;
+	}
+    .toolbar {
+		padding: 4px 5px 5px;
+	}
+	.document h2 {
+		margin-top: 3px;
+    }
+}
+.narrow table.listTable{
+	margin-bottom:12px;
+}
+
+.listTitle {
+	margin-bottom:12px;
+	font-size:1.3em;
+}
+/* край на стилове за елемента 'list Table' */
+
+
 /* Стилове за показване на формите */
 
 /*грешки и предупреждения*/
@@ -1420,6 +1462,7 @@ div.tab-control .tab-title {
 select.tab-control {
     @include rounded(top, left, 3px);
     @include rounded(top, right, 3px);
+    background-color: rgb(221, 221, 221);
 }
 
 div.tab-control div.tab-row .tab {
@@ -1560,7 +1603,7 @@ div.alphabet div.tab-page {
 				font-size:0.85em;
 				background-color:$history-bg !important;
 				.listTable td{
-				background-color:$history-bg !important;
+					background-color:$history-bg !important;
 				}
 			}
 			.listTable{
@@ -1966,49 +2009,6 @@ div.richtext ol ol {
 	font-size:0.9em;
 }
 /*край на richtext message-box*/
-
-
-/* Стилове за елемента 'list Table' */
-table.listTable { 
-    margin:0px 0 15px 0;
-    border: 1px solid $gray4;
-    > tbody > tr:hover  {
-	    background-color:$beige;
-	}
-	> thead > tr > th {
-	    border: 1px solid $gray4;
-	    padding: 3px;
-	    background-color:$gray2;
-	    font-weight:bold;
-	    vertical-align:middle;
-	    line-height:normal;
-	}
-	> tbody > tr > td {
-	    border: 1px solid $gray4;
-	    padding: 5px 3px 2px;
-	    line-height:normal; 
-	    font-family:Arial,Verdana;
-		vertical-align:middle;
-		max-width:400px;
-		word-wrap: break-word;
-	}
-    .toolbar {
-		padding: 4px 5px 5px;
-	}
-	.document h2 {
-		margin-top: 3px;
-    }
-}
-.narrow table.listTable{
-	margin-bottom:12px;
-}
-
-.listTitle {
-	margin-bottom:12px;
-	font-size:1.3em;
-}
-
-/* край на стилове за елемента 'list Table' */
 
 
 /*нотификации*/
