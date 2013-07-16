@@ -581,7 +581,7 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 
 .top-table{
 	border-collapse:separate;
-	border-spacing:5px;
+	border-spacing:2px;
 }
 
 .readonly {
@@ -757,7 +757,7 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
 	position: relative;
 }
 
-table .button{
+table .linkWithIcon{
 	margin-bottom:2px;
 }
 
