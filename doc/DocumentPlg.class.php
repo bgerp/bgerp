@@ -346,15 +346,14 @@ class doc_DocumentPlg extends core_Plugin
             doc_Containers::update($containerId);
         }
         
-        if($rec->state == 'active'){
+        if($rec->state != 'draft'){
         	
-        	// При активация, ако има изпозлвани документи в mvc-то
-        	// се записват като използвани в лога
 	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
+	    	$isRejected = ($rec->state == 'rejected') ? TRUE : FALSE;
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
-	    			$Log::used($used->class, $used->id, $mvc, $rec->id);
+	    			$Log::used($used->class, $used->id, $mvc, $rec->id, $isRejected);
 	    		}
 	    	}
         }

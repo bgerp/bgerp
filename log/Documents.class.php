@@ -2192,26 +2192,19 @@ class log_Documents extends core_Manager
         
         // Вземаме записите
         $recs = static::getRecs($cid, $action);
-
-        // Ако няма записи не се изпълнява
-        if (empty($recs)) {
-            
-            // Бутона да не е линк
-            $data->disabled = TRUE;
-            return;
-        }
        
         $rows = array();
         foreach ($recs as $rec) {
+        	if(!count($rec->data->used)) {
+        		$data->disabled = TRUE;
+	            return;
+        	}
         	foreach ($rec->data->used as $d){
+        		
         		$class = $d->class;
         		$row = new stdClass();
         		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
         		$state = $class::fetchField($d->id, 'state');
-        		if($state == 'rejected'){
-	        		$row->ROW_ATTR['class'] = 'state-rejected';
-	        		$iconStles['style'] .= "opacity:0.5";
-	        	}
         		$row->link = ht::createLink($d->title, array($class, 'single', $d->id), NULL, $iconStles);
 	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
 	        	$row->author = $d->author;
@@ -2258,8 +2251,9 @@ class log_Documents extends core_Manager
      * @param core_Manager $docClass - инстанция на класа,
      * в който е вкаран
      * @param int $docId - ид на документа в който участва другия
+     * @param boolean $isRejected - Дали документа се оттегля или не
      */
-    public static function used(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
+    public static function used(core_Master $usedClass, $usedId, core_Manager $docClass, $docId, $isRejected = FALSE)
     {
     	$action = static::ACTION_USED;
     	$uRec = $usedClass->fetch($usedId);
@@ -2273,7 +2267,7 @@ class log_Documents extends core_Manager
     				'author' => $docRow->author,
     				'lastUsedOn' => dt::now(),);
     	
-        $rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
+    	$rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
        	if (!$rec) {
            // Създаваме обект с данни
            $rec = (object)array(
@@ -2283,15 +2277,47 @@ class log_Documents extends core_Manager
                  'data' => new stdClass(),
            );    
         }
-        $rec->data->{$action}[] = $inClass;
+        
+        if($isRejected){
+        	
+        	// При оттегляне се изтрива записа от лога
+        	$msg = static::removeUsed($rec, $inClass);
+        } else {
+        	
+        	// При активация/възстановяване се вкарва запис в лога
+        	$rec->data->{$action}[] = $inClass;
+        	$msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
+        }
         
         // Пушваме съответното действие
         static::pushAction($rec);
 		
         // Съобщение в лога
-        $msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
         core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
         
         return $rec;
+    }
+    
+    
+    /**
+     * Изтрива използването на даден документ от лога
+     * @param stdClass $rec - запис от лога
+     * @param stdClass $inClass - запис на конкретно използване
+     */
+    private static function removeUsed($rec, $inClass)
+    {
+    	if(count($rec->data->{static::ACTION_USED})){
+	    	foreach ($rec->data->{static::ACTION_USED} as $i => $lRec){
+	    		$clone = clone $lRec;
+	    		$cloneComp = clone($inClass);
+	    		unset($clone->lastUsedOn, $cloneComp->lastUsedOn);
+	    		
+	    		if($clone == $cloneComp){
+	    			unset($rec->data->{static::ACTION_USED}[$i]);
+	    		}
+	    	}
+    	}
+    	
+        return tr("Изтрито използване на документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
     }
 }
