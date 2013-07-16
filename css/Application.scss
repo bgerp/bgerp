@@ -4,6 +4,13 @@ $dark-blue:#036;
 $red:#c00;
 $quiet-gray:#888;
 $open-thread:#e0ffe0;
+$gray1: #eee; /*светло-сиво за фон*/
+$gray2:#e0e0e0; /*като фона на th на таблиците*/
+$gray3:#ddd; /*като mainmenu и бутони*/
+$gray4:#bbb; /*като фона на известията в мобилен и стандартен бордър*/
+$violet:#9999ff; /*лилаво от формите*/
+$beige:#ffffcc; /*бледо жълто от формите*/
+$orange:#f90; /*оранжево като при ховър на менюто*/
 
 @mixin border-radius($radius) {
     -moz-border-radius: $radius;
@@ -110,7 +117,7 @@ table{
 #framecontentTop,#framecontentBottom,#framecontentTop.a,#framecontentBottom.a{
 	display:block;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
-	background-color: #ddd;
+	background-color: $gray3;
 	color: $blue;
 }
 
@@ -132,7 +139,7 @@ table{
 
 #subMenu {
 	padding: 5px;
-	background-color: #eee;
+	background-color: $gray1;
 }
 
 .wide #subMenu{
@@ -145,7 +152,7 @@ table{
 }
 
 #mainMenu {
-	background-color: #ddd;
+	background-color: $gray3;
 	padding: 5px;
 	border-bottom: solid 2px $blue;
 	line-height:normal;
@@ -157,7 +164,7 @@ table{
 }
 
 #maincontent {
-	background-color: #eee;
+	background-color: $gray1;
 }
 
 .wide #maincontent{
@@ -211,7 +218,7 @@ table{
 
 .menuRow a:hover, .menuRow a:focus {
 	color: white;
-	background-color: #f90;
+	background-color: $orange;
 }
 
 .wide #subMenu a  {
@@ -227,12 +234,12 @@ table{
 }
 
 #subMenu a.selected:hover  { 
-    color:#f90;
+    color:$orange;
 } 
 
 a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	color:white;
-	background-color:#f90;
+	background-color:$orange;
 }
 
  #mainMenu a.selected, .wide #mainMenu a.selected:visited, .wide #mainMenu a.selected:link { 
@@ -241,19 +248,19 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 }
 
 .wide #mainMenu a.selected:hover {
-	color:#f90;
+	color:$orange;
 }
 
 .menuRow a:hover, .menuRow a:focus { 
 	color:white;
-	background-color:#f90;
+	background-color:$orange;
 }
 
 .wide #subMenu a.selected, .wide #subMenu a.selected:visited, .wide #subMenu a.selected:link { 
 	padding-left: 5px;
 	padding-right: 5px;
 	border:solid 2px $blue;
-	background-color:#ddd;
+	background-color:$gray3;
 	border-top:2px solid transparent;
 	font-weight:bold;
 	@include border-radius4(2px, 2px, 5px, 5px);
@@ -348,23 +355,23 @@ div.folder-cover{
 	}
 	a.sky:hover {
 		font-size: 13px;
-		color: #4a6z6b0;
+		color: #4a66b0;
 		text-decoration: underline;
 	}
 	.fancybox img {
-		background: #f0f0f0;
-		border: solid 1px #dddddd;
+		background: $gray1;
+		border: solid 1px $gray3;
 		padding: 3px;
 		padding: 10px;
 	}
 	.block_title {
-		border-bottom: solid 1px #dddddd;
+		border-bottom: solid 1px $gray3;
 		padding: 7px;
 		@include border-radius4(0,15px,0,0);
 		font-size: 1.35em;
 		color: #433;
 		margin-bottom:10px;
-		text-shadow: 1px 1px 1px #ddd;
+		text-shadow: 1px 1px 1px $gray3;
 		img {
 			vertical-align:bottom;
 		}
@@ -439,7 +446,7 @@ div.folder-cover{
 	max-width:860px;
 	border:1px solid #ccc;
 	border-radius:5px;
-	background:#f1f1f1;	
+	background:$gray1;	
 	margin-top:15px;
 	.user-title{
 		position:relative;
@@ -620,7 +627,7 @@ div.acc-detail {
 	padding: 3px;
 	font-family: Arial;
 	border: solid 1px #ccc;
-	background-color: #eee;
+	background-color: $gray1;
 }
 
 /*детайли*/
@@ -730,7 +737,7 @@ td.portal-date {
 .document {
 	max-width:900px; 
     min-width:800px;
-	border: solid 1px #bbbbbb;
+	border: solid 1px $gray4;
 	background: #ffffff;
 	@include border-radius(5px);
 	padding: 10px;
@@ -814,7 +821,7 @@ pre.document{
 	margin-bottom:5px;
 	margin-left:1px;
 	padding: 5px;
-	border: solid 1px #ddd;
+	border: solid 1px $gray3;
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
     zoom: 1;
@@ -1054,7 +1061,7 @@ table.mc-header a {
 
 input.inplace {
 	border: none;
-	background-color: #ffc;
+	background-color: $beige;
 	.number {
 		text-align: right;
 	}
@@ -1065,14 +1072,14 @@ td.pallet_place {
     text-align: center; 
     width: 32px;
     color: #999999;
-    background: #eeeeee; 
+    background: $gray1; 
 	&.outofuse { 
 	    text-decoration: line-through;
 	    color: #333;
 	}
 	&.reserved {
 	    color: #b80000;;
-	    background: #eeeeee;
+	    background: $gray1;
 	}
 	&.in_use { 
 	    background: #00ff55;
@@ -1115,13 +1122,13 @@ div.attachments {
 	float: right;
 	margin: 2px;
 	.aHeader {
-		background-color: #e0e0e0;
+		background-color: $gray2;
 		padding: 3px;
 		padding-left: 26px;
 		background-image: url('../img/16/attach.png');
 		background-repeat: no-repeat;
 		background-position: 6px 4px;
-		border-bottom: solid 1px #e0e0e0;
+		border-bottom: solid 1px $gray2;
 	}
 	.file {
 		max-height:32px;
@@ -1196,7 +1203,7 @@ div.attachments {
 }
 
 #notificationsCnt a.noNtf { 
-    color:#ddd;
+    color:$gray3;
 	background-color:transparent;
 	border:none !important;
 	@include no-shadow();
@@ -1204,7 +1211,7 @@ div.attachments {
 
 .narrow #notificationsCnt a.noNtf { 
 	color:#fff;
-	background-color: #bbb !important; 
+	background-color: $gray4 !important; 
 	border: solid 1px #999 !important;
 }
 /*край на стилове за нотификация*/
@@ -1348,7 +1355,7 @@ div.change-log {
 span.sharing-history-title {
 	padding: 2px 5px;
 	padding-left: 23px;
-	background: #eee url(../img/share.png) no-repeat 3px center;
+	background: $gray1 url(../img/share.png) no-repeat 3px center;
 	position: absolute;
 	display: block;
 	top: 0;
@@ -1365,7 +1372,7 @@ span.sharing-history-title {
 span.change-log-title {
 	padding: 2px 5px;
 	padding-left: 23px;
-	background: #eee url(../img/16/to_do_list.png) no-repeat 3px center;
+	background: $gray1 url(../img/16/to_do_list.png) no-repeat 3px center;
 	position: absolute;
 	display: block;
 	top: 0;
@@ -1795,7 +1802,7 @@ fieldset.sharing-history {
 }
 
 table.styled-table tr:hover td {
-    background-color:#ffc !important;
+    background-color:$beige !important;
 }
 /*стилове за custom таблица*/
 
@@ -1910,7 +1917,7 @@ div.locImage{
 .cCode {
 	border:solid 1px #ccc;
 	color:black !important;
-	background-color:#eee;
+	background-color:$gray1;
 	padding:2px;
     font-size:12px;
     vertical-align:middle;
@@ -2099,7 +2106,7 @@ div.locImage{
 }
 
 .dialStatus-answered, .sms-received {
-    background-color: #eee;
+    background-color: $gray1;
 }
 
 .dialStatus-failed, .sms-sendError {
