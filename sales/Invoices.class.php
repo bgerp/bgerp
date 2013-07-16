@@ -934,4 +934,41 @@ class sales_Invoices extends core_Master
     	}
     	return $res;
     }
+    
+
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = new sales_model_Invoice($id);
+        
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->invoiced->amount = $rec->dealValue;
+        
+        /* @var $dRec sales_model_InvoiceProduct */
+        foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
+            /* @var $p bgerp_iface_DealProduct */
+            $p = new stdClass();
+            
+            $p->classId     = $dRec->productClass;
+            $p->productId   = $dRec->productId;
+            $p->packagingId = $dRec->packagingId;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $dRec->quantity;
+            $p->price       = $dRec->price;
+            
+            $result->invoiced->products[] = $p;
+        }
+        
+        return $result;
+    }
 }
