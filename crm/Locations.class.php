@@ -371,7 +371,7 @@ class crm_Locations extends core_Master {
             $rec = $rec->title;
         }
 
-        if(!$intKeys){
+        if(!$intKeys && count($locationRecs)){
         	$locationRecs = array_combine($locationRecs, $locationRecs);
         }
         
