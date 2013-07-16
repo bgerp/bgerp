@@ -19,7 +19,8 @@ class bank_IncomeDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf,
+                        bgerp_DealIntf';
    
     
     /**
@@ -436,5 +437,29 @@ class bank_IncomeDocument extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->paid->amount   = $rec->amount;
+        $result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
+        $result->paid->payment->bankAccountId = $rec->ownAccount;
+                
+        return $result;
     }
 }
