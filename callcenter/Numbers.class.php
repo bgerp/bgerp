@@ -155,53 +155,105 @@ class callcenter_Numbers extends core_Manager
      */
     public static function addNumbers($numbersArr, $classId, $docId)
     {
-        // Обхождаме подадени номера
-        foreach ((array)$numbersArr as $type => $number) {
-            
-            // Масив с номерата
-            $numberArr = arr::make($number);
+        // Инстанция на текущия клас
+        $me = cls::get(get_called_class());
+        
+        // Вземаме всички записи за документа и класа
+        $existRecsArr = static::getRecsForDoc($classId, $docId);
+        
+        // Обхождаме записите
+        foreach ((array)$numbersArr as $type => $numberArr) {
             
             // Обхождаме номерата
-            foreach ((array)$numberArr as $num) {
+            foreach ((array)$numberArr as $number) {
                 
                 // Вземаме детайлна информация за номерата
-                $numberDetArr = drdata_PhoneType::toArray($num);
+                $numberDetArr = drdata_PhoneType::toArray($number);
                 
-                // Обхождаме резултата
-                foreach ($numberDetArr as $numberDet) {
+                // Обхождаме масива с номера
+                foreach ($numberDetArr as $numberDetObj) {
                     
-                    // Ако не е обект, прескачаме
-                    if (!is_object($numberDet)) continue;
+                    // Вземаме номера, като стринг
+                    $numStr = static::getNumStrFromObj($numberDetObj);
                     
-                    // Вземаме номера
-                    $numStr = $numberDet->countryCode . $numberDet->areaCode . $numberDet->number;
-                    
-                    // Ако е факс
-                    if ($type == 'fax') {
-                        $fType = 'fax';
+                    // Ако е бил записан
+                    if ($numRec = $existRecsArr[$numStr]) {
+                     
+                        // Обновяваме записите
+                        $me->savedItems[$numRec->id] = $numRec->id;
+                        
+                        // Премахваме от масива
+                        unset($existRecsArr[$numStr]);
                     } else {
-                        // Ако е мобилине
-                        if ($numberDet->mobile) {
-                            $fType = 'mobile';
+                     
+                        // Ако е нов
+                         
+                        // Ако е факс
+                        if ($type == 'fax') {
+                            $fType = 'fax';
                         } else {
-                            $fType = 'tel';
+                            // Ако е мобилине
+                            if ($numberDetObj->mobile) {
+                                $fType = 'mobile';
+                            } else {
+                                $fType = 'tel';
+                            }
                         }
+                        
+                        // Създаваме записа
+                        $nRec = new stdClass();
+                        $nRec->number = $numStr;
+                        $nRec->type = $fType;
+                        $nRec->classId = $classId;
+                        $nRec->contragentId = $docId;
+                        
+                        // Записваме
+                        static::save($nRec, NULL, 'IGNORE');
                     }
-                    
-                    // Създаваме записа
-                    $nRec = new stdClass();
-                    $nRec->number = $numStr;
-                    $nRec->type = $fType;
-                    $nRec->classId = $classId;
-                    $nRec->contragentId = $docId;
-                    
-                    // Записваме, ако няма такъв запис
-                    static::save($nRec, NULL, 'IGNORE');
                 }
             }
         }
+
+        // Ако номера е бил изтрит, премахваме
+        foreach ((array)$existRecsArr as $num => $rec) {
+            
+            // Изтриваме
+            static::delete(array("#classId = '[#1#]' AND #contragentId = '[#2#]' AND #number = [#3#]", $classId, $docId, $num));
+        }
         
         return ;
+    }
+    
+    
+    /**
+     * Връща записите за съответния документ от класа
+     * 
+     * @param int $classId - id на класа
+     * @param int $docId - id на документ
+     * 
+     * @return array - Масив с номерата и записите
+     */
+    static function getRecsForDoc($classId, $docId)
+    {
+        // Масива, който ще връщаме
+        $resArr = array();
+        
+        // Ако няма подаден клас или документ връщаме
+        if (!$classId || !$docId) return $resArr;
+        
+        // Вземаме записитеи за класа и документа
+        $query = static::getQuery();
+        $query->where(array("#classId = '[#1#]'", $classId));
+        $query->where(array("#contragentId = '[#1#]'", $docId));
+        
+        // Обхождаме всички резултати
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме номера и записа в масива
+            $resArr[$rec->number] = $rec;
+        }
+        
+        return $resArr;
     }
     
     
@@ -324,7 +376,7 @@ class callcenter_Numbers extends core_Manager
     function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if(count($mvc->savedItems)) {
+        if(count((array)$mvc->savedItems)) {
             
             // Обхождаме масива
             foreach ((array)$mvc->savedItems as $id) {
@@ -349,7 +401,7 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме променини или добавени номера
-        if(count($mvc->deletedItems)) {
+        if(count((array)$mvc->deletedItems)) {
             
             // Обхождаме масива
             foreach ((array)$mvc->deletedItems as $id => $rec) {
