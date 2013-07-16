@@ -1744,6 +1744,80 @@ a.rtbutton:hover {
 
 
 /*richtext*/
+.richtext{
+	color:#333;
+	font-family: sans-serif;
+	line-height: 1.4em;
+}
+
+div.rich-text {
+    font-family: Courier New,monospace;
+    padding:10px;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50FFFFE6,endColorstr=#50FFFFE6); 
+    zoom: 1;
+    background-color:rgba(255, 255, 230, 0.5);
+    color:#000;
+    line-height:120%;
+    border:solid 1px #ddd;
+	white-space: pre-wrap;
+}
+
+.wide div.rich-text{
+	overflow: auto; 
+	max-width:810px;
+}
+
+.narrow div.rich-text{
+	font-size:0.9em;
+	white-space:pre-line;
+}
+
+div.richtext .code{
+	border:1px solid #ddd;
+	background:transparent;
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background:rgba(245,245,255,0.5);
+}
+.richtext .code {
+	white-space:pre !important;
+	margin: 10px 0px;
+}
+
+.printing .richtext .code{
+	white-space:pre-wrap !important;
+}
+
+.wide div.richtext .code{
+	padding:10px;
+}
+
+div.richtext .code code{
+	background:none;
+}
+
+.richtext .oneLineCode {
+	font-family: Courier New,monospace;
+	background-color: #ffe;
+	border: 1px solid #ccc;
+	border-radius: 3px 3px 3px 3px;
+	margin: 0 2px;
+	padding: 2px 5px 0;
+	display:inline;
+}
+
+div.code{
+    background: rgba(255,255,230,0.5);
+}
+
+div.richtextHide {
+	display:none;
+	margin-left:4px;
+	border-left:dotted 1px #ccc;
+	padding:10px; 
+}
+
+/*richtext elements*/
 p.richtext {
 	border: solid 1px red;
 }
@@ -1752,12 +1826,6 @@ p.richtext {
 	margin-top:0px;
 	margin-bottom:0px;
 	line-height:1.2em;
-}
-
-.richtext{
-	color:#333;
-	font-family: sans-serif;
-	line-height: 1.4em;
 }
 
 .richtext h2 { 
@@ -1776,67 +1844,6 @@ p.richtext {
 	display:table-cell;
 	height:auto;
 	vertical-align:middle;
-}
-
-div.rich-text {
-    font-family: Courier New,monospace;
-    padding:10px;
-	background:transparent;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50FFFFE6,endColorstr=#50FFFFE6); 
-    zoom: 1;
-    background-color:rgba(255, 255, 230, 0.5);
-    color:#000;
-    line-height:120%;
-    border:solid 1px #ddd;
-	white-space: pre-wrap;
-}
-
-.narrow div.rich-text{
-	font-size:0.9em;
-}
-
-div.richtext .code{
-	border:1px solid #ddd;
-	background:transparent;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-	background:rgba(245,245,255,0.5);
-}
-
-.wide div.richtext .code{
-	padding:10px;
-	max-width: 830px;
-}
-
-div.richtext .code code{
-	background:none;
-}
-
-.richtext .oneLineCode {
-	font-family: Courier New,monospace;
-	background-color: #ffe;
-	border: 1px solid #ccc;
-	border-radius: 3px 3px 3px 3px;
-	margin: 0 2px;
-	padding: 2px 5px 0;
-	display:inline;
-}
-
-.wide div.rich-text{
-	overflow: auto; 
-	max-width:810px;
-}
-
-.narrow  div.rich-text {
-	white-space:pre-line;
-}
-
-.richtext .code {
-	white-space:pre !important;
-	margin: 10px 0px;
-}
-
-div.code{
-    background: rgba(255,255,230,0.5);
 }
 
 div.richtext li {
@@ -1864,13 +1871,6 @@ div.richtext ol {
 
 div.richtext ol ol {
 	list-style-type: lower-alpha;
-}
-
-div.richtextHide {
-	display:none;
-	margin-left:4px;
-	border-left:dotted 1px #ccc;
-	padding:10px; 
 }
 
 .richtext-quote{
@@ -1910,6 +1910,7 @@ div.richtextHide {
     background-color:#FEFED8;
     background-image: url('../img/App-tip-icon2.png');
 }
+
 .richtext-warning{
 	@include richtext-message();
     color: #9F6000;
@@ -1917,6 +1918,7 @@ div.richtextHide {
     background-color: #ffdc7a;
     background-image: url('../img/dialog_warning.png');
 }
+
 .richtext-success{
 	@include richtext-message();
     color: #4F8A10;
@@ -1924,6 +1926,7 @@ div.richtextHide {
     background-color: #DFF2BF;
     background-image:url('../img/ok.png');
 }
+
 .richtext-error{
 	@include richtext-message();
     color: #D8000C;
@@ -1931,6 +1934,7 @@ div.richtextHide {
     background-color: #FFBABA;
     background-image: url('../img/dialog_error.png');
 }
+
 .richtext-question{
 	@include richtext-message();
     color: #132c5c;
@@ -2235,11 +2239,11 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 /* Стилове за diff между html текстове */
 	span.del { 
 		background-color:#fcc;
-                text-decoration:line-through;
-                color:#777;
+        text-decoration:line-through;
+        color:#777;
 	}
 	span.ins { 
-                background-color:#cfc;
+        background-color:#cfc;
 	}
 	span.cng { 
 		background-color:#ffc;
