@@ -882,10 +882,6 @@ a {
   }
 }
 
-.narrow a:hover {
-  color: $red;
-}
-
 .login-links{
 	font-weight:bold;
 	border-bottom:solid 1px #ccc;
@@ -917,12 +913,12 @@ a.profile {
 		}
 	}
 	&.officer {
-		color: #00bb00;
+		color: #00aa00;
 		&.inactive{
 			color:#447744;
 		}
 		&.active{
-			color:#00ee00;
+			color:#00cc00;
 		}
 	}
 	&.executive {
