@@ -445,7 +445,7 @@ class fileman_Indexes extends core_Manager
     {
         // Ако няма файл, записваме грешката
         $error = new stdClass();
-        $error->errorProc = tr("Възникна грешка при обработка") . '...';
+        $error->errorProc = "Възникна грешка при обработка...";
         
         // Текстовата част
         $params['content'] = $error;
@@ -463,7 +463,7 @@ class fileman_Indexes extends core_Manager
      */
     static function createErrorLog($dataId, $type)
     {
-        core_Logs::log(tr("|Възникна грешка при обработката на файла с данни|* {$dataId} |в тип|* {$type}"));
+        core_Logs::log("Възникна грешка при обработката на файла с данни {$dataId} в тип {$type}");
     }
     
     
