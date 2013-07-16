@@ -349,11 +349,11 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->state != 'draft'){
         	
 	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	$isRejected = ($rec->state == 'rejected') ? TRUE : FALSE;
+	    	$fnc = ($rec->state == 'rejected') ? 'cancelUsed' : 'used';
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
-	    			$Log::used($used->class, $used->id, $mvc, $rec->id, $isRejected);
+	    			$Log::$fnc($used->class, $used->id, $mvc, $rec->id);
 	    		}
 	    	}
         }

@@ -2244,6 +2244,16 @@ class log_Documents extends core_Manager
     
     
     /**
+     * Ф-я за изтриване на използване от лога
+     * @see static::used
+     */
+    public static function cancelUsed(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
+    {
+    	return static::used($usedClass, $usedId, $docClass, $docId, TRUE);
+    }
+    
+    
+    /**
      * Маркира даден документ като използван в друг
      * @param core_Master $usedClass - Инстанция на класа,
      *  който ще се отбелязва
