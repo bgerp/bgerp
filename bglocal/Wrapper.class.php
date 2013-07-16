@@ -26,8 +26,8 @@ class bglocal_Wrapper extends plg_ProtoWrapper
     function description()
     {        
        
-        //$this->TAB('bglocal_Mvr', 'МВР', 'admin, common');
-        //$this->TAB('bglocal_DistrictCourts', 'Съдилища', 'admin, common');
+        $this->TAB('bglocal_Mvr', 'МВР', 'admin, common');
+        $this->TAB('bglocal_DistrictCourts', 'Съдилища', 'admin, common');
         $this->TAB('bglocal_Banks', 'Банки');
         $this->TAB('bglocal_NKPD', 'НКПД');
         $this->TAB('bglocal_NKID', 'НКИД');
