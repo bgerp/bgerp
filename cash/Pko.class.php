@@ -34,7 +34,8 @@ class cash_Pko extends core_Master
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable,
+                     bgerp_DealIntf';
     
     
     /**
@@ -507,5 +508,28 @@ class cash_Pko extends core_Master
             'valior'       => $rec->valior,
         );
     }
+
+
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     *
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = self::fetchRec($id);
     
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+    
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+    
+        $result->paid->amount   = $rec->amount;
+        $result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
+        $result->paid->payment->caseId = $rec->peroCase;
+    
+        return $result;
+    }
 }
