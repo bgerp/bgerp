@@ -41,6 +41,11 @@ class sales_model_Sale extends core_Model
      */
     public $amountPaid;
         
+    /**
+     * @var double
+     */
+    public $amountInvoiced;
+        
     /*
      * Контрагент
      */ 
@@ -157,12 +162,12 @@ class sales_model_Sale extends core_Model
     /**
      * 
      * @param array $saleDocuments масив от референции към документи
+     * @return bgerp_iface_DealResponse
      */
-    public function getAggregateInfo($saleDocuments)
+    public function getAggregatedDealInfo($saleDocuments)
     {
-        /* @var $result bgerp_iface_DealInfo */
-        $result = new stdClass();
-        $dealInfo = array();
+        $aggregateInfo = new bgerp_iface_DealResponse();
+        $dealInfo      = array();
         
         /* @var $d core_ObjectReference */
         foreach ($saleDocuments as $d) {
@@ -173,10 +178,16 @@ class sales_model_Sale extends core_Model
             }
         
             if ($d->haveInterface('bgerp_DealIntf')) {
-                $dealInfo[] = $d->getDealInfo();
+                /* @var $dealInfo bgerp_iface_DealResponse */
+                $dealInfo = $d->getDealInfo();
+                
+                $aggregateInfo->agreed->push($dealInfo->agreed);
+                $aggregateInfo->shipped->push($dealInfo->shipped);
+                $aggregateInfo->paid->push($dealInfo->paid);
+                $aggregateInfo->invoiced->push($dealInfo->invoiced);
             }
         }
         
-        bp($dealInfo);
+        return $aggregateInfo;
     }
 }

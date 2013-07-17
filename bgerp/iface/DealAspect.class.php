@@ -19,7 +19,7 @@ class bgerp_iface_DealAspect
      *
      * @var array of bgerp_iface_DealProduct
      */
-    public $products;
+    public $products = array();
 
 
     /**
@@ -35,7 +35,7 @@ class bgerp_iface_DealAspect
      *
      * @var double
      */
-    public $amount;
+    public $amount = 0.0;
 
 
     /**
@@ -52,4 +52,50 @@ class bgerp_iface_DealAspect
      * @var bgerp_iface_DealPayment
      */
     public $payment;
+    
+    /**
+     * Добавя друг аспект (детайл) на сделката към текущия аспект
+     * 
+     * Използва се при изчисляване на обобщена информация по сделка
+     * 
+     * @param bgerp_iface_DealAspect $aspect
+     */
+    public function push(bgerp_iface_DealAspect $aspect)
+    {
+        foreach ($aspect->products as $p) {
+            $this->pushProduct($p);
+        }
+        
+        if (isset($aspect->delivery)) {
+            $this->delivery = $aspect->delivery;
+        }
+
+        if (isset($aspect->payment)) {
+            $this->payment = $aspect->payment;
+        }
+
+        if (isset($aspect->currency)) {
+            $this->currency = $aspect->currency;
+        }
+        
+        $this->amount += $aspect->amount;
+    }
+    
+    protected function pushProduct(bgerp_iface_DealProduct $product)
+    {
+        $foundIndex = NULL;
+        
+        /* @var $p bgerp_iface_DealProduct */
+        foreach ($this->products as $i=>$p) {
+            if ($product->isEqual($p)) {
+                $foundIndex = $i;
+            }
+        }
+        
+        if (isset($foundIndex)) {
+            $this->products[$foundIndex]->quantity += $p->quantity;
+        } else {
+            $this->products[] = clone $product;
+        }
+    }
 }

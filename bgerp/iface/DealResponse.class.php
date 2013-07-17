@@ -69,4 +69,14 @@ class bgerp_iface_DealResponse
      * @var bgerp_iface_DealAspect
      */
     public $invoiced;
+    
+    public function __construct()
+    {
+        $this->inquired = new bgerp_iface_DealAspect();
+        $this->quoted   = new bgerp_iface_DealAspect();
+        $this->agreed   = new bgerp_iface_DealAspect();
+        $this->shipped  = new bgerp_iface_DealAspect();
+        $this->paid     = new bgerp_iface_DealAspect();
+        $this->invoiced = new bgerp_iface_DealAspect();
+    }
 }

@@ -947,8 +947,7 @@ class sales_Invoices extends core_Master
     {
         $rec = new sales_model_Invoice($id);
         
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -956,10 +955,9 @@ class sales_Invoices extends core_Master
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
-            /* @var $p bgerp_iface_DealProduct */
-            $p = new stdClass();
+            $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = $dRec->productClass;
+            $p->classId     = cls::get($dRec->policyId)->getProductMan();
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->isOptional  = FALSE;

@@ -838,16 +838,9 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new store_model_ShipmentOrder(self::fetchRec($id));
+        $rec = new store_model_ShipmentOrder($id);
         
-        /* @var $query core_Query */
-        $query = store_ShipmentOrderDetails::getQuery();
-        
-        /* @var $detailRecs store_model_ShipmentProduct[] */
-        $detailRecs = $query->fetchAll("#shipmentId = {$rec->id}");
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -857,11 +850,10 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->time     = $rec->deliveryTime;
         
         /* @var $dRec sales_model_SaleProduct */
-        foreach ($detailRecs as $dRec) {
-            /* @var $p bgerp_iface_DealProduct */
-            $p = new stdClass();
+        foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
+            $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $p->classId     = cls::get($dRec->policyId)->getProductMan();
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;

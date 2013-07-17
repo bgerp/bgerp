@@ -165,6 +165,7 @@ class sales_Sales extends core_Master
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
+        $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
         
         /*
          * Контрагент
@@ -1001,12 +1002,18 @@ class sales_Sales extends core_Master
     {
         // Набавяме списък на (референции към) документите, породени от $saleRef
         $descendants = $saleRef->getDescendants();
-        $saleRec     = $saleRef->rec();
+        $saleRec     = new sales_model_Sale($saleRef->rec());
         $shipped     = array();
         
+        $aggregateDealInfo = $saleRec->getAggregatedDealInfo($descendants);
+        
+        core_Html::$dumpMaxDepth = 10;
+        bp($aggregateDealInfo);
+        
         // Преизчисляваме общо платената и общо експедираната сума 
-        $saleRec->amountPaid      = 0;
-        $saleRec->amountDelivered = 0;
+        $saleRec->amountPaid      = $aggregateDealInfo->paid->amount;
+        $saleRec->amountDelivered = $aggregateDealInfo->shipped->amount;
+        $saleRec->amountInvoiced = $aggregateDealInfo->invoiced->amount;
         
         // Базовата валута към датата на продажбата
         $saleBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($saleRec->valior);
@@ -1145,8 +1152,7 @@ class sales_Sales extends core_Master
         
         /* @var $dRec sales_model_SaleProduct */
         foreach ($detailRecs as $dRec) {
-            /* @var $p bgerp_iface_DealProduct */
-            $p = new stdClass();
+            $p = new bgerp_iface_DealProduct();
             
             $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
             $p->productId   = $dRec->productId;
@@ -1217,7 +1223,7 @@ class sales_Sales extends core_Master
              *  
              * @var $aProd bgerp_iface_DealProduct
              */
-            $aProd = new stdClass();
+            $aProd = new bgerp_iface_DealProduct();
             
             $aProd->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
             $aProd->productId   = $dRec->productId;

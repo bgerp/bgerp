@@ -172,11 +172,11 @@ class acc_Journal extends core_Master
         
         $mvc->requireRightFor('conto', $docId);
         
-        try {
+//         try {
             $message = $mvc->conto($docId);
-        } catch (core_exception_Expect $ex) {
-            redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
-        }
+//         } catch (core_exception_Expect $ex) {
+//             redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
+//         }
         
         return followRetUrl(array($mvc, 'single', $docId), $message /*, $success ? 'success' : 'error'*/);
     }
