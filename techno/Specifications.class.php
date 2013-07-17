@@ -407,6 +407,7 @@ class techno_Specifications extends core_Master {
         		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
         		
         		$price = $technoClass->getPrice($rec->data);
+        		
         		if($rec->common != 'yes' && $hasQuantities && isset($price->price)){
         			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId}", 'id');
         			
@@ -564,6 +565,7 @@ class techno_Specifications extends core_Master {
     	$rec = $this->fetch($id);
     	$technoClass = cls::get($rec->prodTehnoClassId);
     	$priceInfo = $technoClass->getPrice($rec->data, $packagingId, $quantity, $datetime);
+    	
     	if($priceInfo->price){
     		$price = new stdClass();
     		if($priceInfo->discount){

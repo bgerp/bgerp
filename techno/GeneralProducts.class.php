@@ -75,11 +75,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
     	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input,mandatory');
-    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Себестойност,width=8em,input');
-		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
-		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
-    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,hint=Процент');
-		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
+    	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
 		$form->FNC('meta', 'set(canSell=Продаваем,
@@ -126,19 +122,13 @@ class techno_GeneralProducts extends core_Manager {
     {
     	$data = unserialize($data);
     	$obj = new stdClass();
-    	$obj->price = $data->price;
-    	$obj->discount = $data->discount;
-    	$obj->tax = ($data->bTaxes) ? $data->bTaxes : 0;
-    	if(count($data->components->rows)){
-    		$arr = array();
-    		foreach ($data->components->rows as $comp){
-    			$arr['price'] += $comp->amount;
-    			$arr['tax'] += $comp->bTaxes;
-    			$arr['vatPrice'] += $comp->amount * $comp->vat;
+    	$obj->price = $obj->tax = 0;
+    	if(count($data->components->recs)){
+    		foreach ($data->components->recs as $comp){
+    			$obj->price += $comp->amount;
+    			$obj->tax += $comp->bTaxes;
     		}
-    		$obj->components = (object)$arr;
     	}
-    	
     		
     	return $obj;
     }
@@ -191,6 +181,7 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+        
         return $tpl;
     }
     
@@ -233,7 +224,7 @@ class techno_GeneralProducts extends core_Manager {
     	techno_Parameters::getVerbal($data->params, $data->specificationId, $row->params);
     	
     	// Вербално представяне на компоненти, ако има
-    	techno_Components::getVerbal($data->components->rows, $data->specificationId, $row->components);
+    	techno_Components::getVerbal($data->components->recs, $data->specificationId, $row->components);
     	
     	return $row;
     }
