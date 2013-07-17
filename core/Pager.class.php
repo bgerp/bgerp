@@ -231,11 +231,11 @@ class core_Pager extends core_BaseClass
     {
         // Ако не е зададен взема текущото URL за линк
         if (!isset($link)) {
-            $link = $_SERVER['REQUEST_URI'];
+            $link = getCurrentUrl();
         }
         
         if ($this->url) {
-            $link = $this->url;
+            $link = arr::make($this->url);
         }
         
         $start = $this->getPage() - $this->pagesAround;
@@ -256,12 +256,15 @@ class core_Pager extends core_BaseClass
             //Ако имаме страници, които не се показват в посока към началото, показваме <
             if ($this->getPage() > 1) {
                 if ($start > 1) {
-                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => 1)) . "\" class=\"pager\">1</a>";
+                    $link[$this->pageVar] = 1;
+                    $html .= "<a href=\"" . toUrl($link) . "\" class=\"pager\">1</a>";
                     
                     if ($start > $this->minPagesForMid) {
+                        
                         $mid = round($start / 2);
+                        $link[$this->pageVar] = $mid;
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . toUrl($link) . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
@@ -275,7 +278,8 @@ class core_Pager extends core_BaseClass
                 if ($start == $this->getPage()) {
                     $sel = "class='pager pagerSelected'";
                 }
-                $html .= "<a href=\"" . Url::AddParams($link, array($this->pageVar => $start)) . "\"  $sel>{$start}</a> ";
+                $link[$this->pageVar] = $start;
+                $html .= "<a href=\"" . toUrl($link) . "\"  $sel>{$start}</a> ";
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
@@ -285,14 +289,15 @@ class core_Pager extends core_BaseClass
                     
                     if ($mid > $this->minPagesForMid) {
                         $mid = round($mid / 2) + $end;
+                        $link[$this->pageVar] = $mid;
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . toUrl($link) . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
                     }
-                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $this->getPagesCount())) .
-                    "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
+                    $link[$this->pageVar] = $this->getPagesCount();
+                    $html .= "<a href=\"" . toUrl($link) . "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
                 }
             }
         }
