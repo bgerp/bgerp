@@ -291,6 +291,10 @@ class cms_Feeds extends core_Manager {
 		// Шаблон в който ще се добави линка
 		$tpl = new ET('');
 		
+		$query = static::getQuery();
+		$feeds = $query->fetchAll();
+		if(!count($feeds)) return NULL;
+		
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('cms_Feeds', 'feeds');
 		
