@@ -1,11 +1,11 @@
 <?php
 
-class store_model_ShipmentProduct
+class store_model_ShipmentProduct extends core_Model
 {
     /**
-     * @var int
+     * @var string|int|core_Mvc
      */
-    public $id;
+    public static $mvc = 'store_ShipmentOrderDetails';
     
     /**
      * @var int key(mvc=store_ShipmentOrders)
@@ -54,13 +54,4 @@ class store_model_ShipmentProduct
      * @var double
      */
     public $quantity;
-        
-    public function __construct(stdClass $rec)
-    {
-        foreach (get_class_vars($this) as $prop) {
-            if (isset($rec->{$prop})) {
-                $this->{$prop} = $rec->{$prop};
-            }
-        }
-    }
 }

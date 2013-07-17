@@ -1,11 +1,11 @@
 <?php
 
-class sales_model_SaleProduct
+class sales_model_SaleProduct extends core_Model
 {
     /**
-     * @var int
+     * @var string|int|core_Mvc
      */
-    public $id;
+    public static $mvc = 'sales_SalesDetails';
     
     /**
      * @var int key(mvc=sales_Sales)
@@ -82,13 +82,4 @@ class sales_model_SaleProduct
      * @var double
      */
     public $discount;
-    
-    public function __construct(stdClass $rec)
-    {
-        foreach (get_class_vars($this) as $prop) {
-            if (isset($rec->{$prop})) {
-                $this->{$prop} = $rec->{$prop};
-            }
-        }
-    }
 }

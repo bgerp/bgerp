@@ -12,7 +12,7 @@
  * @since     v 0.1
  *
  */
-interface bgerp_iface_DealAspect
+class bgerp_iface_DealAspect
 {
     /**
      * Списък (масив) от характеристики на продукти

@@ -1018,6 +1018,11 @@ class sales_Sales extends core_Master
                 continue;
             }
             
+            if ($d->haveInterface('bgerp_DealIntf')) {
+                $dealInfo = $d->getDealInfo();
+                bp($dealInfo);
+            }
+            
             if ($d->haveInterface('store_ShipmentIntf')) {
                 $dProducts = $d->getShipmentProducts();
                 foreach ($dProducts as $p) {

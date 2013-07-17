@@ -11,7 +11,7 @@
  * @since     v 0.1
  * 
  */
-interface bgerp_iface_DealDelivery
+class bgerp_iface_DealDelivery
 {
     /**
      * Условие на доставка

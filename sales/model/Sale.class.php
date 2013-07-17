@@ -1,12 +1,12 @@
 <?php
 
-class sales_model_Sale
+class sales_model_Sale extends core_Model
 {
     /**
-     * @var int
+     * @var string|int|core_Mvc
      */
-    public $id;
-    
+    public static $mvc = 'sales_Sales';
+        
     /**
      * @var string
      */
@@ -155,16 +155,28 @@ class sales_model_Sale
     public $state;
     
     /**
-     * @var array
+     * 
+     * @param array $saleDocuments масив от референции към документи
      */
-    public $sales_SaleDetails = array(); 
-    
-    public function __construct(stdClass $rec)
+    public function getAggregateInfo($saleDocuments)
     {
-        foreach (get_class_vars($this) as $prop) {
-            if (isset($rec->{$prop})) {
-                $this->{$prop} = $rec->{$prop};
+        /* @var $result bgerp_iface_DealInfo */
+        $result = new stdClass();
+        $dealInfo = array();
+        
+        /* @var $d core_ObjectReference */
+        foreach ($saleDocuments as $d) {
+            $dState = $d->rec('state');
+            if ($dState == 'draft' || $dState == 'rejected') {
+                // Игнорираме черновите и оттеглените документи
+                continue;
+            }
+        
+            if ($d->haveInterface('bgerp_DealIntf')) {
+                $dealInfo[] = $d->getDealInfo();
             }
         }
+        
+        bp($dealInfo);
     }
 }

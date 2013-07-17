@@ -1,11 +1,11 @@
 <?php
 
-class store_model_ShipmentOrder
+class store_model_ShipmentOrder extends core_Model
 {
     /**
-     * @var int
+     * @var string|int|core_Mvc
      */
-    public $id;
+    public static $mvc = 'store_ShipmentOrders';
     
     /**
      * @var string
@@ -74,18 +74,4 @@ class store_model_ShipmentOrder
      * @var enum(draft, active, rejected)
      */
     public $state;
-    
-    /**
-     * @var array
-     */
-    public $products = array(); 
-    
-    public function __construct(stdClass $rec)
-    {
-        foreach (get_class_vars($this) as $prop) {
-            if (isset($rec->{$prop})) {
-                $this->{$prop} = $rec->{$prop};
-            }
-        }
-    }
 }
