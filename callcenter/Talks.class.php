@@ -716,19 +716,31 @@ class callcenter_Talks extends core_Master
         // Вземаме записа
         $rec = static::fetch($id);
         
-        // Ако е изходящо обаждане
-        if ($rec->callType == 'outgoing') {
+        // Ако е отговорено
+        if (!$rec->dialStatus || $rec->dialStatus == 'ANSWERED') {
             
-            // Икона за изходящо обаждане
-            $this->singleIcon = 'img/16/outgoing.png';
-        } elseif (!$rec->dialStatus || $rec->dialStatus == 'ANSWERED') {
-            
-            // Ако в входящо
-            $this->singleIcon = 'img/16/incoming.png';
+            // Ако е изходящо обаждане
+            if ($rec->callType == 'outgoing') {
+                
+                // Икона за изходящо обаждане
+                $this->singleIcon = 'img/16/outgoing.png';
+            } else {
+                
+                // Ако в входящо
+                $this->singleIcon = 'img/16/incoming.png';
+            }
         } else {
             
-            // Ако е входящо и пропуснато
-            $this->singleIcon = 'img/16/missed.png';
+            // Ако е изходящо обаждане
+            if ($rec->callType == 'outgoing') {
+                
+                // Икона за изходящо обаждане
+                $this->singleIcon = 'img/16/outgoing-failed.png';
+            } else {
+                
+                // Ако в входящо
+                $this->singleIcon = 'img/16/incoming-failed.png';
+            }
         }
     }
     
