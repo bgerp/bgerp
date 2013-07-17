@@ -206,12 +206,16 @@ class hr_WorkingCycles extends core_Master
 	        }
 	        $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
 	        
-	        $link = $_SERVER['REQUEST_URI'];
-	        $link = Url::addParams($link, array('cal_month' => $month, 'cal_year' => $py));
+	        $nextLink = $prevtLink = getCurrentUrl();
 	        
-	        $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));
-	        $prevtLink = Url::addParams($link, array('cal_month' => $pm, 'cal_year' => $py));
-
+	        $nextLink['cal_month'] = $nm;
+	        $nextLink['cal_year'] = $ny;
+	        $nextLink = toUrl($nextLink);
+	        
+	        $prevtLink['cal_month'] = $pm;
+	        $prevtLink['cal_year'] = $py;
+	        $prevtLink = toUrl($prevtLink);
+	        
 			// Таймстамп на първия ден на месеца
 	        $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
 	
@@ -238,8 +242,9 @@ class hr_WorkingCycles extends core_Master
 	    		}
 	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
 	    		
-	    		$link = toUrl(array('cal_Calendar', 'day'));
-	    		$url = Url::addParams($link, array('from' => $i . '.' . $month . '.' . $year));
+	    		$url['cal_Calendar'] = 'day';
+	    		$url['from'] = $i . '.' . $month . '.' . $year;
+	    		$url = toUrl($url);
 	    		
 	    		$d[$i]->url = $url;
 	    		
