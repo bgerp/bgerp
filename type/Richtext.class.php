@@ -692,16 +692,16 @@ class type_Richtext extends type_Blob
             $url = "http://{$url}";
         }
 
-        
-        $url = core_Url::escape($url);
-
-        $this->_htmlBoard[$place] = $url;
          
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
+        
+        $url = core_Url::escape($url);
+
+        $this->_htmlBoard[$place] = $url;
         
         return $link;
     }

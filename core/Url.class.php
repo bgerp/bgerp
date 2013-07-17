@@ -706,28 +706,34 @@ class core_Url
     /**
      * Дали посоченото URL е локално?
      */
-    static function isLocal($url, &$rest = NULL)
+    static function isLocal(&$url1, &$rest = NULL)
     {
+        $url = $url1;
 		$httpBoot = getBoot(TRUE);
 		
 		if (EF_APP_NAME_FIXED !== TRUE) {
             $app = Request::get('App');
             $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
         }
+        $httpBootS = $httpBoot;
 
-		$httpBoot = str_ireplace("https://", "http://", $httpBoot);
-		$url      = str_ireplace("https://", "http://", $url);
+        $starts = array("https://", "http://", '//', 'www.');
+
+		$httpBoot = str::removeFromBegin($httpBoot, $starts);
+
+		$url      = str::removeFromBegin($url, $starts);
 
         if (stripos($url, $httpBoot) === 0) {
             $result = TRUE;
             $rest   = substr($url, strlen($httpBoot));
+            $url1 = $httpBootS . $rest;
         } else {
             $result = FALSE;
         }
 
         return $result;
     }
-    
+        
     
     /**
      * Аналогична фунция на urldecode()

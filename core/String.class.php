@@ -397,4 +397,24 @@ class core_String
         return $c;
     }
 
+
+    /**
+     * Опитва се да премахне от даден стринг, масив от под-стрингове, считано то началото му
+     */
+    static function removeFromBegin($str, $sub)
+    {
+        if(!is_array($sub)) {
+            expect(is_scalar($sub));
+            $sub = array($sub);
+        }
+
+        foreach($sub as $s) {
+            if(stripos($str, $s) === 0) {
+                $str = mb_substr($str, mb_strlen($s));
+            }
+        }
+
+        return $str;
+    }
+
 }
