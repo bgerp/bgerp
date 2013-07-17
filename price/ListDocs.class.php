@@ -297,6 +297,7 @@ class price_ListDocs extends core_Master
     	if($info = cat_Products::getProductInfo($product->productId, $packId)){
     		$clone = clone $product;
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
+    		if(!$price) return;
     		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
     		$price = $price + ($price * $vat);
     		$price = currency_CurrencyRates::convertAmount($price, $rec->date, NULL, $rec->currencyId);
