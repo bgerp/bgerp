@@ -79,6 +79,13 @@
 				<th colspan="2">|Информация|*</th>
 			</tr>
 			
+			<!--ET_BEGIN callType-->
+				<tr>
+					<td class="title-style" width="150px">|Тип|*</td>
+					<td> [#callType#]</td>
+				</tr>
+			<!--ET_END callType-->
+			
 			<!--ET_BEGIN dialStatus-->
 				<tr>
 					<td class="title-style" width="150px">|Статус|*</td>
