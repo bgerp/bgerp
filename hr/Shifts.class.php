@@ -126,9 +126,15 @@ class hr_Shifts extends core_Master
         }
         $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
         
-        $link = $_SERVER['REQUEST_URI'];
-        $nextLink = Url::addParams($link, array('cal_month' => $nm, 'cal_year' => $ny));
-        $prevtLink = Url::addParams($link, array('cal_month' => $pm, 'cal_year' => $py));
+        $nextLink = $prevtLink = getCurrentUrl();
+        
+        $nextLink['cal_month'] = $nm;
+        $nextLink['cal_year'] = $ny;
+        $nextLink = toUrl($nextLink);
+        
+        $prevtLink['cal_month'] = $pm;
+        $prevtLink['cal_year'] = $py;
+        $prevtLink = toUrl($prevtLink);
 
         $header = "<table class='mc-header' width='100%' cellpadding='0'>
                 <tr>
