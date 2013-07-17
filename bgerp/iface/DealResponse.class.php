@@ -10,7 +10,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-interface bgerp_iface_DealResponse
+class bgerp_iface_DealResponse
 {
     const TYPE_PURCHASE = 'purchase';
     const TYPE_SALE     = 'sale';

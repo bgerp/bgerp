@@ -11,7 +11,7 @@
  * @since     v 0.1
  *
  */
-interface bgerp_iface_DealProduct
+class bgerp_iface_DealProduct
 {
     /**
      * Продукт-мениджър (наследник на @link core_Manager)

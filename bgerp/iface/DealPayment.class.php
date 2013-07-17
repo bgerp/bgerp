@@ -11,7 +11,7 @@
  * @since     v 0.1
  * 
  */
-interface bgerp_iface_DealPayment
+class bgerp_iface_DealPayment
 {
     /**
      * Начин на плащане

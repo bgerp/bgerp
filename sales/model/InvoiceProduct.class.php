@@ -5,12 +5,12 @@
  * @author developer
  * @property core_Manager $productClass клас (мениджър) на продукта, описан с този ред
  */
-class sales_model_InvoiceProduct
+class sales_model_InvoiceProduct extends core_Model
 {
     /**
-     * @var int
+     * @var string|int|core_Mvc
      */
-    public $id;
+    public static $mvc = 'sales_InvoiceDetails';
     
     /**
      * @var int key(mvc=sales_Sales)
@@ -80,41 +80,6 @@ class sales_model_InvoiceProduct
      * @var double
      */
     public $amount;
-    
-    
-    public function __construct($id = NULL, $mvc = 'sales_InvoiceDetails')
-    {
-        $this->_mvc = cls::get($mvc);
-        
-        if (isset($id)) {
-            $rec = $this->fetch($id);
-            $this->init($rec);
-        }
-    }
-    
-    public function fetch($id)
-    {
-        return $this->_mvc->fetchRec($id);
-    }
-        
-    
-    public function init(stdClass $rec)
-    {
-        foreach (get_class_vars($this) as $prop) {
-            if (isset($rec->{$prop})) {
-                $this->{$prop} = $rec->{$prop};
-            }
-        }
-    }
-    
-    public function __get($property)
-    {
-        if (method_exists($this, "calc_{$property}")) {
-            return $this->{"calc_{$property}"}();
-        }
-        
-        expect(FALSE);
-    }
     
     protected function calc_productClass()
     {
