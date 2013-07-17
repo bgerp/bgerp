@@ -647,12 +647,6 @@ a.button, input[type="button"], input[type="submit"] {
     @include border-radius(3px);
 }
 
-@-moz-document url-prefix() {
-	.wide a.button, .wide input[type="button"], .wide input[type="submit"] {
-		padding-top:0.1em !important;
-	}
-}
-
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
 	border:1px solid #999; 
 	@include border-radius(5px);
@@ -711,6 +705,12 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
     padding-left: 3px !important; /* IE6 */
 }
 
+@-moz-document url-prefix() {	
+	.picker-search-button {
+		position:relative;
+		top:-2px;
+	}
+}
 .wide .btn-with-selected {
     background-image:url('../img/16/checked.png');
     @include btn-style();
@@ -1054,7 +1054,7 @@ table.listTable {
 
 /*общи стилове за елементите на формите*/
 .formFields{
-	margin-bottom:13px;
+	margin-bottom:10px;
 }
 
 .formFields > table {
@@ -1102,7 +1102,7 @@ table.listTable {
 div.hFormField { 
 	float:left;
 	margin-right:0.3em;
-	margin-bottom:2px;
+	margin-bottom:0.3em;
 }
 
 .narrow div.hFormField{
@@ -1312,7 +1312,7 @@ div.hFormField {
 	border: solid 1px $gray4;
 	border-top: none;
 	padding:0 6px 3px 6px !important;
-    background-color: $beige;
+    background-color: #ffffee;
     input {
 	    margin-right:5px;
 	}
