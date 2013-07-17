@@ -176,8 +176,8 @@ class callcenter_Talks extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {    
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {   
         // Информация за външния номер
         $externalNumArr = drdata_PhoneType::toArray($rec->externalNum);
         
@@ -256,13 +256,18 @@ class callcenter_Talks extends core_Master
         
         // Ако сме в тесен режим
         if (mode::is('screenMode', 'narrow')) {
-         
-            // Дива за разстояние
-            $div = "<div style='margin-top:5px;'>";
             
-            // Добавяме данните към номерата
-            $row->externalNum .=  $div. $row->externalData . "</div>";
-            $row->internalNum .= $div . $row->internalData . "</div>";
+            // Ако не сме в сингъла
+            // Добавяме данните към номера
+            if(!$fields['-single']) {
+                
+                // Дива за разстояние
+                $div = "<div style='margin-top:5px;'>";
+                
+                // Добавяме данните към номерата
+                $row->externalNum .=  $div. $row->externalData . "</div>";
+                $row->internalNum .= $div . $row->internalData . "</div>";
+            }
             
             // Ако има продължителност
             if ($rec->duration) {
@@ -785,7 +790,7 @@ class callcenter_Talks extends core_Master
             $numbersAttr['title'] = tr('Добави към потребител');
             
             // Икона на телефон
-            $phonesImg = "<img src=" . sbf('img/16/telephone-add.png') . " width='16' height='16'>";
+            $phonesImg = "<img src=" . sbf('img/16/telephone2-add.png') . " width='16' height='16'>";
             
             // Създаваме линк
             $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
