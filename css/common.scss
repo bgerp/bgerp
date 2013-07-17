@@ -704,6 +704,12 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit]{
     padding-right: 3px !important; /* IE6 */
     padding-left: 3px !important; /* IE6 */
 }
+.narrow .picker-search-button {
+	height:2em !important;
+	position:relative;
+	top:-2px;
+	
+}
 
 @-moz-document url-prefix() {	
 	.picker-search-button {
@@ -857,6 +863,10 @@ div.rowtools {
 		margin-right:5px;
 		border:none;
 	}
+}
+
+th .rowtools .r, th .rowtools .l{
+	vertical-align:baseline;	
 }
 
 .rowtools .nw {
