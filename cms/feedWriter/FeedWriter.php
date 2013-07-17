@@ -280,7 +280,7 @@ abstract class FeedWriter
 		
 		if($this->version == RSS2)
 		{
-			$out .= '<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/">';
+			$out .= '<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:atom="http://www.w3.org/2005/Atom">';
 		}
 		elseif($this->version == RSS1)
 		{
@@ -367,7 +367,7 @@ abstract class FeedWriter
 		
 		$nodeText .= (in_array($tagName, $this->CDATAEncoding)) ? ']]>' : '';
 		$nodeText .= "</$tagName>" . PHP_EOL;
-
+		
 		return $nodeText;
 	}
 	

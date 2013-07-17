@@ -10,9 +10,10 @@
 	<tr>
 		<td><b>№</b></td>
 		<td><b>|Продукт|*</b></td>
-		<td><b>|К-во|*</b></td>
-		<td><b>|Цена|*</b></td>
-		<td><b>|Стойност|*</b></td>
+		<td align='right'><b>|К-во|*</b></td>
+		<td align='right'><b>|Цена|*</b></td>
+		<td align='right'><b>|Стойност|*</b></td>
+		<td align='right'><b>|Такси|*</b></td>
 	</tr>
 	<!--ET_END TH-->
 	<!--ET_BEGIN COMPONENT-->
@@ -23,19 +24,25 @@
 		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
 		<td width='12%' align='right'>[#cPrice#]</td>
 		<td width='12%' align='right'>[#amount#]</td>
+		<td width='12%' align='right'>[#bTaxes#]</td>
 	</tr>
 	<!--ET_END COMPONENT-->
 	<!--ET_BEGIN totalAmount-->
 	<tr class='components-total'>
 		<td colspan='3' style='border:0px;' class='no-hover'></td>
-		<td colspan='2' align='right' class='has-hover'><b>|Общо|*:</b> <span style='margin-left:5px'>[#totalAmount#]</span></td>
+		<td align='right' class='has-hover'><b>|Общо|*:</b> </td>
+		<td align='right' class='has-hover'>[#totalAmount#]</td>
+		<td align='right' class='has-hover'>[#totalTaxes#]</td>
 	</tr>
 	<!--ET_END totalAmount-->
 	</table>
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->
+<!--ET_BEGIN compHeader-->
+[#compHeader#]
 |Компоненти|*
+<!--ET_END compHeader-->
 		<ol>
 			<!--ET_BEGIN COMPONENT-->
 			[#COMPONENT#]

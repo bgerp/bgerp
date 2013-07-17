@@ -130,7 +130,7 @@ class sales_Quotations extends core_Master
     public function description()
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
-        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,unit=дни,width=8em');
+        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em');
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');

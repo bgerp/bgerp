@@ -111,7 +111,11 @@ class cms_Feeds extends core_Manager {
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
-  				 $feed->setImage('feed', NULL, fileman_Download::getDownloadUrl($rec->logo));
+  				 
+  				 if($rec->logo){
+  				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), fileman_Download::getDownloadUrl($rec->logo));
+  				 }
+  				 
   				 break;
         	case 'atom' : 
         		
@@ -133,6 +137,9 @@ class cms_Feeds extends core_Manager {
         	$newFeed = $feed->createNewItem();
 		    $newFeed->setTitle($item->title);
 		    $newFeed->setlink($item->link);
+		    if($rec->type == 'rss2'){
+		    	$newFeed->setGuid($item->link);
+		    }
 		    $newFeed->setDate($item->date);
 		    $newFeed->setDescription($item->description);
 		    
@@ -283,6 +290,10 @@ class cms_Feeds extends core_Manager {
 	{
 		// Шаблон в който ще се добави линка
 		$tpl = new ET('');
+		
+		$query = static::getQuery();
+		$feeds = $query->fetchAll();
+		if(!count($feeds)) return NULL;
 		
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('cms_Feeds', 'feeds');

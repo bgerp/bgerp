@@ -412,7 +412,8 @@ class sales_QuotationsDetails extends core_Detail {
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
-    	if(!Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
+    	
+    	if(!Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
     		$row->productId = ht::createLink($row->productId, array($productMan, 'single', $rec->productId));
     	}
     	

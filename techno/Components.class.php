@@ -46,16 +46,17 @@ class techno_Components extends core_Manager {
     public function getForm()
     {
     	$form = cls::get('core_Form');
-    	$form->FNC('componentId', 'key(mvc=cat_Products,select=name)', 'mandatory,input,caption=Продукт,silent');
-    	$form->FNC('quantity', 'double', 'caption=К-во,input,mandatory');
-    	$form->FNC('cPrice', 'double(decimals=2)', 'caption=Цена,input');
+    	$form->FNC('componentId', 'varchar(255)', 'mandatory,input,caption=Продукт,silent');
+    	$form->FNC('quantity', 'double', 'caption=К-во,input');
+    	$form->FNC('cPrice', 'double(decimals=2)', 'caption=Стойност,input');
     	$form->FNC('amount', 'double(decimals=2)', 'caption=Сума');
     	$form->FNC('cMeasureId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка');
-    	$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Н. такси');
+    	$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Такса,input');
     	$form->FNC('vat', 'percent', 'caption=ДДС');
     	
-    	$products = cat_Products::getByGroup(static::$allowedGroups);
-    	$form->setOptions('componentId', array('' => '') + $products);
+    	$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
+    	
+    	$form->fields['componentId']->type = cls::get("type_Enum", array('options' => $products));
     	
     	return $form;
     }
@@ -76,7 +77,7 @@ class techno_Components extends core_Manager {
     	$Policy = cls::get('price_ListToCustomers');
     	
     	if($componentId = Request::get('delete')){
-    		unset($data->components->rows[$componentId]);
+    		unset($data->components->recs[$componentId]);
     		$rec->data = $GeneralProduct->serialize($data);
 	        $Specifications->save($rec);
 	        return Redirect($retUrl);
@@ -88,40 +89,70 @@ class techno_Components extends core_Manager {
         
     	if(Request::get('edit')){
     		$componentId = Request::get('componentId');
-    		$form->rec = $data->components->rows[$componentId];
+    		$form->rec = $data->components->recs[$componentId];
+    		if($form->rec->componentId == -1){
+    			$form->rec->cPrice = $form->rec->amount;
+    		}
     		$form->setReadOnly('componentId');
     		$action = tr('Редактиране');
     	} else {
     		$action = tr('Добавяне');
-	    	$form->setOptions('componentId', array('' => '') + $this->getRemainingOptions($data->components->rows));
+	    	$form->setOptions('componentId', $this->getRemainingOptions($data->components->recs));
     	}
     	
         $fRec = $form->input();
-        if(!$fRec->cPrice && $fRec->componentId){
-        	$contClass = doc_Folders::fetchCoverClassId($rec->folderId);
-        	$contId = doc_Folders::fetchCoverId($rec->folderId);
-        	$fRec->cPrice = $Policy->getPriceInfo($contClass, $contId, $fRec->componentId, NULL, $fRec->quantity, dt::now())->price;
-        	if(!$fRec->cPrice){
-        		$form->setError('cPrice', 'Проблем при извличането на цената! Моля задайте ръчно');
-        		$form->setField('cPrice', 'mandatory');
-        	}
-        }
         
         if($form->isSubmitted()) {
         	if($Specifications->haveRightFor('configure', $rec)){
-        		$fRec->amount = $fRec->quantity * $fRec->cPrice;
-        		$fRec->cMeasureId = cat_Products::fetchField($fRec->componentId, 'measureId');
-        		$fRec->vat = cat_Products::getVat($fRec->componentId);
-        		$fRec->bTaxes = cat_products_Params::fetchParamValue($fRec->componentId, 'bTax');
-        		$data->components->rows[$fRec->componentId] = $fRec;
-	        	$rec->data = $GeneralProduct->serialize($data);
-		        $Specifications->save($rec);
-		        return  Redirect(array($Specifications, 'single', $rec->id));
+        		$this->validateForm($fRec, $form, $rec->folderId);
+	        	
+        		if(!$form->gotErrors()){
+        			$data->components->recs[$fRec->componentId] = $fRec;
+		        	$rec->data = $GeneralProduct->serialize($data);
+			        $Specifications->save($rec);
+			        return  Redirect(array($Specifications, 'single', $rec->id));
+        		}
         	}
         }
         
         $form->title = "{$action} на компоненти към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Помощна функция за валидиране на формата с компоненти
+     * @param stdClass $rec - запис на компонент
+     * @param core_Form $form - формата за компоненти
+     * @param int folderId - ид на папката на спецификацията
+     */
+    private function validateForm(&$rec, core_Form &$form, $folderId)
+    {
+    	if($rec->componentId != -1){
+	        if(!$rec->quantity){
+		        $form->setError('quantity', 'Моля задайте количество');
+		    }
+	        $rec->cMeasureId = cat_Products::fetchField($rec->componentId, 'measureId');
+        	$rec->vat = cat_Products::getVat($rec->componentId);
+        	if(!$rec->bTaxes){
+        		$rec->bTaxes = cat_products_Params::fetchParamValue($rec->componentId, 'bTax');
+        	}
+        } else {
+        	$rec->quantity = 1;
+        }
+        	if(!$rec->cPrice){
+        		$Policy = cls::get('price_ListToCustomers');
+		        $contClass = doc_Folders::fetchCoverClassId($folderId);
+			    $contId = doc_Folders::fetchCoverId($folderId);
+			    $rec->cPrice = $Policy->getPriceInfo($contClass, $contId, $rec->componentId, NULL, $rec->quantity, dt::now())->price;
+			    if(!$rec->cPrice){
+			        $form->setError('cPrice', 'Проблем при извличането на цената! Моля задайте ръчно');
+			    }
+	        }
+	        $rec->amount = $rec->quantity * $rec->cPrice;
+	        if($rec->componentId == -1){
+	        	unset($rec->quantity, $rec->cPrice);
+	        }
     }
     
     
@@ -133,7 +164,7 @@ class techno_Components extends core_Manager {
      */
     private function getRemainingOptions($recs)
     {
-    	$products = cat_Products::getByGroup(static::$allowedGroups);
+    	$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
     	foreach ($products as $id => $name){
     		if(isset($recs[$id])){
     			unset($products[$id]);
@@ -154,19 +185,20 @@ class techno_Components extends core_Manager {
     {
     	if($components){
     		$i = 1;
-    		$total = 0;
+    		$taxes = $total = 0;
     		$fields = static::getForm()->selectFields('');
     		foreach ($components as $component){
     			$res->rows[$component->componentId] = static::getRow($component, $fields);
     			$res->rows[$component->componentId]->num = $i;
     			$res->rows[$component->componentId]->tools = static::getParamTools($component->componentId, $specId);
-    			$total += $res->rows[$component->componentId]->amount;
+    			$total += $component->amount;
+    			$taxes += $component->bTaxes;
     			$i++;
     		}
     		
     		$Double = cls::get('type_Double');
 	    	$Double->params['decimals'] = 2;
-	    	$res->total = $Double->toVerbal($total);
+	    	$res->total = (object)array('totalAmount' => $Double->toVerbal($total), 'totalTaxes' => ($taxes) ? $Double->toVerbal($taxes) : NULL);
     	}
     }
     
@@ -211,7 +243,7 @@ class techno_Components extends core_Manager {
     			$fld->type->params['decimals'] = strlen(substr(strrchr($rec->quantity, "."), 1));
     		}
     		$row->{$name} = $fld->type->toVerbal($rec->$name);
-    		if($name == 'componentId' && !Mode::is('printing')){
+    		if($name == 'componentId' && !Mode::is('printing') && $rec->componentId != '-1'){
     			$row->componentId = ht::createLink($row->componentId, array('cat_Products', 'single', $rec->componentId));
     		}
     	}
@@ -229,13 +261,18 @@ class techno_Components extends core_Manager {
     public static function renderComponents($data, $short)
     {
     	$tplFile = getTplFromFile('techno/tpl/Components.shtml');
-    	$paramBlock = ($short) ? $tplFile->getBlock('SHORT') : $tplFile->getBlock('LONG');
+    	if($short){
+    		$paramBlock = $tplFile->getBlock('SHORT');
+    		unset($data->rows['-1']);
+    	} else {
+    		$paramBlock = $tplFile->getBlock('LONG');
+    	}
     	
     	if(count($data->rows)){
     		$paramBlock->replace(' ', 'TH');
     		
     		if($data->total){
-    			$paramBlock->replace($data->total, 'totalAmount');
+    			$paramBlock->placeObject($data->total);
     		}
     		
     		foreach($data->rows as $id => $row){
@@ -245,7 +282,6 @@ class techno_Components extends core_Manager {
     			$paramBlock->append($blockCl, 'COMPONENT');
     		}
     	}
-    	
     	return $paramBlock;
     }
 }

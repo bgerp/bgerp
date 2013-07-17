@@ -261,6 +261,9 @@ class crm_Personalization extends core_Detail
             
             // Използваме текущия
             $userId = core_Users::getCurrent();
+            
+            // Ако няма текущ потребител
+            if (!$userId) return FALSE;
         }
         
         // id на потребителя

@@ -770,9 +770,6 @@ td.portal-date {
 	.correction{
 		color:#e78a02;
 	}
-	table.listTable{
-		margin-bottom:0;
-	}
 	.block_left{
 		margin-top:10px;
 	}
@@ -836,6 +833,10 @@ td.portal-date {
 		     page-break-after: auto;
 		}
 	}
+}
+
+.wide .document table.listTable{
+	margin-bottom:0;
 }
 
 pre.document{
@@ -1382,7 +1383,7 @@ fieldset.sharing-history {
 }
 
 #all #cmsBottom {
-	min-width:520px;
+	min-width:522px;
 }
 
 #all #maincontent {

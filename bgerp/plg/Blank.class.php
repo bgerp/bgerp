@@ -68,16 +68,21 @@ class bgerp_plg_Blank extends core_Plugin
         // Езика на писмото
         $lg = core_Lg::getCurrent();
         
-        // Ако езика не е английски
-        if ($lg != 'en') {
-            
-            // Вземаме логото на потребителя
-            $companyLogoFh = crm_Personalization::getLogo();    
-        } else {
-            
-            // Вземамем логото на потребителя на ЕН
-            $companyLogoFh = crm_Personalization::getLogo(FALSE, TRUE);
-        }
+        // Прихващаме грешката
+        try {
+        
+            // Ако езика не е английски
+            if ($lg != 'en') {
+                
+                // Вземаме логото на потребителя
+                $companyLogoFh = crm_Personalization::getLogo();    
+            } else {
+                
+                // Вземамем логото на потребителя на ЕН
+                $companyLogoFh = crm_Personalization::getLogo(FALSE, TRUE);
+            }
+        
+        } catch (Exception $e) {}
         
         // Ако няма лого на потребителя
         if (!$companyLogoFh) {
