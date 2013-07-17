@@ -100,7 +100,7 @@ class bgerp_Portal extends core_Manager
         // Бутон за добавяне на задачи
         $img = sbf('img/16/add.png');
 		$addUrl = array('cal_Tasks', 'add');
-		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => 'Добавяне на нова Задача'));
+		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addTask', 'title' => tr('Добавяне на нова Задача')));
         $tasksTpl->append($addBtn, 'ADD_BTN');
         
         // Бутон за смяна от <-> към
