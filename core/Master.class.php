@@ -305,9 +305,11 @@ class core_Master extends core_Manager
 
                 foreach($detailTabbed as $var => $order) {
 
-                    $url = Url::addParams($_SERVER['REQUEST_URI'], array('Tab' => $var)) . '#detailTabs';
- 
-                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : $url);
+                    $url = getCurrentUrl();
+                    $url['Tab'] = $var;
+                    $url['#'] = 'detailTabs';
+                    
+                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
 
                     if($var == $data->Tab || (!$data->Tab && !$selected)) {
                         $selected = $var;
