@@ -2192,7 +2192,16 @@ class log_Documents extends core_Manager
         
         // Вземаме записите
         $recs = static::getRecs($cid, $action);
-       
+        
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
         $rows = array();
         foreach ($recs as $rec) {
         	if(!count($rec->data->used)) {
