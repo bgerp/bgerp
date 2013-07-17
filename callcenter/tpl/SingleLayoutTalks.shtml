@@ -9,17 +9,17 @@
 			<th colspan="2">|Външен|*</th>
 		</tr>
 		
-		<tr>
-			<td class="title-style" width="150px">|Номер|*</td>
-			<td> [#externalNum#]</td>
-		</tr>
-		
 		<!--ET_BEGIN externalData-->
 			<tr>
 				<td class="title-style">|Контакт|*</td>
 				<td>[#externalData#]</td>
 			</tr>
 		<!--ET_END externalData-->
+		
+		<tr>
+			<td class="title-style" width="150px">|Номер|*</td>
+			<td> [#externalNum#]</td>
+		</tr>
 	</table>
 	
 	<table class="styled-table" width="100%">
@@ -28,13 +28,13 @@
 		</tr>
 		
 		<tr>
-			<td class="title-style" width="150px">|Номер|*</td>
-			<td> [#internalNum#]</td>
+			<td class="title-style">|Потребител|*</td>
+			<td>[#internalData#]</td>
 		</tr>
 		
 		<tr>
-			<td class="title-style">|Потребител|*</td>
-			<td>[#internalData#]</td>
+			<td class="title-style" width="150px">|Номер|*</td>
+			<td> [#internalNum#]</td>
 		</tr>
 	</table>
 	
