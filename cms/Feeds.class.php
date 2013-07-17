@@ -137,7 +137,9 @@ class cms_Feeds extends core_Manager {
         	$newFeed = $feed->createNewItem();
 		    $newFeed->setTitle($item->title);
 		    $newFeed->setlink($item->link);
-		    $newFeed->setGuid($item->link);
+		    if($rec->type == 'rss2'){
+		    	$newFeed->setGuid($item->link);
+		    }
 		    $newFeed->setDate($item->date);
 		    $newFeed->setDescription($item->description);
 		    
