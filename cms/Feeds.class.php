@@ -111,7 +111,11 @@ class cms_Feeds extends core_Manager {
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
-  				 $feed->setImage('feed', NULL, fileman_Download::getDownloadUrl($rec->logo));
+  				 
+  				 if($rec->logo){
+  				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), fileman_Download::getDownloadUrl($rec->logo));
+  				 }
+  				 
   				 break;
         	case 'atom' : 
         		
@@ -133,6 +137,7 @@ class cms_Feeds extends core_Manager {
         	$newFeed = $feed->createNewItem();
 		    $newFeed->setTitle($item->title);
 		    $newFeed->setlink($item->link);
+		    $newFeed->setGuid($item->link);
 		    $newFeed->setDate($item->date);
 		    $newFeed->setDescription($item->description);
 		    
