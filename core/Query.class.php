@@ -255,11 +255,18 @@ class core_Query extends core_FieldSet
      * 
      * @param string $field - Името на полето
      * @param string $val - Стойността
+     * @param boolean $like - Дали да е LIKE или NOT LIKE
      * @param boolean $or - Дали да се добавя с OR
      */
-    function like($field, $val, $or = FALSE)
+    function like($field, $val, $like=TRUE, $or=FALSE)
     {
-        $cond = "#{$field} LIKE '%[#1#]%'";
+        if ($like) {
+            $like = 'LIKE';
+        } else {
+            $like = "NOT LIKE";
+        }
+        
+        $cond = "#{$field} {$like} '%[#1#]%'";
                 
         if($or === TRUE) {
             $this->orWhere(array($cond, $val));
@@ -276,11 +283,12 @@ class core_Query extends core_FieldSet
      * 
      * @param string $field - Името на полето
      * @param string $val - Стойността
+     * @param boolean $like - Дали да е LIKE или NOT LIKE
      */
-    function orLike($field, $val)
+    function orLike($field, $val, $like=TRUE)
     {
         
-        return $this->like($field, $val, TRUE);
+        return $this->like($field, $val, $like, TRUE);
     }
     
     
