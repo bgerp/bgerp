@@ -636,8 +636,7 @@ a.button, input[type="button"], input[type="submit"] {
     text-decoration:none;
     cursor:pointer;
     font-size: 0.8em;
-    padding:0.2em 0.5em;
-    height:2em;
+    padding:0.4em 0.5em;
     font-family: Arial,sans-serif;
     overflow:visible;
     display:inline-block;
@@ -649,10 +648,10 @@ a.button, input[type="button"], input[type="submit"] {
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
 	border:1px solid #999; 
 	@include border-radius(5px);
+	padding:0.3em 0.4em;
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
-    height:1.8em;
     margin-top:0;
-    margin-botoom:0;
+    margin-bottom:0;
 }
 
 a.button:hover, input:hover[type=button] , input:hover[type=submit]{
@@ -1340,6 +1339,7 @@ div.hFormField {
 .wide .horizontal .formToolbar { 
 	float:left;
 	margin-bottom:13px;
+	margin-top:-1px;
 }
 
 .wide .horizontal .formFields {
