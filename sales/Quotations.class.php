@@ -151,6 +151,9 @@ class sales_Quotations extends core_Master
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData, changable');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData, changable');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData, changable');
+    	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
+    	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
+    	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
     }
     
     
@@ -173,6 +176,10 @@ class sales_Quotations extends core_Master
        $mvc->populateDefaultData($rec);
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
+      
+       if($rec->originId){
+       		$data->form->setField('quantity1,quantity2,quantity3', 'input');
+       }
     }
     
     
@@ -201,20 +208,15 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-    	if($rec->deliveryPlaceId){
-		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
-		    	$newLocation = (object)array(
-		    						'title' => $rec->deliveryPlaceId,
-		    						'countryId' => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
-		    						'pCode' => $rec->pcode,
-		    						'place' => $rec->place,
-		    						'contragentCls' => $rec->contragentClassId,
-		    						'contragentId' => $rec->contragentId,
-		    						'type' => 'correspondence');
-		    		
-		    	// Ако локацията я няма в системата я записваме
-		    	crm_Locations::save($newLocation);
-		    }
+    	if($rec->originId){
+			$origin = doc_Containers::getDocument($rec->originId);
+			if($origin->className == 'techno_Specifications'){
+				$originRec = $origin->fetch();
+				$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
+				if($originRec->isOfferable == 'yes' && $quantities[0] || $quantities[1] || $quantities[2]){
+					$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin->that, $quantities);
+				}
+			}
 		}
     }
     
@@ -311,6 +313,13 @@ class sales_Quotations extends core_Master
 			$row->others = '';
 			foreach($others as $other){
 				$row->others .= "<li>{$other}</li>";
+			}
+		}
+		
+		if($rec->deliveryPlaceId){
+			if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+				$link = ht::createLink("[&#10138;]", array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
+    			$row->deliveryPlaceId .= " <span class='anchor-arrow'>{$link}</span>";
 			}
 		}
     }
@@ -436,6 +445,22 @@ class sales_Quotations extends core_Master
 	    		}		
 	    	}
     	}
+    	
+    	if($rec->deliveryPlaceId){
+		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
+		    	$newLocation = (object)array(
+		    						'title' => $rec->deliveryPlaceId,
+		    						'countryId' => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
+		    						'pCode' => $rec->pcode,
+		    						'place' => $rec->place,
+		    						'contragentCls' => $rec->contragentClassId,
+		    						'contragentId' => $rec->contragentId,
+		    						'type' => 'correspondence');
+		    		
+		    	// Ако локацията я няма в системата я записваме
+		    	crm_Locations::save($newLocation);
+		    }
+		}
     }
     
     

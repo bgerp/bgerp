@@ -413,8 +413,9 @@ class sales_QuotationsDetails extends core_Detail {
         $double->params['decimals'] = 2;
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
     	
-    	if(!Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
-    		$row->productId = ht::createLink($row->productId, array($productMan, 'single', $rec->productId));
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
+    		$link = ht::createLink("[&#10138;]", array($productMan, 'single', $rec->productId), NULL, 'title=Към продукта');
+    		$row->productId .= " <span class='anchor-arrow'>{$link}</span>";
     	}
     	
     	if($rec->quantity){
@@ -455,27 +456,6 @@ class sales_QuotationsDetails extends core_Detail {
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Екшън за обновяване на данните в оферта от спецификация
-     */
-    function act_updateData()
-    {
-    	$this->Master->requireRightFor('edit');
-    	$quantities = array();
-    	$quantities[] = Request::get('quantity1', 'double');
-    	$quantities[] = Request::get('quantity2', 'double');
-    	$quantities[] = Request::get('quantity3', 'double');
-    	expect($quantities[0] || $quantities[1] || $quantities[2]);
-    	expect($quotationId = Request::get('quotationId'));
-    	expect($rec = $this->Master->fetch($quotationId));
-    	expect($sId = Request::get('specId', 'int'));
-    	expect(techno_Specifications::fetch($sId));
-    	
-    	$this->insertFromSpecification($rec, $sId, $quantities);
-    	return Redirect(array($this->Master, 'single', $quotationId));
     }
     
     
