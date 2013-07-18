@@ -1055,12 +1055,19 @@ class doc_Threads extends core_Manager
             $bestRate = 0;
             
             while ($rec = $query->fetch()) {
+                
                 $className = Cls::getClassName($rec->docClass);
                 
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                    
                     $contragentData = $className::getContragentData($rec->docId);
                     
                     $rate = self::calcPoints($contragentData);
+                    
+                    // Даваме предпочитания на документите, създадени от потребители на системата
+                    if($rec->createdBy > 0) {
+                        $rate = $rate * 10;
+                    }
                     
                     if($rate > $bestRate) {
                         $bestContragentData = clone($contragentData);
@@ -1069,8 +1076,8 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            //Вземаме данните на потребителя от папката
-            //След като приключим обхождането на треда
+            // Вземаме данните на потребителя от папката
+            // След като приключим обхождането на треда
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
             
             $contragentData = doc_Folders::getContragentData($folderId);
