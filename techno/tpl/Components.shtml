@@ -31,8 +31,8 @@
 	<tr class='components-total'>
 		<td colspan='3' style='border:0px;' class='no-hover'></td>
 		<td align='right' class='has-hover'><b>|Общо|*:</b> </td>
-		<td align='right' class='has-hover'>[#totalAmount#]</td>
-		<td align='right' class='has-hover'>[#totalTaxes#]</td>
+		<td align='right' class='has-hover'><b>[#totalAmount#]</b></td>
+		<td align='right' class='has-hover'><b>[#totalTaxes#]</b></td>
 	</tr>
 	<!--ET_END totalAmount-->
 	</table>
@@ -43,7 +43,7 @@
 [#compHeader#]
 |Компоненти|*
 <!--ET_END compHeader-->
-		<ol>
+		<ol class ='short']>
 			<!--ET_BEGIN COMPONENT-->
 			[#COMPONENT#]
 			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>

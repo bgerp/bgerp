@@ -47,7 +47,7 @@ class techno_Components extends core_Manager {
     {
     	$form = cls::get('core_Form');
     	$form->FNC('componentId', 'varchar(255)', 'mandatory,input,caption=Продукт,silent');
-    	$form->FNC('quantity', 'double', 'caption=К-во,input');
+    	$form->FNC('quantity', 'double', 'caption=К-во,input,title=Дефолт 1');
     	$form->FNC('cPrice', 'double(decimals=2)', 'caption=Стойност,input');
     	$form->FNC('amount', 'double(decimals=2)', 'caption=Сума');
     	$form->FNC('cMeasureId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Мярка');
@@ -243,8 +243,9 @@ class techno_Components extends core_Manager {
     			$fld->type->params['decimals'] = strlen(substr(strrchr($rec->quantity, "."), 1));
     		}
     		$row->{$name} = $fld->type->toVerbal($rec->$name);
-    		if($name == 'componentId' && !Mode::is('printing') && $rec->componentId != '-1'){
-    			$row->componentId = ht::createLink($row->componentId, array('cat_Products', 'single', $rec->componentId));
+    		if($name == 'componentId' && !Mode::is('text', 'xhtml') && !Mode::is('printing') && $rec->componentId != '-1'){
+    			$link = ht::createLink("[&#10138;]", array('cat_Products', 'single', $rec->componentId), NULL, 'title=Към компонента');
+    			$row->componentId .= " <span class='anchor-arrow'>{$link}</span>";
     		}
     	}
     	
@@ -261,27 +262,31 @@ class techno_Components extends core_Manager {
     public static function renderComponents($data, $short)
     {
     	$tplFile = getTplFromFile('techno/tpl/Components.shtml');
+    	$paramBlock = ($short) ? $tplFile->getBlock('SHORT') : $tplFile->getBlock('LONG');
+    	
     	if($short){
-    		$paramBlock = $tplFile->getBlock('SHORT');
-    		unset($data->rows['-1']);
+    		$paramBlock->replace(' ', 'compHeader');
+    		if(isset($data->rows)){
+    			unset($data->rows['-1']);
+    			if(!count($data->rows)) return;
+    		}
     	} else {
-    		$paramBlock = $tplFile->getBlock('LONG');
+    		$paramBlock->replace(' ', 'TH');
     	}
     	
     	if(count($data->rows)){
-    		$paramBlock->replace(' ', 'TH');
-    		
-    		if($data->total){
-    			$paramBlock->placeObject($data->total);
-    		}
-    		
-    		foreach($data->rows as $id => $row){
-    			$blockCl = clone($paramBlock->getBlock('COMPONENT'));
-    			$blockCl->placeObject($row);
-    			$blockCl->removeBlocks();
-    			$paramBlock->append($blockCl, 'COMPONENT');
-    		}
-    	}
+	    	if($data->total){
+	    		$paramBlock->placeObject($data->total);
+	    	}
+	    		
+	    	foreach($data->rows as $id => $row){
+	    		$blockCl = clone($paramBlock->getBlock('COMPONENT'));
+	    		$blockCl->placeObject($row);
+	    		$blockCl->removeBlocks();
+	    		$paramBlock->append($blockCl, 'COMPONENT');
+	    	}
+	    }
+    	
     	return $paramBlock;
     }
 }

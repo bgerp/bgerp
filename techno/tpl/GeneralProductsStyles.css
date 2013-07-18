@@ -27,6 +27,10 @@
 	padding-left:10px;
 }
 
+ol.short{
+	padding-left:28px;
+}
+
 .general-product .product-image {
 	float:left;
 	margin-top:23px;

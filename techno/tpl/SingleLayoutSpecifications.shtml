@@ -26,7 +26,7 @@
 			<!--ET_END common-->
 			</table>
 			[#data#]
-		<div>|Създаване на|* [#createdDate#] |от|* [#createdBy#]</div>
+		<div>|Създаване|* [#createdOn#] |от|* [#createdBy#]</div>
 	</div>
 	<div class='details'>
 	[#DETAILS#]
