@@ -181,11 +181,19 @@ class callcenter_Talks extends core_Master
         // Информация за външния номер
         $externalNumArr = drdata_PhoneType::toArray($rec->externalNum);
         
-        // Ако е мобилен, класа също да е мобилен
-        $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
-        
-        // Добавяме стил за телефони        
-        $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
+        // Ако е валиден номер
+        if ($externalNumArr) {
+            
+            // Ако е мобилен, класа също да е мобилен
+            $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
+            
+            // Добавяме стил за телефони        
+            $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
+        } else {
+            
+            // Вероятно е обаждане от вътрешен номер. Да няма оцветяване.
+            $row->externalNum = core_Type::escape($rec->externalNum);
+        }
         
         // Ако има данни за търсещия
         if ($rec->externalData) {
@@ -823,7 +831,6 @@ class callcenter_Talks extends core_Master
             
             // Създаваме линк
             $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
-            
             
             // Ако няма роля admin, да не се показва шаблона за нов
             if (!haveRole('admin')) return ;

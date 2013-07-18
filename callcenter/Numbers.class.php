@@ -364,7 +364,7 @@ class callcenter_Numbers extends core_Manager
         if (!is_object($numObj)) return $numObj;
         
         // Генерираме пълния номер
-        $callerNumStr =  $numObj->countryCode . $numObj->areaCode . $numObj->number;
+        $callerNumStr = '+' . $numObj->countryCode . $numObj->areaCode . $numObj->number;
         
         return $callerNumStr;
     }
