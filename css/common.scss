@@ -1713,8 +1713,12 @@ div.alphabet div.tab-page {
 	background-color:#E0FFE0 !important;
 	
 }
+.narrow .single-thread .document div.alphabet div.tab-row{
+	padding-bottom:1px
+}
+
 .narrow .single-thread .document div.alphabet div.tab-row .tab {
-	padding:4px 2px 1px;
+	padding:4px;
 }
 
 .narrow .single-thread .document div.alphabet .listTable{
