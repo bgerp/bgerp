@@ -523,34 +523,43 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input');
         
         // Опции за търсене
-        $options['all'] = '&nbsp;';
+        $statusOptions[''] = '';
         
         // Опциите за входящи разговори
-        $incomings = new stdClass();
-        $incomings->title = tr('Входящи');
-        $incomings->attr = array('class' => 'team');
-        $incomings->keylist = 'incomings';
+        $incomingsOptions = new stdClass();
+        $incomingsOptions->title = tr('Входящи');
+        $incomingsOptions->attr = array('class' => 'team');
+        $incomingsOptions->keylist = 'incomings';
         
-        $options['incoming'] = $incomings;
-        $options['incoming_ANSWERED'] = tr('Отговорено');
-        $options['incoming_NO ANSWER'] = tr('Без отговор');
-        $options['incoming_BUSY'] = tr('Заето');
-        $options['incoming_FAILED'] = tr('Прекъснато');
+        $statusOptions['incoming'] = $incomingsOptions;
+        $statusOptions['incoming_ANSWERED'] = tr('Отговорено');
+        $statusOptions['incoming_NO ANSWER'] = tr('Без отговор');
+        $statusOptions['incoming_BUSY'] = tr('Заето');
+        $statusOptions['incoming_FAILED'] = tr('Прекъснато');
         
         // Опциите за изходящи разговоири
-        $outgoings = new stdClass();
-        $outgoings->title = tr('Изходящи');
-        $outgoings->attr = array('class' => 'team');
-        $incomings->keylist = 'outgoings';
+        $outgoingsOptions = new stdClass();
+        $outgoingsOptions->title = tr('Изходящи');
+        $outgoingsOptions->attr = array('class' => 'team');
+        $incomingsOptions->keylist = 'outgoings';
         
-        $options['outgoing'] = $outgoings;
-        $options['outgoing_ANSWERED'] = tr('Отговорено');
-        $options['outgoing_NO ANSWER'] = tr('Без отговор');
-        $options['outgoing_BUSY'] = tr('Заето');
-        $options['outgoing_FAILED'] = tr('Прекъснато');
+        $statusOptions['outgoing'] = $outgoingsOptions;
+        $statusOptions['outgoing_ANSWERED'] = tr('Отговорено');
+        $statusOptions['outgoing_NO ANSWER'] = tr('Без отговор');
+        $statusOptions['outgoing_BUSY'] = tr('Заето');
+        $statusOptions['outgoing_FAILED'] = tr('Прекъснато');
         
         // Задаваме опциите
-        $data->listFilter->setOptions('dialStatusType', $options);
+        $data->listFilter->setOptions('dialStatusType', $statusOptions);
+        
+        // Функционално поле за търсене по контрагент
+        $data->listFilter->FNC('contragent', 'enum()', 'caption=Контакт,input');
+        
+        // Опциите за контрагента
+        $contragentOptions = callcenter_Numbers::getContragentOptions();
+        
+        // Сетвама опциите
+        $data->listFilter->setOptions('contragent', $contragentOptions);
         
         // Ако имаме тип на обаждането
         if ($typeOptions = &$data->listFilter->getField('callType')->type->options) {
@@ -580,9 +589,9 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, dialStatusType';
+        $data->listFilter->showFields = 'search, contragent, usersSearch, dialStatusType';
         
-        $data->listFilter->input('search, usersSearch, dialStatusType', 'silent');
+        $data->listFilter->input('search, usersSearch, dialStatusType, contragent', 'silent');
     }
 
     
@@ -633,7 +642,7 @@ class callcenter_Talks extends core_Master
     		}
     		
             // Ако се търси по статус или вид
-            if ($filter->dialStatusType && $filter->dialStatusType != 'all') {
+            if ($filter->dialStatusType) {
                 
                 $dialStatusType = $filter->dialStatusType;
                 
@@ -656,6 +665,27 @@ class callcenter_Talks extends core_Master
                     // Търсим по статус на обаждане
                     $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
                 }
+            }
+            
+            // Ако се търси по контакти
+            if ($filter->contragent) {
+                
+                // Вземаме класа и контрагента
+                list($classId, $contrangentId) = explode('_', $filter->contragent);
+                
+                // Търсим по класа
+                $data->query->EXT("classId", 'callcenter_Numbers', "externalName=classId");
+                $data->query->where(array("#classId = '[#1#]'", $classId));
+                
+                // Ако има контрагент
+                if ($contrangentId) {
+                    
+                    // Търсим и по контрагент
+                    $data->query->EXT("contragentId", 'callcenter_Numbers', "externalName=contragentId");
+                    $data->query->where(array("#contragentId = '[#1#]'", $contrangentId));
+                }
+                
+                $data->query->where("#externalData = `callcenter_numbers`.`id`");
             }
         }
     }
