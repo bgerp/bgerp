@@ -170,19 +170,16 @@ class trz_SalaryIndicators extends core_Manager
 	    	$rec->positionId = $indicator->positionId;
 	    	$rec->indicator = $indicator->indicator;
 	    	$rec->value = $indicator->value;
-	    	$rec->key = $indicator->docClass . $indicator->docId;
-    		
+	    	
 	    	$mvc = cls::get('core_Mvc');
 	    	$exRec = new stdClass();
 	    	
 	    	// Ако имаме уникален запис го записваме
 	    	// в противен слувай го ъпдейтваме
-    		$res = $mvc->isUnique($rec, $fields, $exRec);
-
-    		if($res == TRUE){
+       		if($mvc->isUnique($rec, $fields, $exRec)){
     			self::save($rec);
     		}else { 
-            	$rec = $exRec;
+            	$rec->id = $exRec->id;
             	self::save($rec);
             }
             
