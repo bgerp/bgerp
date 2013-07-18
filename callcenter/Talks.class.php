@@ -186,7 +186,6 @@ class callcenter_Talks extends core_Master
         
         // Добавяме стил за телефони        
         $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
-        $row->internalNum = "<div class='telephone'>" . $row->internalNum . "</div>";
         
         // Ако има данни за търсещия
         if ($rec->externalData) {
@@ -824,6 +823,10 @@ class callcenter_Talks extends core_Master
             
             // Създаваме линк
             $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
+            
+            
+            // Ако няма роля admin, да не се показва шаблона за нов
+            if (!haveRole('admin')) return ;
         } else {
             
             // Аттрибути за стилове 
