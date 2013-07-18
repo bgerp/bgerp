@@ -255,7 +255,7 @@ class core_Query extends core_FieldSet
      * 
      * @param string $field - Името на полето
      * @param string $val - Стойността
-     * @param boolean - Дали да се добавя с OR
+     * @param boolean $or - Дали да се добавя с OR
      */
     function like($field, $val, $or = FALSE)
     {
@@ -268,6 +268,19 @@ class core_Query extends core_FieldSet
         }
         
         return $this;
+    }
+    
+    
+	/**
+     * Добавя новоусловие с OR и LIKE във WHERE клаузата
+     * 
+     * @param string $field - Името на полето
+     * @param string $val - Стойността
+     */
+    function orLike($field, $val)
+    {
+        
+        return $this->like($field, $val, TRUE);
     }
     
     
