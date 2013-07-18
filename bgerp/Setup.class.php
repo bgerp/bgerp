@@ -145,7 +145,7 @@ class bgerp_Setup {
                     } catch(core_exception_Expect $exp) {
                         $html = $html . "<h3 style='color:red'>Грешка при инсталиране на пакета {$p}</h3>";
                         //$html .= $exp->getAsHtml();
-                        $force = TRUE;
+                        $force = TRUE; 
                         $Packs->alreadySetup[$p . $force] = FALSE;
                         $haveError = TRUE;
                     }
