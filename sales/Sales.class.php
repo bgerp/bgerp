@@ -1003,78 +1003,35 @@ class sales_Sales extends core_Master
         // Набавяме списък на (референции към) документите, породени от $saleRef
         $descendants = $saleRef->getDescendants();
         $saleRec     = new sales_model_Sale($saleRef->rec());
-        $shipped     = array();
         
-        $aggregateDealInfo = $saleRec->getAggregatedDealInfo($descendants);
-        
-        core_Html::$dumpMaxDepth = 10;
-        bp($aggregateDealInfo);
+        $saleRec->updateAggregateDealInfo($descendants);
         
         // Преизчисляваме общо платената и общо експедираната сума 
         $saleRec->amountPaid      = $aggregateDealInfo->paid->amount;
         $saleRec->amountDelivered = $aggregateDealInfo->shipped->amount;
         $saleRec->amountInvoiced = $aggregateDealInfo->invoiced->amount;
         
-        // Базовата валута към датата на продажбата
-        $saleBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($saleRec->valior);
+        $saleProducts = $saleRec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
         
-        foreach ($descendants as $d) {
-            $dState = $d->rec('state'); 
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
+        $saleRec->save();
+        
+        /* @var $p sales_model_SaleProduct */
+        foreach ($saleProducts as $p) {
+            $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityDelivered = $aggrProduct->quantity;
+            } else {
+                $p->quantityDelivered = 0;
+            }
+            $aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityInvoiced = $aggrProduct->quantity;
+            } else {
+                $p->quantityInvoiced = 0;
             }
             
-            if ($d->haveInterface('bgerp_DealIntf')) {
-                $dealInfo = $d->getDealInfo();
-                bp($dealInfo);
-            }
-            
-            if ($d->haveInterface('store_ShipmentIntf')) {
-                $dProducts = $d->getShipmentProducts();
-                foreach ($dProducts as $p) {
-                    $shipped[$p->packagingId][$p->productId]['quantity'] += $p->quantity;
-                    $shipped[$p->packagingId][$p->productId]['price']     = $p->price;
-                }
-            } elseif ($d->haveInterface('sales_PaymentIntf')) {
-                $pi = $d->getPaymentInfo();
-                
-                // Конвертираме платената сума към валутата на продажбата по курс към датата на
-                // платежния документ
-                $pi->amount = 
-                    currency_CurrencyRates::convertAmount(
-                        $pi->amount,         // платена сума 
-                        $pi->valior,         // дата на плащане
-                        $pi->currencyCode,   // валута, в която е платената сумата
-                        $saleRec->currencyId // валута на продажбата 
-                    );
-                
-                // Натрупваме в акумулатора за общо платени суми (във валутата на продажбата)
-                $saleRec->amountPaid += $pi->amount;
-            }
-        }    
-            
-        $query    = sales_SalesDetails::getQuery();
-        $saleId   = $saleRef->id();
-        
-        $saleDetailRecs = $query->fetchAll("#saleId = {$saleId}");
-        
-        foreach ($saleDetailRecs as $dRec) {
-            $_s = $shipped[$dRec->packagingId][$dRec->productId];
-            
-            $R = (object)array(
-                'id' => $dRec->id,
-                'quantityDelivered' => $_s['quantity'], 
-            );
-            sales_SalesDetails::save($R);
-            
-            $saleRec->amountDelivered += $_s['quantity'] * $_s['price'];
+            $p->save();
         }
-        
-        // Записваме общо платената сума в основната валута към момента на продажбата
-        $saleRec->amountPaid *= $saleRec->currencyRate;
-        
-        self::save($saleRec);
     }
     
     

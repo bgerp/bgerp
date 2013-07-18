@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * 
+ * @author developer
+ *
+ * @property int $classId key(mvc=core_Classes) първичен ключ на мениджъра на продукта
+ * @property core_Manager $productClass инстанция на мениджъра на продукта
+ */
 class sales_model_SaleProduct extends core_Model
 {
     /**
@@ -82,4 +89,14 @@ class sales_model_SaleProduct extends core_Model
      * @var double
      */
     public $discount;
+    
+    protected function calc_productClass()
+    {
+        return cls::get(cls::get($this->policyId)->getProductMan());
+    } 
+    
+    protected function calc_classId()
+    {
+        return $this->productClass->getClassId();
+    } 
 }

@@ -81,21 +81,26 @@ class bgerp_iface_DealAspect
         $this->amount += $aspect->amount;
     }
     
-    protected function pushProduct(bgerp_iface_DealProduct $product)
+    protected function pushProduct(bgerp_iface_DealProduct $p)
     {
-        $foundIndex = NULL;
+        $found = $this->findProduct($p->productId, $p->getClassId(), $p->packagingId);
         
+        if ($found) {
+            $found->quantity += $p->quantity;
+        } else {
+            $this->products[] = clone $p;
+        }
+    }
+    
+    public function findProduct($productId, $classId, $packagingId)
+    {
         /* @var $p bgerp_iface_DealProduct */
         foreach ($this->products as $i=>$p) {
-            if ($product->isEqual($p)) {
-                $foundIndex = $i;
+            if ($p->isIdentifiedBy($productId, $classId, $packagingId)) {
+                return $p;
             }
         }
         
-        if (isset($foundIndex)) {
-            $this->products[$foundIndex]->quantity += $p->quantity;
-        } else {
-            $this->products[] = clone $product;
-        }
+        return NULL;
     }
 }

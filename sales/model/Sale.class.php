@@ -166,8 +166,8 @@ class sales_model_Sale extends core_Model
      */
     public function getAggregatedDealInfo($saleDocuments)
     {
+        $saleDocuments = $this->_mvc->getDescendants($this->id);
         $aggregateInfo = new bgerp_iface_DealResponse();
-        $dealInfo      = array();
         
         /* @var $d core_ObjectReference */
         foreach ($saleDocuments as $d) {
@@ -189,5 +189,38 @@ class sales_model_Sale extends core_Model
         }
         
         return $aggregateInfo;
+    }
+    
+    public function updateAggregateDealInfo()
+    {
+        $aggregateDealInfo = $this->getAggregatedDealInfo();
+        
+        // Преизчисляваме общо платената и общо експедираната сума
+        $this->amountPaid      = $aggregateDealInfo->paid->amount;
+        $this->amountDelivered = $aggregateDealInfo->shipped->amount;
+        $this->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+        
+        $saleProducts = $this->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        
+        $this->save();
+        
+        /* @var $p sales_model_SaleProduct */
+        foreach ($saleProducts as $p) {
+            $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityDelivered = $aggrProduct->quantity;
+            } else {
+                $p->quantityDelivered = 0;
+            }
+            $aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
+            if ($aggrProduct) {
+                $p->quantityInvoiced = $aggrProduct->quantity;
+            } else {
+                $p->quantityInvoiced = 0;
+            }
+        
+            $p->save();
+        }
+        
     }
 }

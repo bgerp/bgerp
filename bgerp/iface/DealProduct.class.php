@@ -91,8 +91,22 @@ class bgerp_iface_DealProduct
      */
     public function isEqual(bgerp_iface_DealProduct $p)
     {
-        return $p->getClassId() == $this->getClassId() &&
-            $p->productId == $this->productId &&
-            $p->packagingId == $this->packagingId;
+        return $this->isIdentifiedBy($p->productId, $p->getClassId(), $p->packagingId);
+    }
+    
+    /**
+     * Проверява дали два продукта от сделка са съпоставими
+     * 
+     * Съпоставими са продуктите от един и същ мениджър и първичен ключ и се търгуват в една и
+     * съща опаковка.  
+     * 
+     * @param bgerp_iface_DealProduct $p продукта, с който сравняваме
+     * @return boolean
+     */
+    public function isIdentifiedBy($productId, $classId, $packagingId)
+    {
+        return $classId == $this->getClassId() &&
+            $productId == $this->productId &&
+            $packagingId == $this->packagingId;
     }
 }
