@@ -77,7 +77,7 @@ class callcenter_Fax extends core_Manager
     /**
      * 
      */
-    var $listFields = 'id, faxNum, contragent, cid, createdOn=Изпратено->От, createdBy=Изпратено->На';
+    var $listFields = 'id, faxNum, contragent, cid, createdOn=Изпратено->На, createdBy=Изпратено->От';
     
     
 	/**
