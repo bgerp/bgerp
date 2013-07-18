@@ -619,6 +619,7 @@ div.acc-detail {
 	}
 	&.portal{
 		padding-top:5px;
+		margin-top:0;
 		p{
 			margin:0;
 		}
@@ -662,7 +663,8 @@ div.acc-detail {
     	height:16px;
     	padding-left:5px !important;
 		position:relative;
-		top:2px;
+		top:3px;
+		margin-bottom:0;
     }
   }
   .richtext{
@@ -845,7 +847,7 @@ pre.document{
 
 .narrow .document{
 	min-width:200px;
-	padding:0 10px;
+	padding:10px;
 	width:98%;
 }
 
@@ -940,6 +942,12 @@ pre.document{
 	background-position:center;
 	border-left:1px solid #000;
 	border-right:1px solid #000;
+}
+
+.anchor-arrow {
+	font-size:0.7em;
+	position:relative;
+	top:-7px;
 }
 /*край на стилове за документи*/
 

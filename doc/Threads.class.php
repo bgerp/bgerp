@@ -618,7 +618,7 @@ class doc_Threads extends core_Manager
                 $msgQuery->count("#folderId = {$folderRec->id} AND #state != 'rejected' AND LOWER(#fromEml) = LOWER('{$msgRec->fromEml}')") - 1;
                 
                 if($sameEmailMsgCnt > 0) {
-                    $res = "Желаете ли и останалите {$sameEmailMsgCnt} имейл-а от {$msgRec->fromEml}, намиращи се в {$folderRec->title} също да бъдат преместени?";
+                    $res = tr("|Желаете ли и останалите|* {$sameEmailMsgCnt} |имейл-а от|* {$msgRec->fromEml}, |намиращи се в|* {$folderRec->title} |също да бъдат преместени|*?");
                 }
             }
         }

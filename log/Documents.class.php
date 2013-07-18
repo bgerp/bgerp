@@ -693,8 +693,15 @@ class log_Documents extends core_Manager
             // Ако има връщане
             if ($row->returnedOn) {
                 
+                // Ако има отворено
+                if ($rec->receivedOn) {
+                    
+                    // Добавяме нов ред
+                    $row->returnedAndReceived .= "<br />";
+                }
+                
                 // Добавяме го
-                $row->returnedAndReceived .= "<br />" . tr("Върнато") . ": {$row->returnedOn}";
+                $row->returnedAndReceived .=  tr("Върнато") . ": {$row->returnedOn}";
             }
             
             // Имейлите До
