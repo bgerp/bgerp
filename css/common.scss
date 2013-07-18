@@ -1540,10 +1540,6 @@ div.tab-control div.tab-page {
 
 
 /*таб alphabet*/
-div.alphabet{
-	margin-bottom:5px;
-}
-
 div.alphabet div.tab-row .tab {
 	background: $gray3;
 	line-height:1.1em;
@@ -1569,7 +1565,7 @@ div.alphabet div.tab-row .tab {
 		border: 1px solid #aaa;
 		top: 0px;
 		margin: 2px;
-		padding: 5px;
+		padding: 5px !important;
 		margin-top: -1px;
 		margin-bottom:8px;
 		@include shadow4(0px,0px,3px,1px,#ccc);
@@ -1580,7 +1576,7 @@ div.alphabet div.tab-page {
 	border: none;
 	background: transparent;
 	margin: 0px;
-	padding: 0px;
+	padding: 7px 0 0 0;
 }
 
 .narrow div.alphabet  div.tab-row {
