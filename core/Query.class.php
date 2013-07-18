@@ -251,6 +251,27 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Добавя ново условие с LIKE във WHERE клаузата
+     * 
+     * @param string $field - Името на полето
+     * @param string $val - Стойността
+     * @param boolean - Дали да се добавя с OR
+     */
+    function like($field, $val, $or = FALSE)
+    {
+        $cond = "#{$field} LIKE '%[#1#]%'";
+                
+        if($or === TRUE) {
+            $this->orWhere(array($cond, $val));
+        } else {
+            $this->where(array($cond, $val));
+        }
+        
+        return $this;
+    }
+    
+    
+    /**
      * Добавя полета, по които ще се групира
      */
     function groupBy($fields)
