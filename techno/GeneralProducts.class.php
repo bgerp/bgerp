@@ -153,9 +153,8 @@ class techno_GeneralProducts extends core_Manager {
     		
 	        // Добавяне на линк за сингъла на спецификацията
 	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
-	    		$link = ht::createLink("[&#10138;]", array('techno_Specifications', 'single', $data->specificationId), NULL, 'title=Към спецификацията');
-    			$row->title .= " <span class='anchor-arrow'>{$link}</span>";
-	    	}
+	    		$row->title = ht::createLinkRef($row->title, array('techno_Specifications', 'single', $data->specificationId), NULL, 'title=Към спецификацията');
+    		}
     	} else {
     		if($data->image){
     			$size = array(200, 350);

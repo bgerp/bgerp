@@ -22,21 +22,21 @@
 		<td>[#num#] [#tools#]</td>
 		<td>[#componentId#]</td>
 		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
-		<td width='12%' align='right'>[#cPrice#]</td>
-		<td width='12%' align='right'>[#amount#]</td>
-		<td width='12%' align='right'>[#bTaxes#]</td>
+		<td width='12%' align='right' class='expandable'>[#cPrice#]</td>
+		<td width='12%' align='right' class='expandable'>[#amount#]</td>
+		<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>
 	</tr>
 	<!--ET_END COMPONENT-->
 	<!--ET_BEGIN totalAmount-->
 	<tr class='components-total'>
 		<td colspan='3' style='border:0px;' class='no-hover'></td>
 		<td align='right' class='has-hover'><b>|Общо|*:</b></td>
-		<td align='right' class='has-hover'><b>[#totalAmount#]</b>
+		<td align='right' class='has-hover expandable'><b>[#totalAmount#]</b>
 		<!--ET_BEGIN currencyId-->
 		<span class='cCode'>[#currencyId#]</span>
 		<!--ET_END currencyId-->
 		</td>
-		<td align='right' class='has-hover'><b>[#totalTaxes#]</b>
+		<td align='right' class='has-hover expandable'><b>[#totalTaxes#]</b>
 		<!--ET_BEGIN currencyTaxId-->
 		<span class='cCode'>[#currencyTaxId#]</span>
 		<!--ET_END currencyTaxId-->

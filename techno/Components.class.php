@@ -249,8 +249,7 @@ class techno_Components extends core_Manager {
     		}
     		$row->{$name} = $fld->type->toVerbal($rec->$name);
     		if($name == 'componentId' && !Mode::is('text', 'xhtml') && !Mode::is('printing') && $rec->componentId != '-1'){
-    			$link = ht::createLink("[&#10138;]", array('cat_Products', 'single', $rec->componentId), NULL, 'title=Към компонента');
-    			$row->componentId .= " <span class='anchor-arrow'>{$link}</span>";
+    			$row->componentId = ht::createLinkRef($row->componentId, array('cat_Products', 'single', $rec->componentId), NULL, 'title=Към компонента');
     		}
     	}
     	
