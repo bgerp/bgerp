@@ -163,6 +163,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * id на системата в крона
+     */
+    static $cronSytemId = 'SendEmails';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -675,6 +681,45 @@ class blast_Emails extends core_Master
                     
                     // Създаваме бутон към сигъла на групата
                     $data->row->GroupLink = ht::createLink($name, array($docInst, 'single', $docId));
+                }
+            }
+            
+            // Записите
+            $rec = $data->rec;
+            
+            // Ако състоянието е активирано или чернов
+            if ($rec->state == 'active' || $rec->state == 'waitnig') {
+                
+                // Вземаме времето на следващото изпращане
+                // Ако има такова време
+                if ($nextStartTime = core_Cron::getNextStartTime(static::$cronSytemId)) {
+                    
+                    // Ако времето е преди въведената дата от потребителя
+                    if ($nextStartTime < $rec->startOn) {
+                        
+                        // Използваме дата на потребителя
+                        $nextStartTime = $rec->startOn;
+                    }
+                    
+                } else {
+                    
+                    // Ако все пак може да се изпрати
+                    if ($nextStartTime !== FALSE) {
+                        
+                        // Ако няма следващо време на изпращане
+                        if (dt::now() < $rec->startOn) {
+                            
+                            // Вземаме времето въведено от потребителя
+                            $nextStartTime = $rec->startOn;
+                        }
+                    }
+                }
+                
+                // Ако сме успели да определим времето
+                if ($nextStartTime) {
+                    
+                    // Показваме вербалното време
+                    $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
                 }
             }
         }
@@ -1733,14 +1778,14 @@ class blast_Emails extends core_Master
         
         //Данни за работата на cron
         $rec = new stdClass();
-        $rec->systemId = 'SendEmails';
+        $rec->systemId = static::$cronSytemId;
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $mvc->className;
         $rec->action = 'SendEmails';
-        $rec->period = 10;
+        $rec->period = 5;
         $rec->offset = 0;
         $rec->delay = 0;
-        $rec->timeLimit = 500;
+        $rec->timeLimit = 250;
         
         $Cron = cls::get('core_Cron');
         
