@@ -1,7 +1,7 @@
 <table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px'>
 	<tr>
 		<th width='4%'>№</th>
-		<th width='45%'>|Описание|*</th>
+		<th width='60%'>|Описание|*</th>
 		
 		<th class='display-narrow quote-col[#OPT#]'>|К-во|*</th>
 		<th class='display-wide quote-col[#OPT#]'>|Количество|*</th>
@@ -15,7 +15,7 @@
 <tr>
 	<td>[#tools#]<div class='tc'>[#index#]</div></td>
 		<!--ET_BEGIN productId-->
-		<td rowspan = '[#rowspan#]' valign='top' class='product-id[#OPT#]' width=60%>[#productId#]</td>
+		<td rowspan = '[#rowspan#]' valign='top' class='product-id[#OPT#]'>[#productId#]</td>
 		<!--ET_END productId-->
 		
 		<td class='misc-info quote-col[#OPT#]' align='right' valign='top'>
