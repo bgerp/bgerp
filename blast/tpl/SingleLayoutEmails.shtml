@@ -98,7 +98,7 @@
 		
 		<div class="additional-info">
 			<!--ET_BEGIN listLink-->
-				<div><b style="margin-bottom: 10px; display: block">Лист: [#listLink#]</b></div>
+				<div><b style="margin-bottom: 10px; display: block">|Лист|*: [#listLink#]</b></div>
 			<!--ET_END listLink-->
 			
 			<!--ET_BEGIN GroupLink-->
@@ -112,6 +112,10 @@
 					<!-- ET_BEGIN Documents --> <div style='margin-left: 10px; display: block;'>[#Documents#]</div> <!-- ET_END Documents -->
 				</div>
 			<!--ET_END FilesAndDocuments-->
+			
+			<!--ET_BEGIN NextStartTime-->
+				<div>|Следващо изпращане|*: [#NextStartTime#]</div>
+			<!--ET_END NextStartTime-->
 			
 			<!--ET_BEGIN encoding-->
 				<div>Знаци: [#encoding#]</div>
