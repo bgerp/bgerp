@@ -393,7 +393,6 @@ button,
 html input[type="button"], /* 1 */
 input[type="reset"],
 input[type="submit"] {
-    -webkit-appearance: button; /* 2 */
     cursor: pointer; /* 3 */
 }
 
@@ -643,6 +642,7 @@ a.button, input[type="button"], input[type="submit"] {
     background-color:$gray3; 
     border:1px solid $gray4; 
     @include border-radius(3px);
+    -webkit-appearance: none;	  
 }
 
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
