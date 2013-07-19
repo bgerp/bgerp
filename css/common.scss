@@ -1659,7 +1659,7 @@ div.alphabet div.tab-page {
 	div.tab-row .tab {
 		font-size:0.8em;
 		font-family: arial;
-		box-shadow:none;
+		@include no-shadow();
 		display: inline;
 		margin: 1px -8px -1px 10px;
 		float: left;
