@@ -419,4 +419,43 @@ class core_Cron extends core_Manager
             return "<li style='color:green;'>Премахнати бяха липсващите входни точки за Cron: {$res}</li>";
         }
     }
+    
+    
+    /**
+     * Връща времето на следващото стартиране на крона
+     * 
+     * @param string $systemId
+     * 
+     * @return date $nextStartTime
+     */
+    static function getNextStartTime($systemId)
+    {
+        // Вземаме записитеи за тази ситема
+        $rec = core_Cron::fetch("#systemId = '{$systemId}'");
+        
+        // Ако е спрян или няма период
+        if ($rec->state == 'stopped' || !$rec->period) {
+            
+            // Връщаме FALSE
+            return FALSE;
+        }
+        
+        // Текущото време
+        $now = dt::now();
+        
+        // Ако няма време на последно стартиране
+        if (!($startTime = $rec->lastStart)) {
+            
+            // Използваме текущото време
+            $startTime = $now;
+        }
+        
+        // Добавяме секундите
+        $nextStartTime = dt::addSecs($rec->period * 60, $startTime);
+        
+        // Ако е преди текущото време, връщаме NULL
+        if ($nextStartTime < $now) return NULL;
+        
+        return $nextStartTime;
+    }
 }
