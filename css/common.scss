@@ -1696,12 +1696,9 @@ div.alphabet div.tab-page {
 			box-shadow:0 -1px 1px rgba(0,0,0,0.2);
 			border-bottom: none;
 			z-index: 3;
-			padding:0;
+			padding: 0px 0 1px !important;
 			top: 0px;
 			font-weight: bold;
-			a{
-				padding:4px 5px 5px 5px;
-			}
 		}	
 	}
 }
@@ -1713,8 +1710,8 @@ div.alphabet div.tab-page {
 	padding-bottom:1px
 }
 
-.narrow .single-thread .document div.alphabet div.tab-row .tab {
-	padding:4px;
+.narrow .single-thread .document div.alphabet div.tab-row .tab select{
+	margin:4px;
 }
 
 .narrow .single-thread .document div.alphabet .listTable{
