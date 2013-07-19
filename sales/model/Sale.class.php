@@ -158,13 +158,26 @@ class sales_model_Sale extends core_Model
      * @var enum(draft, active, rejected)
      */
     public $state;
+
     
     /**
+     * Генерира агрегираната бизнес информация за тази продажба
      * 
-     * @param array $saleDocuments масив от референции към документи
+     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
+     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до 
+     * момента.
+     * 
+     * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+     * сечението на следните множества:
+     * 
+     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
+     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
+     *  * Документите, в състояние различно от `draft` и `rejected`
+     * 
+     * 
      * @return bgerp_iface_DealResponse
      */
-    public function getAggregatedDealInfo($saleDocuments)
+    public function getAggregatedDealInfo()
     {
         $saleDocuments = $this->_mvc->getDescendants($this->id);
         $aggregateInfo = new bgerp_iface_DealResponse();
@@ -191,10 +204,14 @@ class sales_model_Sale extends core_Model
         return $aggregateInfo;
     }
     
-    public function updateAggregateDealInfo()
+    
+    /**
+     * Обновява БД с агрегирана бизнес информация за продажба 
+     * 
+     * @param bgerp_iface_DealResponse $aggregateDealInfo
+     */
+    public function updateAggregateDealInfo(bgerp_iface_DealResponse $aggregateDealInfo)
     {
-        $aggregateDealInfo = $this->getAggregatedDealInfo();
-        
         // Преизчисляваме общо платената и общо експедираната сума
         $this->amountPaid      = $aggregateDealInfo->paid->amount;
         $this->amountDelivered = $aggregateDealInfo->shipped->amount;
@@ -221,6 +238,5 @@ class sales_model_Sale extends core_Model
         
             $p->save();
         }
-        
     }
 }

@@ -1000,38 +1000,10 @@ class sales_Sales extends core_Master
      */
     public static function on_DescendantChanged($mvc, $saleRef, $descendantRef = NULL)
     {
-        // Набавяме списък на (референции към) документите, породени от $saleRef
-        $descendants = $saleRef->getDescendants();
-        $saleRec     = new sales_model_Sale($saleRef->rec());
-        
-        $saleRec->updateAggregateDealInfo($descendants);
-        
-        // Преизчисляваме общо платената и общо експедираната сума 
-        $saleRec->amountPaid      = $aggregateDealInfo->paid->amount;
-        $saleRec->amountDelivered = $aggregateDealInfo->shipped->amount;
-        $saleRec->amountInvoiced = $aggregateDealInfo->invoiced->amount;
-        
-        $saleProducts = $saleRec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
-        
-        $saleRec->save();
-        
-        /* @var $p sales_model_SaleProduct */
-        foreach ($saleProducts as $p) {
-            $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
-            if ($aggrProduct) {
-                $p->quantityDelivered = $aggrProduct->quantity;
-            } else {
-                $p->quantityDelivered = 0;
-            }
-            $aggrProduct = $aggregateDealInfo->invoiced->findProduct($p->productId, $p->classId, $p->packagingId);
-            if ($aggrProduct) {
-                $p->quantityInvoiced = $aggrProduct->quantity;
-            } else {
-                $p->quantityInvoiced = 0;
-            }
-            
-            $p->save();
-        }
+        $saleRec            = new sales_model_Sale($saleRef->rec());
+        $aggregatedDealInfo = $saleRec->getAggregatedDealInfo();
+
+        $saleRec->updateAggregateDealInfo($aggregatedDealInfo);
     }
     
     
