@@ -199,6 +199,11 @@ class techno_Components extends core_Manager {
     		$Double = cls::get('type_Double');
 	    	$Double->params['decimals'] = 2;
 	    	$res->total = (object)array('totalAmount' => $Double->toVerbal($total), 'totalTaxes' => ($taxes) ? $Double->toVerbal($taxes) : NULL);
+    		$cCode = acc_Periods::getBaseCurrencyCode(techno_Specifications::fetchField($specId, 'modifiedOn'));
+	    	$res->total->currencyId = $cCode;
+    		if($taxes){
+	    		$res->total->currencyTaxId = $cCode;
+	    	}
     	}
     }
     
