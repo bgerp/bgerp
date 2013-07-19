@@ -712,10 +712,6 @@ td.portal-date {
 	max-width:900px;
 }
 
-.wide .listTable > tbody > tr > td div.document{
-	width:850px !important;
-}
-
 .doc_Containers table.listTable td,.doc_Containers table.listTable th {
 	vertical-align: top !important;
 }
@@ -2357,5 +2353,6 @@ div.locImage{
 		margin-right: 10px;
 		margin-top: 10px;
 		min-width: 0px;
+		width:850px;
 	}
 }
