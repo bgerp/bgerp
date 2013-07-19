@@ -943,12 +943,14 @@ pre.document{
 	border-left:1px solid #000;
 	border-right:1px solid #000;
 }
-
 .anchor-arrow {
-	font-size:0.7em;
-	position:relative;
-	top:-7px;
+	width:16px;
+	height:16px;
+	display:inline-block;
+	background-image:url('../img/16/anchor-image.png');
+	margin:0 5px;
 }
+
 /*край на стилове за документи*/
 
 
