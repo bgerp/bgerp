@@ -712,25 +712,61 @@ class blast_Emails extends core_Master
         
         // Въвеждаме съдържанието на полетата
         $form->input('sendPerMinute, startOn');
-
-        // Стойности по подразбиране
-        $form->setDefault('sendPerMinute', $rec->sendPerMinute);
-        $form->setDefault('startOn', $rec->startOn);
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Ако има задедена дата
+            if ($form->rec->startOn) {
+                
+                // Ако в записа няма зададена дата
+                if (!$rec->startOn) {
+                    
+                    // Вземаме текущото време
+                    $date = dt::now();
+                } else {
+                    
+                    // Вземаме времото от записа
+                    $date = $rec->startOn;
+                }
+                
+                // Вземаме разликата в секундите
+                $secB = dt::secBetwen($form->rec->startOn, $date);
+                
+                // Ако е предишна дата
+                if ($secB < 0) {
+                    
+                    // Сетваме грешка
+                    $form->setError('startOn', 'Не може да въведе минала дата');
+                }
+            }
+        }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
             
-            // Сменя статуса на чакащ
-            $form->rec->state = 'waiting';
-            
             // Кой активира имейла
             $form->rec->activatedBy = core_Users::getCurrent();
-                        
+            
             // Ако е въведена коректна дата, тогава използва нея
             // Ако не е въведено нищо, тогава използва сегашната дата
             // Ако е въведена грешна дата показва съобщение за грешка
             if (!$form->rec->startOn) {
                 $form->rec->startOn = dt::verbal2mysql();
+            }
+            
+            // Вземаме секундите между сегашното време и времето на стартиране
+            $sec = dt::secBetwen(dt::now(), $form->rec->startOn);
+            
+            // Ако са по - малко от 60 секунди
+            if ($sec < 60) {
+                
+                // Активираме
+                $form->rec->state = 'active';
+            } else {
+                
+                // Сменя статуса на чакащ
+                $form->rec->state = 'waiting';
             }
             
             // Копира всички имеили, на които ще се изпраща имейл-а
@@ -747,6 +783,18 @@ class blast_Emails extends core_Master
             
             // Редиректваме
             return redirect($link);
+        } else {
+            
+            // Ако няма брой изпращания
+            if (!$defVal = $rec->sendPerMinute) {
+                
+                // Ако няма задаваме да е 5
+                $defVal = 5;
+            }
+            
+            // Стойности по подразбиране
+            $form->setDefault('sendPerMinute', $defVal);
+            $form->setDefault('startOn', $rec->startOn);
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
