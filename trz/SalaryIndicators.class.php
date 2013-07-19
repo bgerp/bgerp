@@ -116,18 +116,67 @@ class trz_SalaryIndicators extends core_Manager
     }
     
     
-	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    /**
+     * Прилага филтъра, така че да се показват записите 
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-	    if($action == 'accruals'){
-			if ($rec->id) {
-				
-					if(!haveRole('ceo') || !haveRole('trz')) {
-				
-						$requiredRoles = 'no_one';
-				}
-		    }
+    	$from = $data->listFilter->rec->from;
+    	$to = $data->listFilter->rec->to;
+    	$person = $data->listFilter->rec->person;
+    	$indicators = $data->listFilter->rec->indicators;
+
+    	if($from && $to){
+    		if($from > $to){
+    			$newFrom = $from;
+    			$from = $to;
+    			$to = $newFrom;
+    		}
+			$data->query->where("#date >= '{$from}' AND #date <= '{$to}'");
 	    }
+	    
+    	if($from){
+			$data->query->where("#date >= '{$from}'");
+	    }
+	    
+    	if($to){
+			$data->query->where("#date <= '{$to}'");
+	    }
+	    
+	    if($person){
+	    	$data->query->where("#personId = '{$person}'");
+	    }
+	    
     }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
+        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
+        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
+        $data->listFilter->FNC('indicators', 'varchar', 'caption=Показател,input,silent, width = 150px');
+        $data->listFilter->FNC('group', 'enum(1=,
+        									  2=По дати,
+        									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
+                        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+       	$data->listFilter->showFields = 'from, to, person, indicators, group';
+        $data->listFilter->input('from, to, person, indicators, group', 'silent');
+    }
+    
     
     /**
      * Изпращане на данните към показателите
