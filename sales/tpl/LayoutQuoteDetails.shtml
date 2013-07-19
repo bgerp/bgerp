@@ -45,7 +45,7 @@
 <!--ET_BEGIN total-->
 <tr>
 	<td colspan='4' id='total-td-label'></td>
-	<td colspan='2' align='right'>
+	<td colspan='2' align='right' class='expandable'>
 	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 	<!--ET_BEGIN totalDisc-->
 	<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'>[#totalDisc#]</span></div>

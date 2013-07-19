@@ -228,7 +228,7 @@ class sales_QuotationsDetails extends core_Detail {
 	static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("id,productId", 'ASC');
+        $data->query->orderBy("productId", 'ASC');
     }
     
     

@@ -35,7 +35,7 @@ class sales_Quotations extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf,  bgerp_DealIntf';
     
     
     /**
@@ -180,6 +180,21 @@ class sales_Quotations extends core_Master
        if($rec->originId){
        		$data->form->setField('quantity1,quantity2,quantity3', 'input');
        }
+    }
+    
+    
+	/** 
+	 * След подготовка на тулбара на единичен изглед
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+	    if($data->rec->state == 'draft' && sales_Sales::haveRightFor('add')){
+	       	if($mvc->getItems($data->rec->id)){
+	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
+	       	} else {
+	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequest', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
+	       	}
+	    }
     }
     
     
@@ -486,5 +501,70 @@ class sales_Quotations extends core_Master
     	}
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$products = $this->getItems($id, $amount);
+    	if(!count($products)) return FALSE;
+    	
+    	/* @var $result bgerp_iface_DealResponse */
+        $result = new stdClass();
+        $result->dealType = 'sale'; //bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->agreed->amount                  = $amount;
+        $result->agreed->currency                = $rec->paymentCurrencyId;
+        if($rec->deliveryPlaceId){
+        	$result->agreed->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+        }
+        $result->agreed->delivery->term          = $rec->deliveryTermId;
+    	$result->agreed->payment->method         = $rec->paymentMethodId;
+    	
+    	$result->agreed->products = $products;
+        
+    	bp($result);
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Помощна ф-я за връщане на всички продукти от офертата.
+     * Ако има вариации на даден продукт и неможе да се
+     * изчисли общата сума ф-ята връща NULL
+     * @param int $id - ид на оферта
+     * @param double $total - обща сума на продуктите
+     */
+    private function getItems($id, &$total = 0)
+    {
+    	$query = $this->sales_QuotationsDetails->getQuery();
+    	$query->where("#quotationId = {$id} AND #optional = 'no'");
+    	$total = 0;
+    	$products = array();
+    	while($detail = $query->fetch()){
+    		$uIndex =  "{$detail->productId}|{$detail->policyId}";
+    		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
+    		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
+    		$products[$uIndex] = array(
+    			'classId'     => cls::get($detail->policyId)->getProductMan()->getClassId(),
+            	'productId'   => $detail->productId,
+            	'packagingId' => NULL,
+            	'discount'    => $detail->discount,
+            	'isOptional'  => FALSE,
+            	'quantity'    => $detail->quantity,
+            	'price'       => $detail->price,
+    		);
+    	}
+    	
+    	return array_values($products);
     }
 }
