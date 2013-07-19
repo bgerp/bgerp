@@ -659,7 +659,17 @@ class core_Html
         return $tpl;
     }
 
-
+    
+    /**
+     * Създава хипервръзка със стрелка в скоби след подаден $title 
+     */
+	static function createLinkRef($title, $url = FALSE, $warning = FALSE, $attr = array())
+	{
+		$link = static::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
+		return "{$title} {$link}";
+	}
+	
+	
     /**
      * Създава меню, чрез SELECT елемент
      */
