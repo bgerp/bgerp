@@ -232,7 +232,7 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
-        $html = preg_replace_callback("/(\S+@\S+\.\S+)/i", array($this, '_catchEmails'), $html);
+        $html = preg_replace_callback("/(\S+@\S+\.\w+)/i", array($this, '_catchEmails'), $html);
         
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]([\r\n]{0,2})/is", array($this, '_catchHeaders'), $html);
