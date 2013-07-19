@@ -66,7 +66,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, date, docClass, docId, personId, departmentId, positionId, indicator, value';
+    var $listFields = 'id, date, doc=Документ, personId, departmentId, positionId, indicator, value';
     
     
     /**
@@ -93,6 +93,41 @@ class trz_SalaryIndicators extends core_Manager
     	
     }
     
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId));
+    	}
+    	
+    	// Ако имаме права да видим документа от Птемиите
+    	if(trz_Bonuses::haveRightFor('single', $rec->docId)){
+	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
+	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	}
+    }
+    
+    
+	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+	    if($action == 'accruals'){
+			if ($rec->id) {
+				
+					if(!haveRole('ceo') || !haveRole('trz')) {
+				
+						$requiredRoles = 'no_one';
+				}
+		    }
+	    }
+    }
     
     /**
      * Изпращане на данните към показателите
