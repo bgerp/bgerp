@@ -586,6 +586,20 @@ class core_DateTime
     }
     
     
+	/**
+     * Добавя секунди към датата
+     */
+    static function addSecs($secs, $date = NULL)
+    {
+        if (!$date) $date = dt::verbal2mysql();
+        
+        $date = dt::mysql2timestamp($date);
+        $date += $secs;
+        
+        return dt::timestamp2Mysql($date);
+    }
+    
+    
     /**
      * Дали датата е събота или неделя?
      */
