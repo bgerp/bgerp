@@ -377,7 +377,7 @@ class i18n_Charset extends core_MVC {
             if(count($assumedCharsets)) {
                 foreach($assumedCharsets as $cs => $weight) {
                     if($cs = self::getCanonical($cs)) {
-                        $newAssumedCharsets[] = $weight;
+                        $newAssumedCharsets[$cs] = $weight;
                     }
                 }
             }
@@ -392,7 +392,7 @@ class i18n_Charset extends core_MVC {
                 return 'HTML_ENTITIES';
             }
         }
- 
+
         // Ако е даден HTML опитваме се да извлечем charset и и след това махаме HTML елементите
         if($isHtml) {
             $pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
@@ -445,7 +445,7 @@ class i18n_Charset extends core_MVC {
                 $rates[$cs] = $rates[$cs]*(1 + $weight/100) + $weight/1000;
             }
         }
-        
+
         $max = max($rates);
         
         if($max < 1.1) {
@@ -576,7 +576,7 @@ class i18n_Charset extends core_MVC {
                        // $debug .= '+mono:' . $total . ';';
                     }
                 } else {
-                    $total -= 2;
+                    $total -= 1.5;
                    // $debug .= '-mono:' . $total . ';';
                 }
                 
