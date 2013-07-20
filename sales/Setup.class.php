@@ -64,6 +64,7 @@ class sales_Setup extends core_ProtoSetup
         	'sales_SalesLastPricePolicy',
         	'sales_Quotations',
         	'sales_QuotationsDetails',
+    		'sales_SaleRequest',
         );
 
         

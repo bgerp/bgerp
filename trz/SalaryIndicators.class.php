@@ -66,7 +66,7 @@ class trz_SalaryIndicators extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, date, docClass, docId, personId, departmentId, positionId, indicator, value';
+    var $listFields = 'id, date, doc=Документ, personId, departmentId, positionId, indicator, value';
     
     
     /**
@@ -91,6 +91,90 @@ class trz_SalaryIndicators extends core_Manager
     	
     	$this->setDbUnique('docId, docClass, personId, indicator');
     	
+    }
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId));
+    	}
+    	
+    	// Ако имаме права да видим документа от Птемиите
+    	if(trz_Bonuses::haveRightFor('single', $rec->docId)){
+	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
+	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	}
+    }
+    
+    
+    /**
+     * Прилага филтъра, така че да се показват записите 
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$from = $data->listFilter->rec->from;
+    	$to = $data->listFilter->rec->to;
+    	$person = $data->listFilter->rec->person;
+    	$indicators = $data->listFilter->rec->indicators;
+
+    	if($from && $to){
+    		if($from > $to){
+    			$newFrom = $from;
+    			$from = $to;
+    			$to = $newFrom;
+    		}
+			$data->query->where("#date >= '{$from}' AND #date <= '{$to}'");
+	    }
+	    
+    	if($from){
+			$data->query->where("#date >= '{$from}'");
+	    }
+	    
+    	if($to){
+			$data->query->where("#date <= '{$to}'");
+	    }
+	    
+	    if($person){
+	    	$data->query->where("#personId = '{$person}'");
+	    }
+	    
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
+        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
+        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
+        $data->listFilter->FNC('indicators', 'varchar', 'caption=Показател,input,silent, width = 150px');
+        $data->listFilter->FNC('group', 'enum(1=,
+        									  2=По дати,
+        									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
+                        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+       	$data->listFilter->showFields = 'from, to, person, indicators, group';
+        $data->listFilter->input('from, to, person, indicators, group', 'silent');
     }
     
     

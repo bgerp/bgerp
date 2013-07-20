@@ -137,6 +137,7 @@ class techno_Specifications extends core_Master {
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
 		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'input=none,value=no');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
+    	$this->FLD('isOfferable', 'enum(no=Не,yes=Да)', 'input=none,value=no');
     	
     	// В кой тред е пораждащата фактура
     	$this->FLD('invThread', 'int', 'input=none');
@@ -144,23 +145,19 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Ако спецификацията се създава в тред с първи документ, който
-     * не е спецификация то, тя се рутира в нов тред, същата папка
-     * А пораждащата фактура остава в първия тред
+     * Извиква се преди запис в модела
      */
-    function on_BeforeRoute($mvc, &$res, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if(empty($rec->id)){
-    		try{
-    			$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    			if($firstDoc->className != 'techno_Specifications'){
-    				$firstDocRec = $firstDoc->fetch();
-    				$rec->folderId = $firstDocRec->folderId;
-    				$rec->invThread = $rec->threadId;
-    				unset($rec->threadId);
-    			}
-    		}
-    		catch(Exception $e){}
+    	if($rec->state != 'active'){
+    		$cover = doc_Folders::fetchCoverClassName($rec->folderId);
+		    if($cover == 'doc_UnsortedFolders'){
+		        $rec->common = 'yes';
+		    }
+	    	
+	    	$technoClass = cls::get($rec->prodTehnoClassId);
+	    	$price = $technoClass->getPrice($rec->data)->price;
+	    	$rec->isOfferable = ($price && $rec->common != 'yes') ? 'yes' : 'no';
     	}
     }
     
@@ -338,6 +335,56 @@ class techno_Specifications extends core_Master {
     function act_Ajust()
     {
     	$this->requireRightFor('add');
+    	
+    	// Извличане на записа от рекуеста
+    	$rec = $this->getRec();
+    	
+        // Връщаме формата от технологовия клас
+        expect($technoClass = cls::get($rec->prodTehnoClassId));
+    	$form = $technoClass->getEditForm($rec);
+    	if($rec->threadId){
+    		$form->rec->threadId = $rec->threadId;
+    	}
+    	
+    	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
+    	$retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
+    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => $retUrl));
+        if($rec->id){
+        	
+        	// Ако се редактира се маха бутона за записване в нов-тред
+        	unset($form->toolbar->buttons['btnNewThread']);
+        }
+    	
+    	$form->input();
+        if($form->isSubmitted()) {
+        	if($this->haveRightFor('add')){
+        		
+        		// Записване на данните за спецификацията
+        		$this->saveData($form, $rec);
+        	}
+        }
+        
+        if($rec->folderId){
+        	$params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+        	$link = doc_Folders::getVerbalLink($params);
+        } elseif($rec->threadId){
+        	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        	$handle = $firstDoc->getHandle();
+        	$params = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        	$params['#'] = $handle;
+        	$link = ht::createLink($handle, $params);
+        }
+        
+        $form->title = "Спецификация на универсален продукт в|* {$link}";
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Помощна ф-я за извличане на записа от рекуеста
+     */
+    private function getRec()
+    {
     	if($id = Request::get('id', 'int')){
     		expect($rec = $this->fetch($id));
     		expect($rec->state == 'draft');
@@ -360,87 +407,41 @@ class techno_Specifications extends core_Master {
 	    	}
     	}
     	
-        // Връщаме формата от технологовия клас
-        expect($technoClass = cls::get($rec->prodTehnoClassId));
-    	$form = $technoClass->getEditForm($rec);
-    	if($rec->folderId) {
-    		$cover = doc_Folders::fetchCoverClassName($rec->folderId);
-    	}
+    	return $rec;
+    }
+    
+    
+    /**
+     * Помощна ф-я за записване на спецификация
+     * @param core_Form $form - форма
+     * @param stdClass $rec - записа на спецификацията
+     */
+    private function saveData(core_Form &$form, &$rec)
+    {
+    	$fRec = &$form->rec;
     	
-    	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
-    	
-    	if($cover != 'doc_UnsortedFolders'){
-			$form->FNC('quantity1', 'int', 'caption=Последваща оферта->К-во 1,width=4em,input');
-    		$form->FNC('quantity2', 'int', 'caption=Последваща оферта->К-во 2,width=4em,input');
-    		$form->FNC('quantity3', 'int', 'caption=Последваща оферта->К-во 3,width=4em,input');
+    	// Записваме въведените данни в пропъртито data на река
+	    $rec->title = $fRec->title;
+	    $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
+        $rec->sharedUsers = $fRec->sharedUsers;
+        		
+        if($form->cmd == 'save_new_thread' && $rec->threadId){
+        	$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+			unset($rec->threadId);
 		}
-		
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
-        
-    	$fRec = $form->input();
-        if($form->isSubmitted()) {
-        	if($this->haveRightFor('add')){
-        		
-        		// Ако се създава в папка проект, то спецификацията е обща
-        		if($cover == 'doc_UnsortedFolders'){
-        			$rec->common = 'yes';
-        		}
-        		
-        		// Записваме въведените данни в пропъртито data на река
-	            $rec->title = $fRec->title;
-	            $fRec = (object)array_merge((array) unserialize($rec->data), (array) $fRec);
-        		$quantities = array($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
+			    
+	    // Записваме мастър - данните
+	    $this->save($rec);
 	            
-        		unset($fRec->quantity1, $fRec->quantity2, $fRec->quantity3);
-        		$rec->sharedUsers = $fRec->sharedUsers;
-        		
-	            // Записваме мастър - данните
-	            $this->save($rec);
-	            
-	            // Записваме данните въведени от технолога
-        		$fRec->specificationId = $rec->id;
-        		$rec->data = $technoClass->serialize($fRec);
-        		$this->save($rec);
-        		
-        		$hasQuantities = $quantities[0] || $quantities[1] || $quantities[2];
-        		
-        		$price = $technoClass->getPrice($rec->data);
-        		
-        		if($rec->common != 'yes' && $hasQuantities && isset($price->price)){
-        			$qId = sales_Quotations::fetchField("#originId = {$rec->containerId}", 'id');
+	    // Записваме данните въведени от технолога
+        $fRec->specificationId = $rec->id;
+        unset($fRec->threadId);
+        $technoClass = cls::get($rec->prodTehnoClassId);
+        $rec->data = $technoClass->serialize($fRec);
+        $this->save($rec);
         			
-        			if($qId){
-        				
-        				// Ако има оферта в треда и има въведени к-ва -> ъпдейтва се наличната офертата
-        				return Redirect(array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'specId' => $rec->id, 'quantity1' => $quantities[0], 'quantity2' => $quantities[1], 'quantity3' => $quantities[2]));
-        			} else {
-        				
-        				// Ако няма оферта в треда и има количества -> създава се нова офертва
-        				return Redirect(array($this, 'newQuote', $rec->id, 'quantity1' => $quantities[0], 'quantity2' => $quantities[1], 'quantity3' => $quantities[2]));
-        			}
-        		} else {
-        			
-        			// Ако няма к-ва и оферта -> отива се в single
-        			return Redirect(array($this, 'single', $rec->id));
-        		}
-	        }
-        }
-        
-        if($rec->folderId){
-        	$params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-        	$link = doc_Folders::getVerbalLink($params);
-        } elseif($rec->threadId){
-        	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        	$handle = $firstDoc->getHandle();
-        	$params = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        	$params['#'] = $handle;
-        	$link = ht::createLink($handle, $params);
-        }
-        
-        $form->title = "Спецификация на универсален продукт в|* {$link}";
-        return $this->renderWrapping($form->renderHtml());
+        // Ако няма к-ва и оферта -> отива се в single
+        return Redirect(array($this, 'single', $rec->id));
     }
     
     
@@ -467,13 +468,22 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копира спецификацията в нов тред,warning=Сигурнили сте че искате да копирате документа ?');
+    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
+    	}
+    	
+    	if(sales_Quotations::haveRightFor('add') && $data->rec->isOfferable == 'yes'){
+    		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId} AND #state='draft'", 'id');
+    		if($qId){
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
+    		} else {
+    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията');
+    		}
     	}
     }
     
     
     /**
-     * Екшън копиращ дадена спецификация в нов тред. Ако името
+     * Екшън копиращ дадена спецификация в същия тред. Ако името
      * на старата спецификация завършва на число го инкрементира,
      * в новата, ако няма добавя "v2" в заглавието на спецификация
      */
@@ -505,35 +515,6 @@ class techno_Specifications extends core_Master {
     	$this->save($rec);
     	return Redirect(array($this, 'single', $rec->id), FALSE, 'Спецификацията е успешно копирана');
     }
-    
-    
-    /**
-     * Създаване на нова оферта, с попълнени дефолт данни
-     */
-    function act_newQuote()
-    {
-    	sales_Quotations::requireRightFor('add');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$Quotations = cls::get('sales_Quotations');
-    	
-    	$qRec = new stdClass();
-	    $qRec->folderId = $rec->folderId;
-		$qRec->originId = $rec->containerId;
-		$qRec->threadId = isset($rec->invThread) ? $rec->invThread : $rec->threadId;
-		$Quotations->populateDefaultData($qRec);
-	    $qRec->rate = round(currency_CurrencyRates::getRate($qRec->date, NULL, NULL), 4);
-	    $qRec->paymentCurrencyId = acc_Periods::getBaseCurrencyCode($qRec->date);
-	    $qRec->vat = 'yes';
-	    $qRec->paymentMethodId = salecond_PaymentMethods::fetchField('#name="1 m"', 'id');
-	    $qRec->deliveryTermId = salecond_DeliveryTerms::fetchField('#codeName="CFR"', 'id');
-	    $qId = $Quotations->save($qRec);
-    	
-	    $quantity1 = Request::get('quantity1', 'double');
-	    $quantity2 = Request::get('quantity2', 'double');
-	    $quantity3 = Request::get('quantity3', 'double');
-	    return Redirect(array('sales_QuotationsDetails', 'quotationId' => $qId, 'updateData', 'specId' => $id, 'quantity1' => $quantity1, 'quantity2' => $quantity2, 'quantity3' => $quantity3));
-	}
     
     
     /**

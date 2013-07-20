@@ -78,9 +78,9 @@ class trz_SalaryPayroll extends core_Manager
      */
     function description()
     {
-    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,width=100%');
-    	 $this->FLD('ruleId',    'key(mvc=trz_SalaryRules, select=conditionExpr)', 'caption=Правило,mandatory,width=100%');
-    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,mandatory,width=100%');
+    	 $this->FLD('periodId',    'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,width=100%');
+    	 $this->FLD('ruleId',    'key(mvc=trz_SalaryRules, select=conditionExpr, allowEmpty=true)', 'caption=Правило,width=100%');
+    	 $this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,width=100%');
     	 $this->FLD('amount',    'double', 'caption=Сума,mandatory,width=100%');
     }
     

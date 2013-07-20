@@ -27,6 +27,10 @@
 	padding-left:10px;
 }
 
+ol.short{
+	padding-left:28px;
+}
+
 .general-product .product-image {
 	float:left;
 	margin-top:23px;
@@ -86,6 +90,7 @@ i.misc-values{
 table.styled-table tr.components-total:hover td{
 	background-color:transparent !important;
 }
+
 table.styled-table tr.components-total td.has-hover:hover{
 	background-color:#ffc !important;
 }
@@ -99,6 +104,11 @@ th{
 
 .cCode{
 	display:inline-block;
+}
+
+.expandable{
+	width:1%;
+	white-space:nowrap;
 }
 
 @media print{

@@ -127,13 +127,18 @@ class cal_TaskProgresses extends core_Detail
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
-        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime,progress,state');
-        
+        $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime,progress,state, title, threadId, createdBy');
+
         // Определяне на прогреса
         if(isset($rec->progress)) {
             $tRec->progress = $rec->progress;
 
             if($rec->progress == 1) {
+            	$message = tr("Приключена е задачата \"" . $tRec->title . "\"");
+            	$url = array('doc_Containers', 'list', 'threadId' => $tRec->threadId);
+            	$customUrl = array('cal_Tasks', 'single',  $tRec->id);
+            	$priority = 'normal';
+            	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
                 $tRec->state = 'closed';
             }
         }

@@ -559,15 +559,6 @@ class callcenter_Talks extends core_Master
         // Задаваме опциите
         $data->listFilter->setOptions('dialStatusType', $statusOptions);
         
-        // Функционално поле за търсене по контрагент
-        $data->listFilter->FNC('contragent', 'enum()', 'caption=Контакт,input');
-        
-        // Опциите за контрагента
-        $contragentOptions = callcenter_Numbers::getContragentOptions();
-        
-        // Сетвама опциите
-        $data->listFilter->setOptions('contragent', $contragentOptions);
-        
         // Ако имаме тип на обаждането
         if ($typeOptions = &$data->listFilter->getField('callType')->type->options) {
             
@@ -596,9 +587,9 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, contragent, usersSearch, dialStatusType';
+        $data->listFilter->showFields = 'search, usersSearch, dialStatusType';
         
-        $data->listFilter->input('search, usersSearch, dialStatusType, contragent', 'silent');
+        $data->listFilter->input('search, usersSearch, dialStatusType', 'silent');
     }
 
     
@@ -672,27 +663,6 @@ class callcenter_Talks extends core_Master
                     // Търсим по статус на обаждане
                     $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
                 }
-            }
-            
-            // Ако се търси по контакти
-            if ($filter->contragent) {
-                
-                // Вземаме класа и контрагента
-                list($classId, $contrangentId) = explode('_', $filter->contragent);
-                
-                // Търсим по класа
-                $data->query->EXT("classId", 'callcenter_Numbers', "externalName=classId");
-                $data->query->where(array("#classId = '[#1#]'", $classId));
-                
-                // Ако има контрагент
-                if ($contrangentId) {
-                    
-                    // Търсим и по контрагент
-                    $data->query->EXT("contragentId", 'callcenter_Numbers', "externalName=contragentId");
-                    $data->query->where(array("#contragentId = '[#1#]'", $contrangentId));
-                }
-                
-                $data->query->where("#externalData = `callcenter_numbers`.`id`");
             }
         }
     }

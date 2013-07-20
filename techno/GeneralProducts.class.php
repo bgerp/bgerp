@@ -84,7 +84,6 @@ class techno_GeneralProducts extends core_Manager {
         						canConvert=Вложим,
         						fixedAsset=Дма,
         						canManifacture=Производим)', 'caption=Свойства->Списък,input,columns=2');
-        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
@@ -153,10 +152,9 @@ class techno_GeneralProducts extends core_Manager {
     		}
     		
 	        // Добавяне на линк за сингъла на спецификацията
-	    	if(!Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
-	    		$url = array('techno_Specifications', 'single', $data->specificationId);
-	    		$row->title = ht::createLink($row->title, $url);
-	    	}
+	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
+	    		$row->title = ht::createLinkRef($row->title, array('techno_Specifications', 'single', $data->specificationId), NULL, 'title=Към спецификацията');
+    		}
     	} else {
     		if($data->image){
     			$size = array(200, 350);
