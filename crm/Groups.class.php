@@ -77,7 +77,7 @@ class crm_Groups extends core_Master
     var $defaultAccess = 'public';
 
 
-	/**
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
@@ -120,7 +120,8 @@ class crm_Groups extends core_Master
         $this->setDbUnique("sysId");
     }
    
-   /**
+
+    /**
      *  Задава подредбата
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
@@ -159,19 +160,19 @@ class crm_Groups extends core_Master
         if (!$rec->companiesCnt) $rec->companiesCnt=0;
         if (!$rec->personsCnt) $rec->personsCnt=0;
         
-    	$row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
-    	$row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
-    	
-    	$row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        $row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
+        $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
+        
+        $row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
         
         $row->name = "<b>$row->name</b>";
         
         if($fields['-list']){
-		    $row->content = '<div>';
-		    $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> ". $row->companiesCnt;
-	        $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> ".  $row->personsCnt;
-	        $row->content .= '</div>';
+            $row->content = '<div>';
+            $row->content .= "<span style='font-size:14px;'>" . tr("Брой фирми") . ":</span> ". $row->companiesCnt;
+            $row->content .= ", <span style='font-size:14px;'>" . tr("Брой лица") . ":</span> ".  $row->personsCnt;
+            $row->content .= '</div>';
         }
     }
     
@@ -269,7 +270,7 @@ class crm_Groups extends core_Master
             $rec->name  = $newRec->name;
             $rec->sysId = $newRec->sysId;
             $rec->allow = $newRec->allow;
-			
+            
             if(!$rec->id) {
                 $nAffected++;
             }
