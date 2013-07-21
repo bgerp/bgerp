@@ -820,4 +820,21 @@ class core_Html
             $attr['id'] = $name . $id;
         }
     }
+
+
+    /**
+     * Извлича текста от посочения HTML
+     */
+    static function extractText($html)
+    {
+        $search = array('@<script[^>]*?>.*?</script>@si',  // Strip out javascript 
+                        '@<[\/\!]*?[^<>]*?>@si',            // Strip out HTML tags 
+                        '@<style[^>]*?>.*?</style>@siU',    // Strip style tags properly 
+                        '@<![\s\S]*?--[ \t\n\r]*>@',         // Strip multi-line comments including CDATA 
+                        '@[\s]+@'
+                   ); 
+        $text = trim(preg_replace($search, ' ', $html)); 
+        
+        return $text; 
+    } 
 }
