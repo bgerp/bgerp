@@ -111,6 +111,9 @@ class core_ProtoSetup
             } else {
                 $instances[$manager] = &cls::get($manager);
             }
+
+            expect(method_exists($instances[$manager], 'setupMVC'), $instances, $manager);
+
             $html .= $instances[$manager]->setupMVC();
         }
         
