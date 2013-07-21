@@ -250,7 +250,7 @@ class cms_Articles extends core_Manager
         $content->append($navTpl, 'NAVIGATION');
         
         $richText = cls::get('type_RichText');
-        $desc = ht::escapeAttr(str::truncate(strip_tags($desc), 200, FALSE));
+        $desc = ht::escapeAttr(str::truncate(ht::extractText($desc), 200, FALSE));
 
         $content->replace($desc, 'META_DESCRIPTION');
 
@@ -297,7 +297,7 @@ class cms_Articles extends core_Manager
         }
         				 
     	$richText = cls::get('type_RichText');
-    	$desc = strip_tags($richText->toHtml($rec->body));
+    	$desc = ht::extractText($richText->toHtml($rec->body));
     		
     	// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	    $ogp->siteInfo = array('Locale' =>'bg_BG',
