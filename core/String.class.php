@@ -336,8 +336,29 @@ class core_String
     {
         return $c >= '0' && $c <= '9';
     }
+
+
+    /**
+     * Оставя само първите $length символа от дадения стринг
+     */
+    static function truncate($str, $length, $breakWords = TRUE, $append = '…')
+    {
+      $strLength = mb_strlen($str);
+
+      if ($strLength <= $length) {
+         return $str;
+      }
+
+      if (!$breakWords) {
+           while(preg_match('/^[\pL\pN]/', mb_substr($str, $length, 1))) {
+               $length--;
+           }
+      }
+
+      return mb_substr($str, 0, $length) . $append;
+    }
     
-    
+
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
      */
