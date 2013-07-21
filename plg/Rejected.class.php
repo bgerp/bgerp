@@ -40,7 +40,7 @@ class plg_Rejected extends core_Plugin
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         }
 
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => 'Оттегляне', 'restore' => 'Възстановяване'); 
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване'); 
     }
     
     
@@ -49,7 +49,7 @@ class plg_Rejected extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
             $data->toolbar->addBtn('Оттегляне', array(
                     $mvc,
                     'reject',
@@ -59,7 +59,7 @@ class plg_Rejected extends core_Plugin
                 'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
         
-        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec)) {
             $data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
@@ -78,8 +78,10 @@ class plg_Rejected extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
+            $ws = $data->toolbar->buttons['with_selected'];
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
+            $data->toolbar->buttons['with_selected'] = $ws;
         } else {
             $rejCnt = $data->rejQuery->count();
 
@@ -212,19 +214,21 @@ class plg_Rejected extends core_Plugin
                 $requiredRoles = 'no_one';
             }
             
-            // Системните записи не могат да се оттеглят или изтриват
-            if($rec->createdBy == -1 && $action == 'reject') {
-                $requiredRoles = 'no_one';
-            }
-            
-            // Не могат да се оттеглят оттеглени записи
-            if($action == 'reject' && $rec->state == 'rejected') {
-                $requiredRoles = 'no_one';
+            // Кога може да се оттеглят записи?
+            if($action == 'reject') {
+                // Системните записи, оттеглените и тези, които могат да се изтриват
+                if($rec->createdBy == -1 || $rec->state == 'rejected' || $mvc->haveRightFor('delete', $rec, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
             }
 
             // Не могат да се възстановяват не-оттеглении записи
             if($action == 'restore' && $rec->state != 'rejected') {
                 $requiredRoles = 'no_one';
+            }
+
+            if(!$requiredRoles && ($action == 'restore' || $action = 'reject') && $mvc->haveRightFor('single', $rec, $userId)) {
+                $requiredRoles = 'user';
             }
 
         }
