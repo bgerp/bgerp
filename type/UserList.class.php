@@ -84,8 +84,10 @@ class type_UserList extends type_Keylist
             
             while($uRec = $uQuery->fetch()) {
                 $key = $uRec->id;
-                $this->suggestions[$key] = core_Users::getVerbal($uRec, 'nick');
-                $teamMembers++;
+                if(!isset($this->suggestions[$key])) {
+                    $teamMembers++;
+                    $this->suggestions[$key] = core_Users::getVerbal($uRec, 'nick');
+                }
             }
 
             if(!$teamMembers) {
