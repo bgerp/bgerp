@@ -229,9 +229,7 @@ class type_Key extends type_Int {
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
             
-            
             setIfNot($handler, md5(json_encode($options[$id])));
-            
             
             setIfNot($maxSuggestions, $this->params['maxSuggestions'], $conf->TYPE_KEY_MAX_SUGGESTIONS);
 

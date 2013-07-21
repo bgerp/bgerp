@@ -124,50 +124,7 @@ class type_Keylist extends core_Type {
         
         // Ако няма списък с предложения - установяваме го
         if(!$this->suggestions) {
-            if($select = $this->params['select']) {
-                $mvc = &cls::get($this->params['mvc']);
-                $query = $mvc->getQuery();
-                
-                if($groupBy = $this->params['groupBy']) {
-                    $query->orderBy("#{$groupBy}")
-                    ->show($groupBy);
-                }
-                
-                if($select != "*") {
-                    $query->show($select)
-                    ->show('id')
-                    ->orderBy($select);
-                }
-                
-                // Ако имаме метод, за подготвяне на заявката - задействаме го
-                if($onPrepareQuery = $this->params['prepareQuery']) {
-                    cls::callFunctArr($onPrepareQuery, array($this, $query));
-                }
-                
-                // Ако имаме where клауза за сортиране
-                if($where = $this->params['where']) {
-                    $query->where($where);
-                }
-             
-                while($rec = $query->fetch()) {
-                    
-                    if($groupBy) {
-                        if($group != $rec->{$groupBy}) {
-                            $key = $rec->id . '_group';
-                            $this->suggestions[$key] = new stdClass();
-                            $this->suggestions[$key]->title = $mvc->getVerbal($rec, $groupBy);
-                            $this->suggestions[$key]->group = TRUE;
-                            $group = $rec->{$groupBy};
-                        }
-                    }
-                    
-                    if($select != "*") {
-                        $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
-                    } else {
-                        $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
-                    }
-                }
-            }
+            $this->prepareSuggestions();
         }
         
         if(!$value) {
@@ -258,6 +215,71 @@ class type_Keylist extends core_Type {
         $tpl = HT::createElement('table', $attr, $html);
         
         return $tpl;
+    }
+
+
+    /**
+     * Връща масив със всички предложения за този списък
+     */
+    function getSuggestions()
+    {
+        if(!$this->suggestions) {
+            $this->prepareSuggestions();
+        }
+
+        return $this->suggestions;
+    }
+
+
+    /**
+     * Подготвя предложенията за списъка
+     */
+    private function prepareSuggestions()
+    {
+        if($select = $this->params['select']) {
+            $mvc = &cls::get($this->params['mvc']);
+            $query = $mvc->getQuery();
+                
+            if($groupBy = $this->params['groupBy']) {
+                $query->orderBy("#{$groupBy}")
+                ->show($groupBy);
+            }
+                
+            if($select != "*") {
+                $query->show($select)
+                ->show('id')
+                ->orderBy($select);
+            }
+                
+            // Ако имаме метод, за подготвяне на заявката - задействаме го
+            if($onPrepareQuery = $this->params['prepareQuery']) {
+                cls::callFunctArr($onPrepareQuery, array($this, $query));
+            }
+                
+            // Ако имаме where клауза за сортиране
+            if($where = $this->params['where']) {
+                $query->where($where);
+            }
+             
+            while($rec = $query->fetch()) {
+                    
+                if($groupBy) {
+                    if($group != $rec->{$groupBy}) {
+                        $key = $rec->id . '_group';
+                        $this->suggestions[$key] = new stdClass();
+                        $this->suggestions[$key]->title = $mvc->getVerbal($rec, $groupBy);
+                        $this->suggestions[$key]->group = TRUE;
+                        $group = $rec->{$groupBy};
+                    }
+                }
+                    
+                if($select != "*") {
+                    $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
+                } else {
+                    $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
+                }
+            }
+        }
     }
     
     
@@ -393,6 +415,27 @@ class type_Keylist extends core_Type {
         return $newKlist;
     }
     
+    
+    /**
+     * Премахва от първия кейлист ключовете на вторив
+     * 
+     * @param type_Keylist $klist1
+     * @param type_Keylist $klist2
+     * 
+     * @return type_Keylist $newKlist
+     */
+    static function diff($klist1, $klist2)
+    {
+        $klist1Arr = self::toArray($klist1);
+        $klist2Arr = self::toArray($klist2);
+        
+        $newArr = array_diff($klist1Arr, $klist2Arr);
+        
+        $newKlist = self::fromArray($newArr);
+        
+        return $newKlist;
+    }
+
     
     /**
      * Премахва ключ от keylist
