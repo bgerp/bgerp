@@ -45,7 +45,7 @@ class core_Html
                          * в стойностите на HTML атрибутите?
                          * 
                          */
-                        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                        $content = self::escapeAttr($content);
                     }
 
                     $attrStr .= " " . $atr . "=\"" . $content . "\"";
@@ -63,6 +63,17 @@ class core_Html
         }
 
         return new ET('[#1#]', $element);
+    }
+
+
+    /**
+     * Ескейпва съдържание на атрибут
+     */
+    static function escapeAttr($attrContent)
+    {
+        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $attrContent);
+        
+        return $content;
     }
     
 
