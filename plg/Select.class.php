@@ -15,7 +15,21 @@
  */
 class plg_Select extends core_Plugin
 {
-    
+
+
+    /**
+     * Изпълнява се след инициализиране на мениджъра
+     */
+    function on_AfterDescription($mvc)
+    {
+        $actArr = arr::make($mvc->doWithSelected, TRUE);
+        $actArr['delete'] = '*Изтриване';
+        $mvc->doWithSelected = $actArr;
+
+        Request::setProtected('Selected');
+    }
+
+
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -52,7 +66,7 @@ class plg_Select extends core_Plugin
         
         foreach($data->rows as $id => $row) {
             $row->ROW_ATTR['id'] = 'lr_' . $id;
-            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='row[{$id}]' id='cb_{$id}' class='checkbox'>";
+            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='R[{$id}]' id='cb_{$id}' class='checkbox'>";
         }
     }
     
@@ -62,13 +76,13 @@ class plg_Select extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $act)
     {
+        $actArr = arr::make($mvc->doWithSelected, TRUE);
+
         if($act == 'dowithselected') {
-            
-            Request::setProtected('Selected');
 
             $mvc->requireRightFor('list');
             
-            $row = Request::get('row');
+            $row = Request::get('R');
             
             // bp($row, count($row), !count($row));
             
@@ -78,30 +92,23 @@ class plg_Select extends core_Plugin
                 return FALSE;
             }
             
-            $actArr = arr::make($mvc->doWithSelected, TRUE);
-            
-            $actArr['delete'] = 'Изтриване';
 
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             foreach($row as $id => $on) {
                 
                 $list .= ($list ? ',' : '') . $id;
                 
-                if(count($actArr)) {
-                    foreach($actArr as $action => $caption) {
-                        if($mvc->haveRightFor($action, $id)) {
-                            $cnt[$action]++;
-                        }
+                foreach($actArr as $action => $caption) {
+                    if($mvc->haveRightFor($action, $id)) {
+                        $cnt[$action]++;
                     }
                 }
-            }
+             }
             
             // Махаме действията, които не са достъпни за нито един избран ред
-            if(count($actArr)) {
-                foreach($actArr as $action => $caption) {
-                    if(!$cnt[$action]) {
-                        unset($actArr[$action]);
-                    }
+            foreach($actArr as $action => $caption) {
+                if(!$cnt[$action]) {
+                    unset($actArr[$action]);
                 }
             }
             
@@ -120,7 +127,7 @@ class plg_Select extends core_Plugin
             foreach($actArr as $action => $caption) {
                 
                 $res->append("\n<tr><td>");
-                $res->append(ht::createBtn($caption . '|* (' . $cnt[$action] . ')', array(
+                $res->append(ht::createBtn(ltrim($caption, '*') . '|* (' . $cnt[$action] . ')', array(
                             $mvc,
                             $action,
                             'Selected' => $list,
@@ -137,30 +144,32 @@ class plg_Select extends core_Plugin
             $res = $mvc->renderWrapping($res);
             
             return FALSE;
-        } elseif($act == 'delete') {
+        } elseif($actArr[$act]{0} == '*') {
 
             if(Request::get('id')) return;
 
             $sel = Request::get('Selected');
-            
+
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
 
             foreach($selArr as $id) {
-                if($mvc->haveRightFor('delete', $id)) {
-                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                if($mvc->haveRightFor($act, $id)) {
+                    Request::push(array('id' => $id, 'Selected' => FALSE, 'Cf' => core_Request::getSessHash($id)));
                     Request::forward();
                     Request::pop();
-                    $deleted++;
+                    $processed++;
                 }
             }
+            
+            $caption = mb_strtolower(ltrim($actArr[$act], '*'));
 
-            if($deleted == 1) {
-                $res = new Redirect(getRetUrl(), tr("Беше изтрит 1 запис"));
-            } elseif ($deleted > 1) {
-                $res = new Redirect(getRetUrl(), tr("Бяха изтрити |*{$deleted}| записа"));
+            if($processed == 1) {
+                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} запис"));
+            } elseif ($processed > 1) {
+                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} записа"));
             } else {
-                $res = new Redirect(getRetUrl(), tr("Не беше изтрит нито един запис"));
+                $res = new Redirect(getRetUrl(), tr("Не беше направено {$caption} на нито един запис"));
             }
 
             return FALSE;
