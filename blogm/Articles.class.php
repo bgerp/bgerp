@@ -304,7 +304,7 @@ class blogm_Articles extends core_Master {
         
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-		
+		 
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         $tpl->append($ogpHtml);
