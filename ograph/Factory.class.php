@@ -107,7 +107,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Audio'];
     	$ogp = new OpenGraphProtocolAudio();
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Аудио обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Аудио обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	}  
@@ -129,7 +129,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Article'];
     	$ogp = new OpenGraphProtocolArticle(); 
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Article обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Article обекта не поддържа параметър {$key}");
     		$method = "set{$key}Time";
     		$ogp->$method($value);
     	}
@@ -152,7 +152,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Profile'];
     	$ogp = new OpenGraphProtocolProfile(); 
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Profile обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Profile обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	}
@@ -173,7 +173,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Book'];
     	$ogp = new OpenGraphProtocolBook();
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Book обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Book обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	} 
@@ -197,7 +197,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Video'];
     	$ogp = new OpenGraphProtocolVideo();
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Video обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Video обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	} 
@@ -218,7 +218,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['VideoObject'];
     	$ogp = new OpenGraphProtocolVideoObject(); 
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Video обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Video обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	}
@@ -237,7 +237,7 @@ class ograph_Factory extends core_Master
     {
     	$allowed = static::$allowed['VideoEpisode'];
     	$ogp = new OpenGraphProtocolVideoEpisode();
-    	expect(in_array('series', $allowed), "Video Episode обекта неподдържа параметъра");
+    	expect(in_array('series', $allowed), "Video Episode обекта не поддържа параметъра");
     	$ogp->setSeries($params['Series']);
     	
     	return $ogp;
@@ -259,7 +259,7 @@ class ograph_Factory extends core_Master
     	$allowed = static::$allowed['Image'];
     	$ogp = new OpenGraphProtocolImage(); 
     	foreach($params as $key => $value) {
-    		expect(in_array(strtolower($key), $allowed), "Image обекта неподдържа параметър {$key}");
+    		expect(in_array(strtolower($key), $allowed), "Image обекта не поддържа параметър {$key}");
     		$method = "set{$key}";
     		$ogp->$method($value);
     	} 
