@@ -82,7 +82,8 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->prepend($this->info->title . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             
-            $tpl->prepend("<style> 
+            $tpl->prepend("<style>
+            body{background-color:#f5f5f5;padding:5px} 
             .filemanUpload .tab-title {
                     padding-left:20px;  
                     background-repeat:no-repeat;

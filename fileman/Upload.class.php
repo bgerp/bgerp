@@ -149,14 +149,14 @@ class fileman_Upload extends core_Manager {
     {
         $tpl = new ET('
             <style type="text/css">
-                    .ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
+                    body{background-color:#f5f5f5;padding:5px}.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
             </style>
 
             <form id="uploadform" enctype="multipart/form-data" method="post" style="width:100%;"  onsubmit="if(document.getElementById(\'ulfile\').value) { toggleDisplay(\'inputDiv\'); toggleDisplay(\'filename\'); document.getElementById(\'filename\').innerHTML = document.getElementById(\'ulfile\').value; beginUpload();  return true;} return false;">
             <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
             <div id="inputDiv">
                 <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;" [#ACCEPT#]> 
-                <input type="submit" name="Upload" value="' . tr('Качване') . '"  style="display:block; margin-top:10px;background-image:url(\'' . sbf('fileman/img/upload.gif', '') . '\')" />
+                <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" style="display:block; margin-top:10px;background-image:url(\'' . sbf('fileman/img/upload.gif', '') . '\')" />
             </div>
             <div id="filename" style="display:none;"></div>
             <div id="uploadprogressbar" class="progressbar" style="display:none;width:100%;height:12px;"></div>
