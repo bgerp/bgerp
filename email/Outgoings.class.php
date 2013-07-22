@@ -793,9 +793,10 @@ class email_Outgoings extends core_Master
         if($css) {
             //Създаваме HTML частта на документа и превръщаме всички стилове в inline
             //Вземаме всичките css стилове
-            $css = getFileContent('css/wideCommon.css') .
-                "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
-                
+            
+            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . $css ;
+            
             $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
             
             // Вземаме пакета
