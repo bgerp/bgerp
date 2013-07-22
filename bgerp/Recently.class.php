@@ -160,15 +160,23 @@ class bgerp_Recently extends core_Manager
                 
                 $attr['class'] .= 'linkWithIcon';
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
-                $threadRec = doc_Threads::fetch($docRec->threadId);
-                $state     = $threadRec->state;
+                
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = $docRow->title;
                 }
+                
+                // Ако имамем права, тогава генерирам линк
+                if ($docProxy->haveRightFor('single') || doc_Threads::haveRightFor('single', $docRec->threadId)) {
+                    $linkUrl = array($docProxy->instance, 'single',
+                        'id' => $docRec->id);
+                }
+                
                 $row->title = ht::createLink(str::limitLen($docRow->title, self::maxLenTitle),
-                    array($docProxy->instance, 'single',
-                        'id' => $docRec->id),
+                    $linkUrl,
                     NULL, $attr);
+                    
+                $threadRec = doc_Threads::fetch($docRec->threadId);
+                $state     = $threadRec->state;
             } catch (core_exception_Expect $ex) {
                 $row->title = "Проблемен контейнер № {$rec->objectId}";
             }
