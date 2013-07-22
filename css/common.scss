@@ -495,9 +495,7 @@ table {
 
 /*query за iOS*/
 
-@media only screen and (min-device-width : 768px) and (max-device-width : 1024px),
-(min-device-width : 320px) and (max-device-width : 568px),
-(min-device-width : 320px) and (max-device-width : 480px){
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px){
 	 input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input:not([type]) {
 		-webkit-appearance: caret;
 		-webkit-box-shadow:none;
