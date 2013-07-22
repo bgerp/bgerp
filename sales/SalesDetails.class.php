@@ -226,61 +226,7 @@ class sales_SalesDetails extends core_Detail
         $mvc->setField('createdBy', 'column=none');
     }
 
-
-    /**
-     * Извиква се след успешен запис в модела
-     * 
-     * @param core_Detail $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
-    {
-        // Подсигуряваме наличието на ключ към мастър записа
-        if (empty($rec->{$mvc->masterKey})) {
-            $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
-        }
-        
-        $mvc->updateMasterSummary($rec->{$mvc->masterKey}, $rec);
-    }
-
     
-    /**
-     * Обновява агрегатни стойности в мастър записа
-     * 
-     * @param int $masterId ключ на мастър модела
-     * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
-     */
-    public static function updateMasterSummary($masterId, $hotRec = NULL)
-    {
-        $salesRec = sales_Sales::fetchRec($masterId);
-        
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        
-        $amountDeal = 0;
-        
-        $query->where("#saleId = '{$masterId}'");
-        
-        while ($rec = $query->fetch()) {
-            $VAT = 1;
-            
-            if ($salesRec->chargeVat == 'yes') {
-                $ProductManager = self::getProductManager($rec->policyId);
-                $VAT += $ProductManager->getVat($rec->productId, $salesRec->valior);
-            }
-            
-            $amountDeal += $rec->amount * $VAT;
-        }
-        
-        sales_Sales::save(
-            (object)array(
-                'id' => $masterId,
-                'amountDeal' => $amountDeal,
-            )
-        );
-    }
-
     /**
      * Извиква се преди изпълняването на екшън
      * 
