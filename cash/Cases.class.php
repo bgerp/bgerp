@@ -67,8 +67,8 @@ class cash_Cases extends core_Master {
      */
     var $rowToolsField = 'tools';
 
-    var $canRead = 'ceo';
-    var $canWrite = 'ceo';
+    var $canRead = 'ceo, cash';
+    var $canWrite = 'ceo, cash';
     
     
     /**
