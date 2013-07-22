@@ -192,7 +192,7 @@ class sales_Quotations extends core_Master
 	       	if($mvc->getItems($data->rec->id)){
 	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
 	       	} else {
-	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequest', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
+	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
 	       	}
 	    }
     }
@@ -336,6 +336,10 @@ class sales_Quotations extends core_Master
 				$link = ht::createLink("[&#10138;]", array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
     			$row->deliveryPlaceId .= " <span class='anchor-arrow'>{$link}</span>";
 			}
+		}
+		
+		if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
+			$row->deliveryTermId = ht::createLinkref($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
 		}
     }
     
@@ -554,15 +558,7 @@ class sales_Quotations extends core_Master
     		$uIndex =  "{$detail->productId}|{$detail->policyId}";
     		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
     		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
-    		$products[$uIndex] = array(
-    			'classId'     => cls::get($detail->policyId)->getProductMan()->getClassId(),
-            	'productId'   => $detail->productId,
-            	'packagingId' => NULL,
-            	'discount'    => $detail->discount,
-            	'isOptional'  => FALSE,
-            	'quantity'    => $detail->quantity,
-            	'price'       => $detail->price,
-    		);
+    		$products[$uIndex] = (array)new sales_model_QuotationProduct($detail);
     	}
     	
     	return array_values($products);
