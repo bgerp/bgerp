@@ -539,9 +539,9 @@ class type_Richtext extends type_Blob
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
-            $code1 = "<div class='rich-text code{$classLg}'><div>" . rtrim($code) . "</div></div>"; 
+            $code1 = "<pre class='rich-text code{$classLg}'><code>" . rtrim($code) . "</code></pre>"; 
         } else {
-            $code1 = "<div class='rich-text'>" . rtrim($code) . "</div>";
+            $code1 = "<pre class='rich-text'>" . rtrim($code) . "</pre>";
         }
         
         $this->_htmlBoard[$place] = $code1;
@@ -582,7 +582,7 @@ class type_Richtext extends type_Blob
         } else {
             
             // Добавяме в цитата, ако не сме в текстов режим
-            $quote = "<div class='richtext-quote'>" . $quote . "</div>";
+            $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
         }
         
         // Ако има манипулатор на документа

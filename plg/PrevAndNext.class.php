@@ -123,15 +123,15 @@ class plg_PrevAndNext extends core_Plugin
         
         if(Mode::is($selKey)) {
             if (isset($data->buttons->nextId)) {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-next noicon,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=fright noicon,order=30');
             } else {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-next btn-disabled noicon,disabled,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=fright btn-disabled noicon,disabled,order=30');
             }
             
             if (isset($data->buttons->prevId)) {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-prev noicon,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=fright noicon,order=30');
             } else {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-prev btn-disabled noicon,disabled,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=fright btn-disabled noicon,disabled,order=30');
             }
         }
     }
