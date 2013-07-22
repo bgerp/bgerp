@@ -522,6 +522,16 @@ class type_Richtext extends type_Blob
         $place = $this->getPlace();
         $code = $match[3];
         
+        $code = str_replace("\r\n", "\n", $code);
+
+        if($code{0} == "\n") {
+            $code = substr($code, 1);
+        }
+
+        if(substr($code, -1) == "\n") {
+            $code = substr($code, 0, strlen($code) - 1);
+        }
+
         if(!trim($code)) return "";
         $lg = $match[2];
 
