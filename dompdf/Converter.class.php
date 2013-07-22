@@ -44,7 +44,7 @@ class dompdf_Converter extends core_Manager
         } while (file_exists($pdfPath));
         
         $dompdf = new DOMPDF(array());
-        $dompdf->load_html($html);
+        $dompdf->load_html($html, 'UTF-8');
         $dompdf->set_paper('A4');
         $dompdf->render();
          
