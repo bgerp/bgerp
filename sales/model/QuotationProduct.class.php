@@ -1,0 +1,72 @@
+<?php
+
+class sales_model_QuotationProduct
+{
+    
+    /**
+     * Клас на продуктовия мениджър(@see core_Classes)
+     */
+    public $classId;
+    
+    
+    /**
+     * ИД на продукт
+     * 
+     * @var int
+     */
+    public $productId;
+    
+    
+    /**
+     * Опаковка (ако има)
+     * 
+     * @var int key(mvc=cat_Packagings)
+     */
+    public $packagingId;
+    
+        
+    /**
+     * Количество (в основна мярка)
+     * 
+     * @var double
+     */
+    public $quantity;
+        
+    
+    /**
+     * Дали е опционален
+     * 
+     * @var boolean
+     */
+    public $isOptional;
+
+    
+    /**
+     * Цена за единица продукт в основна мярка
+     * 
+     * @var double
+     */
+    public $price;
+        
+    /**
+     * Процент отстъпка (0..1 => 0% .. 100%)
+     * 
+     * @var double
+     */
+    public $discount;
+    
+    
+    /**
+     * @param stdClass $rec - запис от sales_QuotationsDetails
+     */
+    public function __construct(stdClass $rec)
+    {
+        $this->classId     = cls::get($rec->policyId)->getProductMan()->getClassId();
+        $this->productId   = $rec->productId;
+        $this->packagingId = NULL;
+        $this->discount    = $rec->discount;
+        $this->isOptional  = FALSE;
+        $this->quantity    = $rec->quantity;
+        $this->price       = $rec->price;
+    }
+}

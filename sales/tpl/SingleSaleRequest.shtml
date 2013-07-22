@@ -1,1 +1,115 @@
-<!-- @TODO -->
+[#SingleToolbar#]
+<div class='document'>
+ 
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+
+<table width=100% cellpadding="0" cellspacing="0">
+    <tbody>
+    <tr>
+        <td>
+           
+            <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
+                <tbody>
+                <tr>
+                    <td class="cell" valign="top" width="35%"><b>Получател</b>
+                    <!--ET_BEGIN contragent-->
+                    <div>
+                        <b>[#contragentName#]</b><br>
+                        <!--ET_BEGIN contragentCountry-->
+                            <b>[#contragentCountry#]</b><br>
+                        <!--ET_END contragentCountry-->
+                        <!--ET_BEGIN contragentAddress-->
+                            [#contragentAddress#]<br>
+                        <!--ET_END contragentAddress-->
+                        [#deliveryLocationId#]
+					</div>
+					<!--ET_END contragent-->
+                    </td>
+                    <td class="cell" align="center" width="30%">
+                        <font style="font-size:16pt;"><b> ЗАЯВКА ЗА ПРОДАЖБА</b> </font><br>
+                        <div style="padding-top:5px;">
+                        	№ <span class="bigData">[#id#]</span> / 
+                        	<span class="bigData">[#createdDate#]</span>
+                        </div>
+                        
+                        <!--ET_BEGIN stateText-->
+                        <br/>
+                        <div class="[#STATE_CLASS#]">[#stateText#]</div>
+                        <!--ET_END stateText-->
+                    </td>
+                    <td class="cell" width="35%" valign="top"><b>Доставчик</b>
+                    <!--ET_BEGIN supplier-->
+                    <div>
+                        <b>[#MyCompany#]</b><br>
+                        <b>[#MyCountry#]</b><br>
+                        [#MyAddress#] <br>
+                    </div>
+                    <!--ET_END supplier-->
+                </tr>
+                </tbody>
+            </table>
+			<div class="lines"></div>
+			<div class="details">
+            		[#REQUEST_DETAILS#]
+           	</div>
+           	
+           	<div class="lines"></div>		
+            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+                <tbody><tr>
+                    <td class="topCell first" valign="top" width="30%">
+                        <!--ET_BEGIN deliveryTermId-->
+                    	<div>
+                            Условие: <b>[#deliveryTermId#]</b>
+                       	</div>
+                       	<!--ET_END deliveryTermId-->
+                             
+        
+                        <!--ET_BEGIN note-->
+	                        <hr />
+	                        <div class="richtext">[#note#]</div> 
+                        <!--ET_END note-->     
+                    </td>
+                    <td class="topCell" valign="top" width="40%">
+                        <!--ET_BEGIN paymentMethodId-->
+                            <div>Плащане: <b>[#paymentMethodId#]</b></div>
+                        <!--ET_END paymentMethodId-->
+                        
+                        <!--ET_BEGIN currencyId-->
+                            <div>Валута:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
+                        <!--ET_END currencyId-->
+                    </td>
+       
+                    <td class="topCell" align="right" valign="top" width="30%">
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td style="text-align: right;">Обща сума [#chargeVat#]:</td>
+                                            <td><b>[#amountDeal#]</b></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="RIGHT"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>           
+                </tbody>
+            </table>
+ 			<!--ET_BEGIN DETAILS-->
+				<div class='details'>
+					[#DETAILS#]
+				</div>
+			<!--ET_END DETAILS-->
+        </td>
+    </tr>
+    </tbody>
+</table>
+</div>

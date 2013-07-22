@@ -29,7 +29,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'sales_Deals';
+    var $startCtr = 'sales_Sales';
     
     
     /**
@@ -64,7 +64,7 @@ class sales_Setup extends core_ProtoSetup
         	'sales_SalesLastPricePolicy',
         	'sales_Quotations',
         	'sales_QuotationsDetails',
-    		'sales_SaleRequest',
+    		'sales_SaleRequests',
         );
 
         
