@@ -65,7 +65,7 @@ class bgerp_Portal extends core_Manager
             ");
         } else {
             $tpl = new ET("
-            <table width=100% class='top-table' cellspacing=10 >
+            <table width=100% class='top-table large-spacing'>
             <tr>
                 <td width=32%>[#LEFT_COLUMN#]</td>
                 <td width=36%>[#NOTIFICATIONS#]</td>
