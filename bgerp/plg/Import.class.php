@@ -252,7 +252,7 @@ class bgerp_plg_Import extends core_Plugin
      * към мениджъра
      * @return array $options - масив с възможни драйвъри
      */
-    public function getImportDrivers()
+    public static function getImportDrivers()
     {
     	$options = array();
     	$Drivers = core_Classes::getOptionsByInterface('bgerp_ImportIntf');
