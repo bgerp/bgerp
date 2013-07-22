@@ -55,6 +55,12 @@ class currency_Currencies extends core_Master {
     var $canDelete = 'no_one';
     
     /**
+     * Кой може да го прочете?
+     */
+    var $canRead = 'ceo,admin,cash,bank,currency';
+    
+    
+    /**
      * Заглавие
      */
     var $title = 'Списък с всички валути';
