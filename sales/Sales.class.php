@@ -1057,7 +1057,6 @@ class sales_Sales extends core_Master
             
             if ($d->haveInterface('bgerp_DealIntf')) {
                 $dealInfo = $d->getDealInfo();
-                bp($dealInfo);
             }
             
             if ($d->haveInterface('store_ShipmentIntf')) {

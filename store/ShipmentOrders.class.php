@@ -187,6 +187,44 @@ class store_ShipmentOrders extends core_Master
             'caption=Статус, input=none'
         );
     }
+
+
+
+    /**
+     * След промяна в детайлите на обект от този клас
+     *
+     * @TODO Тук да се запомнят само мастър ид-тата, а същинското обновление на мастъра да се
+     *       направи на on_Shutdown
+     *
+     * @param core_Manager $mvc
+     * @param int $id ид на мастър записа, чиито детайли са били променени
+     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+        $rec = $mvc->fetchRec($id);
+    
+        /* @var $query core_Query */
+        $query = $detailMvc->getQuery();
+        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    
+        $rec->amountDelivered = 0;
+    
+        while ($detailRec = $query->fetch()) {
+            $VAT = 1;
+    
+            if ($rec->chargeVat == 'yes') {
+                $Policy         = cls::get($detailRec->policyId);
+                $ProductManager = $Policy->getProductMan();
+    
+                $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
+            }
+    
+            $rec->amountDelivered += $detailRec->amount * $VAT;
+        }
+    
+        $mvc->save($rec);
+    }
     
     public static function on_AfterCreate($mvc, $rec)
     {
