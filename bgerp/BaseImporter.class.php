@@ -109,7 +109,7 @@ class bgerp_BaseImporter extends core_Manager {
 	/**
      * Драйвъра може да се показва към всички мениджъри
      */
-    public function isApplicable($mvc)
+    public function isApplicable($className)
     {
     	return TRUE;
     }

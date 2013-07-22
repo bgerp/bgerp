@@ -254,8 +254,8 @@ class bnav_BnavImporter extends core_Manager {
     /**
      * Драйвъра може да се показва само към инстанция на cat_Products
      */
-    public static function isApplicable($mvc)
+    public static function isApplicable($className)
     {
-    	return $mvc instanceof static::$applyOnlyTo;
+    	return $className == static::$applyOnlyTo;
     }
 }

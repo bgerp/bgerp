@@ -30,6 +30,11 @@
 class bgerp_plg_Import extends core_Plugin
 {
 	
+	/**
+	 * Работен кеш
+	 */
+	protected static $cache;
+	
 	
 	/**
      * Извиква се след описанието на модела
@@ -183,6 +188,7 @@ class bgerp_plg_Import extends core_Plugin
     	$exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
     	$exp->functions['getimportdrivers'] = 'bgerp_plg_Import::getImportDrivers';
     	$exp->functions['verifydata'] = 'bgerp_plg_Import::verifyInputData';
+    	bgerp_plg_Import::$cache = get_class($exp->mvc);
     	
     	// Избиране на драйвър за импортиране
     	$exp->DEF('#driver', 'int', 'caption=Драйвър,input,mandatory');
@@ -252,7 +258,7 @@ class bgerp_plg_Import extends core_Plugin
     	$Drivers = core_Classes::getOptionsByInterface('bgerp_ImportIntf');
     	foreach ($Drivers as $id => $driver){
     		$Driver = cls::get($id);
-    		if($Driver->isApplicable($this->mvc)){
+    		if($Driver->isApplicable(bgerp_plg_Import::$cache)){
     			$options[$id] = $Driver->title;
     		}
     	}
