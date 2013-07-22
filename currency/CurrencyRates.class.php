@@ -50,6 +50,13 @@ class currency_CurrencyRates extends core_Detail
      */
     var $canRetrieve = 'currency,ceo';
     
+    
+    /**
+     * Кой може да го прочете?
+     */
+    var $canRead = 'ceo,admin,cash,bank,currency';
+    
+    
     /**
      * Работен кеш за вече изчислени валутни курсове
      *  

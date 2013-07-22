@@ -33,6 +33,11 @@ class currency_FinIndexes extends core_Manager {
      */
     var $listFields = "indexName, period, forDate, indexValue";
     
+    /**
+     * Кой може да го прочете?
+     */
+    var $canRead = 'ceo,admin,cash,bank,currency';
+    
     
     /**
      * Описание на модела

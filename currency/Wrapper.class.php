@@ -24,10 +24,10 @@ class currency_Wrapper extends plg_ProtoWrapper
     {
         
         
-        $this->TAB('currency_Currencies', 'Списък');
-        $this->TAB('currency_CurrencyGroups', 'Групи валути');
-        $this->TAB('currency_CurrencyRates', 'Валутни курсове');
-        $this->TAB('currency_FinIndexes',    'Индекси');
+        $this->TAB('currency_Currencies', 'Списък', 'ceo,admin,cash,bank,currency');
+        $this->TAB('currency_CurrencyGroups', 'Групи валути', 'ceo,admin,cash,bank,currency');
+        $this->TAB('currency_CurrencyRates', 'Валутни курсове', 'ceo,admin,cash,bank,currency');
+        $this->TAB('currency_FinIndexes',    'Индекси', 'ceo,admin,cash,bank,currency');
         
         $this->title = 'Валути « Финанси';
     }

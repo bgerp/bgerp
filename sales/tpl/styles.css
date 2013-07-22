@@ -150,6 +150,11 @@
     margin-left:5px;
 }
 
+.expandable{
+	width:1%;
+	white-space:nowrap;
+}
+
 .oldAmount {
 	text-decoration:line-through;
 	font-size:14px;
@@ -158,7 +163,7 @@
 
 .newAmount {
 	font-weight:bold;
-	font-size:16px;
+	font-size:14px;
 }
 
 .page-break{

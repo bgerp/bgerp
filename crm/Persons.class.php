@@ -76,7 +76,7 @@ class crm_Persons extends core_Master
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
-                     crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,  plg_Printing, plg_State,
+                     crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
                      bgerp_plg_Importer';
 
@@ -196,7 +196,7 @@ class crm_Persons extends core_Master
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,class=contactData,silent');
-        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData');
+        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,class=contactData, silent');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,class=contactData');
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
 
@@ -596,35 +596,35 @@ class crm_Persons extends core_Master
         if ($rec->tel) {
             
             // Добавяме в масива
-            $numbersArr['tel'] = $rec->tel;
+            $numbersArr['tel'][] = $rec->tel;
         }
         
         // Ако има бизнес номер
         if ($rec->buzTel) {
             
             // Добавяме към телефона
-            $numbersArr['tel'] .= $numbersArr['tel'] ? ', ' . $rec->buzTel : $rec->buzTel;
+            $numbersArr['tel'][] = $rec->buzTel;
         }
         
         // Ако има факс
         if ($rec->fax) {
             
             // Добавяме факса
-            $numbersArr['fax'] = $rec->fax;
+            $numbersArr['fax'][] = $rec->fax;
         }
         
         // Ако има бизнес факс
         if ($rec->buzFax) {
             
             // Добавяме към факса
-            $numbersArr['fax'] .= $numbersArr['fax'] ? ', ' . $rec->buzFax : $rec->buzFax;
+            $numbersArr['fax'][] = $rec->buzFax;
         }
         
         // Ако има мобилен
         if ($rec->mobile) {
             
             // Добавяме мобилния
-            $numbersArr['mobile'] = $rec->mobile;
+            $numbersArr['mobile'][] = $rec->mobile;
         }
         
         // id на класа

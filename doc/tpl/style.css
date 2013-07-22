@@ -47,10 +47,7 @@ li.dimension{
 	padding-left:0.7em !important;
 	border:none;
 	min-width:100%;
-	padding-top:0 !important;
-	padding-bottom:0;
-	height:1em;
-	line-height:1em;
+	margin:0px;
 	outline:none;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }

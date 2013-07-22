@@ -163,6 +163,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * id на системата в крона
+     */
+    static $cronSytemId = 'SendEmails';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -677,6 +683,45 @@ class blast_Emails extends core_Master
                     $data->row->GroupLink = ht::createLink($name, array($docInst, 'single', $docId));
                 }
             }
+            
+            // Записите
+            $rec = $data->rec;
+            
+            // Ако състоянието е активирано или чернов
+            if ($rec->state == 'active' || $rec->state == 'waitnig') {
+                
+                // Вземаме времето на следващото изпращане
+                // Ако има такова време
+                if ($nextStartTime = core_Cron::getNextStartTime(static::$cronSytemId)) {
+                    
+                    // Ако времето е преди въведената дата от потребителя
+                    if ($nextStartTime < $rec->startOn) {
+                        
+                        // Използваме дата на потребителя
+                        $nextStartTime = $rec->startOn;
+                    }
+                    
+                } else {
+                    
+                    // Ако все пак може да се изпрати
+                    if ($nextStartTime !== FALSE) {
+                        
+                        // Ако няма следващо време на изпращане
+                        if (dt::now() < $rec->startOn) {
+                            
+                            // Вземаме времето въведено от потребителя
+                            $nextStartTime = $rec->startOn;
+                        }
+                    }
+                }
+                
+                // Ако сме успели да определим времето
+                if ($nextStartTime) {
+                    
+                    // Показваме вербалното време
+                    $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
+                }
+            }
         }
         
         return $tpl;
@@ -712,25 +757,61 @@ class blast_Emails extends core_Master
         
         // Въвеждаме съдържанието на полетата
         $form->input('sendPerMinute, startOn');
-
-        // Стойности по подразбиране
-        $form->setDefault('sendPerMinute', $rec->sendPerMinute);
-        $form->setDefault('startOn', $rec->startOn);
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Ако има задедена дата
+            if ($form->rec->startOn) {
+                
+                // Ако в записа няма зададена дата
+                if (!$rec->startOn) {
+                    
+                    // Вземаме текущото време
+                    $date = dt::now();
+                } else {
+                    
+                    // Вземаме времото от записа
+                    $date = $rec->startOn;
+                }
+                
+                // Вземаме разликата в секундите
+                $secB = dt::secBetwen($form->rec->startOn, $date);
+                
+                // Ако е предишна дата
+                if ($secB < 0) {
+                    
+                    // Сетваме грешка
+                    $form->setError('startOn', 'Не може да въведе минала дата');
+                }
+            }
+        }
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
             
-            // Сменя статуса на чакащ
-            $form->rec->state = 'waiting';
-            
             // Кой активира имейла
             $form->rec->activatedBy = core_Users::getCurrent();
-                        
+            
             // Ако е въведена коректна дата, тогава използва нея
             // Ако не е въведено нищо, тогава използва сегашната дата
             // Ако е въведена грешна дата показва съобщение за грешка
             if (!$form->rec->startOn) {
                 $form->rec->startOn = dt::verbal2mysql();
+            }
+            
+            // Вземаме секундите между сегашното време и времето на стартиране
+            $sec = dt::secBetwen(dt::now(), $form->rec->startOn);
+            
+            // Ако са по - малко от 60 секунди
+            if ($sec < 60) {
+                
+                // Активираме
+                $form->rec->state = 'active';
+            } else {
+                
+                // Сменя статуса на чакащ
+                $form->rec->state = 'waiting';
             }
             
             // Копира всички имеили, на които ще се изпраща имейл-а
@@ -747,6 +828,18 @@ class blast_Emails extends core_Master
             
             // Редиректваме
             return redirect($link);
+        } else {
+            
+            // Ако няма брой изпращания
+            if (!$defVal = $rec->sendPerMinute) {
+                
+                // Ако няма задаваме да е 5
+                $defVal = 5;
+            }
+            
+            // Стойности по подразбиране
+            $form->setDefault('sendPerMinute', $defVal);
+            $form->setDefault('startOn', $rec->startOn);
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -1417,10 +1510,10 @@ class blast_Emails extends core_Master
 
         //Ако изпращаме имейла
         if ($sending) {
-            //Добавяме CSS, като inline стилове
-            $css = getFileContent('css/wideCommon.css') .
-                "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css') ;
-                
+            //Добавяме CSS, като inline стилове            
+            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . "\n" . getFileContent('css/email.css');
+             
             $res = '<div id="begin">' . $res->getContent() . '<div id="end">'; 
              
             // Вземаме пакета
@@ -1685,14 +1778,14 @@ class blast_Emails extends core_Master
         
         //Данни за работата на cron
         $rec = new stdClass();
-        $rec->systemId = 'SendEmails';
+        $rec->systemId = static::$cronSytemId;
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $mvc->className;
         $rec->action = 'SendEmails';
-        $rec->period = 10;
+        $rec->period = 5;
         $rec->offset = 0;
         $rec->delay = 0;
-        $rec->timeLimit = 500;
+        $rec->timeLimit = 250;
         
         $Cron = cls::get('core_Cron');
         

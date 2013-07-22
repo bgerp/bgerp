@@ -184,7 +184,6 @@ class doc_Comments extends core_Master
             $row->body = type_Text::formatTextBlock($row->body, $width, 0);
         }
         
-        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
         $data->row->headerType = tr('Коментар');
     }
     

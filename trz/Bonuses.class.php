@@ -17,6 +17,11 @@
 class trz_Bonuses extends core_Master
 {
     
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'trz_SalaryIndicatorsSourceIntf';
+    
     
     /**
      * Заглавие
@@ -96,15 +101,36 @@ class trz_Bonuses extends core_Master
     	
     }
     
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-   /* function act_Default()
+    function act_Test()
     {
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
+    	$date = '2013-07-16';
+    	//bp(self::getSalaryIndicators($date));
+    }
+    
+    
+    /**
+     * Интерфейсен метод на trz_SalaryIndicatorsSourceIntf
+     * 
+     * @param date $date
+     * @return array $result
+     */
+    function getSalaryIndicators($date)
+    {
+    	$query = self::getQuery();
+    	$query->where("#periodId  = '{$date}'");
+    	     	 
+    	while($rec = $query->fetch()){
+    	
+    		$result[] = (object)array(
+	    		'personId' => $rec->personId, 
+	    		'docId'  => $rec->id, 
+	    	    'docClass' => core_Classes::fetchIdByName('trz_Bonuses'),
+	    		'indicator' => 'bonuses', 
+	    		'value' => $rec->sum
+	    	);
+    	}
 
-        return $this->renderWrapping($underConstructionImg);
-    }*/
+    	return $result;
+    }
+
 }

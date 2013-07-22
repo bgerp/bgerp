@@ -130,6 +130,15 @@ class bgerp_L extends core_Manager
             // Вземаме записа за документа
             $rec = $doc->fetch();
             
+            // Ако потребителя има права до треда на документа, то той му се показва
+            if($rec && $rec->threadId) {
+                
+                if($doc->instance->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+
+                    return new Redirect(array($doc->instance, 'single', $rec->id));
+                }
+            }
+            
             // Очакваме да не е чернова или оттеглен документ
             expect($rec->state != 'rejected' && $rec->state != 'draft', 'Липсващ документ');
             

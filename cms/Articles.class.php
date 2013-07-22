@@ -150,8 +150,8 @@ class cms_Articles extends core_Manager
 
             $lArr = explode('.', self::getVerbal($rec, 'level'));
 
-            $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
-
+            $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
+            
             // Рендираме тулбара за споделяне
             $conf = core_Packs::getConfig('cms');
             if($conf->CMS_SHARE) {
@@ -159,7 +159,7 @@ class cms_Articles extends core_Manager
             }
 
             $ptitle   = self::getVerbal($rec, 'title') . " » ";
-
+ 
             $content->prepend($ptitle, 'PAGE_TITLE');
             
         	// Подготвяме информаията за ографа на статията
@@ -170,7 +170,11 @@ class cms_Articles extends core_Manager
 
         // Подготвя навигацията
         $query = self::getQuery();
-        $query->where("#menuId = {$menuId}");
+        
+        if($menuId) {
+            $query->where("#menuId = {$menuId}");
+        }
+
         $query->orderBy("#level");
 
         $navTpl = new ET();
@@ -198,7 +202,7 @@ class cms_Articles extends core_Manager
 
                 $lArr = explode('.', self::getVerbal($rec, 'level'));
 
-                $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
+                $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
 
                 $ptitle   = self::getVerbal($rec, 'title') . " » ";
 
@@ -244,8 +248,11 @@ class cms_Articles extends core_Manager
         Mode::set('cMenuId', $menuId);
 
         $content->append($navTpl, 'NAVIGATION');
+        
+        $richText = cls::get('type_RichText');
+        $desc = ht::escapeAttr(str::truncate(ht::extractText($desc), 200, FALSE));
 
-        $content->replace($title, 'META_KEYWORDS');
+        $content->replace($desc, 'META_DESCRIPTION');
 
         if($ogp){
         	
@@ -290,7 +297,7 @@ class cms_Articles extends core_Manager
         }
         				 
     	$richText = cls::get('type_RichText');
-    	$desc = strip_tags($richText->toHtml($rec->body));
+    	$desc = ht::extractText($richText->toHtml($rec->body));
     		
     	// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	    $ogp->siteInfo = array('Locale' =>'bg_BG',

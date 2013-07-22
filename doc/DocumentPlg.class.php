@@ -349,11 +349,11 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->state != 'draft'){
         	
 	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	$isRejected = ($rec->state == 'rejected') ? TRUE : FALSE;
+	    	$fnc = ($rec->state == 'rejected') ? 'cancelUsed' : 'used';
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
-	    			$Log::used($used->class, $used->id, $mvc, $rec->id, $isRejected);
+	    			$Log::$fnc($used->class, $used->id, $mvc, $rec->id);
 	    		}
 	    	}
         }
@@ -832,8 +832,26 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
+    
+	/**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if (empty($data->form->rec->id) && $data->form->rec->threadId && $data->form->rec->originId) {
+            $folderId = ($data->form->rec->folderId) ? $data->form->rec->folderId : doc_Threads::fetchField('folderId');
+        	
+            if($mvc->canAddToFolder($folderId) && $mvc->onlyFirstInThread !== FALSE){
+            	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
+            }
+        }
+    }
 
-
+    
     /**
      *
      */
@@ -844,7 +862,7 @@ class doc_DocumentPlg extends core_Plugin
             $fRec = doc_Folders::fetch($form->rec->folderId);
             $title = tr(mb_strtolower($mvc->singleTitle)) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
-
+        
         $rec = $form->rec;
         
         $in = ' |в|* ';
@@ -873,6 +891,12 @@ class doc_DocumentPlg extends core_Plugin
         }
        
         $form->title .= $title;
+        
+    	if($form->isSubmitted()){
+	        if($form->cmd == 'save_new_thread' && $rec->threadId){
+		        unset($rec->threadId);
+		    }
+        }
      }
     
      

@@ -133,6 +133,17 @@ class FeedItem
 	}
 	
 	/**
+	* @desc     Set the 'guid' element of feed item
+	* @access   public
+	* @param    string  The content of 'guid' element
+	* @return   void
+	*/
+	public function setGuid($link)
+	{
+		$this->addElement('guid', $link);
+	}
+	
+	/**
 	* Set the 'date' element of feed item
 	* 
 	* @access   public

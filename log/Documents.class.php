@@ -693,8 +693,15 @@ class log_Documents extends core_Manager
             // Ако има връщане
             if ($row->returnedOn) {
                 
+                // Ако има отворено
+                if ($rec->receivedOn) {
+                    
+                    // Добавяме нов ред
+                    $row->returnedAndReceived .= "<br />";
+                }
+                
                 // Добавяме го
-                $row->returnedAndReceived .= "<br />" . tr("Върнато") . ": {$row->returnedOn}";
+                $row->returnedAndReceived .=  tr("Върнато") . ": {$row->returnedOn}";
             }
             
             // Имейлите До
@@ -2192,7 +2199,16 @@ class log_Documents extends core_Manager
         
         // Вземаме записите
         $recs = static::getRecs($cid, $action);
-       
+        
+        // Ако няма записи не се изпълнява
+        if (empty($recs)) {
+            
+            // Бутона да не е линк
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
         $rows = array();
         foreach ($recs as $rec) {
         	if(!count($rec->data->used)) {
@@ -2240,6 +2256,16 @@ class log_Documents extends core_Manager
         $tpl->append($sendTpl, 'content');
         
         return $tpl;
+    }
+    
+    
+    /**
+     * Ф-я за изтриване на използване от лога
+     * @see static::used
+     */
+    public static function cancelUsed(core_Master $usedClass, $usedId, core_Manager $docClass, $docId)
+    {
+    	return static::used($usedClass, $usedId, $docClass, $docId, TRUE);
     }
     
     

@@ -48,8 +48,8 @@ class bgerp_ImportIntf
      * @param core_Mvc - мениджър за който се проверява
      * @return boolean TRUE/FALSE - можели да се прикепи или не
      */
-	function isApplicable($mvc)
+	function isApplicable($className)
     {
-    	return $this->class->isApplicable($mvc);
+    	return $this->class->isApplicable($className);
     }
 }

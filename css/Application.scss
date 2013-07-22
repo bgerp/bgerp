@@ -103,18 +103,16 @@ table{
 		vertical-align:top;
 	}
 }
-.default-table{
-	border-collapse:separate;
-	line-height:normal;
-	td{
-		padding:2px;
-	}
+
+tr.noHover td:hover { 
+	color: #999999; 
+	background: white;
 }
 /*край на common elements*/
 
 
 /*менюта и подменюта*/
-#framecontentTop,#framecontentBottom,#framecontentTop.a,#framecontentBottom.a{
+#framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a{
 	display:block;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color: $gray3;
@@ -130,7 +128,6 @@ table{
 	border-top: solid 2px $blue;
 	padding-left:0.2em;
 	padding-top:0.2em;
-	
 }
 
 .narrow #framecontentBottom {
@@ -271,28 +268,6 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	background-color:$blue;
 	@include border-radius(2px);
 }
-/*край на менюта и подменюта*/
-
-
-
-
-.narrow select.tab-control{
-	background-color: rgb(221, 221, 221);
-}
-
-
-.narrow .ListTitle {  
-	font-size:1.2em;
-	font-weight:bold;
-	padding-top:5px;
-	padding-bottom:5px;
-}
-
-
-.wide table.top-table td{
-	border: none;
-	vertical-align: top;
-}
 
 .narrow .favicon{
 	display:inline-block;
@@ -300,9 +275,7 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 	top:1px;
 	margin-right:3px;
 }
-
-/*край на таб alphabet*/
-
+/*край на менюта и подменюта*/
 
 /*стилове за корици*/
 div.cover{
@@ -610,15 +583,10 @@ div.mobile {
 }
 /*край на стилове за CRM*/
 
-
-/*стилове за форми*/
-
-
 option.team {
 	background: black;
 	color: #fc0;
 }
-
 
 /*Стилове за acc*/
 div.acc-detail {
@@ -651,6 +619,7 @@ div.acc-detail {
 	}
 	&.portal{
 		padding-top:5px;
+		margin-top:0;
 		p{
 			margin:0;
 		}
@@ -667,6 +636,14 @@ div.acc-detail {
 
 
 /*портал*/
+.wide table.top-table.large-spacing{
+	border-spacing:10px;
+}
+
+.wide table.top-table td{
+	vertical-align: top;
+}
+
 .portal {
   margin-top: 15px;
   padding: 10px;
@@ -690,7 +667,8 @@ div.acc-detail {
     	height:16px;
     	padding-left:5px !important;
 		position:relative;
-		top:2px;
+		top:3px;
+		margin-bottom:0;
     }
   }
   .richtext{
@@ -733,9 +711,52 @@ td.portal-date {
 /*край на портал*/
 
 
+/*тредове*/
+.single-thread .listTable td{
+	max-width:900px;
+}
+
+.doc_Containers table.listTable td,.doc_Containers table.listTable th {
+	vertical-align: top !important;
+}
+
+.doc_Containers table.listTable>tbody>tr:hover {
+	background-color: transparent;
+}
+
+.doc_Containers table.listTable>tbody>tr {
+	background-color: transparent;
+	&.flash {
+	   background-color: #ff8 ;
+	}
+}
+
+/*стилове при отворени тредове*/
+.doc_Containers .thread-opened table.listTable>tbody>tr{
+	background-color: $open-thread ;
+}
+
+.doc_Containers .thread-opened table.listTable>tbody>tr:hover{
+	background-color: $open-thread ;
+}
+
+.thread-opened > div > table.listTable > tbody > tr > td {
+	border: solid 1px green;
+}
+
+.thread-opened table.listTable > thead > tr > th {
+	border: solid 1px green;
+	background-color: #aea;
+}
+
+.thread-opened div.attachments .aHeader {
+	background-color: #e0f0e0;
+}
+/*край на стилове при тредове*/
+
 /*стилове за документи*/
 .document {
-	max-width:900px; 
+    width:99%;
     min-width:800px;
 	border: solid 1px $gray4;
 	background: #ffffff;
@@ -751,6 +772,73 @@ td.portal-date {
 	.correction{
 		color:#e78a02;
 	}
+	.block_left{
+		margin-top:10px;
+	}
+	.centered{
+		text-align:center;
+	}
+	p{
+		margin-top:0;
+		margin-bottom:5px;
+		line-height:120%;
+	}
+	.indent{
+		text-indent:25px;
+	}
+	h3{
+		margin-bottom:10px;
+	}
+	div.richtext-holder{
+		margin-top:0;
+		margin-bottom:5px;
+		line-height:120%;
+		.richtext{
+			display:inline;
+			color:#000;	
+		}
+	}
+	.header {
+		@include border-radius(3px);
+		padding: 3px;
+		font-size: 1em;
+		margin-bottom:10px;
+		span {
+			background-position: 3px center;
+			padding-left: 24px;
+			background-repeat: no-repeat;
+			font-weight: bold;
+		}
+	}
+	.details{
+		.listTable {
+			width:100%;
+		}
+		.listToolbar{
+			padding:5px 0px;
+			margin: 0;
+			border-bottom:1px solid #000;
+			.toolbar{
+				padding-left:0;
+			}
+		}
+	}
+	.listTable th, .listTable td{
+		border:1px solid #000 !important;
+	}
+	&.print-letter{
+		page-break-after:always;
+		max-width:850px;
+		float:none;
+		padding:15px;
+		&:last-child {
+		     page-break-after: auto;
+		}
+	}
+}
+
+.wide .document table.listTable{
+	margin-bottom:0;
 }
 
 pre.document{
@@ -759,61 +847,17 @@ pre.document{
 
 .narrow .document{
 	min-width:200px;
-	width: 100%;
-}
-
-.narrow .single-thread .document{
+	padding:10px;
 	width:98%;
 }
 
-.single-thread .listTable td{
-	max-width:900px;
-}
-
-.listTable>tbody>tr>td div.document {
+.listTable > tbody > tr > td div.document {
 	border: none;
 	background: transparent;
 	@include no-shadow();
 	padding: 2px 4px 5px 4px;
 	float: left;
 	margin: 0px;
-}
-
-.wide .listTable>tbody>tr>td div.document{
-	width:850px !important;
-}
-
-.doc_Containers table.listTable td,.doc_Containers table.listTable th {
-	vertical-align: top !important;
-}
-
-.doc_Containers table.listTable.listTable>tbody>tr:hover {
-	background-color: transparent;
-}
-
-.doc_Containers table.listTable.listTable>tbody>tr {
-	background-color: transparent;
-	
-	&.flash {
-	   background-color: #ff8 ;
-	}
-}
-
-.doc_Containers .thread-opened table.listTable>tbody>tr{
-	background-color: $open-thread ;
-}
-
-.doc_Containers .thread-opened table.listTable>tbody>tr:hover{
-	background-color: $open-thread ;
-}
-
-.thread-opened > div > table.listTable > tbody > tr > td {
-	border: solid 1px green !important;
-}
-
-.thread-opened th {
-	border: solid 1px green !important;
-	background-color: #aea !important;
 }
 
 .antetka {
@@ -826,9 +870,6 @@ pre.document{
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#40C8C8C8,endColorstr=#40C8C8C8); 
     zoom: 1;
 	background: rgba(200, 200, 200, 0.3);
-	.top-table{
-		border-spacing:2px;
-	}
 }
 
 .threadSubTitle {
@@ -837,34 +878,9 @@ pre.document{
 	padding-bottom: 0px;
 	color: #353;
 }
-.document table.listTable{
-	margin-bottom:0;
-}
-
-.document .block_left{
-	margin-top:10px;
-}
 
 .narrow .block_title {
 	font-size: 1.2em !important;
-}
-
-.document .centered{
-	text-align:center;
-}
-
-.document p{
-	margin-top:0;
-	margin-bottom:5px;
-	line-height:120%;
-}
-
-.document .indent{
-	text-indent:25px;
-}
-
-.document h3{
-	margin-bottom:10px;
 }
 
 .narrow .document .richtext{
@@ -872,49 +888,9 @@ pre.document{
 	height:auto;
 }
 
-.document div.richtext-holder{
-	margin-top:0;
-	margin-bottom:5px;
-	line-height:120%;
-}
-
-.document div.richtext-holder .richtext{
-	display:inline;
-	color:#000;	
-}
-
-.document .header {
-	@include border-radius(3px);
-	padding: 3px;
-	font-size: 1em;
-	margin-bottom:10px;
-	span {
-		background-position: 3px center;
-		padding-left: 24px;
-		background-repeat: no-repeat;
-		font-weight: bold;
-	}
-}
-
-.document .details .listTable {
-	width:100%;
-}
-
-.document .details .listToolbar{
-	padding:5px 0px;
-	margin: 0;
-	border-bottom:1px solid #000;
-}
-
-.document .details .listToolbar .toolbar{
-	padding-left:0;
-}
 .narrow .document .details .listToolbar .toolbar {
 	margin-top:8px;
 	margin-left:0;
-}
-.document .listTable th, .document .listTable td{
-	border:1px solid #000 !important;
 }
 
 .smallData {
@@ -943,7 +919,6 @@ pre.document{
 	border-collapse:collapse;
 }
 
-
 .rowData {
 	font-size:0.9em;
 }
@@ -955,7 +930,6 @@ pre.document{
 .footer-notes{
 	border:1px solid #000;
 }
-
 
 #invoice-info{
 	border-left:1px solid #000;
@@ -969,8 +943,60 @@ pre.document{
 	border-left:1px solid #000;
 	border-right:1px solid #000;
 }
+
 /*край на стилове за документи*/
 
+
+/*стилове за прикачени файлове*/
+.wide div.attachments {
+	display: inline-block;
+	margin: 2px;
+}
+div.attachments {
+	display: block;
+	width:100%;
+	float: right;
+	margin: 2px;
+	.aHeader {
+		background-color: $gray2;
+		padding: 3px;
+		padding-left: 26px;
+		background-image: url('../img/16/attach.png');
+		background-repeat: no-repeat;
+		background-position: 6px 4px;
+		border-bottom: solid 1px $gray2;
+	}
+	.file {
+		max-height:32px;
+		height:auto;
+		overflow:hidden;
+		display: block;
+		margin-bottom: 2px;
+	}
+}
+
+.wide .em-holder{
+	width:68%;
+}
+
+.narrow .em-holder{
+	width:100%;
+}
+
+.wide .sm-att{
+	width:29%;
+	float:right;
+}
+
+.narrow .sm-att{
+	margin-top:10px;
+	width:100%;
+	float:left;
+	.attachments{
+		float:left;
+	}
+}
+/*край на стилове за прикачени файлове*/
 
 /*стилове за календара в портала*/
 table.mc-calendar {
@@ -1106,66 +1132,6 @@ td.constrColumnLeft {
 }
 /*край на стилове за палети*/
 
-tr.noHover td:hover { 
-	color: #999999; 
-	background: white;
-}
-
-/*стилове за прикачени файлове*/
-.wide div.attachments {
-	display: inline-block;
-	margin: 2px;
-}
-div.attachments {
-	display: block;
-	width:100%;
-	float: right;
-	margin: 2px;
-	.aHeader {
-		background-color: $gray2;
-		padding: 3px;
-		padding-left: 26px;
-		background-image: url('../img/16/attach.png');
-		background-repeat: no-repeat;
-		background-position: 6px 4px;
-		border-bottom: solid 1px $gray2;
-	}
-	.file {
-		max-height:32px;
-		height:auto;
-		overflow:hidden;
-		display: block;
-		margin-bottom: 2px;
-	}
-}
-
-.thread-opened div.attachments .aHeader {
-	background-color: #e0f0e0;
-}
-
-.wide .em-holder{
-	width:68%;
-}
-
-.narrow .em-holder{
-	width:100%;
-}
-
-.wide .sm-att{
-	width:29%;
-	float:right;
-}
-
-.narrow .sm-att{
-	margin-top:10px;
-	width:100%;
-	float:left;
-	.attachments{
-		float:left;
-	}
-}
-/*край на стилове за прикачени файлове*/
-
 
 /*стилове за нотификация*/
 #notificationsCnt {
@@ -1291,7 +1257,7 @@ ul.history {
 			background-color: #050;
 		}
 		&.used b {
-			background-color: #FF9999;
+			background-color: #F99;
 		}
 	}
 	.detailed b {
@@ -1301,6 +1267,7 @@ ul.history {
 		white-space:nowrap;
 	}
 }
+
 .wide ul.history.summary{
 	width: 100px;
 }
@@ -1387,7 +1354,7 @@ fieldset.sharing-history {
 		margin: 0;
 		padding: 0;
 		list-style-position: inside;
-		li .user {
+		.user {
 			color: #333;
 		}
 		li.seen {
@@ -1409,7 +1376,7 @@ fieldset.sharing-history {
 
 /* CMS */
 /*външни стилове за ширина*/
- .narrow  #all #cmsTop {
+.narrow  #all #cmsTop {
 	min-width:522px;
 	height:141px !important;
 }
@@ -1419,7 +1386,7 @@ fieldset.sharing-history {
 }
 
 #all #cmsBottom {
-	min-width:520px;
+	min-width:522px;
 }
 
 #all #maincontent {
@@ -1536,6 +1503,7 @@ fieldset.sharing-history {
 	min-width: 755px;
 	margin: 0 auto;
 	overflow: hidden;
+	padding-top: 20px;
 }
 
 .onecol,.twocol,.threecol,.fourcol,.fivecol,.sixcol,.sevencol,.eightcol,.ninecol,.tencol,.elevencol
@@ -1821,13 +1789,16 @@ table.styled-table tr:hover td {
 	min-width:380px;
 	padding:0px 8px 8px;
 }
+
 .narrow .info-table{
 	max-width:400px;
 	font-size:0.9em;
 }
+
 .narrow .info-table .rowtools{
 	padding-right:4px;
 }
+
 .info-table .gray-title{
 	color:#666;
 }
@@ -1901,9 +1872,6 @@ div.locImage{
 	margin-left:2px;
 }
 /*край на bugFix - ширина при коментари на документ*/
-
-/*bugFix - заглавие при емейлите*/
-
 
 .trans_DeliveryTerms{
 	max-width: 800px;
@@ -2079,16 +2047,6 @@ div.locImage{
    white-space: nowrap;
 }
 
-.document.print-letter{
-	page-break-after:always;
-	max-width:850px;
-	float:none;
-	padding:15px;
-}
-
-.document.print-letter:last-child {
-     page-break-after: auto;
-}
 .reminder-half{
 	width:50%;
 	display:block;
@@ -2399,5 +2357,6 @@ div.locImage{
 		margin-right: 10px;
 		margin-top: 10px;
 		min-width: 0px;
+		width:850px;
 	}
 }

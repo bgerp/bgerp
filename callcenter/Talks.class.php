@@ -90,7 +90,7 @@ class callcenter_Talks extends core_Master
     /**
      * Нов темплейт за показване
      */
-//    var $singleLayoutFile = '';
+    var $singleLayoutFile = 'callcenter/tpl/SingleLayoutTalks.shtml';
     
     
     /**
@@ -108,7 +108,7 @@ class callcenter_Talks extends core_Master
     /**
      * 
      */
-    var $listFields = 'singleLink=-, externalNum, externalData, internalNum, internalData, startTime, duration';
+    var $listFields = 'singleLink=-, externalData, externalNum, internalData, internalNum, startTime, duration';
     
     
     /**
@@ -131,7 +131,7 @@ class callcenter_Talks extends core_Master
         $this->FLD('externalNum', 'drdata_PhoneType', 'caption=Външен->Номер, width=100%, oldFieldName=callerNum');
         $this->FLD('externalData', 'key(mvc=callcenter_Numbers)', 'caption=Външен->Контакт, width=100%, oldFieldName=callerData');
         
-        $this->FLD('internalNum', 'drdata_PhoneType', 'caption=Вътрешен->Номер, width=100%, oldFieldName=calledNum');
+        $this->FLD('internalNum', 'varchar', 'caption=Вътрешен->Номер, width=100%, oldFieldName=calledNum');
         $this->FLD('internalData', 'key(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
         
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
@@ -176,12 +176,24 @@ class callcenter_Talks extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {    
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {   
+        // Информация за външния номер
+        $externalNumArr = drdata_PhoneType::toArray($rec->externalNum);
         
-        // Добавяме стил за телефони        
-        $row->externalNum = "<div class='telephone'>" . $row->externalNum . "</div>";
-        $row->internalNum = "<div class='telephone'>" . $row->internalNum . "</div>";
+        // Ако е валиден номер
+        if ($externalNumArr) {
+            
+            // Ако е мобилен, класа също да е мобилен
+            $externalClass = ($externalNumArr[0]->mobile) ? 'mobile' : 'telephone';
+            
+            // Добавяме стил за телефони        
+            $row->externalNum = "<div class='{$externalClass}'>" . $row->externalNum . "</div>";
+        } else {
+            
+            // Вероятно е обаждане от вътрешен номер. Да няма оцветяване.
+            $row->externalNum = core_Type::escape($rec->externalNum);
+        }
         
         // Ако има данни за търсещия
         if ($rec->externalData) {
@@ -194,11 +206,17 @@ class callcenter_Talks extends core_Master
             
             // Ако има открити данни
             if ($externalNumRow->contragent) {
-             
+                
+                // Флаг, за да отбележим, че има данни
+                $haveExternalData = TRUE;
+                
                 // Добавяме данните
                 $row->externalData = $externalNumRow->contragent;
             }
-        } else {
+        } 
+        
+        // Ако флага не е дигнат
+        if (!$haveExternalData) {
             
             // Ако има номер
             if ($rec->externalNum) {
@@ -221,11 +239,17 @@ class callcenter_Talks extends core_Master
             
             // Ако има открити данни
             if ($internalNumRow->contragent) {
-             
+                 
+                // Флаг, за да отбележим, че има данни
+                $haveInternalData = TRUE;
+                
                 // Добавяме данните
                 $row->internalData = $internalNumRow->contragent;
             }
-        } else {
+        }
+        
+        // Ако флага не е дигнат 
+        if (!$haveInternalData) {
             
             // Ако има номер
             if ($rec->internalNum) {
@@ -239,13 +263,18 @@ class callcenter_Talks extends core_Master
         
         // Ако сме в тесен режим
         if (mode::is('screenMode', 'narrow')) {
-         
-            // Дива за разстояние
-            $div = "<div style='margin-top:5px;'>";
             
-            // Добавяме данните към номерата
-            $row->externalNum .=  $div. $row->externalData . "</div>";
-            $row->internalNum .= $div . $row->internalData . "</div>";
+            // Ако не сме в сингъла
+            // Добавяме данните към номера
+            if(!$fields['-single']) {
+                
+                // Дива за разстояние
+                $div = "<div style='margin-top:5px;'>";
+                
+                // Добавяме данните към номерата
+                $row->externalNum .=  $div. $row->externalData . "</div>";
+                $row->internalNum .= $div . $row->internalData . "</div>";
+            }
             
             // Ако има продължителност
             if ($rec->duration) {
@@ -264,12 +293,15 @@ class callcenter_Talks extends core_Master
         
         // В зависмост от състоянието на разгоравя, опделяме клас за реда в таблицата
         if (!$rec->dialStatus) {
-            $row->ROW_ATTR['class'] .= ' dialStatus-opened';
+            $row->DialStatusClass .= ' dialStatus-opened';
         } elseif ($rec->dialStatus == 'ANSWERED') {
-            $row->ROW_ATTR['class'] .= ' dialStatus-answered';
+            $row->DialStatusClass .= ' dialStatus-answered';
         } else {
-            $row->ROW_ATTR['class'] .= ' dialStatus-failed';
+            $row->DialStatusClass .= ' dialStatus-failed';
         }
+        
+        // Добавяме класа
+        $row->ROW_ATTR['class'] = $row->DialStatusClass;
         
         // Ако не може да се определи номера
         if (!$rec->externalNum) {
@@ -498,34 +530,34 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input');
         
         // Опции за търсене
-        $options['all'] = '&nbsp;';
+        $statusOptions[''] = '';
         
         // Опциите за входящи разговори
-        $incomings = new stdClass();
-        $incomings->title = tr('Входящи');
-        $incomings->attr = array('class' => 'team');
-        $incomings->keylist = 'incomings';
+        $incomingsOptions = new stdClass();
+        $incomingsOptions->title = tr('Входящи');
+        $incomingsOptions->attr = array('class' => 'team');
+        $incomingsOptions->keylist = 'incomings';
         
-        $options['incoming'] = $incomings;
-        $options['incoming_ANSWERED'] = tr('Отговорено');
-        $options['incoming_NO ANSWER'] = tr('Без отговор');
-        $options['incoming_BUSY'] = tr('Заето');
-        $options['incoming_FAILED'] = tr('Прекъснато');
+        $statusOptions['incoming'] = $incomingsOptions;
+        $statusOptions['incoming_ANSWERED'] = tr('Отговорено');
+        $statusOptions['incoming_NO ANSWER'] = tr('Без отговор');
+        $statusOptions['incoming_BUSY'] = tr('Заето');
+        $statusOptions['incoming_FAILED'] = tr('Прекъснато');
         
         // Опциите за изходящи разговоири
-        $outgoings = new stdClass();
-        $outgoings->title = tr('Изходящи');
-        $outgoings->attr = array('class' => 'team');
-        $incomings->keylist = 'outgoings';
+        $outgoingsOptions = new stdClass();
+        $outgoingsOptions->title = tr('Изходящи');
+        $outgoingsOptions->attr = array('class' => 'team');
+        $incomingsOptions->keylist = 'outgoings';
         
-        $options['outgoing'] = $outgoings;
-        $options['outgoing_ANSWERED'] = tr('Отговорено');
-        $options['outgoing_NO ANSWER'] = tr('Без отговор');
-        $options['outgoing_BUSY'] = tr('Заето');
-        $options['outgoing_FAILED'] = tr('Прекъснато');
+        $statusOptions['outgoing'] = $outgoingsOptions;
+        $statusOptions['outgoing_ANSWERED'] = tr('Отговорено');
+        $statusOptions['outgoing_NO ANSWER'] = tr('Без отговор');
+        $statusOptions['outgoing_BUSY'] = tr('Заето');
+        $statusOptions['outgoing_FAILED'] = tr('Прекъснато');
         
         // Задаваме опциите
-        $data->listFilter->setOptions('dialStatusType', $options);
+        $data->listFilter->setOptions('dialStatusType', $statusOptions);
         
         // Ако имаме тип на обаждането
         if ($typeOptions = &$data->listFilter->getField('callType')->type->options) {
@@ -608,7 +640,7 @@ class callcenter_Talks extends core_Master
     		}
     		
             // Ако се търси по статус или вид
-            if ($filter->dialStatusType && $filter->dialStatusType != 'all') {
+            if ($filter->dialStatusType) {
                 
                 $dialStatusType = $filter->dialStatusType;
                 
@@ -701,19 +733,31 @@ class callcenter_Talks extends core_Master
         // Вземаме записа
         $rec = static::fetch($id);
         
-        // Ако е изходящо обаждане
-        if ($rec->callType == 'outgoing') {
+        // Ако е отговорено
+        if (!$rec->dialStatus || $rec->dialStatus == 'ANSWERED') {
             
-            // Икона за изходящо обаждане
-            $this->singleIcon = 'img/16/outgoing.png';
-        } elseif (!$rec->dialStatus || $rec->dialStatus == 'ANSWERED') {
-            
-            // Ако в входящо
-            $this->singleIcon = 'img/16/incoming.png';
+            // Ако е изходящо обаждане
+            if ($rec->callType == 'outgoing') {
+                
+                // Икона за изходящо обаждане
+                $this->singleIcon = 'img/16/outgoing.png';
+            } else {
+                
+                // Ако в входящо
+                $this->singleIcon = 'img/16/incoming.png';
+            }
         } else {
             
-            // Ако е входящо и пропуснато
-            $this->singleIcon = 'img/16/missed.png';
+            // Ако е изходящо обаждане
+            if ($rec->callType == 'outgoing') {
+                
+                // Икона за изходящо обаждане
+                $this->singleIcon = 'img/16/outgoing-failed.png';
+            } else {
+                
+                // Ако в входящо
+                $this->singleIcon = 'img/16/incoming-failed.png';
+            }
         }
     }
     
@@ -745,60 +789,61 @@ class callcenter_Talks extends core_Master
      */
     static function getTemplateForAddNum($num, $uniqId)
     {
-        // Иконата за добавяме
-        $background = 'background-image:url(' . sbf("img/16/add1-16.png") . ');';
-        
         // Ако не е валиден номер
         // Третираме го като вътрешен
-        if (!drdata_PhoneType::toArray($num)) {
+        if (!$numArr = drdata_PhoneType::toArray($num)) {
             
             // Аттрибути за стилове 
-            $numbersAttr['class'] .= 'linkWithIcon';
-            $numbersAttr['style'] = $background;
             $numbersAttr['title'] = tr('Добави към потребител');
             
             // Икона на телефон
-            $phonesImg = "<img src=" . sbf('img/16/telephone.png') . " width='16' height='16'>";
+            $phonesImg = "<img src=" . sbf('img/16/telephone2-add.png') . " width='16' height='16'>";
             
             // Създаваме линк
             $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
+            
+            // Ако няма роля admin, да не се показва шаблона за нов
+            if (!haveRole('admin')) return ;
         } else {
             
-            // Инстанция на фирмата
-            $Companies = cls::get('crm_Companies');
-            
             // Аттрибути за стилове 
-            $companiesAttr['class'] .= 'linkWithIcon';
-            $companiesAttr['style'] = $background;
             $companiesAttr['title'] = tr('Нова фирма');
             
             // Икона на фирмите
-            $companiesImg = "<img src=" . sbf($Companies->getIcon()) . " width='16' height='16'>";
+            $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
             
             // Добавяме линк към създаване на фирми
-            $text = ht::createLink($companiesImg, array($Companies, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
-            
-            // Инстанция на лица
-            $Persons = cls::get('crm_Persons');
+            $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
             
             // Аттрибути за стилове 
-            $personsAttr['class'] .= 'linkWithIcon';
-            $personsAttr['style'] = $background;
             $personsAttr['title'] = tr('Ново лице');
             
             // Икона на изображенията
-            $personsImg = "<img src=" . sbf($Persons->getIcon()) . " width='16' height='16'>";
+            $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
+            
+            // Ако е мобилен номер, полето ще сочи към мобилен
+            $personNumField = ($numArr[0]->mobile) ? 'mobile' : 'tel';
             
             // Добавяме линк към създаване на лица
-            $text .= " | ". ht::createLink($personsImg, array($Persons, 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+            $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', $personNumField => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
         }
         
         // Дали да се показва или не
         $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
         
-        // Резултата
-        $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
-        		<div style='visibility:{$visibility};' id='{$uniqId}'>{$text}</div></div";
+        // Ако сме в мобилен режим
+        if (mode::is('screenMode', 'narrow')) {
+            
+            // Не се добавя JS
+            $res = "<div id='{$uniqId}'>{$text}</div>";
+        } else {
+            
+            // Ако не сме в мобилен режим
+            
+            // Скриваме полето и добавяме JS за показване
+            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
+        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
+        }
         
         return $res;
     }
@@ -846,7 +891,7 @@ class callcenter_Talks extends core_Master
             'p' => CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
             'extension' => '540',
-            'callerId' => '0887605397',
+            'callerId' => '539',
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );

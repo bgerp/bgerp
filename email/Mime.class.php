@@ -666,7 +666,7 @@ class email_Mime extends core_BaseClass
                     if($imapDecodeArr[$id+1]->charset &&  $imapDecodeArr[$id+1]->charset == $value->charset) {
                         $acumText .= $value->text;
                     } else {
-                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, $value->charset);
+                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, array($value->charset => 50));
                         $acumText = '';
                     }
                 }

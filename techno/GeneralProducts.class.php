@@ -40,7 +40,7 @@ class techno_GeneralProducts extends core_Manager {
     var $singleLayoutFile = 'techno/tpl/SingleLayoutGeneralProducts.shtml';
     
     
-     /**
+    /**
      * Кой може да го прочете?
      */
     var $canRead = 'no_one';
@@ -75,11 +75,7 @@ class techno_GeneralProducts extends core_Manager {
     	$form->FNC('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%,input');
     	$form->FNC('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,input,mandatory,width=100%');
 		$form->FNC('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input,mandatory');
-    	$form->FNC('price', 'double(decimals=2)', 'caption=Цени->Себестойност,width=8em,input');
-		$form->FNC('bTaxes', 'double(decimals=2)', 'caption=Цени->Нач. такси,width=8em,input');
-		$form->FNC('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,width=8em,input');
-    	$form->FNC('discount', 'percent(decimals=2)', 'caption=Цени->Отстъпка,width=8em,input,hint=Процент');
-		$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
+    	$form->FNC('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение,input');
 		$form->FNC('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em,input');
         $form->FNC('eanCode', 'gs1_TypeEan', 'input,caption=Параметри->EAN,width=15em,input');
 		$form->FNC('meta', 'set(canSell=Продаваем,
@@ -88,7 +84,6 @@ class techno_GeneralProducts extends core_Manager {
         						canConvert=Вложим,
         						fixedAsset=Дма,
         						canManifacture=Производим)', 'caption=Свойства->Списък,input,columns=2');
-        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         if($data->data){
         	
         	// При вече въведени характеристики, слагаме ги за дефолт
@@ -120,15 +115,19 @@ class techno_GeneralProducts extends core_Manager {
      * @return stdClass $priceInfo - информация за цената на продукта
      * 				[price]- начална цена
      * 				[discount]  - отстъпка
-     * 				[tax]     - нач. такси
+     * 				[tax]     - нач. такса
      */
     public function getPrice($data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
     	$data = unserialize($data);
     	$obj = new stdClass();
-    	$obj->price = $data->price;
-    	$obj->discount = $data->discount;
-    	$obj->tax = ($data->bTaxes) ? $data->bTaxes : 0;
+    	$obj->price = $obj->tax = 0;
+    	if(count($data->components->recs)){
+    		foreach ($data->components->recs as $comp){
+    			$obj->price += $comp->amount;
+    			$obj->tax += $comp->bTaxes;
+    		}
+    	}
     		
     	return $obj;
     }
@@ -153,10 +152,9 @@ class techno_GeneralProducts extends core_Manager {
     		}
     		
 	        // Добавяне на линк за сингъла на спецификацията
-	    	if(!Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
-	    		$url = array('techno_Specifications', 'single', $data->specificationId);
-	    		$row->title = ht::createLink($row->title, $url);
-	    	}
+	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
+	    		$row->title = ht::createLinkRef($row->title, array('techno_Specifications', 'single', $data->specificationId), NULL, 'title=Към спецификацията');
+    		}
     	} else {
     		if($data->image){
     			$size = array(200, 350);
@@ -167,10 +165,10 @@ class techno_GeneralProducts extends core_Manager {
     		if(techno_Specifications::haveRightFor('configure', $data->specificationId) && !Mode::is('printing')){
     			$img = sbf('img/16/add.png');
     			$addUrl = array('techno_Parameters', 'configure', $data->specificationId, 'ret_url' => TRUE);
-	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
+	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов параметър')); 
     			
 	    		$compUrl = array('techno_Components', 'configure', $data->specificationId, 'ret_url' => TRUE);
-	    		$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon')); 
+	    		$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов компонент')); 
 	    	}
 	    }
     	
@@ -181,6 +179,7 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+        
         return $tpl;
     }
     
@@ -196,7 +195,7 @@ class techno_GeneralProducts extends core_Manager {
     {
     	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
     	techno_Parameters::renderParameters($row->params, $tpl, $short);
-    	techno_Components::renderParameters($row->components, $tpl, $short);
+    	$tpl->append(techno_Components::renderComponents($row->components, $short), 'COMPONENTS');
     	
     	$tpl->placeObject($row);
     	
@@ -219,16 +218,18 @@ class techno_GeneralProducts extends core_Manager {
     		$row->$name = $fld->type->toVerbal($data->$name);
     	}
     	
-    	// Вербализиране на параметрите, ако има
+    	// Вербално представяне на параметрите
     	techno_Parameters::getVerbal($data->params, $data->specificationId, $row->params);
-    	techno_Components::getVerbal($data->components, $data->specificationId, $row->components);
+    	
+    	// Вербално представяне на компоненти, ако има
+    	techno_Components::getVerbal($data->components->recs, $data->specificationId, $row->components);
     	
     	return $row;
     }
     
     
     /**
-     * Информация за продукта
+     * Информация за артикула
      * @param int $productId - ид на продукт
      * @param int $packagingId - ид на опаковка
      * @return stdClass $rec
@@ -249,19 +250,14 @@ class techno_GeneralProducts extends core_Manager {
 	    	$res->meta = FALSE;
 	    }
 	    
-	    if(!$packagingId) {
-	    	$res->packagings = array();
-	    } else {
-	    	return NULL;
-	    }
-	   	
-	    return $res;
+	    (!$packagingId) ? $res->packagings = array() : $res = NULL;
+	   	return $res;
     }
     
     
     /**
      * Връща ддс-то на продукта
-     * @param int $data - сериализараната информация от драйвъра
+     * @param int $data - сериализираната информация от драйвъра
      * @param datetime $date - към дата
      */
     public function getVat($data, $date = NULL)
@@ -279,6 +275,7 @@ class techno_GeneralProducts extends core_Manager {
     
     
 	/**
+	 * Връща изпозлваните документи
      * @see techno_ProductsIntf::getUsedDocs
      */
     function getUsedDocs($data)

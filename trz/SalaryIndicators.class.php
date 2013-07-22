@@ -60,17 +60,19 @@ class trz_SalaryIndicators extends core_Manager
      */
     var $canDelete = 'ceo,trz';
     
+    //var $canDeletesysdata= 'ceo,trz';
     
+        
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, periodId, personId, departmentId, positionId, value';
+    var $listFields = 'id, date, doc=Документ, personId, departmentId, positionId, indicator, value';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -78,11 +80,215 @@ class trz_SalaryIndicators extends core_Manager
      */
     function description()
     {
-    	$this->FLD('periodId',    'key(mvc=acc_Periods, select=title)', 'caption=Период,mandatory,width=100%');
-    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Лице,mandatory,width=100%');
-    	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Отдел,mandatory,width=100%');
-    	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Длъжност,mandatory,width=100%');
-    	$this->FLD('value',    'double', 'caption=Стойност,mandatory,width=100%');
+    	$this->FLD('date',    'date', 'caption=Дата,mandatory,width=100%');
+    	$this->FLD('docId',    'int', 'caption=Документ->№,mandatory,width=100%');
+    	$this->FLD('docClass',    'key(mvc=core_Classes, select=name)', 'caption=Документ->Клас,mandatory,width=100%');
+    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Лице,mandatory,width=100%');
+    	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Служител->Отдел,mandatory,width=100%');
+    	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Служител->Длъжност,mandatory,width=100%');
+    	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Име,mandatory,width=100%');
+    	$this->FLD('value',    'double', 'caption=Индикатор->Стойност,mandatory,width=100%');
+    	
+    	$this->setDbUnique('docId, docClass, personId, indicator');
+    	
+    }
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+	    	$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+	    	$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId));
+    	}
+    	
+    	// Ако имаме права да видим документа от Птемиите
+    	if(trz_Bonuses::haveRightFor('single', $rec->docId)){
+	    	$name = trz_Bonuses::fetchField("#id = '{$rec->docId}'", 'type');
+	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
+    	}
+    }
+    
+    
+    /**
+     * Прилага филтъра, така че да се показват записите 
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$from = $data->listFilter->rec->from;
+    	$to = $data->listFilter->rec->to;
+    	$person = $data->listFilter->rec->person;
+    	$indicators = $data->listFilter->rec->indicators;
+
+    	if($from && $to){
+    		if($from > $to){
+    			$newFrom = $from;
+    			$from = $to;
+    			$to = $newFrom;
+    		}
+			$data->query->where("#date >= '{$from}' AND #date <= '{$to}'");
+	    }
+	    
+    	if($from){
+			$data->query->where("#date >= '{$from}'");
+	    }
+	    
+    	if($to){
+			$data->query->where("#date <= '{$to}'");
+	    }
+	    
+	    if($person){
+	    	$data->query->where("#personId = '{$person}'");
+	    }
+	    
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
+        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
+        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
+        $data->listFilter->FNC('indicators', 'varchar', 'caption=Показател,input,silent, width = 150px');
+        $data->listFilter->FNC('group', 'enum(1=,
+        									  2=По дати,
+        									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
+                        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+       	$data->listFilter->showFields = 'from, to, person, indicators, group';
+        $data->listFilter->input('from, to, person, indicators, group', 'silent');
+    }
+    
+    
+    /**
+     * Изпращане на данните към показателите
+     */
+    function cron_Indicators()
+    {
+        $date = dt::now(FALSE);
+       
+        $this->pushIndicators($date);
+
+    }
+    
+    function act_Test()
+    {
+    	$date = '2013-07-16';
+    	bp(self::pushIndicators($date));
+    }
+    
+    
+    /**
+     * Събиране на информация от всички класове
+     * имащи интерфейс trz_SalaryIndicatorsSourceIntf
+     * 
+     * @param date $date
+     */
+    static public function fetchIndicators($date)
+    {
+    	// Намираме всички класове съдържащи интерфейса
+    	$docArr = core_Classes::getOptionsByInterface('trz_SalaryIndicatorsSourceIntf');
+    	$indicators = array();
+    
+    	// Зареждаме всеки един такъв клас
+    	foreach ($docArr as $doc){
+    		$Class = cls::get($doc);
+    		
+    		// Взимаме връщания масив от интерфейсния метод
+    	    $data = $Class->getSalaryIndicators($date);
+
+    	    // По id-то на служителя, намираме от договора му
+    	    // в кой отдел и на каква позиция работи
+    	    for($i = 0; $i < count($data); $i ++){
+    	    	$data[$i]->departmentId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'departmentId');
+    	    	$data[$i]->positionId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'positionId');
+    	    	
+    	    }
+            
+    	    if(is_array($data)){
+    	    	// Сливаме всичко в един масив
+    			$indicators = array_merge($indicators, $data);
+    	    }
+    		
+    	}
+      
+    	return $indicators;
+    }
+    
+    
+    /**
+     * Пълнене на базата данни
+     * 
+     * @param date $date
+     */
+    static public function pushIndicators($date)
+    {
+    	$indicators = self::fetchIndicators($date);
+    	
+    	// За всеки един елемент от масива
+    	foreach ($indicators as $indicator)
+    	{
+    		$rec->date = $date;
+	    	$rec->docId = $indicator->docId;
+	    	$rec->docClass = $indicator->docClass;
+	    	$rec->personId = $indicator->personId;
+	    	$rec->departmentId = $indicator->departmentId; 
+	    	$rec->positionId = $indicator->positionId;
+	    	$rec->indicator = $indicator->indicator;
+	    	$rec->value = $indicator->value;
+	    	
+	    	$mvc = cls::get('core_Mvc');
+	    	$exRec = new stdClass();
+	    	
+	    	// Ако имаме уникален запис го записваме
+	    	// в противен слувай го ъпдейтваме
+       		if($mvc->isUnique($rec, $fields, $exRec)){
+    			self::save($rec);
+    		}else { 
+            	$rec->id = $exRec->id;
+            	self::save($rec);
+            }
+            
+	    	
+    	}
     }
 
+    
+    /**
+     * Изпълнява се след начално установяване
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        $Cron = cls::get('core_Cron');
+        
+        $rec = new stdClass();
+        $rec->systemId = "CollectIndicators";
+        $rec->description = "Индикатори на заплатите";
+        $rec->controller = "trz_SalaryIndicators";
+        $rec->action = "Indicators";
+        $rec->period = 3*60;
+        $rec->offset = 0;
+        
+        $Cron->addOnce($rec);
+        
+        $res .= "<li>Напомняне  по крон</li>";
+    }
 }

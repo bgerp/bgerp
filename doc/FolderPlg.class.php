@@ -283,23 +283,16 @@ class doc_FolderPlg extends core_Plugin
         // Вземаме текущия потребител
         $cu = core_Users::getCurrent();
         
-        // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
-        // @TODO да се махне този хак
-        if($cu < 0) {
-           // $firstAdmin = core_Users::getFirstAdmin();
-            
-            //Ако има администратор в системата използваме него
-            //При при първата инсталация на системата, нямаме администратор. Използваме системния потребител
-            if ($firstAdmin) {
-             //   $cu = $firstAdmin;    
-            }
+        $fArr = arr::make($fields, TRUE);
+
+        if((!$fields || $fArr['inCharge']) && !$rec->inCharge) {
+            $rec->inCharge = $cu;
         }
         
-        setIfNot($rec->inCharge, $cu);
-        
-        setIfNot($rec->access, 'team');
-        
-        if(!$rec->state) {
+        if((!$fields || $fArr['access']) && !$rec->access) {
+            $rec->access = 'team';
+        }
+        if((!$fields || $fArr['state']) && !$rec->state) {
             $rec->state = 'active';
         }
     }

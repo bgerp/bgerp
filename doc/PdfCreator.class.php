@@ -105,8 +105,9 @@ class doc_PdfCreator extends core_Manager
         if (!$fileHnd) {
 
             //Вземаме всичките css стилове
-            $css = getFileContent('css/wideCommon.css') .
-                "\n" . getFileContent('css/wideApplication.css') . 
+                  
+            $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+                "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . 
                 "\n" . getFileContent('css/email.css') . 
                 "\n" . getFileContent('css/pdf.css');
             

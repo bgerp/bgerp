@@ -1,0 +1,60 @@
+<!--ET_BEGIN LONG-->
+<table class = 'styled-table' id='components-table'>
+	<!--ET_BEGIN addBtnComp-->
+	<tr>
+		<th colspan='6'>|Компоненти|* [#addBtnComp#]</th>
+	</tr>
+	<!--ET_END addBtnComp-->
+	<!--ET_BEGIN TH-->
+	[#TH#]
+	<tr>
+		<td><b>№</b></td>
+		<td><b>|Продукт|*</b></td>
+		<td align='right'><b>|К-во|*</b></td>
+		<td align='right'><b>|Цена|*</b></td>
+		<td align='right'><b>|Стойност|*</b></td>
+		<td align='right'><b>|Такси|*</b></td>
+	</tr>
+	<!--ET_END TH-->
+	<!--ET_BEGIN COMPONENT-->
+	[#COMPONENT#]
+	<tr>
+		<td>[#num#] [#tools#]</td>
+		<td>[#componentId#]</td>
+		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
+		<td width='12%' align='right' class='expandable'>[#cPrice#]</td>
+		<td width='12%' align='right' class='expandable'>[#amount#]</td>
+		<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>
+	</tr>
+	<!--ET_END COMPONENT-->
+	<!--ET_BEGIN totalAmount-->
+	<tr class='components-total'>
+		<td colspan='3' style='border:0px;' class='no-hover'></td>
+		<td align='right' class='has-hover'><b>|Общо|*:</b></td>
+		<td align='right' class='has-hover expandable'><b>[#totalAmount#]</b>
+		<!--ET_BEGIN currencyId-->
+		<span class='cCode'>[#currencyId#]</span>
+		<!--ET_END currencyId-->
+		</td>
+		<td align='right' class='has-hover expandable'><b>[#totalTaxes#]</b>
+		<!--ET_BEGIN currencyTaxId-->
+		<span class='cCode'>[#currencyTaxId#]</span>
+		<!--ET_END currencyTaxId-->
+		</td>
+	</tr>
+	<!--ET_END totalAmount-->
+	</table>
+<!--ET_END LONG-->
+
+<!--ET_BEGIN SHORT-->
+<!--ET_BEGIN compHeader-->
+[#compHeader#]
+|Компоненти|*
+<!--ET_END compHeader-->
+		<ol class ='short']>
+			<!--ET_BEGIN COMPONENT-->
+			[#COMPONENT#]
+			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>
+			<!--ET_END COMPONENT-->
+		</ol>
+<!--ET_END SHORT-->

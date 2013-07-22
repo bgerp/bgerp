@@ -304,7 +304,7 @@ class blogm_Articles extends core_Master {
         
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-		
+		 
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         $tpl->append($ogpHtml);
@@ -383,7 +383,7 @@ class blogm_Articles extends core_Master {
 	    				  'Determiner' =>'the',);
     	} else {
     		$richText = cls::get('type_RichText');
-    		$desc = strip_tags($richText->toHtml($data->rec->body));
+    		$desc = ht::extractText($richText->toHtml($data->rec->body));
     		
     		// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	        $data->ogp->siteInfo = array('Locale' =>'bg_BG',
@@ -789,7 +789,7 @@ class blogm_Articles extends core_Master {
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);
 	    		if(count($desc) > 1) {
-	    			$rec->body = strip_tags($richText->toHtml($desc[0]));
+	    			$rec->body = ht::extractText($richText->toHtml($desc[0]));
 	    			$rec->body .= "[...]";
 	    		}
 	    		

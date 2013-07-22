@@ -28,13 +28,7 @@
 	</li>
 	<!--ET_END OTHERS-->
 	<li>
-	|Компоненти|*
-		<ol>
-			<!--ET_BEGIN COMPONENT-->
-			[#COMPONENT#]
-			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>
-			<!--ET_END COMPONENT-->
-		</ol>
+	[#COMPONENTS#]
 	</li>
 </ul>
 <div class='clearfix21'></div>
