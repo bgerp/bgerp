@@ -1848,14 +1848,12 @@ a.rtbutton:hover {
 div.rich-text {
     font-family: Courier New,monospace;
     padding:10px;
-	background:transparent;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50FFFFE6,endColorstr=#50FFFFE6); 
     zoom: 1;
-    background-color:rgba(255, 255, 230, 0.5);
+   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background:rgba(245,245,255,0.5);
     color:#000;
     line-height:120%;
     border:solid 1px $gray3;
-	white-space: pre-wrap;
 }
 
 .wide div.rich-text{
@@ -1873,28 +1871,25 @@ div.richtext .code{
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
-}
-.richtext .code {
-	white-space:pre !important;
 	margin: 10px 0px;
+	padding:10px;
+	white-space:pre !important;
 }
 
 .printing .richtext .code{
 	white-space:pre-wrap !important;
 }
 
-.wide div.richtext .code{
-	padding:10px;
-}
-
 div.richtext .code code{
 	background:none;
+	white-space: pre;
 }
 
 .richtext .oneLineCode {
 	font-family: Courier New,monospace;
-	background-color: $beige;
-	border: 1px solid #ccc;
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background:rgba(245,245,255,0.5);
+	border: 1px solid $gray3;
 	border-radius: 3px 3px 3px 3px;
 	margin: 2px 2px;
 	padding: 0 5px;
