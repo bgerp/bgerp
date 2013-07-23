@@ -188,10 +188,11 @@ class sales_Quotations extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-	    if($data->rec->state == 'draft' && sales_Sales::haveRightFor('add')){
-	       	if($mvc->getItems($data->rec->id)){
+	    if($data->rec->state == 'draft'){
+	    	$items = $mvc->getItems($data->rec->id);
+	       	if($items && sales_Sales::haveRightFor('add')){
 	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
-	       	} else {
+	       	} elseif(!$items && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
 	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
 	       	}
 	    }
@@ -338,7 +339,7 @@ class sales_Quotations extends core_Master
 			}
 		}
 		
-		if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
+		if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
 			$row->deliveryTermId = ht::createLinkref($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
 		}
     }
