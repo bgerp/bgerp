@@ -86,6 +86,8 @@ class trz_Fines extends core_Manager
      */
     function act_Default()
     {
+        requireRole('trz, admin');
+        
     	$text = tr('В процес на разработка');
     	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
