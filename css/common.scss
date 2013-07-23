@@ -484,7 +484,8 @@ table {
 	    -webkit-border-radius:0;
 	    height: 1.45em;
     }
-     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input[type=""] {
+     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'], input:not([type]) {
+		-webkit-appearance: none;
 		border-radius:0;
 		margin:0;
 	}
