@@ -164,6 +164,10 @@ class sales_QuotationsDetails extends core_Detail {
        	 	
        		$rec->price = $price;
        }
+       
+       if(!$productMan instanceof cat_Products){
+       		$form->setField('optional', 'input=hidden');
+       }
     }
     
     
@@ -202,6 +206,10 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
        			
 	    		$rec->price = $rec->price * $masterRec->rate;
+	    	}
+	    	
+	    	if($rec->optional == 'no' && !$rec->quantity){
+	    		$form->setError('quantity', 'Задължителния продукт неможе да е без количество!');
 	    	}
     	}
     }
