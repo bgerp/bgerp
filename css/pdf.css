@@ -10,5 +10,10 @@ div.richtextHide {
 	display:block !important;
 }
 
+.richtext {
+	font-family: default;
+}
 
-.richtext { font-family: default; }
+code, kbd, pre, samp {
+    font-family: Courier New, serif;
+}
