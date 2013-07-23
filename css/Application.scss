@@ -2085,11 +2085,12 @@ div.locImage{
 /*край на стилове за състояния на SMS' ите в колцентъра*/
 
 /*бъгфиксове*/
-.store_Racks td,.hr_ContractTypes td{
+.store_Racks  table.listTable > tbody > tr > td, .hr_ContractTypes table.listTable > tbody > tr > td{
 	max-width:700px;
 }
 
-.fileman_Indexes td, .fileman_Data td, .log_Documents td, .core_Cache td{
+.fileman_Indexes table.listTable > tbody > tr > td, .fileman_Data table.listTable > tbody > tr > td,
+ .log_Documents table.listTable > tbody > tr > td, .core_Cache table.listTable > tbody > tr > td{
 	max-width:none !important;	
 }
 
