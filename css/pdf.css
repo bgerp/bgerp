@@ -11,9 +11,9 @@ div.richtextHide {
 }
 
 .richtext {
-	font-family: default;
+	font-family: default !important;
 }
 
 code, kbd, pre, samp {
-    font-family: Courier New, serif;
+    font-family: Courier New, serif !important;
 }
