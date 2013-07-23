@@ -90,7 +90,8 @@ class sens_Setup extends core_ProtoSetup
             'sens_driver_HWgSTE',
             'sens_driver_TSM',
             'sens_driver_SATEC',
-            'sens_driver_TCW121'
+            'sens_driver_TCW121',
+            'sens_driver_TCW122B'
         );
         
         foreach ($drivers as $drvClass) {
