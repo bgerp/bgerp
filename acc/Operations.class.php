@@ -246,7 +246,7 @@ class acc_Operations extends core_Manager
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	if(isset($rec->csv_documentSrc) && strlen($rec->csv_documentSrc) != 0){
-    		$rec->documentSrc = core_Classes::fetchIdByName($rec->csv_documentSrc);
+    		expect($rec->documentSrc = core_Classes::fetchIdByName($rec->csv_documentSrc));
     	}
     }
     
