@@ -1851,43 +1851,39 @@ a.rtbutton:hover {
 	line-height: 1.4em;
 }
 
-div.rich-text {
+pre.rich-text {
     font-family: Courier New,monospace;
     padding:10px;
     zoom: 1;
-   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
     color:#000;
     line-height:120%;
     border:solid 1px $gray3;
 }
 
-.wide div.rich-text{
+.wide pre.rich-text{
 	overflow: auto; 
 }
 
-.narrow div.rich-text{
+.narrow pre.rich-text{
 	font-size:0.9em;
 	white-space:pre-line;
 }
 
-div.richtext .code{
+div.richtext pre .code{
 	border:1px solid $gray3;
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
 	margin: 10px 0px;
 	padding:10px;
-	white-space:pre !important;
+	white-space:pre;
+	word-wrap:normal;
 }
 
 .printing .richtext .code{
 	white-space:pre-wrap !important;
-}
-
-div.richtext .code code{
-	background:none;
-	white-space: pre;
 }
 
 .richtext .oneLineCode {
