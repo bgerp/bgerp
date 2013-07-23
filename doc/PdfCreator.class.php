@@ -190,12 +190,40 @@ class doc_PdfCreator extends core_Manager
     {
     	$conf = core_Packs::getConfig('doc');
         
-        if($conf->BGERP_PDF_GENERATOR) {
+    	// Ако няма запис в модела
+    	if (!$conf->_data['BGERP_PDF_GENERATOR']) {
+    	    
+    	    // Изпълянваме процеса
+    	    exec('wkhtmltopdf', $dummy, $erroCode);
+    	    
+    	    // Ако я има инсталирана
+            if ($erroCode == 1 || $erroCode == 0) {
+                
+                // Да използваме webkittopdf
+                $pdfGenerator = 'webkittopdf';
+    	        $data['BGERP_PDF_GENERATOR'] = $pdfGenerator;
+    	        
+    	        // Добавяме в записите
+                core_Packs::setConfig('doc', $data);
+            }
+    	}
+    	
+    	// Ако не сме определили
+    	if (!$pdfGenerator) {
+    	    
+    	    // Да използваме от конфигурацията по подразбиране
+    	    $pdfGenerator = $conf->BGERP_PDF_GENERATOR;
+    	}
+    	
+    	// Ако има зададен генератор
+        if($pdfGenerator) {
+            
+            // Инсталираме пакета
             $Packs = cls::get('core_Packs');
-            $res .= $Packs->setupPack($conf->BGERP_PDF_GENERATOR);
+            $res .= $Packs->setupPack($pdfGenerator);
         }
         
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
+        //Създаваме, кофа, където ще държим всички генерирани PDF файлове
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
     }
