@@ -310,6 +310,7 @@ class sales_QuotationsDetails extends core_Detail {
     		}
     	}
     	
+    	if(!$total) return;
     	if($totalDisc != 0){
     		$afterDisc = $total - $totalDisc;
     	}
@@ -357,6 +358,9 @@ class sales_QuotationsDetails extends core_Detail {
 	    				
 	    				// слага се 'opt' в класа на колоната да се отличава
 	    				$rowTpl->replace('-opt', 'OPT');
+	    				if($row->productId){
+	    					$rowTpl->replace('-opt-product', 'OPTP');
+	    				}
 	    				$oTpl->replace('-opt', 'OPT');
 	    				$id = &$oCount;
 		    			$colQ = &$hasQuantityColOpt;
@@ -372,8 +376,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$rowTpl->append2master();
 	    		}
 	    	}
-    	} else {
-    		$hasQuantityCol = $hasQuantityColOpt = TRUE;
     	}
     	
     	if($data->total){
@@ -399,7 +401,7 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	if(!$hasQuantityColOpt){
-    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt {width:65%;}", 'STYLES');
+    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
     	}
     	
     	return $tpl;
