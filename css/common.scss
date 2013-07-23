@@ -240,7 +240,7 @@ code,
 kbd,
 pre,
 samp {
-    font-family: monospace, serif;
+    font-family: Courier New, monospace, serif;
     font-size: 1em;
 }
 
@@ -689,7 +689,7 @@ a.button, input[type="button"], input[type="submit"] {
 	border:1px solid #999; 
 	@include border-radius(5px);
 	padding:0.3em 0.4em;
-    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+    font-family: Tahoma, Arial, sans-serif;
     margin-top:0;
     margin-bottom:0;
 }
