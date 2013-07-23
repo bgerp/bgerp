@@ -1054,7 +1054,9 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             } elseif ($action == 'reject' || $action == 'edit' || $action == 'restore' || $action == 'add') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
-                    $requiredRoles = 'user';    
+                    if($requiredRoles != 'no_one'){
+                    	$requiredRoles = 'powerUser';
+                    }
                 } else {
                     $requiredRoles = 'no_one';
                 } 
@@ -1084,7 +1086,7 @@ class doc_DocumentPlg extends core_Plugin
                 if ($haveRightForClone) {
                 
                     // Задаваме права
-                    $requiredRoles = 'user';
+                    $requiredRoles = 'powerUser';
                 }
             }
         }
