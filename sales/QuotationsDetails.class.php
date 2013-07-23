@@ -156,10 +156,13 @@ class sales_QuotationsDetails extends core_Detail {
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
-       	 	$price = round($rec->price / $masterRec->rate, 2);
-       	 	($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
+       	 	$price = $rec->price / $masterRec->rate;
+       	 	if($masterRec->vat == 'yes'){
+       	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
+       	 		 $price = $price * (1 + $vat);
+       	 	}
        	 	
-       		$rec->price = $price + ($price * $vat);
+       		$rec->price = $price;
        }
     }
     
@@ -194,8 +197,11 @@ class sales_QuotationsDetails extends core_Detail {
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
 	    	} else {
-       			$rec->price = $rec->price / (1 + $rec->vatPercent);
-	    		$rec->price = round($rec->price * $masterRec->rate, 2);
+	    		if($masterRec->vat == 'yes'){
+	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
+	    		}
+       			
+	    		$rec->price = $rec->price * $masterRec->rate;
 	    	}
     	}
     }
