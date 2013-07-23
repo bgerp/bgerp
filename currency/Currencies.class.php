@@ -59,6 +59,11 @@ class currency_Currencies extends core_Master {
      */
     var $canRead = 'ceo,admin,cash,bank,currency,acc';
     
+    /**
+     * Кой може да го прочете?
+     */
+    var $canAdd = 'ceo,admin,cash,bank,currency,acc';
+    
     
     /**
      * Заглавие
