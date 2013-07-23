@@ -54,15 +54,17 @@ class currency_Currencies extends core_Master {
      */
     var $canDelete = 'no_one';
     
+    
     /**
      * Кой може да го прочете?
      */
     var $canRead = 'ceo,admin,cash,bank,currency,acc';
     
+    
     /**
-     * Кой може да го прочете?
+     * Кой може да добавя?
      */
-    var $canAdd = 'ceo,admin,cash,bank,currency,acc';
+    var $canAdd = 'ceo,currency';
     
     
     /**
