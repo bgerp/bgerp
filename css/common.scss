@@ -1880,6 +1880,13 @@ div.richtext pre .code{
 	word-wrap:normal;
 }
 
+div.richtext pre code{
+	white-space:pre;
+	word-wrap:normal;
+	overflow:auto;
+	background:transparent !important;
+}
+
 .printing .richtext .code{
 	white-space:pre-wrap !important;
 }
