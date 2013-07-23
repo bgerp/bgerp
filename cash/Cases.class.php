@@ -91,7 +91,7 @@ class cash_Cases extends core_Master {
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title');
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
         $this->FLD('cashier', 'user(roles=cash|ceo)', 'caption=Касиер');
     }
     
