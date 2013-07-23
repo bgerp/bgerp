@@ -1442,21 +1442,19 @@ td.keylist-group > div {
 /* Стилове за странициране 'hlp_Pager' */
 .pages{
 	clear:both;
-	margin:15px 2px 13px 2px;
+	margin:16px 2px 8px 2px;
 }
 
 .narrow .portal .pages{
 	clear:both;
 	margin:13px 0 5px;
 }
-
-.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, .wide .cat_Products .pages, 
-.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages, 
-.wide .callcenter_Talks .pages, .wide .callcenter_Fax .pages , .wide .callcenter_SMS .pages, .wide .callcenter_Numbers .pages{
-	margin-top:5px;
-	margin-bottom:16px;
+.top-pager .pages{
+	margin:2px 2px 16px 2px;
 }
-
+.core_Packs .pages{
+	margin:2px 2px 16px 2px;
+}
 a.pager {
     font-weight:bold;
     font-size:1.05em;
