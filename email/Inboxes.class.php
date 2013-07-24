@@ -610,8 +610,8 @@ class email_Inboxes extends core_Master
      */
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        // Ако няма роля admin или ceo
-        if(!haveRole('ceo, admin')) {
+        // Ако няма роля admin или ceo или email
+        if(!haveRole('ceo, admin, email')) {
             
             // id на текущия потребител
             $cu = core_Users::getCurrent();
@@ -619,6 +619,34 @@ class email_Inboxes extends core_Master
             // Да се показват кутиите на които е inCharge или му са споделени
             $data->query->where("#inCharge = {$cu}");
             $data->query->orLikeKeylist("shared", $cu);
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако редактирам запис
+        if ($action == 'edit' && $rec && $userId) {
+            
+            // Ако не сме администратор 
+            if (!haveRole('admin') && haveRole('email')) {
+                
+                // Ако не е наш имейл или не ни е споделен
+                if (($rec->inCharge != $userId) && !type_Keylist::isIn($userId, $rec->shared)) {
+                    
+                    // Не можем да редактираме
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
 }
