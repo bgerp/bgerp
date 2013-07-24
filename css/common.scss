@@ -517,13 +517,6 @@ select{
 	}
 }
 
-/*медия само за сафари*/
-@media screen and (min-width:0\0) {
-	select{
-		padding-left:3px;
-	}
-}
-
 /*our reset and common classes*/
 body{
 	background-color: $gray3;
