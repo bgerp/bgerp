@@ -1615,4 +1615,15 @@ class doc_DocumentPlg extends core_Plugin
 	    	}
     	}
     }
+    
+	/**
+     * Метод по подразбиране
+     * Връща иконата на документа
+     */
+    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    {
+        if(!$res) { 
+            $res = $mvc->singleIcon;
+        }
+    }
 }
