@@ -1054,14 +1054,10 @@ class sales_Sales extends core_Master
     {
         $rec = new sales_model_Sale(self::fetchRec($id));
         
-        /* @var $query core_Query */
-        $query = sales_SalesDetails::getQuery();
-        
-        /* @var $detailRecs sales_model_SaleProduct[] */
-        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+                
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -1095,13 +1091,14 @@ class sales_Sales extends core_Master
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
             $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
+            $p->uomId       = $dRec->uomId;
             
             $result->agreed->products[] = $p;
             
@@ -1125,14 +1122,10 @@ class sales_Sales extends core_Master
     {
         $rec = new sales_model_Sale(self::fetchRec($id));
         
-        /* @var $query core_Query */
-        $query = sales_SalesDetails::getQuery();
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
         
-        /* @var $detailRecs sales_model_SaleProduct[] */
-        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -1161,25 +1154,22 @@ class sales_Sales extends core_Master
         foreach ($detailRecs as $dRec) {
             /*
              * Договорени продукти
-             *  
-             * @var $aProd bgerp_iface_DealProduct
              */
             $aProd = new bgerp_iface_DealProduct();
             
-            $aProd->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $aProd->classId     = $dRec->classId;
             $aProd->productId   = $dRec->productId;
             $aProd->packagingId = $dRec->packagingId;
             $aProd->discount    = $dRec->discount;
             $aProd->isOptional  = FALSE;
             $aProd->quantity    = $dRec->quantity;
             $aProd->price       = $dRec->price;
+            $aProd->uomId       = $dRec->uomId;
             
             $result->agreed->products[] = $aProd;
             
             /*
              * Експедирани продукти
-             * 
-             * @var $sProd bgerp_iface_DealProduct
              */
             $sProd = clone $aProd;
             $sProd->quantity = $dRec->quantityDelivered;
@@ -1188,8 +1178,6 @@ class sales_Sales extends core_Master
             
             /*
              * Фактурирани продукти
-             * 
-             * @var $iProd bgerp_iface_DealProduct
              */
             $iProd = clone $aProd;
             $iProd->quantity = $dRec->quantityInvoiced;

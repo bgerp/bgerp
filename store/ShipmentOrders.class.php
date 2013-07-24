@@ -238,18 +238,46 @@ class store_ShipmentOrders extends core_Master
         $mvc->save($rec);
     }
     
+    
+    /**
+     * След създаване на запис в модела
+     * 
+     * @param store_Stores $mvc
+     * @param store_model_ShipmentOrder $rec
+     */
     public static function on_AfterCreate($mvc, $rec)
     {
-        $origin = static::getOrigin($rec, 'store_ShipmentIntf');
+        $origin = static::getOrigin($rec);
         
-        if ($origin && $origin->getInstance() instanceof sales_Sales) {
-            $products = $origin->getShipmentProducts();
+        // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
+        // използваме го за автоматично попълване на детайлите на ЕН
+        
+        if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
+            $aggregatedDealInfo = $origin->getAggregateDealInfo();
             
-            foreach ($products as $p) {
-                if ($p->quantity - $p->quantityDelivered > 0) {
-                    $p->shipmentId = $rec->id;
-                    store_ShipmentOrderDetails::save($p);
+            $remainingToShip = clone $aggregatedDealInfo->agreed;
+            $remainingToShip->pop($aggregatedDealInfo->shipped);
+            
+            /* @var $product bgerp_iface_DealProduct */
+            foreach ($remainingToShip->products as $product) {
+                if ($product->quantity <= 0) {
+                    continue;
                 }
+                
+                $shipProduct = new store_model_ShipmentProduct(NULL);
+                
+                $shipProduct->shipmentId  = $rec->id;
+                $shipProduct->classId     = cls::get($product->classId)->getClassId();
+                $shipProduct->productId   = $product->productId;
+                $shipProduct->packagingId = $product->packagingId;
+                $shipProduct->quantity    = $product->quantity;
+                $shipProduct->price       = $product->price;
+                $shipProduct->uomId       = $product->uomId;
+                
+                $shipProduct->quantityInPack = $shipProduct->getQuantityInPack();
+                
+                $shipProduct->save();
             }
         }
     }
@@ -377,7 +405,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param sales_Sales $mvc
+     * @param store_Stores $mvc
      * @param stdClass $data
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
@@ -870,7 +898,7 @@ class store_ShipmentOrders extends core_Master
     	$dQuery->where("#shipmentId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}
@@ -903,13 +931,14 @@ class store_ShipmentOrders extends core_Master
         foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = cls::get($dRec->policyId)->getProductMan();
+            $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
             $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
+            $p->uomId       = $dRec->uomId;
             
             $result->shipped->products[] = $p;
         }

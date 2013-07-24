@@ -25,6 +25,13 @@ class sales_model_SaleProduct extends core_Model
      * @var int class(interface=price_PolicyIntf, select=title)
      */
     public $policyId;
+
+    /**
+     * Мениджър на продукт
+     *
+     * @var int key(mvc=core_Classes)
+     */
+    public $classId;
     
     /**
      * ИД на продукт

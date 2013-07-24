@@ -31,6 +31,14 @@ class bgerp_iface_DealProduct
 
 
     /**
+     * Мярка
+     * 
+     * @var int key(mvc=cat_UoM)
+     */
+    public $uomId;
+
+
+    /**
      * Опаковка
      *
      * @var int key(mvc=cat_Packagings)

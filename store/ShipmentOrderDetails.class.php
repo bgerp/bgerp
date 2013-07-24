@@ -387,11 +387,11 @@ class store_ShipmentOrderDetails extends core_Detail
         $options = array();
         
         foreach ($products as $p) {
-            $ProductManager = self::getProductManager($p->policyId);
+            $ProductManager = cls::get($p->classId);
             
             // Използваме стойността на select box-а за да предадем едновременно две стойности - 
             // ид на политика и ид на продукт.
-            $options["{$p->policyId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
+            $options["{$p->classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
         }
         
         $data->form->setOptions('productId', $options);
@@ -457,27 +457,8 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $ProductManager = self::getProductManager($rec->policyId);
+        $ProductManager = cls::get($rec->classId);
         
         $row->productId = $ProductManager->getTitleById($rec->productId);
-    }
-    
-
-
-    /**
-     * Връща продуктовия мениджър на зададена ценова политика
-     *
-     * @param int|string|object $Policy
-     * @return core_Manager
-     */
-    protected static function getProductManager($Policy)
-    {
-        if (is_scalar($Policy)) {
-            $Policy = cls::get($Policy);
-        }
-    
-        $ProductManager = $Policy->getProductMan();
-    
-        return $ProductManager;
     }
 }
