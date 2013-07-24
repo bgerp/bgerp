@@ -84,6 +84,12 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * Кой има право да активира?
+     */
+    var $canActivate = 'pos, ceo';
+    
+    
+    /**
 	 * Файл за единичен изглед
 	 */
 	var $singleLayoutFile = 'pos/tpl/SingleReport.shtml';
@@ -443,14 +449,14 @@ class pos_Reports extends core_Master {
 	 */
 	public static function on_Activation($mvc, &$rec)
     {
-    	$rRec = $mvc->fetch($rec->id);
+    	$rec = $mvc->fetch($rec->id);
+    	$rec->state = 'active';
     	
     	// Обновяваме информацията в репорта, ако има промени
-    	$mvc->extractData($rRec);
-    	$mvc->save($rRec);
+    	$mvc->extractData($rec);
     	
     	// Всяка бележка в репорта се "затваря"
-    	foreach($rRec->details['receipts'] as $receiptRec){
+    	foreach($rec->details['receipts'] as $receiptRec){
     		$receiptRec->state = 'closed';
     		pos_Receipts::save($receiptRec);
     	}
