@@ -24,6 +24,12 @@ class drdata_IpToCountry extends core_Manager {
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin, debug';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

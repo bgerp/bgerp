@@ -27,7 +27,18 @@ class fileman_Data extends core_Manager {
      */
     var $title = 'Данни';
     
+	
+	/**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, debug';
+    
+	
+	/**
+	 * 
+	 */
     var $loadList = 'plg_Created,fileman_Wrapper,plg_RowTools';
+    
     
     /**
      * Описание на модела (таблицата)

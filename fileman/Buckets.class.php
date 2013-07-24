@@ -20,8 +20,14 @@ class fileman_Buckets extends core_Manager {
      * Заглавие на модула
      */
     var $title = 'Кофи за файлове';
-
-
+	
+	
+	/**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+    
+	
     /**
      * Описание на модела (таблицата)
      */

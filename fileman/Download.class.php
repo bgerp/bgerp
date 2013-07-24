@@ -48,7 +48,13 @@ class fileman_Download extends core_Manager {
      */
     var $title = 'Сваляния';
     
+	
+	/**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, debug';
     
+	
     /**
      * Описание на модела (таблицата)
      */

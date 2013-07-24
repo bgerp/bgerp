@@ -47,6 +47,13 @@ class drdata_Countries extends core_Manager {
     static $euCountries = array('BE','BG','CY','CZ','DK','EE','EL','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT');
     
     
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

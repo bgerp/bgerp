@@ -24,6 +24,12 @@ class drdata_DialCodes extends core_Manager {
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'drdata_Wrapper,plg_RowTools';

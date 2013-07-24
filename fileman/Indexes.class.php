@@ -47,7 +47,7 @@ class fileman_Indexes extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    var $canList = 'admin, debug';
     
     
     /**
