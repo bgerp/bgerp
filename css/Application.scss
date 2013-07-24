@@ -967,9 +967,10 @@ div.attachments {
 		border-bottom: solid 1px $gray2;
 	}
 	.file {
-		max-height:32px;
-		height:auto;
-		overflow:hidden;
+		max-height: 32px;
+		height: auto;
+		overflow: hidden;
+		line-height: 1.3em;
 		display: block;
 		margin-bottom: 2px;
 	}
