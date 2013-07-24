@@ -83,6 +83,19 @@ class pos_Reports extends core_Master {
     var $canWrite = 'pos, ceo, admin';
     
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,pos';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,pos';
+    
+	
     /**
      * Кой има право да активира?
      */

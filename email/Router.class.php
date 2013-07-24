@@ -54,8 +54,14 @@ class email_Router extends core_Manager
      * Кой има право да пише?
      */
     var $canAdd  = 'no_one';
-
+	
+	
+	/**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, debug';
     
+	
     /**
      * Кой може да го отхвърли?
      */

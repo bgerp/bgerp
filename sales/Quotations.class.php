@@ -70,6 +70,18 @@ class sales_Quotations extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,sales';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,sales';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';

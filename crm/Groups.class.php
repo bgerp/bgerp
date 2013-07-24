@@ -72,6 +72,18 @@ class crm_Groups extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+    
+    /**
      * Достъпа по подразбиране до папката, съответсваща на групата
      */
     var $defaultAccess = 'public';

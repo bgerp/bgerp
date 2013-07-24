@@ -66,9 +66,30 @@ class cash_Cases extends core_Master {
      * @var $string име на поле от този модел
      */
     var $rowToolsField = 'tools';
-
+    
+    
+    /**
+     * 
+     */
     var $canRead = 'ceo, cash';
+    
+    
+    /**
+     * 
+     */
     var $canWrite = 'ceo, cash';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,cash';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,cash';
     
     
     /**

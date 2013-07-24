@@ -56,6 +56,18 @@ class rfid_Tags extends Core_Manager {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,rfid';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,rfid';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';

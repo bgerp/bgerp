@@ -80,6 +80,18 @@ class sales_Invoices extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,sales';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,sales';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo, sales';

@@ -42,6 +42,18 @@ class sens_Params extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,sens';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,sens';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

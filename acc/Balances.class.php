@@ -49,6 +49,12 @@ class acc_Balances extends core_Master
     
     
     /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,acc';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo,acc';

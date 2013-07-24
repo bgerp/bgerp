@@ -99,8 +99,14 @@ class blast_Emails extends core_Master
      * Кой може да го разглежда?
      */
     var $canList = 'admin, blast';
-    
-    
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'blast,admin';
+	
+	
     /**
      * Кой може да го изтрие?
      */

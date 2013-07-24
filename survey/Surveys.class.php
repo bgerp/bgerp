@@ -66,6 +66,18 @@ class survey_Surveys extends core_Master {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'survey,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'survey,ceo';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canSummarise = 'user';

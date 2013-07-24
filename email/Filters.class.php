@@ -50,7 +50,13 @@ class email_Filters extends core_Manager
     /**
      * 
      */
-    var $canList = 'admin, debug';
+    var $canList = 'admin, email';
+    
+    
+    /**
+     * 
+     */
+    var $canEdit = 'admin, email';
     
     
     /**

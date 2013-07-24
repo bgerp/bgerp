@@ -67,6 +67,18 @@ class pos_Receipts extends core_Master {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,pos';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,pos';
+    
+    
+    /**
      * Кой може да променя?
      */
     var $canEdit = 'pos, ceo';

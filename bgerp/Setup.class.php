@@ -194,9 +194,9 @@ class bgerp_Setup {
         $Menu->deleteNotInstalledMenu = TRUE;
         
         $html .= $Menu->addItem(1.62, 'Система', 'Ядро', 'core_Packs', 'default', 'admin');
-        $html .= $Menu->addItem(1.64, 'Система', 'bgERP', 'bgerp_Menu', 'default', 'admin');
+//        $html .= $Menu->addItem(1.64, 'Система', 'bgERP', 'bgerp_Menu', 'default', 'admin');
         $html .= $Menu->addItem(1.66, 'Система', 'Файлове', 'fileman_Files', 'default', 'admin');
-        $html .= $Menu->addItem(1.68, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
+//        $html .= $Menu->addItem(1.68, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
         
         $html .= $Menu->repair();
         

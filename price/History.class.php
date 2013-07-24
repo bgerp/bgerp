@@ -65,7 +65,19 @@ class price_History extends core_Manager
      */
     var $canDelete = 'ceo';
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'price,ceo';
 
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'price,ceo';
+
+	
     /**
      * Масив с всички ремена, които имат отношение към историята на цените
      */

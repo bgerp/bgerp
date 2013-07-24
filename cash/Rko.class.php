@@ -56,6 +56,18 @@ class cash_Rko extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,cash';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,cash';
+    
+	
+    /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Разходен касов ордер';

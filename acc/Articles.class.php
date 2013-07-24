@@ -110,6 +110,18 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,acc';
+    
+    
+    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';

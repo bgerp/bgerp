@@ -44,6 +44,18 @@ class purchase_Debt extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,purchase';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,purchase';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,purchase';

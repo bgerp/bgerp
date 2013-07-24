@@ -60,15 +60,21 @@ class store_Zones extends core_Manager
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo,store';
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
     
     
     /**
-     * @todo Чака за документация...
+     * Кой може да го изтрие?
      */
-    var $canSingle = 'ceo,store';
+    var $canDelete = 'ceo,store';
     
     
     /**

@@ -43,19 +43,19 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'admin, email';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, admin, email';
+    var $canAdd = 'admin, email';
     
     
     /**
      * 
      */
-    var $canSingle = 'ceo, admin, email';
+    var $canSingle = 'user';
     
     
     /**
@@ -67,7 +67,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, admin, user';
+    var $canList = 'user';
     
     
     /**

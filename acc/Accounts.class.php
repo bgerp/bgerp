@@ -52,6 +52,13 @@ class acc_Accounts extends core_Manager
     var $canAdd = 'ceo,acc,cat';
     
     
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
     /**
      * Кой може да го види?
      */

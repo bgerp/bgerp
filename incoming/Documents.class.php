@@ -87,6 +87,12 @@ class incoming_Documents extends core_Master
     
     
     /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+	
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'incoming_Wrapper, plg_RowTools, doc_DocumentPlg, 

@@ -48,6 +48,18 @@ class cams_Cameras extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cams';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cams';
+    
+    
+    /**
      * Права за четене
      */
     var $canRead = 'ceo,cams, admin';

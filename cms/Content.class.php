@@ -48,6 +48,18 @@ class cms_Content extends core_Manager
     var $canRead = 'cms,admin,ceo';
     
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
+    
+    
     
     /**
      * Описание на модела (таблицата)

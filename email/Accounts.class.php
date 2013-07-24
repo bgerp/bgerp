@@ -37,8 +37,14 @@ class email_Accounts extends core_Master
      * 
      */
     var $canList = 'admin';
+
     
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'admin';
     
+	
     /**
      * Кой може да го разглежда?
      */

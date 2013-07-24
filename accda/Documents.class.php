@@ -56,6 +56,18 @@ class accda_Documents extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,accda';
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    var $canSingle = 'ceo,accda';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,accda';

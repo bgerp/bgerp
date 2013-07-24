@@ -48,6 +48,18 @@ class salecond_Parameters extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,salecond';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,salecond';
+    
+    
+    /**
      * Кой може да пише
      */
     var $canWrite = 'ceo,salecond';

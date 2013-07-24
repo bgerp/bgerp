@@ -55,7 +55,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canSingle = 'ceo, email';
+    var $canSingle = 'user';
     
     
     /**
@@ -79,7 +79,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user, ceo, admin';
+    var $canList = 'user';
     
     
     /**

@@ -37,7 +37,13 @@ class email_Fingerprints extends core_Manager
      */
     var $canWrite = 'no_one';
     
-
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, email';
+    
+	
     /**
      * Цветове на редовете, според статуса им
      */

@@ -36,6 +36,12 @@ class currency_CurrencyGroups extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,currency';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

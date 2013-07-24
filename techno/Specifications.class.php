@@ -104,6 +104,18 @@ class techno_Specifications extends core_Master {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,techno';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,techno';
+    
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canAjust = 'ceo,techno';

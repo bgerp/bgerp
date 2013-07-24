@@ -77,6 +77,18 @@ class trz_Sickdays extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,trz';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,trz';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,trz';

@@ -37,6 +37,12 @@ class acc_Operations extends core_Manager
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "tools=Пулт, name, documentSrc, debitAccount, creditAccount, systemId, createdOn, createdBy";

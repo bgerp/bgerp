@@ -48,6 +48,18 @@ class salecond_PaymentMethods extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,salecond';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,salecond';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo, salecond';

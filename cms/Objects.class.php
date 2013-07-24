@@ -40,6 +40,18 @@ class cms_Objects extends core_Master
      */
     var $canRead = 'cms,admin,ceo';
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
+    
 
     /**
      * Полета, които ще се показват в листов изглед

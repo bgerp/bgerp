@@ -63,6 +63,13 @@ class acc_Periods extends core_Manager
     var $canEdit = 'ceo,acc';
     
     
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
     /**
      * Кой може да го изтрие?
      */

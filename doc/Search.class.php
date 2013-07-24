@@ -37,10 +37,13 @@ class doc_Search extends core_Manager
      */
     var $canAdd = 'no_one';
     
-    var $canList = 'ceo,manager,officer,executive';
-    var $canSingle = 'ceo,manager,officer,executive';
-
-
+    
+    /**
+     * 
+     */
+    var $canList = 'user';
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */

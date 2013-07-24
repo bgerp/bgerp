@@ -56,6 +56,12 @@ class budget_Reports extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'budget,ceo';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,budget';

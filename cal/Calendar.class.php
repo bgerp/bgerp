@@ -66,10 +66,24 @@ class cal_Calendar extends core_Master
      */
     var $canRead = 'user';
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+	
     /**
      * Кой има право да го види?
      */
     var $canView = 'user';
+    
     
     // Масив с цветове за събитията
     static $colors = array( "#610b7d", 

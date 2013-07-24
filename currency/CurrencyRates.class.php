@@ -58,6 +58,12 @@ class currency_CurrencyRates extends core_Detail
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,currency';
+    
+    
+    /**
      * Работен кеш за вече изчислени валутни курсове
      *  
      * @var array

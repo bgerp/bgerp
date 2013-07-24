@@ -75,6 +75,18 @@ class purchase_Offers extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,purchase';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,purchase';
+    
+    
+    /**
      * Кой може да го види?
      */
     var $canView = 'ceo,purchase';

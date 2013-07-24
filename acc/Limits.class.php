@@ -22,10 +22,12 @@ class acc_Limits extends core_Manager
      */
     var $title = "Лимити";
     
+    
     /**
      * Активен таб на менюто
      */
     var $menuPage = 'Счетоводство:Настройки';
+    
     
     /**
      * Плъгини за зареждане
@@ -37,6 +39,12 @@ class acc_Limits extends core_Manager
      * Кой има право да чете?
      */
     var $canRead = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
     
     
     /**

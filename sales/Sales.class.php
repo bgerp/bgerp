@@ -80,6 +80,18 @@ class sales_Sales extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,sales';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,sales';
+    
+    
+    /**
      * Кой може да го види?
      * 
      * @var string|array

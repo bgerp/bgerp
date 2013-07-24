@@ -21,6 +21,7 @@ class doc_Folders extends core_Master
      */
     const maxLenTitle = 48;
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -62,7 +63,24 @@ class doc_Folders extends core_Master
      */
     var $canReject = 'user';
     
+    
+    /**
+     * 
+     */
     var $canNewdoc = 'user';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
     
     /**
      * полета от БД по които ще се търси

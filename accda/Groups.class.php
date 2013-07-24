@@ -50,6 +50,18 @@ class accda_Groups extends core_Master
   
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,accda';
+    
+    
+    /**
+     * @todo Чака за документация...
+     */
+    var $canSingle = 'ceo,accda';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,accda';

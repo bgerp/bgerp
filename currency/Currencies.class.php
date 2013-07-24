@@ -68,6 +68,24 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * Кой може да променя?
+     */
+    var $canEdit = 'ceo,currency,admin';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,currency';
+	
+    
+    /**
      * Заглавие
      */
     var $title = 'Списък с всички валути';

@@ -69,6 +69,18 @@ class cat_Packagings extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'cat,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'cat,ceo';
+	
+	
+    /**
      * Кой може да го види?
      */
     var $canView = 'user';

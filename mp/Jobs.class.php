@@ -49,6 +49,18 @@ class mp_Jobs extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,mp';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,mp';
+    
+    
+    /**
      * Кой може да го види?
      */
     var $canView = 'ceo,mp';

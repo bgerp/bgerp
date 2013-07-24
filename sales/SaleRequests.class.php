@@ -58,6 +58,18 @@ class sales_SaleRequests extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,sales';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,sales';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, title, createdOn, createdBy, modifiedOn, modifiedBy';

@@ -64,6 +64,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+    
+    /**
      * Необходими роли за оттегляне на документа
      */
     var $canReject = 'admin';

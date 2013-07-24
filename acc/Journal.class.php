@@ -55,6 +55,18 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,acc';
+    
+	
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'no_one';

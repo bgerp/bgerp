@@ -53,6 +53,18 @@ class rfid_Events extends core_Manager {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,rfid';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,rfid';
+    
+    
+    /**
      * Кой може да го види?
      */
     var $canView = 'ceo,admin,rfid';

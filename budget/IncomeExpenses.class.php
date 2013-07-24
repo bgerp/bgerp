@@ -44,6 +44,12 @@ class budget_IncomeExpenses extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'budget,ceo';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,budget';

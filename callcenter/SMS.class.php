@@ -58,6 +58,12 @@ class callcenter_SMS extends core_Master
     
     
     /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+	
+    
+    /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';

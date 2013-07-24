@@ -37,11 +37,6 @@ class salecond_DeliveryTerms extends core_Master
      */
     var $singleFields = 'id, term, codeName, forSeller, forBuyer, transport';
     
-    /**
-     * @todo Чака за документация...
-     */
-    var $canSingle = 'user';
-    
     
     /**
      * Кой може да чете
@@ -59,6 +54,24 @@ class salecond_DeliveryTerms extends core_Master
      * Кой може да добавя
      */
     var $canAdd = 'ceo,salecond';
+    
+    
+    /**
+     * Кой може да променя
+     */
+    var $canEdit = 'ceo,admin';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
     
     
     /**

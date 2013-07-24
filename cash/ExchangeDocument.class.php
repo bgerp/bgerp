@@ -67,6 +67,18 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,cash';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,cash';
+	
+	
+    /**
      * Абревиатура
      */
     var $abbr = "Sv";

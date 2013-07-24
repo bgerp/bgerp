@@ -30,6 +30,18 @@ class forum_Postings extends core_Detail {
 	 *  Полета по които ще се търси
 	 */
 	var $searchFields = 'title, body';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'forum,ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'forum,ceo,admin,cms';
 	
 	
 	/**

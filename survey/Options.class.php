@@ -38,6 +38,12 @@ class survey_Options extends core_Manager {
 	 * Брой рецепти на страница
 	 */
 	var $listItemsPerPage = '30';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'survey,ceo';
 	
 	
     /**

@@ -59,6 +59,18 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
+    
+    
+    /**
      * Кой има право да променя?
      * 
      * @var string|array

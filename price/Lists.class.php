@@ -75,8 +75,14 @@ class price_Lists extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'price,ceo';
+    var $canList = 'sales,price,ceo';
     
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'sales,price,ceo';
+	
     
     /**
      * Кой може да го изтрие?

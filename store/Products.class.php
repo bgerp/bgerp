@@ -48,6 +48,18 @@ class store_Products extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'ceo,store';

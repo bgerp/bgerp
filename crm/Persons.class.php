@@ -121,8 +121,20 @@ class crm_Persons extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'user';
+    
+    
+	/**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
 
 
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+	
     /**
      * Шаблон за единичния изглед
      */

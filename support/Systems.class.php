@@ -72,7 +72,13 @@ class support_Systems extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'support, ceo, admin';
+    
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'support, ceo, admin';
     
     
     /**
