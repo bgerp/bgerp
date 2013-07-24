@@ -472,6 +472,31 @@ table {
     border-spacing:0;
 }
 
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+ input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"],  input:not([type])  {
+	height:1.5em;
+	line-height:130%;
+}
+select{
+	height: 1.5em;
+	line-height:130%;
+}
+.chzn-container .chzn-single{
+	height:1.5em !important;
+}
+
+.narrow input[type="text"], .narrow input[type="color"],.narrow input[type="number"], 
+.narrow input[type="tel"], .narrow input[type="email"],.narrow input[type="search"],
+.narrow input[type="url"], .narrow input[type="password"], .narrow input:not([type]),  .narrow select{
+	height:1.5em;
+}
+
+.narrow .chzn-container .chzn-single{
+	height:1.31em !important;
+}
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+
+
 /*reseting webkit differences*/
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
@@ -482,15 +507,15 @@ table {
 	 	background-position:center right !important;
 	    padding-right:1em;
 	    -webkit-border-radius:0;
-	    height: 1.45em;
     }
-     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'], input:not([type]) {
+     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"],  input:not([type]) {
 		-webkit-appearance: none;
 		border-radius:0;
 		margin:0;
 	}
 	textarea{
 		-webkit-border-radius:0;
+		-webkit-appearance: none;
 	}
 }
 
@@ -500,38 +525,6 @@ table {
 		padding-left:3px;
 	}
 }
-
-/*query за iOS*/
-
-@media only screen and (min-device-width : 768px) and (max-device-width : 1024px){
-	 input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input:not([type]) {
-		-webkit-appearance: caret;
-		-webkit-box-shadow:none;
-		background:#fff;
-		height:1.6em;
-	}
-	select{
-		height:1.6em;
-	}
-	.chzn-container .chzn-single{
-		height:1.6em !important;
-	}
-	textarea{
-		-webkit-appearance: caret;
-		-webkit-box-shadow:none;
-		background:#fff;
-	}
-	
-	.narrow input[type="text"], .narrow input[type="email"], .narrow input[type="search"], 
-	.narrow input[type="password"], .narrow input[name='search'],.narrow input:not([type]),
-	.narrow select{
-		height:1.5em;
-	}
-	.narrow .chzn-container .chzn-single{
-		height:1.3em !important;
-	}
-}
-/*край на query за iOS*/
 
 /*our reset and common classes*/
 body{
