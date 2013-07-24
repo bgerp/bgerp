@@ -118,7 +118,7 @@ class sales_SalesDetails extends core_Detail
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
-        
+        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -390,6 +390,8 @@ class sales_SalesDetails extends core_Detail
             $Policy = cls::get($rec->policyId);
             
             $ProductMan = self::getProductManager($Policy);
+            
+            $rec->classId = $ProductMan->getClassId();
             
             /* @var $productRef cat_ProductAccRegIntf */
             $productRef  = new core_ObjectReference($ProductMan, $rec->productId);

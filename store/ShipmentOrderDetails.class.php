@@ -118,7 +118,7 @@ class store_ShipmentOrderDetails extends core_Detail
     {
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика,silent,input=none');
-        
+        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -437,6 +437,7 @@ class store_ShipmentOrderDetails extends core_Detail
                 $form->setError('packagingId', 'Продуктът не е наличен за експедиция в тази опаковка');
             } else {
                 $rec->policyId = $exactProduct->policyId; 
+                $rec->classId  = $exactProduct->classId; 
                 $rec->uomId    = $exactProduct->uomId; 
                 $rec->price    = $exactProduct->price; 
                 $rec->discount = $exactProduct->discount; 
