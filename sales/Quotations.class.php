@@ -91,7 +91,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, recipient, attn, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, date, folderId, deliveryTermId, createdOn,createdBy';
     
 
     /**
@@ -193,7 +193,7 @@ class sales_Quotations extends core_Master
 	       	if($items && sales_Sales::haveRightFor('add')){
 	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
 	       	} elseif(!$items && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
-	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
+	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
 	       	}
 	    }
     }
@@ -296,52 +296,63 @@ class sales_Quotations extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-    	}
-    
-    	$row->number = $mvc->getHandle($rec->id);
-		
-		$username = core_Users::fetch($rec->createdBy);
-		$row->username = core_Users::recToVerbal($username, 'names')->names;
-		
-		if($row->address){
-			$row->contragentAdress = $row->address . ",";
-		}
-		$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
-		
-		switch($rec->vat){
-			case 'yes':
-				$row->vat = tr('с');
-				break;
-			case 'freed':
-			case 'export':
-				$row->vat = tr('без');
-				break;
-		}
-		
-		if($rec->rate == 1){
-			unset($row->rate);
-		}
-		
-		if($rec->others){
-			$others = explode('<br>', $row->others);
-			$row->others = '';
-			foreach($others as $other){
-				$row->others .= "<li>{$other}</li>";
+		if($fields['-single']){
+			if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+	    	}
+	    
+	    	$row->number = $mvc->getHandle($rec->id);
+			
+			$username = core_Users::fetch($rec->createdBy);
+			$row->username = core_Users::recToVerbal($username, 'names')->names;
+			
+			if($row->address){
+				$row->contragentAdress = $row->address . ",";
+			}
+			$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
+			
+			switch($rec->vat){
+				case 'yes':
+					$row->vat = tr('с');
+					break;
+				case 'freed':
+				case 'export':
+					$row->vat = tr('без');
+					break;
+			}
+			
+			if($rec->rate == 1){
+				unset($row->rate);
+			}
+			
+			if($rec->others){
+				$others = explode('<br>', $row->others);
+				$row->others = '';
+				foreach($others as $other){
+					$row->others .= "<li>{$other}</li>";
+				}
+			}
+			
+			if($rec->deliveryPlaceId){
+				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+					$link = ht::createLink("[&#10138;]", array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
+	    			$row->deliveryPlaceId .= " <span class='anchor-arrow'>{$link}</span>";
+				}
+			}
+			
+			if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+				$row->deliveryTermId = ht::createLinkref($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
 			}
 		}
 		
-		if($rec->deliveryPlaceId){
-			if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
-				$link = ht::createLink("[&#10138;]", array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
-    			$row->deliveryPlaceId .= " <span class='anchor-arrow'>{$link}</span>";
-			}
-		}
-		
-		if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-			$row->deliveryTermId = ht::createLinkref($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
-		}
+    	if($fields['-list']){
+	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
+	    		$img = doc_Folders::getIconImg($rec->folderId);
+	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
+	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+            	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
+	    	}
+	    }
     }
     
     
