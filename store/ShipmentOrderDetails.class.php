@@ -380,18 +380,21 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'store_ShipmentIntf');
+        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
         
-        $products = $origin->getShipmentProducts();
+        /* @var $dealInfo bgerp_iface_DealResponse */
+        $dealInfo = $origin->getDealInfo();
         
         $options = array();
         
-        foreach ($products as $p) {
+        foreach ($dealInfo->agreed->products as $p) {
             $ProductManager = cls::get($p->classId);
+            
+            $classId = $p->getClassId();
             
             // Използваме стойността на select box-а за да предадем едновременно две стойности - 
             // ид на политика и ид на продукт.
-            $options["{$p->classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
+            $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
         }
         
         $data->form->setOptions('productId', $options);
