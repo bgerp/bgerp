@@ -210,8 +210,6 @@ class sales_TransactionSourceImpl
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
-            $Policy = cls::get($detailRec->policyId);
-            $ProductManager = $Policy->getProductMan();
             $entries[] = array(
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
                 
@@ -224,7 +222,7 @@ class sales_TransactionSourceImpl
                 
                 'credit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array($ProductManager, $detailRec->productId), // Перо 1 - Продукт
+                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -298,19 +296,17 @@ class sales_TransactionSourceImpl
         expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
-            $Policy = cls::get($detailRec->policyId);
-            $ProductManager = $Policy->getProductMan();
             $entries[] = array(
                 'debit' => array(
                     '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array($ProductManager, $detailRec->productId), // Перо 1 - Продукт
+                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
                 
                 'credit' => array(
                     '321', // Сметка "321. Стоки и Продукти"
                         array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-                        array($ProductManager, $detailRec->productId), // Перо 2 - Продукт
+                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                 ),
             );
