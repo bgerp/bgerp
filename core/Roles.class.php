@@ -41,7 +41,13 @@ class core_Roles extends core_Manager
      * и потребителските роли трябва да се преизчислят
      */
     var $recalcRoles = FALSE;
-
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
 
     /**
      * Наследените роли, преди да редактираме формата

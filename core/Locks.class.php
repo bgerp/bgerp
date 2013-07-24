@@ -29,7 +29,12 @@ class core_Locks extends core_Manager
     // var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
     
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin,debug';
     
+	
     /**
      * Кой може да листва и разглежда?
      */

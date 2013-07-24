@@ -41,6 +41,12 @@ class core_Cron extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+    
+    /**
      * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;

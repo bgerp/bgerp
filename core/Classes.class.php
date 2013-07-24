@@ -31,10 +31,17 @@ class core_Classes extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+	
+    /**
      * Никой потребител не може да добавя или редактира тази таблица
      */
     var $canWrite = 'no_one';
 
+    
     /**
      * Описание на модела
      */

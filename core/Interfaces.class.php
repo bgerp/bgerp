@@ -24,6 +24,12 @@ class core_Interfaces extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Интерфейси";

@@ -121,6 +121,12 @@ class core_Users extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+    
+    /**
      * Дали в момента се работи със системния потребител (-1)
      */
     var $isSystemUser = FALSE;

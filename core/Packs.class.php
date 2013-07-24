@@ -35,7 +35,13 @@ class core_Packs extends core_Manager
      */
     var $canDeinstall = 'admin';
     
-
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+	
     /**
      * По колко пакета да показва на страница
      */
