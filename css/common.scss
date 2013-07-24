@@ -475,11 +475,9 @@ table {
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
  input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"],  input:not([type])  {
 	height:1.5em;
-	line-height:130%;
 }
 select{
 	height: 1.5em;
-	line-height:130%;
 }
 .chzn-container .chzn-single{
 	height:1.5em !important;
