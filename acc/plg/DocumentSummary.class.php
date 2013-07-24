@@ -149,17 +149,21 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$queryCopy->show = array();
     	$queryCopy->groupBy = array();
     	$queryCopy->executed = FALSE;
-    	$queryCopy2 = clone $data->query;
-    	$queryCopy->where("#state = 'active'");
-    	$queryCopy2->where("#state = 'draft'");
+    	
     	$fieldsArr = $mvc->selectFields("#summary");
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	while($rec = $queryCopy->fetch()){
     		static::prepareSummary($mvc, $fieldsArr, $rec, $res, $baseCurrency);
     	}
     	
-    	$res['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $queryCopy->count());
-    	$res['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $queryCopy2->count());
+    	$queryCopy->where("#state = 'draft'");
+    	$draftCount = $queryCopy->count();
+    	unset($queryCopy->where[(count($queryCopy->where) -1)]);
+    	$queryCopy->where("#state = 'active'");
+    	$activeCount = $queryCopy->count();
+    	
+    	$res['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $activeCount);
+    	$res['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $draftCount);
     	$tpl = static::renderSummary($res);
     	
     	return FALSE;
