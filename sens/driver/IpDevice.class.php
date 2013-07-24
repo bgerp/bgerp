@@ -375,7 +375,6 @@ class sens_driver_IpDevice extends core_BaseClass
                 }
             }   // if ($cond)
         }
-       //         bp($this->stateArr);
 
         if (is_array($newOuts)) {
             $this->setOuts($newOuts);
@@ -431,7 +430,7 @@ class sens_driver_IpDevice extends core_BaseClass
         
         $this->loadState(); 
         $settings = (array) $this->settings;
-        //bp($this->stateArr);
+
         $html = "<table colspan=0 rowspan=0>";
         foreach ($this->params as $param => $properties) {
             
@@ -451,7 +450,6 @@ class sens_driver_IpDevice extends core_BaseClass
             // Стринговете се кастват към float, и ако са !=0 се показват
             $valParam = floatval($this->stateArr["{$param}"]);
             if (empty($valParam)) {
-                // $html .= "<tr><td>{$param}</td><td>= " . $valParam . " {$properties['details']}</td></tr>";
                 continue;
             }
             
