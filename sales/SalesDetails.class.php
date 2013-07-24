@@ -363,7 +363,7 @@ class sales_SalesDetails extends core_Detail
                 // Начисляваме ДДС в/у цената
                 $ProductManager = self::getProductManager($rec->policyId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
-            }
+            }//bp($rec->packPrice, $masterRec->currencyRate);
             $rec->packPrice /= $masterRec->currencyRate;
         }
     }

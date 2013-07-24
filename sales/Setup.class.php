@@ -65,6 +65,7 @@ class sales_Setup extends core_ProtoSetup
         	'sales_Quotations',
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
+    		'sales_SaleRequestDetails',
         );
 
         
