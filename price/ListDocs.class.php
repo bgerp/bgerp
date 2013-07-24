@@ -457,8 +457,7 @@ class price_ListDocs extends core_Master
 	    	$groupsArr = keylist::toArray($data->rec->productGroups);
     	}
     	
-    	$data->rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
-    	$mvc->save($data->rec);
+    	$rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
     }
     
     
