@@ -166,7 +166,7 @@ class sales_QuotationsDetails extends core_Detail {
        }
        
        if(!$productMan instanceof cat_Products){
-       		$form->setField('optional', 'input=hidden');
+       		$form->setField('optional', 'input=none');
        }
     }
     
