@@ -205,7 +205,7 @@ class sales_Quotations extends core_Master
 	       	if($items && sales_Sales::haveRightFor('add')){
 	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
 	       	} elseif(!$items && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
-	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на заявка за продажба');	
+	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');	
 	       	}
 	    }
     }

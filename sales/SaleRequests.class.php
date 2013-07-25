@@ -543,7 +543,7 @@ class sales_SaleRequests extends core_Master
     	}
     	
     	if($data->rec->state == 'draft' && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
-	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Създаване на заявка за продажба');	
+	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
     }
 }
