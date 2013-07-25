@@ -57,7 +57,7 @@ class fileman_Files extends core_Master
 	 * Кой може да го разглежда?
 	 * @todo След като се направи да се показват само файловете на потребителя
 	 */
-//	var $canList = 'user';
+	var $canList = 'user';
     
 	
     /**
@@ -1140,5 +1140,83 @@ class fileman_Files extends core_Master
         }
         
         return $id;
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent');
+        
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'fName, usersSearch, bucket';
+        
+        $data->listFilter->input('usersSearch, bucket, fName', 'silent');
+    }
+
+    
+    /**
+     * 
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        // Ако не е избран потребител по подразбиране
+        if(!$data->listFilter->rec->usersSearch) {
+            
+            // Да е текущия
+            $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        // Ако има филтър
+        if($filter = $data->listFilter->rec) {
+            
+            // Ако филтъра е по потребители
+            if($filter->usersSearch) {
+                
+    			// Ако се търси по всички и има права admin или ceo
+    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, admin'))) {
+    			    // Търсим всичко
+                } else {
+                    
+                    // Масив с потребителите
+                    $usersArr = type_Keylist::toArray($filter->usersSearch);
+                    
+                    // Масив с номерата на съответните потребители
+                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
+                    
+                    // Търсим по създатели
+                    $data->query->orWhereArr('createdBy', $usersArr);
+                }
+    		}
+    		
+    		// Тримваме името
+    		$fName = trim($filter->fName);
+    		
+    		// Ако има съдържание
+    		if (strlen($fName)) {
+    		    
+    		    // Търсим в името
+    		    $data->query->where(array("LOWER(#name) LIKE LOWER('%[#1#]%')", $filter->fName));
+    		}
+    		
+    		// Ако има филтър
+            if($filter->bucket) {
+                
+                // Търсим в кофата
+    		    $data->query->where(array("#bucketId = '[#1#]'", $filter->bucket));
+            }
+        }
     }
 }
