@@ -44,7 +44,7 @@ li.dimension{
 .narrow .dimension .button{
 	background-image:none !important;
 	background:none !important;
-	padding-left:0.7em !important;
+	padding: 0.4em 0.4em 0.4em 0.7em !important;
 	border:none;
 	min-width:100%;
 	margin:0px;
