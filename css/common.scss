@@ -473,11 +473,13 @@ table {
 }
 
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
- input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"],  input:not([type])  {
+ input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
 	height:1.5em;
 }
+
 select{
 	height: 1.5em;
+	padding-left:0.2em;
 }
 .chzn-container .chzn-single{
 	height:1.5em !important;
@@ -485,7 +487,7 @@ select{
 
 .narrow input[type="text"], .narrow input[type="color"],.narrow input[type="number"], 
 .narrow input[type="tel"], .narrow input[type="email"],.narrow input[type="search"],
-.narrow input[type="url"], .narrow input[type="password"], .narrow input:not([type]),  .narrow select{
+.narrow input[type="url"], .narrow input[type="password"],  .narrow select{
 	height:1.5em;
 }
 
