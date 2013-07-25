@@ -159,8 +159,10 @@ class sales_SaleRequests extends core_Master
         if($form->isSubmitted()){//bp($fRec);
         	$rec = (object)array('originId' => $originId,
         						 'threadId' => $originRec->threadId,
-        						 'folderId' => $originRec->folderId,
-        						 'id' => $id);
+        						 'folderId' => $originRec->folderId);
+        	if(Request::get('edit')){
+        		$rec->id = $id;
+        	}
         	$rec->data = (array)$fRec;
         	if($form->cmd == 'active'){
         		$rec->state = 'active';
