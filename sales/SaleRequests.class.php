@@ -332,7 +332,7 @@ class sales_SaleRequests extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
-    	if(($action == 'add') && isset($rec)){bp($res);
+    	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){
     			$res = 'no_one';
     		}
