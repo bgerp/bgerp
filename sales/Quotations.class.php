@@ -347,8 +347,7 @@ class sales_Quotations extends core_Master
 			
 			if($rec->deliveryPlaceId){
 				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
-					$link = ht::createLink("[&#10138;]", array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
-	    			$row->deliveryPlaceId .= " <span class='anchor-arrow'>{$link}</span>";
+	    			$row->deliveryPlaceId = ht::createLinkref($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
 				}
 			}
 			
