@@ -92,15 +92,15 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Кой може да го разгледа?
-     */
-    var $canList = 'ceo,techno';
-    
-    
-    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'ceo,techno';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,techno';
 
 
 	/**
