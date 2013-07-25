@@ -242,7 +242,7 @@ class sales_QuotationsDetails extends core_Detail {
 	static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("productId", 'ASC');
+        $data->query->orderBy("id,productId", 'ASC');
     }
     
     
@@ -342,6 +342,7 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
+    	$oZebra = $dZebra = 'zebra0';
     	
     	// Променливи за определяне да се скриват ли някои колони
     	$hasQuantityCol = $hasQuantityColOpt = FALSE;
@@ -360,10 +361,11 @@ class sales_QuotationsDetails extends core_Detail {
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
+	    				$zebra = &$dZebra;
 	    				$colQ = &$hasQuantityCol;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
-	    				
+	    				$zebra = &$oZebra;
 	    				// слага се 'opt' в класа на колоната да се отличава
 	    				$rowTpl->replace('-opt', 'OPT');
 	    				if($row->productId){
@@ -379,6 +381,12 @@ class sales_QuotationsDetails extends core_Detail {
 	    			}
 	    			
 	    			$row->index = $id++;
+					if($row->productId){
+						$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
+					} else {
+						$row->TR_CLASS = $data->rows[$index][0]->TR_CLASS;
+					}
+	    			//
 	    			$rowTpl->placeObject($row);
 	    			$rowTpl->removeBlocks();
 	    			$rowTpl->append2master();

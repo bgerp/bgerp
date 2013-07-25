@@ -12,7 +12,7 @@
 	</tr>
 <!--ET_BEGIN ROW-->
 [#ROW#]
-<tr>
+<tr class='[#TR_CLASS#]'>
 	<td>[#tools#]<div class='tc'>[#index#]</div></td>
 		<!--ET_BEGIN productId-->
 		<td rowspan = '[#rowspan#]' valign='top' class='product-id[#OPTP#]'>[#productId#]</td>
