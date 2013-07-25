@@ -133,6 +133,16 @@ class bgerp_Setup {
             }
         }
 
+    	if(Request::get('SHUFFLE')){
+        	
+        	// Ако е зададен параметър shuffle  в урл-то разбуркваме пакетите
+        	if(!is_array($packs)){
+        		$packs = arr::make($packs);
+	        }
+	        shuffle($packs);
+	        $packs = implode(',', $packs);
+        }
+        
         do {
             $haveError = FALSE;
             $loop++;
