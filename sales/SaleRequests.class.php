@@ -130,6 +130,7 @@ class sales_SaleRequests extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount');
+    	$this->FLD('data', 'blob(serialize,compress)', 'input=none,caption=Данни');
     }
     
     
@@ -143,10 +144,10 @@ class sales_SaleRequests extends core_Master
         $origin = doc_Containers::getDocument($originId);
     	expect($origin->className == 'sales_Quotations');
     	$originRec = $origin->fetch();
-    	$id = static::fetchField("#originId = {$originRec->containerId} AND #state = 'draft'", 'id');
+    	$id = $this->fetchField("#originId = {$originRec->containerId} AND #state = 'draft'", 'id');
     	
     	// Подготовка на формата за филтриране на данните
-        $form = $this->getFilterForm($origin->that);
+        $form = $this->getFilterForm($origin->that, $id);
         /*if($id){
         	 $exRec = $this->fetch($id);
         }
@@ -155,12 +156,12 @@ class sales_SaleRequests extends core_Master
             $form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=10.00019', 'ef_icon = img/16/lightning.png');
         }*/
         $fRec = $form->input();
-        if($form->isSubmitted()){
+        if($form->isSubmitted()){//bp($fRec);
         	$rec = (object)array('originId' => $originId,
         						 'threadId' => $originRec->threadId,
         						 'folderId' => $originRec->folderId,
         						 'id' => $id);
-        	
+        	$rec->data = (array)$fRec;
         	if($form->cmd == 'active'){
         		$rec->state = 'active';
         	}
@@ -177,9 +178,9 @@ class sales_SaleRequests extends core_Master
     
     /**
      * Записване на данните от офертата в заявката
-     * формат на bgerp_iface_DealResponse
-     * @param stdClass $rec
-     * @param stdClass $quoteRec
+     * @param stdClass $rec - запис на заявката
+     * @param stdClass $dRec - въведените детайли
+     * @param stdClass $quoteRec - офертата пораждаща заявката
      */
     private function saveData($rec, $dRec, $quoteRec)
     {
@@ -190,9 +191,10 @@ class sales_SaleRequests extends core_Master
     		}
     	}
     	
-    	$items = $this->prepareProducts($dRec, $quoteRec->folderId);
     	$this->save($rec);
     	$this->sales_SaleRequestDetails->delete("#requestId = {$rec->id}");
+    	
+    	$items = $this->prepareProducts($dRec, $quoteRec->folderId);
     	
     	foreach($items as $item){
     		$item->requestId = $rec->id;
@@ -225,24 +227,48 @@ class sales_SaleRequests extends core_Master
     		if($optional == 'yes' && empty($quantity)) continue;
     		
     		// Намира се кой детайл отговаря на този продукт
-    		$obj = array_values(
-    			array_filter(static::$cache, function ($val) use ($productId, $policyId, $quantity) {
-           				if($val->productId == $productId && $val->policyId == $policyId && (($val->quantity == $quantity) || ($val->quantity === NULL))){
-            				return $val;
-            			}}));
-            			
-            if(!$obj[0]->quantity){
-            	$obj[0]->quantity = $quantity;
-            }
-            			
-            $items[] = (object)array('policyId'  => $obj[0]->policyId,
-        					 'productId' => $obj[0]->productId,
-        					 'discount'  => $obj[0]->discount,
-        					 'quantity'  => $obj[0]->quantity,
-        					 'price'     => $obj[0]->price);
+    		$obj = (object)$this->findDetail($productId, $policyId, $quantity);
+            $items[] = (object)array('policyId'  => $obj->policyId,
+        					 'productId' => $obj->productId,
+        					 'discount'  => $obj->discount,
+        					 'quantity'  => $obj->quantity,
+        					 'price'     => $obj->price);
     	}
     	
     	return $items;
+    }
+    
+    
+    /**
+     * Помощна ф-я за намиране на записа съответстващ на избраното к-во
+     * @param int $productId - ид на продукт
+     * @param int $policyId - политика
+     * @param int $quantity - к-во
+     * @return stdClass $val - обект съответсващ на детайл
+     */
+    private function findDetail($productId, $policyId, $quantity)
+    {
+    	// Първо се проверява имали запис за този продукт с това к-во
+    	$val = array_values( array_filter(static::$cache, 
+    		function ($val) use ($productId, $policyId, $quantity) {
+           				if($val->productId == $productId && $val->policyId == $policyId && ($val->quantity == $quantity && $quantity)){
+            				return $val;
+            			}}));
+            			
+        // Ако к-то е ръчно въведено, връщаме първия запис съответстващ
+        // на първото срещане на продукта
+        if(!$val){
+        	$val = array_values( array_filter(static::$cache, 
+    		function ($val) use ($productId, $policyId) {
+           				if($val->productId == $productId && $val->policyId == $policyId){
+            				return $val;
+            			}}));
+            			
+            // Присвояване на к-то
+            $val[0]->quantity = $quantity;
+        }
+    	
+        return $val[0];
     }
     
     
@@ -251,9 +277,10 @@ class sales_SaleRequests extends core_Master
      * продукт се показва поле с опции посочените к-ва от офертата
      * Трябва на всеки един продукт да съответства точно едно к-во
      * @param int $quotationId - ид на офертата
+     * @param int $id - ид на записа ако има
      * @return core_Form - готовата форма
      */
-    private function getFilterForm($quotationId)
+    private function getFilterForm($quotationId, $id)
     {
     	$form = cls::get('core_Form');
     	$filteredProducts = $this->filterProducts($quotationId);
@@ -261,11 +288,11 @@ class sales_SaleRequests extends core_Master
     	foreach ($filteredProducts as $index => $product){
     		if($product->optional == 'yes') {
     			$product->title = "Опционални->{$product->title}";
-    			$product->options = $product->options;
+    			$product->options = array('' => '&nbsp;') + $product->options;
     			$mandatory = '';
     		} else {
 	    		if(count($product->options) > 1) {
-	    			$product->options = array('&nbsp;' => '&nbsp;') + $product->options;
+	    			$product->options = array('' => '&nbsp;') + $product->options;
 	    			$mandatory = 'mandatory';
 	    		} else {
 	    			$mandatory = '';
@@ -274,15 +301,23 @@ class sales_SaleRequests extends core_Master
     		
     		$form->FNC($index, "double(decimals=2)", "width=7em,input,caption={$product->title},{$mandatory}");
     		if($product->suggestions){
-    			if(count($product->options) > 1){
+    			//if(count($product->options) > 1){
     				$form->setSuggestions($index, $product->options);
-    			}
+    			//}
     		} else {
     			$form->setOptions($index, $product->options);
     		}
     	}
     	
-    	$form->title = tr("Заявка към Оферта") . " #" . cls::get('sales_Quotations')->getHandle($quotationId);
+    	if($id && Request::get('edit')){
+    		if($fRec = (object)$this->fetchField($id, 'data')){
+    			$form->rec = $fRec;
+    		}
+    		$form->title = tr("Редактиране на") . " |*&nbsp;" . $this->getLink($id);
+    	} else {
+    		$form->title = tr("Заявка към") . " |*&nbsp;" . cls::get('sales_Quotations')->getLink($quotationId);
+    	}
+    	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
     	$form->toolbar->addBtn('Отказ', array('sales_Quotations', 'single', $quotationId), 'ef_icon = img/16/close16.png');
     	
@@ -308,10 +343,12 @@ class sales_SaleRequests extends core_Master
     			$title = cls::get($rec->policyId)->getProductMan()->getTitleById($rec->productId);
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}
-    		if(!$rec->quantity && $rec->optional == 'yes'){
+    		if($rec->optional == 'yes'){
     			$products[$index]->suggestions = TRUE;
     		}
-    		$products[$index]->options[$rec->quantity] = $rec->quantity;
+    		if($rec->quantity){
+    			$products[$index]->options[$rec->quantity] = $rec->quantity;
+    		}
     	}
     	
     	return $products;
@@ -384,7 +421,7 @@ class sales_SaleRequests extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = "Заявка №" .$this->abbr . $rec->id;
+        $row->title = "Заявка №" . $this->abbr . $rec->id;
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -427,10 +464,10 @@ class sales_SaleRequests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = tr("Заявка за продажба|* №{$rec->id}");
-    	$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
-    	
     	if($fields['-list']){
+    		$row->title = tr("Заявка|* №{$rec->id}");
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+    	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
 	    		$img = doc_Folders::getIconImg($rec->folderId);
 	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
@@ -443,6 +480,9 @@ class sales_SaleRequests extends core_Master
 	    	if(!$rec->amount){
 	    		$row->amount = $mvc->fields['amount']->type->toVerbal($mvc->calcTotal($rec));
 	    	}
+	    	
+	    	$origin = doc_Containers::getDocument($rec->originId);
+	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
     }
     
@@ -461,7 +501,7 @@ class sales_SaleRequests extends core_Master
     	$detailQuery->where("#requestId = {$rec->id}");
     	while ($d = $detailQuery->fetch()){
     		if($applyVat){
-    			$productMan = ($d->productManId) ? cls::get($d->productManId) : cls::get($d->policyId)->getProductMan();
+    			$productMan = ($d->classId) ? cls::get($d->productManId) : cls::get($d->policyId)->getProductMan();
     			$d->price *= 1 + $productMan->getVat($d->productId);
     		}
     		$total += $d->price * $d->quantity;
@@ -499,5 +539,9 @@ class sales_SaleRequests extends core_Master
     	if ($data->rec->state == 'active') {
     		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'warning=Наистина ли искате да създадете нова продажба?', 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
     	}
+    	
+    	if($data->rec->state == 'draft' && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
+	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Създаване на заявка за продажба');	
+	   }
     }
 }

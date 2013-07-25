@@ -38,6 +38,10 @@
                         <br/>
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END stateText-->
+                        
+                        <!--ET_BEGIN originLink-->
+                        <div style='padding:7px 0px'>|към|* [#originLink#]</div>
+                        <!--ET_END originLink-->
                     </td>
                     <td class="cell" width="35%" valign="top"><b>Доставчик</b>
                     <!--ET_BEGIN supplier-->
