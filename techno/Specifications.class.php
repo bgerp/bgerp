@@ -503,6 +503,7 @@ class techno_Specifications extends core_Master {
     	// Копието е нов документ(чернова), в същата папка в нов тред
     	unset($rec->id, $rec->containerId);
     	$rec->state = 'draft';
+    	$this->save($rec);
     	
     	// Промяна на името на копието
     	$data = unserialize($rec->data);
@@ -515,6 +516,7 @@ class techno_Specifications extends core_Master {
     		$newTitle = str::increment($newTitle);
     	}
     	$rec->title = $data->title = $newTitle;
+    	$data->specificationId = $rec->id;
     	$rec->data = $technoClass->serialize($data);
     	
     	// Запис и редирект
