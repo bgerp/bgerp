@@ -481,19 +481,16 @@ select{
 	height: 1.5em;
 	padding-left:0.2em;
 }
-.chzn-container .chzn-single{
-	height:1.5em !important;
-}
 
-.narrow input[type="text"], .narrow input[type="color"],.narrow input[type="number"], 
-.narrow input[type="tel"], .narrow input[type="email"],.narrow input[type="search"],
-.narrow input[type="url"], .narrow input[type="password"],  .narrow select{
-	height:1.5em;
+.wide .chzn-container .chzn-single{
+	height:1.32em !important;
+	padding-top:2px !important;
 }
 
 .narrow .chzn-container .chzn-single{
-	height:1.31em !important;
+	height:1.33em !important;
 }
+
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
 
 
@@ -508,15 +505,32 @@ select{
 	    padding-right:1em;
 	    -webkit-border-radius:0;
     }
-     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"],  input:not([type]) {
+    .wide select {
+      padding-top:2px;
+    }
+     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
 		-webkit-appearance: none;
 		border-radius:0;
 		margin:0;
 	}
+	.wide input[type="text"], .wide input[type="color"],.wide  input[type="number"],.wide input[type="tel"], 
+	.wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"]{
+		padding-top:4px;
+	}
+	
 	textarea{
 		-webkit-border-radius:0;
 		-webkit-appearance: none;
 	}
+	
+	.wide .chzn-container .chzn-single{
+		padding-top:4px !important;
+		height:1.25em !important;
+	}
+	.narrow .chzn-container .chzn-single{
+		height:1.3em !important;
+	}
+
 }
 
 /*our reset and common classes*/
@@ -576,6 +590,7 @@ select, input, textarea{
 	-moz-box-sizing:border-box;
 	border: solid 1px $violet;
 	font-size: 1.07em;
+	color:#222;
 }
 
 select.combo {  
