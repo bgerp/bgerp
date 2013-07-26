@@ -77,6 +77,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         
         $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next'), 'ef_icon = img/16/move.png');
+        
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png');
         
         $form = $form->renderHtml();
@@ -138,9 +139,9 @@ class doc_plg_BusinessDoc extends core_Plugin
     protected static function getRetUrl($mvc)
     {
         if (!$retUrl = getRetUrl()) {
-            $retUrl = toUrl(array($mvc, 'list'), 'local');
+            $retUrl = toUrl(array($mvc, 'list'));
         }
-    
+        
         return $retUrl;
     }
     
