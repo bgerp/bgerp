@@ -29,7 +29,7 @@ class email_Returned extends core_Manager
     /**
      * Заглавие на таблицата
      */
-    var $title = "Наполучени, върнати писма";
+    var $title = "Неполучени, върнати писма";
     
     
     /**
