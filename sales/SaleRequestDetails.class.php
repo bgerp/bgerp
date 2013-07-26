@@ -23,7 +23,7 @@ class sales_SaleRequestDetails extends core_Detail {
     
     
     /**
-	 * Мастър ключ към дъските
+	 * Мастър ключ към заявката
 	 */
 	var $masterKey = 'requestId';
     
@@ -56,12 +56,6 @@ class sales_SaleRequestDetails extends core_Detail {
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, quantity, uomId=Мярка, price, discount, amount=Сума';
-    
-    
-    /**
-     * Кой таб да бъде отворен
-     */
-    var $currentTab = 'Заявки';
     
     
   	/**
@@ -114,12 +108,12 @@ class sales_SaleRequestDetails extends core_Detail {
     {
     	$productMan = ($rec->classId) ? cls::get($rec->classId) : cls::get($rec->policyId)->getProductMan();
     	
-    	$applyVat = $mvc->Master->fetchField($rec->requestId, 'vat');
     	$row->productId = $productMan->getTitleById($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
     		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId));
     	}
-    		
+
+    	$applyVat = $mvc->Master->fetchField($rec->requestId, 'vat');
     	if($applyVat == 'yes'){
     		$vat = $productMan->getVat($rec->productId);
     		$rec->price = $rec->price * (1 + $vat);
@@ -128,8 +122,8 @@ class sales_SaleRequestDetails extends core_Detail {
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
     	$row->uomId = cat_UoM::getTitleById($measureId);
     	
-    	$row->amount = $mvc->fields['price']->type->toverbal($rec->price * $rec->quantity);
+    	$row->amount = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantity);
     	$row->amount = "<div style='text-align:right'>{$row->amount}</div>";
-    	$row->price = $mvc->fields['price']->type->toverbal($rec->price);
+    	$row->price = $mvc->fields['price']->type->toVerbal($rec->price);
     }
 }

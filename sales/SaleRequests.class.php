@@ -107,7 +107,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Работен кеш за вече извлечените продукти
      */
-    protected static $cache = array();
+    protected static $cache;
 
     
     /**
@@ -140,6 +140,9 @@ class sales_SaleRequests extends core_Master
  	function act_CreateFromOffer()
  	{
  		$this->requireRightFor('add');
+ 		if($rId = Request::get('id', 'int')){
+ 			expect($this->fetchField($rId, 'state') == 'draft');
+ 		}
  		expect($originId = Request::get('originId'));
         $origin = doc_Containers::getDocument($originId);
     	expect($origin->className == 'sales_Quotations');
@@ -148,15 +151,13 @@ class sales_SaleRequests extends core_Master
     	
     	// Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($origin->that, $id);
-        /*if($id){
-        	 $exRec = $this->fetch($id);
+        
+ 		if ($this->haveRightFor('activate')) {
+            $form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=9.9999', 'ef_icon = img/16/lightning.png');
         }
         
- 		if ($this->haveRightFor('activate', $exRec)) {
-            $form->toolbar->addSbBtn('Активиране', 'active', 'id=activate, order=10.00019', 'ef_icon = img/16/lightning.png');
-        }*/
         $fRec = $form->input();
-        if($form->isSubmitted()){//bp($fRec);
+        if($form->isSubmitted()){
         	$rec = (object)array('originId' => $originId,
         						 'threadId' => $originRec->threadId,
         						 'folderId' => $originRec->folderId);
@@ -196,7 +197,7 @@ class sales_SaleRequests extends core_Master
     	$this->save($rec);
     	$this->sales_SaleRequestDetails->delete("#requestId = {$rec->id}");
     	
-    	$items = $this->prepareProducts($dRec, $quoteRec->folderId);
+    	$items = $this->prepareProducts($dRec);
     	
     	foreach($items as $item){
     		$item->requestId = $rec->id;
@@ -212,14 +213,10 @@ class sales_SaleRequests extends core_Master
      * к-ва във подходящ вид
      * @param array $products - продуктите върнати от формата
      * @param double $amount - сума на заявката
-     * @param int $folderId - ид на папката
      * @return array $items - масив от продукти готови за запис
      */
-    private function prepareProducts($products, $folderId)
+    private function prepareProducts($products)
     {
-    	$contragentClass = doc_Folders::fetchCoverClassId($folderId);
-        $contragenId = doc_Folders::fetchCoverId($folderId);
-    	
     	$items = array();
     	$products = (array)$products;
     	foreach ($products as $index => $quantity){
@@ -303,9 +300,7 @@ class sales_SaleRequests extends core_Master
     		
     		$form->FNC($index, "double(decimals=2)", "width=7em,input,caption={$product->title},{$mandatory}");
     		if($product->suggestions){
-    			//if(count($product->options) > 1){
-    				$form->setSuggestions($index, $product->options);
-    			//}
+    			$form->setSuggestions($index, $product->options);
     		} else {
     			$form->setOptions($index, $product->options);
     		}
@@ -476,9 +471,18 @@ class sales_SaleRequests extends core_Master
 	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
             	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
 	    	}
-	    }
+	    	
+	    	if($rec->state == 'draft'){
+	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";
+	    		$row->id = ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE)) . " " . $row->id;
+	    	}
+    	}
 	    
 	    if($fields['-single']){
+	    	if(!Mode::is('printing')){
+	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+	    	}
+	    	
 	    	if(!$rec->amount){
 	    		$row->amount = $mvc->fields['amount']->type->toVerbal($mvc->calcTotal($rec));
 	    	}
@@ -542,7 +546,7 @@ class sales_SaleRequests extends core_Master
     		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'warning=Наистина ли искате да създадете нова продажба?', 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
     	}
     	
-    	if($data->rec->state == 'draft' && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
+    	if($data->rec->state == 'draft') {
 	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
     }
