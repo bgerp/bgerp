@@ -474,7 +474,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if(sales_Quotations::haveRightFor('add') && $data->rec->isOfferable == 'yes'){
-    		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId} AND #state='draft'", 'id');
+    		$qId = sales_Quotations::fetchField(("#originId = {$data->rec->containerId} AND #state='draft'"), 'id');
     		if($qId){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
     		} else {
@@ -495,11 +495,12 @@ class techno_Specifications extends core_Master {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
+    	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
     	unset($rec->id, $rec->containerId);
     	$rec->state = 'draft';
-    	$this->save($rec);
+    	$rec->originId = $originId;
     	
     	// Промяна на името на копието
     	$data = unserialize($rec->data);
