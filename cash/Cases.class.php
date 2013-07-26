@@ -92,6 +92,12 @@ class cash_Cases extends core_Master {
 	var $canSingle = 'ceo,cash';
     
     
+	/**
+	 * Кое поле отговаря на кой работи с дадена каса
+	 */
+	var $inChargeField = 'cashier';
+	
+	
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList.
