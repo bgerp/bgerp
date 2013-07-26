@@ -483,8 +483,8 @@ select{
 }
 
 .wide .chzn-container .chzn-single{
-	height:1.32em !important;
-	padding-top:2px !important;
+	height:1.4em !important;
+	padding-top:1px !important;
 }
 
 .narrow .chzn-container .chzn-single{
@@ -515,7 +515,7 @@ select{
 	}
 	.wide input[type="text"], .wide input[type="color"],.wide  input[type="number"],.wide input[type="tel"], 
 	.wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"]{
-		padding-top:4px;
+		padding-top:2px;
 	}
 	
 	textarea{
@@ -524,15 +524,14 @@ select{
 	}
 	
 	.wide .chzn-container .chzn-single{
-		padding-top:4px !important;
-		height:1.25em !important;
+		padding-top:0.2em !important;
+		height:1.3em !important;
 	}
 	.narrow .chzn-container .chzn-single{
 		height:1.3em !important;
 	}
 
 }
-
 /*our reset and common classes*/
 body{
 	background-color: $gray3;
