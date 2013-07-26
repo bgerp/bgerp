@@ -308,7 +308,7 @@ class techno_Specifications extends core_Master {
 	    	$double->params['decimals'] = 2;
 	    	
 	    	$technoClass = cls::get($rec->prodTehnoClassId);
-	    	$row->data = $technoClass->getVerbal($rec->data);
+	    	$row->data = $technoClass->getVerbal($rec->data, $rec->id);
 	    	$pInfo = $mvc->getProductInfo($rec->id);
 	    	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
 	    
@@ -435,12 +435,8 @@ class techno_Specifications extends core_Master {
         	$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
 			unset($rec->threadId);
 		}
-			    
-	    // Записваме мастър - данните
-	    $this->save($rec);
 	            
 	    // Записваме данните въведени от технолога
-        $fRec->specificationId = $rec->id;
         unset($fRec->threadId);
         $technoClass = cls::get($rec->prodTehnoClassId);
         $rec->data = $technoClass->serialize($fRec);
@@ -516,7 +512,6 @@ class techno_Specifications extends core_Master {
     		$newTitle = str::increment($newTitle);
     	}
     	$rec->title = $data->title = $newTitle;
-    	$data->specificationId = $rec->id;
     	$rec->data = $technoClass->serialize($data);
     	
     	// Запис и редирект
@@ -594,7 +589,7 @@ class techno_Specifications extends core_Master {
     	
     	$rec = static::fetch($id);
 	    $technoClass = cls::get($rec->prodTehnoClassId);
-	    return $technoClass->getVerbal($rec->data, TRUE);
+	    return $technoClass->getVerbal($rec->data, $rec->id, TRUE);
      }
      
      
