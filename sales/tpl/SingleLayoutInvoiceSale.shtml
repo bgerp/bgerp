@@ -13,7 +13,7 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell" valign="top" width="35%"><b>Получател</b>
+                    <td class="cell" valign="top" width="35%"><b>|Получател|*</b>
                     <!--ET_BEGIN contragent-->
                     <div>
                         <b>[#contragentName#]</b><br>
@@ -28,7 +28,7 @@
 					<!--ET_END contragent-->
                     </td>
                     <td class="cell" align="center" width="30%">
-                        <font style="font-size:16pt;"><b> ПРОДАЖБА</b> </font><br>
+                        <font style="font-size:16pt;"><b> |ПРОДАЖБА|*</b> </font><br>
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
                         	<span class="bigData">[#valior#]</span>
@@ -46,7 +46,7 @@
                         <div class="[#STATE_CLASS#]">[#stateText#]</div>
                         <!--ET_END stateText-->
                     </td>
-                    <td class="cell" width="35%" valign="top"><b>Доставчик</b>
+                    <td class="cell" width="35%" valign="top"><b>|Доставчик|*</b>
                     <!--ET_BEGIN supplier-->
                     <div>
                         <b>[#MyCompany#]</b><br>
@@ -70,25 +70,25 @@
                     <td class="topCell first" valign="top" width="30%">
                         <!--ET_BEGIN deliveryTermId-->
                     	<div>
-                            Условие: <b>[#deliveryTermId#]</b>
+                            |Условие|*: <b>[#deliveryTermId#]</b>
                        	</div>
                        	<!--ET_END deliveryTermId-->
                        	
                         <!--ET_BEGIN pricesAtDate-->
                       	<div>
-                            Цени към: <b>[#pricesAtDate#]</b><br>
+                            |Цени към|*: <b>[#pricesAtDate#]</b><br>
                        	</div>
                        	<!--ET_END pricesAtDate-->
                        	
                         <!--ET_BEGIN deliveryTime-->
                         <div>
-                            Срок до: <b>[#deliveryTime#]</b>
+                            |Срок до|*: <b>[#deliveryTime#]</b>
                         </div>
                         <!--ET_END deliveryTime-->
     
                         <!--ET_BEGIN shipmentStoreId-->
                         <div>
-                            От склад: <b>[#shipmentStoreId#] </b>
+                            |От склад|*: <b>[#shipmentStoreId#] </b>
                         </div>
                         <!--ET_END shipmentStoreId-->
                              
@@ -100,21 +100,21 @@
                     </td>
                     <td class="topCell" valign="top" width="40%">
                         <!--ET_BEGIN paymentMethodId-->
-                            <div>Плащане: <b>[#paymentMethodId#]</b></div>
+                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
                         <!--ET_END paymentMethodId-->
                         
                         <!--ET_BEGIN currencyId-->
-                            <div>Валута:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
+                            <div>|Валута|*:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
                         <!--ET_END currencyId-->
                         
                         <!--ET_BEGIN bankAccountId-->
                             <hr />
-                            <div>Банкова с-ка :  <b>[#bankAccountId#]</b></div>
+                            <div>|Банкова с-ка|* :  <b>[#bankAccountId#]</b></div>
                         <!--ET_END bankAccountId-->
                         
                         <!--ET_BEGIN caseId-->
                         <hr/>
-                        <div>Каса: <b>[#caseId#]</b></div>
+                        <div>|Каса|*: <b>[#caseId#]</b></div>
                         <!--ET_END caseId-->
                     </td>
        
@@ -125,17 +125,17 @@
                                 <td>
                                     <table>
                                         <tr>
-                                            <td style="text-align: right;">Обща сума [#chargeVat#]:</td>
+                                            <td style="text-align: right;">|Обща сума|* [#chargeVat#]:</td>
                                             <td><b>[#amountDeal#]</b></td>
                                         </tr>
                                         <!--ET_BEGIN amountPaid-->
                                         <tr>
-                                            <td style="text-align: right;">Платени:</td>
+                                            <td style="text-align: right;">|Платени|*:</td>
                                             <td><b>[#amountPaid#]</b></td>
                                         </tr>
                                         <!--ET_END amountPaid-->
                                         <tr>
-                                            <td style="text-align: right;">Остатък:</td>
+                                            <td style="text-align: right;">|Остатък|*:</td>
                                             <td><b>[#amountToPay#]</b></td>
                                         </tr>
                                     </table>
@@ -147,8 +147,6 @@
                            
                             </tbody>
                         </table>
-                          
-                        
                     </td>
                 </tr>           
                 </tbody>

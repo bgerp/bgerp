@@ -4,7 +4,11 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-
+<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+<!--ET_END header-->
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
@@ -13,7 +17,7 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell" valign="top" width="35%"><b>Получател</b>
+                    <td class="cell" valign="top" width="35%"><b>|Получател|*</b>
                     <!--ET_BEGIN contragent-->
                     <div>
                         <b>[#contragentName#]</b><br>
@@ -28,7 +32,7 @@
 					<!--ET_END contragent-->
                     </td>
                     <td class="cell" align="center" width="30%">
-                        <font style="font-size:16pt;"><b> ЗАЯВКА ЗА ПРОДАЖБА</b> </font><br>
+                        <font style="font-size:16pt;"><b> |ЗАЯВКА ЗА ПРОДАЖБА|*</b> </font><br>
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
                         	<span class="bigData">[#createdDate#]</span>
@@ -43,7 +47,7 @@
                         <div style='padding:7px 0px'>|към|* [#originLink#]</div>
                         <!--ET_END originLink-->
                     </td>
-                    <td class="cell" width="35%" valign="top"><b>Доставчик</b>
+                    <td class="cell" width="35%" valign="top"><b>|Доставчик|*</b>
                     <!--ET_BEGIN supplier-->
                     <div>
                         <b>[#MyCompany#]</b><br>
@@ -65,7 +69,7 @@
                     <td class="topCell first" valign="top" width="30%">
                         <!--ET_BEGIN deliveryTermId-->
                     	<div>
-                            Условие: <b>[#deliveryTermId#]</b>
+                            |Условие|*: <b>[#deliveryTermId#]</b>
                        	</div>
                        	<!--ET_END deliveryTermId-->
                              
@@ -77,11 +81,11 @@
                     </td>
                     <td class="topCell" valign="top" width="40%">
                         <!--ET_BEGIN paymentMethodId-->
-                            <div>Плащане: <b>[#paymentMethodId#]</b></div>
+                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
                         <!--ET_END paymentMethodId-->
                         
                         <!--ET_BEGIN currencyId-->
-                            <div>Валута:  <b>[#paymentCurrencyId#]</b> [#rate#]</div>
+                            <div>|Валута|*:  <b>[#paymentCurrencyId#]</b> [#rate#]</div>
                         <!--ET_END currencyId-->
                     </td>
        
@@ -92,7 +96,7 @@
                                 <td>
                                     <table>
                                         <tr>
-                                            <td style="text-align: right;">Обща сума [#chargeVat#]:</td>
+                                            <td style="text-align: right;">|Обща сума|* [#chargeVat#]:</td>
                                             <td><span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b></td>
                                         </tr>
                                     </table>
