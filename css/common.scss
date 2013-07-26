@@ -1592,11 +1592,10 @@ div.alphabet div.tab-row .tab {
 	font-size:0.7em;
 	border: 1px solid #aaa;
 	text-align: center;
-	margin: 2px;
+	margin: 2px 4px 5px 0;
 	@include border-radius(5px);
 	display: table;
 	float: left;
-	margin-bottom: 5px;
 	&:hover {
 		margin-top: -1px;
 		margin-bottom:8px;
