@@ -926,4 +926,64 @@ class callcenter_Talks extends core_Master
         // Извикваме линка
         exec("wget -q --spider '{$url}'");
     }
+    
+    
+    /**
+     * Извиква се от крона. Променя статуса на разговорите без статус на без отговор
+     */
+    function cron_FixDialStatus()
+    {
+        // Вземаме конфигурационните данни
+        $conf = core_Packs::getConfig('callcenter');
+        
+        // Вземаме секундите
+        $secs = $conf->CALLCENTER_DRAFT_TO_NOANSWER;
+        
+        // Изваждаме секундите
+        $secsBefore = -1 * $secs;
+        $before = dt::addSecs($secsBefore);
+        
+        // Вземаме всички записи, които нямат dialStatus и са по стари от посоченото време
+        $query = static::getQuery();
+        $query->where("#dialStatus IS NULL");
+        $query->where("#startTime < '$before'");
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Променяне статуса
+            $rec->dialStatus = 'NO ANSWER';
+            
+            // Записваме
+            static::save($rec);
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'fixDialStatus';
+        $rec->description = 'Променя статуса на обажданията без статуси на без отговор';
+        $rec->controller = $mvc->className;
+        $rec->action = 'FixDialStatus';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да променя статуса на обажданията без статуси на без отговор.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
+        }
+    }
 }

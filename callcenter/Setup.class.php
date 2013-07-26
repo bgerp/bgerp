@@ -2,6 +2,12 @@
 
 
 /**
+ * След колко секунди да се промени от празно състояние в без отговор
+ */
+defIfNot(CALLCENTER_DRAFT_TO_NOANSWER, '3600');
+
+
+/**
  * Инсталиране/Деинсталиране на мениджъри свързани с callcenter модула
  *
  * @category  bgerp
@@ -37,6 +43,26 @@ class callcenter_Setup
      * Описание на модула
      */
     var $info = "Център за телефонни обаждания";
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+           
+       'Актуализиране' => array ('callcenter_Numbers', 'update', 'ret_url' => TRUE),
+    
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+           
+       'CALLCENTER_DRAFT_TO_NOANSWER' => array('int'),
+
+    );
     
     
     /**
