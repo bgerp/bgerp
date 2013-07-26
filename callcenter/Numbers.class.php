@@ -136,7 +136,7 @@ class callcenter_Numbers extends core_Manager
                     // Вземам линк към профила на отговорника
                     $inChargeLink = crm_Profiles::createLink($cardRec->inCharge);
                     
-                    $card = $class->getVerbal($cardRec, 'name') . " - {$inChargeLink}";
+                    $card = $class->getVerbal($cardRec, 'name') . " « {$inChargeLink}";
                 }
             }
         }
