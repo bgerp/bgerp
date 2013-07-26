@@ -87,6 +87,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Кой може да го изтрие?
+     */
+    var $canWrite = 'ceo,store';
+    
+    
+    /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 300;
