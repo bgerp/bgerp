@@ -2,6 +2,8 @@
 
 class core_App
 {
+    
+    public static $debugHandler = array(__CLASS__, 'bp');
 
     public static function run()
     {
@@ -951,6 +953,28 @@ class core_App
         expect($fullPath = static::getFullPath($shortPath));
 
         return file_get_contents($fullPath);
+    }
+    
+    public static function debug()
+    {
+        $args = func_get_args();
+        $where = array_shift(debug_backtrace());
+        
+        $file = $where['file'];
+        $line = $where['line'];
+        
+        if (!empty($file)) {
+            $file = str_replace(EF_ROOT_PATH, '', $file);
+            $file = ltrim($file, '/');
+        }
+        
+        $where = "{$file}:{$line}";
+        
+        array_unshift($args, $where);
+        
+//         bp($args);
+        
+        return call_user_func_array(self::$debugHandler, $args);
     }
 
 
