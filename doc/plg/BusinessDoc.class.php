@@ -75,7 +75,7 @@ class doc_plg_BusinessDoc extends core_Plugin
             }
         }
         
-        $form->title = 'Основание за създаване';
+        $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png');
         
@@ -121,9 +121,9 @@ class doc_plg_BusinessDoc extends core_Plugin
     {
         $form = cls::get('core_Form');
         
-        $form->FNC('originDoc', 'varchar(15)', 'input,caption=Основание->Документ');
-        $form->FNC('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'input,caption=Папка->Фирма');
-        $form->FNC('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'input,caption=Папка->Лице');
+        $form->FNC('originDoc', 'varchar(15)', 'input,caption=Към документ');
+        $form->FNC('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'input,caption=Фирма');
+        $form->FNC('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'input,caption=Лице');
         
         return $form;
     }
