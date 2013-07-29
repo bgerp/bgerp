@@ -495,4 +495,21 @@ class callcenter_SMS extends core_Master
             }
         } 
     }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        // Премахваме бутона за запис
+        $data->form->toolbar->removeBtn('Запис');
+        
+        // Ако имаме права за добавяне
+        if (static::haveRightFor('add')) {
+            
+            // Заменяме бутона за запис с бутон за изпращане
+            $data->form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png');
+        }
+    }
 }
