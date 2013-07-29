@@ -154,6 +154,26 @@ class mobio_SMS extends core_Manager
     
     
     /**
+     * Интерфейсен метод, който връща масив с настройките за услугата
+     * 
+     * @return array $paramsArr
+     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     */
+    function getParams()
+    {
+        $conf = core_Packs::getConfig('mobio');
+        $paramsArr = array();
+        $paramsArr['utf8'] = $conf->MOBIO_SUPPORT_UTF8;
+        $paramsArr['maxStrLen'] = $conf->MOBIO_MAX_STRING_LEN;
+        $paramsArr['allowedUserNames'] = arr::make($conf->MOBIO_ALLOWED_USER_NAMES, TRUE);
+        
+        return $paramsArr;
+    }
+    
+    
+    /**
      * Интерфейсен метод
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а

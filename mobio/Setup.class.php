@@ -7,6 +7,24 @@ defIfNot('MOBIO_URL', '');
 
 
 /**
+ * Дали поддържа UTF-8
+ */
+defIfNot('MOBIO_SUPPORT_UTF8', FALSE);
+
+
+/**
+ * Максималната дължина на стринга
+ */
+defIfNot('MOBIO_MAX_STRING_LEN', 160);
+
+
+/**
+ * Стринг с позволените имена за изпращач
+ */
+defIfNot('MOBIO_ALLOWED_USER_NAMES', '');
+
+
+/**
  * class mobio_Setup
  *
  * Инсталиране/Деинсталиране на плъгина за изпращане на SMS-и чрез mobio
@@ -37,6 +55,10 @@ class mobio_Setup extends core_ProtoSetup
 
     var $configDescription = array (
         'MOBIO_URL' => array('url', 'mandatory'),
+    
+        'MOBIO_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)'),
+        'MOBIO_MAX_STRING_LEN' => array('int'),
+        'MOBIO_ALLOWED_USER_NAMES' => array('varchar'),
         );
     
         
