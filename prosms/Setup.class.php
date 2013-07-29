@@ -22,6 +22,24 @@ defIfNot('PROSMS_PASS', '');
 
 
 /**
+ * Дали поддържа UTF-8
+ */
+defIfNot('PROSMS_SUPPORT_UTF8', FALSE);
+
+
+/**
+ * Максималната дължина на стринга
+ */
+defIfNot('PROSMS_MAX_STRING_LEN', 160);
+
+
+/**
+ * Стринг с позволените имена за изпращач
+ */
+defIfNot('PROSMS_ALLOWED_USER_NAMES', '');
+
+
+/**
  * class prosms_Setup
  *
  * Инсталиране/Деинсталиране на плъгина за изпращане на SMS-и чрез prosms
@@ -54,6 +72,10 @@ class prosms_Setup extends core_ProtoSetup
         'PROSMS_URL' => array('url', 'mandatory'),
         'PROSMS_USER' => array('identifier', 'mandatory'),
         'PROSMS_PASS' => array('password', 'mandatory'),
+    
+        'PROSMS_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)'),
+        'PROSMS_MAX_STRING_LEN' => array('int'),
+        'PROSMS_ALLOWED_USER_NAMES' => array('varchar'),
         );
     
         

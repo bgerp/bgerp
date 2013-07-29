@@ -158,6 +158,26 @@ class prosms_SMS extends core_Manager
     
     
     /**
+     * Интерфейсен метод, който връща масив с настройките за услугата
+     * 
+     * @return array $paramsArr
+     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     */
+    function getParams()
+    {
+        $conf = core_Packs::getConfig('prosms');
+        $paramsArr = array();
+        $paramsArr['utf8'] = $conf->PROSMS_SUPPORT_UTF8;
+        $paramsArr['maxStrLen'] = $conf->PROSMS_MAX_STRING_LEN;
+        $paramsArr['allowedUserNames'] = arr::make($conf->PROSMS_ALLOWED_USER_NAMES, TRUE);
+        
+        return $paramsArr;
+    }
+    
+    
+    /**
      * Връща уникално id
      */
     static function getUid()
