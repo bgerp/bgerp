@@ -367,11 +367,11 @@ class sales_QuotationsDetails extends core_Detail {
 	    				$rowTpl = $oTpl->getBlock('ROW');
 	    				$zebra = &$oZebra;
 	    				// слага се 'opt' в класа на колоната да се отличава
-	    				$rowTpl->replace('-opt', 'OPT');
+	    				$rowTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				if($row->productId){
 	    					$rowTpl->replace('-opt-product', 'OPTP');
 	    				}
-	    				$oTpl->replace('-opt', 'OPT');
+	    				$oTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				$id = &$oCount;
 		    			$colQ = &$hasQuantityColOpt;
 	    			} 
@@ -413,11 +413,11 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	if(!$hasQuantityCol){
-    		$tpl->append(".quote-col {display:none;} .product-id {width:65%;}", 'STYLES');
+    		$tpl->append(".quote-col{$data->masterData->rec->id} {display:none;} .product-id {width:65%;}", 'STYLES');
     	}
     	
     	if(!$hasQuantityColOpt){
-    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
+    		$tpl->append(".quote-col-opt{$data->masterData->rec->id} {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
     	}
     	
     	return $tpl;
