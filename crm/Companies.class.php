@@ -390,7 +390,7 @@ class crm_Companies extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    static function on_AfterInputeditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -463,8 +463,12 @@ class crm_Companies extends core_Master
                 }
             }
             
-            if($rec->vatId && empty($rec->uicId)){
-            	$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+            if($rec->vatId){
+            	if(empty($rec->uicId)){
+            		$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+            	}
+            	$Vats = cls::get('drdata_Vats');
+            	//$rec->vatId = $Vats->canonize($rec->vatId);
             }
         }
     }
