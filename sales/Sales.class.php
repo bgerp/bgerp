@@ -1225,4 +1225,14 @@ class sales_Sales extends core_Master
         return $result;
     }
     
+    
+    /**
+     * При нова продажба, се ънсетва threadId-то, ако има
+     */
+    static function on_AfterPrepareDocumentLocation($mvc, $form)
+    {   
+    	if($form->rec->threadId && !$form->rec->id){
+		     unset($form->rec->threadId);
+		}
+    }
 }
