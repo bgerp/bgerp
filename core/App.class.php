@@ -1018,8 +1018,8 @@ class core_App
         }
         
         $where = "{$file}:{$line}";
-        
-        array_unshift($args, $where);
+
+        $args = array($args, $where);
         
         return call_user_func_array(self::$debugHandler, $args);
     }
