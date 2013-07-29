@@ -49,7 +49,8 @@ class plg_Current extends core_Plugin
 				$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
 	            if($query->count() == 1){
 	            	$rec = $query->fetch();
-	            	Redirect(array($mvc, 'SetCurrent', $rec->id));
+	            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
+	            	return;
 	            }
 	            
             	redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
@@ -74,7 +75,7 @@ class plg_Current extends core_Plugin
             
             expect($rec = $mvc->fetch($id));
             
-            $mvc->requireRightFor('edit', $rec);
+            $mvc->requireRightFor('select', $rec);
             
             Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
             
@@ -114,7 +115,7 @@ class plg_Current extends core_Plugin
         if ($rec->id == $currentId) {
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
             $row->ROW_ATTR['class'] .= ' state-active';
-        } elseif($mvc->haveRightFor('write', $rec)) {
+        } elseif($mvc->haveRightFor('select', $rec)) {
             $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, 'ef_icon = img/16/key.png');
             $row->ROW_ATTR['class'] .= ' state-closed';
         }
@@ -140,9 +141,11 @@ class plg_Current extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'write' && isset($rec)){
+    	if($action == 'select' && isset($rec)){
     		if(($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
     			$res = 'no_one';
+    		} else {
+    			$res = $mvc->GetRequiredRoles('write', $rec);
     		}
     	}
     }
