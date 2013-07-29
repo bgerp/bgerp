@@ -744,7 +744,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако редактираме запис
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId   
-        if($rec->id) {
+        if($rec->id) { 
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
             
@@ -799,7 +799,7 @@ class doc_DocumentPlg extends core_Plugin
         } elseif ($rec->originId) {
             
             // Ако имаме $originId
-            
+           
             expect($oRec = doc_Containers::fetch($rec->originId));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
@@ -830,6 +830,8 @@ class doc_DocumentPlg extends core_Plugin
         if(!$rec->folderId) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
+        
+        $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
     }
 
     
