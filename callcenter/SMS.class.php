@@ -412,7 +412,6 @@ class callcenter_SMS extends core_Master
     static function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         // Последно получените и изпратени и да са първи
-        $data->query->orderBy('#receivedTime', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
     
         // Ако не е избран потребител по подразбиране
