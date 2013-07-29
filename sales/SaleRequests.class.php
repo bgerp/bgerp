@@ -164,13 +164,10 @@ class sales_SaleRequests extends core_Master
         	if(Request::get('edit')){
         		$rec->id = $id;
         	}
-        	$rec->data = (array)$fRec;
-        	if($form->cmd == 'active'){
-        		$rec->state = 'active';
-        	}
         	
         	// Подготовка на данните
-        	$id = $this->saveData($rec, $fRec, $originRec);
+        	$rec->data = (array)$fRec;
+        	$id = $this->saveData($rec, $fRec, $originRec, $form->cmd);
         	
         	return Redirect(array($this, 'single', $id));
         }
@@ -184,8 +181,10 @@ class sales_SaleRequests extends core_Master
      * @param stdClass $rec - запис на заявката
      * @param stdClass $dRec - въведените детайли
      * @param stdClass $quoteRec - офертата пораждаща заявката
+     * @param string $cmd - командата от формата
+     * @return int $id - ид на записа
      */
-    private function saveData($rec, $dRec, $quoteRec)
+    private function saveData($rec, $dRec, $quoteRec, $cmd)
     {
     	$fields = $this->selectFields("#fromOffer");
     	foreach($fields as $name => $fld){
@@ -199,10 +198,15 @@ class sales_SaleRequests extends core_Master
     	
     	$items = $this->prepareProducts($dRec);
     	
-    	foreach($items as $item){
+    	foreach ($items as $item){
     		$item->requestId = $rec->id;
     		$this->sales_SaleRequestDetails->save($item);
     	}
+    	
+    	if($cmd == 'active'){
+        	$this->invoke('Activation', array($rec));
+        	$this->save($rec);
+        }
     	
     	return $rec->id;
     }
@@ -228,10 +232,10 @@ class sales_SaleRequests extends core_Master
     		// Намира се кой детайл отговаря на този продукт
     		$obj = (object)$this->findDetail($productId, $policyId, $quantity);
             $items[] = (object)array('policyId'  => $obj->policyId,
-        					 'productId' => $obj->productId,
-        					 'discount'  => $obj->discount,
-        					 'quantity'  => $obj->quantity,
-        					 'price'     => $obj->price);
+        					         'productId' => $obj->productId,
+        					 		 'discount'  => $obj->discount,
+        					 		 'quantity'  => $obj->quantity,
+        					 		 'price'     => $obj->price);
     	}
     	
     	return $items;
@@ -254,8 +258,8 @@ class sales_SaleRequests extends core_Master
             				return $val;
             			}}));
             			
-        // Ако к-то е ръчно въведено, връщаме първия запис съответстващ
-        // на първото срещане на продукта
+        // Ако к-то е ръчно въведено, се връща първия запис
+        // съответстващ на първото срещане на продукта
         if(!$val){
         	$val = array_values( array_filter(static::$cache, 
     		function ($val) use ($productId, $policyId) {
@@ -316,7 +320,7 @@ class sales_SaleRequests extends core_Master
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-    	$form->toolbar->addBtn('Отказ', array('sales_Quotations', 'single', $quotationId), 'ef_icon = img/16/close16.png');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
     	
     	return $form;
     }
@@ -357,7 +361,38 @@ class sales_SaleRequests extends core_Master
      */
     public function getDealInfo($id)
     {
-    	// @TODO
+    	$rec = self::fetchRec($id);
+    	$query = $this->sales_SaleRequestDetails->getQuery();
+    	$details = $query->where("#requestId = {$id}")->fetchAll();
+    	
+    	$result = new bgerp_iface_DealResponse();
+    	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        $result->agreed->amount                = $rec->amount;
+        $result->agreed->currency              = $rec->paymentCurrencyId;
+        if($rec->deliveryPlaceId){
+        	$placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+        	$result->agreed->delivery->location  = $placeId;
+        }
+        $result->agreed->delivery->term        = $rec->deliveryTermId;
+        $result->agreed->payment->method       = $rec->paymentMethodId;
+    	
+    	foreach ($details as $dRec) {
+    		$Class = ($dRec->classId) ? cls::get($dRec->classId) : cls::get($dRec->policyId)->getProductMan();
+    		$pInfo = $Class->getProductInfo($dRec->productId);
+
+    		$p = new bgerp_iface_DealProduct();
+            $p->classId     = $Class->getClassId();
+            $p->productId   = $dRec->productId;
+            $p->packagingId = NULL;
+            $p->discount    = $dRec->discount;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $dRec->quantity;
+            $p->price       = $dRec->price;
+            $p->uomId       = $pInfo->productRec->measureId;
+            $result->agreed->products[] = $p;
+        }
+        
+        return $result;
     }
     
     
@@ -501,10 +536,11 @@ class sales_SaleRequests extends core_Master
      */
     private function calcTotal($rec)
     {
-    	$total = 0;
     	$applyVat = ($rec->vat == 'yes') ? TRUE : FALSE;
     	$detailQuery = $this->sales_SaleRequestDetails->getQuery();
     	$detailQuery->where("#requestId = {$rec->id}");
+    	
+    	$total = 0;
     	while ($d = $detailQuery->fetch()){
     		if($applyVat){
     			$productMan = ($d->classId) ? cls::get($d->productManId) : cls::get($d->policyId)->getProductMan();
@@ -522,7 +558,6 @@ class sales_SaleRequests extends core_Master
 	 */
 	public static function on_Activation($mvc, &$rec)
     {
-    	$rec = $mvc->fetch($rec->id);
     	$rec->state = 'active';
     	$rec->amount = $mvc->calcTotal($rec);
     }
@@ -538,7 +573,7 @@ class sales_SaleRequests extends core_Master
     
     
 	/**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за единичен изглед
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
