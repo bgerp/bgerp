@@ -72,8 +72,13 @@
                             |Условие|*: <b>[#deliveryTermId#]</b>
                        	</div>
                        	<!--ET_END deliveryTermId-->
-                             
-        
+                       	
+                        <!--ET_BEGIN deliveryPlaceId-->
+                        <div>
+                             |Място|*: <b>[#deliveryPlaceId#]</b>
+                        </div>
+        				<!--ET_END deliveryPlaceId-->
+        				
                         <!--ET_BEGIN note-->
 	                        <hr />
 	                        <div class="richtext">[#note#]</div> 
