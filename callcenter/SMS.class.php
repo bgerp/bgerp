@@ -164,6 +164,54 @@ class callcenter_SMS extends core_Master
                     $form->setWarning('mobileNum', 'Невалиден GSM номер');
                 }
             }
+            
+            // Ако е избрана услуга
+            if ($rec->service) {
+                
+                // Вземаме инстанцията на услугата
+                $service = cls::get($rec->service);
+                
+                // Вземаме масива с параметрите
+                $params = $service->getParams();
+                
+                // Ако не може да се изпраща SMS 
+                if ($params['utf8'] != 'yes') {
+                    
+                    // Преобразиваме в ASCII
+                    $rec->text = str::utf2ascii($rec->text);
+                }
+                
+                // Ако е зададен максималната дължина
+                if ($params['maxStrLen']) {
+                    
+                    // Вземаме дължината на текста
+                    $textLen = mb_strlen($rec->text);
+                    
+                    // Ако текста е над допустимите симвала
+                    if ($params['maxStrLen'] < $textLen) {
+                        
+                        // Сетваме грешка
+                        $form->setError('text', "Надвишавате максимално допустимата дължина от|* {$params['maxStrLen']} |символа");
+                    }
+                }
+                
+                // Името на изпращача
+                $sender = trim($rec->sender);
+                
+                // Ако са зададени позволени изпращачи
+                if ($params['allowedUserNames'] && $sender) {
+                    
+                    // Ако не е в масива
+                    if (!$params[allowedUserNames][$sender]) {
+                        
+                        // Стринг с позволените
+                        $allowedUsers = implode(', ', $params['allowedUserNames']);
+                        
+                        // Сетваме грешката
+                        $form->setError('text', "Невалиден изпращач. Позволените са|*: {$allowedUsers}");
+                    }
+                }
+            }
         }
     }
     
