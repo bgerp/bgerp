@@ -32,6 +32,24 @@ defIfNot('CLICKATELL_PASSWORD', '');
 
 
 /**
+ * Дали поддържа UTF-8
+ */
+defIfNot('CLIKATELL_SUPPORT_UTF8', FALSE);
+
+
+/**
+ * Максималната дължина на стринга
+ */
+defIfNot('CLIKATELL_MAX_STRING_LEN', 160);
+
+
+/**
+ * Стринг с позволените имена за изпращач
+ */
+defIfNot('CLIKATELL_ALLOWED_USER_NAMES', '');
+
+
+/**
  * Инсталиране на clickatell
  *
  * @category  vendors
@@ -66,6 +84,10 @@ class clickatell_Setup extends core_ProtoSetup
         'CLICKATELL_APIID' => array('varchar', 'mandatory'),
         'CLICKATELL_USERNAME' => array('varchar', 'mandatory'),
         'CLICKATELL_PASSWORD' => array('varchar', 'mandatory'),
+    
+        'CLIKATELL_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)'),
+        'CLIKATELL_MAX_STRING_LEN' => array('int'),
+        'CLIKATELL_ALLOWED_USER_NAMES' => array('varchar'),
     );
     
     
