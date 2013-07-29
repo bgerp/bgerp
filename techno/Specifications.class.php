@@ -320,7 +320,7 @@ class techno_Specifications extends core_Master {
 	    if($fields['-list']){
 	    	if($mvc->haveRightFor('ajust', $rec)){
 	    		$img = "<img src=" . sbf('img/16/testing.png') . ">";
-	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id)) . $row->tools . " " . $rec->id;
+	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id, 'ret_url' => TRUE)) . $row->tools . " " . $rec->id;
 	    	}
 	    	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
@@ -353,8 +353,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
-    	$retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
-    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => $retUrl));
+    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getRetUrl()));
         if($rec->id){
         	
         	// Ако се редактира се маха бутона за записване в нов-тред
@@ -465,7 +464,7 @@ class techno_Specifications extends core_Master {
     	if($mvc->haveRightFor('ajust', $data->rec)){
     		
         	// Може да се променят с само на чернова
-        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
+        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => TRUE);
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings,title=Промяна на характеристиките на спецификацията');
     	}
     	
