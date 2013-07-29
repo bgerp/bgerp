@@ -36,6 +36,20 @@ class callcenter_SentSMSIntf
     
     
     /**
+     * Интерфейсен метод, който връща масив с настройките за услугата
+     * 
+     * @return array $paramsArr
+     * enum $paramsArr['utf8'] - no|yes - Дали поддържа UTF-8
+     * integer $paramsArr['maxStrLen'] - Максималната дължина на стринга
+     * string $paramsArr['allowedUserNames'] - Масив с позволените имена за изпращач
+     */
+    function getParams()
+    {
+        return $this->class->getParams();
+    }
+    
+    
+    /**
      * Отбелязване на статуса на съобщенито
      * Извиква се от външната програма след промяна на статуса на SMS'а
      */
