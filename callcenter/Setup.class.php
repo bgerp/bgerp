@@ -2,6 +2,18 @@
 
 
 /**
+ * Защитен ключ за регистриране на обаждания
+ */
+defIfNot('CALLCENTER_PROTECT_KEY', md5(EF_SALT . 'callCenter'));
+
+
+/**
+ * Разрешени IP адреси, от които да се генерира обаждане
+ */
+defIfNot(CALLCENTER_ALLOWED_IP_ADDRESS, '');
+
+
+/**
  * След колко секунди да се промени от празно състояние в без отговор
  */
 defIfNot(CALLCENTER_DRAFT_TO_NOANSWER, '3600');
@@ -61,7 +73,7 @@ class callcenter_Setup
     var $configDescription = array(
            
        'CALLCENTER_DRAFT_TO_NOANSWER' => array('int'),
-
+       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar'),
     );
     
     
