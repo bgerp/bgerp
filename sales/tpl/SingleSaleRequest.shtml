@@ -101,8 +101,8 @@
                                 <td>
                                     <table>
                                         <tr>
-                                            <td style="text-align: right;">|Обща сума|* [#chargeVat#]:</td>
-                                            <td><span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b></td>
+                                            <td style="text-align: right;" class='expandable'>|Обща сума|* [#chargeVat#]:</td>
+                                            <td class='expandable'><span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b></td>
                                         </tr>
                                     </table>
                                 </td>
