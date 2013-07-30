@@ -99,7 +99,6 @@ class sales_Quotations extends core_Master
     public $canDelete = 'ceo,sales';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -545,8 +544,8 @@ class sales_Quotations extends core_Master
     	if(!count($products)) return FALSE;
     	
     	/* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
-        $result->dealType = 'sale'; //bgerp_iface_DealResponse::TYPE_SALE;
+        $result = new bgerp_iface_DealResponse();
+    	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         $result->agreed->amount                  = $amount;
         $result->agreed->currency                = $rec->paymentCurrencyId;
