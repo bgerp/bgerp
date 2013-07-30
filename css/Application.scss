@@ -1431,11 +1431,16 @@ fieldset.sharing-history {
 #cmsBottom {
 	font-size: 1.2em;
 	padding: 0px;
-	padding-top: 7px;
+	padding: 10px 0 3px;
 	display: block;
+	min-height:38px;
 }
 .wide #cmsBottom{
 	width: 1000px;
+}
+
+.narrow #cmsBottom {
+	min-height:26px;
 }
 
 #all {
