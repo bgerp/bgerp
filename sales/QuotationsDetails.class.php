@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
-	    		if(!$price){
+	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    			$form->setField('price', 'mandatory');
 	    		}
@@ -201,6 +201,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
 	    	} else {
+	    		
 	    		if($masterRec->vat == 'yes'){
 	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		}
