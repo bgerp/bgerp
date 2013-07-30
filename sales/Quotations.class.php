@@ -200,7 +200,7 @@ class sales_Quotations extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-	    if($data->rec->state == 'active'){
+	    if($data->rec->state == 'draft'){
 	    	$items = $mvc->getItems($data->rec->id);
 	       	if($items && sales_Sales::haveRightFor('add')){
 	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
@@ -581,7 +581,7 @@ class sales_Quotations extends core_Master
     		$uIndex =  "{$detail->productId}|{$detail->policyId}";
     		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
     		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
-    		$products[$uIndex] = (array)new sales_model_QuotationProduct($detail);
+    		$products[$uIndex] = new sales_model_QuotationProduct($detail);
     	}
     	
     	return array_values($products);
