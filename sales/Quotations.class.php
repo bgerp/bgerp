@@ -558,8 +558,6 @@ class sales_Quotations extends core_Master
     	
     	$result->agreed->products = $products;
         
-    	bp($result);
-        
         return $result;
     }
     
