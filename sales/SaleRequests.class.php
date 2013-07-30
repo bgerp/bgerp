@@ -130,6 +130,7 @@ class sales_SaleRequests extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount');
+    	$this->FLD('discount', 'double(decimals=2)', 'caption=Общо с отстъпка,input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none,caption=Данни');
     }
     
@@ -204,7 +205,6 @@ class sales_SaleRequests extends core_Master
     	
     	if($cmd == 'active'){
         	$this->invoke('Activation', array($rec));
-        	//bp($rec);
         	$this->save($rec);
         }
     	
@@ -519,8 +519,14 @@ class sales_SaleRequests extends core_Master
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}
 	    	
-	    	if(!$rec->amount){
-	    		$row->amount = $mvc->fields['amount']->type->toVerbal($mvc->calcTotal($rec));
+	    	if($rec->state == 'draft'){
+	    		list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $rec->vat);
+	    	}
+	    	
+	    	$row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount / $rec->rate);
+	    	if($rec->discount){
+	    		$row->discount = $mvc->fields['discount']->type->toVerbal($rec->discount / $rec->rate);
+	    		$row->discountCurrencyId = $row->paymentCurrencyId;
 	    	}
 	    	
 	    	$row->chargeVat = ($rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
@@ -537,22 +543,27 @@ class sales_SaleRequests extends core_Master
      * @param stdClass $rec - запис от модела
      * @return double $total - общата сума на заявката
      */
-    private function calcTotal($rec)
+    private function calcTotal($rec, $vat)
     {
-    	$applyVat = ($rec->vat == 'yes') ? TRUE : FALSE;
     	$detailQuery = $this->sales_SaleRequestDetails->getQuery();
     	$detailQuery->where("#requestId = {$rec->id}");
     	
-    	$total = 0;
+    	$discount = $total = 0;
     	while ($d = $detailQuery->fetch()){
-    		if($applyVat){
+    		if($vat == 'yes'){
     			$productMan = ($d->classId) ? cls::get($d->productManId) : cls::get($d->policyId)->getProductMan();
     			$d->price *= 1 + $productMan->getVat($d->productId);
     		}
-    		$total += $d->price * $d->quantity;
+    		
+    		$amount = $d->price * $d->quantity;
+    		if($d->discount){
+    			$discount += $amount * $d->discount;
+    		}
+    		
+    		$total += $amount;
     	}
     	
-    	return $total / $rec->rate;
+    	return array($total, $total - $discount);
     }
     
     
@@ -561,9 +572,9 @@ class sales_SaleRequests extends core_Master
 	 */
 	public static function on_Activation($mvc, &$rec)
     {
-    	$rec->rate = static::fetchField($rec->id, 'rate');
+    	$vat = static::fetchField($rec->id, 'vat');
     	$rec->state = 'active';
-    	$rec->amount = $mvc->calcTotal($rec);
+    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $vat);
     }
     
     

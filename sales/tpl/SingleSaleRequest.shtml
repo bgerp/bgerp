@@ -94,24 +94,17 @@
                         <!--ET_END currencyId-->
                     </td>
        
-                    <td class="topCell" align="right" valign="top" width="30%">
-                        <table>
-                            <tbody>
-                            <tr>
-                                <td>
-                                    <table>
-                                        <tr>
-                                            <td style="text-align: right;" class='expandable'>|Обща сума|* [#chargeVat#]:</td>
-                                            <td class='expandable'><span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td align="RIGHT"></td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <td class="topCell expandable" align="right" valign="top" width="30%">
+                     	<div>
+                     		|Обща сума|* [#chargeVat#]:
+                        	<span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b>
+                        </div>
+                        <!--ET_BEGIN discount-->
+                        <div style='padding-top:4px'>
+	                        |Общо след ТО|* :
+	                        <span class='cCode'>[#discountCurrencyId#]</span> <b>[#discount#]</b>
+                        </div>
+                        <!--ET_END discount-->   
                     </td>
                 </tr>           
                 </tbody>
