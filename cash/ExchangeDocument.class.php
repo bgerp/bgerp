@@ -39,7 +39,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменено->Сума, creditCurrency=Обменено->Валута, debitQuantity=Получено->Сума, debitCurrency=Получено->Валута, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменени->Сума, creditCurrency=Обменени->Валута, debitQuantity=Получени->Сума, debitCurrency=Получени->Валута, state, createdOn, createdBy";
     
     
     /**
