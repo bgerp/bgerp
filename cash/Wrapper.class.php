@@ -25,7 +25,7 @@ class cash_Wrapper extends plg_ProtoWrapper
         $this->TAB('cash_Cases', 'Каси', 'cash, ceo');
         $this->TAB('cash_Pko', 'ПКО', 'cash, ceo');
         $this->TAB('cash_Rko', 'РКО', 'cash, ceo');
-        $this->TAB('cash_InternalMoneyTransfer', 'ВКТ', 'cash, ceo');
+        $this->TAB('cash_InternalMoneyTransfer', 'ВПТ', 'cash, ceo');
         $this->TAB('cash_ExchangeDocument', 'КОВ', 'cash, ceo');
 
         $this->title = 'Фирмени каси';
