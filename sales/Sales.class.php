@@ -260,8 +260,7 @@ class sales_Sales extends core_Master
             $VAT = 1;
             
             if ($rec->chargeVat == 'yes') {
-                $Policy         = cls::get($detailRec->policyId);
-                $ProductManager = $Policy->getProductMan();
+                $ProductManager = cls::get($detailRec->classId);
                 
                 $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
@@ -275,7 +274,76 @@ class sales_Sales extends core_Master
     public static function on_BeforeSave($mvc, $res, $rec)
     {
     }
+    
+    
+    /**
+     * Определяне на документа-източник (пораждащия документ)
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $origin
+     * @param stdClass $rec
+     */
+    public static function getOrigin_($rec)
+    {
+        $rec = static::fetchRec($rec);
+        
+        wp($rec);
+        
+        if (!empty($rec->originId)) {
+            $origin = doc_Containers::getDocument($rec->originId);
+        } else {
+            bp($rec);
+        }
+        
+        return $origin;
+    }
 
+
+    /**
+     * След създаване на запис в модела
+     *
+     * @param store_Stores $mvc
+     * @param store_model_ShipmentOrder $rec
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+        $origin = static::getOrigin($rec);
+    
+        // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
+        // използваме го за автоматично попълване на детайлите на ЕН
+    
+        if ($origin->haveInterface('bgerp_DealIntf')) {
+            /* @var $dealInfo bgerp_iface_DealResponse */
+            $dealInfo = $origin->getDealInfo();
+            
+            $agreed = $dealInfo->agreed;
+            
+            /* @var $product bgerp_iface_DealProduct */
+            foreach ($agreed->products as $product) {
+                $product = (object)$product;
+                wp($product);
+
+                if ($product->quantity <= 0) {
+                    continue;
+                }
+        
+                $saleProduct = new sales_model_SaleProduct(NULL);
+        
+                $saleProduct->saleId      = $rec->id;
+                $saleProduct->classId     = cls::get($product->classId)->getClassId();
+                $saleProduct->productId   = $product->productId;
+                $saleProduct->packagingId = $product->packagingId;
+                $saleProduct->quantity    = $product->quantity;
+                $saleProduct->price       = $product->price;
+                $saleProduct->uomId       = $product->uomId;
+        
+                $saleProduct->quantityInPack = $saleProduct->getQuantityInPack();
+                
+                $saleProduct->save();
+            }
+        }
+    }
+    
 
     /**
      * Извиква се преди изпълняването на екшън
@@ -1005,8 +1073,7 @@ class sales_Sales extends core_Master
         while ($rec = $query->fetch()) {
             if ($saleRec->chargeVat == 'yes') {
                 // Начисляваме ДДС
-                $Policy = cls::get($rec->policyId);
-                $ProductManager = $Policy->getProductMan();
+                $ProductManager = cls::get($rec->classId);
                 $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
@@ -1071,7 +1138,7 @@ class sales_Sales extends core_Master
     	$dQuery->where("#saleId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}

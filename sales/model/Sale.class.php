@@ -185,6 +185,8 @@ class sales_model_Sale extends core_Model
         /* @var $saleDealInfo bgerp_iface_DealResponse */
         $saleDealInfo = $this->_mvc->getDealInfo($this->id);
         
+        // dealInfo-то на самата продажба е база, в/у която се натрупват някой от аспектите
+        // на породените от нея документи (платежни, експедиционни, фактури)
         $aggregateInfo = clone $saleDealInfo;
         
         /* @var $d core_ObjectReference */

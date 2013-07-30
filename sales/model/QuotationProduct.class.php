@@ -16,6 +16,14 @@ class sales_model_QuotationProduct
      */
     public $productId;
     
+
+    /**
+     * Мярка
+     *
+     * @var int key(mvc=cat_UoM)
+     */
+    public $uomId;
+    
     
     /**
      * Опаковка (ако има)
