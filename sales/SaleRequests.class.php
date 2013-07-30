@@ -205,6 +205,7 @@ class sales_SaleRequests extends core_Master
     	
     	if($cmd == 'active'){
         	$this->invoke('Activation', array($rec));
+        	//bp($rec);
         	$this->save($rec);
         }
     	
@@ -230,7 +231,7 @@ class sales_SaleRequests extends core_Master
     		if($optional == 'yes' && empty($quantity)) continue;
     		
     		// Намира се кой детайл отговаря на този продукт
-    		$obj = (object)$this->findDetail($productId, $policyId, $quantity);
+    		$obj = (object)$this->findDetail($productId, $policyId, $quantity, $optional);
             $items[] = (object)array('policyId'  => $obj->policyId,
         					         'productId' => $obj->productId,
         					 		 'discount'  => $obj->discount,
@@ -247,14 +248,15 @@ class sales_SaleRequests extends core_Master
      * @param int $productId - ид на продукт
      * @param int $policyId - политика
      * @param int $quantity - к-во
+     * @param enum(yes/no) $optional - дали продукта е опционален
      * @return stdClass $val - обект съответсващ на детайл
      */
-    private function findDetail($productId, $policyId, $quantity)
+    private function findDetail($productId, $policyId, $quantity, $optional)
     {
     	// Първо се проверява имали запис за този продукт с това к-во
     	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $policyId, $quantity) {
-           				if($val->productId == $productId && $val->policyId == $policyId && ($val->quantity == $quantity && $quantity)){
+    		function ($val) use ($productId, $policyId, $quantity, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->policyId == $policyId && ($val->quantity == $quantity && $quantity)){
             				return $val;
             			}}));
             			
@@ -262,8 +264,8 @@ class sales_SaleRequests extends core_Master
         // съответстващ на първото срещане на продукта
         if(!$val){
         	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $policyId) {
-           				if($val->productId == $productId && $val->policyId == $policyId){
+    		function ($val) use ($productId, $policyId, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->policyId == $policyId){
             				return $val;
             			}}));
             			
@@ -522,6 +524,8 @@ class sales_SaleRequests extends core_Master
 	    		$row->amount = $mvc->fields['amount']->type->toVerbal($mvc->calcTotal($rec));
 	    	}
 	    	
+	    	$row->chargeVat = ($rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+	    	
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
@@ -558,7 +562,7 @@ class sales_SaleRequests extends core_Master
 	 */
 	public static function on_Activation($mvc, &$rec)
     {
-    	$rec = static::fetchRec($rec->id);
+    	$rec->rate = static::fetchField($rec->id, 'rate');
     	$rec->state = 'active';
     	$rec->amount = $mvc->calcTotal($rec);
     }
