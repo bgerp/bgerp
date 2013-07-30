@@ -2,12 +2,6 @@
 
 
 /**
- * Защитен ключ за регистриране на обаждания
- */
-defIfNot('CALLCENTER_PROTECT_KEY', md5(EF_SALT . 'callCenter'));
-
-
-/**
  * Мениджър за записване на обажданията
  *
  * @category  bgerp
@@ -61,6 +55,12 @@ class callcenter_Talks extends core_Master
      * Кой може да го разглежда?
      */
     var $canList = 'user';
+    
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
     
     
     /**
@@ -374,15 +374,8 @@ class callcenter_Talks extends core_Master
         // Ключа за защита
         $protectKey = Request::get('p');
         
-        // Ако не отговаря на посочения от нас
-        if ($protectKey != CALLCENTER_PROTECT_KEY) {
-            
-            // Записваме в лога
-            static::log('Невалиден публичен ключ за обаждането');
-            
-            // Връщаме
-            return FALSE;
-        }
+        // Проверяваме дали има права за добавяне на запис
+        if (!static::isAuthorized($protectKey)) return FALSE;
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
@@ -445,15 +438,8 @@ class callcenter_Talks extends core_Master
         // Ключа за защита
         $protectKey = Request::get('p');
         
-        // Ако не отговаря на посочения от нас
-        if ($protectKey != CALLCENTER_PROTECT_KEY) {
-            
-            // Записваме в лога
-            static::log('Невалиден публичен ключ за обаждането');
-            
-            // Връщаме
-            return FALSE;
-        }
+        // Проверяваме дали има права за добавяне на запис
+        if (!static::isAuthorized($protectKey)) return FALSE;
         
         // Вземаме уникалното id на разговора
         $uniqId = Request::get('uniqueId');
@@ -487,6 +473,52 @@ class callcenter_Talks extends core_Master
             // Връщаме
             return TRUE;
         }
+    }
+    
+    
+    /**
+     * Проверява дали имаме права за регистриране на обаждане
+     * 
+     * @param string $protectKey - Защитен ключ
+     * 
+     * @retun boolean - Ако нямаме права, връща FALSE
+     */
+    static function isAuthorized($protectKey)
+    {
+        // Вземам конфигурационните данни
+        $conf = core_Packs::getConfig('callcenter');
+        
+        // Ако не отговаря на посочения от нас
+        if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
+            
+            // Записваме в лога
+            static::log('Невалиден публичен ключ за обаждането: ' . $protectKey);
+            
+            // Връщаме
+            return FALSE;
+        }
+        
+        // Масив с разрешените IP' та
+        $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, TRUE);
+        
+        // Ако е зададено
+        if (count($allowedIpArr)) {
+            
+            // Вземаме IP' то на извикщия
+            $ip = core_Users::getRealIpAddr();
+            
+            // Ако не е в листата на разрешените IP' та
+            if (!$allowedIpArr[$ip]) {
+                
+                // Записваме в лога
+                static::log('Недопустим IP адрес: ' . $ip);
+                
+                return FALSE;
+            }
+        }
+        
+        // Ако проверките минат успешно
+        return TRUE;
     }
     
     
@@ -850,11 +882,74 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Извиква се от крона. Променя статуса на разговорите без статус на без отговор
+     */
+    function cron_FixDialStatus()
+    {
+        // Вземаме конфигурационните данни
+        $conf = core_Packs::getConfig('callcenter');
+        
+        // Вземаме секундите
+        $secs = $conf->CALLCENTER_DRAFT_TO_NOANSWER;
+        
+        // Изваждаме секундите
+        $secsBefore = -1 * $secs;
+        $before = dt::addSecs($secsBefore);
+        
+        // Вземаме всички записи, които нямат dialStatus и са по стари от посоченото време
+        $query = static::getQuery();
+        $query->where("#dialStatus IS NULL");
+        $query->where("#startTime < '$before'");
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Променяне статуса
+            $rec->dialStatus = 'NO ANSWER';
+            
+            // Записваме
+            static::save($rec);
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'fixDialStatus';
+        $rec->description = 'Променя статуса на обажданията без статуси на без отговор';
+        $rec->controller = $mvc->className;
+        $rec->action = 'FixDialStatus';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да променя статуса на обажданията без статуси на без отговор.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
+        }
+    }
+    
+    
+    /**
      * Екшън за тестване
      * Генерира обаждане
      */
     function act_Mockup()
     {
+        // Вземам конфигурационните данни
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Текущото време - времето на позвъняване
         $startTime = dt::now();
         
@@ -888,7 +983,7 @@ class callcenter_Talks extends core_Master
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterCall',
-            'p' => CALLCENTER_PROTECT_KEY,
+            'p' => $conf->CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
             'extension' => '540',
             'callerId' => '539',
@@ -906,7 +1001,7 @@ class callcenter_Talks extends core_Master
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterEndCall',
-            'p' => CALLCENTER_PROTECT_KEY,
+            'p' => $conf->CALLCENTER_PROTECT_KEY,
             'answertime' => $myAnswerTime,
             'endtime' => $myEndTime,
             'dialstatus' => $status,

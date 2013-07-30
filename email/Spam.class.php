@@ -36,7 +36,13 @@ class email_Spam extends core_Manager
      * Кой има право да променя?
      */
     var $canWrite = 'no_one';
-
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, email';
+	
 
     /**
      * Описание на модела

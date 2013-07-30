@@ -51,7 +51,7 @@ class email_Salutations extends core_Manager
      * Кой може да добавя
      */
     var $canAdd = 'no_one';
-    
+	
     
     /**
      * Кой може да го редактира

@@ -52,6 +52,13 @@ class survey_Votes extends core_Manager {
     var $canRead = 'survey, ceo, admin';
     
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'survey,ceo';
+    
+	
     /**
      * Кой може да пише?
      */

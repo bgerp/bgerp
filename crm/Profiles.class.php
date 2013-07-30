@@ -76,7 +76,7 @@ class crm_Profiles extends core_Master
     /**
      * Кой има право да листва всички профили?
      */
-    var $canList = 'admin';
+    var $canList = 'powerUser';
 
     
     /**
@@ -90,7 +90,12 @@ class crm_Profiles extends core_Master
      */
     var $canSingle = 'user';
     
+    
+    /**
+     * 
+     */
     var $listFields = 'userId,personId,lastLoginTime=Последно логване';
+    
     
     /**
      * Описание на модела (таблицата)

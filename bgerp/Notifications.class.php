@@ -58,6 +58,12 @@ class bgerp_Notifications extends core_Manager
 	 * Как се казва полето за пълнотекстово търсене
 	 */
 	var $searchInputField = 'noticeSearch';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
 	
 	
     /**

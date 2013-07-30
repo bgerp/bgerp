@@ -61,6 +61,18 @@ class mp_Tasks extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,mp';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,mp';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';

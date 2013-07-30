@@ -49,6 +49,18 @@ class blogm_Comments extends core_Detail {
 	 * Кой може да изтрива коментари
 	 */
 	var $canRead = 'cms, ceo, admin';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
 	
 	
 	/**

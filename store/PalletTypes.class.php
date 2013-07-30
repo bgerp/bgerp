@@ -60,9 +60,15 @@ class store_PalletTypes extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
-     */
-    var $canSingle = 'ceo,store';
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
     
     
     /**

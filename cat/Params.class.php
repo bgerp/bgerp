@@ -73,6 +73,18 @@ class cat_Params extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'cat,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'cat,ceo';
+    
+    
+    /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'cat,ceo';

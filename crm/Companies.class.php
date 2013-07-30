@@ -129,6 +129,18 @@ class crm_Companies extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+	
+    
+    /**
      * Детайли, на модела
      */
     var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
@@ -378,7 +390,7 @@ class crm_Companies extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    static function on_AfterInputeditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -451,8 +463,12 @@ class crm_Companies extends core_Master
                 }
             }
             
-            if($rec->vatId && empty($rec->uicId)){
-            	$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+            if($rec->vatId){
+            	if(empty($rec->uicId)){
+            		$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+            	}
+            	$Vats = cls::get('drdata_Vats');
+            	//$rec->vatId = $Vats->canonize($rec->vatId);
             }
         }
     }
@@ -607,7 +623,7 @@ class crm_Companies extends core_Master
         $classId = static::getClassId();
         
         // Добавяме в КЦ
-        callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
+        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
     }
     
     

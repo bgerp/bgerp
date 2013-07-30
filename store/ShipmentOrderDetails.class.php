@@ -118,7 +118,7 @@ class store_ShipmentOrderDetails extends core_Detail
     {
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика,silent,input=none');
-        
+        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -380,18 +380,21 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'store_ShipmentIntf');
+        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
         
-        $products = $origin->getShipmentProducts();
+        /* @var $dealInfo bgerp_iface_DealResponse */
+        $dealInfo = $origin->getDealInfo();
         
         $options = array();
         
-        foreach ($products as $p) {
-            $ProductManager = self::getProductManager($p->policyId);
+        foreach ($dealInfo->agreed->products as $p) {
+            $ProductManager = cls::get($p->classId);
+            
+            $classId = $p->getClassId();
             
             // Използваме стойността на select box-а за да предадем едновременно две стойности - 
             // ид на политика и ид на продукт.
-            $options["{$p->policyId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
+            $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
         }
         
         $data->form->setOptions('productId', $options);
@@ -437,6 +440,7 @@ class store_ShipmentOrderDetails extends core_Detail
                 $form->setError('packagingId', 'Продуктът не е наличен за експедиция в тази опаковка');
             } else {
                 $rec->policyId = $exactProduct->policyId; 
+                $rec->classId  = $exactProduct->classId; 
                 $rec->uomId    = $exactProduct->uomId; 
                 $rec->price    = $exactProduct->price; 
                 $rec->discount = $exactProduct->discount; 
@@ -456,27 +460,8 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $ProductManager = self::getProductManager($rec->policyId);
+        $ProductManager = cls::get($rec->classId);
         
         $row->productId = $ProductManager->getTitleById($rec->productId);
-    }
-    
-
-
-    /**
-     * Връща продуктовия мениджър на зададена ценова политика
-     *
-     * @param int|string|object $Policy
-     * @return core_Manager
-     */
-    protected static function getProductManager($Policy)
-    {
-        if (is_scalar($Policy)) {
-            $Policy = cls::get($Policy);
-        }
-    
-        $ProductManager = $Policy->getProductMan();
-    
-        return $ProductManager;
     }
 }

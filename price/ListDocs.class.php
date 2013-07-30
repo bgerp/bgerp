@@ -79,6 +79,18 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'price,ceo';
+    
+    
+    /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'sales,price,ceo';
+	
+    
+    /**
      * Икона на единичния обект
      */
     //var $singleIcon = 'img/16/legend.png';
@@ -457,8 +469,7 @@ class price_ListDocs extends core_Master
 	    	$groupsArr = keylist::toArray($data->rec->productGroups);
     	}
     	
-    	$data->rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
-    	$mvc->save($data->rec);
+    	$rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
     }
     
     

@@ -56,6 +56,18 @@ class budget_Assets extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'budget,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'budget,ceo';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,budget';

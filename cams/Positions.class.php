@@ -43,6 +43,18 @@ class cams_Positions extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cams';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cams';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

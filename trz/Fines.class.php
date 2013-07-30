@@ -62,6 +62,18 @@ class trz_Fines extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,trz';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,trz';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';

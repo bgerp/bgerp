@@ -93,6 +93,18 @@ class cat_Groups extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+	
+    
+    /**
      * Кой може да качва файлове
      */
     var $canWrite = 'ceo,cat';

@@ -58,6 +58,12 @@ class callcenter_SMS extends core_Master
     
     
     /**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+	
+    
+    /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
@@ -156,6 +162,54 @@ class callcenter_SMS extends core_Master
                     
                     // Сетваме предупреждение
                     $form->setWarning('mobileNum', 'Невалиден GSM номер');
+                }
+            }
+            
+            // Ако е избрана услуга
+            if ($rec->service) {
+                
+                // Вземаме инстанцията на услугата
+                $service = cls::get($rec->service);
+                
+                // Вземаме масива с параметрите
+                $params = $service->getParams();
+                
+                // Ако не може да се изпраща SMS 
+                if ($params['utf8'] != 'yes') {
+                    
+                    // Преобразиваме в ASCII
+                    $rec->text = str::utf2ascii($rec->text);
+                }
+                
+                // Ако е зададен максималната дължина
+                if ($params['maxStrLen']) {
+                    
+                    // Вземаме дължината на текста
+                    $textLen = mb_strlen($rec->text);
+                    
+                    // Ако текста е над допустимите симвала
+                    if ($params['maxStrLen'] < $textLen) {
+                        
+                        // Сетваме грешка
+                        $form->setError('text', "Надвишавате максимално допустимата дължина от|* {$params['maxStrLen']} |символа");
+                    }
+                }
+                
+                // Името на изпращача
+                $sender = trim($rec->sender);
+                
+                // Ако са зададени позволени изпращачи
+                if ($params['allowedUserNames'] && $sender) {
+                    
+                    // Ако не е в масива
+                    if (!$params[allowedUserNames][$sender]) {
+                        
+                        // Стринг с позволените
+                        $allowedUsers = implode(', ', $params['allowedUserNames']);
+                        
+                        // Сетваме грешката
+                        $form->setError('text', "Невалиден изпращач. Позволените са|*: {$allowedUsers}");
+                    }
                 }
             }
         }
@@ -358,7 +412,6 @@ class callcenter_SMS extends core_Master
     static function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         // Последно получените и изпратени и да са първи
-        $data->query->orderBy('#receivedTime', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
     
         // Ако не е избран потребител по подразбиране
@@ -441,5 +494,22 @@ class callcenter_SMS extends core_Master
                 }
             }
         } 
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        // Премахваме бутона за запис
+        $data->form->toolbar->removeBtn('Запис');
+        
+        // Ако имаме права за добавяне
+        if (static::haveRightFor('add')) {
+            
+            // Заменяме бутона за запис с бутон за изпращане
+            $data->form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png');
+        }
     }
 }

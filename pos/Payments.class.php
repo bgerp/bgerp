@@ -57,6 +57,18 @@ class pos_Payments extends core_Manager {
      */
     var $canReject = 'ceo, pos';
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,pos';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,pos';
+    
 
     /**
      * Описание на модела

@@ -25,6 +25,13 @@ class sales_model_SaleProduct extends core_Model
      * @var int class(interface=price_PolicyIntf, select=title)
      */
     public $policyId;
+
+    /**
+     * Мениджър на продукт
+     *
+     * @var int key(mvc=core_Classes)
+     */
+    public $classId;
     
     /**
      * ИД на продукт
@@ -99,4 +106,22 @@ class sales_model_SaleProduct extends core_Model
     {
         return $this->productClass->getClassId();
     } 
+    
+    
+    public function getQuantityInPack()
+    {
+        $q = 1;
+        
+        if (!empty($this->packagingId)) {
+            $productInfo = $this->getProductInfo();
+            
+            if (!$packInfo = $productInfo->packagings[$this->packagingId]) {
+                $q = NULL;
+            } else {
+                $q = $packInfo->quantity;
+            }
+        }
+        
+        return $q;
+    }
 }

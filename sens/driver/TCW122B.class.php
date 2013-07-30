@@ -41,8 +41,8 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
      * Описания на изходите
      */
     var $outs = array(
-        'OutD1' => array('digital' => array('0', '1'), 'cmd'=>'/?r1'),
-        'OutD2' => array('digital' => array('0', '1'), 'cmd'=>'/?r2')
+        'OutD1' => array('digital' => array('0', '1'), 'cmd'=>'?r1'),
+        'OutD2' => array('digital' => array('0', '1'), 'cmd'=>'?r2')
     );
     
     
@@ -156,7 +156,7 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
      */
     function setOuts($outs)
     {
-        $baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}";
+        $baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/status.xml";
         
         foreach ($this->outs as $out => $attr) {
             $res[] = $baseUrl . $attr['cmd'] . "=" . $outs[$out];

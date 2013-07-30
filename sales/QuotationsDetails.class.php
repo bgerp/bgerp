@@ -166,7 +166,7 @@ class sales_QuotationsDetails extends core_Detail {
        }
        
        if(!$productMan instanceof cat_Products){
-       		$form->setField('optional', 'input=hidden');
+       		$form->setField('optional', 'input=none');
        }
     }
     
@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	if(!$rec->price){
 	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
-	    		if(!$price){
+	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    			$form->setField('price', 'mandatory');
 	    		}
@@ -201,6 +201,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
 	    	} else {
+	    		
 	    		if($masterRec->vat == 'yes'){
 	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		}
@@ -242,7 +243,7 @@ class sales_QuotationsDetails extends core_Detail {
 	static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
     {
         // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("productId", 'ASC');
+        $data->query->orderBy("id,productId", 'ASC');
     }
     
     
@@ -342,9 +343,10 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
+    	$oZebra = $dZebra = 'zebra0';
     	
     	// Променливи за определяне да се скриват ли някои колони
-    	$hasQuantityCol = $hasQuantityColOpt = FALSE;
+    	$hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
 	    		list(, $optional) = explode("|", $index);
@@ -360,25 +362,32 @@ class sales_QuotationsDetails extends core_Detail {
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
-	    				$colQ = &$hasQuantityCol;
+	    				$zebra = &$dZebra;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
+	    				$zebra = &$oZebra;
 	    				
 	    				// слага се 'opt' в класа на колоната да се отличава
-	    				$rowTpl->replace('-opt', 'OPT');
+	    				$rowTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				if($row->productId){
 	    					$rowTpl->replace('-opt-product', 'OPTP');
 	    				}
-	    				$oTpl->replace('-opt', 'OPT');
+	    				$oTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				$id = &$oCount;
-		    			$colQ = &$hasQuantityColOpt;
+		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
+		    				$hasQuantityColOpt = TRUE;
+		    			}
 	    			} 
 	    			
-	    			if($colQ !== TRUE && ($row->quantity)){
-	    				$colQ = TRUE;
-	    			}
+	    			
 	    			
 	    			$row->index = $id++;
+					if($row->productId){
+						$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
+					} else {
+						$row->TR_CLASS = $data->rows[$index][0]->TR_CLASS;
+					}
+	    			//
 	    			$rowTpl->placeObject($row);
 	    			$rowTpl->removeBlocks();
 	    			$rowTpl->append2master();
@@ -404,12 +413,8 @@ class sales_QuotationsDetails extends core_Detail {
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
     	
-    	if(!$hasQuantityCol){
-    		$tpl->append(".quote-col {display:none;} .product-id {width:65%;}", 'STYLES');
-    	}
-    	
     	if(!$hasQuantityColOpt){
-    		$tpl->append(".quote-col-opt {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
+    		$tpl->append(".quote-col-opt{$data->masterData->rec->id} {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
     	}
     	
     	return $tpl;

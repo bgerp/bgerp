@@ -112,7 +112,7 @@ class cat_Products extends core_Master {
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'cat,ceo';
+    var $canList = 'user';
     
     
     /**
@@ -148,7 +148,7 @@ class cat_Products extends core_Master {
     /**
      * 
      */
-    var $canSingle = 'cat,ceo';
+    var $canSingle = 'user';
     
 	
     /** 

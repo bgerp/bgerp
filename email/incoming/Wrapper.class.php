@@ -16,8 +16,13 @@ class email_incoming_Wrapper extends email_Wrapper
     function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-
-        $tabs->TAB('email_Incomings', 'Съобщения');
+        
+        // Ако имаме роля ceo, само тогава да се показват съобщенията
+        if(haveRole('ceo')) {
+            $tabs->TAB('email_Incomings', 'Съобщения');
+        }
+        
+        // Ако имаме роля admin, ceo или email тогава да се показват съобщенията
         if(haveRole('admin,ceo,email')) {
             $tabs->TAB('email_Returned', 'Върнати');
             $tabs->TAB('email_Receipts', 'Разписки');

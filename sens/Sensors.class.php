@@ -50,6 +50,18 @@ class sens_Sensors extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,sens';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,sens';
+    
+    
+    /**
      * Описание на модела
      */
     function description()

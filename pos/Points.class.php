@@ -66,6 +66,18 @@ class pos_Points extends core_Master {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,pos';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,pos';
+    
+    
+    /**
      * Икона за единичен изглед
      */
     var $singleIcon = 'img/16/cash-register-icon.png';

@@ -31,6 +31,18 @@ class rfid_Holders extends core_Manager {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,rfid';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,rfid';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,admin,rfid';

@@ -54,6 +54,13 @@ class blast_ListDetails extends core_Detail
     var $canDelete = 'blast, admin';
     
     
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'blast,admin';
+    
+	
     /**
      * Заглавие в единствено число
      */

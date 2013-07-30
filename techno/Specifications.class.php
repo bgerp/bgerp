@@ -92,15 +92,21 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Кой може да го разгледа?
-     */
-    var $canList = 'ceo,techno,cat';
-    
-    
-    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'ceo,techno';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,techno';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,techno';
     
     
     /**
@@ -302,7 +308,7 @@ class techno_Specifications extends core_Master {
 	    	$double->params['decimals'] = 2;
 	    	
 	    	$technoClass = cls::get($rec->prodTehnoClassId);
-	    	$row->data = $technoClass->getVerbal($rec->data);
+	    	$row->data = $technoClass->getVerbal($rec->data, $rec->id);
 	    	$pInfo = $mvc->getProductInfo($rec->id);
 	    	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
 	    
@@ -314,7 +320,7 @@ class techno_Specifications extends core_Master {
 	    if($fields['-list']){
 	    	if($mvc->haveRightFor('ajust', $rec)){
 	    		$img = "<img src=" . sbf('img/16/testing.png') . ">";
-	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id)) . $row->tools . " " . $rec->id;
+	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id, 'ret_url' => TRUE)) . $row->tools . " " . $rec->id;
 	    	}
 	    	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
@@ -347,8 +353,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
-    	$retUrl = (!$rec->id) ? array($this, 'list') : array($this, 'single', $rec->id);
-    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => $retUrl));
+    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getRetUrl()));
         if($rec->id){
         	
         	// Ако се редактира се маха бутона за записване в нов-тред
@@ -429,12 +434,8 @@ class techno_Specifications extends core_Master {
         	$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
 			unset($rec->threadId);
 		}
-			    
-	    // Записваме мастър - данните
-	    $this->save($rec);
 	            
 	    // Записваме данните въведени от технолога
-        $fRec->specificationId = $rec->id;
         unset($fRec->threadId);
         $technoClass = cls::get($rec->prodTehnoClassId);
         $rec->data = $technoClass->serialize($fRec);
@@ -463,7 +464,7 @@ class techno_Specifications extends core_Master {
     	if($mvc->haveRightFor('ajust', $data->rec)){
     		
         	// Може да се променят с само на чернова
-        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => toUrl($data->retUrl, 'local'));
+        	$url = array($mvc, 'Ajust', 'id' => $data->rec->id, 'ret_url' => TRUE);
         	$data->toolbar->addBtn("Характеристики", $url, 'class=btn-settings,title=Промяна на характеристиките на спецификацията');
     	}
     	
@@ -472,7 +473,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	if(sales_Quotations::haveRightFor('add') && $data->rec->isOfferable == 'yes'){
-    		$qId = sales_Quotations::fetchField("#originId = {$data->rec->containerId} AND #state='draft'", 'id');
+    		$qId = sales_Quotations::fetchField(("#originId = {$data->rec->containerId} AND #state='draft'"), 'id');
     		if($qId){
     			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
     		} else {
@@ -493,10 +494,12 @@ class techno_Specifications extends core_Master {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active');
+    	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
     	unset($rec->id, $rec->containerId);
     	$rec->state = 'draft';
+    	$rec->originId = $originId;
     	
     	// Промяна на името на копието
     	$data = unserialize($rec->data);
@@ -586,7 +589,7 @@ class techno_Specifications extends core_Master {
     	
     	$rec = static::fetch($id);
 	    $technoClass = cls::get($rec->prodTehnoClassId);
-	    return $technoClass->getVerbal($rec->data, TRUE);
+	    return $technoClass->getVerbal($rec->data, $rec->id, TRUE);
      }
      
      

@@ -35,6 +35,18 @@ class store_Documents extends core_Master {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
+    
+    
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';

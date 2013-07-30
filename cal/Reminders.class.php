@@ -106,6 +106,18 @@ class cal_Reminders extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'user';
+    
+	
+    /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/bell_clock2.png';
@@ -127,10 +139,19 @@ class cal_Reminders extends core_Master
      */
     var $newBtnGroup = "1.4|Общи"; 
     
+    
+    /**
+     * 
+     */
     //var $cloneFields = 'title, priority, ';
     
+    
+    /**
+     * 
+     */
     static $suggestions = array("", 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11, 12);
-  
+    
+    
     /**
      * Описание на модела (таблицата)
      */

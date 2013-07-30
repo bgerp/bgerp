@@ -78,7 +78,7 @@ class doc_ActivatePlg extends core_Plugin
                 if(isset($mvc->{$canAction})) {
                     $requiredRoles = $mvc->{$canAction};
                 } else {
-                    $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+                    $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
                 }
             }
         }

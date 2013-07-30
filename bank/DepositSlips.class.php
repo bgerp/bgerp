@@ -85,6 +85,18 @@ class bank_DepositSlips extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'bank,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'bank,ceo';
+    
+    
+    /**
      * Кой може да пише?
      */
     var $canWrite = 'bank, ceo';

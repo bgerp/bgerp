@@ -80,6 +80,18 @@ class sales_Sales extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,sales';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,sales';
+    
+    
+    /**
      * Кой може да го види?
      * 
      * @var string|array
@@ -223,10 +235,115 @@ class sales_Sales extends core_Master
     	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
+    
+    /**
+     * След промяна в детайлите на обект от този клас
+     * 
+     * @TODO Тук да се запомнят само мастър ид-тата, а същинското обновление на мастъра да се
+     *       направи на on_Shutdown
+     * 
+     * @param core_Manager $mvc
+     * @param int $id ид на мастър записа, чиито детайли са били променени
+     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        /* @var $query core_Query */
+        $query = $detailMvc->getQuery();
+        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+        
+        $rec->amountDeal = 0;
+        
+        while ($detailRec = $query->fetch()) {
+            $VAT = 1;
+            
+            if ($rec->chargeVat == 'yes') {
+                $ProductManager = cls::get($detailRec->classId);
+                
+                $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
+            }
+            
+            $rec->amountDeal += $detailRec->amount * $VAT;
+        }
+        
+        $mvc->save($rec);
+    }
+    
     public static function on_BeforeSave($mvc, $res, $rec)
     {
     }
+    
+    
+    /**
+     * Определяне на документа-източник (пораждащия документ)
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $origin
+     * @param stdClass $rec
+     */
+    public static function getOrigin_($rec)
+    {
+        $rec = static::fetchRec($rec);
+        
+        wp($rec);
+        
+        if (!empty($rec->originId)) {
+            $origin = doc_Containers::getDocument($rec->originId);
+        } else {
+            bp($rec);
+        }
+        
+        return $origin;
+    }
 
+
+    /**
+     * След създаване на запис в модела
+     *
+     * @param store_Stores $mvc
+     * @param store_model_ShipmentOrder $rec
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+        $origin = static::getOrigin($rec);
+    
+        // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
+        // използваме го за автоматично попълване на детайлите на ЕН
+    
+        if ($origin->haveInterface('bgerp_DealIntf')) {
+            /* @var $dealInfo bgerp_iface_DealResponse */
+            $dealInfo = $origin->getDealInfo();
+            
+            $agreed = $dealInfo->agreed;
+            
+            /* @var $product bgerp_iface_DealProduct */
+            foreach ($agreed->products as $product) {
+                $product = (object)$product;
+                wp($product);
+
+                if ($product->quantity <= 0) {
+                    continue;
+                }
+        
+                $saleProduct = new sales_model_SaleProduct(NULL);
+        
+                $saleProduct->saleId      = $rec->id;
+                $saleProduct->classId     = cls::get($product->classId)->getClassId();
+                $saleProduct->productId   = $product->productId;
+                $saleProduct->packagingId = $product->packagingId;
+                $saleProduct->quantity    = $product->quantity;
+                $saleProduct->price       = $product->price;
+                $saleProduct->uomId       = $product->uomId;
+        
+                $saleProduct->quantityInPack = $saleProduct->getQuantityInPack();
+                
+                $saleProduct->save();
+            }
+        }
+    }
+    
 
     /**
      * Извиква се преди изпълняването на екшън
@@ -956,8 +1073,7 @@ class sales_Sales extends core_Master
         while ($rec = $query->fetch()) {
             if ($saleRec->chargeVat == 'yes') {
                 // Начисляваме ДДС
-                $Policy = cls::get($rec->policyId);
-                $ProductManager = $Policy->getProductMan();
+                $ProductManager = cls::get($rec->classId);
                 $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
@@ -1022,7 +1138,7 @@ class sales_Sales extends core_Master
     	$dQuery->where("#saleId = '{$id}'");
     	$dQuery->groupBy('productId,policyId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}
@@ -1042,14 +1158,10 @@ class sales_Sales extends core_Master
     {
         $rec = new sales_model_Sale(self::fetchRec($id));
         
-        /* @var $query core_Query */
-        $query = sales_SalesDetails::getQuery();
-        
-        /* @var $detailRecs sales_model_SaleProduct[] */
-        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+                
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -1083,13 +1195,14 @@ class sales_Sales extends core_Master
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
             $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
+            $p->uomId       = $dRec->uomId;
             
             $result->agreed->products[] = $p;
             
@@ -1113,14 +1226,10 @@ class sales_Sales extends core_Master
     {
         $rec = new sales_model_Sale(self::fetchRec($id));
         
-        /* @var $query core_Query */
-        $query = sales_SalesDetails::getQuery();
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
         
-        /* @var $detailRecs sales_model_SaleProduct[] */
-        $detailRecs = $query->fetchAll("#saleId = {$rec->id}");
-        
-        /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
@@ -1149,25 +1258,22 @@ class sales_Sales extends core_Master
         foreach ($detailRecs as $dRec) {
             /*
              * Договорени продукти
-             *  
-             * @var $aProd bgerp_iface_DealProduct
              */
             $aProd = new bgerp_iface_DealProduct();
             
-            $aProd->classId     = sales_SalesDetails::getProductManager($dRec->policyId);
+            $aProd->classId     = $dRec->classId;
             $aProd->productId   = $dRec->productId;
             $aProd->packagingId = $dRec->packagingId;
             $aProd->discount    = $dRec->discount;
             $aProd->isOptional  = FALSE;
             $aProd->quantity    = $dRec->quantity;
             $aProd->price       = $dRec->price;
+            $aProd->uomId       = $dRec->uomId;
             
             $result->agreed->products[] = $aProd;
             
             /*
              * Експедирани продукти
-             * 
-             * @var $sProd bgerp_iface_DealProduct
              */
             $sProd = clone $aProd;
             $sProd->quantity = $dRec->quantityDelivered;
@@ -1176,8 +1282,6 @@ class sales_Sales extends core_Master
             
             /*
              * Фактурирани продукти
-             * 
-             * @var $iProd bgerp_iface_DealProduct
              */
             $iProd = clone $aProd;
             $iProd->quantity = $dRec->quantityInvoiced;
@@ -1188,4 +1292,14 @@ class sales_Sales extends core_Master
         return $result;
     }
     
+    
+    /**
+     * При нова продажба, се ънсетва threadId-то, ако има
+     */
+    static function on_AfterPrepareDocumentLocation($mvc, $form)
+    {   
+    	if($form->rec->threadId && !$form->rec->id){
+		     unset($form->rec->threadId);
+		}
+    }
 }

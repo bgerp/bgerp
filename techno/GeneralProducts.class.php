@@ -136,13 +136,14 @@ class techno_GeneralProducts extends core_Manager {
 	/**
      * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
      * @param stdClass $data - Обект с данни от модела
+     * @param int $sId - ид на спецификацията
      * @param boolean $short - Дали да е кратко представянето 
      * @return core_ET $tpl - вербално представяне на изделието
      */
-    public function getVerbal($data, $short = FALSE)
+    public function getVerbal($data, $sId, $short = FALSE)
     {
         expect($data = unserialize($data));
-        $row = $this->toVerbal($data);
+        $row = $this->toVerbal($data, $sId);
         
         if($short){
     		if($data->image){
@@ -152,8 +153,8 @@ class techno_GeneralProducts extends core_Manager {
     		}
     		
 	        // Добавяне на линк за сингъла на спецификацията
-	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $data->specificationId)){
-	    		$row->title = ht::createLinkRef($row->title, array('techno_Specifications', 'single', $data->specificationId), NULL, 'title=Към спецификацията');
+	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && techno_Specifications::haveRightFor('read', $sId)){
+	    		$row->title = ht::createLinkRef($row->title, array('techno_Specifications', 'single', $sId), NULL, 'title=Към спецификацията');
     		}
     	} else {
     		if($data->image){
@@ -162,12 +163,12 @@ class techno_GeneralProducts extends core_Manager {
 				$row->image = $Fancybox->getImage($data->image, $size, array(550, 550));
     		}
     		
-    		if(techno_Specifications::haveRightFor('configure', $data->specificationId) && !Mode::is('printing')){
+    		if(techno_Specifications::haveRightFor('configure', $sId) && !Mode::is('printing')){
     			$img = sbf('img/16/add.png');
-    			$addUrl = array('techno_Parameters', 'configure', $data->specificationId, 'ret_url' => TRUE);
+    			$addUrl = array('techno_Parameters', 'configure', $sId, 'ret_url' => TRUE);
 	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов параметър')); 
     			
-	    		$compUrl = array('techno_Components', 'configure', $data->specificationId, 'ret_url' => TRUE);
+	    		$compUrl = array('techno_Components', 'configure', $sId, 'ret_url' => TRUE);
 	    		$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});display:inline-block;height:16px;", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов компонент')); 
 	    	}
 	    }
@@ -206,9 +207,10 @@ class techno_GeneralProducts extends core_Manager {
     /**
      * Помощна функция за привеждането на записа в вербален вид
      * @param stdClass $data - не сериализирания запис
+     * @param int $sId - ид на спецификацията
      * @return stdClass $row - вербалното представяне на данните
      */
-    private function toVerbal($data)
+    private function toVerbal($data, $sId)
     {
     	// Преобразуваме записа във вербален вид
     	$row = new stdClass();
@@ -219,10 +221,10 @@ class techno_GeneralProducts extends core_Manager {
     	}
     	
     	// Вербално представяне на параметрите
-    	techno_Parameters::getVerbal($data->params, $data->specificationId, $row->params);
+    	techno_Parameters::getVerbal($data->params, $sId, $row->params);
     	
     	// Вербално представяне на компоненти, ако има
-    	techno_Components::getVerbal($data->components->recs, $data->specificationId, $row->components);
+    	techno_Components::getVerbal($data->components->recs, $sId, $row->components);
     	
     	return $row;
     }

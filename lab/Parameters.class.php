@@ -50,6 +50,18 @@ class lab_Parameters extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'lab,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'lab,ceo';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'lab,ceo';

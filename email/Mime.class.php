@@ -578,7 +578,7 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        return static::getHeadersFromArr($headersArr, $name, $headerIndex, TRUE, $this->parts[1]->charset);
+        return static::getHeadersFromArr($headersArr, $name, $headerIndex, $decode, $this->parts[1]->charset);
     }
     
     
@@ -655,7 +655,7 @@ class email_Mime extends core_BaseClass
     static function decodeHeader($val, $charset = NULL)
     {
         // Ако стойността на хедъра е 7-битова, той може да е кодиран
-        if(i18n_Charset::is7Bit($val) || strpos($val, '=?')) {
+        if(i18n_Charset::is7Bit($val) || (strpos($val, '=?') !== FALSE)) {
             
             $imapDecodeArr = @imap_mime_header_decode($val);
             
@@ -663,10 +663,53 @@ class email_Mime extends core_BaseClass
 
             if (count($imapDecodeArr) > 0) {
                 foreach ($imapDecodeArr as $id => $value) {
-                    if($imapDecodeArr[$id+1]->charset &&  $imapDecodeArr[$id+1]->charset == $value->charset) {
+                    
+                    // Нулираме флага
+                    $flagAcumText = 0;
+                    
+                    // Ако е сетнат и не е default
+                    if ($imapDecodeArr[$id]->charset && $imapDecodeArr[$id]->charset != 'default') {
+                        
+                        // Масив с чарсета и вероятността
+                        $charsetArr = array($value->charset => 50);
+                    }
+                    
+                    // Ако е сетнат следващич чарсет
+                    if ($imapDecodeArr[$id+1]->charset) {
+                        
+                        // Ако следващия е еднакъв с текущия
+                        if ($imapDecodeArr[$id+1]->charset == $value->charset) {
+                            
+                            // Вдигама флага
+                            $flagAcumText = TRUE;
+                        } else {
+                            if ($imapDecodeArr[$id+1]->charset == 'default') {
+                                $flagAcumText = TRUE;
+                                // TRUE
+                            }
+                        }
+                    }
+                    
+                    // Ако има предишен чарсет
+                    if ($imapDecodeArr[$id-1]->charset) {
+                        
+                        // Ако текущия е default и ако следващия и предишния са еднакви
+                        if ($imapDecodeArr[$id]->charset == 'default' && $imapDecodeArr[$id-1]->charset == $imapDecodeArr[$id+1]->charset) {
+                            
+                            // Вдигаме флага
+                            $flagAcumText = TRUE;
+                        }
+                    }
+                    
+                    // Ако флага е вдигнат
+                    if($flagAcumText) {
+                        
+                        // Добавяме към текста
                         $acumText .= $value->text;
                     } else {
-                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, array($value->charset => 50));
+                        
+                        // Декодираме текст
+                        $decoded .= i18n_Charset::convertToUtf8($acumText . $value->text, $charsetArr);
                         $acumText = '';
                     }
                 }
@@ -677,7 +720,7 @@ class email_Mime extends core_BaseClass
 
             $decoded = i18n_Charset::convertToUtf8($val, $charset);
         }
-
+        
         return $decoded;
     }
 

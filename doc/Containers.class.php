@@ -209,7 +209,7 @@ class doc_Containers extends core_Manager
         if($docRow) {
             $data = $document->prepareDocument();
             $row->ROW_ATTR['id'] = $document->getHandle();
-            $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "');";
+            $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
             $row->document = $document->renderDocument($data);
             
             if($q = Request::get('Q')) {

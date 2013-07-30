@@ -56,6 +56,18 @@ class cash_Rko extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,cash';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,cash';
+    
+	
+    /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Разходен касов ордер';
@@ -138,6 +150,7 @@ class cash_Rko extends core_Master
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,width=30%');
     	$this->FLD('number', 'int', 'caption=Номер,width=50%,width=30%');
+    	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)', 'caption=Каса');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Получател,mandatory,width=100%');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
@@ -151,7 +164,6 @@ class cash_Rko extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
-    	$this->FLD('peroCase', 'key(mvc=cash_Cases, select=name)','input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -211,7 +223,9 @@ class cash_Rko extends core_Master
         $form->setDefault('contragentClassId', $contragentClassId);
     	$options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
+        
         $form->setDefault('peroCase', cash_Cases::getCurrent());
+        $form->setReadOnly('peroCase');
     }
     
     

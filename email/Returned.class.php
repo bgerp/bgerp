@@ -21,9 +21,15 @@ class email_Returned extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin, email';
+	
+    
+    /**
      * Заглавие на таблицата
      */
-    var $title = "Наполучени, върнати писма";
+    var $title = "Неполучени, върнати писма";
     
     
     /**

@@ -2,6 +2,24 @@
 
 
 /**
+ * Защитен ключ за регистриране на обаждания
+ */
+defIfNot('CALLCENTER_PROTECT_KEY', md5(EF_SALT . 'callCenter'));
+
+
+/**
+ * Разрешени IP адреси, от които да се генерира обаждане
+ */
+defIfNot(CALLCENTER_ALLOWED_IP_ADDRESS, '');
+
+
+/**
+ * След колко секунди да се промени от празно състояние в без отговор
+ */
+defIfNot(CALLCENTER_DRAFT_TO_NOANSWER, '3600');
+
+
+/**
  * Инсталиране/Деинсталиране на мениджъри свързани с callcenter модула
  *
  * @category  bgerp
@@ -37,6 +55,26 @@ class callcenter_Setup
      * Описание на модула
      */
     var $info = "Център за телефонни обаждания";
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+           
+       'Актуализиране' => array ('callcenter_Numbers', 'update', 'ret_url' => TRUE),
+    
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+           
+       'CALLCENTER_DRAFT_TO_NOANSWER' => array('int'),
+       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar'),
+    );
     
     
     /**

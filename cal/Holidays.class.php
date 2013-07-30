@@ -47,6 +47,12 @@ class cal_Holidays extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Събитие";

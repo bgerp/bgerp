@@ -16,6 +16,14 @@ class sales_model_QuotationProduct
      */
     public $productId;
     
+
+    /**
+     * Мярка
+     *
+     * @var int key(mvc=cat_UoM)
+     */
+    public $uomId;
+    
     
     /**
      * Опаковка (ако има)
@@ -61,12 +69,14 @@ class sales_model_QuotationProduct
      */
     public function __construct(stdClass $rec)
     {
-        $this->classId     = cls::get($rec->policyId)->getProductMan()->getClassId();
+        $Class = cls::get($rec->policyId)->getProductMan();
+    	$this->classId     = $Class->getClassId();
         $this->productId   = $rec->productId;
         $this->packagingId = NULL;
         $this->discount    = $rec->discount;
         $this->isOptional  = FALSE;
         $this->quantity    = $rec->quantity;
         $this->price       = $rec->price;
+        $this->uomId = $Class->getProductInfo($rec->productId)->productRec->measureId;
     }
 }

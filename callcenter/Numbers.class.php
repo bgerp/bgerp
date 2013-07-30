@@ -136,7 +136,7 @@ class callcenter_Numbers extends core_Manager
                     // Вземам линк към профила на отговорника
                     $inChargeLink = crm_Profiles::createLink($cardRec->inCharge);
                     
-                    $card = $class->getVerbal($cardRec, 'name') . " - {$inChargeLink}";
+                    $card = $class->getVerbal($cardRec, 'name') . " « {$inChargeLink}";
                 }
             }
         }
@@ -152,9 +152,14 @@ class callcenter_Numbers extends core_Manager
      * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
      * @param int $classId - id на класа
      * @param int $docId - id на документа
+     * 
+     * @return array $retArr - Масив с броя на изтрите и добавените резултати
      */
     public static function addNumbers($numbersArr, $classId, $docId)
     {
+        // Резултата, който ще връщаме
+        $retArr = array();
+        
         // Инстанция на текущия клас
         $me = cls::get(get_called_class());
         
@@ -208,7 +213,14 @@ class callcenter_Numbers extends core_Manager
                         $nRec->contragentId = $docId;
                         
                         // Записваме
-                        static::save($nRec, NULL, 'IGNORE');
+                        $saved = static::save($nRec, NULL, 'IGNORE');
+                        
+                        // Ако записа е бил успешен
+                        if ($saved) {
+                            
+                            // Увеличаваме с единица
+                            $retArr['saved']++;
+                        }
                     }
                 }
             }
@@ -218,10 +230,17 @@ class callcenter_Numbers extends core_Manager
         foreach ((array)$existRecsArr as $num => $rec) {
             
             // Изтриваме
-            static::delete(array("#classId = '[#1#]' AND #contragentId = '[#2#]' AND #number = [#3#]", $classId, $docId, $num));
+            $deleted = static::delete(array("#classId = '[#1#]' AND #contragentId = '[#2#]' AND #number = [#3#]", $classId, $docId, $num));
+            
+            // Ако е бил изтрит успешно
+            if ($deleted) {
+                
+                // Увеличаваме броя на изтритите с едница
+                $retArr['deleted']++;
+            }
         }
         
-        return ;
+        return $retArr;
     }
     
     
@@ -649,5 +668,95 @@ class callcenter_Numbers extends core_Manager
         }
         
         return $numbersArr;
+    }
+    
+    
+    /**
+     * Обновява номерата за потребителите от указателя
+     */
+    function act_Update()
+    {
+        // Изискваме да има роля admin
+        requireRole('admin');
+        
+        // Вземаме всички записи за потребителите
+        $Person = cls::get('crm_Persons');
+        $pQuery = $Person->getQuery();
+        $pQuery->where("1=1");
+        
+        // Обхождаме резултатите
+        while ($pRec = $pQuery->fetch()) {
+            
+            // Обновяваме
+            $pRecArr = (array)$Person->updateNumbers($pRec);
+            
+            // Броя на записаните номера
+            $savedNums += $pRecArr['saved'];
+            
+            // Броя на изтритите номера
+            $delNums += $pRecArr['deleted'];
+        }
+        
+        // Вземаме всички записи за фирмите
+        $Company = cls::get('crm_Companies');
+        $cQuery = $Company->getQuery();
+        $cQuery->where("1=1");
+        
+        // Обхождаме резултатите
+        while ($cRec = $cQuery->fetch()) {
+            
+            // Обновяваме
+            $cRecArr = (array)$Company->updateNumbers($cRec);
+            
+            // Броя на записаните номера
+            $savedNums += $cRecArr['saved'];
+            
+            // Броя на изтритите номера
+            $delNums += $cRecArr['deleted'];
+        }
+        
+        // Ако има записани номера, добавяме съответния текст в резултата
+        if ($savedNums) {
+            
+            if ($savedNums == 1) {
+                $res = tr("Добавен e|* {$savedNums} |номер");
+            } else {
+                $res = tr("Добавени са|* {$savedNums} |номера");
+            }
+        }
+        
+        // Ако има изтрити номера, добавяме съответния текст в резултата
+        if ($delNums) {
+            
+            // Ако има записани номера
+            if ($res) {
+                
+                // Добавяме празен ред
+                $res .= "\n";
+            }
+            
+            if ($delNums == 1) {
+                $res .= tr("Изтрит e|* {$delNums} |номер");
+            } else {
+                $res .= tr("Изтрити са|* {$delNums} |номера");
+            }
+        }
+        
+        // Вземаме URL' то където ще редиректваме
+        $retUrl = getRetUrl();
+        
+        // Ако няма URL, създаваме
+        if (!$retUrl) {
+            $retUrl = array('callcenter_Numbers', 'list');
+        }
+        
+        // Ако няме резултата
+        if (!$res) {
+            
+            // Добавяме текста
+            $res = tr('Няма нови номера');
+        }
+        
+        return Redirect($retUrl, FALSE, $res);
     }
 }

@@ -34,8 +34,11 @@ class bgerp_Menu extends core_Manager
      */
     var $title = 'Елементи на менюто';
     
-    // Права
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
     
     
     /**

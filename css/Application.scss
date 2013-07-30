@@ -967,9 +967,10 @@ div.attachments {
 		border-bottom: solid 1px $gray2;
 	}
 	.file {
-		max-height:32px;
-		height:auto;
-		overflow:hidden;
+		max-height: 32px;
+		height: auto;
+		overflow: hidden;
+		line-height: 1.3em;
 		display: block;
 		margin-bottom: 2px;
 	}
@@ -1430,11 +1431,16 @@ fieldset.sharing-history {
 #cmsBottom {
 	font-size: 1.2em;
 	padding: 0px;
-	padding-top: 7px;
+	padding: 10px 0 3px;
 	display: block;
+	min-height:38px;
 }
 .wide #cmsBottom{
 	width: 1000px;
+}
+
+.narrow #cmsBottom {
+	min-height:26px;
 }
 
 #all {
@@ -1724,6 +1730,7 @@ fieldset.sharing-history {
 		margin-top:7px;
 		margin-left:5px;
 		margin-right:5px;
+		max-width:100px;
 	}
 
 	.date-box{

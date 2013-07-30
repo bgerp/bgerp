@@ -44,10 +44,26 @@ class crm_Locations extends core_Master {
      * Кой може да чете и записва локации?
      */
     var $canRead  = 'ceo';
+    
+    
+    /**
+     * 
+     */
     var $canWrite = 'user';
+    
+    
+    /**
+     * 
+     */
     var $canSingle = 'user';
-
-
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'user';
+    
+	
     /**
      * Наименование на единичния обект
      */

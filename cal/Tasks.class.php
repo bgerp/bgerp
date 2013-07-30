@@ -104,6 +104,7 @@ class cal_Tasks extends core_Master
      */
     var $canList = 'user';
     
+    
     /**
      * Кой има право да изтрива?
      */
@@ -113,7 +114,8 @@ class cal_Tasks extends core_Master
     /**
      * 
      */
-    var $canSingle = 'ceo';
+    var $canSingle = 'user';
+    
     
     /**
      * Кой има право да приключва?

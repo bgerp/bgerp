@@ -81,6 +81,15 @@ class bgerp_iface_DealAspect
         $this->amount += $aspect->amount;
     }
     
+    
+    public function pop(bgerp_iface_DealAspect $aspect)
+    {
+        foreach ($aspect->products as $p) {
+            $this->popProduct($p);
+        }
+        
+    }
+    
     protected function pushProduct(bgerp_iface_DealProduct $p)
     {
         $found = $this->findProduct($p->productId, $p->getClassId(), $p->packagingId);
@@ -89,6 +98,22 @@ class bgerp_iface_DealAspect
             $found->quantity += $p->quantity;
         } else {
             $this->products[] = clone $p;
+        }
+    }
+    
+    protected function popProduct(bgerp_iface_DealProduct $p)
+    {
+        $found = $this->findProduct($p->productId, $p->getClassId(), $p->packagingId);
+        
+        if ($found) {
+            $found->quantity -= $p->quantity;
+        } else {
+            $q = $p->quantity;
+            
+            $p = clone $p;
+            $p->quantity = -$q;
+            
+            $this->products[] = $p;
         }
     }
     

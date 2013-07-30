@@ -49,12 +49,18 @@ class blogm_Categories extends core_Manager {
 	 * Кой може да изтрива
 	 */
 	var $canDelete='cms, ceo, admin';
-	
-	
-	/**
-	 * Кой може да преглежда списъка с коментари
+    
+    
+    /**
+	 * Кой може да го разглежда?
 	 */
-	var $canList='cms, ceo, admin';
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
 	
 	
 	/**

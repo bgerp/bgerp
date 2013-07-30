@@ -41,6 +41,12 @@ class acc_Lists extends core_Manager {
     
     
     /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';

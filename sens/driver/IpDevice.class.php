@@ -375,7 +375,6 @@ class sens_driver_IpDevice extends core_BaseClass
                 }
             }   // if ($cond)
         }
-       //         bp($this->stateArr);
 
         if (is_array($newOuts)) {
             $this->setOuts($newOuts);
@@ -431,12 +430,12 @@ class sens_driver_IpDevice extends core_BaseClass
         
         $this->loadState(); 
         $settings = (array) $this->settings;
-        
+
         $html = "<table colspan=0 rowspan=0>";
         foreach ($this->params as $param => $properties) {
             
             // Празните параметри не ги показваме
-            if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"]) || $param == 'empty') continue;
+            if (empty($this->stateArr["{$param}"]) || $param == 'empty') continue;
             
             // Ако параметъра е аналогов и има функция за изчислението му показваме само изчисления параметър
             if (strpos($param, 'InA') !== FALSE && !empty($settings["name_{$param}"]) && $settings["name_{$param}"] !='empty') {
@@ -448,13 +447,13 @@ class sens_driver_IpDevice extends core_BaseClass
             	continue;
             }
             
-            // Стринговете се обработват различно - тоест не се показват
-            if (!is_numeric($this->stateArr["{$param}"])) {
-                // $html .= "<tr><td>{$param}</td><td>= " . $this->stateArr["{$param}"] . " {$properties['details']}</td></tr>";
+            // Стринговете се кастват към float, и ако са !=0 се показват
+            $valParam = floatval($this->stateArr["{$param}"]);
+            if (empty($valParam)) {
                 continue;
             }
             
-            $html .= "<tr><td>{$param}</td><td>= " . round($this->stateArr["{$param}"], 2) . " {$properties['details']}</td></tr>";
+            $html .= "<tr><td>{$param}</td><td>= " . round($valParam, 2) . " {$properties['details']}</td></tr>";
         }
         $html .= "</table>";
         

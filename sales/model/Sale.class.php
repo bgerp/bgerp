@@ -180,7 +180,14 @@ class sales_model_Sale extends core_Model
     public function getAggregatedDealInfo()
     {
         $saleDocuments = $this->_mvc->getDescendants($this->id);
-        $aggregateInfo = new bgerp_iface_DealResponse();
+        
+        // Извличаме dealInfo от самата продажба
+        /* @var $saleDealInfo bgerp_iface_DealResponse */
+        $saleDealInfo = $this->_mvc->getDealInfo($this->id);
+        
+        // dealInfo-то на самата продажба е база, в/у която се натрупват някой от аспектите
+        // на породените от нея документи (платежни, експедиционни, фактури)
+        $aggregateInfo = clone $saleDealInfo;
         
         /* @var $d core_ObjectReference */
         foreach ($saleDocuments as $d) {
@@ -194,7 +201,6 @@ class sales_model_Sale extends core_Model
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
                 
-                $aggregateInfo->agreed->push($dealInfo->agreed);
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);
                 $aggregateInfo->invoiced->push($dealInfo->invoiced);

@@ -54,6 +54,12 @@ class bgerp_Recently extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+    
+    
+    /**
 	 * Как се казва полето за пълнотекстово търсене
 	 */
 	var $searchInputField = 'recentlySearch';

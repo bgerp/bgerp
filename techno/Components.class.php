@@ -43,7 +43,7 @@ class techno_Components extends core_Manager {
     /**
      * Връща  форма за добавяне на нов компонент
      */
-    public function getForm()
+    private static function getForm()
     {
     	$form = cls::get('core_Form');
     	$form->FNC('componentId', 'varchar(255)', 'mandatory,input,caption=Продукт,silent');
@@ -83,7 +83,7 @@ class techno_Components extends core_Manager {
 	        return Redirect($retUrl);
     	}
     	
-    	$form = $this->getForm();
+    	$form = static::getForm();
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
@@ -186,6 +186,7 @@ class techno_Components extends core_Manager {
     	if($components){
     		$i = 1;
     		$taxes = $total = 0;
+    		
     		$fields = static::getForm()->selectFields('');
     		foreach ($components as $component){
     			$res->rows[$component->componentId] = static::getRow($component, $fields);

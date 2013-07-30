@@ -69,9 +69,27 @@ class store_Stores extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,store';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,store';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canWrite = 'ceo,store';
     
     
     /**
@@ -81,9 +99,16 @@ class store_Stores extends core_Master
     
     
     /**
+	 * Кое поле отговаря на кой работи с даден склад
+	 */
+	var $inChargeField = 'chiefId';
+	
+	
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, chiefId';
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него

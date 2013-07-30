@@ -55,6 +55,18 @@ class price_Groups extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'price,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'price,ceo';
+    
+	
+    /**
      * Кой има право да добавя?
      */
     var $canAdd = 'price,ceo';

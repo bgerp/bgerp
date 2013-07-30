@@ -48,6 +48,18 @@ class cms_Content extends core_Manager
     var $canRead = 'cms,admin,ceo';
     
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
+    
+    
     
     /**
      * Описание на модела (таблицата)
@@ -173,9 +185,9 @@ class cms_Content extends core_Manager
     static function getFooter()
     {
         if(Mode::is('screenMode', 'narrow')) {
-            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;"><b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;height: 26px;padding-top: 3px;"><b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
         } else {
-            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-top:-3px;margin-right:5px;">задвижвано<br>от <b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;height:32px">задвижвано<br>от <b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
         }
 
         return $footer;

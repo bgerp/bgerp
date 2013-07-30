@@ -73,6 +73,18 @@ class blast_Lists extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'blast,admin';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'blast,admin';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';

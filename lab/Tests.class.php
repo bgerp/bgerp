@@ -80,6 +80,18 @@ class lab_Tests extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'lab,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'lab,ceo';
+	
+    
+    /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Лабораторен тест';

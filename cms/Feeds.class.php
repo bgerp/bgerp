@@ -43,6 +43,18 @@ class cms_Feeds extends core_Manager {
     var $oldClassName = 'feed_Generator';
     
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cms';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cms';
+    
+    
 	/**
 	 * Полета за листов изглед 
 	 */

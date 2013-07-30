@@ -90,6 +90,17 @@ class price_ConsumptionNorms extends core_Master {
     var $canAdd = 'price, ceo';
     
     
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'price,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'price,ceo';
+    
 	/**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */

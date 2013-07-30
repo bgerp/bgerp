@@ -65,6 +65,12 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'survey,ceo';
+    
+    
+    /**
      * Кой може да пише?
      */
     var $canWrite = 'survey, ceo, admin';

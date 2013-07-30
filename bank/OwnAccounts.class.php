@@ -42,6 +42,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+	 * Кое поле отговаря на кой работи с дадена сметка
+	 */
+	var $inChargeField = 'operators';
+	
+	
+    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
@@ -57,6 +63,18 @@ class bank_OwnAccounts extends core_Master {
      * Кой може да пише?
      */
     var $canWrite = 'bank, ceo';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'bank,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'bank,ceo';
     
     
     /**

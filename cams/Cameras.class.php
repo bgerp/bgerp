@@ -48,6 +48,18 @@ class cams_Cameras extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'ceo,admin,cams';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,admin,cams';
+    
+    
+    /**
      * Права за четене
      */
     var $canRead = 'ceo,cams, admin';
@@ -166,7 +178,7 @@ class cams_Cameras extends core_Master
         
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
-            $form->setAction(array($this, 'applyPtzCmd'));
+            $form->setAction(array(cls::get(get_called_class()), 'applyPtzCmd'));
             $form->setHidden('id', $rec->id);
             $driver->preparePtzForm($form);
             

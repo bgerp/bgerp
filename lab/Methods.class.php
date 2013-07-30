@@ -57,6 +57,18 @@ class lab_Methods extends core_Master
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'lab,ceo';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'lab,ceo';
+    
+    
+    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.shtml';

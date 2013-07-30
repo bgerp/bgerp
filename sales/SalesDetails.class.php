@@ -118,7 +118,7 @@ class sales_SalesDetails extends core_Detail
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
-        
+        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -282,7 +282,7 @@ class sales_SalesDetails extends core_Detail
         foreach ($recs as $rec) {
             // Начисляваме ДДС, при нужда
             if ($salesRec->chargeVat == 'yes') {
-                $ProductManager = self::getProductManager($rec->policyId);
+                $ProductManager = cls::get($rec->classId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
             
@@ -349,21 +349,25 @@ class sales_SalesDetails extends core_Detail
         $rec       = $data->form->rec;
         $masterRec = $data->masterRec;
         
+        $data->form->setField('policyId', 'input=hidden');
+
         if ($policyId = $rec->policyId) {
             /* @var $Policy price_PolicyIntf */
             $Policy = cls::get($policyId);
             
-            $data->form->setField('policyId', 'input=hidden');
             $data->form->setOptions('productId', 
                 $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
+        } else {
+            $ProductManager = cls::get($rec->classId);
+            $data->form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
         }
         
         if (!empty($rec->packPrice)) {
             if ($masterRec->chargeVat == 'yes') {
                 // Начисляваме ДДС в/у цената
-                $ProductManager = self::getProductManager($rec->policyId);
+                $ProductManager = cls::get($rec->classId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
-            }
+            }//bp($rec->packPrice, $masterRec->currencyRate);
             $rec->packPrice /= $masterRec->currencyRate;
         }
     }
@@ -386,10 +390,10 @@ class sales_SalesDetails extends core_Detail
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
-            /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($rec->policyId);
+            /* @var $ProductMan core_Manager */
+            $ProductMan = cls::get($rec->classId);
             
-            $ProductMan = self::getProductManager($Policy);
+            $rec->classId = $ProductMan->getClassId();
             
             /* @var $productRef cat_ProductAccRegIntf */
             $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
@@ -462,24 +466,6 @@ class sales_SalesDetails extends core_Detail
     
     
     /**
-     * Връща продуктовия мениджър на зададена ценова политика
-     * 
-     * @param int|string|object $Policy
-     * @return core_Manager
-     */
-    public static function getProductManager($Policy)
-    {
-        if (is_scalar($Policy)) {
-            $Policy = cls::get($Policy);
-        }
-        
-        $ProductManager = $Policy->getProductMan();
-        
-        return $ProductManager;
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
@@ -488,7 +474,7 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $ProductManager = self::getProductManager($rec->policyId);
+        $ProductManager = cls::get($rec->classId);
         
         $row->productId = $ProductManager->getTitleById($rec->productId);
     }

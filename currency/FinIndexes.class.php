@@ -37,6 +37,12 @@ class currency_FinIndexes extends core_Manager {
      * Кой може да го прочете?
      */
     var $canRead = 'ceo,admin,cash,bank,currency';
+
+
+	/**
+	 * Кой може да разглежда сингъла на документите?
+	 */
+	var $canSingle = 'ceo,currency';
     
     
     /**
