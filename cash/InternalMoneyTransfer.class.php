@@ -25,7 +25,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Вътрешни касови трансфери";
+    var $title = "Вътрешни парични трансфери";
     
     
     /**
@@ -74,7 +74,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Вътрешен касов трансфер';
+    var $singleTitle = 'Вътрешен паричен трансфер';
     
     
     /**
@@ -200,7 +200,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
     	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'input,caption=Операция');
-    	$form->title = 'Нов Вътрешен касов трансфер';
+    	$form->title = 'Нов Вътрешен паричен трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')),  'ef_icon = img/16/close16.png');
         
