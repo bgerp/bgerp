@@ -877,7 +877,7 @@ class email_Outgoings extends core_Master
                 if (type_Email::isValidEmail($emailTo)) {
                     if (!$forward) {
                         // Опитваме се да вземаме папката
-                        if (!$folderId = static::getAccessedEmailFolder($emailTo)) {
+                        if (!$folderId = static::getAccessedEmailFolder($emailTo, $eContragentData)) {
                             
                             if ($personId = crm_Profiles::getProfile()->id) {
                                 
@@ -888,7 +888,7 @@ class email_Outgoings extends core_Master
                                 // Трябва да има потребителски профил
                                 expect(FALSE, 'Няма потребителски профил');
                             }
-                        }    
+                        }
                     }       
                 } else {
                     
@@ -949,7 +949,14 @@ class email_Outgoings extends core_Master
                     $contragentData = doc_Folders::getContragentData($folderId);    
                 }
             }    
-    
+            
+            // Ако контрагент данни от имейла
+            if ($eContragentData) {
+                
+                // Вземаме името
+                $contragentData->person = $eContragentData->person;
+            }
+            
             //Ако сме открили някакви данни за получателя
             if ($contragentData) {
                 
@@ -1945,10 +1952,11 @@ class email_Outgoings extends core_Master
      * 6. Последната кутия на която сме inCharge
      * 
      * @param email $email - Имейл
+     * @param object $eContragentData - Контрагент данни
      * 
      * @return doc_Folders $folderId - id на папка
      */
-    static function getAccessedEmailFolder($email) 
+    static function getAccessedEmailFolder($email, &$eContragentData=NULL) 
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
@@ -1960,7 +1968,7 @@ class email_Outgoings extends core_Master
         if ($folderId) return $folderId;
         
         // Папката от бизнес имейла на фирмата
-        $folderId = crm_Persons::getFolderFromBuzEmail($email);
+        $folderId = crm_Persons::getFolderFromBuzEmail($email, $eContragentData);
         
         // Ако има папка връщаме
         if ($folderId) return $folderId;

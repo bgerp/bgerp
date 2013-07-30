@@ -1984,10 +1984,11 @@ class crm_Persons extends core_Master
      * Връща папката на фирмата от бизнес имейла, ако имаме достъп до нея
      * 
      * @param email $email - Имейл, за който търсим
+     * @param object $eContragentData - Контрагент данни за потребител
      * 
      * @return integet $fodlerId - id на папката
      */
-    static function getFolderFromBuzEmail($email)
+    static function getFolderFromBuzEmail($email, &$pContragentData=NULL)
     {
         // Имейла в долния регистър
         $email = mb_strtolower($email);
@@ -1997,6 +1998,9 @@ class crm_Persons extends core_Master
         
         // Ако има бизнес имейл и асоциирана фирма с потребителя
         if ($companyId = $personRec->buzCompanyId) {
+            
+            // Вземам контрагент данните за потребителя
+            $pContragentData = crm_Persons::getContragentData($personRec->id);
             
             // Вземаме папката на фирмата
             $folderId = crm_Companies::forceCoverAndFolder($companyId);
