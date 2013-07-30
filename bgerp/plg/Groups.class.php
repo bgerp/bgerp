@@ -23,7 +23,7 @@ class bgerp_plg_Groups extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('group' => 'Групиране'); 
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('grouping' => 'Групиране'); 
     }
     
 
@@ -34,8 +34,10 @@ class bgerp_plg_Groups extends core_Plugin
      */
     function on_BeforeAction(core_Manager $mvc, &$res, $action)
     {
-        if ($action == 'group') {
+        if ($action == 'grouping') {
             
+            $mvc->requireRightFor('grouping');
+
             // Създаване на формата
             $form = cls::get('core_Form');
             $form->FNC('id', 'int', 'input=hidden,silent');
@@ -171,9 +173,7 @@ class bgerp_plg_Groups extends core_Plugin
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * Забранява изтриването на вече използвани сметки
-     *
+     *   
      * @param core_Mvc $mvc
      * @param string $requiredRoles
      * @param string $action
@@ -182,9 +182,11 @@ class bgerp_plg_Groups extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id) {
-            if(!$requiredRoles && ($action == 'group') && $mvc->haveRightFor('single', $rec, $userId)) {
-                $requiredRoles = 'user';
+        if ($action == 'grouping') {
+            if(!$requiredRoles) {
+                if(!$mvc->haveRightFor('single', $rec, $userId)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
