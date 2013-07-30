@@ -345,7 +345,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$oZebra = $dZebra = 'zebra0';
     	
     	// Променливи за определяне да се скриват ли някои колони
-    	$hasQuantityCol = $hasQuantityColOpt = FALSE;
+    	$hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
 	    		list(, $optional) = explode("|", $index);
@@ -362,10 +362,10 @@ class sales_QuotationsDetails extends core_Detail {
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
 	    				$zebra = &$dZebra;
-	    				$colQ = &$hasQuantityCol;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
 	    				$zebra = &$oZebra;
+	    				
 	    				// слага се 'opt' в класа на колоната да се отличава
 	    				$rowTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				if($row->productId){
@@ -373,12 +373,12 @@ class sales_QuotationsDetails extends core_Detail {
 	    				}
 	    				$oTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
 	    				$id = &$oCount;
-		    			$colQ = &$hasQuantityColOpt;
+		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
+		    				$hasQuantityColOpt = TRUE;
+		    			}
 	    			} 
 	    			
-	    			if($colQ !== TRUE && ($row->quantity)){
-	    				$colQ = TRUE;
-	    			}
+	    			
 	    			
 	    			$row->index = $id++;
 					if($row->productId){
@@ -410,10 +410,6 @@ class sales_QuotationsDetails extends core_Detail {
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
     		$tpl->append($oTpl, 'OPTIONAL');
-    	}
-    	
-    	if(!$hasQuantityCol){
-    		$tpl->append(".quote-col{$data->masterData->rec->id} {display:none;} .product-id {width:65%;}", 'STYLES');
     	}
     	
     	if(!$hasQuantityColOpt){
