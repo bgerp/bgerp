@@ -558,6 +558,7 @@ class sales_SaleRequests extends core_Master
 	 */
 	public static function on_Activation($mvc, &$rec)
     {
+    	$rec = static::fetchRec($rec->id);
     	$rec->state = 'active';
     	$rec->amount = $mvc->calcTotal($rec);
     }
