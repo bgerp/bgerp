@@ -914,7 +914,7 @@ function getStatuses(url, timeout) {
  * 
  * @param string handle - Манипулатора на докуемента
  */
-function saveSelectedTextToSession(handle)
+function saveSelectedTextToSession(handle, onlyHandle)
 {
 	// Вземаме избрания текст
 	var selText = getSelText();
@@ -922,26 +922,26 @@ function saveSelectedTextToSession(handle)
 	// Ако има избран текст
 	if (selText.focusOffset != selText.anchorOffset) {
 		
-		// Текста записан в сесията
-		sess = sessionStorage.selText;
-		
-		// Записваме в сесията новия текст
-		sessionStorage.selText = selText;
-		
 		// Ако има подадено id
 		if (handle) {
 			
-			// Ако е нямало записан текст или текстовете не си отговарят
-			if ((!sess) || (sess != selText)) {
-				
-				// Записваме манипулатора
-				sessionStorage.selHandle = handle;
-			}
+			// Записваме манипулатора
+			sessionStorage.selHandle = handle;
+		}
+		
+		// Ако няма да записваме само манипулатора
+		if (!onlyHandle) {
+			
+			// Записваме в сесията новия текст
+			sessionStorage.selText = selText;
 		}
 		
 		// Записваме текущото време
 		sessionStorage.selTime = new Date().getTime();
-		setTimeout(saveSelectedTextToSession, 1000)
+	} else {
+		
+		// Записваме в сесията празен стринг
+		sessionStorage.selText = '';
 	}
 }
 
