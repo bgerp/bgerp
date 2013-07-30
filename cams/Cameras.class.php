@@ -178,7 +178,7 @@ class cams_Cameras extends core_Master
         
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
-            $form->setAction(array($this, 'applyPtzCmd'));
+            $form->setAction(array(cls::get(get_called_class()), 'applyPtzCmd'));
             $form->setHidden('id', $rec->id);
             $driver->preparePtzForm($form);
             
