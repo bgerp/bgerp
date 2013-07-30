@@ -270,6 +270,7 @@ class core_Type extends core_BaseClass
      */
     function createInput($name, $value, $attr)
     {
+    	setIfNot($attr['type'], 'text');
         if(count($this->suggestions)) {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
         } else {

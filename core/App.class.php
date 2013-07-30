@@ -2,6 +2,8 @@
 
 class core_App
 {
+    
+    public static $debugHandler = array(__CLASS__, 'bp');
 
     public static function run()
     {
@@ -952,6 +954,75 @@ class core_App
 
         return file_get_contents($fullPath);
     }
+    
+    
+    /**
+     * Watch point
+     * 
+     * Записва съдържанието на аргументите си в HTTP хедъри, които (хедъри) се визуализират в
+     * конзолата на браузъра, с помощта на браузърни разширения.
+     *  
+     * Може да се използва с Firefox с инсталиран FirePHP или в Google Chrome с инсталиран
+     * ChromeLog или FirePHP4Chrome
+     * 
+     * За да работи коректно, е необходимо да се добави следния ред във файла 
+     * {{EF_CONF_PATH}}/{{EF_APP_NAME}}.boot.php:
+     * 
+     * chromephp_ChromePHP::setup(); // в случая GoogleChrome + ChromeLog
+     * 
+     *     или
+     * 
+     * firephp_FirePHP::setup(); // В случаите Firefox + FirePHP или Chrome + FirePHP4Chrome
+     * 
+     * Отделно от това, в браузъра трябва да се инсталира съответното бразърно разширение. 
+     * Възможностите за това са:
+     * 
+     * 1. Браузър Google Chrome - две възможности:
+     * 
+     *    1.1. ChromeLog (@link https://chrome.google.com/webstore/detail/php-console/nfhmhhlpfleoednkpnnnkolmclajemef)
+     *    
+     *         В този случай в conf/{app}.boot.php трябва да се постави реда `chromephp_ChromePHP::setup();`
+     *         
+     *    1.2. FirePHP4Chrome (@link https://chrome.google.com/webstore/detail/firephp4chrome/gpgbmonepdpnacijbbdijfbecmgoojma)
+     *    
+     *         В този случай в conf/{app}.boot.php трябва да се постави реда `firephp_FirePHP::setup();`
+     *         
+     * 2. Браузър Mozilla Firefox - в този случай възможността е само една - инсталиране на
+     *    разширенията FireBug (v1.9+) (@link https://addons.mozilla.org/en-US/firefox/addon/firebug/) и
+     *    след това инсталиране на FirePHP (@link https://addons.mozilla.org/en-US/firefox/addon/firephp/)
+     *    
+     */
+    public static function debug()
+    {
+        $args = func_get_args();
+        $bt   = debug_backtrace();
+        
+        while ($where = array_shift($bt)) {
+            if (empty($where['line'])) {
+                continue;
+            }
+            if ($where['function'] == __FUNCTION__ && $where['class'] == __CLASS__) {
+                break;
+            }
+            if ($where['function'] == 'wp' && empty($where['class'])) {
+                break;
+            }
+        }
+        
+        $file = $where['file'];
+        $line = $where['line'];
+        
+        if (!empty($file)) {
+            $file = str_replace(EF_ROOT_PATH, '', $file);
+            $file = ltrim($file, '/');
+        }
+        
+        $where = "{$file}:{$line}";
+
+        $args = array($args, $where);
+        
+        return call_user_func_array(self::$debugHandler, $args);
+    }
 
 
     public static function bp()
@@ -1278,6 +1349,16 @@ function bp()
     call_user_func_array(array('core_App', 'bp'), func_get_args());
 }
 
+
+/**
+ * Watch Point - съкратено извикване на core_App::debug()
+ * 
+ * @see core_App::debug
+ */
+function wp()
+{
+    call_user_func_array(array('core_App', 'debug'), func_get_args());
+}
 
 
 /**
