@@ -1211,7 +1211,13 @@ class email_Incomings extends core_Master
         $msg = email_Incomings::fetch($id);
         
         $addrParse = cls::get('bglocal_Address');
-        $ap = $addrParse->extractContact($msg->textPart);
+        
+        Mode::push('text', 'plain');
+        $rt = new type_Richtext();
+        $textPart = $rt->toHtml($msg->textPart);
+        Mode::pop('text');
+
+        $ap = $addrParse->extractContact($textPart);
         
         $contragentData = new stdClass();
         
