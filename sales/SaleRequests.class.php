@@ -140,14 +140,13 @@ class sales_SaleRequests extends core_Master
  	function act_CreateFromOffer()
  	{
  		$this->requireRightFor('add');
- 		if($rId = Request::get('id', 'int')){
- 			expect($this->fetchField($rId, 'state') == 'draft');
+ 		if($id = Request::get('id', 'int')){
+ 			expect($this->fetchField($id, 'state') == 'draft');
  		}
  		expect($originId = Request::get('originId'));
         $origin = doc_Containers::getDocument($originId);
     	expect($origin->className == 'sales_Quotations');
     	$originRec = $origin->fetch();
-    	$id = $this->fetchField("#originId = {$originRec->containerId} AND #state = 'draft'", 'id');
     	
     	// Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($origin->that, $id);
@@ -587,7 +586,7 @@ class sales_SaleRequests extends core_Master
     	}
     	
     	if($data->rec->state == 'draft') {
-	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
+	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', $data->rec->id ,'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
     }
 }
