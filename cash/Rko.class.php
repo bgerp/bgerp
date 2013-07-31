@@ -221,7 +221,16 @@ class cash_Rko extends core_Master
         $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
     	$form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
-    	$options = acc_Operations::getPossibleOperations(get_called_class());
+    	
+    	if($contragentClassId == crm_Companies::getClassId()){
+    		$reps = crm_Persons::makeArray4Select('name', array("#buzCompanyId = {$contragentId}"));
+    		if(count($reps)){
+    			$reps = array('' => ' ') + array_combine($reps, $reps);
+    		} 
+    		$form->setSuggestions('beneficiary', $reps);
+    	}
+        
+        $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
         
         $form->setDefault('peroCase', cash_Cases::getCurrent());
