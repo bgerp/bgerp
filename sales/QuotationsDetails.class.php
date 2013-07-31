@@ -435,7 +435,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
     	
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
-    		$row->productId = ht::createLinkref($row->productId, array($productMan, 'single', $rec->productId), NULL, 'title=Към продукта');
+    		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId), NULL, 'title=Към продукта');
     	}
     	
     	if($rec->quantity){
