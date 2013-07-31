@@ -379,11 +379,18 @@ class callcenter_Talks extends core_Master
         
         // Вземаме променливите
         $startTime = Request::get('starttime');
-        $internalNum = Request::get('extension');
-        $externalNum = Request::get('callerId');
         $dialStatus = Request::get('dialstatus');
         $uniqId = Request::get('uniqueId');
         $outgoing = Request::get('outgoing');
+        
+        // Ако е изходящо обаждане
+        if ($outgoing) {
+            $internalNum = Request::get('callerId');
+            $externalNum = Request::get('extension');
+        } else {
+            $internalNum = Request::get('extension');
+            $externalNum = Request::get('callerId');
+        }
         
         // Създаваме обекта, който ще използваме
         $nRec = new stdClass();
