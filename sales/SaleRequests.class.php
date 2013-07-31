@@ -563,7 +563,8 @@ class sales_SaleRequests extends core_Master
     		$total += $amount;
     	}
     	
-    	return array($total, $total - $discount);
+    	$afterDisc = ($discount != 0) ? $total - $discount : NULL;
+    	return array($total, $afterDisc);
     }
     
     
