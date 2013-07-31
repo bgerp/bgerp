@@ -159,7 +159,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$queryCopy->where("#state = 'draft'");
     	$draftCount = $queryCopy->count();
     	unset($queryCopy->where[(count($queryCopy->where) -1)]);
-    	$queryCopy->where("#state = 'active'");
+    	$queryCopy->where("#state = 'active' || #state = 'closed'");
     	$activeCount = $queryCopy->count();
     	
     	$res['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $activeCount);
