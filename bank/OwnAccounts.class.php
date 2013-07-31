@@ -378,4 +378,18 @@ class bank_OwnAccounts extends core_Master {
 			}
 		}
     }
+    
+    
+	/**
+	 * Преди подготовка на резултатите
+	 */
+	function on_BeforePrepareListRecs($mvc, $res, $data)
+	{
+		if(!haveRole('ceo')){
+			
+			// Показват се само записите за които отговаря потребителя
+			$cu = core_Users::getCurrent();
+			$data->query->where("#operators LIKE '%|{$cu}|%'");
+		}
+	}
 }
