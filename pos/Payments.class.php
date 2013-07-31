@@ -31,13 +31,7 @@ class pos_Payments extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, title, change, state';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id, title, change, state';
     
     
     /**
