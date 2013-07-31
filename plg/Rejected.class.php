@@ -233,4 +233,25 @@ class plg_Rejected extends core_Plugin
 
         }
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     * Добавя поле за пълнотекстово търсене
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме скрито полето за оттегляне
+        $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
+        
+        // Ако е зададено
+        if ($rejectedId = Request::get('Rejected', 'int')) {
+            
+            // Задаваме стойността от заявката
+            $data->listFilter->setDefault('Rejected', $rejectedId);
+        }
+    }
 }
