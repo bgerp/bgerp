@@ -148,6 +148,7 @@ class sales_SaleRequests extends core_Master
         $origin = doc_Containers::getDocument($originId);
     	expect($origin->className == 'sales_Quotations');
     	$originRec = $origin->fetch();
+    	expect($originRec->state == 'active');
     	
     	// Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($origin->that, $id);
