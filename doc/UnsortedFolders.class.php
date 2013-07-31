@@ -20,7 +20,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search';
     
     
     /**
@@ -103,6 +103,12 @@ class doc_UnsortedFolders extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin';
+    
+    
+    /**
+     * Кой може да го оттегли?
+     */
+    var $canReject = 'user';
     
     
     /**
