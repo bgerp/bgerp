@@ -132,7 +132,7 @@ class callcenter_Talks extends core_Master
         $this->FLD('externalData', 'key(mvc=callcenter_Numbers)', 'caption=Външен->Контакт, width=100%, oldFieldName=callerData');
         
         $this->FLD('internalNum', 'varchar', 'caption=Вътрешен->Номер, width=100%, oldFieldName=calledNum');
-        $this->FLD('internalData', 'key(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
+        $this->FLD('internalData', 'keylist(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
         
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
         $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
@@ -230,21 +230,31 @@ class callcenter_Talks extends core_Master
         
         // Ако има данни за търсения
         if ($rec->internalData) {
-         
-            // Вземаме записа
-            $numRec = callcenter_Numbers::fetch($rec->internalData);
             
-            // Вербалния запис
-            $internalNumRow = callcenter_Numbers::recToVerbal($numRec);
+            // Нулираме полето
+            $row->internalData = NULL;
             
-            // Ако има открити данни
-            if ($internalNumRow->contragent) {
-                 
-                // Флаг, за да отбележим, че има данни
-                $haveInternalData = TRUE;
+            // Масив с всички данни
+            $internalDataArr = type_Keylist::toArray($rec->internalData);
+            
+            // Обхождаме масива
+            foreach ($internalDataArr as $internalData) {
                 
-                // Добавяме данните
-                $row->internalData = $internalNumRow->contragent;
+                // Вземаме записа
+                $numRec = callcenter_Numbers::fetch($internalData);
+                
+                // Вербалния запис
+                $internalNumRow = callcenter_Numbers::recToVerbal($numRec);
+                
+                // Ако има открити данни
+                if ($internalNumRow->contragent) {
+                     
+                    // Флаг, за да отбележим, че има данни
+                    $haveInternalData = TRUE;
+                    
+                    // Добавяме данните
+                    $row->internalData .= ($row->internalData) ? (", {$internalNumRow->contragent}") : $internalNumRow->contragent;
+                }
             }
         }
         
@@ -327,21 +337,15 @@ class callcenter_Talks extends core_Master
      * Обновява записите за съответния номер
      * 
      * @param string $numStr - Номера
-     * @param integer $numId - id на номера
      */
-    static function updateRecsForNum($numStr, $numId=NULL)
+    static function updateRecsForNum($numStr)
     {
         // Вземаме всички записи за съответния номер
         $query = static::getQuery();
         $query->where(array("#externalNum = '[#1#]' || #internalNum = '[#1#]'", $numStr));
         
-        // Ако id на номера
-        if (!$numId) {
-            
-            // Вземаме последното id
-            $nRec = callcenter_Numbers::getRecForNum($numStr);
-            $numId = $nRec->id;
-        }
+        // Вземаме всички записи за съответния номер
+        $nRecArr = callcenter_Numbers::getRecForNum($numStr, FALSE, TRUE);
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
@@ -350,14 +354,25 @@ class callcenter_Talks extends core_Master
             if ($rec->externalNum == $numStr) {
                 
                 // Променяме данните
-                $rec->externalData = $numId;
+                $rec->externalData = $nRecArr[0]->id;
             }
             
-            // Ако номера на търсения отговара
+            // Ако номера на търсения отговаря
             if ($rec->internalNum == $numStr) {
                 
+                // Обхождаме масива с резултатите
+                foreach ($nRecArr as $nRec) {
+                    
+                    // Ако е вътрешен
+                    if ($nRec->type == 'internal') {
+                        
+                        // Добавяме в масива
+                        $numIdArr[$nRec->id] = $nRec->id;
+                    }
+                }
+                
                 // Променяме данните
-                $rec->internalData = $numId;
+                $rec->internalData = type_Keylist::fromArray($numIdArr);
             }
             
             // Записваме
@@ -396,24 +411,31 @@ class callcenter_Talks extends core_Master
         $nRec = new stdClass();
         
         // Вземаме записите за позвъняващия номера
-        $cRec = callcenter_Numbers::getRecForNum($externalNum);
+        $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
         
         // Ако има такъв запис
-        if ($cRec) {
+        if ($cRecArr[0]) {
             
             // Вземаме данните за контрагента
-            $nRec->externalData = $cRec->id;
+            $nRec->externalData = $cRecArr[0]->id;
         }
         
         // Вземаме записите за търсения номера
-        $dRec = callcenter_Numbers::getRecForNum($internalNum);
-        
-        // Ако има такъв запис
-        if ($dRec) {
+        $dRecArr = callcenter_Numbers::getRecForNum($internalNum, 'internal', TRUE);
+
+        // Обхождаме резултата
+        foreach ((array)$dRecArr as $dRec) {
             
-            // Вземаме данните за контрагента
-            $nRec->internalData = $dRec->id;
+            // Ако има такъв запис
+            if ($dRec) {
+                
+                // Добавяме в масива
+                $dRecIdArr[$dRec->id] = $dRec->id;
+            }
         }
+        
+        // Вземаме данните за контрагента
+        $nRec->internalData = type_Keylist::fromArray($dRecIdArr);
         
         // Добавяме останалите променливи
         $nRec->externalNum = callcenter_Numbers::getNumberStr($externalNum);

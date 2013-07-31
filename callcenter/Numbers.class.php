@@ -415,11 +415,11 @@ class callcenter_Numbers extends core_Manager
                 }
                 
                 // Обновяваме записите в Централата
-                callcenter_Talks::updateRecsForNum($numStr, $rec->id);
+                callcenter_Talks::updateRecsForNum($numStr);
             }
         }
         
-        // Ако имаме променини или добавени номера
+        // Ако имаме изтрити номера
         if(count((array)$mvc->deletedItems)) {
             
             // Обхождаме масива
@@ -444,15 +444,19 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
-     * Връща последния запис за номера
+     * Връща масив със записите за номерата
      * 
      * @param string $number - Номера
-     * @param string $type - Типа на номера - tel, mobile, fax
+     * @param string $type - Типа на номера - tel, mobile, fax, internal
+     * @param boolean $all - Дали да се върнат всичките или само последния
      * 
-     * @return core_Query - Запис от модела, отговарящ на условията
+     * @return array - Масив с запсите
      */
-    static function getRecForNum($number, $type=FALSE)
+    static function getRecForNum($number, $type=FALSE, $all=FALSE)
     {
+        // Резултата, който ще връщаме
+        $res = array();
+        
         // Вземаме номера, на инициатора
         $numStr = static::getNumberStr($number);
         
@@ -460,7 +464,6 @@ class callcenter_Numbers extends core_Manager
         $query = static::getQuery();
         $query->where(array("#number = '[#1#]'", $numStr));
         $query->orderBy('id', 'DESC');
-        $query->limit(1);
         
         // Ако е зададен типа
         if ($type) {
@@ -469,8 +472,21 @@ class callcenter_Numbers extends core_Manager
             $query->where(array("#type = '[#1#]'", $type));
         }
         
-        // Вземаме записа
-        return $query->fetch();
+        // Ако не ни трябват всичките, а последния
+        if (!$all) {
+            
+            // Лимит 1
+            $query->limit(1);
+        }
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $res[] = $rec;
+        }
+        
+        return $res;
     }
     
     

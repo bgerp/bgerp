@@ -102,12 +102,12 @@ class callcenter_Fax extends core_Manager
     static function saveSend($faxNum, $cid)
     {
         // Вземаме записа за номера
-        $extRec = callcenter_Numbers::getRecForNum($faxNum);
+        $extRecArr = callcenter_Numbers::getRecForNum($faxNum);
         
         // Създаваме записа
         $rec = new stdClass();
-        $rec->classId = $extRec->classId;
-        $rec->contragentId = $extRec->contragentId;
+        $rec->classId = $extRecArr[0]->classId;
+        $rec->contragentId = $extRecArr[0]->contragentId;
         $rec->faxNum = callcenter_Numbers::getNumberStr($faxNum);
         $rec->cid = $cid;
         

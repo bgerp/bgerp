@@ -259,11 +259,11 @@ class callcenter_SMS extends core_Master
         }
         
         // Вземаме последния запис за номера
-        $extRec = callcenter_Numbers::getRecForNum($rec->mobileNum);
+        $extRecArr = callcenter_Numbers::getRecForNum($rec->mobileNum);
         
         // Вземаме класа и id' то на контрагента
-        $rec->classId = $extRec->classId;
-        $rec->contragentId = $extRec->contragentId;
+        $rec->classId = $extRecArr[0]->classId;
+        $rec->contragentId = $extRecArr[0]->contragentId;
         
         // Ако има съобщение
         if ($sendStatusArr['msg']) {
