@@ -351,7 +351,7 @@ class sales_Quotations extends core_Master
 			}
 			
 			if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
-				$row->deliveryTermId = ht::createLinRef($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
+				$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
 			}
 		}
 		
