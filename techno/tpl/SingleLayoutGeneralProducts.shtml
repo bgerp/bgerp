@@ -9,11 +9,11 @@
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]
 			<tr>
+				<!--ET_BEGIN tools-->
+				<td style=''><div class="rowtools"><div class="l nw">[#tools#]</div></div></td>
+				<!--ET_END tools-->
 				<td width='30%'>[#paramId#]</td>
 				<td><i>[#paramValue#]</i>
-				<!--ET_BEGIN tools-->
-				<span style='display:inline-block;float:right;top:2px;position:relative'>[#tools#]</span>
-				<!--ET_END tools-->
 				</td>	
 			</tr>	
 			<!--ET_END PARAMS-->

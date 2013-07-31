@@ -19,7 +19,7 @@
 	<!--ET_BEGIN COMPONENT-->
 	[#COMPONENT#]
 	<tr>
-		<td>[#num#] [#tools#]</td>
+		<td><div class="rowtools"><div class='l nw'>[#tools#]</div><div class="r">[#num#]</div> </td>
 		<td>[#componentId#]</td>
 		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
 		<td width='12%' align='right' class='expandable'>[#cPrice#]</td>
