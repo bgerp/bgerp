@@ -93,8 +93,8 @@ class pos_Points extends core_Master {
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
-    
-    
+	
+	
     /**
      * Описание на модела
      */
@@ -169,4 +169,34 @@ class pos_Points extends core_Master {
     		$row->currentPlg->append(ht::createFnBtn(tr("Отвори"), "window.open('{$urlArr}')", NULL, array('style' => 'margin-left:40px;margin-right:3px;display:inline')));
     	}
     }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'select' && isset($rec)){
+    		$cashier = cash_Cases::fetchField($rec->caseId, 'cashier');
+    		if($cashier == $userId){
+    			$res = 'ceo, pos';
+    		}
+    	}
+    }
+    
+    
+	/**
+	 * Преди подготовка на резултатите
+	 */
+	function on_BeforePrepareListRecs($mvc, $res, $data)
+	{
+		if(!haveRole('ceo')){
+			
+			// Показват се само точките на която каса
+			// е касиер потребителя
+			$cu = core_Users::getCurrent();
+			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId');
+			$data->query->where("#cashier = {$cu}");
+		}
+	}
 }
