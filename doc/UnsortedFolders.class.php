@@ -112,6 +112,12 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'user';
+    
+    
+    /**
      * Кой има права Rip
      */
     var $canWrite = 'user';
