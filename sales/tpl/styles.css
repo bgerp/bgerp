@@ -42,7 +42,7 @@
 	text-decoration:underline;
 }
 
-#condition-title, #conditions, #quote-username{
+.wide #condition-title, .wide #conditions, .wide #quote-username{
 	margin-left:30px;
 	margin-top:20px;
 }
@@ -73,10 +73,12 @@
 }
 
 .narrow #details-holder, .narrow #optional-holder, .narrow #condition-title, 
-.narrow #conditions, .narrow .document .listToolbar,.narrow .document .listToolbar .toolbar{
+.narrow #conditions, .narrow .document .listToolbar{
 	margin-left:0;
 }
-
+.narrow .document .listToolbar .toolbar{
+	padding-left:0;
+}
 .narrow .products-table{
 	font-size:0.9em;
 	width:100%;
