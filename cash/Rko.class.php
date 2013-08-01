@@ -223,7 +223,7 @@ class cash_Rko extends core_Master
         $form->setDefault('contragentClassId', $contragentClassId);
     	
     	if($contragentClassId == crm_Companies::getClassId()){
-    		$reps = crm_Persons::makeArray4Select('name', array("#buzCompanyId = {$contragentId}"));
+    		$reps = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$contragentId}");
     		if(count($reps)){
     			$reps = array('' => ' ') + array_combine($reps, $reps);
     		} 

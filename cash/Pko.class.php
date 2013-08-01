@@ -221,7 +221,7 @@ class cash_Pko extends core_Master
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
     	
         if($contragentClassId == crm_Companies::getClassId()){
-    		$reps = crm_Persons::makeArray4Select('name', array("#buzCompanyId = {$contragentId}"));
+    		$reps = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$contragentId}");
     		if(count($reps)){
     			$reps = array('' => ' ') + array_combine($reps, $reps);
     		} 
