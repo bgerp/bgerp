@@ -822,6 +822,48 @@ function setMinHeight()
 
 
 /**
+ * Задава минимална височина на контента във външната част
+ */
+function setMinHeightExt()
+{  
+	var ch = document.documentElement.clientHeight;          
+	if(document.getElementById('cmsTop')) {
+		var ct = document.getElementById('cmsTop').offsetHeight;
+		var cb = document.getElementById('cmsBottom').offsetHeight;     
+		var cm = document.getElementById('cmsMenu').offsetHeight; 
+		
+		var add = 0;
+		if( document.body.className.match('wide')){
+			add = 32;
+		}
+		
+		if(document.getElementById('maincontent')) {
+			var mc = document.getElementById('maincontent');
+			var h = (ch - ct - cb  - cm - 4  - add ) + 'px';
+			mc.style.minHeight = h;
+		}
+	}
+}
+
+/**
+ * Задава padding на логин-формата при малки дисплеи
+ */
+function loginFormPadding()
+{
+	var p = $(window).width();
+	if(document.body.className.match('narrow') && (p<400) && document.getElementById('login-form')){
+		var winw = $(window).width();  
+		var lf = document.getElementById('login-form');
+		var form = lf.getElementsByTagName("table")[0].offsetWidth;
+		var dist = ((winw - form - 12)/2);
+		lf.style.marginLeft = dist  + 'px';
+		lf.style.paddingLeft ='0px';
+		lf.style.paddingTop = dist  + 'px';
+	}
+}
+
+
+/**
  * При натискане с мишката върху елемента, маркираме текста
  */
 function onmouseUpSelect()
