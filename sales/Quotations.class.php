@@ -202,9 +202,9 @@ class sales_Quotations extends core_Master
 	    if($data->rec->state == 'active'){
 	    	$items = $mvc->getItems($data->rec->id);
 	       	if($items && sales_Sales::haveRightFor('add')){
-	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'warning=Наистина ли искате да създадете нова продажба', 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	       	} elseif(!$items && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
-	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE),'warning=Наистина ли искате да създадете нова заявка', 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');	
+	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');	
 	       	}
 	    }
     }

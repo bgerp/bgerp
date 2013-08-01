@@ -95,7 +95,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Наименование, folderId, amount, state, createdOn, createdBy';
+    public $listFields = 'id, folderId, paymentCurrencyId, amount, state, createdOn, createdBy';
     
     
 	/**
@@ -498,9 +498,20 @@ class sales_SaleRequests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if($rec->state == 'draft'){
+	    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $rec->vat);
+	    }
+	    	
+	    $row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount / $rec->rate);
+	    if($rec->discount){
+	    	$row->discount = $mvc->fields['discount']->type->toVerbal($rec->discount / $rec->rate);
+	    	$row->discountCurrencyId = $row->paymentCurrencyId;
+	    }
+	    	
     	if($fields['-list']){
-    		$row->title = tr("Заявка|* №{$rec->id}");
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+    		$id = $row->id;
+    		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
+            $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
     	
 	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
 	    		$img = doc_Folders::getIconImg($rec->folderId);
@@ -511,8 +522,9 @@ class sales_SaleRequests extends core_Master
 	    	
 	    	if($rec->state == 'draft'){
 	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";
-	    		$row->id = ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE)) . " " . $row->id;
+	    		$row->id .= " " . ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE));
 	    	}
+	    	$row->id .= " {$id}";
     	}
 	    
 	    if($fields['-single']){
@@ -520,18 +532,7 @@ class sales_SaleRequests extends core_Master
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}
 	    	
-	    	if($rec->state == 'draft'){
-	    		list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $rec->vat);
-	    	}
-	    	
-	    	$row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount / $rec->rate);
-	    	if($rec->discount){
-	    		$row->discount = $mvc->fields['discount']->type->toVerbal($rec->discount / $rec->rate);
-	    		$row->discountCurrencyId = $row->paymentCurrencyId;
-	    	}
-	    	
 	    	$row->chargeVat = ($rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
-	    	
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
@@ -595,7 +596,7 @@ class sales_SaleRequests extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'warning=Наистина ли искате да създадете нова продажба?', 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/star_2.png,title=Създаване на нова продажба по заявката');
     	}
     	
     	if($data->rec->state == 'draft') {
