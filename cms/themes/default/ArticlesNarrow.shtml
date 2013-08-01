@@ -1,0 +1,14 @@
+<div class='cms-row'>
+						
+	<div style='margin:2%;'>
+		[#PAGE_CONTENT#] 
+	</div>
+	<!--ET_BEGIN NAVIGATION-->
+	<div   id='cmsNavigation'  style='margin:2%'>
+	<div style='background-color:#ccc;padding:5px;border:solid 1px #aaa;'>
+	Навигация
+	</div>
+		[#NAVIGATION#] 
+	</div>
+	<!--ET_END NAVIGATION-->
+</div>
