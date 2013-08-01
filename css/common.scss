@@ -1867,13 +1867,13 @@ pre.rich-text {
     border:solid 1px $gray3;
 }
 
-pre.rich-text{
+.wide pre.rich-text{
 	overflow: auto; 
 }
 
 .narrow pre.rich-text{
 	font-size:0.9em;
-	white-space:pre-wrap;
+	white-space:pre-line;
 }
 
 div.richtext pre .code{
@@ -1886,10 +1886,9 @@ div.richtext pre .code{
 	white-space:pre;
 	word-wrap:normal;
 }
- div.richtext pre code{
+.wide div.richtext pre code{
 	white-space:pre;
 	word-wrap:normal;
-	padding:0;
 	overflow:auto;
 	background:transparent !important;
 }
