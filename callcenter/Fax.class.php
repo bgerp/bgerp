@@ -20,6 +20,7 @@ class callcenter_Fax extends core_Manager
      */
     var $title = 'Изпратени факсове';
     
+    
     /**
      * Кой има право да чете?
      */
@@ -71,13 +72,13 @@ class callcenter_Fax extends core_Manager
     /**
      * Поле за търсене
      */
-    var $searchFields = 'faxNum, createdOn';
+    var $searchFields = 'faxNum';
     
     
     /**
      * 
      */
-    var $listFields = 'id, faxNum, contragent, cid, createdOn=Изпратено->На, createdBy=Изпратено->От';
+    var $listFields = 'faxNumData, faxNum, cid, createdOn=Изпратен->На, createdBy=Изпратен->От';
     
     
 	/**
@@ -85,11 +86,9 @@ class callcenter_Fax extends core_Manager
      */
     function description()
     {
-        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Контрагент->Номер');
-        $this->FNC('contragent', 'varchar', 'caption=Контрагент->Име');
+        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Получате->Номер');
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Документ');
-        $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас');
-        $this->FLD('contragentId', 'int', 'caption=Визитка->Номер');
+        $this->FLD('faxNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получате->Контакт, width=100%, oldFieldName=callerData');
     }
     
     
@@ -101,14 +100,16 @@ class callcenter_Fax extends core_Manager
      */
     static function saveSend($faxNum, $cid)
     {
+        // Вземаме целия номер
+        $faxNum = callcenter_Numbers::getNumberStr($faxNum);
+        
         // Вземаме записа за номера
         $extRecArr = callcenter_Numbers::getRecForNum($faxNum);
         
         // Създаваме записа
         $rec = new stdClass();
-        $rec->classId = $extRecArr[0]->classId;
-        $rec->contragentId = $extRecArr[0]->contragentId;
-        $rec->faxNum = callcenter_Numbers::getNumberStr($faxNum);
+        $rec->faxNum = $faxNum;
+        $rec->faxNumData = $extRecArr[0]->id;
         $rec->cid = $cid;
         
         static::save($rec);
@@ -124,41 +125,41 @@ class callcenter_Fax extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-         // Ако има клас   
-         if ($rec->classId) {
-             
-            // Инстанция на класа
-            $class = cls::get($rec->classId);
+        // Добавяме стил за телефони        
+        $row->faxNum = "<div class='fax'>" . $row->faxNum . "</div>";
+        
+        // Ако има данни за търсещия
+        if ($rec->faxNumData) {
+         
+            // Вземаме записа
+            $numRec = callcenter_Numbers::fetch($rec->faxNumData);
             
-            // Ако класа е профил
-            if (strtolower($class->className) == 'crm_profiles') {
+            // Вербалния запис
+            $externalNumRow = callcenter_Numbers::recToVerbal($numRec);
+            
+            // Ако има открити данни
+            if ($externalNumRow->contragent) {
                 
-                // Вземаме линк към профила
-                $card = crm_Profiles::createLink($rec->contragentId);
-            } else {
+                // Флаг, за да отбележим, че има данни
+                $haveExternalData = TRUE;
                 
-                // Вземаме записите за съответния клас
-                $cardRec = $class->fetch($rec->contragentId);
-                
-                // Ако имаме права за сингъл
-                if ($class->haveRightFor('single', $cardRec)) {
-                    
-                    // Вземаме линка към сингъла
-                    $card = ht::createLink($cardRec->name, array($class, 'single', $rec->contragentId)) ;
-                } else {
-                    
-                    // Ако нямаме права
-                    
-                    // Вземаме линк към профила на отговорника
-                    $inChargeLink = crm_Profiles::createLink($cardRec->inCharge);
-                    
-                    // Добавяме линка
-                    $card = $class->getVerbal($cardRec, 'name') . " - {$inChargeLink}";
-                }
+                // Добавяме данните
+                $row->faxNumData = $externalNumRow->contragent;
             }
+        } 
+        
+        // Ако флага не е дигнат
+        if (!$haveExternalData) {
             
-            // Добавяме линка към контрагента
-            $row->contragent = $card;
+            // Ако има номер
+            if ($rec->faxNum) {
+                
+                // Уникално id
+                $uniqId = $rec->id . 'faxTo';
+                
+                // Добавяме линка
+                $row->faxNumData = static::getTemplateForAddNum($rec->faxNum, $uniqId);
+            }
         }
         
         // Ако има потребител
@@ -168,11 +169,90 @@ class callcenter_Fax extends core_Manager
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);
         }
         
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+                
+            // Дива за разстояние
+            $div = "<div style='margin-top:5px;'>";
+            
+            // Добавяме данните към номерата
+            $row->faxNum .=  $div. $row->faxNumData . "</div>";
+            
+            // Обединяваме създадено на и от
+            $row->created = $row->createdBy . $div . dt::mysql2verbal($rec->createdOn, 'smartTime') . "</div>";
+        }
+        
         // Ако има id на документ
         if ($rec->cid) {
             
-            // Използваме него
+            // Линк към сингъла на докуемнта
             $row->cid = doc_Containers::getLinkForSingle($rec->cid);
+        }
+    }
+    
+    
+    /**
+     * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
+     * 
+     * @param string $num - Номера, за който се отнася
+     * @param string $uniqId - Уникално id
+     * 
+     * @return string - Тага за заместване
+     */
+    static function getTemplateForAddNum($num, $uniqId)
+    {
+        // Аттрибути за стилове 
+        $companiesAttr['title'] = tr('Нова фирма');
+        
+        // Икона на фирмите
+        $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
+        
+        // Добавяме линк към създаване на фирми
+        $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'fax' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
+        
+        // Аттрибути за стилове 
+        $personsAttr['title'] = tr('Ново лице');
+        
+        // Икона на изображенията
+        $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
+        
+        // Добавяме линк към създаване на лица
+        $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', 'fax' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+        
+        // Дали да се показва или не
+        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
+        
+        // Ако сме в мобилен режим
+        if (mode::is('screenMode', 'narrow')) {
+            
+            // Не се добавя JS
+            $res = "<div id='{$uniqId}'>{$text}</div>";
+        } else {
+            
+            // Ако не сме в мобилен режим
+            
+            // Скриваме полето и добавяме JS за показване
+            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
+        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+        // Ако сме в тесен режим
+        if (mode::is('screenMode', 'narrow')) {
+            
+            // Променяме полетата, които ще се показват
+            $data->listFields = arr::make('faxNum=Получате, cid=Документ, created=Изпратен');
         }
     }
     
@@ -220,8 +300,10 @@ class callcenter_Fax extends core_Manager
             // Ако филтъра е по потребители
             if($filter->usersSearch) {
                 
+                // Масив с потребителите
                 $userSearchArr = type_Keylist::toArray($filter->usersSearch);
-                // Показваме само на потребителя
+                
+                // Показваме само на съответните потребители потребителя
     			$data->query->orWhereArr('createdBy', $userSearchArr);
     			
   			    // Ако се търси по всички и има права admin или ceo
@@ -231,6 +313,30 @@ class callcenter_Fax extends core_Manager
                     $data->query->orWhere("#createdBy IS NULL");
                 }
     		}
+        }
+    }
+    
+    
+	/**
+     * Обновява записите за съответния номер
+     * 
+     * @param string $numStr - Номера
+     */
+    static function updateRecsForNum($numStr)
+    {
+        // Вземаме последния запис за съответния номер
+        $nRecArr = callcenter_Numbers::getRecForNum($numStr);
+        // Вземаме всички записи за съответния номер
+        $query = static::getQuery();
+        $query->where(array("#faxNum = '[#1#]'", $numStr));
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            $rec->faxNumData = $nRecArr[0]->id;
+            
+            // Записваме
+            static::save($rec);
         }
     }
 }
