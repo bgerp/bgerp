@@ -38,7 +38,7 @@ class bank_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search';
+     	plg_Sorting, doc_DocumentPlg, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -155,6 +155,7 @@ class bank_InternalMoneyTransfer extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
+        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
 	
     
@@ -183,11 +184,17 @@ class bank_InternalMoneyTransfer extends core_Master
             return;
         }
 
-       // Има ли вече зададено основание? 
-       if (Request::get('operationSysId', 'varchar')) {
+     	if($folderId = Request::get('folderId')){
+	        if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
+	        	return Redirect(array('bank_OwnAccounts', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна сметка");
+	        }
+        }
+        
+        // Има ли вече зададено основание? 
+        if (Request::get('operationSysId', 'varchar')) {
             
-           // Има основание - не правим нищо
-           return;
+            // Има основание - не правим нищо
+            return;
         }
         
         $form = static::prepareReasonForm();
@@ -207,13 +214,16 @@ class bank_InternalMoneyTransfer extends core_Master
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
     	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations, key=systemId, select=name)', 'input,caption=Операция');
+    	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов Вътрешен банков трансфер';
         $form->toolbar->addSbBtn('Напред', '', array('class'=>'fright'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')), 'ef_icon = img/16/close16.png');
         
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
-        
+        $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
+       	$form->setDefault('folderId', $folderId);
+       	
         return $form;
     }
     
@@ -237,24 +247,23 @@ class bank_InternalMoneyTransfer extends core_Master
     	// Трябва документа да поддържа тази операция
     	$classId = core_Classes::fetchIdByName(get_called_class());
     	expect($operation->documentSrc == $classId, 'Този документ не поддържа избраната операция');
-        $ownAccounts = bank_OwnAccounts::getOwnAccounts();
         
-    	switch($operationSysId) {
+        switch($operationSysId) {
         	case "bank2bank":
         		$form->setField("debitBank", "input");
-        		$form->setOptions('debitBank', $ownAccounts);
+        		$form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
         		break;
         	case "bank2case":
         		$form->setField("debitCase", "input");
         		break;
         }
        
-        $form->setOptions('creditBank', $ownAccounts);
         $form->setReadOnly('operationSysId');
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
       	$form->setDefault('creditBank', bank_OwnAccounts::getCurrent());
+      	$form->setReadOnly('creditBank');
     }
     
      
@@ -274,7 +283,6 @@ class bank_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
-    		$form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($form->rec->creditBank);
     	}
     }
     
@@ -296,7 +304,9 @@ class bank_InternalMoneyTransfer extends core_Master
     	$creditInfo = bank_OwnAccounts::getOwnAccountInfo($rec->creditBank);
     		
     	if($rec->operationSysId == 'bank2bank') {
-    			
+    		$sharedUsers = bank_OwnAccounts::fetchField($rec->debitBank, 'operators');
+    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+    		
 	    	// Двете банкови сметки трябва да са различни
 	    	if($rec->creditBank == $rec->debitBank) {
 	    			$form->setError("debitBank", 'Дестинацията е една и съща !!!');
@@ -314,9 +324,14 @@ class bank_InternalMoneyTransfer extends core_Master
 	    			return;
 	    	}
     	} elseif($rec->operationSysId == 'bank2case') {
-    		 if($creditInfo->currencyId != $rec->currencyId) {
-    		  	 $form->setError("debitEnt1,creditEnt1", 'Банковата сметка не е в посочената валута !!!');
-    		  	 return;
+    		$toCashier = cash_Cases::fetchField($rec->debitCase, 'cashier');
+    		if($toCashier != core_Users::getCurrent()){
+    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
+    		}
+    		
+    		if($creditInfo->currencyId != $rec->currencyId) {
+    		  	$form->setError("debitEnt1,creditEnt1", 'Банковата сметка не е в посочената валута !!!');
+    		  	return;
     		}
     	} 
     }

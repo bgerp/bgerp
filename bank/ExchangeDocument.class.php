@@ -32,7 +32,7 @@ class bank_ExchangeDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -150,6 +150,7 @@ class bank_ExchangeDocument extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
+        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
 	
     
@@ -163,6 +164,23 @@ class bank_ExchangeDocument extends core_Master
 	}
 	
 	
+	/**
+     *  Добавяме помощник за избиране на сч. операция
+     */
+    public static function on_BeforeAction($mvc, &$tpl, $action)
+    {
+    	if ($action != 'add') {
+            return;
+        }
+        
+        if($folderId = Request::get('folderId')){
+	        if($folderId != bank_OwnAccounts::fetchField(bank_OwnAccounts::getCurrent(), 'folderId')){
+	        	return Redirect(array('bank_OwnAccounts', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна сметка");
+	        }
+        }
+    }
+    
+    
     /**
      * Подготовка на формата за добавяне
      */
@@ -170,12 +188,12 @@ class bank_ExchangeDocument extends core_Master
     { 
     	$form = &$data->form;
     	$today = dt::verbal2mysql();
-        $form->setDefault('peroFrom', cash_Cases::getCurrent('id', FALSE));
+    	$cBank = bank_OwnAccounts::getCurrent();
+    	$form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($cBank);
+        $form->setDefault('peroFrom', $cBank);
         $form->setDefault('valior', $today);
-        
-        $ownAccounts = bank_OwnAccounts::getOwnAccounts();
-        $form->setOptions('peroFrom', $ownAccounts);
-		$form->setOptions('peroTo', $ownAccounts);
+        $form->setReadOnly('peroFrom');
+		$form->setOptions('peroTo', bank_OwnAccounts::getOwnAccounts());
 	}
     
     
@@ -219,7 +237,9 @@ class bank_ExchangeDocument extends core_Master
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
 		    
-		    $form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($form->rec->peroTo);
+		    $sharedUsers = bank_OwnAccounts::fetchField($rec->peroTo, 'operators');
+    		bp($sharedUsers);
+		    $rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
 		}
     }
     

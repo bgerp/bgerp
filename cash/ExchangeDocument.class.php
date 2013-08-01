@@ -33,7 +33,7 @@ class cash_ExchangeDocument extends core_Master
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,
      	plg_Sorting,doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -146,6 +146,7 @@ class cash_ExchangeDocument extends core_Master
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
+        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
     
@@ -157,7 +158,24 @@ class cash_ExchangeDocument extends core_Master
 		// Добавяме към формата за търсене търсене по Каса
 		cash_Cases::prepareCaseFilter($data, array('peroFrom', 'peroTo'));
 	}
-	
+    
+    
+	/**
+     *  Добавяме помощник за избиране на сч. операция
+     */
+    public static function on_BeforeAction($mvc, &$tpl, $action)
+    {
+    	if ($action != 'add') {
+            return;
+        }
+        
+        if($folderId = Request::get('folderId')){
+	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
+	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
+	        }
+        }
+    }
+    
     
     /**
      * Подготовка на формата за добавяне
@@ -165,10 +183,13 @@ class cash_ExchangeDocument extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$form = &$data->form;
+    	$cCase = cash_Cases::getCurrent();
+    	$form->rec->folderId = cash_Cases::forceCoverAndFolder($cCase);
     	$today = dt::verbal2mysql();
         $currencyId = acc_Periods::getBaseCurrencyId($today);
         
-        $form->setDefault('peroFrom', cash_Cases::getCurrent());
+        $form->setDefault('peroFrom', $cCase);
+        $form->setReadOnly('peroFrom');
         $form->setDefault('creditCurrency', $currencyId);
         $form->setDefault('debitCurrency', $currencyId);
         $form->setDefault('valior', $today);
@@ -214,7 +235,10 @@ class cash_ExchangeDocument extends core_Master
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
 		    
-		    $form->rec->folderId = cash_Cases::forceCoverAndFolder($form->rec->peroTo);
+    		$toCashier = cash_Cases::fetchField($rec->peroTo, 'cashier');
+    		if($toCashier != core_Users::getCurrent()){
+    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
+    		}
     	}
     }
     
@@ -295,8 +319,7 @@ class cash_ExchangeDocument extends core_Master
     public static function canAddToFolder($folderId)
     {
         // Може да създаваме документ-а само в дефолт папката му
-        if ($folderId == static::getDefaultFolder(NULL, FALSE) || doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
-        	
+        if (doc_Folders::fetchCoverClassName($folderId) == 'cash_Cases') {
         	return TRUE;
         } 
         	

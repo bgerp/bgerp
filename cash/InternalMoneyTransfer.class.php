@@ -38,7 +38,7 @@ class cash_InternalMoneyTransfer extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Printing,acc_plg_Contable, acc_plg_DocumentSummary,
-     	plg_Sorting,doc_DocumentPlg, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Sorting,doc_DocumentPlg, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
     
     
     /**
@@ -143,11 +143,12 @@ class cash_InternalMoneyTransfer extends core_Master
     	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=300px');
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Б. Сметка,width=300px,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Б. Сметка,width=20em,input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
         );
+        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
     }
     
     
@@ -175,9 +176,15 @@ class cash_InternalMoneyTransfer extends core_Master
             
             return;
         }
-
-       // Има ли вече зададено основание? 
-       if (Request::get('operationSysId', 'varchar')) {
+	   
+    	if($folderId = Request::get('folderId')){
+	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
+	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
+	        }
+        }
+        
+        // Има ли вече зададено основание? 
+        if (Request::get('operationSysId', 'varchar')) {
             
            // Има основание - не правим нищо
            return;
@@ -200,12 +207,15 @@ class cash_InternalMoneyTransfer extends core_Master
     	$form = cls::get('core_Form');
     	$form->method = 'GET';
     	$form->FNC('operationSysId', 'customKey(mvc=acc_Operations,key=systemId, select=name)', 'input,caption=Операция');
+    	$form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
     	$form->title = 'Нов Вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', toUrl(array($this, 'list')),  'ef_icon = img/16/close16.png');
         
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
+       	$folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
+       	$form->setDefault('folderId', $folderId);
         
         return $form;
     }
@@ -238,7 +248,7 @@ class cash_InternalMoneyTransfer extends core_Master
         		break;
         	case "case2bank":
         		$form->setField("debitBank", "input");
-        		$form->setOptions("debitCase", bank_OwnAccounts::getOwnAccounts());
+        		$form->setOptions("debitBank", bank_OwnAccounts::getOwnAccounts());
         		break;
         }
         $form->setReadOnly('operationSysId');
@@ -246,6 +256,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
       	$form->setDefault('creditCase', cash_Cases::getCurrent());
+      	$form->setReadOnly('creditCase');
      }
     
      
@@ -265,7 +276,6 @@ class cash_InternalMoneyTransfer extends core_Master
     		// Проверяваме дали валутите на дебитната сметка съвпадат
     		// с тези на кредитната
     		$mvc->validateForm($form);
-    		$form->rec->folderId = cash_Cases::forceCoverAndFolder($form->rec->creditCase);
     	}
     }
     
@@ -284,12 +294,19 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$rec = &$form->rec;
     	if($rec->operationSysId == 'case2case') { 
-    			
-    	// Двете Каси трябва да са различни
+    		$toCashier = cash_Cases::fetchField($rec->debitCase, 'cashier');
+    		if($toCashier != core_Users::getCurrent()){
+    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
+    		}
+    	
+    		// Двете Каси трябва да са различни
     	if($rec->creditCase == $rec->debitCase) {
     			$form->setError("debitCase", 'Дестинацията е една и съща !!!');
     		} 
     	} elseif($rec->operationSysId == 'case2bank') {
+    		$sharedUsers = bank_OwnAccounts::fetchField($rec->debitBank, 'operators');
+    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+    		
     		$debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
     		if($debitInfo->currencyId != $rec->currencyId) {
     			$form->setError("debitBank", 'Банковата сметка е в друга валута !!!');
