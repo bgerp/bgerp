@@ -822,6 +822,48 @@ function setMinHeight()
 
 
 /**
+ * Задава минимална височина на контента във външната част
+ */
+function setMinHeightExt()
+{  
+	var ch = document.documentElement.clientHeight;          
+	if(document.getElementById('cmsTop')) {
+		var ct = document.getElementById('cmsTop').offsetHeight;
+		var cb = document.getElementById('cmsBottom').offsetHeight;     
+		var cm = document.getElementById('cmsMenu').offsetHeight; 
+		
+		var add = 0;
+		if( document.body.className.match('wide')){
+			add = 32;
+		}
+		
+		if(document.getElementById('maincontent')) {
+			var mc = document.getElementById('maincontent');
+			var h = (ch - ct - cb  - cm - 4  - add ) + 'px';
+			mc.style.minHeight = h;
+		}
+	}
+}
+
+/**
+ * Задава padding на логин-формата при малки дисплеи
+ */
+function loginFormPadding()
+{
+	var p = $(window).width();
+	if(document.body.className.match('narrow') && (p<400) && document.getElementById('login-form')){
+		var winw = $(window).width();  
+		var lf = document.getElementById('login-form');
+		var form = lf.getElementsByTagName("table")[0].offsetWidth;
+		var dist = ((winw - form - 12)/2);
+		lf.style.marginLeft = dist  + 'px';
+		lf.style.paddingLeft ='0px';
+		lf.style.paddingTop = dist  + 'px';
+	}
+}
+
+
+/**
  * При натискане с мишката върху елемента, маркираме текста
  */
 function onmouseUpSelect()
@@ -914,7 +956,7 @@ function getStatuses(url, timeout) {
  * 
  * @param string handle - Манипулатора на докуемента
  */
-function saveSelectedTextToSession(handle)
+function saveSelectedTextToSession(handle, onlyHandle)
 {
 	// Вземаме избрания текст
 	var selText = getSelText();
@@ -922,26 +964,26 @@ function saveSelectedTextToSession(handle)
 	// Ако има избран текст
 	if (selText.focusOffset != selText.anchorOffset) {
 		
-		// Текста записан в сесията
-		sess = sessionStorage.selText;
-		
-		// Записваме в сесията новия текст
-		sessionStorage.selText = selText;
-		
 		// Ако има подадено id
 		if (handle) {
 			
-			// Ако е нямало записан текст или текстовете не си отговарят
-			if ((!sess) || (sess != selText)) {
-				
-				// Записваме манипулатора
-				sessionStorage.selHandle = handle;
-			}
+			// Записваме манипулатора
+			sessionStorage.selHandle = handle;
+		}
+		
+		// Ако няма да записваме само манипулатора
+		if (!onlyHandle) {
+			
+			// Записваме в сесията новия текст
+			sessionStorage.selText = selText;
 		}
 		
 		// Записваме текущото време
 		sessionStorage.selTime = new Date().getTime();
-		setTimeout(saveSelectedTextToSession, 1000)
+	} else {
+		
+		// Записваме в сесията празен стринг
+		sessionStorage.selText = '';
 	}
 }
 

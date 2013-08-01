@@ -1,3 +1,5 @@
+Options -Indexes
+
 <IfModule mod_headers.c>
     Header set Cache-control "max-age=290304000, public"
     Header set X-Robots-Tag "noindex"
@@ -21,7 +23,7 @@ AddType audio/aac .aac
 
 php_flag engine off
 
-<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh)$">
+<FilesMatch "\.(htaccess|htpasswd)$">
   Order Allow,Deny
   Deny from all
 </FilesMatch>

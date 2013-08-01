@@ -49,6 +49,12 @@ class core_Logs extends core_Manager
     
     
     /**
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'admin';
+	
+    
+    /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';

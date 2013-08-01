@@ -689,7 +689,11 @@ class type_Richtext extends type_Blob
             $title = trim($title);
             
             // В зависимост от това дали имаме заглавие на линка, определяме текста
-            $text = ($title)? "({$title}) - {$url}" : $url;
+            if(substr($title, 0, 1) == '[' && substr($title, -1) == ']') {
+                $text = $title;
+            } else {
+                $text = ($title)? "({$title}) - {$url}" : $url;
+            }
             
             return $text;
         }
@@ -785,7 +789,12 @@ class type_Richtext extends type_Blob
         $place = $this->getPlace();
         $text = trim($match[3]);
         $title = $match[2];
-        
+
+        if(Mode::is('text', 'plain')) {
+            
+            return "\n{$title}\n{$text}";
+        }
+
         $id = 'hide' . rand(1, 1000000);
         
         $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" 
@@ -869,6 +878,10 @@ class type_Richtext extends type_Blob
     {   
         $url = rtrim($html[0], ',.;');
 
+        if($tLen = (strlen($html[0]) - strlen($url))) {
+            $trim = substr($html[0], 0 - $tLen);
+        }
+        
         if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
             $url = 'http://' . $url;
         }
@@ -880,7 +893,9 @@ class type_Richtext extends type_Blob
         } else {
             $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));
         }
-        return $result;
+
+
+        return $result . $trim;
     }
     
     

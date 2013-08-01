@@ -771,4 +771,28 @@ class core_Url
         // Ако все още не е валидно URL, връщаме оригиналното
         return $url;
     }
+    
+
+    /**
+     * Функция, която връща масив с намерените уеб-адреси
+     * 
+     * Допускат са само прости уеб-адреси
+     */
+    static function extractWebAddress($line)
+    {
+        preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\/\.a-zA-Z0-9]+)/", $line, $matches);
+        
+        if(count($matches[0])) {
+            foreach($matches[0] as &$w) {
+                $w = rtrim($w, '/');
+                if(strpos($w, 'http://www.') === 0) {
+                    $w = substr($w, strlen('http://'));
+                } elseif(strpos($w, 'https://www.') === 0) {
+                    $w = substr($w, strlen('https://'));
+                }
+            }
+        }
+
+        return $matches[0];
+    }
 }

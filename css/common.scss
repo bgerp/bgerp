@@ -472,6 +472,28 @@ table {
     border-spacing:0;
 }
 
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+ input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
+	height:1.5em;
+}
+
+select{
+	height: 1.5em;
+	padding-left:0.2em;
+}
+
+.wide .chzn-container .chzn-single{
+	height:1.4em !important;
+	padding-top:1px !important;
+}
+
+.narrow .chzn-container .chzn-single{
+	height:1.33em !important;
+}
+
+/*височини на някои от елементите, за да няма разминавания при някои устройства*/
+
+
 /*reseting webkit differences*/
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
@@ -482,56 +504,34 @@ table {
 	 	background-position:center right !important;
 	    padding-right:1em;
 	    -webkit-border-radius:0;
-	    height: 1.45em;
     }
-     input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input[type=""] {
+    .wide select {
+      padding-top:2px;
+    }
+     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
+		-webkit-appearance: none;
 		border-radius:0;
 		margin:0;
 	}
-	textarea{
-		-webkit-border-radius:0;
-	}
-}
-
-/*медия само за сафари*/
-@media screen and (min-width:0\0) {
-	select{
-		padding-left:3px;
-	}
-}
-
-/*query за iOS*/
-
-@media only screen and (min-device-width : 768px) and (max-device-width : 1024px){
-	 input[type="text"], input[type="email"], input[type="search"], input[type="password"], input[name='search'],input:not([type]) {
-		-webkit-appearance: caret;
-		-webkit-box-shadow:none;
-		background:#fff;
-		height:1.6em;
-	}
-	select{
-		height:1.6em;
-	}
-	.chzn-container .chzn-single{
-		height:1.6em !important;
-	}
-	textarea{
-		-webkit-appearance: caret;
-		-webkit-box-shadow:none;
-		background:#fff;
+	.wide input[type="text"], .wide input[type="color"],.wide  input[type="number"],.wide input[type="tel"], 
+	.wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"]{
+		padding-top:2px;
 	}
 	
-	.narrow input[type="text"], .narrow input[type="email"], .narrow input[type="search"], 
-	.narrow input[type="password"], .narrow input[name='search'],.narrow input:not([type]),
-	.narrow select{
-		height:1.5em;
+	textarea{
+		-webkit-border-radius:0;
+		-webkit-appearance: none;
+	}
+	
+	.wide .chzn-container .chzn-single{
+		padding-top:0.2em !important;
+		height:1.3em !important;
 	}
 	.narrow .chzn-container .chzn-single{
 		height:1.3em !important;
 	}
-}
-/*край на query за iOS*/
 
+}
 /*our reset and common classes*/
 body{
 	background-color: $gray3;
@@ -578,6 +578,7 @@ input{
 
 textarea{
 	padding:0.1em;
+	font-family:monospace;
 }
 
 select, input, textarea{
@@ -588,6 +589,7 @@ select, input, textarea{
 	-moz-box-sizing:border-box;
 	border: solid 1px $violet;
 	font-size: 1.07em;
+	color:#222;
 }
 
 select.combo {  
@@ -1442,21 +1444,24 @@ td.keylist-group > div {
 /* Стилове за странициране 'hlp_Pager' */
 .pages{
 	clear:both;
-	margin:15px 2px 13px 2px;
+	margin:16px 2px 8px 2px;
 }
 
 .narrow .portal .pages{
 	clear:both;
 	margin:13px 0 5px;
 }
-
-.wide .doc_Folders .pages, .wide .core_Packs .pages , .wide .acc_Items .pages, .wide .core_Lg .pages, .wide .doc_Threads .pages, .wide .cat_Products .pages, 
-.wide .cal_Calendar .pages ,.wide .cal_Holidays .pages, .wide .core_Logs .pages, .wide .crm_Companies .pages, .wide .crm_Persons .pages, 
-.wide .callcenter_Talks .pages, .wide .callcenter_Fax .pages , .wide .callcenter_SMS .pages, .wide .callcenter_Numbers .pages{
-	margin-top:5px;
-	margin-bottom:16px;
+.top-pager .pages{
+	margin:2px 2px 16px 2px;
 }
 
+.narrow .pages{
+	margin:16px 2px 16px 2px;
+}
+
+.core_Packs .pages{
+	margin:2px 2px 16px 2px;
+}
 a.pager {
     font-weight:bold;
     font-size:1.05em;
@@ -1587,11 +1592,10 @@ div.alphabet div.tab-row .tab {
 	font-size:0.7em;
 	border: 1px solid #aaa;
 	text-align: center;
-	margin: 2px;
+	margin: 2px 4px 5px 0;
 	@include border-radius(5px);
 	display: table;
 	float: left;
-	margin-bottom: 5px;
 	&:hover {
 		margin-top: -1px;
 		margin-bottom:8px;
@@ -1604,10 +1608,8 @@ div.alphabet div.tab-row .tab {
 		background: $beige;
 		border: 1px solid #aaa;
 		top: 0px;
-		margin: 2px;
+		margin: -1px 4px 8px 0;
 		padding: 5px !important;
-		margin-top: -1px;
-		margin-bottom:8px;
 		@include shadow4(0px,0px,3px,1px,#ccc);
 	}
 }
@@ -1851,43 +1853,46 @@ a.rtbutton:hover {
 	line-height: 1.4em;
 }
 
-div.rich-text {
+pre.rich-text {
     font-family: Courier New,monospace;
     padding:10px;
     zoom: 1;
-   filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
     color:#000;
     line-height:120%;
     border:solid 1px $gray3;
 }
 
-.wide div.rich-text{
+.wide pre.rich-text{
 	overflow: auto; 
 }
 
-.narrow div.rich-text{
+.narrow pre.rich-text{
 	font-size:0.9em;
 	white-space:pre-line;
 }
 
-div.richtext .code{
+div.richtext pre .code{
 	border:1px solid $gray3;
 	background:transparent;
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
 	margin: 10px 0px;
 	padding:10px;
-	white-space:pre !important;
+	white-space:pre;
+	word-wrap:normal;
+}
+
+.wide div.richtext pre code{
+	white-space:pre;
+	word-wrap:normal;
+	overflow:auto;
+	background:transparent !important;
 }
 
 .printing .richtext .code{
 	white-space:pre-wrap !important;
-}
-
-div.richtext .code code{
-	background:none;
-	white-space: pre;
 }
 
 .richtext .oneLineCode {

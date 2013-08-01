@@ -16,6 +16,15 @@
 class plg_Current extends core_Plugin
 {
     
+	/**
+     * Извиква се след описанието на модела
+     */
+    function on_AfterDescription(&$mvc)
+    {
+    	// Как ще се казва полето за отговорника на модела,
+        setIfNot($mvc->inChargeField, 'inCharge');
+    }
+    
     
     /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
@@ -30,8 +39,21 @@ class plg_Current extends core_Plugin
         if(!$res) {
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
             
+            
             if($bForce && (!$res) && ($mvc->className != Request::get('Ctr'))) {
-                redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
+            
+            	// Ако потребителя има достъп само до 1 запис, той се приема
+	            // за избран
+	            $query = $mvc->getQuery();
+	            $cu = core_Users::getCurrent();
+				$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
+	            if($query->count() == 1){
+	            	$rec = $query->fetch();
+	            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
+	            	return;
+	            }
+	            
+            	redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
             }
         }
     }
@@ -53,7 +75,7 @@ class plg_Current extends core_Plugin
             
             expect($rec = $mvc->fetch($id));
             
-            $mvc->requireRightFor('edit', $rec);
+            $mvc->requireRightFor('select', $rec);
             
             Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
             
@@ -93,9 +115,24 @@ class plg_Current extends core_Plugin
         if ($rec->id == $currentId) {
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
             $row->ROW_ATTR['class'] .= ' state-active';
-        } elseif($mvc->haveRightFor('write', $rec)) {
+        } elseif($mvc->haveRightFor('select', $rec)) {
             $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, 'ef_icon = img/16/key.png');
             $row->ROW_ATTR['class'] .= ' state-closed';
         }
+    }
+	
+	
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'select' && isset($rec)){
+    		if(($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
+    			$res = 'no_one';
+    		} else {
+    			$res = $mvc->GetRequiredRoles('write', $rec);
+    		}
+    	}
     }
 }

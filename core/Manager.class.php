@@ -578,9 +578,13 @@ class core_Manager extends core_Mvc
                     [#ListFilter#]
                     [#ListSummary#]
                 </div>
-                [#ListPagerTop#]
+                <div class='top-pager'> 
+                	[#ListPagerTop#]
+                </div>
                 [#ListTable#]
-                [#ListPagerBottom#]
+                <div class='bottom-pager'>
+                	[#ListPagerBottom#]
+                </div>
                 [#ListToolbar#]
             </div>
           ");
