@@ -212,7 +212,7 @@ img.calWeekAdd{
 	cursor:pointer !important;
 }
 
-table  div { 
+table .relative-holder div { 
   white-space: nowrap;
   text-overflow: clip;
   -o-text-overflow: clip;
