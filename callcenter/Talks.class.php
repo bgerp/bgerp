@@ -102,7 +102,7 @@ class callcenter_Talks extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'externalNum, internalNum, dialStatus, startTime';
+    var $searchFields = 'externalNum, internalNum';
     
     
     /**
