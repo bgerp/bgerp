@@ -217,7 +217,9 @@ class plg_UserReg extends core_Plugin
             }
             
             $form = cls::get('core_Form');
-
+            
+            $form->setAction(array('core_Users', 'activate'));
+                        
             //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
             if (EF_USSERS_EMAIL_AS_NICK) {
                 //Ако използваме имейлите вместо никове, скриваме полето ник
@@ -289,7 +291,7 @@ class plg_UserReg extends core_Plugin
                     $mvc->save($rec, 'state,ps5Enc');
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
                     
-                    return redirect(array('Index'));
+                    return redirect(array('core_Users','login'));
                 }
             }
             
