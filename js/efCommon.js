@@ -832,9 +832,9 @@ function setMinHeightExt()
 		var cb = document.getElementById('cmsBottom').offsetHeight;     
 		var cm = document.getElementById('cmsMenu').offsetHeight; 
 		
-		var add = 0;
+		var add = 2;
 		if( document.body.className.match('wide')){
-			add = 32;
+			add = 12;
 		}
 		
 		if(document.getElementById('maincontent')) {
