@@ -224,7 +224,7 @@ class callcenter_Talks extends core_Master
                 $uniqId = $rec->id . 'caller';
                 
                 // Добавяме линка
-                $row->externalData = static::getTemplateForAddNum($rec->externalNum, $uniqId);
+                $row->externalData = static::getTemplateForAddNum($rec->externalNum, $uniqId, $externalNumArr);
             }
         }
         
@@ -267,7 +267,7 @@ class callcenter_Talks extends core_Master
                 $uniqId = $rec->id . 'called';
                 
                 // Добавяме линка
-                $row->internalData = static::getTemplateForAddNum($rec->internalNum, $uniqId);
+                $row->internalData = static::getTemplateForAddNum($rec->internalNum, $uniqId, array());
             }
         }
         
@@ -845,14 +845,22 @@ class callcenter_Talks extends core_Master
      * 
      * @param string $num - Номера, за който се отнася
      * @param string $uniqId - Уникално id
+     * @param string $numArr - Масив с номера
      * 
      * @return string - Тага за заместване
      */
-    static function getTemplateForAddNum($num, $uniqId)
+    static function getTemplateForAddNum($num, $uniqId, $numArr = FALSE)
     {
+        // Ако не е подаден масив с номера
+        if ($numArr === FALSE) {
+            
+            // Вземаме масива
+            $numArr = drdata_PhoneType::toArray($num);
+        }
+        
         // Ако не е валиден номер
         // Третираме го като вътрешен
-        if (!$numArr = drdata_PhoneType::toArray($num)) {
+        if (!$numArr) {
             
             // Аттрибути за стилове 
             $numbersAttr['title'] = tr('Добави към потребител');
