@@ -117,7 +117,7 @@ class sales_SalesDetails extends core_Detail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика, silent');
+        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
@@ -349,25 +349,37 @@ class sales_SalesDetails extends core_Detail
         $rec       = $data->form->rec;
         $masterRec = $data->masterRec;
         
-        $data->form->setField('policyId', 'input=hidden');
-
-        if ($policyId = $rec->policyId) {
+        if (!empty($rec->policyId)) {
             /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($policyId);
+            $Policy = cls::get($rec->policyId);
+            
+            $ProductManager = $Policy->getProductMan();
             
             $data->form->setOptions('productId', 
                 $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
         } else {
+            // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
+            // напълно определен продукт (клас и ид), който да не може да се променя във формата
+            // и полето цена да стане задължително
+            expect($rec->classId);
+            expect($rec->productId);
+            
+            $data->form->setField('packPrice', 'mandatory');
+            $data->form->setField('classId', 'input=hidden,mandatory');
+
             $ProductManager = cls::get($rec->classId);
             $data->form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
         }
         
         if (!empty($rec->packPrice)) {
             if ($masterRec->chargeVat == 'yes') {
+                
+                expect($ProductManager);
+                
                 // Начисляваме ДДС в/у цената
-                $ProductManager = cls::get($rec->classId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
-            }//bp($rec->packPrice, $masterRec->currencyRate);
+            }
+            
             $rec->packPrice /= $masterRec->currencyRate;
         }
     }
@@ -390,27 +402,25 @@ class sales_SalesDetails extends core_Detail
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
-            /* @var $ProductMan core_Manager */
-            $ProductMan = cls::get($rec->policyId)->getProductMan();
+            if (!empty($rec->policyId)) {
+                $Policy = cls::get($rec->policyId);
+                $ProductMan = $Policy->getProductMan();
+                
+                $rec->classId = $ProductMan->getClassId();
+            } else {
+                expect($rec->classId);
+                
+                /* @var $ProductMan core_Manager */
+                $ProductMan = cls::get($rec->classId);
+            }
             
-            $rec->classId = $ProductMan->getClassId();
+            expect($ProductMan);
             
             /* @var $productRef cat_ProductAccRegIntf */
             $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
             $productInfo = $productRef->getProductInfo();
             
             expect($productInfo);
-            
-            // Определяне на цена, количество и отстъпка за опаковка
-            
-            $policyInfo = cls::get($rec->policyId)->getPriceInfo(
-                $masterRec->contragentClassId, 
-                $masterRec->contragentId, 
-                $rec->productId,
-                $rec->packagingId,
-                $rec->packQuantity,
-                $masterRec->date
-            );
             
             if (empty($rec->packagingId)) {
                 // В продажба в основна мярка
@@ -427,6 +437,8 @@ class sales_SalesDetails extends core_Detail
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
+            // Определяне на цена, количество и отстъпка за опаковка
+            
             if (empty($rec->packPrice)) {
                 // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
                 // няма нужда от конвертиране.
@@ -435,20 +447,32 @@ class sales_SalesDetails extends core_Detail
                 // да сигнализираме на потребителя, че полето за цена е задължително и да не 
                 // допускаме записи без цени.
                 
+                expect($Policy);
+                
+                $policyInfo = $Policy->getPriceInfo(
+                    $masterRec->contragentClassId, 
+                    $masterRec->contragentId, 
+                    $rec->productId,
+                    $rec->packagingId,
+                    $rec->packQuantity,
+                    $masterRec->date
+                );
+            
                 if (empty($policyInfo->price)) {
                     $form->setError('price', 'Продукта няма цена в избраната ценова политика');
                 }
                 
                 $rec->price = $policyInfo->price;
+                
+                if (empty($rec->discount)) {
+                    $rec->discount = $policyInfo->discount;
+                }
             } else {
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
                 // на продажбата. Конвертираме цената към основна валута по курса, зададен
                 // в мастър-продажбата.
                 $rec->packPrice *= $masterRec->currencyRate;
-                $vat = $ProductMan->getVat($rec->productId, $masterRec->valior);
-                $vat = 0.45;
-                //bp();
-                bp($rec->packPrice, $vat ,$rec->packPrice /= 1 + $vat );
+                
                 if ($masterRec->chargeVat == 'yes') {
                     // Потребителя въвежда цените с ДДС
                     $rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
@@ -456,10 +480,6 @@ class sales_SalesDetails extends core_Detail
                 
                 // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
-            }
-            
-            if (empty($rec->discount)) {
-                $rec->discount = $policyInfo->discount;
             }
             
             // Записваме основната мярка на продукта
