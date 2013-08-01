@@ -310,15 +310,11 @@ class cms_Feeds extends core_Manager {
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('cms_Feeds', 'feeds');
 		
-        if( Mode::is('screenMode', 'narrow')) {
-            $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
-        } else {
-            $src = sbf("cms/img/rss_icon_glass_gray32.PNG", "");
-        }
-        
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;'));
+        $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:0px;margin-left:7px;float:left;'));
+        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;' . $stuleAdd));
+
+		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:6px;margin-left:0px;float:left;'));
 		
 		// Добавяме линка към шаблона
 		$tpl->append($link);

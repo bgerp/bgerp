@@ -184,10 +184,10 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        if(Mode::is('screenMode', 'narrow')) {
-            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;height: 26px;padding-top: 3px;"><b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+        if(Mode::is('screenMode', 'narrow') && 0) {
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;height: 26px;padding: 6px;"><b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
         } else {
-            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;height:32px">задвижвано<br>от <b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
+            $footer =  '<a href="http://bgerp.com"  target="_blank" style="color:#ccc;float:right;font-size:0.70em;margin-right:5px;padding-top:2px;">задвижвано<br>от <b style="padding-left:16px;background-image:url(' . sbf('cms/img/bgerp12.png', "'") . '); background-repeat:no-repeat; background-position: 2px center;"  >bgERP</b>&nbsp;</a>';
         }
 
         return $footer;

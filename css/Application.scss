@@ -185,7 +185,7 @@ tr.noHover td:hover {
 .menuRow {
 	color: #997;
 	font-family: Arial;
-	padding: 1px;
+	1padding: 1px;
 	text-decoration: none;
 	font-weight: bold;
 }
@@ -1406,6 +1406,7 @@ fieldset.sharing-history {
 #cmsMenu {
 	float:left;
 	width:100%;
+    margin-left:-2;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	text-align: left;
@@ -1418,11 +1419,11 @@ fieldset.sharing-history {
 }
 
 .wide #cmsMenu{
-	width:998px;
+	min-width:500px;
 }
 
 #cmsMenu a {
-	font-size: 1.2em;
+	font-size: 1.12em;
 	padding: 4px;
 	margin-left: 20px;
 	margin-right: 20px;
@@ -1439,15 +1440,14 @@ fieldset.sharing-history {
 }
 
 #cmsBottom {
-	font-size: 1.2em;
 	padding: 0px;
-	padding: 10px 0 3px;
+	1padding: 10px 0 3px;
 	display: block;
-	min-height:38px;
+	min-height:28px;
 }
 
 .wide #cmsBottom{
-	width: 1000px;
+	min-width:500px;
 }
 
 .narrow #cmsBottom {
@@ -1455,12 +1455,16 @@ fieldset.sharing-history {
 }
 
 #all {
-	width: 1000px;
+	max-width: 1000px;
 	display: block;
 	margin: 10px auto;
 	text-align: left;
 	@include rounded(top, left, 10px);
 	@include rounded(top, right, 10px);
+}
+
+.wide #all{
+	min-width:500px;
 }
 
 .narrow #all{
@@ -2220,7 +2224,7 @@ div.locImage{
 	#cmsMenu a {
 		margin-left:8px;
 		margin-right:8px;
-		font-size:1.1em;
+		font-size:1.04em;
     }
 }
 
@@ -2229,7 +2233,7 @@ div.locImage{
 	#cmsMenu a {
 		margin-left:6px !important;
 		margin-right:6px !important;
-		font-size:1em;
+		font-size:0.97em;
     }
 }
 
@@ -2237,7 +2241,7 @@ div.locImage{
 	#cmsMenu a {
 		margin-left:4px !important;
 		margin-right:4px !important;
-		font-size:0.90em;
+		font-size:0.89em;
     }
     .narrow select{
     	padding-left:4px;
@@ -2248,7 +2252,7 @@ div.locImage{
 	#cmsMenu a { 
 		margin-left:3px !important;
 		margin-right:3px !important;
-		font-size:0.85em;
+		font-size:0.82em;
     }
     .narrow select{
     	padding-left:4px;
@@ -2262,7 +2266,7 @@ div.locImage{
 	#cmsMenu a {
 		margin-left:1px !important;
 		margin-right:1px !important;
-		font-size:0.8em;
+		font-size:0.78em;
     }
     .narrow select{
     	padding-left:4px;
