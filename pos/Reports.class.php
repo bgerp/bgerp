@@ -68,7 +68,7 @@ class pos_Reports extends core_Master {
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'pos, ceo, admin';
+    var $canRead = 'pos, ceo';
     
     
 	/**
@@ -80,20 +80,20 @@ class pos_Reports extends core_Master {
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'pos, ceo, admin';
+    var $canWrite = 'pos, ceo';
     
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	var $canList = 'ceo, pos';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	var $canSingle = 'ceo, pos';
     
 	
     /**

@@ -68,7 +68,7 @@ class pos_Points extends core_Master {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	var $canList = 'ceo, pos';
 
 
 	/**
