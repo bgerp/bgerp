@@ -344,13 +344,14 @@ class bank_OwnAccounts extends core_Master {
      */
     static function getOwnAccounts()
     {
+    	$Iban = cls::get('iban_Type');
     	$accounts = array();
     	$query = static::getQuery();
     	while($rec = $query->fetch()) {
-    		$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-    		$cCode = currency_Currencies::getCodeById($currencyId);
-    		$verbal = static::RecToVerbal($rec, 'bankAccountId');
-    		$accounts[$rec->id] = $cCode . " - " . $verbal->bankAccountId;
+    		$account = bank_Accounts::fetch($rec->bankAccountId);
+    		$cCode = currency_Currencies::getCodeById($account->currencyId);
+    		$verbal = $Iban->toVerbal($account->iban);
+    		$accounts[$rec->id] = "{$cCode} - {$verbal}";
     	}
     	
     	return $accounts;
