@@ -47,8 +47,21 @@ class doc_ActivatePlg extends core_Plugin
             if($form->cmd == 'active') {
                 $form->rec->state = 'active';
                 $mvc->invoke('Activation', array($form->rec));
+                $form->rec->_isActivated = TRUE;
             }
         }
+    }
+    
+    
+ 	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if($rec->_isActivated) {
+    		unset($rec->_isActivated);
+    		$mvc->invoke('AfterActivation', array($rec));
+    	}
     }
     
     
