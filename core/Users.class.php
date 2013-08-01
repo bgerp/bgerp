@@ -439,9 +439,9 @@ class core_Users extends core_Manager
                 $inputs->time = time();
                 
                 if (Mode::is('screenMode', 'narrow') || Request::get('popup')) {
-                    $layout = new ET("[#FORM#]");
+                    $layout = new ET("<div id='login-form'>[#FORM#]</div>");
                 } else {
-                    $layout = new ET("<table ><tr><td style='padding:50px;'>[#FORM#]</td></tr></table>");
+                    $layout = new ET("<table ><tr><td id='login-form'>[#FORM#]</td></tr></table>");
                 }
                  
                 if (EF_USSERS_EMAIL_AS_NICK) {
