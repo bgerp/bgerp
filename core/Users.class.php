@@ -858,7 +858,7 @@ class core_Users extends core_Manager
      */
     static function addRole($userId, $roleId)
     {
-        if(!is_numeric($role)) {
+        if(!is_numeric($roleId)) {
             $roleId = core_Roles::fetchByName($roleId);
         }
         

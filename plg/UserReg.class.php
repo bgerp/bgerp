@@ -290,6 +290,10 @@ class plg_UserReg extends core_Plugin
                     $rec->state = 'active';
                     $mvc->save($rec, 'state,ps5Enc');
                     core_Cache::remove(USERREG_CACHE_TYPE, $id);
+                    // Добавяме права на потребителя - headquarter, contractor
+                    core_Users::addRole($userId, 2);
+                    core_Users::addRole($userId, 9);
+                    core_Users::addRole($userId, 10);
                     
                     return redirect(array('core_Users','login'));
                 }
@@ -323,7 +327,7 @@ class plg_UserReg extends core_Plugin
                 $id = $mvc->fetchField(array("#email = '[#1#]'", $rec->email), 'id');
                 
                 if (!$id) {
-                    sleep(5);
+                    sleep(2);
                     $form->setError('email', 'Няма регистриран потребител с този имейл');
                 } else {
                     
