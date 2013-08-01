@@ -1378,20 +1378,22 @@ fieldset.sharing-history {
 /* CMS */
 /*външни стилове за ширина*/
 .narrow  #all #cmsTop {
-	min-width:522px;
-	height:141px !important;
+	height:98%;
+	background-color:white !important;
 }
 
-#all #cmsMenu {
-    min-width:520px;
+#cmsTop img{
+	float:left;
+	width:100%;
+	background-color:white !important;
 }
 
-#all #cmsBottom {
-	min-width:522px;
+.narrow #cmsTop img{
+	max-width:450px;
 }
 
 #all #maincontent {
-	min-width:510px;
+	clear:both;
 }
 
 /*край на външни стилове за ширина*/
@@ -1399,13 +1401,14 @@ fieldset.sharing-history {
 #cmsTop {
 	background-repeat: no-repeat;
 	display: block;
-	height: 287px;
 	@include border-radius4(10px, 10px, 0, 0);
 }
 
 #cmsMenu {
-	padding-top: 10px;
-	padding-bottom: 10px;
+	float:left;
+	width:100%;
+	padding-top: 5px;
+	padding-bottom: 5px;
 	text-align: left;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -1415,12 +1418,20 @@ fieldset.sharing-history {
 	user-select: none;
 }
 
+.wide #cmsMenu{
+	width:998px;
+}
+
 #cmsMenu a {
 	font-size: 1.2em;
 	padding: 4px;
 	margin-left: 20px;
 	margin-right: 20px;
 	white-space: nowrap;
+	margin-top:2px;
+	margin-bottom:2px;
+	display:block;
+	float:left;
 }
 
 #cmsTop,#cmsBottom,#cmsTop.a,#cmsBottom.a {
@@ -1435,6 +1446,7 @@ fieldset.sharing-history {
 	display: block;
 	min-height:38px;
 }
+
 .wide #cmsBottom{
 	width: 1000px;
 }
@@ -1450,6 +1462,19 @@ fieldset.sharing-history {
 	text-align: left;
 	@include rounded(top, left, 10px);
 	@include rounded(top, right, 10px);
+}
+
+.narrow #all{
+	margin:0 auto;
+}
+.narrow #all #maincontent{
+	padding: 2px 5px 5px;
+}
+.wide #login-form{
+	padding:40px;
+}
+.narrow #login-form{
+	padding:10px;
 }
 
 #cmsNavigation div.nav_item {
