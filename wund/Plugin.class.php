@@ -23,7 +23,7 @@ class wund_Plugin extends core_Plugin
 
         if($forRec) {
 
-            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><font color='blue'>{$forRec->low}</font>&#126;<font color='red'>{$forRec->high}</font>&#8451;&nbsp;<img height=20 style='float:right' src=\"" . $forRec->iconUrl . "\"></div>";
+            $res->day .= "<div style='float:right;font-size:0.85em;color:#999;'><font color='blue'>{$forRec->low}</font>&#126;<font color='red'>{$forRec->high}</font>&#8451;&nbsp;<img height=20 style='float:right;position:relative;top:-2px;' src=\"" . $forRec->iconUrl . "\"></div>";
         }
     }
 }
