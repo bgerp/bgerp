@@ -846,6 +846,9 @@ class callcenter_Talks extends core_Master
         // Ако не е валиден номер
         // Третираме го като вътрешен
         if (!$numArr) {
+        
+            // Ако няма роля admin, да не се показва шаблона за нов
+            if (!haveRole('admin')) return ;
             
             // Аттрибути за стилове 
             $numbersAttr['title'] = tr('Добави към потребител');
@@ -855,9 +858,6 @@ class callcenter_Talks extends core_Master
             
             // Създаваме линк
             $text = ht::createLink($phonesImg, array('callcenter_Numbers', 'add', 'number' => $num, 'ret_url' => TRUE), FALSE, $numbersAttr);
-            
-            // Ако няма роля admin, да не се показва шаблона за нов
-            if (!haveRole('admin')) return ;
         } else {
             
             // Аттрибути за стилове 
