@@ -266,9 +266,9 @@ class bank_CostDocument extends core_Master
 	    	// Ако дебитната сметка е за работа с контрагент слагаме бутон за
 	    	// платежно нареждане ако е подочетно лице генерираме нареждане разписка
 	    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
-	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
 	    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
-	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
 	    	}
     	}
     }

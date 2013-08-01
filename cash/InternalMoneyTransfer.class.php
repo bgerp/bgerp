@@ -348,7 +348,7 @@ class cash_InternalMoneyTransfer extends core_Master
 	static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($data->rec->state == 'draft') {
-	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''));
+	    	$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
     	}
     }
     

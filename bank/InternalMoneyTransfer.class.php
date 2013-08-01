@@ -371,7 +371,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
     	if($data->rec->state == 'draft') {
 	    	$rec = $data->rec;
-	    	$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''));
+	    	$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
 	    }
     }
     
