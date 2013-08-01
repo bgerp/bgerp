@@ -213,7 +213,7 @@ class crm_Companies extends core_Master
         // Комуникации
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData,silent');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,class=contactData,silent');
         $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
         
         // Данъчен номер на фирмата
