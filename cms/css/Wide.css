@@ -8,14 +8,9 @@ body{
 	text-align:center;
 }
 
-#cmsTop {
-	background-image: url('../img/bgERP.jpg');
-	background-position:left;
-}
-
-.narrow #cmsTop {
-	background-image: url('../img/bgERP-small.jpg') !important;
-	height:141px !important;
+.narrow #cmsTop  img{
+	float:left;
+	width:100%;
 	background-color:white !important;
 }
 
