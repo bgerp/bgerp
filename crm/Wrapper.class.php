@@ -27,7 +27,7 @@ class crm_Wrapper extends plg_ProtoWrapper
         $this->TAB('crm_Persons', 'Лица');
         $this->TAB('crm_Groups', 'Групи');
         $this->TAB('crm_Locations', 'Локации', 'ceo');
-        $this->TAB('crm_Profiles', 'Профили', 'admin');
+        $this->TAB('crm_Profiles', 'Профили', 'powerUser');
 
         $this->title = 'Контакти';
     }
