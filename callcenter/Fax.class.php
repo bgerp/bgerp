@@ -326,6 +326,7 @@ class callcenter_Fax extends core_Manager
     {
         // Вземаме последния запис за съответния номер
         $nRecArr = callcenter_Numbers::getRecForNum($numStr);
+        
         // Вземаме всички записи за съответния номер
         $query = static::getQuery();
         $query->where(array("#faxNum = '[#1#]'", $numStr));
