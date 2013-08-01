@@ -690,8 +690,7 @@ class callcenter_Talks extends core_Master
                     if (count((array)$numbersArr)) {
                         
                         // Показваме обажданията към и от тях
-                        $data->query->orWhereArr('externalNum', $numbersArr);
-        			    $data->query->orWhereArr('internalNum', $numbersArr, TRUE);
+        			    $data->query->orWhereArr('internalNum', $numbersArr);
                     } else {
                         
                         // Не показваме нищо
@@ -758,22 +757,8 @@ class callcenter_Talks extends core_Master
                     $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($userId);
                 }
             
-                // Ако има търсен номер и е в масива
-                if ($rec->externalNum && in_array($rec->externalNum, $numbersArr)) {
-                    
-                    // Имаме права
-                    $haveRole = TRUE;
-                }
-                
                 // Ако има търсещ номер и е в масива
-                if ($rec->internalNum && in_array($rec->internalNum, $numbersArr)) {
-                    
-                    // Имаме права
-                    $haveRole = TRUE;
-                }
-                
-                // Ако флага не е вдингнат
-                if (!$haveRole) {
+                if (!($rec->internalNum && in_array($rec->internalNum, $numbersArr))) {
                     
                     // Нямаме права
                     $requiredRoles = 'no_one';
