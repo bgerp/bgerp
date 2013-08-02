@@ -86,8 +86,8 @@ class callcenter_Fax extends core_Manager
      */
     function description()
     {
-        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Получате->Номер');
-        $this->FLD('faxNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получате->Контакт');
+        $this->FLD('faxNum', 'drdata_PhoneType', 'caption=Получател->Номер');
+        $this->FLD('faxNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт');
         $this->FLD('cid', 'key(mvc=doc_Containers)', 'caption=Документ');
     }
     
@@ -252,7 +252,7 @@ class callcenter_Fax extends core_Manager
         if (mode::is('screenMode', 'narrow')) {
             
             // Променяме полетата, които ще се показват
-            $data->listFields = arr::make('faxNum=Получате, cid=Документ, created=Изпратен');
+            $data->listFields = arr::make('faxNum=Получател, cid=Документ, created=Изпратен');
         }
     }
     
