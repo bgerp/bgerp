@@ -2181,8 +2181,8 @@ div.locImage{
 
 
 /*queries*/
-@media handheld , only screen and (max-height: 360px) {
-    #headerImg {
+@media handheld , only screen and (max-height: 20em) {
+    .narrow #headerImg {
         max-width:300px !important;
     }
 }
