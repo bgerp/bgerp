@@ -284,20 +284,20 @@ class callcenter_Talks extends core_Master
                 // Добавяме данните към номерата
                 $row->externalNum .=  $div. $row->externalData . "</div>";
                 $row->internalNum .= $div . $row->internalData . "</div>";
-            }
             
-            // Ако има продължителност
-            if ($rec->duration) {
-             
-                // Ако няма вербална стойност
-                if (!$duration = $row->duration) {
+                // Ако има продължителност
+                if ($rec->duration) {
                  
-                    // Вземаме вербалната стойност
-                    $duration = static::getVerbal($rec, 'duration');
+                    // Ако няма вербална стойност
+                    if (!$duration = $row->duration) {
+                     
+                        // Вземаме вербалната стойност
+                        $duration = static::getVerbal($rec, 'duration');
+                    }
+                    
+                    // Добавяме след времето на позвъняване
+                    $row->startTime .= $div . $duration;
                 }
-                
-                // Добавяме след времето на позвъняване
-                $row->startTime .= $div . $duration;
             }
         }
         
