@@ -852,9 +852,13 @@ function setMinHeightExt()
  */
 function loginFormPadding()
 {
-	var p = $(window).width();
-	if(document.body.className.match('narrow') && (p<400) && document.getElementById('login-form')){
-		var winw = $(window).width();  
+	if (typeof jQuery != 'undefined') {
+		var winw = $(window).width();
+	} else {
+		var winw = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+	}
+	
+	if(document.body.className.match('narrow') && (winw<400) && document.getElementById('login-form')){
 		var lf = document.getElementById('login-form');
 		var form = lf.getElementsByTagName("table")[0].offsetWidth;
 		var dist = ((winw - form - 12)/2);
