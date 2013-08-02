@@ -312,7 +312,7 @@ class cms_Feeds extends core_Manager {
 		
         $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;' . $stuleAdd));
+        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;' . $stuleAdd));
 
 		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
 		
