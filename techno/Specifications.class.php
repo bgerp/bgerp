@@ -353,7 +353,8 @@ class techno_Specifications extends core_Master {
     	}
     	
     	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
-    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getRetUrl()));
+    	$retUrl = count(getretUrl()) ? getretUrl() : array($this, 'list');
+    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => $retUrl));
         if($rec->id){
         	
         	// Ако се редактира се маха бутона за записване в нов-тред
