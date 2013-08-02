@@ -644,6 +644,7 @@ class doc_Containers extends core_Manager
         //Записваме данните в БД
         $clsInst->save($recAct);
         
+        $rec->state = 'active';
         $clsInst->invoke('AfterActivation', array(&$rec));
         
         //Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
