@@ -328,7 +328,9 @@ class crm_Locations extends core_Master {
      */
     static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($rec->contragentCls) {
+        if($requiredRoles == 'no_one') return;
+        
+    	if($rec->contragentCls) {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
         }
