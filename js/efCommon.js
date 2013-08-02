@@ -832,15 +832,17 @@ function setMinHeightExt()
 		var cb = document.getElementById('cmsBottom').offsetHeight;     
 		var cm = document.getElementById('cmsMenu').offsetHeight; 
 		
-		var add = 2;
+		var add = 6;
 		if( document.body.className.match('wide')){
-			add = 12;
+			add = 16;
 		}
 		
 		if(document.getElementById('maincontent')) {
 			var mc = document.getElementById('maincontent');
-			var h = (ch - ct - cb  - cm - 4  - add ) + 'px';
-			mc.style.minHeight = h;
+			var h = (ch - ct - cb - cm - add ) ;
+			if(h > 60) {
+				mc.style.minHeight = h + 'px';
+			}
 		}
 	}
 }
