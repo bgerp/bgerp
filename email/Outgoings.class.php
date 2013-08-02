@@ -1932,7 +1932,7 @@ class email_Outgoings extends core_Master
     /**
      * Функция, която прихваща след активирането на документа
      */
-    public static function on_Activation($mvc, &$rec)
+    public static function on_BeforeActivation($mvc, &$rec)
     {
         $rec->__activation = TRUE;
     }

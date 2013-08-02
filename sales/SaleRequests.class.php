@@ -573,11 +573,12 @@ class sales_SaleRequests extends core_Master
     /**
 	 * След активация се записва сумата на заявката
 	 */
-	public static function on_Activation($mvc, &$rec)
+	public static function on_AfterActivation($mvc, &$rec)
     {
     	$vat = static::fetchField($rec->id, 'vat');
     	$rec->state = 'active';
     	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $vat);
+    	$mvc->save($rec);
     }
     
     

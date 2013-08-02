@@ -639,16 +639,16 @@ class doc_Containers extends core_Manager
         $recAct->state = 'active';
         
         // Извикваме фунцкията
-        $clsInst->invoke('Activation', array(&$recAct));
+        $clsInst->invoke('BeforeActivation', array(&$recAct));
         
         //Записваме данните в БД
         $clsInst->save($recAct);
         
-        //Редиректваме към сингъла на съответния клас, от къде се прехвърляме към треда
+        $clsInst->invoke('AfterActivation', array(&$rec));
+        
+        //Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
         redirect(array($class, 'single', $rec->id));
     }
-    
-    
     
     
     /**
