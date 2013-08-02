@@ -133,7 +133,7 @@ class purchase_Offers extends core_Master
      */
     function act_Default()
     {
-        requireRole('purshase, admin');
+        requireRole('purchase, admin');
         
     	$text = tr('В процес на разработка');
     	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
