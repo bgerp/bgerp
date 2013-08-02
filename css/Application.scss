@@ -1381,13 +1381,16 @@ fieldset.sharing-history {
 	background-color:white !important;
 }
 
-#cmsTop img{
+#headerImg {
 	float:left;
-	width:100%;
 	background-color:white !important;
 }
 
-.narrow #cmsTop img{
+.wide #headerImg {
+	width:100%;
+}
+
+.narrow #headerImg{
 	max-width:450px;
 }
 
@@ -1397,11 +1400,13 @@ fieldset.sharing-history {
 
 /*край на външни стилове за ширина*/
 
-#cmsTop {
+#cmsTop, #headerImg {
 	background-repeat: no-repeat;
 	display: block;
 	@include border-radius4(10px, 10px, 0, 0);
 }
+
+
 
 #cmsMenu {
 	float:left;
@@ -2176,8 +2181,14 @@ div.locImage{
 
 
 /*queries*/
+@media handheld , only screen and (max-height: 400px) {
+    #headerImg {
+        max-width:300px !important;
+    }
+}
+
 @media handheld , only screen and (max-width: 1000px) {
-	#cmsTop {
+	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
 	}

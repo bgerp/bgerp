@@ -312,9 +312,9 @@ class cms_Feeds extends core_Manager {
 		
         $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;' . $stuleAdd));
+        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;' . $stuleAdd));
 
-		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:6px;margin-left:0px;float:left;'));
+		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
 		
 		// Добавяме линка към шаблона
 		$tpl->append($link);

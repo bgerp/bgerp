@@ -38,18 +38,20 @@ class cms_tpl_Page extends page_Html {
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
-      	 if(Mode::is('screenMode', 'wide')) {
+        
+        if(Mode::is('screenMode', 'wide')) {
       	 	$headerImg = sbf("cms/img/bgERP.jpg");
-      	 }
-      	 else 
+        } else {
       	 	$headerImg = sbf("cms/img/bgERP-small.jpg");
+        }
+
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>
-            <div id=\"cmsTop\"><img src=". $headerImg.
+            <div id=\"cmsTop\"><img src=" . $headerImg .
         		
-                " class='headerImg'/>[#PAGE_HEADER#]
+                " id='headerImg'/>[#PAGE_HEADER#]
             </div>
             <div id=\"cmsMenu\" class='menuRow'>
                 [#CMS_MENU#]
