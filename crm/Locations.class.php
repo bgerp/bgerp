@@ -262,7 +262,7 @@ class crm_Locations extends core_Master {
     		$address = $rec->gpsCoords;
     	}
     	
-    	if($address){
+    	if($address && $rec->state != 'rejected'){
     		$url = "https://maps.google.com/?daddr={$address}";
     		$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
     	}
