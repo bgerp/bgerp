@@ -1378,12 +1378,12 @@ fieldset.sharing-history {
 /* CMS */
 /*външни стилове за ширина*/
 .narrow  #all #cmsTop {
-	background-color:white !important;
+	background-color:white;
 }
 
 #headerImg {
 	float:left;
-	background-color:white !important;
+	background-color:white;
 }
 
 .wide #headerImg {
@@ -2181,11 +2181,6 @@ div.locImage{
 
 
 /*queries*/
-@media handheld , only screen and (max-height: 20em) {
-    .narrow #headerImg {
-        max-width:300px !important;
-    }
-}
 
 @media handheld , only screen and (max-width: 1000px) {
 	#cmsTop, #headerImg {

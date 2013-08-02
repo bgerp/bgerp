@@ -40,8 +40,11 @@ body{
 
 
 #cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
-	background-color:#ccc;
 	color: white;
+}
+
+#all #cmsTop, #cmsTop img {
+    background-color:white !important;
 }
 
 
