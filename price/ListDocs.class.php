@@ -275,13 +275,10 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		
-    		if($price) {
-    			$vat = ($rec->vat == 'yes') ? $product->vat : 0;
-    			$product->price = $price + ($price * $vat);
-    			$product->price = currency_CurrencyRates::convertAmount($product->price, $rec->date, NULL, $rec->currencyId);
-                $rec->details->rows[] = $product;
+    		if( $product->price) {
+    			$rec->details->rows[] = $product;
     		}
     		
     		// За всяка от избраните опаковки
@@ -310,9 +307,7 @@ class price_ListDocs extends core_Master
     		$clone = clone $product;
     		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
     		if(!$price) return;
-    		$vat = ($rec->vat == 'yes') ? $product->vat : 0;
-    		$price = $price + ($price * $vat);
-    		$price = currency_CurrencyRates::convertAmount($price, $rec->date, NULL, $rec->currencyId);
+    		
     		$clone->price = $info->packagingRec->quantity * $price;
     		$clone->perPack = $info->packagingRec->quantity;
     		$clone->eanCode = $info->packagingRec->eanCode;
@@ -330,7 +325,7 @@ class price_ListDocs extends core_Master
      * @param stdClass $rec - запис на детайла
      * @return stdClass $row - вербално представяне на детайла
      */
-    private function getVerbalDetail($rec)
+    private function getVerbalDetail($rec, $masterRec)
     {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
@@ -353,6 +348,12 @@ class price_ListDocs extends core_Master
     		$row->measureId = cat_UoM::getTitleById($rec->measureId);
     	}
     	
+    	if($rec->price) {
+    		$vat = ($masterRec->vat == 'yes') ? $rec->vat : 0;
+    		$price = $rec->price * (1 + $vat);
+    		$rec->price = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
+        }
+        
     	$row->price = $double->toVerbal($rec->price);
     	$row->code = $varchar->toVerbal($rec->code);
     	$row->eanCode = $varchar->toVerbal($rec->eanCode);
@@ -403,7 +404,7 @@ class price_ListDocs extends core_Master
 					}
 					
 					foreach ($products as $row){
-		    			$row = $this->getVerbalDetail($row);
+		    			$row = $this->getVerbalDetail($row, $rec);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
 			    		$rowTpl->placeObject($row);
 			    		$rowTpl->removeBlocks();
