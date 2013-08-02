@@ -1510,7 +1510,7 @@ class expert_Expert extends core_FieldSet {
             
             error("Некоректен израз2 " . $expr1);
         }
-        
+        //bp($expr1);
         $result = eval($expr1);
         
         return TRUE;

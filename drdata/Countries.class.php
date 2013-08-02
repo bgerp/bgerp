@@ -44,7 +44,7 @@ class drdata_Countries extends core_Manager {
     /**
      * Списък с кодовете на държавите от европейския съюз
      */
-    static $euCountries = array('BE','BG','CY','CZ','DK','EE','EL','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT');
+    static $euCountries = array('BE','BG','CY','CZ','DK','EE','EL','DE','PT','FR','FI','HU','LU','MT','SI','IE','IT','LV','LT','NL','PL','SK','RO','SE','ES','GB', 'AT', 'HR');
     
     
     
