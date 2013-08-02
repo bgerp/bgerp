@@ -507,17 +507,6 @@ class price_ListDocs extends core_Master
     }
     
     
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'activate' && !$rec->id) {
-        	$res ='no_one';
-        }
-    }
-    
-    
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
