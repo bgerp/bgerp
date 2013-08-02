@@ -1031,6 +1031,28 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Връща опции със всички лица свързани към тази фирма
+     * @param int $id - ид на фирма
+     * @param boolean $intKeys - дали ключовете на масива да са int
+     * @return array $options
+     */
+    public static function getPersonOptions($id, $intKeys = FALSE)
+    {
+    	$options = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$id}");
+    	
+    	if($intKeys){
+    		$options = array_combine($options, $options);
+    	}
+    	
+    	if(count($options)){
+    		$options = array('' => ' ') + $options;
+    	} 
+    	
+    	return $options;
+    }
+    
+    
+    /**
      * Създава папка на фирма по указаните данни
      */
     static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
