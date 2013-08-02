@@ -214,6 +214,7 @@ class techno_Specifications extends core_Master {
 	    	if($threadId = Request::get('threadId')){
 	    		$url['threadId'] = $threadId;
 	    	}
+	    	$url['ret_url'] = array($mvc, 'list');
 	    	$tpl->append(ht::createBtn($title, $url));
 	    	$tpl->append("<br />");
 	    }
@@ -353,8 +354,7 @@ class techno_Specifications extends core_Master {
     	}
     	
     	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
-    	$retUrl = count(getretUrl()) ? getretUrl() : array($this, 'list');
-    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => $retUrl));
+    	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getretUrl()));
         if($rec->id){
         	
         	// Ако се редактира се маха бутона за записване в нов-тред
