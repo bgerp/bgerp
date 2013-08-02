@@ -417,6 +417,7 @@ class callcenter_Numbers extends core_Manager
                 // Обновяваме записите в Централата
                 callcenter_Talks::updateRecsForNum($numStr);
                 callcenter_Fax::updateRecsForNum($numStr);
+                callcenter_SMS::updateRecsForNum($numStr);
             }
         }
         
@@ -440,6 +441,7 @@ class callcenter_Numbers extends core_Manager
                 // Обновяваме записите в Централата
                 callcenter_Talks::updateRecsForNum($numStr);
                 callcenter_Fax::updateRecsForNum($numStr);
+                callcenter_SMS::updateRecsForNum($numStr);
             }
         }
     }

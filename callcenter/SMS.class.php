@@ -84,7 +84,7 @@ class callcenter_SMS extends core_Master
     /**
      * Нов темплейт за показване
      */
-//    var $singleLayoutFile = '';
+    var $singleLayoutFile = 'callcenter/tpl/SingleLayoutSMS.shtml';
     
     
     /**
@@ -102,13 +102,13 @@ class callcenter_SMS extends core_Master
     /**
      * 
      */
-    var $listFields = 'id, service, sender, mobileNum, contragent, text, receivedTime';
+    var $listFields = 'singleLink=-, mobileNumData, mobileNum, createdBy=Информация->От, service=Информация->Услуга, sender=Информация->Титла, receivedTime=Информация->Получено на, text';
     
     
     /**
-     * Полетата, които ще се показват в единичния изглед
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-//    var $singleFields = '';
+    var $rowToolsField = 'singleLink';
     
     
 	/**
@@ -117,17 +117,14 @@ class callcenter_SMS extends core_Master
     function description()
     {
         $this->FLD('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory');
-        $this->FLD('sender', 'varchar(255)', 'caption=Изпращач, mandatory');
-        $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Мобилен номер, mandatory');
+        $this->FLD('sender', 'varchar(255)', 'caption=Изпращач');
+        $this->FLD('mobileNum', 'drdata_PhoneType', 'caption=Получател->Номер, mandatory');
+        $this->FLD('mobileNumData', 'key(mvc=callcenter_Numbers)', 'caption=Получател->Контакт, input=none');
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
         $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none, hint=Статус на съобщението');
-        $this->FLD('receivedTime', 'datetime', 'caption=Получено на, input=none');
-        $this->FLD('classId', 'key(mvc=core_Classes, select=name)', 'caption=Визитка->Клас, input=none');
-        $this->FLD('contragentId', 'int', 'caption=Визитка->Номер, input=none');
-        
-        $this->FNC('contragent', 'varchar', 'caption=Контрагент');
+        $this->FLD('receivedTime', 'datetime(format=smartTime)', 'caption=Получено на, input=none');
         
         $this->setDbUnique('uid');
     }
@@ -262,8 +259,7 @@ class callcenter_SMS extends core_Master
         $extRecArr = callcenter_Numbers::getRecForNum($rec->mobileNum);
         
         // Вземаме класа и id' то на контрагента
-        $rec->classId = $extRecArr[0]->classId;
-        $rec->contragentId = $extRecArr[0]->contragentId;
+        $rec->mobileNumData = $extRecArr[0]->id;
         
         // Ако има съобщение
         if ($sendStatusArr['msg']) {
@@ -287,8 +283,8 @@ class callcenter_SMS extends core_Master
         // Сменяме статуса и времето на получаване
         $rec->status = $status;
         
-        // Ако няма време на получаване
-        if (!$receivedTimestamp) {
+        // Ако няма време на получаване или е подадено време преди създаването му
+        if (!$receivedTimestamp || $rec->createdOn < $receivedTimestamp) {
             
             // Вземаме текущото време
             $rec->receivedTime = dt::verbal2mysql();
@@ -310,45 +306,45 @@ class callcenter_SMS extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    { 
-        // Ако има клас   
-        if ($rec->classId) {
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        // Добавяме стил за телефони        
+        $row->mobileNum = "<div class='mobile'>" . $row->mobileNum . "</div>";
+        
+        // Ако има данни за търсещия
+        if ($rec->mobileNumData) {
          
-            // Инстанция на класа
-            $class = cls::get($rec->classId);
+            // Вземаме записа
+            $numRec = callcenter_Numbers::fetch($rec->mobileNumData);
             
-            // Ако класа е профил
-            if (strtolower($class->className) == 'crm_profiles') {
+            // Вербалния запис
+            $externalNumRow = callcenter_Numbers::recToVerbal($numRec);
+            
+            // Ако има открити данни
+            if ($externalNumRow->contragent) {
                 
-                // Вземаме линк към профила
-                $card = crm_Profiles::createLink($rec->contragentId);
-            } else {
+                // Флаг, за да отбележим, че има данни
+                $haveExternalData = TRUE;
                 
-                // Вземаме записите за съответния клас
-                $cardRec = $class->fetch($rec->contragentId);
-                
-                // Ако имаме права за сингъл
-                if ($class->haveRightFor('single', $cardRec)) {
-                    
-                    // Вземаме линка към сингъла
-                    $card = ht::createLink($cardRec->name, array($class, 'single', $rec->contragentId)) ;
-                } else {
-                    
-                    // Ако нямаме права
-                    
-                    // Вземаме линк към профила на отговорника
-                    $inChargeLink = crm_Profiles::createLink($cardRec->inCharge);
-                    
-                    // Добавяме линка
-                    $card = $class->getVerbal($cardRec, 'name') . " - {$inChargeLink}";
-                }
+                // Добавяме данните
+                $row->mobileNumData = $externalNumRow->contragent;
             }
+        } 
+        
+        // Ако флага не е дигнат
+        if (!$haveExternalData) {
             
-            // Добавяме линка към контрагента
-            $row->contragent = $card;
+            // Ако има номер
+            if ($rec->mobileNum) {
+                
+                // Уникално id
+                $uniqId = $rec->id . 'mobileTo';
+                
+                // Добавяме линка
+                $row->mobileNumData = static::getTemplateForAddNum($rec->mobileNum, $uniqId);
+            }
         }
-
+        
         // Ако има потребител
         if ($rec->createdBy) {
             
@@ -356,16 +352,100 @@ class callcenter_SMS extends core_Master
             $row->createdBy = crm_Profiles::createLink($rec->createdBy);
         }
         
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Ако не сме в сингъла
+            // Добавяме данните към номера
+            if(!$fields['-single']) {
+                
+                // Дива за разстояние
+                $div = "<div style='margin-top:5px;'>";
+                
+                // Добавяме данните към номерата
+                $row->mobileNum .=  $div. $row->mobileNumData . "</div>";
+            }
+        }
+        
         // В зависмост от състоянието на съобщенията, опделяме клас за реда в таблицата
         if ($rec->status == 'received') {
-            $row->ROW_ATTR['class'] .= ' sms-received';
+            $row->SMSStatusClass .= ' sms-received';
         } elseif ($rec->status == 'sended') {
-            $row->ROW_ATTR['class'] .= ' sms-sended';
+            $row->SMSStatusClass .= ' sms-sended';
         } elseif ($rec->status == 'receiveError') {
-            $row->ROW_ATTR['class'] .= ' sms-receiveError';
+            $row->SMSStatusClass .= ' sms-receiveError';
         } elseif ($rec->status == 'sendError') {
-            $row->ROW_ATTR['class'] .= ' sms-sendError';
+            $row->SMSStatusClass .= ' sms-sendError';
         } 
+        
+        // Добавяме класа
+        $row->ROW_ATTR['class'] = $row->SMSStatusClass;
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareListFields($mvc, $data)
+    {
+        // Ако сме в тесен режим
+        if (mode::is('screenMode', 'narrow')) {
+            
+            // Променяме полетата, които ще се показват
+            $data->listFields = arr::make('singleLink=-, mobileNum=Получател, sender=Информация->Титла, service=Информация->Услуга, receivedTime=Информация->Получено на');
+        }
+    }
+    
+    
+    /**
+     * Връща стринг с линкове за добавяне на номера във фирма, лица или номера
+     * 
+     * @param string $num - Номера, за който се отнася
+     * @param string $uniqId - Уникално id
+     * 
+     * @return string - Тага за заместване
+     */
+    static function getTemplateForAddNum($num, $uniqId)
+    {
+        // Аттрибути за стилове 
+        $companiesAttr['title'] = tr('Нова фирма');
+        
+        // Икона на фирмите
+        $companiesImg = "<img src=" . sbf('img/16/office-building-add.png') . " width='16' height='16'>";
+        
+        // Добавяме линк към създаване на фирми
+        $text = ht::createLink($companiesImg, array('crm_Companies', 'add', 'tel' => $num, 'ret_url' => TRUE), FALSE, $companiesAttr);
+        
+        // Аттрибути за стилове 
+        $personsAttr['title'] = tr('Ново лице');
+        
+        // Икона на изображенията
+        $personsImg = "<img src=" . sbf('img/16/vcard-add.png') . " width='16' height='16'>";
+        
+        // Добавяме линк към създаване на лица
+        $text .= " | ". ht::createLink($personsImg, array('crm_Persons', 'add', 'mobile' => $num, 'ret_url' => TRUE), FALSE, $personsAttr);
+        
+        // Дали да се показва или не
+        $visibility = (mode::is('screenMode', 'narrow')) ? 'visible' : 'hidden';
+        
+        // Ако сме в мобилен режим
+        if (mode::is('screenMode', 'narrow')) {
+            
+            // Не се добавя JS
+            $res = "<div id='{$uniqId}'>{$text}</div>";
+        } else {
+            
+            // Ако не сме в мобилен режим
+            
+            // Скриваме полето и добавяме JS за показване
+            $res = "<div onmouseover=\"changeVisibility('{$uniqId}', 'visible');\" onmouseout=\"changeVisibility('{$uniqId}', 'hidden');\">
+        		<div style='visibility:hidden;' id='{$uniqId}'>{$text}</div></div>";
+        }
+        
+        return $res;
     }
     
     
@@ -374,7 +454,6 @@ class callcenter_SMS extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {    
-        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
@@ -510,6 +589,31 @@ class callcenter_SMS extends core_Master
             
             // Заменяме бутона за запис с бутон за изпращане
             $data->form->toolbar->addSbBtn('Изпрати', 'save', 'ef_icon = img/16/sms_icon.png');
+        }
+    }
+    
+    
+	/**
+     * Обновява записите за съответния номер
+     * 
+     * @param string $numStr - Номера
+     */
+    static function updateRecsForNum($numStr)
+    {
+        // Вземаме последния запис за съответния номер
+        $nRecArr = callcenter_Numbers::getRecForNum($numStr);
+        
+        // Вземаме всички записи за съответния номер
+        $query = static::getQuery();
+        $query->where(array("#mobileNum = '[#1#]'", $numStr));
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            $rec->mobileNumData = $nRecArr[0]->id;
+            
+            // Записваме
+            static::save($rec);
         }
     }
 }
