@@ -472,10 +472,8 @@ class sales_Quotations extends core_Master
      * Функция, която прихваща след активирането на документа
      * Ако офертата е базирана на чернова спецификация, активираме и нея
      */
-    public static function on_Activation($mvc, &$rec)
+    public static function on_AfterActivation($mvc, &$rec)
     {
-    	$rec = $mvc->fetch($rec->id);
-    	$rec->state = 'active';
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
 	    	if($origin->className == 'techno_Specifications'){

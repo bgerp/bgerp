@@ -459,10 +459,10 @@ class price_ListDocs extends core_Master
     /**
      * При активиране записваме групираните продукти в модела
      */
-	public static function on_Activation($mvc, &$rec)
+	public static function on_AfterActivation($mvc, &$rec)
     {
     	$data = new stdClass();
-    	$data->rec = $mvc->fetch($rec->id);
+    	$data->rec = $rec;
     	$mvc->prepareDetails($data);
     	
     	if($rec->productGroups){
@@ -470,6 +470,8 @@ class price_ListDocs extends core_Master
     	}
     	
     	$rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
+    	
+    	$mvc->save($rec);
     }
     
     

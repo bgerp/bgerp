@@ -215,7 +215,7 @@ class support_Resolutions extends core_Master
 	/**
 	 * 
      */
-    public static function on_Activation($mvc, &$rec)
+    public static function on_BeforeActivation($mvc, &$rec)
     {
         // Вземаме записа 
         if (!$rec->threadId && $rec->id) {

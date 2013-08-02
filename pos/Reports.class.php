@@ -460,11 +460,8 @@ class pos_Reports extends core_Master {
 	 * данните му и после затваряме всички бележки, които
 	 * включва
 	 */
-	public static function on_Activation($mvc, &$rec)
+	public static function on_AfterActivation($mvc, &$rec)
     {
-    	$rec = $mvc->fetch($rec->id);
-    	$rec->state = 'active';
-    	
     	// Обновяваме информацията в репорта, ако има промени
     	$mvc->extractData($rec);
     	
@@ -473,6 +470,8 @@ class pos_Reports extends core_Master {
     		$receiptRec->state = 'closed';
     		pos_Receipts::save($receiptRec);
     	}
+    	
+    	$mvc->save($rec);
     }
     
     
