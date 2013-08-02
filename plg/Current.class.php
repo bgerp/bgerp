@@ -16,19 +16,6 @@
 class plg_Current extends core_Plugin
 {
     
-	/**
-     * Извиква се след описанието на модела
-     */
-    function on_AfterDescription(&$mvc)
-    {
-    	// Как ще се казва полето за отговорника на модела,
-        setIfNot($mvc->inChargeField, 'inCharge');
-        
-        if (!$mvc->fields[$mvc->inChargeField]) {
-            $mvc->FLD($mvc->inChargeField, 'users', 'caption=Отговорник');
-        }
-    }
-    
     
     /**
      * Връща указаната част (по подразбиране - id-то) на текущия за сесията запис
@@ -43,20 +30,22 @@ class plg_Current extends core_Plugin
         if(!$res) {
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
             
-            
             if($bForce && (!$res) && ($mvc->className != Request::get('Ctr'))) {
             
-            	// Ако потребителя има достъп само до 1 запис, той се приема
-	            // за избран
-	            $query = $mvc->getQuery();
-	            $cu = core_Users::getCurrent();
-				$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%' || #{$mvc->inChargeField} IS NULL");
-	            if($query->count() == 1){
-	            	$rec = $query->fetch();
-	            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
-	            	return;
-	            }
-	            
+            	if(isset($mvc->inChargeField)){
+            		
+	            	// Ако потребителя има достъп само до 1 запис,
+		            // той се приемаза избран
+		            $query = $mvc->getQuery();
+		            $cu = core_Users::getCurrent();
+					$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%' || #{$mvc->inChargeField} IS NULL");
+		            if($query->count() == 1){
+		            	$rec = $query->fetch();
+		            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
+		            	return;
+		            }
+            	}
+            	
             	redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
             }
         }
@@ -132,10 +121,12 @@ class plg_Current extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'select' && isset($rec)){
-    		if($rec->{$mvc->inChargeField} && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
-    			$res = 'no_one';
-    		} else {
-    			$res = $mvc->GetRequiredRoles('write', $rec);
+    		if(isset($mvc->inChargeField)){
+	    		if($rec->{$mvc->inChargeField} && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
+	    			$res = 'no_one';
+	    		} else {
+	    			$res = $mvc->GetRequiredRoles('write', $rec);
+	    		}
     		}
     	}
     }
