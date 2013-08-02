@@ -205,8 +205,8 @@ class sales_SaleRequests extends core_Master
     	}
     	
     	if($cmd == 'active'){
-        	$this->invoke('Activation', array($rec));
-        	$this->save($rec);
+    		$rec->state = 'active';
+        	$this->invoke('AfterActivation', array($rec));
         }
     	
     	return $rec->id;
@@ -379,19 +379,7 @@ class sales_SaleRequests extends core_Master
         $result->agreed->payment->method       = $rec->paymentMethodId;
     	
     	foreach ($details as $dRec) {
-    		$Class = ($dRec->classId) ? cls::get($dRec->classId) : cls::get($dRec->policyId)->getProductMan();
-    		$pInfo = $Class->getProductInfo($dRec->productId);
-
-    		$p = new bgerp_iface_DealProduct();
-            $p->classId     = $Class->getClassId();
-            $p->productId   = $dRec->productId;
-            $p->packagingId = NULL;
-            $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
-            $p->quantity    = $dRec->quantity;
-            $p->price       = $dRec->price;
-            $p->uomId       = $pInfo->productRec->measureId;
-            $result->agreed->products[] = $p;
+            $result->agreed->products[] = new sales_model_QuotationProduct($dRec);
         }
         
         return $result;
@@ -413,12 +401,8 @@ class sales_SaleRequests extends core_Master
     		$res = 'no_one';
     	}
     	
-    	if(($action == 'activate') && isset($rec) && $rec->state == 'draft'){
-    		$dQuery = $mvc->sales_SaleRequestDetails->getQuery();
-    		$dQuery->where("#requestId = {$rec->id}");
-    		if($dQuery->count()){
-    			$res = 'ceo,sales';
-    		}
+    	if(($action == 'activate') && $rec->state == 'draft'){
+    		$res = 'ceo,sales';
     	}
     }
     
@@ -576,7 +560,6 @@ class sales_SaleRequests extends core_Master
 	public static function on_AfterActivation($mvc, &$rec)
     {
     	$vat = static::fetchField($rec->id, 'vat');
-    	$rec->state = 'active';
     	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $vat);
     	$mvc->save($rec);
     }
