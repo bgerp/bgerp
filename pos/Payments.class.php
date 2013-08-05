@@ -47,6 +47,12 @@ class pos_Payments extends core_Manager {
     
     
     /**
+	 * Кой може да променя състоянието на валутата
+	 */
+    var $canChangestate = 'ceo,pos,admin';
+    
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'ceo, pos';

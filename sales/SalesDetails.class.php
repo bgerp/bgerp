@@ -391,7 +391,7 @@ class sales_SalesDetails extends core_Detail
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
             /* @var $ProductMan core_Manager */
-            $ProductMan = cls::get($rec->classId);
+            $ProductMan = cls::get($rec->policyId)->getProductMan();
             
             $rec->classId = $ProductMan->getClassId();
             
@@ -403,7 +403,7 @@ class sales_SalesDetails extends core_Detail
             
             // Определяне на цена, количество и отстъпка за опаковка
             
-            $policyInfo = $Policy->getPriceInfo(
+            $policyInfo = cls::get($rec->policyId)->getPriceInfo(
                 $masterRec->contragentClassId, 
                 $masterRec->contragentId, 
                 $rec->productId,
@@ -445,7 +445,10 @@ class sales_SalesDetails extends core_Detail
                 // на продажбата. Конвертираме цената към основна валута по курса, зададен
                 // в мастър-продажбата.
                 $rec->packPrice *= $masterRec->currencyRate;
-                
+                $vat = $ProductMan->getVat($rec->productId, $masterRec->valior);
+                $vat = 0.45;
+                //bp();
+                bp($rec->packPrice, $vat ,$rec->packPrice /= 1 + $vat );
                 if ($masterRec->chargeVat == 'yes') {
                     // Потребителя въвежда цените с ДДС
                     $rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);

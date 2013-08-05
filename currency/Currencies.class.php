@@ -84,6 +84,12 @@ class currency_Currencies extends core_Master {
 	 */
 	var $canSingle = 'ceo,currency';
 	
+	
+	/**
+	 * Кой може да променя състоянието на валутата
+	 */
+    var $canChangestate = 'ceo,currency,admin';
+    
     
     /**
      * Заглавие

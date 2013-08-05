@@ -156,13 +156,13 @@ class sales_QuotationsDetails extends core_Detail {
        $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
-       	 	$price = $rec->price / $masterRec->rate;
+       	 	
        	 	if($masterRec->vat == 'yes'){
        	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
-       	 		 $price = $price * (1 + $vat);
+       	 		 $rec->price = $rec->price * (1 + $vat);
        	 	}
        	 	
-       		$rec->price = $price;
+       		$rec->price = $rec->price / $masterRec->rate;
        }
        
        if(!$productMan instanceof cat_Products){
@@ -180,7 +180,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	$rec = &$form->rec;
 	    	$Policy = cls::get($rec->policyId);
 	    	$productMan = $Policy->getProductMan();
-	    	if(!$rec->vatPercent){ // @TODO да го махнали
+	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $productMan::getVat($rec->productId, $masterRec->date);
 	    	}
 	    	
@@ -191,18 +191,17 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    		
 	    	if(!$rec->price){
-	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
+	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date)->price;
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
-	    			$form->setField('price', 'mandatory');
 	    		}
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
-	    		if($masterRec->vat == 'yes'){
+	    		if($masterRec->vat == 'yes'){bp($rec->price,$rec->price * $rec->vatPercent,$rec->price - ($rec->price*$rec->vatPercent),$rec->price / (1 + $rec->vatPercent));
 	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		}
        			
