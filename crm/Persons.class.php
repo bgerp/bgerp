@@ -439,23 +439,44 @@ class crm_Persons extends core_Master
 
             $tArr = array(200, 150);
             $mArr = array(600, 450);
-
+            
             if($rec->photo) {
                 $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
             } else {
-                if($rec->email) {
-                    $emlArr = type_Emails::toArray($rec->email);
-                    $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
-                } elseif($rec->buzEmail) {
-                    $imgUrl = avatar_Gravatar::getUrl($rec->buzEmail, 120);
-                } elseif(!Mode::is('screenMode', 'narrow')) {
-                    $imgUrl = sbf('img/noimage120.gif');
+                
+                // Ако има профил
+                if (($profileRec = crm_Profiles::fetch("#personId = '{$rec->id}'")) && $profileRec->userId) {
+                    
+                    // Вземаме записа
+                    $userRec = core_Users::fetch($profileRec->userId);
+                    
+                    // Ако има зададен аватар
+                    if ($userRec->avatar) {
+                        
+                        // Използваме аватара
+                        $row->image = core_Users::getVerbal($userRec, 'avatar');
+                        
+                        // Флаг
+                        $haveAvatar = TRUE;
+                    }
                 }
                 
-                if($imgUrl) {
-                    $row->image = "<img class=\"hgsImage\" src=" . $imgUrl . " alt='no image'>";
+                // Ако няма открит аватар
+                if (!$haveAvatar) {
+                    if($rec->email) {
+                        $emlArr = type_Emails::toArray($rec->email);
+                        $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
+                    } elseif($rec->buzEmail) {
+                        $emlArr = type_Emails::toArray($rec->buzEmail);
+                        $imgUrl = avatar_Gravatar::getUrl($emlArr[0], 120);
+                    } elseif(!Mode::is('screenMode', 'narrow')) {
+                        $imgUrl = sbf('img/noimage120.gif');
+                    }
+                    
+                    if($imgUrl) {
+                        $row->image = "<img class=\"hgsImage\" src=" . $imgUrl . " alt='no image'>";
+                    }
                 }
-
             }
         }
 
