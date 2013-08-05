@@ -385,19 +385,35 @@ class store_ShipmentOrderDetails extends core_Detail
         /* @var $dealInfo bgerp_iface_DealResponse */
         $dealInfo = $origin->getDealInfo();
         
+        $data->form->setOptions('productId', self::buildProductOpions($dealInfo->agreed));
+        $data->form->rec->productId = $data->form->rec->classId . '|' . $data->form->rec->productId;
+    }
+    
+    
+    /**
+     * Помощен метод за строеж на select-списък с продукти, зададени чрез bgerp_iface_DealAspect 
+     * 
+     * @param bgerp_iface_DealAspect $dealAspect
+     * @return array едномерен масив с ключове от вида `classId`|`productId`, където `classId` е
+     *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
+     *                на този продуктов клас.
+     */
+    public static function buildProductOpions(bgerp_iface_DealAspect $dealAspect)
+    {
+        
         $options = array();
         
-        foreach ($dealInfo->agreed->products as $p) {
+        foreach ($dealAspect->products as $p) {
             $ProductManager = cls::get($p->classId);
-            
+        
             $classId = $p->getClassId();
-            
-            // Използваме стойността на select box-а за да предадем едновременно две стойности - 
+        
+            // Използваме стойността на select box-а за да предадем едновременно две стойности -
             // ид на политика и ид на продукт.
             $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
         }
         
-        $data->form->setOptions('productId', $options);
+        return $options;
     }
     
     
@@ -413,39 +429,49 @@ class store_ShipmentOrderDetails extends core_Detail
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             
-            $rec        = $form->rec;
+            $rec = $form->rec;
             
             // Извличаме ид на политиката, кодирано в ид-то на продукта 
             // @see store_ShipmentOrderDetails::on_AfterPrepareEditForm()
-            list($rec->policyId, $rec->productId) = explode('|', $rec->productId, 2);
+            list($rec->classId, $rec->productId) = explode('|', $rec->productId, 2);
 
-            $origin        = store_ShipmentOrders::getOrigin($rec->{$mvc->masterKey}, 'store_ShipmentIntf');
-            $availProducts = $origin->getShipmentProducts();
-            $shipmentProduct = NULL;
-            $exactProduct  = NULL;
+            /* @var $origin bgerp_DealAggregatorIntf */
+            $origin = store_ShipmentOrders::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
             
-            foreach ($availProducts as $p) {
-                if ($p->productId == $rec->productId && $p->policyId == $rec->policyId) {
-                    $shipmentProduct = $p;
-                    if ($p->packagingId == $rec->packagingId) {
-                        $exactProduct = $p;
-                        break;
-                    }
-                }
+            /* @var $dealInfo bgerp_iface_DealResponse */
+            $dealInfo = $origin->getAggregateDealInfo();
+            
+            $aggreedProduct = $dealInfo->agreed->findProduct($rec->productId, $rec->classId, $rec->packagingId);
+            
+            if (!$aggreedProduct) {
+                $form->setError('productId', 'Продуктът не е наличен за експедиция');
+                return;
             }
             
-            if (empty($shipmentProduct)) {
-                $form->setError('productId', 'Продуктът не е наличен за експедиция');
-            } elseif (empty($exactProduct)) {
-                $form->setError('packagingId', 'Продуктът не е наличен за експедиция в тази опаковка');
+            $rec->price = $aggreedProduct->price;
+            $rec->uomId = $aggreedProduct->uomId;
+            
+            if (empty($rec->packagingId)) {
+                $rec->quantityInPack = 1;
             } else {
-                $rec->policyId = $exactProduct->policyId; 
-                $rec->classId  = $exactProduct->classId; 
-                $rec->uomId    = $exactProduct->uomId; 
-                $rec->price    = $exactProduct->price; 
-                $rec->discount = $exactProduct->discount; 
-                $rec->quantityInPack = $exactProduct->quantityInPack; 
-                $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+                // Извлича $productInfo, за да определи количеството единици продукт (в осн.
+                // мярка) в една опаковка.
+                /* @var $productRef cat_ProductAccRegIntf */
+                $productRef  = new core_ObjectReference($rec->classId, $rec->productId);
+                $productInfo = $productRef->getProductInfo();
+                
+                if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
+                    $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+                    return;
+                }
+                
+                $rec->quantityInPack = $packInfo->quantity;
+            }
+            
+            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            
+            if (empty($rec->discount)) {
+                $rec->discount = $aggreedProduct->discount;
             }
         }
     }
