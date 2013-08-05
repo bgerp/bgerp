@@ -337,7 +337,7 @@ class techno_Specifications extends core_Master {
     /**
      * Екшън който показва формата за въвеждане на характеристики
      * на продукта, спрямо избрания продуктов технолог
-     * Формата за характеристиките се взима от драйвера
+     * формата за характеристиките се взима от драйвера
      */
     function act_Ajust()
     {
@@ -370,18 +370,23 @@ class techno_Specifications extends core_Master {
         	}
         }
         
-        if($rec->folderId){
-        	$params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-        	$link = doc_Folders::getVerbalLink($params);
-        } elseif($rec->threadId){
-        	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        	$handle = $firstDoc->getHandle();
-        	$params = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-        	$params['#'] = $handle;
-        	$link = ht::createLink($handle, $params);
+        if($rec->id){
+        	$form->title = "Промяна на спецификация|* {$this->recToVerbal($rec, 'id,title,-list')->title}";
+        } else {
+	        if($rec->folderId){
+	        	$params = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
+	        	$link = doc_Folders::getVerbalLink($params);
+	        } elseif($rec->threadId){
+	        	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+	        	$handle = $firstDoc->getHandle();
+	        	$params = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+	        	$params['#'] = $handle;
+	        	$link = ht::createLink($handle, $params);
+	        }
+	        
+        	$form->title = "Спецификация на универсален продукт в|* {$link}";
         }
         
-        $form->title = "Спецификация на универсален продукт в|* {$link}";
         return $this->renderWrapping($form->renderHtml());
     }
     
