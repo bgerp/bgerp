@@ -201,7 +201,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
-	    		if($masterRec->vat == 'yes'){bp($rec->price,$rec->price * $rec->vatPercent,$rec->price - ($rec->price*$rec->vatPercent),$rec->price / (1 + $rec->vatPercent));
+	    		if($masterRec->vat == 'yes'){
 	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		}
        			
