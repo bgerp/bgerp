@@ -234,6 +234,10 @@ class currency_Currencies extends core_Master {
         if (empty($data->form->rec->id) && ($groupId = Request::get('groupId', 'int'))) {
             $data->form->setDefault('groups', '|' . $groupId . '|');
         }
+        
+        if($data->form->rec->state == 'closed'){
+        	$data->form->setField('lists', 'input=none');
+        }
     }
     
     
@@ -248,73 +252,57 @@ class currency_Currencies extends core_Master {
     }
     
     
-    /**
+	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    static function on_AfterSetupMvc($mvc, &$res)
     {
-        $currDefs = array("БЪЛГАРСКИ ЛЕВ|BGN|active",
-            "ЕВРО|EUR|active",
-            "ЩАТСКИ ДОЛАР|USD|active",
-       	    "АВСТРАЛИЙСКИ ДОЛАР|AUD|closed",
-            "БРАЗИЛСКИ РЕАЛ|BRL|closed",
-            "КАНАДСКИ ДОЛАР|CAD|closed",
-            "ШВЕЙЦАРСКИ ФРАНК|CHF|closed",
-            "КИТАЙСКИ РЕНМИНБИ ЮАН|CNY|closed",
-            "ЧЕШКА КРОНА|CZK|closed",
-            "ДАТСКА КРОНА|DKK|closed",
-            "БРИТАНСКА ЛИРА|GBP|closed",
-            "ХОНГКОНГСКИ ДОЛАР|HKD|closed",
-            "ХЪРВАТСКА КУНА|HRK|closed",
-            "УНГАРСКИ ФОРИНТ|HUF|closed",
-            "ИНДОНЕЗИЙСКА РУПИЯ|IDR|closed",
-            "ИЗРАЕЛСКИ ШЕКЕЛ|ILS|closed",
-            "ИНДИЙСКА РУПИЯ|INR|closed",
-            "ЯПОНСКА ЙЕНА|JPY|closed",
-            "ЮЖНОКОРЕЙСКИ ВОН|KRW|closed",
-            "ЛИТОВСКИ ЛИТАС|LTL|closed",
-            "ЛАТВИЙСКИ ЛАТ|LVL|closed",
-            "МЕКСИКАНСКО ПЕСО|MXN|closed",
-            "МАЛАЙЗИЙСКИ РИНГИТ|MYR|closed",
-            "НОРВЕЖКА КРОНА|NOK|closed",
-            "НОВОЗЕЛАНДСКИ ДОЛАР|NZD|closed",
-            "ФИЛИПИНСКО ПЕСО|PHP|closed",
-            "ПОЛСКА ЗЛОТА|PLN|closed",
-            "НОВА РУМЪНСКА ЛЕЯ|RON|closed",
-            "РУСКА РУБЛА|RUB|closed",
-            "ШВЕДСКА КРОНА|SEK|closed",
-            "СИНГАПУРСКИ ДОЛАР|SGD|closed",
-            "ТАЙЛАНДСКИ БАТ|THB|closed",
-            "ТУРСКА ЛИРА|TRY|closed",
-            "ЮЖНОАФРИКАНСКИ РАНД|ZAR|closed");
-            
-        $insertCnt = 0;
-        
-        foreach($currDefs as $c) {
-            
-            $rec = new stdClass();
-            
-            list($rec->name, $rec->code, $rec->state) = explode('|', $c);
-            
-            if (!$this->fetch("#code = '{$rec->code}'")){
-                $rec->lastUpdate = dt::verbal2mysql();
-                
-                if($rec->code == 'EUR') {
-                    $rec->lastRate = 1;
-                }
-                
-                $this->save($rec);
-                
-                $insertCnt++;
-            }
-        }
-        
-        if($insertCnt) {
-            $res .= "<li>Добавени са запис/и за {$insertCnt} валути.</li>";
-        }
-
-        return $res;
+    	$file = "currency/csv/Currencies.csv";
+    	$fields = array( 
+	    	0 => "name", 
+	    	1 => "csv_code", 
+	    	2 => "state",);
+    	
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    	
+    	return $res;
     }
+    
+    
+	/**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(isset($rec->csv_code) && strlen($rec->csv_code) != 0){
+    		
+    		// Ако данните идват от csv файл
+    		$rec->code = $rec->csv_code;
+    		if(!$rec->id){
+    			$rec->lastUpdate = dt::verbal2mysql();
+    		}
+    		
+    		if($rec->code == 'EUR') {
+               $rec->lastRate = 1;
+            }
+    	}
+    }
+    
+    
+    /**
+     * След промяна на обект от регистър
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    {
+    	if($rec->state == 'active'){
+    		
+    		// Ако валутата е активна, добавя се като перо
+    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
+    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+    	}
+    }
+    
     
     /*******************************************************************************************
      * 
