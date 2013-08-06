@@ -468,7 +468,7 @@ class crm_Companies extends core_Master
             		$rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
             	}
             	$Vats = cls::get('drdata_Vats');
-            	//$rec->vatId = $Vats->canonize($rec->vatId);
+            	$rec->vatId = $Vats->canonize($rec->vatId);
             }
         }
     }
@@ -1072,8 +1072,11 @@ class crm_Companies extends core_Master
         $rec->fax   = $fax;
         $rec->website = $website;
         
-        // Данъчен номер на фирмата
-        $rec->vatId = $vatId;
+        if($vatId){
+        	// Данъчен номер на фирмата
+	        $Vats = cls::get('drdata_Vats');
+	        $rec->vatId = $Vats->canonize($vatId);
+        }
         
         $Companies = cls::get('crm_Companies');
         
