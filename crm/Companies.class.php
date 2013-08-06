@@ -1040,11 +1040,11 @@ class crm_Companies extends core_Master
     {
     	$options = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$id}");
     	
-    	if($intKeys){
-    		$options = array_combine($options, $options);
-    	}
-    	
     	if(count($options)){
+	    	if($intKeys){
+	    		$options = array_combine($options, $options);
+	    	}
+    	
     		$options = array('' => ' ') + $options;
     	} 
     	
