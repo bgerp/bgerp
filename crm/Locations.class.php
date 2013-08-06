@@ -37,7 +37,7 @@ class crm_Locations extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, contragent=Контрагент, type, countryId, place, pCode, address";
+    var $listFields = "id, title, contragent=Контрагент, type";
 
 
     /**
