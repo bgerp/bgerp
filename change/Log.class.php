@@ -207,9 +207,12 @@ class change_Log extends core_Manager
         
         // Типа на полето
         $type = $class->fields[$rec->field]->type;
-
+        
+        // Изчистваме празните интервали
+        $value = trim($value);
+        
         // Ако има стойност
-        if (trim($value)) {
+        if (strlen($value)) {
             
             // Ако типа е родител на наследник или от тип type_Key
             if (is_a($type, 'type_Key')) {
