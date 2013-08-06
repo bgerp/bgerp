@@ -1007,7 +1007,7 @@ class log_Documents extends core_Manager
      * 
      * @return array $recsArr - Масив с намерените записи
      */
-    function getRecs($cid, $action = NULL, &$pager = NULL)
+    static function getRecs($cid, $action = NULL, &$pager = NULL)
     {
         // Очакваме да има $cid
         expect($cid);
