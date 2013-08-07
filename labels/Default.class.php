@@ -36,37 +36,37 @@ class labels_Default extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'labels';
+    var $canRead = 'labels,ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'labels';
+    var $canEdit = 'labels,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'labels';
+    var $canAdd = 'labels,ceo';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'labels';
+    var $canView = 'labels,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'labels';
+    var $canList = 'labels,ceo';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'labels';
+    var $canReject = 'labels,ceo';
     
     
     /**
@@ -78,7 +78,7 @@ class labels_Default extends core_Master
     /**
      * Кой може да възлага задачата
      */
-    var $canAssign = 'labels';
+    var $canAssign = 'labels,ceo';
     
     
     /**
@@ -90,7 +90,7 @@ class labels_Default extends core_Master
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'labels';
+    var $canChangerec = 'labels,ceo';
     
     
     /**
