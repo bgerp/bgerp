@@ -67,7 +67,8 @@ class doc_Comments extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'comment';
+    var $canList = 'ceo';
+    
     
     /**
      * Кой има право да изтрива?
@@ -138,6 +139,18 @@ class doc_Comments extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, appendQuote)', 'caption=Коментар,mandatory');
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
+    }
+    
+    
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+        return FALSE;
     }
     
     
