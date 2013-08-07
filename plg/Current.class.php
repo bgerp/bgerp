@@ -38,11 +38,12 @@ class plg_Current extends core_Plugin
 		            // той се приемаза избран
 		            $query = $mvc->getQuery();
 		            $cu = core_Users::getCurrent();
-					$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%' || #{$mvc->inChargeField} IS NULL");
-		            if($query->count() == 1){
+					$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
+		           
+					if($query->count() == 1){
 		            	$rec = $query->fetch();
 		            	Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
-		            	return;
+		            	return $res = $rec->id;
 		            }
             	}
             	
