@@ -60,19 +60,28 @@ class sales_TransactionSourceImpl
         $entries = array();
         $rec     = $this->class->fetchRec($id);
         
-        if ($this->hasDeliveryPart($rec) && $this->hasPaymentPart($rec)) {
-            // Директна продажба - задаваме контирането
+        $hasDeliveryPart = $this->hasDeliveryPart($rec);
+        $hasPaymentPart  = $this->hasPaymentPart($rec);
+        
+        if ($hasDeliveryPart || $hasPaymentPart) {
             
-            $rec = $this->fetchSaleData($rec);
-            
-            // Всяка продажба трябва да има поне един детайл
-            if (count($rec->details) > 0) {
+            $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
+
+            if ($hasDeliveryPart) {
+                // Продажбата играе роля и на експедиционно нареждане.
+                // Контирането е същото като при ЕН
+                
                 // Записите от тип 1 (вземане от клиент)
-                $entries = $this->getTakingPart($rec);
+                $entries = array_merge($entries, $this->getTakingPart($rec));
                 
                 // Записите от тип 2 (експедиция)
                 $entries = array_merge($entries, $this->getDeliveryPart($rec));
                 
+            }
+            
+            if ($hasPaymentPart) {
+                // Продажбата играе роля и на платежен документ (ПКО)
+
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
             }

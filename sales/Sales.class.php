@@ -835,7 +835,7 @@ class sales_Sales extends core_Master
         if ($form->rec->isInstantShipment == 'yes') {
             $invalid = empty($form->rec->shipmentStoreId);
             $invalid = $invalid ||
-                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId') == core_Users::getCurrent();
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId') != core_Users::getCurrent();
             if ($invalid) {
                 $form->setError('isInstantShipment', 'Само отговорика на склада може да експедира на момента от него');
             }
@@ -844,7 +844,7 @@ class sales_Sales extends core_Master
         if ($form->rec->isInstantPayment == 'yes') {
             $invalid = empty($form->rec->caseId);
             $invalid = $invalid ||
-                cash_Cases::fetchField($form->rec->caseId, 'cashier') == core_Users::getCurrent();
+                cash_Cases::fetchField($form->rec->caseId, 'cashier') != core_Users::getCurrent();
             if ($invalid) {
                 $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
