@@ -655,7 +655,11 @@ class crm_Profiles extends core_Master
                 $rec = &$recs[$i];
         
                 if ($url = $mvc::getUrl($rec->userId)) {
-                    $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId), NULL, array('ef_icon' => 'img/16/vcard.png'));
+                    
+                    // Ако имаме права за сингъла, тогава създаваме линка
+                    if (crm_Persons::haveRightFor('single', $rec->personId)) {
+                        $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId), NULL, array('ef_icon' => 'img/16/vcard.png'));
+                    }
                     $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                 }
             }
