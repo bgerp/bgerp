@@ -20,7 +20,8 @@ class cash_Pko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, 
+                        bgerp_DealIntf';
    
     
     /**
@@ -540,7 +541,7 @@ class cash_Pko extends core_Master
         $rec = self::fetchRec($id);
     
         /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
     
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
     

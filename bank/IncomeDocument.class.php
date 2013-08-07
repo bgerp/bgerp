@@ -464,7 +464,7 @@ class bank_IncomeDocument extends core_Master
         $rec = self::fetchRec($id);
         
         /* @var $result bgerp_iface_DealResponse */
-        $result = new stdClass();
+        $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
