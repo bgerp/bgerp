@@ -174,10 +174,7 @@ class cash_InternalMoneyTransfer extends core_Master
         }
 	   
     	if($folderId = Request::get('folderId')){
-    		
-    		// Ако отговаря само за една каса, то тя се избира като активна в сесията
-        	cash_Cases::getCurrent();
-	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
+    		if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
 	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
 	        }
         }

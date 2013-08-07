@@ -223,8 +223,6 @@ class bank_InternalMoneyTransfer extends core_Master
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
         
-        // Ако отговаря само за една сметка, то тя се избира като активна в сесията
-        bank_OwnAccounts::getCurrent();
         $folderId = bank_OwnAccounts::forceCoverAndFolder(bank_OwnAccounts::getCurrent());
        	$form->setDefault('folderId', $folderId);
        	
