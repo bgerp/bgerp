@@ -658,8 +658,12 @@ class crm_Profiles extends core_Master
                     
                     // Ако имаме права за сингъла, тогава създаваме линка
                     if (crm_Persons::haveRightFor('single', $rec->personId)) {
-                        $row->personId = ht::createLink($row->personId, array('crm_Persons', 'single', $rec->personId), NULL, array('ef_icon' => 'img/16/vcard.png'));
+                        $personLink = array('crm_Persons', 'single', $rec->personId);
+                    } else {
+                        $personLink = NULL;
                     }
+                    
+                    $row->personId = ht::createLink($row->personId, $personLink, NULL, array('ef_icon' => 'img/16/vcard.png'));
                     $row->userId   = static::createLink($rec->userId, NULL, FALSE, array('ef_icon' => $mvc->singleIcon));
                 }
             }
