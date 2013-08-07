@@ -92,31 +92,25 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'bank, ceo';
+    var $canRead = 'cash, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'bank, ceo';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'bank, ceo';
+    var $canWrite = 'cash, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'ceo, acc, bank';
+    var $canConto = 'ceo, acc, cash';
     
     
     /**
      * Кой може да сторнира
      */
-    var $canRevert = 'bank, ceo';
+    var $canRevert = 'cash, ceo';
     
     
     /**
@@ -124,10 +118,12 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     var $singleLayoutFile = 'bank/tpl/SingleInternalMoneyTransfer.shtml';
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.6|Финанси";
+    
     
 	/**
      * Описание на модела
@@ -178,6 +174,9 @@ class cash_InternalMoneyTransfer extends core_Master
         }
 	   
     	if($folderId = Request::get('folderId')){
+    		
+    		// Ако отговаря само за една каса, то тя се избира като активна в сесията
+        	cash_Cases::getCurrent();
 	        if($folderId != cash_Cases::fetchField(cash_Cases::getCurrent(), 'folderId')){
 	        	return Redirect(array('cash_Cases', 'list'), FALSE, "Документът не може да се създаде в папката на неактивна каса");
 	        }
