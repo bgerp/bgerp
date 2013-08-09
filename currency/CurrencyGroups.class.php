@@ -36,9 +36,22 @@ class currency_CurrencyGroups extends core_Manager
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
+	* Кой може да го разглежда?
+	*/
 	var $canList = 'ceo,currency';
+	
+	
+    /**
+	* Кой може да добавя?
+	*/
+	var $canAdd = 'ceo,currency';
+    
+    
+    /**
+	* Кой може да променя?
+	*/
+	var $canEdit = 'ceo,currency,admin';
+    
     
     
     /**
