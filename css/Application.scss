@@ -185,9 +185,12 @@ tr.noHover td:hover {
 .menuRow {
 	color: #997;
 	font-family: Arial;
-	1padding: 1px;
 	text-decoration: none;
 	font-weight: bold;
+}
+
+#framecontentTop .menuRow{
+	padding: 1px;
 }
 
 #mainMenu a  { /*nav при wide*/
