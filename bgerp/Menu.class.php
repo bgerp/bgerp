@@ -383,11 +383,14 @@ class bgerp_Menu extends core_Manager
         }
         
         foreach($menu as $rec) {
-            $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act),  NULL, array('style' => 'padding:3px; background-color:#ddd; '));
+            $url = haveRole($rec->accessByRoles) ?  array($rec->ctr, $rec->act) : array();
+            $link = ht::createLink($rec->menuTr, $url,  NULL, array('style' => 'padding:3px; background-color:#ddd; '));
             $row = 'MENU_ROW';
             $tpl->append($link, $row);
-            foreach($subMenu[$rec->menu] as $subRec) {
-                $link = ht::createLink($subRec->subMenuTr, array($subRec->ctr, $subRec->act), NULL, array('style' => 'font-size:0.9em; margin-bottom:10px; display:inline-block !important; margin-right:10px;'));
+            foreach($subMenu[$rec->menu] as $subRec) { 
+                $url = haveRole($subRec->accessByRoles) ?  array($subRec->ctr, $subRec->act) : array();
+                $link = ht::createLink($subRec->subMenuTr, $url, 
+                    NULL, array('style' => 'font-size:0.9em; margin-bottom:10px; display:inline-block !important; margin-right:10px;'));
                 $tpl->append($link, $row);
             }
         }

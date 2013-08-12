@@ -194,8 +194,12 @@ class cms_Articles extends core_Manager
         $query->orderBy("#level");
 
         $navTpl = new ET();
+        
+        $cnt = 0;
 
         while($rec1 = $query->fetch()) {
+
+            $cnt++;
             
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
 
@@ -262,8 +266,10 @@ class cms_Articles extends core_Manager
         }
 		
         Mode::set('cMenuId', $menuId);
-
-        $content->append($navTpl, 'NAVIGATION');
+        
+        if($cnt + Mode::is('screenMode', 'wide') > 1) {
+            $content->append($navTpl, 'NAVIGATION');
+        }
         
         $richText = cls::get('type_RichText');
         $desc = ht::escapeAttr(str::truncate(ht::extractText($desc), 200, FALSE));
