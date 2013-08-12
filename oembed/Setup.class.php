@@ -8,6 +8,12 @@ defIfNot('OEMBED_MAX_WIDTH', 600);
 
 
 /**
+ * Списък с услуги на които по подразбиране се ембедват връзките към тяхно съдържание
+ */
+defIfNot('OEMBED_SERVICES', 'Flickr Photos,Hulu,Scribd,Vimeo,YouTube,Picasa,Slideshare,Vbox7,Cacco');
+
+
+/**
  * Установяване на пакета oembed
  *
  * @link http://www.oembed.com
@@ -52,8 +58,10 @@ class oembed_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'OEMBED_MAX_WIDTH' => array ('int')
-    
+           'OEMBED_MAX_WIDTH' => array ('int'),
+           'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,NFBC,Qik Video,Revision3,
+           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Kinomap,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)')
+
              );
     
     /**
