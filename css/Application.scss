@@ -148,6 +148,23 @@ tr.noHover td:hover {
 	padding-top:5px;
 }
 
+.narrow a.mainMenu {
+    padding:3px; 
+    background-color:#ddd;
+}
+
+.narrow a.subMenu {
+    font-size:0.9em; 
+    margin-bottom:10px; 
+    display:inline-block !important; 
+    margin-right:10px;
+}
+
+.narrow a.subMenu-first {
+    margin-left:6px; 
+}
+
+
 #mainMenu {
 	background-color: $gray3;
 	padding: 5px;

@@ -235,6 +235,13 @@ class bgerp_Menu extends core_Manager
                 if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
                     $menus[$rec->menu] = $rec;
                 }
+
+                if($lastRec->menu != $rec->menu && $rec->state != 1) {
+                    $lastRec =  $rec;
+                }
+
+                $rec->menuCtr = $lastRec->ctr;
+                $rec->menuAct = $lastRec->act;
             }
         } else {
             // Ако имаме роля админ
@@ -289,7 +296,7 @@ class bgerp_Menu extends core_Manager
             // Отпечатваме менютата
             if(count($menus)) {
                 foreach($menus as $key => $rec) {
-                    $link = $this->createLink($rec->menuTr, $rec);
+                    $link = $this->createLink($rec->menuTr, $rec, TRUE);
                     $row = 'MENU_ROW' . $rec->row;
                     
                     if($notFirstInFor[$rec->row]) {
@@ -334,22 +341,31 @@ class bgerp_Menu extends core_Manager
     /**
      * Създава връзка отговаряща на състоянието на посочения ред
      */
-    static function createLink($title, $rec)
+    static function createLink($title, $rec, $menu = FALSE)
     {
+        if($menu) {
+            $url = array($rec->menuCtr, $rec->menuAct);
+        } else {
+            $url = array($rec->ctr, $rec->act);
+        }
+
         if($rec->state == 3 ) {
             $attr['class'] = 'menuItem selected';
-            if($rec->link) {
-                $url = array($rec->ctr, $rec->act);
-            }
         } elseif ($rec->state == 2 ) {
             $attr['class'] = 'menuItem';
-            if($rec->link) {
-                $url = array($rec->ctr, $rec->act);
-            }
         } else {
             $attr['class'] = 'menuItem';
+            $url = NULL;
         }
         
+        if(!$rec->link) {
+            $url = NULL;
+        }
+
+        if(!$url) {
+            $attr['class'] .= ' btn-disabled';
+        }
+
         return ht::createLink($title, $url, '', $attr);
     }
     
@@ -366,7 +382,7 @@ class bgerp_Menu extends core_Manager
         if(!Mode::is('screenMode', 'narrow')) redirect(array('bgerp_Portal', 'Show'));
         
         $tpl = new ET(
-            "<div class='menuPage'>
+            "<div class='menuPage noSelect'>
                         <div>[#MENU_ROW#] </div>
                     </div>
                 ");
@@ -375,7 +391,7 @@ class bgerp_Menu extends core_Manager
         
         foreach($menuObj as $key => $rec)
         {
-            if(!isset($menu[$rec->menu])) {
+            if(!isset($menu[$rec->menu]) || !haveRole($menu[$rec->menu]->accessByRoles)) {
                 $menu[$rec->menu] = $rec;
             }
 
@@ -384,13 +400,27 @@ class bgerp_Menu extends core_Manager
         
         foreach($menu as $rec) {
             $url = haveRole($rec->accessByRoles) ?  array($rec->ctr, $rec->act) : array();
-            $link = ht::createLink($rec->menuTr, $url,  NULL, array('style' => 'padding:3px; background-color:#ddd; '));
+            $class = 'mainMenu';
+            if(!count($url)) {
+                $class .= ' btn-disabled';
+            }
+            $link = ht::createLink($rec->menuTr, $url,  NULL, array('class' => $class));
             $row = 'MENU_ROW';
             $tpl->append($link, $row);
-            foreach($subMenu[$rec->menu] as $subRec) { 
+            $first = TRUE;
+            foreach($subMenu[$rec->menu] as $subRec) {
+
                 $url = haveRole($subRec->accessByRoles) ?  array($subRec->ctr, $subRec->act) : array();
+                $class = 'subMenu';
+                if(!count($url)) {
+                    $class .= ' btn-disabled';
+                }
+                if($first) {
+                    $class .= ' subMenu-first';
+                    $first = FALSE;
+                }
                 $link = ht::createLink($subRec->subMenuTr, $url, 
-                    NULL, array('style' => 'font-size:0.9em; margin-bottom:10px; display:inline-block !important; margin-right:10px;'));
+                    NULL, array('class' => $class));
                 $tpl->append($link, $row);
             }
         }
