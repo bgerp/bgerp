@@ -9,6 +9,9 @@ class core_App
     {
         try
         {
+            // Инициализираме функцията, която се изпълнява при core_App::debug()/wp()
+            self::setDebugHandler();
+            
             // Ако имаме заявка за статичен ресурс, веднага го сервираме и
             // приключване. Ако не - продъжаваме със зареждането на фреймуърка
             if ($_GET[EF_SBF]) {
@@ -1181,6 +1184,18 @@ class core_App
         }
 
         return $result;
+    }
+
+    /**
+     * Зарежда от конфигурацията (ако има) хендлър на core_App::debug()/wp()
+     */
+    private static function setDebugHandler()
+    {
+        $coreConfig = core_Packs::getConfig('core');
+        
+        if ($coreConfig->debugHandler) {
+            self::$debugHandler = $coreConfig->debugHandler;
+        }
     }
 
 }
