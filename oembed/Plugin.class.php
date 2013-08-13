@@ -190,7 +190,7 @@ class oembed_Plugin extends core_Plugin
 
             if($services[$key]) {                            
 
-                if(preg_match($entry['regex'], $url)) {echo "<li> $key $url";
+                if(preg_match($entry['regex'], $url)) {
                     return $entry;
                 }
             }
@@ -266,15 +266,24 @@ class oembed_Plugin extends core_Plugin
      */
     protected static function httpGet($url)
     {
-        /*
-         * @TODO Тук може да се направи прецизен HTTP клиент, напр. с използването на cURL.
-         * 
-         * С file_get_contents() не е възможно да се реагира на различните проблеми, които биха
-         * могли да настъпят (неуспешно резолване на името, неуспешна връзка или пък HTTP код
-         * за грешка (4xx, 5xx) - всички тези генерират предупреждение и FALSE като резултат) 
-         * 
-         */
-        return @file_get_contents($url);
+        $ch = curl_init();
+        $timeout = 5;
+        curl_setopt($ch,CURLOPT_URL,$url);
+        curl_setopt($ch,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,$timeout);
+        
+        $data = curl_exec($ch);
+        $result = NULL;
+        
+        if(!$errno = curl_errno($ch)){
+            $result = $data;
+        } else {
+            $result = FALSE;
+        }
+        
+        curl_close($ch);
+        
+        return $result;
     }
     
     
@@ -284,10 +293,13 @@ class oembed_Plugin extends core_Plugin
         
         switch ($format) {
             case 'json':
-                $result = json_decode($str, TRUE);
+                $result = @json_decode($str, TRUE);
+                if (JSON_ERROR_NONE != json_last_error()) {
+                    $result = FALSE;
+                }
                 break;
             case 'xml':
-                $result = simplexml_load_string($str);
+                $result = @simplexml_load_string($str);
                 
                 if ($result !== FALSE) {
                     $result = (array)$result;
