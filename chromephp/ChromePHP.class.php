@@ -4,8 +4,8 @@ include __DIR__ . '/ChromePhp.php';
 
 class chromephp_ChromePHP
 {
-    public static function setup()
+    public static function info()
     {
-        core_App::$debugHandler = array('ChromePhp', 'info');
+        call_user_func_array(array('ChromePhp', 'info'), func_get_args());
     }
 }
