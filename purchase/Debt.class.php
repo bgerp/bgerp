@@ -90,12 +90,12 @@ class purchase_Debt extends core_Manager
      */
     function description()
     {
-   	 	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
+   	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
     	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма');
-    	 $this->FLD('document', 'varchar', 'caption=Оферта->Номер');
-       	 $this->FLD('date', 'date', 'caption=Оферта->Дата');
-       	 $this->FLD('sum', 'double', 'caption=Оферта->Сума');
-    	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
+    	 $this->FLD('document', 'varchar', 'caption=Доставка->Номер');
+       	 $this->FLD('date', 'date', 'caption=Доставка->Дата');
+       	 $this->FLD('sum', 'double', 'caption=Доставка->Сума');
+    	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Доставка->Детайли');
     	 
     	 
     }
