@@ -115,6 +115,13 @@ class cms_plg_RichTextPlg extends core_Plugin
 
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
+        //шаблон по подразбиране за responsive дизайн на картинките от галерията
+        if($groupRec->tpl){
+        	$res = new ET($groupRec->tpl, $res);
+        } else {
+        	$res = new ET("<div class='embedded-holder' style='max-width:". $groupRec->tWidth ."px'>[#1#]</div>", $res);
+        }
+        
         $place = $this->mvc->getPlace();
 
         $this->mvc->_htmlBoard[$place] = $res;
