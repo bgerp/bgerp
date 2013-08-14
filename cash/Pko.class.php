@@ -222,7 +222,7 @@ class cash_Pko extends core_Master
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
     	
         if($contragentClassId == crm_Companies::getClassId()){
-    		$form->setSuggestions('depositor', crm_Companies::getPersonOptions($contragentId, TRUE));
+    		$form->setSuggestions('depositor', crm_Companies::getPersonOptions($contragentId, FALSE));
     	}
         
         $form->setDefault('contragentId', $contragentId);

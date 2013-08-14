@@ -1036,12 +1036,12 @@ class crm_Companies extends core_Master
      * @param boolean $intKeys - дали ключовете на масива да са int
      * @return array $options
      */
-    public static function getPersonOptions($id, $intKeys = FALSE)
+    public static function getPersonOptions($id, $intKeys = TRUE)
     {
     	$options = crm_Persons::makeArray4Select('name', "#buzCompanyId = {$id}");
     	
     	if(count($options)){
-	    	if($intKeys){
+	    	if(!$intKeys){
 	    		$options = array_combine($options, $options);
 	    	}
     	
