@@ -59,8 +59,8 @@ class oembed_Setup extends core_ProtoSetup
     var $configDescription = array(
         
            'OEMBED_MAX_WIDTH' => array ('int'),
-           'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,NFBC,Qik Video,Revision3,
-           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Kinomap,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)')
+           'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
+           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)')
 
              );
     

@@ -39,10 +39,10 @@ class oembed_Plugin extends core_Plugin
             'api' => 'http://www.hulu.com/api/oembed.json', 
             'example' => 'http://www.hulu.com/watch/20807/late-night-with-conan'), 
         //National Film Board of Canada
-        'NFBC' => array(
-            'regex' => '#nfb\.ca/film/[-\w]+/?#i', 
-            'api' => 'http://www.nfb.ca/remote/services/oembed/', 
-            'example' => 'http://www.nfb.ca/film/blackfly/'), 
+        //'NFBC' => array(
+        //    'regex' => '#nfb\.ca/film/[-\w]+/?#i', 
+        //    'api' => 'http://www.nfb.ca/remote/services/oembed/', 
+        //    'example' => 'http://www.nfb.ca/film/blackfly/'), 
         'Qik Video' => array(
             'regex' => '#qik\.com/\w+#i', 
             'api' => 'http://qik.com/api/oembed.json', 
@@ -60,7 +60,7 @@ class oembed_Plugin extends core_Plugin
             'api' => 'http://lab.viddler.com/services/oembed/', 
             'example' => 'http://www.viddler.com/explore/engadget/videos/14/'), 
         'Vimeo' => array(
-            'regex' => '#vimeo\.com/.*#i', 
+            'regex' => '#vimeo\.com/.+#i', 
             'api' => 'http://www.vimeo.com/api/oembed.json', 
             'example' => 'http://www.vimeo.com/1211060'), 
         'YouTube' => array(
@@ -79,10 +79,10 @@ class oembed_Plugin extends core_Plugin
             'regex' => '#clikthrough\.com/theater/video/\d+$#i', 
             'api' => 'http://clikthrough.com/services/oembed', 
             'example' => 'http://www.clikthrough.com/theater/video/55'), 
-        'Kinomap' => array(
-            'regex' => '#kinomap\.com/.+#i', 
-            'api' => 'http://www.kinomap.com/oembed', 
-            'example' => 'http://www.kinomap.com/kms-vzkpc7'), 
+      //  'Kinomap' => array(
+      //      'regex' => '#kinomap\.com/.+#i', 
+      //      'api' => 'http://www.kinomap.com/oembed', 
+      //      'example' => 'http://www.kinomap.com/kms-vzkpc7'), 
         'Photobucket' => array(
             'regex' => '#photobucket\.com/(albums|groups)/.+$#i', 
             'api' => 'http://photobucket.com/oembed', 
@@ -118,7 +118,7 @@ class oembed_Plugin extends core_Plugin
             $link = core_Html::createLink($url, $url); 
             $link = core_Html::createElement('div', array('class'=>'orig'), $link, TRUE);
             
-            $htmlString = core_Html::createElement('div', array('class'=>'embedded'), $html . "<small>{$link}</small>", TRUE);
+            $htmlString = core_Html::createElement('div', array('class'=>'embedded-holder'), '<div class="embedded">'.$html.'</div>' . "<small>{$link}</small>", TRUE);
         }
     }
     
