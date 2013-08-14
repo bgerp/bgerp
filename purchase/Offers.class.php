@@ -127,9 +127,9 @@ class purchase_Offers extends core_Master
     	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
     	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма');
     	 $this->FLD('product', 'varchar', 'caption=Продукт');
+    	 $this->FLD('sum', 'double', 'caption=Оферта->Цена');
     	 $this->FLD('date', 'date', 'caption=Оферта->Дата');
     	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
-    	 $this->FLD('sum', 'double', 'caption=Оферта->Сума');
     	 $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
     }
 
