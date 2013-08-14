@@ -1880,11 +1880,25 @@ pre.rich-text {
 
 pre.rich-text{
 	overflow: auto; 
+	font-size:0.97em;
 }
 
 .narrow pre.rich-text{
 	font-size:0.9em;
 	white-space:pre-wrap;
+	margin-left:-10px;
+	margin-right:-10px;
+	padding-bottom:5px;
+}
+.narrow pre.rich-text code::-webkit-scrollbar{
+	-webkit-appearance: none;
+	width: 10px;
+	height: 10px;
+}
+
+.narrow pre.rich-text code::-webkit-scrollbar-thumb{
+	border-radius: 8px;
+	background-color: rgba(0, 0, 0, .2);
 }
 
 div.richtext pre .code{
@@ -1902,6 +1916,7 @@ div.richtext pre code{
 	white-space:pre;
 	word-wrap:normal;
 	padding:0;
+	font-size:0.97em;
 	overflow:auto;
 	background:transparent !important;
 }
@@ -1912,13 +1927,20 @@ div.richtext pre code{
 
 .richtext .oneLineCode {
 	font-family: Courier New,monospace;
+	font-size:0.96em;
+	line-height:normal;
 	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
 	background:rgba(245,245,255,0.5);
 	border: 1px solid $gray3;
 	border-radius: 3px 3px 3px 3px;
-	margin: 2px 2px;
-	padding: 0 5px;
+	margin: 0px 2px 1px;
+	padding: 0px 5px 0px;	
 	display:inline-block;
+}
+
+.narrow .richtext .oneLineCode{
+	padding: 0px 5px;
+	margin:0px 0 1px;
 }
 
 div.code{
