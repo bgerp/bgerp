@@ -416,11 +416,8 @@ class store_ShipmentOrders extends core_Master
         $form = $data->form;
         $rec  = &$form->rec;
         
-        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE))); 
-        
-        // Определняне на стойности по подразбиране на базата на пораждащия документ (ако има)
-        $rec = $mvc->getDefaultsByOrigin($rec);
-        
+        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+
         if (empty($rec->folderId)) {
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
         }
@@ -452,20 +449,17 @@ class store_ShipmentOrders extends core_Master
             array(''=>'') +
             crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
-        if (empty($rec->id)) {
-            // Ако създаваме нов запис и стойностите по подразбиране са достатъчни за валидиране
+        // Ако създаваме нов запис и то базиран на предхождащ документ ...
+        if (empty($form->rec->id) && !empty($form->rec->originId)) {
+            // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
             // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
             // е нужно в последствие.
             
-            $form->validate(NULL, FALSE, (array)$form->rec);
-            
-            if (!$form->gotErrors()) {
+            if ($mvc->validate($form)) {
                 if (self::save($form->rec)) {
                     redirect(array($mvc, 'single', $form->rec->id));
                 }
-            } else {
-                $form->errors = array();
             }
         }
     }

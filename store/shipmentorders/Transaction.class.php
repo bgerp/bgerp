@@ -100,14 +100,6 @@ class store_shipmentorders_Transaction
     {
         $rec = $this->class->fetchRec($id);
         
-        // Извличаме базовата продажба
-        expect($sale = $this->class->getOrigin($rec));
-        expect($sale->getInstance() instanceof sales_Sales);
-        
-        // Преобразуване на трибуквен ISO код на валута към първичен ключ на валута
-        $rec->currencyCode = $sale->rec('currencyId');
-        $rec->currencyId   = currency_Currencies::getIdByCode($rec->currencyCode);
-        
         $rec->details = array();
         
         if (!empty($rec->id)) {
