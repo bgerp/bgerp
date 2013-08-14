@@ -78,7 +78,7 @@
 		<!--ET_END others-->
 	</ol>
 	
-	<p id='quote-username'><b>|Изготвил офертата|*:</b> <span id='sign-place'></span><span  class='sign-user'>/ &nbsp;<b>[#username#]</b>&nbsp; /</span></p>
+	<p id='quote-username'><b>|ПОДПИС и ПЕЧАТ|*:</b> <span id='sign-place'></span><span  class='sign-user'>/ &nbsp;<b>[#username#]</b>&nbsp; /</span></p>
 		<div class='details'>
 			<!--ET_BEGIN DETAILS-->
 			[#DETAILS#]
