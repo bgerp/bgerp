@@ -47,7 +47,7 @@ class plg_Current extends core_Plugin
 		            }
             	}
             	
-            	redirect(array($mvc), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
+            	redirect(array($mvc,'ret_url' => TRUE), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
             }
         }
     }
@@ -64,7 +64,7 @@ class plg_Current extends core_Plugin
     function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action == 'setcurrent') {
-            
+           
             $id = Request::get('id', 'int');
             
             expect($rec = $mvc->fetch($id));
@@ -110,7 +110,7 @@ class plg_Current extends core_Plugin
             $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif($mvc->haveRightFor('select', $rec)) {
-            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, 'ef_icon = img/16/key.png');
+            $row->currentPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url' => getRetUrl()), NULL, NULL, 'ef_icon = img/16/key.png');
             $row->ROW_ATTR['class'] .= ' state-closed';
         }
     }
