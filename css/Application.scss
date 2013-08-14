@@ -2302,7 +2302,7 @@ div.locImage{
 	#cmsMenu a { 
 		margin-left:3px !important;
 		margin-right:3px !important;
-		font-size:0.82em;
+		font-size:0.85em;
     }
     .narrow select{
     	padding-left:4px;
@@ -2310,6 +2310,15 @@ div.locImage{
      .narrow #cmsTop{
     	margin-top:-1px;
     }
+    .narrow .single-thread .listTable .rich-text{
+    	max-width:630px;
+    }
+}
+
+@media handheld, only screen and (max-width: 640px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:570px;
+	}
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2324,6 +2333,45 @@ div.locImage{
     .narrow #cmsTop{
     	margin-top:-1px;
     }
+    .narrow .single-thread .listTable .rich-text{
+		max-width:530px;
+	}
+}
+@media handheld, only screen and (max-width: 533px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:463px;
+	}
+}
+
+@media handheld, only screen and (max-width: 500px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:430px;
+	}
+}
+
+@media handheld, only screen and (max-width: 480px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:410px;
+	}
+}
+
+@media handheld, only screen and (max-width: 360px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:290px;
+	}
+}
+
+
+@media handheld, only screen and (max-width: 320px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:250px;
+	}
+}
+
+@media handheld, only screen and (max-width: 240px) { 
+	.narrow .single-thread .listTable .rich-text{
+		max-width:170px;
+	}
 }
 
 /*край на queries*/
