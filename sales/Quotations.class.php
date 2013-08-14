@@ -64,12 +64,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Кой има право да променя?
-     */
-    public $canEdit = 'ceo,sales';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,sales';
@@ -108,7 +102,7 @@ class sales_Quotations extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_QuotationsDetails' ;
+    public $details = 'sales_QuotationsDetails';
     
 
     /**
@@ -151,7 +145,7 @@ class sales_Quotations extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
@@ -190,6 +184,10 @@ class sales_Quotations extends core_Master
       
        if($rec->originId){
        		$data->form->setField('quantity1,quantity2,quantity3', 'input');
+       }
+       
+       if(!$rec->attn){
+       	  $data->form->setSuggestions('attn', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
     }
     
@@ -240,7 +238,7 @@ class sales_Quotations extends core_Master
 			if($origin->className == 'techno_Specifications'){
 				$originRec = $origin->fetch();
 				$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
-				if($originRec->isOfferable == 'yes' && $quantities[0] || $quantities[1] || $quantities[2]){
+				if($originRec->isOfferable == 'yes' && ($quantities[0] || $quantities[1] || $quantities[2])){
 					$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin->that, $quantities);
 				}
 			}
@@ -249,7 +247,7 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Попълваме дефолт данните
+     * Попълване на дефолт данни
      */
     public function populateDefaultData(&$rec)
     {
@@ -409,6 +407,7 @@ class sales_Quotations extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
+    	if($res == 'no_one') return;
     	if($action == 'activate'){
     		if(!$rec->id) {
     			
@@ -424,6 +423,10 @@ class sales_Quotations extends core_Master
     				$res = 'no_one';
     			}
     		}
+    	}
+    	
+    	if($action == 'edit'){
+    		$res = 'ceo,sales';
     	}
     }
     
@@ -508,7 +511,7 @@ class sales_Quotations extends core_Master
      * @param int $id - ид на оферта
      * @return param $res - масив с използваните документи
      * 					['class'] - Инстанция на документа
-     * 					['id'] - Ид на документа
+     * 					['id'] - ид на документа
      */
     public function getUsedDocs_($id)
     {
@@ -538,14 +541,14 @@ class sales_Quotations extends core_Master
     public function getDealInfo($id)
     {
     	$rec = $this->fetchRec($id);
-    	$products = $this->getItems($id, $amount);
+    	$products = $this->getItems($id, $total);
     	if(!count($products)) return FALSE;
     	
     	/* @var $result bgerp_iface_DealResponse */
         $result = new bgerp_iface_DealResponse();
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $result->agreed->amount                  = $amount;
+        $result->agreed->amount                  = $total;
         $result->agreed->currency                = $rec->paymentCurrencyId;
         if($rec->deliveryPlaceId){
         	$result->agreed->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');

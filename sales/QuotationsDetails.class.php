@@ -133,7 +133,7 @@ class sales_QuotationsDetails extends core_Detail {
        $form = &$data->form;
        $rec = &$form->rec;
        
-       $title = (Request::get('edit')) ? "Редактиране" : "Добавяне";
+       $title = ($rec->id) ? "Редактиране" : "Добавяне";
        $masterLink = sales_Quotations::getLink($form->rec->quotationId);
        $form->title = $title . " " . "на артикул в" . " |*" . $masterLink;
        
@@ -324,8 +324,8 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
-    	$total = $double->toVerbal($total);
-    	$data->total = (object) array('total' => $total, 'totalDisc' => $afterDisc);
+    	$data->total = (object) array('total' => $double->toVerbal($total), 
+    								  'totalDisc' => $double->toVerbal($afterDisc));
     }
     
     
@@ -376,9 +376,7 @@ class sales_QuotationsDetails extends core_Detail {
 		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
 		    				$hasQuantityColOpt = TRUE;
 		    			}
-	    			} 
-	    			
-	    			
+	    			}
 	    			
 	    			$row->index = $id++;
 					if($row->productId){
@@ -386,7 +384,7 @@ class sales_QuotationsDetails extends core_Detail {
 					} else {
 						$row->TR_CLASS = $data->rows[$index][0]->TR_CLASS;
 					}
-	    			//
+	    			
 	    			$rowTpl->placeObject($row);
 	    			$rowTpl->removeBlocks();
 	    			$rowTpl->append2master();
