@@ -1019,6 +1019,30 @@ div.attachments {
 }
 /*край на стилове за прикачени файлове*/
 
+/*стилове за responsive дизайн на вградени ресурси*/
+.embedded-holder{
+	max-width:600px;
+	.embedded {
+		position:relative;
+		padding-bottom:56.25%;
+		padding-top:30px;
+		height: 0; 
+		overflow: hidden;
+		embed, object, iframe, > a > img{
+			position:absolute;
+			top:0;
+			left:0;
+			width:100%;
+			height:100%;
+			max-width:100% !important;
+		}
+	}
+	.orig{
+		margin-top:5px;
+	}
+}
+/*край на стилове за responsive дизайн на вградени ресурси*/
+
 /*стилове за календара в портала*/
 table.mc-calendar {
   width: 100%;
