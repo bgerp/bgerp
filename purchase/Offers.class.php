@@ -35,7 +35,12 @@ class purchase_Offers extends core_Master
      */
     var $singleTitle = 'Оферта от доставчик';
     
-    
+     
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id,person, companies, product, date, offer, sum, document';
+
     /**
      * Икона за единичния изглед
      */
@@ -99,15 +104,9 @@ class purchase_Offers extends core_Master
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    var $listFields = 'tools=Пулт';
-        
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     /**
      * Поле за търсене
@@ -119,27 +118,21 @@ class purchase_Offers extends core_Master
      */
     var $newBtnGroup = "4.1|Логистика";
     
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
+    	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
+    	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма');
+    	 $this->FLD('product', 'varchar', 'caption=Продукт');
+    	 $this->FLD('date', 'date', 'caption=Оферта->Дата');
+    	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
+    	 $this->FLD('sum', 'double', 'caption=Оферта->Сума');
+    	 $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
     }
-    
-    
-    /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
-     */
-    function act_Default()
-    {
-        requireRole('purchase, admin');
-        
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
-        return $this->renderWrapping($underConstructionImg);
-    }
     
     
     /**
@@ -178,7 +171,21 @@ class purchase_Offers extends core_Master
      */
     function getDocumentRow($id)
     {
-        //TODO
+    	$rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        
+        //Заглавие
+        $row->title = "Оферта №{$rec->id}";
+        
+        //Създателя
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        //Състояние
+        $row->state = $rec->state;
+        
+        //id на създателя
+        $row->authorId = $rec->createdBy;
         
         return $row;
     }

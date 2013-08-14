@@ -45,7 +45,7 @@ class purchase_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-//             'purchase_Offers',
+            'purchase_Offers',
             'purchase_Requests',
             'purchase_RequestDetails',
             'purchase_Debt',

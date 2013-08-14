@@ -76,13 +76,13 @@ class purchase_Debt extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    var $listFields = 'id, person, companies,document, date, sum, offer ';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
     
     
     /**
@@ -90,20 +90,38 @@ class purchase_Debt extends core_Manager
      */
     function description()
     {
+   	 	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
+    	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма');
+    	 $this->FLD('document', 'varchar', 'caption=Оферта->Номер');
+       	 $this->FLD('date', 'date', 'caption=Оферта->Дата');
+       	 $this->FLD('sum', 'double', 'caption=Оферта->Сума');
+    	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
+    	 
+    	 
     }
-    
     
     /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
+     * @todo Чака за документация...
      */
-    function act_Default()
+    function getDocumentRow($id)
     {
-        requireRole('purchase, admin');
+    	$rec = $this->fetch($id);
         
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
+        $row = new stdClass();
+        
+        //Заглавие
+        $row->title = "Задължения №{$rec->id}";
+        
+        //Създателя
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        //Състояние
+        $row->state = $rec->state;
+        
+        //id на създателя
+        $row->authorId = $rec->createdBy;
+        
+        return $row;
     }
+
 }
