@@ -78,7 +78,8 @@ class techno_Parameters extends core_Manager {
         } else {
         	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['paramValue'].value ='';this.form.submit();"));
         	$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['addParamSpec'].elements['paramValue'].value ='';this.form.submit();"));
-	    	$paramOptions = $this->getRemainingOptions($data);
+	    	$paramOptions = static::getRemainingOptions($data);
+	    	expect($paramOptions);
 	    	$form->setOptions('paramId', array('' => '') + $paramOptions);
         	$action = tr('Добавяне');
         }
@@ -119,7 +120,7 @@ class techno_Parameters extends core_Manager {
      * @param stdClass $data - десериализираната информация
      * @return array $options - масив с опции
      */
-    private function getRemainingOptions($data)
+    public static function getRemainingOptions($data)
     {
         $options = cat_Params::makeArray4Select();
         if(count($options)){

@@ -10,7 +10,7 @@
 		<!--ET_END image-->
 	[#description#]</li>
 	<!--ET_BEGIN OTHERS-->
-	<li class='list-measures'>|Параметри|*:[#OTHERS#] 
+	<li class='list-measures'><b>|Параметри|*</b>[#OTHERS#] 
 		<ul>
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]

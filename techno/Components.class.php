@@ -75,7 +75,6 @@ class techno_Components extends core_Manager {
     	$retUrl = array('techno_Specifications', 'single', $id, "#" => "Sp{$id}");
     	$GeneralProduct = cls::get('techno_GeneralProducts');
     	$Policy = cls::get('price_ListToCustomers');
-    	
     	if($componentId = Request::get('delete')){
     		unset($data->components->recs[$componentId]);
     		$rec->data = $GeneralProduct->serialize($data);
@@ -97,7 +96,9 @@ class techno_Components extends core_Manager {
     		$action = tr('Редактиране');
     	} else {
     		$action = tr('Добавяне');
-	    	$form->setOptions('componentId', $this->getRemainingOptions($data->components->recs));
+    		$options = static::getRemainingOptions($data->components->recs);
+    		expect(count($options));
+	    	$form->setOptions('componentId', $options);
     	}
     	
         $fRec = $form->input();
@@ -162,7 +163,7 @@ class techno_Components extends core_Manager {
      * @param stdClass $rec - компонентите от спецификацията
      * @return array $options - масив с опции
      */
-    private function getRemainingOptions($recs)
+    public static function getRemainingOptions($recs)
     {
     	$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
     	foreach ($products as $id => $name){
@@ -294,4 +295,13 @@ class techno_Components extends core_Manager {
     	
     	return $paramBlock;
     }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    /*public static function canAdd($rec)
+    {
+    	return (count(static::getRemainingOptions($rec))) ? TRUE : FALSE;
+    }*/
 }

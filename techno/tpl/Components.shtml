@@ -8,12 +8,12 @@
 	<!--ET_BEGIN TH-->
 	[#TH#]
 	<tr>
-		<td><b>№</b></td>
-		<td><b>|Продукт|*</b></td>
-		<td align='right'><b>|К-во|*</b></td>
-		<td align='right'><b>|Цена|*</b></td>
-		<td align='right'><b>|Стойност|*</b></td>
-		<td align='right'><b>|Такси|*</b></td>
+		<th class='component-header'><b>№</b></th>
+		<th class='component-header'><b>|Продукт|*</b></th>
+		<th class='component-header' align='right'><b>|К-во|*</b></th>
+		<th class='component-header' align='right'><b>|Цена|*</b></th>
+		<th class='component-header' align='right'><b>|Стойност|*</b></th>
+		<th class='component-header' align='right'><b>|Такси|*</b></th>
 	</tr>
 	<!--ET_END TH-->
 	<!--ET_BEGIN COMPONENT-->
@@ -49,7 +49,7 @@
 <!--ET_BEGIN SHORT-->
 <!--ET_BEGIN compHeader-->
 [#compHeader#]
-|Компоненти|*
+<b>|Компоненти|*</b>
 <!--ET_END compHeader-->
 		<ol class ='short']>
 			<!--ET_BEGIN COMPONENT-->

@@ -165,11 +165,16 @@ class techno_GeneralProducts extends core_Manager {
     		
     		if(techno_Specifications::haveRightFor('configure', $sId) && !Mode::is('printing')){
     			$img = sbf('img/16/add.png');
-    			$addUrl = array('techno_Parameters', 'configure', $sId, 'ret_url' => TRUE);
-	    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов параметър')); 
     			
-	    		$compUrl = array('techno_Components', 'configure', $sId, 'ret_url' => TRUE);
-	    		$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов компонент')); 
+    			if(count(techno_Parameters::getRemainingOptions($data->components->recs))) {
+	    			$addUrl = array('techno_Parameters', 'configure', $sId, 'ret_url' => TRUE);
+		    		$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img});", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов параметър')); 
+    			}
+    			
+    			if(count(techno_Components::getRemainingOptions($data->components->recs))){
+	    			$compUrl = array('techno_Components', 'configure', $sId, 'ret_url' => TRUE);
+	    			$compBtn = ht::createLink(' ', $compUrl, NULL, array('style' => "background-image:url({$img});", 'class' => 'linkWithIcon', 'title' => 'Добавяне на нов компонент')); 
+	    		}
 	    	}
 	    }
     	
