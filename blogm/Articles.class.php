@@ -579,7 +579,7 @@ class blogm_Articles extends core_Master {
             
         } else {
             $rowTpl = $layout->getBlock('ROW');
-            $rowTpl->replace('<h2>Няма статии</h2>');
+            $rowTpl->replace('<h3>Няма статии</h3>');
             $rowTpl->append2master();
         }
         
