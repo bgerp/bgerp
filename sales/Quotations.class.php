@@ -144,7 +144,7 @@ class sales_Quotations extends core_Master
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
-        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em');
+        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
@@ -197,7 +197,7 @@ class sales_Quotations extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-	    if($data->rec->state == 'draft'){
+	    if($data->rec->state == 'active'){
 	    	$items = $mvc->getItems($data->rec->id);
 	    	if((sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items) AND sales_SaleRequests::haveRightFor('add')){
 	    		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');
@@ -306,6 +306,13 @@ class sales_Quotations extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']){
+			$rec->date = '2006-08-15 14:28:48';
+			$quotDate = dt::mysql2timestamp($rec->date);
+			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
+			if($quotDate + $rec->validFor < $timeStamp){
+				$row->expired = tr("офертата е изтекла");
+			}
+			
 			if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}

@@ -88,7 +88,6 @@
 
 #details-holder p, #optional-holder p{
 	margin-bottom:10px;
-	font-weight:bold;
 }
 
 .products-table tr td.total-td-label{
@@ -170,11 +169,6 @@
 	color: #999999;
 }
 
-.newAmount {
-	font-weight:bold;
-	font-size:0.9em;
-}
-
 .page-break{
 	display: none;
 }
@@ -224,4 +218,11 @@
 	#quot-title-td{
 		width:60%;
 	}
+}
+
+.expired-quote{
+	color:darkred;
+	font-weight:bold;
+	font-style:italic;
+	margin-left:5px;
 }

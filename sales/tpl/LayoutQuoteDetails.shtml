@@ -29,15 +29,26 @@
 		</td>
 		
 		<td class='misc-info expandable' align='right' valign='top'>
-		[#price#]
+		[#price#] 
+		
 		<!--ET_BEGIN discount-->
-		<div class='discount'>- [#discount#] |ТО|*</div>
+		<div class='discount'>- [#discount#] |ТО|*
+		</div>
 		<!--ET_END discount-->
 		</td>
 		<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>
+		<!--ET_BEGIN currencyId-->
+		<span class='cCode'>[#currencyId#]</span>
+		<!--ET_END currencyId-->
 		[#amount#]
+		
 		<!--ET_BEGIN discAmount-->
-		<div class='discount'>[#discAmount#]</div>
+		<div class='discount'>
+		<!--ET_BEGIN currencyId-->
+		<span class='cCode'>[#currencyId#]</span>
+		<!--ET_END currencyId-->
+		[#discAmount#]
+		</div>
 		<!--ET_END discAmount-->
 		</td>
 	</tr>
@@ -45,7 +56,11 @@
 <!--ET_BEGIN total-->
 <tr>
 	<td colspan='4' class='total-td-label'>
-	<div><b>|Словом|*</b>: [#sayWords#]</div>
+	<div><b>|Словом|*</b>: [#sayWords#] &nbsp;
+	<!--ET_BEGIN currencyTotalId-->
+		<span class='cCode'>[#currencyTotalId#]</span>
+	<!--ET_END currencyTotalId-->
+	</div>
 	</td>
 	<td colspan='2' align='right' class='expandable total-quote-td'>
 	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>

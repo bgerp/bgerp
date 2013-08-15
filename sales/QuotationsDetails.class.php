@@ -328,7 +328,8 @@ class sales_QuotationsDetails extends core_Detail {
     	$SpellNumber = cls::get('core_SpellNumber');
     	$data->total = (object) array('total' => $double->toVerbal($total), 
     								  'totalDisc' => $double->toVerbal($afterDisc),
-    								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE));
+    								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE),
+    								  'currencyTotalId' =>$data->masterData->rec->paymentCurrencyId);
     }
     
     
@@ -451,15 +452,16 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	if($rec->discount){
     		$row->price = "<span class='oldAmount' style='text-decoration:none'>{$row->price}</span>";
-    		$row->discount = "<span class='newAmount'>{$row->discount}</span>";
+    		$row->discount = "<b>{$row->discount}</b>";
     	} else {
     		$row->price = "<b>{$row->price}</b>";
     	}
     	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
     	if($rec->discAmountVat){
+    		$row->currencyId = $mvc->Master->fetchField($rec->quotationId, 'paymentCurrencyId');
     		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
-    		$row->discAmount = "<span class='newAmount'>{$row->discAmount}</span>";
+    		$row->discAmount = "<b>{$row->discAmount}</b>";
     	} else {
     		$row->amount = "<b>{$row->amount}</b>";
     	}
