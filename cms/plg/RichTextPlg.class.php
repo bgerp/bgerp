@@ -115,13 +115,11 @@ class cms_plg_RichTextPlg extends core_Plugin
 
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
-        if(!$groupRec->position) { 
-        	$groupRec->position = 'center';
+        if($groupRec->position && $groupRec->position != 'none') { 
+        	$tpl = ($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
+        	$res = new ET($tpl, $res);
         }
         
-        $tpl = ($groupRec->tpl) ? $groupRec->tpl : "<div class='clear-{$groupRec->position}'>[#1#]</div>";
-        $res = new ET($tpl, $res);
-     	
         $place = $this->mvc->getPlace();
 
         $this->mvc->_htmlBoard[$place] = $res;
