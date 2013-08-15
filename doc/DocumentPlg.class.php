@@ -1564,7 +1564,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetOrigin(core_Mvc $mvc, &$origin, $rec, $intf = NULL)
     {
-        if (!empty($origin)) {
+        if (isset($origin)) {
             return;
         }
         

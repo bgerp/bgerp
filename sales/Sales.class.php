@@ -287,12 +287,10 @@ class sales_Sales extends core_Master
     {
         $rec = static::fetchRec($rec);
         
-        wp($rec);
-        
         if (!empty($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
         } else {
-            bp($rec);
+            $origin = FALSE;
         }
         
         return $origin;
@@ -307,7 +305,9 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        $origin = static::getOrigin($rec);
+        if (!$origin = static::getOrigin($rec)) {
+            return;
+        }
     
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на ЕН
@@ -321,7 +321,6 @@ class sales_Sales extends core_Master
             /* @var $product bgerp_iface_DealProduct */
             foreach ($agreed->products as $product) {
                 $product = (object)$product;
-                wp($product);
 
                 if ($product->quantity <= 0) {
                     continue;
