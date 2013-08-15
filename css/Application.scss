@@ -1572,6 +1572,47 @@ fieldset.sharing-history {
 	margin-left: 20px;
 }
 
+.richtext h1,.richtext h2,.richtext h3 { 
+	clear:both;
+}
+
+.clear-all{
+	max-width:600px;
+	img{
+		max-width:100%;
+		height:auto;
+	}
+}
+
+.clear-right{
+	float:right;
+	margin-left: 10px;
+	margin-bottom: 10px;
+	padding: 5px;
+	border: solid 1px #CCC;
+	background: #F0F0F0;
+}
+
+.clear-right:after {
+    content:'';
+    display:block;
+    clear: both;
+}
+
+.clear-left{
+	float:left;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	padding: 5px;
+	border: solid 1px #CCC;
+	background: #F0F0F0;
+}
+
+.clear-left:before{
+	 content:'';
+    display:block;
+    clear: both;
+}
 /*край на CMS*/
 
 
