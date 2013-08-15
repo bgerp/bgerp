@@ -66,7 +66,7 @@ class cms_GalleryGroups extends core_Manager {
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
-        
+        $this->FLD('position', 'enum(center=Център,left=Ляво,right=Дясно)', 'caption=Позиция');
         $this->FLD('tpl', 'html', 'caption=Шаблон');
         
         $this->FLD('style', 'varchar', 'caption=Стил');
