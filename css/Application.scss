@@ -1022,6 +1022,10 @@ div.attachments {
 /*стилове за responsive дизайн на вградени ресурси*/
 .embedded-holder{
 	max-width:600px;
+	img{
+		max-width:100%;
+		height: auto;
+	}
 	.embedded {
 		position:relative;
 		padding-bottom:56.25%;
@@ -1039,9 +1043,6 @@ div.attachments {
 	}
 	.orig{
 		margin-top:5px;
-	}
-	img{
-		max-width:100%;
 	}
 }
 /*край на стилове за responsive дизайн на вградени ресурси*/
