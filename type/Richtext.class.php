@@ -862,7 +862,7 @@ class type_Richtext extends type_Blob
         $level = $matches[1];
         
         if(!Mode::is('text', 'plain')) {
-            $res = "<h{$level}>{$text}</h{$level}>";
+            $res = "<div class='clearfix21'></div><h{$level}>{$text}</h{$level}>";
         } else {
             $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
         }
