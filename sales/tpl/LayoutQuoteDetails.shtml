@@ -44,7 +44,9 @@
 <!--ET_END ROW-->
 <!--ET_BEGIN total-->
 <tr>
-	<td colspan='4' class='total-td-label'></td>
+	<td colspan='4' class='total-td-label'>
+	<div><b>|Словом|*</b>: [#sayWords#]</div>
+	</td>
 	<td colspan='2' align='right' class='expandable total-quote-td'>
 	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 	<!--ET_BEGIN totalDisc-->

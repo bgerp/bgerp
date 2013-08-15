@@ -324,8 +324,11 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
+    	$sayWords = ($afterDisc) ? $afterDisc : $total;
+    	$SpellNumber = cls::get('core_SpellNumber');
     	$data->total = (object) array('total' => $double->toVerbal($total), 
-    								  'totalDisc' => $double->toVerbal($afterDisc));
+    								  'totalDisc' => $double->toVerbal($afterDisc),
+    								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE));
     }
     
     
@@ -398,6 +401,7 @@ class sales_QuotationsDetails extends core_Detail {
     		} else {
     			$data->total->total = "<b>{$data->total->total}</b>";
     		}
+    		
     		$dTpl->placeObject($data->total);
     	}
     	
