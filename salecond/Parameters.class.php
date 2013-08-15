@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Parameters extends core_Manager
+class salecond_Parameters extends core_Master
 {
     
     
@@ -27,6 +27,12 @@ class salecond_Parameters extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'tools=Пулт, name, type';
     
     
     /**
@@ -63,6 +69,18 @@ class salecond_Parameters extends core_Manager
      * Кой може да пише
      */
     var $canWrite = 'ceo,salecond';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
     
     
     /**
