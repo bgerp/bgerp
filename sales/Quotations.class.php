@@ -197,13 +197,13 @@ class sales_Quotations extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-	    if($data->rec->state == 'active'){
+	    if($data->rec->state == 'draft'){
 	    	$items = $mvc->getItems($data->rec->id);
-	       	if($items && sales_Sales::haveRightFor('add')){
-	       		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
-	       	} elseif(!$items && (sales_Sales::haveRightFor('add') || haveRole('contractor'))) {
-	       		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');	
-	       	}
+	    	if((sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items) AND sales_SaleRequests::haveRightFor('add')){
+	    		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');
+	    	} elseif($items && sales_Sales::haveRightFor('add')){
+	    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	    	}
 	    }
     }
     
@@ -542,6 +542,7 @@ class sales_Quotations extends core_Master
     {
     	$rec = $this->fetchRec($id);
     	$products = $this->getItems($id, $total);
+    	
     	if(!count($products)) return FALSE;
     	
     	/* @var $result bgerp_iface_DealResponse */
