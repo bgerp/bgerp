@@ -84,7 +84,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=1');
     }
     
     
@@ -141,6 +141,7 @@ class sales_QuotationsDetails extends core_Detail {
        $Policy = cls::get($rec->policyId);
        $productMan = $Policy->getProductMan();
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+       $form->setDefault('optional', 'no');
        
        // Ако офертата е базирана на спецификация, то тя може да
        // се добавя редактира в нея дори ако е чернова
@@ -406,12 +407,20 @@ class sales_QuotationsDetails extends core_Detail {
     		$dTpl->placeObject($data->total);
     	}
     	
+    	$vatRow = ($data->masterData->rec->vat) ? tr('с') : tr('без');
+    	$misc = $data->masterData->rec->paymentCurrencyId . ", " . $vatRow;
+    	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
+    	$dTpl->append(tr('Оферирани'), 'TITLE');
+    	$dTpl->append($misc, "MISC");
     	$dTpl->removeBlocks();
     	$tpl->append($dTpl, 'MANDATORY');
     	
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
+    		$oTpl->append(tr('Опционални'), 'TITLE');
+    		$misc = $data->masterData->rec->paymentCurrencyId;
+    		$oTpl->append($misc, "MISC");
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
     	

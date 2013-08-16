@@ -42,7 +42,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search,
-                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary';
+                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, doc_plg_DefaultValues';
        
     
     /**
@@ -135,27 +135,27 @@ class sales_Quotations extends core_Master
     public function description()
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
-        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em');
+        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em,defaultStrategy=1');
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em');
-        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
+        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,defaultStrategy=1,salecondSysId=paymentMethod');
+        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,defaultStrategy=1');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
-        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
-        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
+        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,defaultStrategy=1');
+        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова,defaultStrategy=1');
         
-		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,class=contactData, changable');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,class=contactData, changable');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,class=contactData, changable');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData, changable');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData, changable');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData, changable');
+		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,defaultStrategy=1, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,defaultStrategy=1, changable');
+        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,defaultStrategy=1, changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,defaultStrategy=1, changable');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,defaultStrategy=1, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,defaultStrategy=1, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=1, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,defaultStrategy=1, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,defaultStrategy=1, changable');
     	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
     	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
     	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
@@ -245,7 +245,6 @@ class sales_Quotations extends core_Master
 		}
     }
     
-    
     /**
      * Попълване на дефолт данни
      */
@@ -261,42 +260,19 @@ class sales_Quotations extends core_Master
     	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($rec->date);
     	$rec->paymentCurrencyId = $currencyCode;
     	
-    	if($rec->threadId){
-    		$query = $this->getQuery();
-    		$query->where("#threadId = {$rec->threadId}");
-    		$query->orderBy('#createdOn', 'DESC');
-    		$lastOffer = $query->fetch();
-    	} 
-    	
-    	if(!$lastOffer){
-    		$query = $this->getQuery();
-    		$query->where("#folderId = {$rec->folderId}");
-    		$query->orderBy('#createdOn', 'DESC');
-    		$lastOffer = $query->fetch();
+    	if ($data->company && empty($rec->recipient)) {
+    		$rec->recipient = $data->company;
     	}
-    	
-    	if($lastOffer){
-    		$fields = $this->selectFields("#class == contactData");
-    		foreach ($fields as $name => $fld){
-    			if(isset($lastOffer->$name)){
-    				$rec->$name = $lastOffer->$name;
-    			}
-    		}
-    	} else {
-    		if ($data->company) {
-    			$rec->recipient = $data->company;
-    		}
     		
-    		if($data->person) {
-    			$rec->attn = $data->person;
-    		}
-    		
-    		if(!$data->country){
-    			$conf = core_Packs::getConfig('crm');
-    			$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
-    		}
-    		$rec->country = $data->country;
+    	if($data->person && empty($rec->attn)) {
+    		$rec->attn = $data->person;
     	}
+    		
+    	if(!$data->country){
+    		$conf = core_Packs::getConfig('crm');
+    		$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+    	}
+    	$rec->country = $data->country;
     }
     
     
@@ -326,16 +302,6 @@ class sales_Quotations extends core_Master
 				$row->contragentAdress = $row->address . ",";
 			}
 			$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
-			
-			switch($rec->vat){
-				case 'yes':
-					$row->vat = tr('с');
-					break;
-				case 'freed':
-				case 'export':
-					$row->vat = tr('без');
-					break;
-			}
 			
 			if($rec->rate == 1){
 				unset($row->rate);

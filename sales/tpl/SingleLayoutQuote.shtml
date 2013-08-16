@@ -48,14 +48,12 @@
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN MANDATORY-->
 	<div id='details-holder'>
-	<p class='table-detail-header'><b>|Оферирани продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#paymentCurrencyId#], [#vat#] |ДДС|*</p>
 	[#MANDATORY#]
 	</div>
 	<!--ET_END MANDATORY-->
 	
 	<!--ET_BEGIN OPTIONAL-->
 	<div id='optional-holder'>
-	<p class='table-detail-header'><b>|Опционални продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#paymentCurrencyId#], [#vat#] |ДДС|*</p>
 	[#OPTIONAL#]
 	</div>
 	<!--ET_END OPTIONAL-->
