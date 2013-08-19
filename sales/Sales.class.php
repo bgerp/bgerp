@@ -152,7 +152,7 @@ class sales_Sales extends core_Master
     /**
      * 
      */
-   var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoiceSale.shtml';
+   var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
     /**
      * Групиране на документите
