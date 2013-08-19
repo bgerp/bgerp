@@ -874,13 +874,23 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (empty($row->amountDeal)) {
-            $row->amountDeal = '0.00';
-        }
-        $row->amountDeal = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDeal;
+//         if (empty($row->amountDeal)) {
+//             $row->amountDeal = '0.00';
+//         }
+//         $row->amountDeal = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDeal;
         
-        if (!empty($rec->amountPaid)) {
-            $row->amountPaid = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountPaid;
+//         if (!empty($rec->amountPaid)) {
+//             $row->amountPaid = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountPaid;
+//         }
+        
+//         $row->amountDelivered = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDelivered;
+        
+        foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+            if ($rec->{"amount{$amnt}"} != 0) {
+                $row->{"amount{$amnt}"} = '<span class="cCode">' . $row->currencyId . '</span> ' .  $row->{"amount{$amnt}"};
+            } else {
+                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            }
         }
         
         $amountType = $mvc->getField('amountDeal')->type;
