@@ -855,9 +855,8 @@ pre.document{
 	white-space:pre-line;
 }
 
-.narrow .document{
+.narrow .listTable > tbody > tr > td div.document{
 	min-width:200px;
-	padding:10px;
 	width:98%;
 }
 
@@ -1896,7 +1895,7 @@ table.styled-table tr:hover td {
 
 /*стилове за локации*/
 div.location{
-	min-width: 580px;
+	min-width: 560px;
 	max-width: 750px;
 	@include border-radius(5px);
 	border:1px solid #ccc;
@@ -2276,6 +2275,19 @@ div.location{
 
 /*край на бъгфиксове*/
 
+/*Стилове за скролиране на публикувани обекти*/
+.scrolling-holder{
+	width: 100% !important;
+	overflow-x: auto !important;
+	_overflow: auto !important;
+	> div{
+		margin-bottom:5px;
+	}
+	.folder-cover{
+		margin-right:2px;
+	}
+}
+/*край на стилове за скролиране на публикувани обекти*/
 
 /*queries*/
 
