@@ -298,19 +298,9 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 /*край на менюта и подменюта*/
 
 /*стилове за корици*/
-div.cover{
-	min-width: 600px;
-	max-width: 750px;
-	@include border-radius(5px);
-	border:1px solid #ccc;
-	padding:0 20px 20px;
-	margin-top: 16px;
-}
-
 div.folder-cover{
 	background-image:url('../img/cover-bg.png');
 	display: inline-block;
-	min-width: 510px;
 	max-width: 750px;
 	margin-top: 16px;
 	line-height:1.2em;
@@ -1905,18 +1895,53 @@ table.styled-table tr:hover td {
 
 
 /*стилове за локации*/
+div.location{
+	min-width: 600px;
+	max-width: 750px;
+	@include border-radius(5px);
+	border:1px solid #ccc;
+	padding:10px 20px 20px;
+	margin-top: 16px;
+	h2{
+		margin-top:0;
+		background-color: transparent;
+	}
+	ul{
+		padding:0;
+		margin:0;
+		list-style-type:none;
+		li{
+			padding:0;
+			margin:0;
+			list-style-type:none;
+		}
+	}
+	.loc-map{
+		margin-top:20px;
+		text-align:center;
+		> div{
+		 	width:99% !important;
+		}
+	}
+	div.locImage{
+		padding-bottom:0;
+	}
+	.gray-title{
+		color:#666;
+	}
+}
+
+/*край на стилове за локации*/
+
+
 .info-table ul{
 	padding:0;
 	margin:0;
+	list-style-type:none;
 	.part{
 		float:left;
 		width:50%;	
 	}
-}
-
-.narrow .info-table	.cover{
-	min-width:380px;
-	padding:0px 8px 8px;
 }
 
 .narrow .info-table{
@@ -1932,23 +1957,6 @@ table.styled-table tr:hover td {
 	color:#666;
 }
 	
-.detail-info ul{
-	list-style:none;
-}
-	
-.loc-map{
-	margin-top:20px;
-	text-align:center;
-	> div{
-	 	width:99% !important;
-	}
-}
-div.locImage{
-	padding-bottom:0;
-}
-/*край на стилове за локации*/
-
-
 /*шаблон за пускане в експлоатация на ДА*/
 .calign{
 	text-align:center;

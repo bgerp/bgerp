@@ -1,7 +1,6 @@
-<div style="display:inline-block" class="singleView">
+<div class='singleView' style='display:inline-block'>
 	[#SingleToolbar#]
-	<div class="info-table">
-		<div class="cover">
+	<div class="location">
 			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
 			
 			<!--ET_BEGIN image-->
