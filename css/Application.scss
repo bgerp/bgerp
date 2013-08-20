@@ -1438,17 +1438,13 @@ fieldset.sharing-history {
 /*край на външни стилове за ширина*/
 
 #cmsTop, #headerImg {
-	background-repeat: no-repeat;
 	display: block;
 	@include border-radius4(10px, 10px, 0, 0);
 }
 
-
-
 #cmsMenu {
 	float:left;
 	width:100%;
-    margin-left:-2;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	text-align: left;
@@ -1512,12 +1508,15 @@ fieldset.sharing-history {
 .narrow #all{
 	margin:0 auto;
 }
+
 .narrow #all #maincontent{
 	padding: 2px 5px 5px;
 }
+
 .wide #login-form{
 	padding:40px;
 }
+
 .narrow #login-form{
 	padding:10px;
 }
@@ -2271,7 +2270,6 @@ div.location{
 	text-align:left;
 }
 
-
 .free-text {
 	max-width: 600px;
 	text-align: justify;
@@ -2394,6 +2392,9 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:570px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2412,9 +2413,13 @@ div.location{
 		max-width:530px;
 	}
 }
+
 @media handheld, only screen and (max-width: 533px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:463px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
@@ -2428,11 +2433,17 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:410px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 360px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:290px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
@@ -2441,11 +2452,17 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:250px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 240px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:170px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
