@@ -5,7 +5,7 @@
 	</div>
 	<!--ET_BEGIN NAVIGATION-->
 	<div   id='cmsNavigation'  style='margin:2%'>
-	<div style='background-color:#ccc;padding:5px;border:solid 1px #aaa;'>
+	<div class='articles-navigation'>
 	Навигация
 	</div>
 		[#NAVIGATION#] 
