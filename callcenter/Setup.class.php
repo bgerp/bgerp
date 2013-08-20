@@ -71,7 +71,7 @@ class callcenter_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-           
+       'CALLCENTER_PROTECT_KEY' => array('varchar'),
        'CALLCENTER_DRAFT_TO_NOANSWER' => array('int'),
        'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar'),
     );
