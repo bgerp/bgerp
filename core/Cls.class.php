@@ -390,6 +390,52 @@ class core_Cls
             }
         }
     }
+    
+    
+    /**
+     * Показва дали даден клас имплементира даден метод.
+     * проверява дали:
+     * 1. съществуват методи  '<$methodName>' или '<$methodName>_'
+     * 2. дефолт метод с име 'on_After<$methodName>'
+     * 3. проверява във всеки плъгин закачен към класа дали
+     * има метод 'on_After<$methodName>'
+     * 
+     * @param mixed $class - име на клас или негова инстанция
+     * @param string $methodName - име на метода
+     * @return boolean TRUE/FALSE - дали дадения метод е имплементиран
+     */
+    public static function existsMethod($class, $methodName)
+    {
+    	if(is_scalar($class)) {
+            $classObj = cls::get($class);
+        } else {
+            $classObj = $class;
+        }
+        
+        // Очакваме, че $classObj е обект
+        expect(is_object($classObj), $class);
+        
+        // Ако има такъв метод в класа или неговото име с долна черта
+        if(method_exists($classObj, $methodName) || method_exists($classObj, "{$methodName}_")){
+        	return TRUE;
+        }
+        
+        // Ако има on_After метод по подразбиране
+        if(method_exists($classObj, "on_After{$methodName}")){
+        	return TRUE;
+        }
+        
+        $plugins = arr::make($classObj->loadList);
+        if(count($plugins)){
+        	foreach ($plugins as $name){
+        		if(method_exists($name, "on_After{$methodName}")){
+        			return TRUE;
+        		}
+        	}
+        }
+        
+        return FALSE;
+    }
 }
 
 // Съкратено име, за по-лесно писане
