@@ -1210,35 +1210,19 @@ class email_Incomings extends core_Master
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
         
-        $addrParse = cls::get('bglocal_Address');
+        $addrParse = cls::get('drdata_Address');
         
         Mode::push('text', 'plain');
+        Mode::push('ClearFormat', TRUE);
         $rt = new type_Richtext();
         $textPart = $rt->toHtml($msg->textPart);
+        $textPart = str_replace(array('&lt;', '&amp;'), array('<', '&'), $textPart);
+        Mode::pop('ClearFormat');
         Mode::pop('text');
 
-        $ap = $addrParse->extractContact($textPart);
+        $contragentData = $addrParse->extractContact($textPart);
         
-        $contragentData = new stdClass();
-        
-        if(count($ap['company'])) {
-            $contragentData->company = arr::getMaxValueKey($ap['company']);
-            
-            if(count($ap['company'] > 1)){
-                foreach($ap['company'] as $cName => $prob) {
-                    $contragentData->companyArr[$cName] =  $cName;
-                }
-            }
-        }
-        
-        if(count($ap['tel'])) {
-            $contragentData->tel = arr::getMaxValueKey($ap['tel']);
-        }
-        
-        if(count($ap['fax'])) {
-            $contragentData->fax = arr::getMaxValueKey($ap['fax']);
-        }
-        
+         
         // Ако няма хедъри
         // За съвместимост със стар код
         if (!$msg->headers) {
