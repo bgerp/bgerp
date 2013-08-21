@@ -23,7 +23,7 @@ class plg_Current extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param string $part поле от модела-домакин
-     * @param boolean $bForce Дали да редирек. към мениджъра ако не е избран текущ обект
+     * @param boolean $bForce Дали да редирект към мениджъра ако не е избран текущ обект
      */
     function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
     {
@@ -35,7 +35,7 @@ class plg_Current extends core_Plugin
             	if(isset($mvc->inChargeField)){
             		
 	            	// Ако потребителя има достъп само до 1 запис,
-		            // той се приемаза избран
+		            // той се приема за избран
 		            $query = $mvc->getQuery();
 		            $cu = core_Users::getCurrent();
 					$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
@@ -54,7 +54,7 @@ class plg_Current extends core_Plugin
     
     
     /**
-     * Слага id-to на даден мениджър в сесия
+     * Слага id-тo на даден мениджър в сесия
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
