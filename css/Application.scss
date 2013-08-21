@@ -64,43 +64,31 @@ $orange:#f90; /*оранжево като при ховър на менюто*/
  /*common elements*/
  dl {
 	margin:0;
+	min-width:300px;
 	dt {
 		display: block;
 		float: left;
-		width: 21.5%;
-		clear: both;
+		width: 25%;
 		text-align: right;
 		color: $quiet-gray;
 		margin-left: 0;
-		margin-right: 0;
 		line-height: 1.5em;
-		white-space: nowrap
+		white-space: nowrap;
 	}
 	dd {
-		margin-left: 10px;
-		margin-right: 0;
 		float:left;
+		width:73%;
+		margin-left:2%;
 		line-height: 1.5em;
-		max-width:76%;
 	}
 }
+
 .narrow dl{
 	dt{
-		width:34%;
+		width:35%;
 	}
 	dd{
-		max-width:63%;
-	}
-}
-table{
-	.dt {
-		width: 21.5%;
-		text-align: right;
-		color: $quiet-gray;
-		line-height: 1em;
-		white-space: nowrap;
-		padding-right:10px;
-		vertical-align:top;
+		width:63%;
 	}
 }
 
@@ -390,6 +378,7 @@ div.folder-cover{
 	}
 	.tab-page .detail-info{
 		margin-bottom: 0 !important;
+		margin-top:0;
 	}
 }
 
@@ -629,7 +618,7 @@ div.acc-detail {
 	}
 	&.portal{
 		padding-top:5px;
-		margin-top:0;
+		margin-top:10px;
 		p{
 			margin:0;
 		}
