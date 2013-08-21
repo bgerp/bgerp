@@ -9,7 +9,7 @@ defIfNot("SENDER_HOST", "localhost");
 /**
  * Стандартен и-мейл на изпращача
  */
-defIfNot("SENDER_EMAIL", '??????');
+defIfNot("SENDER_EMAIL", 'team@example.com');
 
 
 /**
@@ -64,9 +64,10 @@ class drdata_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-            'SENDER_HOST'   => array ('identifier', 'mandatory'),
-            'SENDER_EMAIL'  => array ('email', 'mandatory'),
-            'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory'),
+            'SENDER_HOST'   => array ('identifier', 'mandatory, caption=Настойки на проверителя на имейл адреси->Хост'),
+            'SENDER_EMAIL'  => array ('email', 'mandatory, caption=Настойки на проверителя на имейл адреси->`От` имейл'),
+            'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory, caption=Код на държава по подразбиране->Код'),
+            'DRDATA_AVOID_IN_EXT_ADDRESS' => array('text', 'caption=Избягвани под-стрингове при парсиране на вход. писма->Стрингове'),
         );
 
         
