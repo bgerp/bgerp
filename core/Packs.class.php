@@ -665,12 +665,20 @@ class core_Packs extends core_Manager
         foreach($description as $field => $params) {
             $attr = arr::make($params[1], TRUE);
             $attr['input'] = 'input';
-            if(defined($field)) {
-                $attr['hint'] = 'Стойност по подразбиране|*: ' . constant($field);
+
+            setIfNot($attr['caption'], '|*' . $field);
+
+            if(defined($field) && $data[$field]) {
+                    $attr['hint'] .= ($attr['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . constant($field) . '"';
             }
-            $attr['caption'] = '|*' . $field;
+
             $form->FNC($field, $params[0], $attr);
-            $form->setDefault($field, $data[$field]); 
+            if($data[$field]) { 
+                $form->setDefault($field, $data[$field]);
+            } elseif(defined($field)) {
+                $form->setDefault($field, constant($field));
+                $form->setField($field, array('attr' => array('style' => 'color:#999;')));
+            }
         }
 
         $form->setHidden('pack', $rec->name);
@@ -682,13 +690,18 @@ class core_Packs extends core_Manager
             // $data = array();
 
             foreach($description as $field => $params) {
-                $data[$field] = $form->rec->{$field};
+                $sysDefault = defined($field) ? constant($field) : '';
+                if($sysDefault != $form->rec->{$field}) { //bp($field, constant($field), $data[$field], BGERP_BLAST_SUCCESS_ADD);
+                    $data[$field] = $form->rec->{$field};
+                } else {
+                    $data[$field] = '';
+                }
             }
 
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
-            $this->log($data->cmd, $rec->id);
+            $this->log($data->cmd, $rec->id, "Промяна на конфигурацията на пакет {$packName}");
             
             return new Redirect(array($this));
         }
