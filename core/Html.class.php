@@ -749,14 +749,25 @@ class core_Html
         static $i = 0;
 
         $i++;
+        
+        $r = gettype($o);
 
         if ($i > self::$dumpMaxDepth) {
             $i--;
+            
+            if(is_array($o)) {
+                $res = '(object)';
+            } elseif(is_object($o)) {
+                $res = '(array)';
+            } elseif(is_scalar($o)) {
+                $res = $o;
+            } else {
+                $res = '...';
+            }
 
-            return "...";
+            return $res;
         }
 
-        $r = gettype($o);
 
         if (is_object($o)) {
             $r = get_class($o);
