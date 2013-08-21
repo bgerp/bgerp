@@ -517,9 +517,10 @@ class bglocal_Address extends core_MVC
         
         // Позиция
         if(preg_match("/(strategy|projects|purchaser|accountancy|design|sales|services|" .
-                "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" . "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
+                "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" . 
+                "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
                 "|depart\.|manager|buyer|Direktorius|officer|support|обслужване|managing|executive|изпълнителен|" .
-                "директор|отдел|department|изпълнителен|управител|специалист)/ui", $line)) {
+                "директор|отдел|department|изпълнителен|управител|специалист|мениджър|отдел|Корпоративни Клиенти)/ui", $line)) {
             $res['position'][$line][] = ($res['maxIndex']['name'] < 3) ? 10 : 5;
             $res['position'][$line][] =  45;
             
