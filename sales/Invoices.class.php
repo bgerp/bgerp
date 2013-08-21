@@ -20,7 +20,8 @@ class sales_Invoices extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, 
+                        acc_TransactionSourceIntf, bgerp_DealIntf';
     
     
     /**
@@ -868,7 +869,15 @@ class sales_Invoices extends core_Master
         $rec = self::fetchRec($id);
         $rec->state = 'active';
                 
-        return self::save($rec);
+        if (self::save($rec)) {
+
+            // Нотификация към пораждащия документ, че нещо във веригата му от породени документи
+            // се е променило.
+            if ($origin = self::getOrigin($rec)) {
+                $rec = new core_ObjectReference(get_called_class(), $rec);
+                $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
+            }
+        }
     }
     
     
