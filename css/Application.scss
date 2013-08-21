@@ -1493,6 +1493,8 @@ fieldset.sharing-history {
 }
 
 #all {
+	border: solid 1px #777;
+	border-bottom: solid 1px #000;
 	max-width: 1000px;
 	display: block;
 	margin: 10px auto;
@@ -1942,7 +1944,6 @@ div.location{
 }
 
 /*край на стилове за локации*/
-
 
 .info-table ul{
 	padding:0;
