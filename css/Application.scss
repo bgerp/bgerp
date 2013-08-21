@@ -1802,7 +1802,7 @@ fieldset.sharing-history {
 }
 
 .narrow .whole-page .listRows .listTable{
-	margin-bottom:0;
+	margin-bottom:2px;
 }
 
 .narrow .whole-page div.alphabet  div.tab-row {
@@ -1817,14 +1817,13 @@ fieldset.sharing-history {
 }
 .narrow .whole-page .listRows::-webkit-scrollbar{
 	-webkit-appearance: none;
-	width: 14px;
-	height: 14px;
+	width: 10px;
+	height: 10px;
 }
 
 .narrow .whole-page .listRows::-webkit-scrollbar-thumb{
 	border-radius: 8px;
-	border: 3px solid #fff;
-	background-color: rgba(0, 0, 0, .3);
+	background-color: rgba(0, 0, 0, .2);
 }
 /*край на стилове при скролиране на таблица*/
 
@@ -1895,7 +1894,6 @@ table.styled-table tr:hover td {
 
 /*стилове за локации*/
 div.location{
-	min-width: 560px;
 	max-width: 750px;
 	@include border-radius(5px);
 	border:1px solid #ccc;
