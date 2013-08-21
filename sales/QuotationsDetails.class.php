@@ -84,7 +84,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,value=no');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=1');
     }
     
     
@@ -141,6 +141,7 @@ class sales_QuotationsDetails extends core_Detail {
        $Policy = cls::get($rec->policyId);
        $productMan = $Policy->getProductMan();
        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+       $form->setDefault('optional', 'no');
        
        // Ако офертата е базирана на спецификация, то тя може да
        // се добавя редактира в нея дори ако е чернова
@@ -324,8 +325,12 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
+    	$sayWords = ($afterDisc) ? $afterDisc : $total;
+    	$SpellNumber = cls::get('core_SpellNumber');
     	$data->total = (object) array('total' => $double->toVerbal($total), 
-    								  'totalDisc' => $double->toVerbal($afterDisc));
+    								  'totalDisc' => $double->toVerbal($afterDisc),
+    								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE),
+    								  'currencyTotalId' =>$data->masterData->rec->paymentCurrencyId);
     }
     
     
@@ -398,15 +403,24 @@ class sales_QuotationsDetails extends core_Detail {
     		} else {
     			$data->total->total = "<b>{$data->total->total}</b>";
     		}
+    		
     		$dTpl->placeObject($data->total);
     	}
     	
+    	$vatRow = ($data->masterData->rec->vat) ? tr('с') : tr('без');
+    	$misc = $data->masterData->rec->paymentCurrencyId . ", " . $vatRow;
+    	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
+    	$dTpl->append(tr('Оферирани'), 'TITLE');
+    	$dTpl->append($misc, "MISC");
     	$dTpl->removeBlocks();
     	$tpl->append($dTpl, 'MANDATORY');
     	
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
+    		$oTpl->append(tr('Опционални'), 'TITLE');
+    		$misc = $data->masterData->rec->paymentCurrencyId;
+    		$oTpl->append($misc, "MISC");
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
     	
@@ -447,15 +461,16 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	if($rec->discount){
     		$row->price = "<span class='oldAmount' style='text-decoration:none'>{$row->price}</span>";
-    		$row->discount = "<span class='newAmount'>{$row->discount}</span>";
+    		$row->discount = "<b>{$row->discount}</b>";
     	} else {
     		$row->price = "<b>{$row->price}</b>";
     	}
     	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
     	if($rec->discAmountVat){
+    		$row->currencyId = $mvc->Master->fetchField($rec->quotationId, 'paymentCurrencyId');
     		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
-    		$row->discAmount = "<span class='newAmount'>{$row->discAmount}</span>";
+    		$row->discAmount = "<b>{$row->discAmount}</b>";
     	} else {
     		$row->amount = "<b>{$row->amount}</b>";
     	}

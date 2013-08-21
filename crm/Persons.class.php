@@ -383,7 +383,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
-            $data->title = "Лица в групата|* \"<b style='color:green'>" .
+            $data->title = "Лица в групата \"<b style='color:green'>" .
             crm_Groups::getTitleById($data->groupId) . "</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .

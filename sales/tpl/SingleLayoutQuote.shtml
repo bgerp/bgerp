@@ -48,14 +48,12 @@
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN MANDATORY-->
 	<div id='details-holder'>
-	<p class='table-detail-header'>|Оферирани продукти и услуги|*</p>
 	[#MANDATORY#]
 	</div>
 	<!--ET_END MANDATORY-->
 	
 	<!--ET_BEGIN OPTIONAL-->
 	<div id='optional-holder'>
-	<p class='table-detail-header'>|Опционални продукти и услуги|*</p>
 	[#OPTIONAL#]
 	</div>
 	<!--ET_END OPTIONAL-->
@@ -63,10 +61,13 @@
 	[#ListToolbar#]
 	<p id='condition-title'> |Условия на офертата|*</p>
 	<ol id='conditions'>
-		<li>|Всички цени са в|* [#paymentCurrencyId#], [#vat#] |ДДС|* 
 		<!--ET_BEGIN rate-->|при курс|* [#rate#]<!--ET_END rate--></li>
 		<!--ET_BEGIN validFor-->
-			<li>|Офертата е валидна до [#validFor#] дни след датата на издаване|*</li>
+			<li>|Офертата е валидна до|* [#validFor#] |дни след датата на издаване|* 
+			<!--ET_BEGIN expired-->
+			<span class='expired-quote'>([#expired#])</span>
+			<!--ET_END expired-->
+			</li>
 		<!--ET_END validFor-->
 		<li>|Начин на плащане|*: [#paymentMethodId#]</li>
 		<li>|Условие на доставка|*: [#deliveryTermId#]</li>
@@ -77,7 +78,6 @@
 		[#others#]
 		<!--ET_END others-->
 	</ol>
-	
 	<p id='quote-username'><b>|ПОДПИС и ПЕЧАТ|*:</b> <span id='sign-place'></span><span  class='sign-user'>/ &nbsp;<b>[#username#]</b>&nbsp; /</span></p>
 		<div class='details'>
 			<!--ET_BEGIN DETAILS-->

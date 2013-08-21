@@ -4,7 +4,7 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-
+	
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
@@ -160,5 +160,38 @@
     </tr>
     </tbody>
 </table>
+
+<div class="sale-summary">
+<table cellspacing="5">
+    <colgroup span="5" width="20%" />
+    <thead>
+    <tr>
+        <th>
+            Поръчано
+        </th>
+        <th>
+            Платено
+        </th>
+        <th>
+            Доставено
+        </th>
+        <th>
+            Фактурирано
+        </th>
+        <th>
+            Остатък
+        </th>
+    </tr>
+    </thead>
+    <tr>
+        <td>[#amountDeal#]</td>
+        <td>[#amountPaid#]</td>
+        <td>[#amountDelivered#]</td>
+        <td>[#amountInvoiced#]</td>
+        <td>[#amountToPay#]</td>
+    </tr>
+</table>
+</div>
+
 
 </div>

@@ -1,0 +1,40 @@
+
+.sale-summary {
+    margin-top: 10px;
+    margin-left: -5px;
+    margin-right: -5px;
+
+    table {
+
+       width: 100%;
+       border-collapse: separate;
+       border-spacing: 5px 0;
+        
+	   thead {
+	       font-size: 13px;
+	   }
+	   
+	   td, th {
+	       text-align: center;
+	   	   border: 1px solid #ccc;
+	   }
+	   
+	   th {
+	       background-color: #efefef;
+	   	   font-weight: normal;
+	   	   color: #555;
+	   	   border-bottom: none;
+	   }
+
+	   td {
+	       font-size: 1.6em;
+	   	   font-weight: bold;
+	   	   padding: 5px 3px;
+	   	
+	   	   .quiet {
+	           color: #ccc;
+	   	       font-weight: normal;
+	   	   }
+	   }
+    }
+}

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Parameters extends core_Manager
+class salecond_Parameters extends core_Master
 {
     
     
@@ -27,6 +27,12 @@ class salecond_Parameters extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'tools=Пулт, name, type';
     
     
     /**
@@ -66,6 +72,18 @@ class salecond_Parameters extends core_Manager
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+    
+    
+    /**
      * Кой може да добавя
      */
     var $canAdd = 'ceo,salecond';
@@ -77,7 +95,7 @@ class salecond_Parameters extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Текст,date=Дата,enum=Изброим,percent=Процент)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');

@@ -152,7 +152,7 @@ class sales_Sales extends core_Master
     /**
      * 
      */
-   var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoiceSale.shtml';
+   var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
     /**
      * Групиране на документите
@@ -287,12 +287,10 @@ class sales_Sales extends core_Master
     {
         $rec = static::fetchRec($rec);
         
-        wp($rec);
-        
         if (!empty($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
         } else {
-            bp($rec);
+            $origin = FALSE;
         }
         
         return $origin;
@@ -307,7 +305,9 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        $origin = static::getOrigin($rec);
+        if (!$origin = static::getOrigin($rec)) {
+            return;
+        }
     
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
         // използваме го за автоматично попълване на детайлите на ЕН
@@ -321,7 +321,6 @@ class sales_Sales extends core_Master
             /* @var $product bgerp_iface_DealProduct */
             foreach ($agreed->products as $product) {
                 $product = (object)$product;
-                wp($product);
 
                 if ($product->quantity <= 0) {
                     continue;
@@ -875,13 +874,23 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (empty($row->amountDeal)) {
-            $row->amountDeal = '0.00';
-        }
-        $row->amountDeal = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDeal;
+//         if (empty($row->amountDeal)) {
+//             $row->amountDeal = '0.00';
+//         }
+//         $row->amountDeal = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDeal;
         
-        if (!empty($rec->amountPaid)) {
-            $row->amountPaid = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountPaid;
+//         if (!empty($rec->amountPaid)) {
+//             $row->amountPaid = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountPaid;
+//         }
+        
+//         $row->amountDelivered = '<span class="cCode">' . $row->currencyId . '</span> ' . $row->amountDelivered;
+        
+        foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+            if ($rec->{"amount{$amnt}"} != 0) {
+                $row->{"amount{$amnt}"} = '<span class="cCode">' . $row->currencyId . '</span> ' .  $row->{"amount{$amnt}"};
+            } else {
+                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            }
         }
         
         $amountType = $mvc->getField('amountDeal')->type;

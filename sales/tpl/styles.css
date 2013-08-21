@@ -65,7 +65,7 @@
 
 #details-holder, #optional-holder{
 	margin-left:30px;
-	padding-top:0px;
+	padding-top:15px;
 }
 
 #optional-holder{
@@ -76,21 +76,27 @@
 .narrow #conditions, .narrow .document .listToolbar{
 	margin-left:0;
 }
+
 .narrow .document .listToolbar .toolbar{
 	padding-left:0;
 }
+
 .narrow .products-table{
 	font-size:0.9em;
 	width:100%;
 }
+
 #details-holder p, #optional-holder p{
 	margin-bottom:10px;
-	font-weight:bold;
 }
 
-.total-td-label{
-	border-bottom:1px solid transparent !important;
-	border-left:1px solid transparent !important;
+.products-table tr td.total-td-label{
+	1border-bottom:1px solid transparent !important;
+	1border-left:1px solid transparent !important;
+	vertical-align:bottom !important;
+	text-align:right;
+	font-size:0.9em;
+	padding-right:6px;
 }
 
 .total-quote-td{
@@ -135,7 +141,7 @@
 
 .quiantity-misc{
 	padding-top:5px;
-	font-size:14px;
+	font-size:0.9em;
 }
 
 .document .listToolbar{
@@ -159,13 +165,8 @@
 
 .oldAmount {
 	text-decoration:line-through;
-	font-size:14px;
+	font-size:0.9em;
 	color: #999999;
-}
-
-.newAmount {
-	font-weight:bold;
-	font-size:14px;
 }
 
 .page-break{
@@ -185,7 +186,7 @@
 }
 
 .discount{
-	font-size:14px;
+	font-size:0.9em;
 }
 
 .richtext table{
@@ -217,4 +218,11 @@
 	#quot-title-td{
 		width:60%;
 	}
+}
+
+.expired-quote{
+	color:darkred;
+	font-weight:bold;
+	font-style:italic;
+	margin-left:5px;
 }

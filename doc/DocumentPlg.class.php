@@ -349,11 +349,14 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->state != 'draft'){
         	
 	    	$usedDocuments = $mvc->getUsedDocs($rec->id);
-	    	$fnc = ($rec->state == 'rejected') ? 'cancelUsed' : 'used';
 	    	if(count($usedDocuments)){
 	    		$Log = cls::get('log_Documents');
 	    		foreach($usedDocuments as $used){
-	    			$Log::$fnc($used->class, $used->id, $mvc, $rec->id);
+	    			if($rec->state == 'rejected'){
+	    				$Log::cancelUsed($used->class, $used->id, $mvc, $rec->id);
+	    			} else {
+	    				$Log::used($used->class, $used->id, $mvc, $rec->id);
+	    			}
 	    		}
 	    	}
         }
@@ -1561,7 +1564,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetOrigin(core_Mvc $mvc, &$origin, $rec, $intf = NULL)
     {
-        if (!empty($origin)) {
+        if (isset($origin)) {
             return;
         }
         

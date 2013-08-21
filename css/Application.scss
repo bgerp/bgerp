@@ -298,19 +298,9 @@ a.menuItem:hover, a.menuItem:active, a.menuItem:focus  {
 /*край на менюта и подменюта*/
 
 /*стилове за корици*/
-div.cover{
-	min-width: 600px;
-	max-width: 750px;
-	@include border-radius(5px);
-	border:1px solid #ccc;
-	padding:0 20px 20px;
-	margin-top: 16px;
-}
-
 div.folder-cover{
 	background-image:url('../img/cover-bg.png');
 	display: inline-block;
-	min-width: 510px;
 	max-width: 750px;
 	margin-top: 16px;
 	line-height:1.2em;
@@ -865,9 +855,8 @@ pre.document{
 	white-space:pre-line;
 }
 
-.narrow .document{
+.narrow .listTable > tbody > tr > td div.document{
 	min-width:200px;
-	padding:10px;
 	width:98%;
 }
 
@@ -1449,17 +1438,13 @@ fieldset.sharing-history {
 /*край на външни стилове за ширина*/
 
 #cmsTop, #headerImg {
-	background-repeat: no-repeat;
 	display: block;
 	@include border-radius4(10px, 10px, 0, 0);
 }
 
-
-
 #cmsMenu {
 	float:left;
 	width:100%;
-    margin-left:-2;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	text-align: left;
@@ -1508,6 +1493,8 @@ fieldset.sharing-history {
 }
 
 #all {
+	border: solid 1px #777;
+	border-bottom: solid 1px #000;
 	max-width: 1000px;
 	display: block;
 	margin: 10px auto;
@@ -1523,12 +1510,15 @@ fieldset.sharing-history {
 .narrow #all{
 	margin:0 auto;
 }
+
 .narrow #all #maincontent{
 	padding: 2px 5px 5px;
 }
+
 .wide #login-form{
 	padding:40px;
 }
+
 .narrow #login-form{
 	padding:10px;
 }
@@ -1572,6 +1562,57 @@ fieldset.sharing-history {
 	margin-left: 20px;
 }
 
+.narrow .articles-navigation{
+	background-color:#ccc;
+	padding:5px;
+	border:solid 1px #aaa;
+	clear:both;
+	margin-bottom:5px
+}
+
+.richtext h1,.richtext h2,.richtext h3 { 
+	clear:both;
+}
+
+.clear-center{
+	max-width:600px;
+	img{
+		max-width:100%;
+		height:auto;
+	}
+}
+
+.clear-right{
+	float:right;
+	margin-left: 10px;
+	margin-bottom: 10px;
+	margin-top:3px;
+	padding: 5px;
+	border: solid 1px #CCC;
+	background: #F0F0F0;
+}
+
+.clear-right:after {
+    content:'';
+    display:block;
+    clear: both;
+}
+
+.clear-left{
+	float:left;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	margin-top:3px;
+	padding: 5px;
+	border: solid 1px #CCC;
+	background: #F0F0F0;
+}
+
+.clear-left:before{
+	 content:'';
+    display:block;
+    clear: both;
+}
 /*край на CMS*/
 
 
@@ -1864,18 +1905,54 @@ table.styled-table tr:hover td {
 
 
 /*стилове за локации*/
+div.location{
+	min-width: 560px;
+	max-width: 750px;
+	@include border-radius(5px);
+	border:1px solid #ccc;
+	padding:10px 20px 20px;
+	margin-top: 16px;
+	h2{
+		margin-top:0;
+		background-color: transparent;
+	}
+	ul{
+		padding:0;
+		margin:0;
+		list-style-type:none;
+		li{
+			padding:0;
+			margin:0;
+			list-style-type:none;
+		}
+	}
+	.loc-map{
+		margin-top:20px;
+		text-align:center;
+		> div{
+		 	width:99% !important;
+		}
+	}
+	div.locImage{
+		padding-bottom:0;
+	}
+	.gray-title{
+		color:#666;
+		display:inline;
+		vertical-align:baseline;
+	}
+}
+
+/*край на стилове за локации*/
+
 .info-table ul{
 	padding:0;
 	margin:0;
+	list-style-type:none;
 	.part{
 		float:left;
 		width:50%;	
 	}
-}
-
-.narrow .info-table	.cover{
-	min-width:380px;
-	padding:0px 8px 8px;
 }
 
 .narrow .info-table{
@@ -1891,23 +1968,6 @@ table.styled-table tr:hover td {
 	color:#666;
 }
 	
-.detail-info ul{
-	list-style:none;
-}
-	
-.loc-map{
-	margin-top:20px;
-	text-align:center;
-	> div{
-	 	width:99% !important;
-	}
-}
-div.locImage{
-	padding-bottom:0;
-}
-/*край на стилове за локации*/
-
-
 /*шаблон за пускане в експлоатация на ДА*/
 .calign{
 	text-align:center;
@@ -2213,7 +2273,6 @@ div.locImage{
 	text-align:left;
 }
 
-
 .free-text {
 	max-width: 600px;
 	text-align: justify;
@@ -2227,6 +2286,19 @@ div.locImage{
 
 /*край на бъгфиксове*/
 
+/*Стилове за скролиране на публикувани обекти*/
+.scrolling-holder{
+	width: 100% !important;
+	overflow-x: auto !important;
+	_overflow: auto !important;
+	> div{
+		margin-bottom:5px;
+	}
+	.folder-cover{
+		margin-right:2px;
+	}
+}
+/*край на стилове за скролиране на публикувани обекти*/
 
 /*queries*/
 
@@ -2323,6 +2395,9 @@ div.locImage{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:570px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2341,9 +2416,13 @@ div.locImage{
 		max-width:530px;
 	}
 }
+
 @media handheld, only screen and (max-width: 533px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:463px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
@@ -2357,11 +2436,17 @@ div.locImage{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:410px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 360px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:290px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
@@ -2370,11 +2455,17 @@ div.locImage{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:250px;
 	}
+	.narrow #all{
+		border:none;
+	}
 }
 
 @media handheld, only screen and (max-width: 240px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:170px;
+	}
+	.narrow #all{
+		border:none;
 	}
 }
 
@@ -2499,5 +2590,7 @@ div.locImage{
 		margin-top: 10px;
 		min-width: 0px;
 		width:850px;
-	}
+	} 
 }
+
+@import "partials/sales";

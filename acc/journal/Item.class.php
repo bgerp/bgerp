@@ -41,7 +41,7 @@ class acc_journal_Item
             list($classId, $objectId) = $classId;
             $classId = core_Classes::getId($classId);
         }
-
+        
         if (!isset($objectId)) {
             expect(is_null($classId) || is_numeric($classId), (array)$classId, $objectId);
 

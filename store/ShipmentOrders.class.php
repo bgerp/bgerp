@@ -167,6 +167,9 @@ class store_ShipmentOrders extends core_Master
         
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)',
+            'input=none,caption=Плащане->Валута');
+                
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
             'caption=От склад, mandatory'); // наш склад, от където се експедира стоката
         
@@ -451,6 +454,15 @@ class store_ShipmentOrders extends core_Master
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id) && !empty($form->rec->originId)) {
+            // ... проверяваме предхождащия за bgerp_DealIntf
+            $origin = doc_Containers::getDocument($form->rec->originId);
+            
+            if ($origin->haveInterface('bgerp_DealIntf')) {
+                /* @var $dealInfo bgerp_iface_DealResponse */
+                $dealInfo = $origin->getDealInfo();
+                $form->setDefault('currencyId', $dealInfo->agreed->currency);
+            }
+            
             // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
             // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото

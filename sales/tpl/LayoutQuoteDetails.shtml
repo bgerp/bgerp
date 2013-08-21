@@ -1,3 +1,4 @@
+<p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#MISC#] |ДДС|*</p>
 <table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px'>
 	<tr>
 		<th width='4%'>№</th>
@@ -29,22 +30,42 @@
 		</td>
 		
 		<td class='misc-info expandable' align='right' valign='top'>
-		[#price#]
+		[#price#] 
+		
 		<!--ET_BEGIN discount-->
-		<div class='discount'>- [#discount#] |ТО|*</div>
+		<div class='discount'>- [#discount#] |ТО|*
+		</div>
 		<!--ET_END discount-->
 		</td>
 		<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>
+		<!--ET_BEGIN currencyId-->
+		<span class='cCode'>[#currencyId#]</span>
+		<!--ET_END currencyId-->
 		[#amount#]
+		
 		<!--ET_BEGIN discAmount-->
-		<div class='discount'>[#discAmount#]</div>
+		<div class='discount'>
+		<!--ET_BEGIN currencyId-->
+		<span class='cCode'>[#currencyId#]</span>
+		<!--ET_END currencyId-->
+		[#discAmount#]
+		</div>
 		<!--ET_END discAmount-->
 		</td>
 	</tr>
 <!--ET_END ROW-->
-<!--ET_BEGIN total-->
+<!--ET_BEGIN totalPlace-->
+[#totalPlace#]
 <tr>
-	<td colspan='4' class='total-td-label'></td>
+	<td colspan='4' class='total-td-label'>
+	<!--ET_BEGIN sayWords-->
+	<div><b>|Словом|*</b>: [#sayWords#] &nbsp;
+	<!--ET_END sayWords-->
+	<!--ET_BEGIN currencyTotalId-->
+		<span class='cCode'>[#currencyTotalId#]</span>
+	<!--ET_END currencyTotalId-->
+	</div>
+	</td>
 	<td colspan='2' align='right' class='expandable total-quote-td'>
 	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 	<!--ET_BEGIN totalDisc-->
@@ -52,5 +73,5 @@
 	<!--ET_END totalDisc-->
 	</td>
 </tr>
-<!--ET_END total-->
+<!--ET_END totalPlace-->
 </table>

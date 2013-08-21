@@ -133,7 +133,8 @@ class store_shipmentorders_Transaction
         
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
-
+        $currencyId   = currency_Currencies::getIdByCode($rec->currencyId);
+        
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
@@ -141,7 +142,7 @@ class store_shipmentorders_Transaction
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $rec->currencyId),     // Перо 2 - Валута
+                        array('currency_Currencies', $currencyId),     // Перо 2 - Валута
                     'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
                 ),
                 
@@ -203,6 +204,6 @@ class store_shipmentorders_Transaction
      */
     protected function getCurrencyRate($rec)
     {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyCode, NULL);
+        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
 }

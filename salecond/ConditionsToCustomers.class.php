@@ -72,8 +72,16 @@ class salecond_ConditionsToCustomers extends core_Manager
     		$form->setReadOnly('conditionId');
     	}
     	
-    	if($form->rec->conditionId){
-    		$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'salecond_Parameters');
+    	if($rec->conditionId){
+    		$condType = salecond_Parameters::fetchField($rec->conditionId, 'type');
+    		
+    		if($condType == 'delCond'){
+    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'salecond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
+    		} elseif($condType == 'payMethod'){
+    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'salecond_paymentMethods', 'select' => 'name', 'allowEmpty' => 'allowEmpty')));
+    		} else {
+    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'salecond_Parameters');
+    		}
     	} else {
     		$form->setField('value', 'input=hidden');
     	}
@@ -96,9 +104,13 @@ class salecond_ConditionsToCustomers extends core_Manager
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
             $type = salecond_Parameters::fetchField($rec->conditionId, 'type');
-            if($type != 'enum'){
+            if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
             	$Type = cls::get("type_{$type}");
             	$row->value = $Type->toVerbal($rec->value);
+            } elseif($type == 'delCond'){
+            	$row->value = salecond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
+            } elseif($type == 'payMethod'){
+            	$row->value = salecond_paymentMethods::getTitleById($rec->value);
             }
             $data->rows[$rec->id] = $row; 
         }
