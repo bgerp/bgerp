@@ -125,10 +125,10 @@ class plg_Current extends core_Plugin
     		if(isset($mvc->inChargeField)){
 	    		if($rec->{$mvc->inChargeField} && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
 	    			$res = 'no_one';
-	    		} else {
-	    			$res = $mvc->GetRequiredRoles('write', $rec);
 	    		}
-    		}
+    		} else {
+	    	    $res = $mvc->GetRequiredRoles('write', $rec);
+	        }
     	}
     }
 }
