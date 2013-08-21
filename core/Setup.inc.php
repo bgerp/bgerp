@@ -97,13 +97,22 @@ header("Content-Type: text/html; charset=UTF-8");
 $texts['styles'] = "
 <style type=\"text/css\">
 body {
-    background-color:#119; 
-    color:white;
+    background-color:#7bb6f8; 
+    color:#000;
     font-family:Verdana,Arial;
+	margin:0;
+}
+
+.setup-body{
+	margin:5px;
+}
+
+ul{
+	padding:0;
 }
 
 a {
-    color:#ffff33;
+    color:#ffff00;
 }
 
 a:hover {
@@ -114,40 +123,80 @@ a:hover {
     text-align:justify;
 }
 
+.holder{
+	width:800px;
+	padding:20px;
+}
+
 .msg {
     width:100%;
+	padding:0;
 }
 
-
-.msg th {
+.msg li.step , .msg.stats li{
     padding:10px;
     font-weight:normal;
-    border:solid 2px white;
-    background-color:#0000cc;
+	box-shadow:0 0 5px rgba(0,0,0,0.5);
+    background-color:#94cbf9;
+	width:24.8%;
+	float:left;
+	padding:1em 0;
+	text-align:center;
+	margin:0 0.1%;
+	list-style:none;
 }
 
+.msg li a {
+	line-height:normal !important;
+	outline:none;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.msg li.step{
+	margin-bottom:0.3%;
+	white-space:nowrap;
+}
+
+.msg li.step a{
+	display:block;
+}
+
+li.clear{
+	list-style:none;
+	clear:both;
+}		
+
+.msg.stats li{
+	width:99.8%;
+	margin:0 0.1% 20px;
+}
+		
 h1 {
-    font-size:2.2em;
-    margin:0px;
-    text-shadow: 2px 4px 3px rgba(0,0,0,0.3);
+   	font-size:2.2em;
+	margin:0px;
+	color: #FFF;
+	text-shadow: 2px 4px 3px rgba(0, 0, 0, 0.3);
 }
 
 #logo {
     box-shadow: 2px 4px 3px rgba(0,0,0,0.3);
+	background: #FFF;
+	width:32px;
+	display:inline-block; 
+	margin-right:10px;
 }
-
 
 #step" . $step . " {
     color:black !important;
-    background-color:#ffcc00 !important;
+    background-color:#fbfbab !important;
 }
+
 #astep" . $step . " {
  color:000 !important;
-
 }
 
 a.menu {
- color:fff !important;
+ color:#000 !important;
  text-decoration:none;
 }
 
@@ -164,7 +213,7 @@ a.menu {
 }
 
 .err, .err b {
-    color:red !important;
+    color:#e00 !important;
     text-decoration:blink;
     line-height:1.5em;
 }
@@ -175,20 +224,17 @@ a.menu {
 
 .new {
     line-height:1.5em;
-    color:#33ff00 !important;
+    color:#169000 !important;
 }
 
 .wrn, .wrn b {
-    color:#ff9900 !important;
+    color:#081dc8 !important;
     line-height:1.5em;
 }
 
 #progress {
     list-style-type: none;
-    background-color: #119;
-    position:absolute;
-    left: 0px;
-    top: 105px;
+	padding-bottom:10px;
 }
 
 #progressTitle {
@@ -199,9 +245,9 @@ a.menu {
 }
 
 #progressIndicator {
- text-align: right;
- padding-right: 2px;
- background-color: #ffcc00;
+ 	text-align: right;
+ 	padding-right: 2px;
+ 	background-color: #ffcc00;
 }
 
 #progressPercents {
@@ -214,7 +260,7 @@ a.menu {
     border: 0px;
     margin: 0;
     padding: 0;
-    width: 790px;
+    width: 800px;
     height: 610px;
     overflow: hidden;
 }
@@ -223,11 +269,10 @@ a.menu {
     position:absolute;
     left: 0px;
     top: 180px;
-    1border-top: red 5px solid;
-    width: 790;
-    height: 425;
+    width: 800px;
+    height: 425px;
     overflow:auto;
-    background-color: #119;
+	background-color: rgba(255, 255, 255, 0.3);
 }
 
 #success {
@@ -235,6 +280,100 @@ a.menu {
     top:110px;
     padding-left:190px;
 }
+
+#startHeader li{
+	font-size:0.85em;
+}
+		
+@media handheld, only screen and (max-width: 768px){
+	.holder{
+		width:100%;
+		padding:0;
+	}
+	
+	.holder > table{
+		width:100% !important;
+	}
+}
+
+@media handheld, only screen and (max-width: 320px), only screen and (max-width:533px), only screen and (max-width: 480px), only screen and (max-width: 640px) {  
+	
+	.msg li.step{
+		width:99.8%;
+		margin-bottom:0.2em;
+	}
+	.msg li.step a{
+		text-align:left;
+		font-size:1.1em;
+		padding-left:1em;
+	}
+	.holder{
+		width:100%;
+		padding:0;
+	}
+	#progress{
+		width:100%;
+		overflow:hidden;
+	}
+	.holder > table{
+		width:100% !important;
+	}
+	
+	#init {
+		width:100%;
+	}
+	
+	#logo{
+		width:auto;
+	}
+	
+	#logo td{
+		height:6px;
+		width:4px;
+	}
+	#setupLog{
+		width:100%;
+		overflow:auto;
+	}
+	#init {
+		width:100%;
+		overflow:hidden;
+	}
+	.msg{
+		margin:0 0 20px;	
+	}
+	
+	h1{
+		font-size:1.6em;
+	}
+	
+	#progressTitle {
+		float:none;
+		width:100%;
+		text-align:center;
+	}
+		
+	#progressPercents{
+		display: block;
+		text-align:center;
+	}
+	
+	#success {
+		position: relative;
+		top: -26px;
+		font-size: 1.1em;
+		padding-left: 0;
+		padding-bottom: 20px;
+	}
+	
+	#setupLog {
+		top:200px;
+		width:100%;
+	}
+	#startHeader li{
+		background-color:#fbfbab !important;
+	}
+}	
 </style>
 ";
 
@@ -258,6 +397,7 @@ $layout =
 "<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=2\">
 <title>bgERP - настройване на системата (стъпка [#currentStep#] ". BGERP_GIT_BRANCH .")</title>
 [#styles#]
 
@@ -269,42 +409,34 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 <meta name=\"robots\" content=\"noindex,nofollow\">
 [#scripts#]
 </head>
-<body>
-<div style='width:800px;padding:20px;display:table;'>
-<table>
-<tr>
-    <td style='vertical-align:middle;width:32px;'>
-    <table id='logo'>
+<body class='setup-body'>
+<div class='holder'>
+<h1><table id='logo'>
     <tr>
-        <td style='background-color:#F79600'></td>
-        <td style='background-color:#00B8EF'></td>
-        <td style='background-color:#CA005F'></td>
+        <td style='background-color:#F79600'> </td>
+        <td style='background-color:#00B8EF'> </td>
+        <td style='background-color:#CA005F'> </td>
     </tr>
     <tr>
-        <td style='background-color:#4C9900'></td>
-        <td style='background-color:#050001'></td>
-        <td style='background-color:#4C9900'></td>
+        <td style='background-color:#4C9900'> </td>
+        <td style='background-color:#050001'> </td>
+        <td style='background-color:#4C9900'> </td>
     </tr>
     <tr>
-        <td style='background-color:#CA005F'></td>
-        <td style='background-color:#00B8EF'></td>
-        <td style='background-color:#F79600'></td>
+        <td style='background-color:#CA005F'> </td>
+        <td style='background-color:#00B8EF'> </td>
+        <td style='background-color:#F79600'> </td>
     </tr>
-    </table>
-    </td>
-    <td nowrap><h1>bgERP - настройване на системата</h1></td>
-</tr>
-</table>
+    </table>bgERP - настройване на системата</h1>
 <br>
-<table class='msg'>
-<tr>
-    <th id='step1'>1. <a class=menu id='astep1' href='" . $selfUri. "&amp;step=1'>Лиценз</a></th>
-    <th id='step2'>2. <a class=menu id='astep2' href='" . $selfUri. "&amp;step=2'>Обновяване</a></th>
-    <th id='step3'>3. <a class=menu id='astep3' href='" . $selfUri. "&amp;step=3'>Проверки</a></th>
-    <th id='step4'>4. <a class=menu id='astep4' href='" . $selfUri. "&amp;step=4'>Инициализиране</a></th>
-</tr>
-</table>
-<br>
+<ul class='msg'>
+    <li class='step' id='step1'><a class=menu id='astep1' href='" . $selfUri. "&amp;step=1'>1. Лиценз</a></li>
+    <li class='step' id='step2'><a class=menu id='astep2' href='" . $selfUri. "&amp;step=2'>2. Обновяване</a></li>
+    <li class='step' id='step3'><a class=menu id='astep3' href='" . $selfUri. "&amp;step=3'>3. Проверки</a></li>
+    <li class='step' id='step4'><a class=menu id='astep4' href='" . $selfUri. "&amp;step=4'>4. Инициализиране</a></li>
+    <li class='clear'></li>
+</ul>
+
 [#body#]
 </div>
 </body>
@@ -321,13 +453,13 @@ href=\"data:image/icon;base64,AAABAAEAEBAAAAAAAABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIA
 
 // Стъпка 1: Лиценз
 if($step == 1) {
-    $texts['body'] = "<table width='100%' class='msg'><tr><th>" .
-        "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></th></tr></table><br>";
+    $texts['body'] = "<ul class='msg stats'><li>" .
+        "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></li></ul><br>";
     $texts['body'] .= "\n<div id='license'>" . 
         file_get_contents(__DIR__ . '/../license/gpl3.html') .
         "</div>";
-    $texts['body'] .= "\n<br><table width='100%' class='msg'><tr><th>" .
-        "\n<a href='$nextUrl'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></th></tr></table>";
+    $texts['body'] .= "\n<br><ul class='msg stats'><li>" .
+        "\n<a href='$nextUrl'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></li></ul>";
 }
 
 
@@ -585,16 +717,16 @@ if($step == 3) {
     $texts['body'] =  logToHtml($log, $stat);
     
     if($stat['err']) {
-        $texts['body'] = "<table width='100%' class='msg'><tr><th>" .
-        "<a href='$selfUrl' class='err'>Отстранете грешките и опитайте пак...</a></th></tr></table><br>" .
+        $texts['body'] = "<ul class='msg stats'><li>" .
+        "<a href='$selfUrl' class='err'>Отстранете грешките и опитайте пак...</a></li><ul><br>" .
         $texts['body'];
     } elseif($stat['wrn']) {
-        $texts['body'] = "<table width='100%' class='msg'><tr><th>" .
-        "<a href='$nextUrl' class='wrn'>Има предупреждения. Ще продължите ли нататък? »</a></th></tr></table><br>" .
+        $texts['body'] = "<ul class='msg stats'><li>" .
+        "<a href='$nextUrl' class='wrn'>Има предупреждения. Ще продължите ли нататък? »</a></li><ul><br>" .
         $texts['body'];
     } else {
-        $texts['body'] = "<table width='100%' class='msg'><tr><th>" .
-        "<a href='$nextUrl'>&#10003; Всичко е наред. Продължете с инициализирането »</a></th></tr></table><br>" .
+        $texts['body'] = "<ul class='msg stats'><li>" .
+        "<a href='$nextUrl'>&#10003; Всичко е наред. Продължете с инициализирането »</a></li><ul><br>" .
         $texts['body'];
     }
 
@@ -840,8 +972,8 @@ function linksToHtml($links)
 {
     foreach($links as $l) {
         list($class, $url, $text, $target) = array_pad(explode('|', $l, 4), 4, '');
-        $html .= "\n<br><table width='100%' class='msg'><tr><th>" .
-            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n</th></tr></table><br>";
+        $html .= "\n<ul class='msg stats'><li>" .
+            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n</li></ul><br>";
     }
 
     return $html;

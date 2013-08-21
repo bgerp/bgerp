@@ -129,12 +129,12 @@ class type_Blob extends core_Type {
     public function toMysql($value, $db, $notNull, $defValue)
     {
         // Ако е указано - сериализираме
-        if($value !== NULL && $this->params['serialize']) {
+        if($value !== NULL && $value !== '' && $this->params['serialize']) {
             $value = serialize($value);
         }
         
         // Ако е указано - компресираме
-        if($value !== NULL && $this->params['compress']) {
+        if($value !== NULL && $value !== '' && $this->params['compress']) {
             if(($level = (int) $this->params['compress']) > 0) {
                 $value = gzcompress($value, $level);
             } else {
@@ -142,7 +142,7 @@ class type_Blob extends core_Type {
             }
         }
 
-        if($value !== NULL) {
+        if($value !== NULL && $value !== '') {
             
             $value = (string) $value;
             
@@ -167,7 +167,7 @@ class type_Blob extends core_Type {
     public function fromMysql($value)
     {   
         // Ако е указано - декомпресираме
-        if($value !== NULL && $this->params['compress']) {
+        if($value !== NULL && $value !== '' && $this->params['compress']) {
             $valueUnCompr = @gzuncompress($value);
             
             // Ако компресирането е било успешно
@@ -179,7 +179,7 @@ class type_Blob extends core_Type {
         }
         
         // Ако е указано - десериализираме
-        if ($value !== NULL && $this->params['serialize']) {
+        if ($value !== NULL && $value !== '' && $this->params['serialize']) {
             $value = @unserialize($value);
         }
         

@@ -113,6 +113,11 @@ class type_Email extends type_Varchar {
             
             return FALSE;
         }
+
+        if(!core_Url::isValidTld($email)) {
+
+            return FALSE;
+        }
         
         return TRUE;
     }
@@ -183,6 +188,14 @@ class type_Email extends type_Varchar {
     {
         preg_match_all('/[=\+\/\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i', $string, $matches);
         
+        if(is_array($matches[0])) {
+            foreach($matches[0] as $id => $eml) {
+                if(!self::isValidEmail($eml)) {
+                    unset($matches[0][$id]);
+                }
+            }
+        }
+
         return $matches[0];
     }
 }

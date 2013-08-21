@@ -974,4 +974,36 @@ class core_Manager extends core_Mvc
         
         return $title;
     }
+
+    
+    /**
+     * Валидиране на форма
+     * 
+     * @param core_Form $form
+     * @return boolean
+     */
+    public function validate(core_Form $form)
+    {
+        // Запазваме текущите стойности на `cmd` и `method`
+        $_backup = array($form->cmd, $form->method, $form->errors);
+        
+        $form->validate(NULL, FALSE, (array)$form->rec);
+        
+        // Временно променяме `cmd` и `method`. Целта е да "измамим" формата така, че метода
+        // й isSubmitted() да връща TRUE. Правим това, защото искаме да изпълним пълния набор
+        // от on_AfterInputEditForm()-хендлъри, а повечето от тях не правят нищо ако isSubmitted()
+        // върне FALSE.  
+        $form->cmd    = 'validate'; // Това за сега е произволно, работа върши всеки непразен стринг
+        $form->method = $_SERVER['REQUEST_METHOD'];
+        
+        // Генерираме събитие в $this, след въвеждането на формата
+        $this->invoke('AfterInputEditForm', array($form));
+        
+        $isValid = !$form->gotErrors();
+        
+        // Възстановяваме оригиналните ст-сти на `cmd` и `method`
+        list($form->cmd, $form->method, $form->errors) = $_backup;
+        
+        return $isValid;
+    }
 }

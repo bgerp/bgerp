@@ -85,7 +85,7 @@ class core_Setup {
     var $configDescription = array(
         
                
-           'EF_DATE_FORMAT'   => array ('varchar'),
+           'EF_DATE_FORMAT'   => array ('varchar', 'caption=Формат на датата'),
     
            'EF_DATE_NARROW_FORMAT'   => array ('varchar'),
          

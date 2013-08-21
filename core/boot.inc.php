@@ -323,7 +323,5 @@ mb_internal_encoding("UTF-8");
 setlocale(LC_ALL, 'en_US.UTF8');
 
 if (!defined('EF_DONT_AUTORUN')) {
-    @include EF_CONF_PATH . '/' . EF_APP_NAME . '.boot.php';
-        
     core_App::run();
 }
