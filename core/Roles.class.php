@@ -182,6 +182,8 @@ class core_Roles extends core_Manager
     {
         $roleQuery = core_Roles::getQuery();
         
+        $roleQuery->orderBy("#role", 'ASC');
+
         while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
             $res[$roleRec->id] = $roleRec->id;
         }

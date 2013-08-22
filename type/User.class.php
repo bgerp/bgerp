@@ -70,6 +70,7 @@ class type_User extends type_Key
             
             $uQuery = core_Users::getQuery();
             $uQuery->where("#state = 'active'");
+            $uQuery->orderBy("#names", 'ASC');
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
             $roles = core_Roles::getRolesAsKeylist($this->params['roles']);

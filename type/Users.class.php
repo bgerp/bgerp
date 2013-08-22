@@ -72,7 +72,8 @@ class type_Users extends type_Keylist
         } else {
             
             $uQuery = core_Users::getQuery();
-            
+            $uQuery->orderBy("#names", 'ASC');
+
             $defUser = trim($defUser, '|');
             if(is_numeric($defUser) && $defUser > 0) { 
                 $defUserCond = " || (#id = {$defUser})";

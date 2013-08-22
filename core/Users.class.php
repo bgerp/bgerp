@@ -885,7 +885,9 @@ class core_Users extends core_Manager
         $rolesArr = keylist::toArray($roles);
         
         $roleQuery = core_Roles::getQuery();
-        
+
+        $roleQuery->orderBy("#role", 'ASC');
+
         if($type) {
             $cond = "#type = '{$type}'";
         } else {
