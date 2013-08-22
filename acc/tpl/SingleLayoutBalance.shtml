@@ -8,12 +8,12 @@
             <!--ET_END accountId-->
             <table class="styled-table">
 				<tr>
-					<td class="title-style">Период</td>
+					<td class="title-style">|Период|*</td>
 					<td> [#periodId#]</td>
 				</tr>
 				<!--ET_BEGIN lastCalculate-->
 				<tr>
-					<td class="title-style">Изчислен</td>
+					<td class="title-style">|Изчислен|*</td>
 					<td>[#lastCalculate#]</td>
 				</tr>
 				<!--ET_END lastCalculate-->

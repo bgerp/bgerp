@@ -14,30 +14,30 @@
 			 <table cellspacing='1' class='top-table'>
 			     
 	             <tr>
-	                 <td class="quiet" align="left" width='18%'>Към дата:</td>
+	                 <td class="quiet" align="left" width='18%'>|Към дата|*:</td>
 	                 <td> [#lastUpdate#]</td>
 	             </tr>
 	            
 	             <tr>
-	                 <td class="quiet" align="left" width='1%'>Код:</td>
+	                 <td class="quiet" align="left" width='1%'>|Код|*:</td>
 	                 <td>[#code#]</td>
 	             </tr>
 				
 				<!--ET_BEGIN info-->
 				<tr>
-					<td class="quiet" align="left" width='1%'>Курс:</td>
+					<td class="quiet" align="left" width='1%'>|Курс|*:</td>
 					<td>[#lastRate#]</td>
 				</tr>
 				<!--ET_END info-->
 				<!--ET_BEGIN groups-->
 				<tr>
-					<td class="quiet" align="left" width='1%'>Групи</td>
+					<td class="quiet" align="left" width='1%'>|Групи|*:</td>
 					<td>[#groups#]</td>
 				</tr>
 				<!--ET_END groups-->
 				<!--ET_BEGIN nameday-->
 				<tr>
-                     <td class="quiet" colspan="2" style='padding-top:10px;'>Исторически курсове:</td>
+                     <td class="quiet" colspan="2" style='padding-top:10px;'>|Исторически курсове|*:</td>
                  </tr>
 
                  <tr>
