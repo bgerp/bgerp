@@ -69,8 +69,8 @@
 	        <div class="groupList">
 	         	<ul>  
 			       <li class="info">
-						<span class="part"><span class="gray-title">|от|*:</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title">|на|*:</span> [#createdOn#]</span>
+						<span class="part"><span class="gray-title">|от|*</span> [#createdBy#] </span>
+						<span class="part"><span class="gray-title"> |на|*</span> [#createdOn#]</span>
 				   </li>
 		        </ul>  
 			</div>
