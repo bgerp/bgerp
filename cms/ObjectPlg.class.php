@@ -66,9 +66,17 @@ class cms_ObjectPlg extends core_Plugin
      */
     function on_AfterGetDefaultCmsTpl($mvc, &$res, $data)
     {
-       if(!$res) {
+    	if(isset($mvc->singleLayoutFile)) {
+    		$file = str_replace(".shtml", "Public.shtml", $mvc->singleLayoutFile);
+    		$path = getFullPath($file);
+    		if($path) {
+    			$res = new ET (tr('|*' . getFileContent($file)));
+    		}
+    	}
+    	
+       	if(!$res) {
             $res = $mvc->renderSingleLayout($data);
-       }
+       	}
     }
 
 }
