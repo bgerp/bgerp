@@ -112,7 +112,7 @@ ul{
 }
 
 a {
-    color:#ffff00;
+    color:#081dd8;
 }
 
 a:hover {
@@ -224,11 +224,11 @@ a.menu {
 
 .new {
     line-height:1.5em;
-    color:#169000 !important;
+    color:#006600 !important;
 }
 
 .wrn, .wrn b {
-    color:#081dc8 !important;
+    color:#251895 !important;
     line-height:1.5em;
 }
 
