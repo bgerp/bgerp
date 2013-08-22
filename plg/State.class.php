@@ -21,10 +21,16 @@ class plg_State extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$invoker)
+    function on_AfterDescription(&$mvc)
     {
-        if (!$invoker->fields['state']) {
-            $invoker->FLD('state',
+        self::setStateField($mvc);
+    }
+
+
+    static function setStateField($mvc)
+    {
+        if (!$mvc->fields['state']) {
+            $mvc->FLD('state',
                 'enum(draft=Чернова,
                   pending=Чакащо,
                   active=Активно,
@@ -38,6 +44,20 @@ class plg_State extends core_Plugin
                   free=Освободено)',
                 'caption=Състояние,column=none,input=none');
         }
+
+        foreach($mvc->fields['state']->type->options as $state => $verbal) {
+            if(is_object($verbal)) {
+                $optArr[$state] = $verbal;
+            } else {
+                $opt = new stdClass();
+                $opt->title = $verbal;
+                $opt->attr = array('class' => "state-{$state}");
+                $optArr[$state] = $opt;
+            }
+            
+        }
+ 
+        $mvc->fields['state']->type->options = $optArr; 
     }
     
     

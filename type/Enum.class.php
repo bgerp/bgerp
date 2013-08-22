@@ -32,7 +32,13 @@ class type_Enum extends core_Type {
         
         if(!isset($this->options[$value])) return "{$value}?";
         
-        return tr($this->options[$value]);
+        if(is_object($this->options[$value])) {
+            $res = tr($this->options[$value]->title);
+        } else {
+            $res = tr($this->options[$value]);
+        }
+
+        return $res;
     }
     
     
@@ -59,22 +65,27 @@ class type_Enum extends core_Type {
         // TODO: да се махне хака със <style>
         if(count($this->options)) {
             foreach($this->options as $id => $title) {
-                $t1 = explode('<style>', $title);
-                
-                if(count($t1) == 2) {
-                    $arr[$id]->title = tr($t1[0]);
-                    $arr[$id]->attr['style'] = $t1[1];
+                if(is_object($title)) {
+                    $arr[$id] = $title;
+                    $arr[$id]->title = tr($arr[$id]->title);
                 } else {
-                    $arr[$id] = tr($title);
+                    $t1 = explode('<style>', $title);
+                    
+                    if(count($t1) == 2) {
+                        $arr[$id]->title = tr($t1[0]);
+                        $arr[$id]->attr['style'] = $t1[1];
+                    } else {
+                        $arr[$id] = tr($title);
+                    }
                 }
             }
         }
-        
+    
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
             $this->params['maxRadio'],
             $this->params['maxColumns'],
             $this->params['columns']);
-        
+    
         return $tpl;
     }
     
