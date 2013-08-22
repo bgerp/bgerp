@@ -29,7 +29,7 @@
 						<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
 					<!--ET_END shareBlock-->
 			
-					<dt>Създаване: </dt><dd> от <b>[#createdBy#]</b> на <b>[#createdOn#]</b></dd>
+					<dt>|Създаване|*: </dt><dd> |от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></dd>
 				</dl>
 		     </div>
 		</fieldset>
