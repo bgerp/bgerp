@@ -94,7 +94,7 @@ class core_Roles extends core_Manager
             $rec->inheritInput = $Roles->getRolesAsKeylist($inherit);
         }
         
-        $rec->id = $Roles->fetchField("#role = '{$rec->role}'", 'id');
+        $rec->id = $Roles->fetchField(array("#role = '[#1#]'", $rec->role), 'id');
         
         $id = $rec->id;
         
