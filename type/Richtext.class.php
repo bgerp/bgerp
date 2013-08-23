@@ -538,7 +538,7 @@ class type_Richtext extends type_Blob
         if(!trim($code)) return "";
         $lg = $match[2];
 
-        if($lg) {
+        if($lg && $lg != 'text') {
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
