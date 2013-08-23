@@ -228,6 +228,8 @@ table .relative-holder div {
 	display:inline-block;
 	float:left;
 	vertical-align:middle;
+	position:relative;
+	top:2px;
 }
 p.calWeek{
 	text-align: left;
