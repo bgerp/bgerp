@@ -51,7 +51,7 @@ class permanent_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Какъв е максималния размер на некомпресираните данни в байтове
-            'DATA_MAX_UNCOMPRESS' => array ('int', 'mandatory'),
+            'DATA_MAX_UNCOMPRESS' => array ('int', 'mandatory, caption=Какъв е максималния размер на некомпресираните данни в байтове->Размер'),
         );
     
         

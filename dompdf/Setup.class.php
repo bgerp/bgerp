@@ -75,8 +75,8 @@ class dompdf_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-            'DOMPDF_VER' => array ('double'),
-            'DOMPDF_DPI'   => array ('int'),
+            'DOMPDF_VER' => array ('double', 'caption=Коя версия на програмата да изпозлваме->Версия'),
+            'DOMPDF_DPI'   => array ('int', 'caption=Разделителнаta способност по подразбиране->Число'),
         );
     
         

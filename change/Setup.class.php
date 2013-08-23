@@ -30,7 +30,7 @@ class change_Setup extends core_ProtoSetup
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'defaul';
+    var $startAct = 'default';
     
     
     /**
