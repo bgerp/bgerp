@@ -30,13 +30,13 @@ class callcenter_Numbers extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, ceo';
+    var $canEdit = 'admin, callcenter, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, ceo';
+    var $canAdd = 'admin, callcenter,ceo';
     
     
     /**
@@ -54,7 +54,7 @@ class callcenter_Numbers extends core_Manager
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin, ceo';
+    var $canDelete = 'admin, callcenter, ceo';
     
     
     /**
