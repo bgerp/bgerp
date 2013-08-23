@@ -111,7 +111,7 @@ class core_Users extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools,plg_CryptStore';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools,plg_CryptStore,plg_Search';
     
     
     /**
@@ -135,7 +135,14 @@ class core_Users extends core_Manager
      * URL за javascript
      */
     var $httpsURL = '';
+
+
+    /**
+     * По кои полета да се прави пълнотекстово търсене
+     */
+    var $searchFields = 'nick,names,email';
     
+
     /**
      * Описание на полетата на модела
      */
@@ -170,7 +177,34 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
-    
+
+
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Филтриране по група
+        $data->listFilter->FNC('role', 'key(mvc=core_Roles,select=role,allowEmpty)',
+            'placeholder=Роля,caption=Роля,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search,role';
+        
+        $rec = $data->listFilter->input('search,role', 'silent');
+        
+    }
+
     
     /**
      * Изпълнява се след подготовка на данните за списъчния изглед
@@ -178,6 +212,10 @@ class core_Users extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("lastLoginTime,createdOn", "DESC");
+
+        if($data->listFilter->rec->role) {
+            $data->query->where("#roles LIKE '%|{$data->listFilter->rec->role}|%'");
+        }
     }
     
     
@@ -478,7 +516,7 @@ class core_Users extends core_Manager
         $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
     }
     
-    
+
     /**
      * Изпълнява се след преобразуване на един запис към вербални стойности
      */
