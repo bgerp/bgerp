@@ -87,13 +87,13 @@ class core_Setup {
                
            'EF_DATE_FORMAT'   => array ('varchar', 'caption=Формат на датата'),
     
-           'EF_DATE_NARROW_FORMAT'   => array ('varchar'),
+           'EF_DATE_NARROW_FORMAT'   => array ('varchar', 'caption=Формат по подразбиране за датата при тесни екрани->Формат'),
          
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int'), 
 
-           'EF_DEFAULT_LANGUAGE'   => array ('varchar'),
+           'EF_DEFAULT_LANGUAGE'   => array ('varchar', 'caption=Промена на езика по подразбиране които е български->Букви'),
     
-           'EF_APP_TITLE'   => array ('varchar'),
+           'EF_APP_TITLE'   => array ('varchar', 'caption=Заглавие на приложението->Текст'),
            
            'EF_MAX_EXPORT_CNT' => array ('int'),
     
