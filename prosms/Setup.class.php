@@ -73,9 +73,9 @@ class prosms_Setup extends core_ProtoSetup
         'PROSMS_USER' => array('identifier', 'mandatory'),
         'PROSMS_PASS' => array('password', 'mandatory'),
     
-        'PROSMS_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)'),
-        'PROSMS_MAX_STRING_LEN' => array('int'),
-        'PROSMS_ALLOWED_USER_NAMES' => array('varchar'),
+        'PROSMS_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
+        'PROSMS_MAX_STRING_LEN' => array('int', 'caption=Максималната дължина на стринга->Число'),
+        'PROSMS_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Текст'),
         );
     
         

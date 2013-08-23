@@ -139,21 +139,21 @@ class fileman_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
                
-       'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int'), 
-       'FILEMAN_PREVIEW_WIDTH'   => array ('int'), 
-       'FILEMAN_PREVIEW_HEIGHT'   => array ('int'), 
-       'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int'), 
-       'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int'), 
-       'FILEMAN_FILE_COMMAND'   => array ('varchar'),
+       'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int', 'caption=Минималната големина на файла в байтове в тесен режим->Размер'), 
+       'FILEMAN_PREVIEW_WIDTH'   => array ('int', 'caption=Широчината на изгледа->Число'), 
+       'FILEMAN_PREVIEW_HEIGHT'   => array ('int', 'caption=Височина на изгледаната->Число'), 
+       'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int', 'caption=Широчината на изгледа в мобилен режим->Число'), 
+       'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Височина на изгледа в мобилен режим->Число'), 
+       'FILEMAN_FILE_COMMAND'   => array ('varchar', 'caption='),
 
-       'FILEINFO_GET_CONTENT_EXT'   => array ('varchar'),
-       'FILEINFO_CONVERT_JPG_EXT'   => array ('varchar'),
-       'FILEINFO_GET_BARCODES_EXT'   => array ('varchar'),
-       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int'),
-       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int'),
-       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('int'),
-       'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar'),
-       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('int'), 
+       'FILEINFO_GET_CONTENT_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими за извличане на съдържание->Разширения'),
+       'FILEINFO_CONVERT_JPG_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими да се създаде JPG файлове->Разширения'),
+       'FILEINFO_GET_BARCODES_EXT'   => array ('varchar', 'caption=Разширенията на файлове допустими за извличане на баркод->Разширения'),
+       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int', 'caption=Максималната дължина на файла до която ще се търси баркод (1 mB)->Размер'),
+       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int', 'caption=Минималната дължина на файла до която ще се търси баркод (15kB)->Размер'),
+       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('int', 'caption=Максималната дължина на архивите за които ще се визуализира информация (100 mB)->Размер'),
+       'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar', 'caption='),
+       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('int', 'caption= След колко минити да се изтрие от индекса записа (грешката) за съответния тип на файла->Минути'), 
     
     );
     

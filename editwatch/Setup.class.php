@@ -54,9 +54,9 @@ class editwatch_Setup extends core_ProtoSetup
             // Колко секунди да пази записите в таблицата минимално
             'EDITWATCH_REC_LIFETIME' => 
                 array ('int', 
-                    'mandatory',
+                    'mandatory, caption=Колко секунди да пази записите в таблицата минимално->Секунди',
                     'placeholder=Колко секунди да пази записите в таблицата минимално',
-                    'defValue' => 300),
+                    'defValue' => 300), 
         
         );
     

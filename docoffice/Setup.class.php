@@ -56,10 +56,10 @@ class docoffice_Setup extends core_ProtoSetup
     var $configDescription = array(
     
         // Кой клас да се използва за конвертиране на офис документи
-        'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory'),
+        'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи'),
     
         // Коя програма да се използва за конвертиране
-        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', ''),
+        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', 'caption=Коя програма да се използва за конвертиране->Име'),
         
         // Кой python да се използва
     	'OFFICE_CONVERTER_PYTHON' => array ('varchar', ''),

@@ -51,7 +51,7 @@ class jqdatepick_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'JQDATEPICKER_VERSION' => array ('varchar', 'mandatory')
+           'JQDATEPICKER_VERSION' => array ('varchar', 'mandatory, caption=Версията на програмата->Версия')
     
              );
     

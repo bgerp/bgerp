@@ -79,15 +79,15 @@ class clickatell_Setup extends core_ProtoSetup
      * 
      */
     var $configDescription = array (
-        'CLICKATELL_URL' => array('url'),
-        'CLICKATELL_CHECK_URL' => array('url'),
-        'CLICKATELL_APIID' => array('varchar', 'mandatory'),
-        'CLICKATELL_USERNAME' => array('varchar', 'mandatory'),
-        'CLICKATELL_PASSWORD' => array('varchar', 'mandatory'),
+        'CLICKATELL_URL' => array('url', 'caption=Адрес за изпращане на СМС-и->URL'),
+        'CLICKATELL_CHECK_URL' => array('url', 'caption=Адрес за проверка на връзката с clickatell->UR'),
+        'CLICKATELL_APIID' => array('varchar', 'mandatory, caption=ИД на приложението->Текст'),
+        'CLICKATELL_USERNAME' => array('varchar', 'mandatory,caption=Потребителско име->Ник'),
+        'CLICKATELL_PASSWORD' => array('varchar', 'mandatory, caption=Парола->Парола'),
     
-        'CLIKATELL_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)'),
-        'CLIKATELL_MAX_STRING_LEN' => array('int'),
-        'CLIKATELL_ALLOWED_USER_NAMES' => array('varchar'),
+        'CLIKATELL_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
+        'CLIKATELL_MAX_STRING_LEN' => array('int', 'caption=Максималната дължина на стринга->Число'),
+        'CLIKATELL_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Текст'),
     );
     
     

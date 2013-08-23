@@ -59,10 +59,10 @@ class wund_Setup extends core_ProtoSetup
     var $configDescription = array(
             
             // Задаване на мястото по подразбиране
-            'WUND_DEFAULT_LOCATION' => array ('varchar'),
+            'WUND_DEFAULT_LOCATION' => array ('varchar', 'caption=Задаване на локация->Държава/Град'),
             
             // Api key за Wunderground.com
-            'WUND_API_KEY' => array ('varchar', 'mandatory'),
+            'WUND_API_KEY' => array ('varchar', 'mandatory, caption=Ключ за приложението->Ключ за Wunderground.com'),
        
         );
     
