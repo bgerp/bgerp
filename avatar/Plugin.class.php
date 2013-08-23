@@ -101,6 +101,7 @@ class avatar_Plugin extends core_Plugin
                 $attr['baseName'] = $key;
                 $Thumbnail = cls::get('thumbnail_Thumbnail');
                 $imgUrl = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), $attr);
+                $width = $attr['width'];
             } else {
                  $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
