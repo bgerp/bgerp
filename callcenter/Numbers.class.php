@@ -514,7 +514,7 @@ class callcenter_Numbers extends core_Manager
     {
         // Добавяне функционално поле и скриваме ненужните
         $form = $data->form;
-        $form->FNC('userId', 'user', 'caption=Лице, width=100%, mandatory, input');
+        $form->FNC('userId', 'user(rolesForAll=ceo|callcenter|admin)', 'caption=Лице, width=100%, mandatory, input');
         $form->setField('type', 'input=none');
         $form->setField('contragentId', 'input=none');
         $form->setField('classId', 'input=none');
