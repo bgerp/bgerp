@@ -85,13 +85,7 @@ body{
 #cmsNavigation .level3 {
 }
 
-img, object, embed {
-	max-width: 100%;
-}
 
-img {
-	height: auto;
-}
 
 .richtext h2 { 
 	background-color: #ddf;

@@ -215,6 +215,7 @@ class cms_Objects extends core_Master
             }
         }
         
+        $res->removeBlocks();
         unset($used[$tag]);
 
         return $res;

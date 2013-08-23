@@ -71,9 +71,9 @@ class callcenter_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-       'CALLCENTER_PROTECT_KEY' => array('varchar'),
-       'CALLCENTER_DRAFT_TO_NOANSWER' => array('int'),
-       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar'),
+       'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Букви и цифри'),
+       'CALLCENTER_DRAFT_TO_NOANSWER' => array('int', 'caption=След колко секунди да се промени в без отговор->Число'),
+       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се генерира обаждане->IP адрес'),
     );
     
     

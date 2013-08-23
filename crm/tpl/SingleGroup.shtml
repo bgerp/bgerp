@@ -5,11 +5,20 @@
 	<div class="block_title state-active special-title">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></div>
 	<fieldset class="detail-info">
 	<div class="groupList">
-			<dl>
-				<dt>|Съдържание|*:</dt><dd> [#allow#]</dd>
-				<dt>|Брой компании|*:</dt><dd> [#companiesCnt#]</dd>
-				<dt>|Брой лица|*:</dt><dd> [#personsCnt#]</dd>
-			</dl>
+			<table>
+				<tr>
+					<td class='dt'>|Съдържание|*:</td>
+					<td> [#allow#]</td>
+				</tr>
+				<tr>
+					<td class='dt'>|Брой компании|*:</td>
+					<td> [#companiesCnt#]</td>
+				</tr>
+				<tr>
+					<td class='dt'>|Брой лица|*:</td>
+					<td> [#personsCnt#]</td>
+				</tr>
+			</table>
 		</div>
 	</fieldset>
 	<!--ET_BEGIN info-->

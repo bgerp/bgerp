@@ -5,10 +5,16 @@
 			<div class="block_title state-active special-title">[#SingleIcon#] |Продуктова група|* <b style="color:green;">[#name#]</b></div>
 			<fieldset class="detail-info">
 				<div class="groupList">
-						<dl>
-							<dt>System Id:</dt><dd> [#sysId#]</dd>
-							<dt>|Брой продукти|*:</dt><dd> [#productCnt#]</dd>
-						</dl>
+						<table>
+							<tr>
+								<td class='dt'>System Id:</td>
+								<td> [#sysId#]</td>
+							</tr>
+							<tr>
+								<td class='dt'>|Брой продукти|*:</td>
+								<td> [#productCnt#]</td>
+							</tr>
+						</table>
 				</div>
 			</fieldset>
 			

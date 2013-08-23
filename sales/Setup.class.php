@@ -48,7 +48,7 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'INV_LAYOUT' => array ('varchar'),
+			'INV_LAYOUT' => array ('varchar', 'caption=Изглед за фактурата->Шаблон'),
 	);
 	
 	

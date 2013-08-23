@@ -83,22 +83,22 @@ class cams_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Колко да е продължителността на един клип в секунд
-            'CAMS_CLIP_DURATION' => array ('int', 'mandatory'),
+            'CAMS_CLIP_DURATION' => array ('int', 'mandatory, caption=Колко да е продължителността на един клип в секунди->Число'),
     
             // Колко клипа да показва на страница при широк екран
-            'CAMS_CLIPS_PER_WIDE_PAGE'   => array ('int', 'mandatory'),
+            'CAMS_CLIPS_PER_WIDE_PAGE'   => array ('int', 'mandatory, caption=Колко клипа да показва на страница при широк екран->Число'),
     
             // Колко клипа да показва на ред при широк екран
-            'CAMS_CLIPS_PER_WIDE_ROW'   => array ('int', 'mandatory'),
+            'CAMS_CLIPS_PER_WIDE_ROW'   => array ('int', 'mandatory, caption=Колко клипа да показва на ред при широк екран->Число'),
     
             // Колко клипа да показва на страница при тесен екран
-            'CAMS_CLIPS_PER_NARROW_PAGE'   => array ('int', 'mandatory'),
+            'CAMS_CLIPS_PER_NARROW_PAGE'   => array ('int', 'mandatory, caption=Колко клипа да показва на страница при тесен екран->Число'),
     
             // Колко клипа да показва на ред при тесен екран
-            'CAMS_CLIPS_PER_NARROW_ROW'   => array ('int', 'mandatory'),
+            'CAMS_CLIPS_PER_NARROW_ROW'   => array ('int', 'mandatory, caption=Колко клипа да показва на ред при тесен екран->Число'),
     
             // Колко да е минималното дисково пространство
-            'CAMS_MIN_DISK_SPACE'   => array ('int', 'mandatory'),
+            'CAMS_MIN_DISK_SPACE'   => array ('int', 'mandatory, caption=Колко да е минималното дисково пространство->Число'),
         );
             
         

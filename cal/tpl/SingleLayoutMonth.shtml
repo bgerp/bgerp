@@ -18,7 +18,7 @@
 	                    <td align='right'><a href='[#nextLink#]'>[#nextMonth#]</a></td>
 	                </tr>
 	            </table>
-	    </br>
+	    
                 <table class='mc-calendar mc-calendar-month'>
 				     
 				 <tr>
@@ -35,13 +35,13 @@
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr> 
                      <th class='mc-week-nb'>[#weekNum#]</th>
-                     <td onclick="createMonthLink('[#date1Js#]');" data-cal-date="[#date1Js#]" class="[#now1#]">[#d1#]</td>
-                     <td onclick="createMonthLink('[#date2Js#]');" data-cal-date="[#date2Js#]" class="[#now2#]">[#d2#]</td>
-                     <td onclick="createMonthLink('[#date3Js#]');" data-cal-date="[#date3Js#]" class="[#now3#]">[#d3#]</td>
-                     <td onclick="createMonthLink('[#date4Js#]');" data-cal-date="[#date4Js#]" class="[#now4#]">[#d4#]</td>
-					 <td onclick="createMonthLink('[#date5Js#]');" data-cal-date="[#date5Js#]" class="[#now5#]">[#d5#]</td>                     
-					 <td onclick="createMonthLink('[#date6Js#]');" data-cal-date="[#date6Js#]" class="[#now6#]">[#d6#]</td>
-                     <td onclick="createMonthLink('[#date7Js#]');" data-cal-date="[#date7Js#]" class="[#now7#]">[#d7#]</td>
+                     <td onclick="createMonthLink('[#date1Js#]');" data-cal-date="[#date1Js#]" class="[#now1#] relative-holder">[#d1#]</td>
+                     <td onclick="createMonthLink('[#date2Js#]');" data-cal-date="[#date2Js#]" class="[#now2#] relative-holder">[#d2#]</td>
+                     <td onclick="createMonthLink('[#date3Js#]');" data-cal-date="[#date3Js#]" class="[#now3#] relative-holder">[#d3#]</td>
+                     <td onclick="createMonthLink('[#date4Js#]');" data-cal-date="[#date4Js#]" class="[#now4#] relative-holder">[#d4#]</td>
+					 <td onclick="createMonthLink('[#date5Js#]');" data-cal-date="[#date5Js#]" class="[#now5#] relative-holder">[#d5#]</td>                     
+					 <td onclick="createMonthLink('[#date6Js#]');" data-cal-date="[#date6Js#]" class="[#now6#] relative-holder">[#d6#]</td>
+                     <td onclick="createMonthLink('[#date7Js#]');" data-cal-date="[#date7Js#]" class="[#now7#] relative-holder">[#d7#]</td>
                  </tr>
                  <!--ET_END COMMENT_LI-->
                                

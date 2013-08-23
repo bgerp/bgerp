@@ -52,7 +52,7 @@ class log_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-    	'LOG_EMAIL_RESENDING_TIME' => array ('int'),
+    	'LOG_EMAIL_RESENDING_TIME' => array ('int', 'caption=След колко време след първото изпращане на имейл да се счита за изпратен преди да се изпрати повторно->Секунди'),
         );
 
     

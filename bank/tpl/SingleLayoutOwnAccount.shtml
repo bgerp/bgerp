@@ -6,31 +6,60 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
-					<dl>
-						<dt>|Номер|*:</dt><dd>[#id#]</dd>
-						<dt>|Сметка|*:</dt><dd><b>[#bankAccountId#]</b></dd>
-						<dt>|Тип|*:</dt><dd><b>[#type#]</b></dd>
-						<dt>|Титуляри|*:</dt><dd><b>[#titulars#]</b></dd>
-						<dt>|Представляват|*:</dt><dd>[#together#]</dd>
-						<dt>|Oператори|*:</dt><dd>[#operators#]</dd>
+					<table>
+						<tr>
+							<td class='dt'>|Номер|*:</td>
+							<td>[#id#]</td>
+						</tr>
+						<tr>
+							<td class='dt'>|Сметка|*:</td>
+							<td><b>[#bankAccountId#]</b></td>
+						</tr>
+						<tr>
+							<td class='dt'>|Тип|*:</dt>
+							<td><b>[#type#]</b></td>
+						</tr>
+						<tr>
+							<td class='dt'>|Титуляри|*:</td>
+							<td><b>[#titulars#]</b></td>
+						</tr>
+						<tr>
+							<td class='dt'>|Представляват|*:</td>
+							<td>[#together#]</td>
+						</tr>
+						<tr>
+							<td class='dt'>|Oператори|*:</td>
+							<td>[#operators#]</td>
+						</tr>
 						
-					</dl>
+					</table>
 				</div>
 			</fieldset>
 			
 			<fieldset class="detail-info">
-		    <legend class="groupTitle">|Права|*</legend>
+		    <legend class="groupTitle">|Прaва|*</legend>
 		    <div class="groupList">
-				<dl>
-					<dt>|Отговорник|*:</dt><dd> <b>[#inCharge#]</b></dd>
-					<dt>|Достъп|*:</dt><dd> <b>[#access#]</b></dd>
+				<table>
+				<tr>
+					<td class='dt'>|Отговорник|*:</td>
+					<td> <b>[#inCharge#]</b></td>
+				</tr>
+				<tr>
+					<td class='dt'>|Достъп|*:</td>
+					<td> <b>[#access#]</b></td>
+				</tr>
+				<tr>
 					<!--ET_BEGIN shareBlock-->
-					[#shareBlock#]
-						<dt>|Споделяне|*:</dt><dd> <b>[#shared#]</b></dd>
+						<td class='dt'>|Споделяне|*:</td>
+						<td> <b>[#shared#]</b></td>
 					<!--ET_END shareBlock-->
-			
-					<dt>Създаване: </dt><dd> от <b>[#createdBy#]</b> на <b>[#createdOn#]</b></dd>
-				</dl>
+				</tr>
+				<tr>
+					<td class='dt'>|Създаване|*: </td>
+					<td> |от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
+				</tr>
+				</table>
+				
 		     </div>
 		</fieldset>
 		</div>

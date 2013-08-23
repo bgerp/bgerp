@@ -6,15 +6,24 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
-					<dl>
-						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Касиер|*:</dt><dd> <b>[#cashier#]</b></dd>
+					<table>
+						<tr>
+							<td class='dt'>|Номер|*:</td>
+							<td> [#id#]</td>
+						</tr>
+						<tr>
+							<td class='dt'>|Касиер|*:</td>
+							<td> <b>[#cashier#]</b></td>
+						</tr>
 						<!--ET_BEGIN creation-->
+						<tr>
 						[#creation#]
-						<dt>|Създаден:|*</dt><dd> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
-						<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></dd>
+							<td  class='dt'>|Създаден:|*</td>
+							<td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+							<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></td>
+						</tr>
 						<!--ET_END creation-->
-					</dl>
+					</table>
 				</div>
 			</fieldset>
 		</div>

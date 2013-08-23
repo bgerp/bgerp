@@ -50,7 +50,7 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory'),
+    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Tемата по-подразбиране в блога->Път до темата'),
         );
     
 

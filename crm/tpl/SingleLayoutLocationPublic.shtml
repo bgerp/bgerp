@@ -1,6 +1,4 @@
-<div class='singleView' style='display:inline-block'>
-	[#SingleToolbar#]
-	<div class="location">
+<div class="public location">
 			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
 			
 			<!--ET_BEGIN image-->
@@ -53,27 +51,10 @@
 			 <!--ET_END address-->
 			</div>
 		</fieldset>
-		  
-		<!--ET_BEGIN ROUTES-->
-		  [#routes#]
-		<!--ET_END ROUTES-->
-	     
+		 
 		<!--ET_BEGIN gpsCoords-->
 		<div class="loc-map">
 			[#gpsCoords#]
 		</div>
 		<!--ET_END gpsCoords-->
-	
-		<fieldset class="detail-info">
-	      <legend class="groupTitle">|Създаден|*</legend>
-	        <div class="groupList">
-	         	<ul>  
-			       <li class="info">
-						<span class="part"><span class="gray-title">|от|*</span> [#createdBy#] </span>
-						<span class="part"><span class="gray-title"> |на|*</span> [#createdOn#]</span>
-				   </li>
-		        </ul>  
-			</div>
-		</fieldset>
-	</div>
 </div>

@@ -1,29 +1,29 @@
 <table>
 	<!--ET_BEGIN signature-->
 	<tr>
-	    <td class="dt">|Подпис|*</td>
+	    <td class='dt'>|Подпис|*</td>
 	    <td>[#signature#]</td>
-    </tr>
+	</tr>
 	<!--ET_END signature-->
 
 	<!--ET_BEGIN header-->
 	<tr>
-	    <td class="dt">|Привет|*</td>
+	    <td class='dt'>|Привет|*</td>
 	    <td>[#header#]</td>
-    </tr>
+	</tr>
 	<!--ET_END header-->
 
 	<!--ET_BEGIN logo-->
 	<tr>
-	    <td class="dt">|Бланка|*</td>
+	    <td class='dt'>|Бланка|*</td>
 	    <td>[#logo#]</td>
-    </tr>
+	</tr>
 	<!--ET_END logo-->
 	
 	<!--ET_BEGIN logoEn-->
 	<tr>
-	    <td class="dt">|Бланка|* EN</td>
+	    <td class='dt'>|Бланка|* EN</td>
 	    <td>[#logoEn#]</td>
-    </tr>
+	</tr>
 	<!--ET_END logoEn-->
 </table>
