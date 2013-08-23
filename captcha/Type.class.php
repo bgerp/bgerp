@@ -156,4 +156,36 @@ class captcha_Type extends core_Type {
         
         imagedestroy($image);
     }
+    
+    /**
+     * Добавя контролна сума към ID параметър
+     */
+    function protectId($id)
+    {
+
+        $hash = substr(base64_encode(md5(EF_SALT . 'type_Captcha' . $id)), 0, EF_ID_CHECKSUM_LEN);
+        
+        return $id . $hash;
+    }
+    
+
+    /**
+     * Проверява контролната сума към id-то, ако всичко е ОК - връща id, ако не е - FALSE
+     */
+    function unprotectId($id)
+    {
+
+        $idStrip = substr($id, 0, strlen($id) - EF_ID_CHECKSUM_LEN);
+        
+        $idProt = $this->protectId($idStrip);
+
+        if($id == $idProt) {
+            
+            return $idStrip;
+        } else {
+            sleep(2);
+
+            return FALSE;
+        }
+    }
 }
