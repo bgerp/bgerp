@@ -1,16 +1,22 @@
-<dl>
+<table>
 	<!--ET_BEGIN regCourt-->
-    <dt>Съдилище</dt>
-    <dd>[#regCourt#]&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Съдилище</td>
+	    <td>[#regCourt#]&nbsp;</td>
+    </tr>
 	<!--ET_END regCourt-->
 
 	<!--ET_BEGIN regDecisionNumber-->
-    <dt>Решение</dt>
-    <dd>[#regDecisionNumber#] / [#regDecisionDate#] г.&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Решение</td>
+	    <td>[#regDecisionNumber#] / [#regDecisionDate#] г.&nbsp;</td>
+    <tr>
 	<!--ET_END regDecisionNumber-->
 
 	<!--ET_BEGIN regCompanyFileNumber-->
-    <dt>Фирмено дело</dt>
-    <dd>[#regCompanyFileNumber#] / [#regCompanyFileYear#] г.&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Фирмено дело</td>
+	    <td>[#regCompanyFileNumber#] / [#regCompanyFileYear#] г.&nbsp;</td>
+	</tr>
 	<!--ET_END regCompanyFileNumber-->
-</dl>
+</table>

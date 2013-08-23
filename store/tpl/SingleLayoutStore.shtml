@@ -6,21 +6,35 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
-					<dl>
-						<dt>|Номер|*:</dt><dd> [#id#]</dd>
-						<dt>|Отговорник|*:</dt><dd> <b>[#chiefId#]</b></dd>
+					<table>
+						<tr>
+							<td class='dt'>|Номер|*:</td>
+							<td> [#id#]</td>
+						</tr>
+						<tr>
+							<td class='dt'>|Отговорник|*:</td>
+							<td> <b>[#chiefId#]</b></td>
+						</tr>
 						<!--ET_BEGIN workersIds-->
-						<dt>|Товарачи|*:</dt><dd> [#workersIds#]</dd>
+						<tr>
+							<td class='dt'>|Товарачи|*:</td>
+							<td> [#workersIds#]</td>
+						</tr>
 						<!--ET_END workersIds-->
 						<!--ET_BEGIN strategy-->
-						<dt>|Стратегия|*:</dt><dd> [#strategy#]</dd>
+						<tr>
+							<td class='dt'>|Стратегия|*:</td>
+							<td> [#strategy#]</td>
+						</tr>
 						<!--ET_END strategy-->
 						<!--ET_BEGIN creation-->
+						<tr>
 						[#creation#]
-						<dt>|Създаден:|*</dt><dd> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
-						<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></dd>
+							<td class='dt'>|Създаден:|*</td>
+							<td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
+							<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></td>
+						</tr>
 						<!--ET_END creation-->
-							
 					</dl>
 				</div>
 			</fieldset>
@@ -29,7 +43,7 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Коментари|*</legend>
 				<div class="groupList">
-					<dt>[#comments#]</dt>
+					[#comments#]
 				</div>
 			</fieldset>
 			<!--ET_END comments-->

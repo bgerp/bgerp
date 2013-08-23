@@ -1,21 +1,29 @@
-<dl>
+<table>
 	<!--ET_BEGIN idCardNumber-->
-    <dt>Номер</dt>
-    <dd>[#idCardNumber#]&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Номер</td>
+	    <td>[#idCardNumber#]&nbsp;</td>
+    </tr>
 	<!--ET_END idCardNumber-->
 
 	<!--ET_BEGIN idCardIssuedOn-->
-    <dt>Издадена на</dt>
-    <dd>[#idCardIssuedOn#]&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Издадена на</td>
+	    <td>[#idCardIssuedOn#]&nbsp;</td>
+    </tr>
 	<!--ET_END idCardIssuedOn-->
 
 	<!--ET_BEGIN idCardIssuedBy-->
-    <dt>Издадена от</dt>
-    <dd>[#idCardIssuedBy#]&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Издадена от</td>
+	    <td>[#idCardIssuedBy#]&nbsp;</td>
+    </tr>
 	<!--ET_END idCardIssuedBy-->
 	
 	<!--ET_BEGIN idCardExpiredOn-->
-    <dt>Валидна до</dt>
-    <dd>[#idCardExpiredOn#]&nbsp;</dd>
+	<tr>
+	    <td class='dt'>Валидна до</td>
+	    <td>[#idCardExpiredOn#]&nbsp;</td>
+    </tr>
 	<!--ET_END idCardExpiredOn-->
-</dl>
+</table>

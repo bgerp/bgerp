@@ -16,13 +16,22 @@
 	<fieldset class="detail-info">
 		<legend class="groupTitle">|Описание|*</legend>
             <div class="groupList">
-				<dl>
-				<dt>|Код|*:</dt><dd> [#code#]</dd>
+				<table>
+					<tr>
+						<td class='dt'>|Код|*:</td>
+						<td> [#code#]</td>
+					</tr>
 				<!--ET_BEGIN eanCode-->
-				<dt>|EAN|*:</dt><dd> [#eanCode#]</dd>
+					<tr>
+						<td class='dt'>|EAN|*:</td>
+						<td> [#eanCode#]</td>
+					</tr>
 				<!--ET_END eanCode-->
-				<dt>|Мярка|*:</dt><dd> [#measureId#]</dd>
-				</dl>
+					<tr>
+						<td class='dt'>|Мярка|*:</dt>
+						<td> [#measureId#]</td>
+					</tr>
+				</table>
              </div>
         </fieldset>
 			

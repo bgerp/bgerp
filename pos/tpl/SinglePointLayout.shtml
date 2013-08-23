@@ -6,12 +6,24 @@
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
-						<dl>
-							<dt>|Номер|*:</dt><dd> [#id#]</dd>
-							<dt>|Каса|*:</dt><dd> <b>[#caseId#]</b></dd>
-							<dt>|Склад|*:</dt><dd> <b>[#storeId#]</b></dd>
-							<dt>|Политика|*:</dt><dd> [#policyId#]</dd>
-						</dl>
+						<table>
+							<tr>
+								<td class='dt'>|Номер|*:</td>
+								<td> [#id#]</td>
+							</tr>
+							<tr>
+								<td class='dt'>|Каса|*:</td>
+								<td> <b>[#caseId#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Склад|*:</td>
+								<td> <b>[#storeId#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Политика|*:</td>
+								<td> [#policyId#]</td>
+							</tr>
+						</table>
 				</div>
 			</fieldset>
 			[#DETAILS#]
