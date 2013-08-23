@@ -91,16 +91,16 @@ class email_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory'),
+            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory, caption=Максимално време за еднократно теглене на писма->Число'),
     
             // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory'),
+            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory, caption=Максималното време за изчакване на буфера->Число'),
             
             // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory'),
+            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване->Размер на паметта'),
 
             // Шаблон за име на папки
-            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory'),
+            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки'),
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int'),

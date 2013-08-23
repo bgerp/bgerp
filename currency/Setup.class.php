@@ -67,9 +67,9 @@ class currency_Setup extends core_ProtoSetup
     var $configDescription = array(
             
             //Задаване на основна валута
-            'CURRENCY_BASE_CODE' => array ('varchar', 'mandatory'),
+            'CURRENCY_BASE_CODE' => array ('varchar', 'mandatory, caption=Задаване на основна валута->Букви'),
          
-    		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory'),
+    		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory, caption=На колко процента разлика между очакваната и въведената сума да предупреждава->Процент'),
         );
     
 

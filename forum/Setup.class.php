@@ -58,13 +58,13 @@ class forum_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             
-            'FORUM_DEFAULT_THEME' => array ('varchar', 'mandatory'),
+            'FORUM_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Тема по подразбиране в блога->Път до темата'),
          
-    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory'),
+    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory, caption=Броят на темите в една страница->Число'),
     
-    		'GREETING_MESSAGE' => array ('text', 'mandatory'),
+    		'GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Текст'),
          
-    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory'),
+    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory, caption=Броят на постовете на една страница->Число'),
         );
     
 

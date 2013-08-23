@@ -58,9 +58,9 @@ class bgerp_Setup {
      */
     var $configDescription = array(
            
-       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)'),
+       'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Настойки на логото на фирмата - език: EN->Картинка'),
 
-       'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)'),
+       'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)', 'caption=Настойки на логото на фирмата - език: BG->Картинка'),
     
     );
     
