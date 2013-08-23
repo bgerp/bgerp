@@ -92,6 +92,7 @@ class core_Master extends core_Manager
          * Запомняме състоянието на $data->rec. Ще сравним това състояние със стойността 
          * на $data->rec след изпълнение на всички `prepare' методи (заедно с техните прихващачи)
          */
+        expect(is_object($data->rec));
         $oldRec = clone $data->rec;
         
         // Подготвяме титлата
