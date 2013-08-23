@@ -94,7 +94,7 @@ class doc_Setup
         foreach($rangRoles as $role) {
             $inherit = ($role != 'contractor') ? 'powerUser,' . $lastRole : '';
             $lastRole = $role;
-            $html .= ($rangRolesSet[$role] = core_Roles::addRole($role, $inherit, 'rang')) ?
+            $html .= (core_Roles::addRole($role, $inherit, 'rang')) ?
             "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         }
         

@@ -222,8 +222,9 @@ class doc_Search extends core_Manager
     		$field->type->options[$lastfolderId] = '|*' . $lastFolderTitle;
             $data->listFilter->setField('scopeFolderId', 'input');
     	}
-    	$data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
     	
+        $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
+
     	$data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
