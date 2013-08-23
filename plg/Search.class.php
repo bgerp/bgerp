@@ -280,5 +280,23 @@ class plg_Search extends core_Plugin
     }
 
 
+    /**
+     * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
+     */
+    function on_AfterSetupMVC($mvc, &$res)
+    {
+        if(!$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                $mvc->save($rec);
+                $i++;
+            }
+        }
+
+        if($i) {
+            $res .= "<li style='color:green;'>Добавени са ключови думи за {$i} записа.</li>";
+        }
+    }
+
    
 }
