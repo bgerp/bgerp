@@ -337,8 +337,9 @@ class drdata_Address extends core_MVC
                 if($addrRatio <= 0.5 && $addrRatio >= 0.1) {
                     $addressCnt += $streetAddrCnt;
                 }
-
-                if(preg_match_all("/[0-9]/", $lN)) {
+                
+                // Ако съдържа числя, вероятността да е име на човек е по-малка.
+                if(preg_match("/[0-9]/", $lN)) {
                     $nameCnt -=2;
                 }
 
