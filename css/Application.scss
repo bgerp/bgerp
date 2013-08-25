@@ -2592,9 +2592,9 @@ div.location{
 	} 
 }
 
-/* Стилове за bgerp_plg_GroupByDate */
-tr.group-by-date-row, tr.group-by-date-row:hover{
-    background-color:#eed;
+/* Стилове за callcenter*/
+callcenter_Talks tr.group-by-date-row {
+    background-color:#f0f0e0;
 }
 
 @import "partials/sales";
