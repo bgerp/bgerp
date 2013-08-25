@@ -56,9 +56,12 @@ class bgerp_plg_GroupByDate extends core_Plugin
                 $res->color = dt::getColorByTime(time() - dt::mysql2timestamp($rec->{$field}));
                 
                 $mvc->invoke('AfterPrepareGroupDate', array(&$res, $d));
- 
+                
+                $rowAttr = $data->rows[$id]->ROW_ATTR;
+                $rowAttr['class'] .= ' group-by-date-row';
+
                 $rows[$id . ' '] = ht::createElement('tr', 
-                    $data->rows[$id]->ROW_ATTR, 
+                    $rowAttr, 
                     new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><i style='color:#{$res->color};'>" . $res->day . "</i></td>")); 
                     
                 $exDate = $d;
