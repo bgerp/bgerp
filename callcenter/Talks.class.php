@@ -84,7 +84,7 @@ class callcenter_Talks extends core_Master
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'createdOn';
+    var $groupByDateField = 'startTime';
 
 
     /**
