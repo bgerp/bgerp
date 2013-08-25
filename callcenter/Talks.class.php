@@ -78,9 +78,15 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows,bgerp_plg_GroupByDate';
     
-    
+
+    /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'createdOn';
+
+
     /**
      * 
      */
@@ -308,6 +314,7 @@ class callcenter_Talks extends core_Master
             $row->DialStatusClass .= ' dialStatus-answered';
         } else {
             $row->DialStatusClass .= ' dialStatus-failed';
+            $row->duration = $row->dialStatus;
         }
         
         // Добавяме класа
