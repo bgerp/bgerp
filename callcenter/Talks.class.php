@@ -314,7 +314,7 @@ class callcenter_Talks extends core_Master
             $row->DialStatusClass .= ' dialStatus-answered';
         } else {
             $row->DialStatusClass .= ' dialStatus-failed';
-            $row->duration = $row->dialStatus;
+            $row->duration = $mvc->getVerbal($rec, 'dialStatus');
         }
         
         // Добавяме класа
