@@ -65,11 +65,11 @@ class cms_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 	
-			'CMS_THEME' => array ('varchar'),
+			'CMS_THEME' => array ('varchar', 'caption=Тема по подразбиране'),
 
-            'CMS_SHARE' => array ('html'),
+            'CMS_SHARE' => array ('html', 'caption=Код за споделяне'),
 	
-			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)'),
+			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за ograph-а'),
 	
 	);
 
