@@ -1,14 +1,8 @@
 <?php
 
-/**
- * Задаване на основна валута
- */
-defIfNot('CURRENCY_BASE_CODE', 'BGN');
-
 
 /**
- * На колко процента разлика между очакваната и въведената сума при
- * превалутиране да сетва предупреждение
+ * Толеранс за валутния курс
  */
 defIfNot('EXCHANGE_DEVIATION', '0.05');
 
@@ -65,12 +59,8 @@ class currency_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-            
-            //Задаване на основна валута
-            'CURRENCY_BASE_CODE' => array ('varchar', 'mandatory, caption=Задаване на основна валута->Трибуквен код'),
-         
-    		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory, caption=На колко процента разлика между очакваната и въведената сума да предупреждава->Процент'),
-        );
+		'EXCHANGE_DEVIATION' => array ('percent', 'mandatory, caption=Толеранс за валутния курс->Процент'),
+);
     
 
     /**
