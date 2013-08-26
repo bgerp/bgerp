@@ -558,4 +558,37 @@ class sales_Quotations extends core_Master
     	
     	return array_values($products);
     }
+    
+    
+    /**
+     * Интерфейсен метод (@see doc_ContragentDataIntf::getContragentData)
+     */
+	static function getContragentData($id)
+    {
+        //Вземаме данните от визитката
+        $rec = static::fetch($id);
+        $contrData = new stdClass();
+        $contrData->company = $rec->recipient;
+         
+        //Заместваме и връщаме данните
+        if (!$rec->attn) {
+        	$contrData->companyId = $rec->contragentId;
+            $contrData->tel = $rec->tel;
+            $contrData->fax = $rec->fax;
+            $contrData->pCode = $rec->pCode;
+            $contrData->place = $rec->place;
+            $contrData->address = $rec->address;
+            $contrData->email = $rec->email;
+        } else {
+        	$contrData->person = $rec->attn;
+            $contrData->pTel = $rec->tel;
+            $contrData->pFax = $rec->fax;
+            $contrData->pCode = $rec->pCode;
+            $contrData->place = $rec->place;
+            $contrData->pAddress = $rec->address;
+            $contrData->pEmail = $rec->email;
+        }
+        
+        return $contrData;
+    }
 }
