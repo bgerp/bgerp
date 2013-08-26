@@ -313,7 +313,7 @@ class crm_Companies extends core_Master
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Филтриране по група
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty,translate)',
             'placeholder=Всички групи,caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
