@@ -2,27 +2,27 @@
 
 
 /**
- * @todo Чака за документация...
+ * Адрес на xmpp чат сървър
  */
 defIfNot('XMPPHP_SERVER', 'talk.google.com');
 
 /**
- * @todo Чака за документация...
+ * Порт за връзка
  */
 defIfNot('XMPPHP_PORT', '5222');
 
 /**
- * @todo Чака за документация...
+ * Име на потребител
  */
 defIfNot('XMPPHP_USER', '');
 
 /**
- * @todo Чака за документация...
+ * Парола
  */
 defIfNot('XMPPHP_PASSWORD', '');
 
 /**
- * @todo Чака за документация...
+ * Домейн 
  */
 defIfNot('XMPPHP_DOMAIN', 'gmail.com');
 
