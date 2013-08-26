@@ -243,8 +243,22 @@ class doc_Articles extends core_Master
         // Ако има записи, добавяме бутон за версиите
         if (count($recsArr[0]->data->{$action})) {
             
-//            $data->toolbar->addBtn('Версии', array($mvc, 'versions', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_sign.png, row=2');
+            $data->toolbar->addBtn('Версии', array($mvc, 'versions', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_sign.png, row=1');
         }
+    }
+    
+    
+    /**
+     * 
+     */
+    function act_Versions()
+    {
+        requireRole('user');
+        
+    	$text = tr('В процес на разработка');
+    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
+
+        return $this->renderWrapping($underConstructionImg);
     }
     
     
