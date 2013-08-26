@@ -69,7 +69,7 @@
 	<td colspan='2' align='right' class='expandable total-quote-td'>
 	<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 	<!--ET_BEGIN totalDisc-->
-	<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'>[#totalDisc#]</span></div>
+	<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'><b>[#totalDisc#]</b></span></div>
 	<!--ET_END totalDisc-->
 	</td>
 </tr>
