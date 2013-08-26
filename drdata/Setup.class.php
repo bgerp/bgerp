@@ -80,6 +80,7 @@ class drdata_Setup extends core_ProtoSetup
             'drdata_DialCodes',
             'drdata_Vats',
             'drdata_Domains',
+    		'drdata_Languages',
         	
         
         );
