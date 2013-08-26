@@ -679,7 +679,7 @@ class sales_Sales extends core_Master
             $currencyBaseCode = $recentRec->currencyId;
         } else {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $currencyBaseCode = currency_Currencies::getDefault($contragent->getContragentData()); 
+            $currencyBaseCode = acc_Periods::getBaseCurrencyCode($rec->valior);
         }
          
         return $currencyBaseCode;
