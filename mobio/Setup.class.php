@@ -54,11 +54,11 @@ class mobio_Setup extends core_ProtoSetup
     
 
     var $configDescription = array (
-        'MOBIO_URL' => array('url', 'mandatory, caption=Адрес за изпращане на СМС-и през Мобио->URL'),
+        'MOBIO_URL' => array('url', 'mandatory, caption=Адрес за изпращане на СМС-и през Мобио->URL адрес'),
     
-        'MOBIO_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
-        'MOBIO_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Число'),
-        'MOBIO_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Текст'),
+        'MOBIO_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
+        'MOBIO_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),
+        'MOBIO_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Списък с имена'),
         );
     
         

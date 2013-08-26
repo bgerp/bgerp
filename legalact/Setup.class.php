@@ -51,7 +51,7 @@ class legalact_Setup extends core_ProtoSetup
     var $configDescription = array(
     
         // Кой клас да се използва за конвертиране на офис документи
-        'LEGALACT_DOCS_ROOT' => array ('varchar', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи'),
+        'LEGALACT_DOCS_ROOT' => array ('varchar', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
     );
     
     

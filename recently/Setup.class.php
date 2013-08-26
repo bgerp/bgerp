@@ -60,10 +60,10 @@ class recently_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Максимален брой за предложенията за последно използвани стойности на поле
-            'RECENTLY_MAX_SUGGESTION' => array ('int'),
+            'RECENTLY_MAX_SUGGESTION' => array ('int', 'caption=Максимален брой за предложенията за последно използвани стойности на поле->Брой'),
     
             // Максимален брой дни за запазване на стойност след нейната последна употреба
-            'RECENTLY_MAX_KEEPING_DAYS'   => array ('int'),
+            'RECENTLY_MAX_KEEPING_DAYS'   => array ('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
         );
     
     /**

@@ -2,27 +2,27 @@
 
 
 /**
- * @todo Чака за документация...
+ * Адрес на xmpp чат сървър
  */
 defIfNot('XMPPHP_SERVER', 'talk.google.com');
 
 /**
- * @todo Чака за документация...
+ * Порт за връзка
  */
 defIfNot('XMPPHP_PORT', '5222');
 
 /**
- * @todo Чака за документация...
+ * Име на потребител
  */
 defIfNot('XMPPHP_USER', '');
 
 /**
- * @todo Чака за документация...
+ * Парола
  */
 defIfNot('XMPPHP_PASSWORD', '');
 
 /**
- * @todo Чака за документация...
+ * Домейн 
  */
 defIfNot('XMPPHP_DOMAIN', 'gmail.com');
 
@@ -81,15 +81,15 @@ class xmpphp_Setup extends core_ProtoSetup
     var $configDescription = array(
         
                
-           'XMPPHP_SERVER'   => array ('varchar'),
+           'XMPPHP_SERVER'   => array ('varchar', 'caption=Адрес на xmpp чат сървър->URL адрес'),
     
-           'XMPPHP_PORT'   => array ('int'),
+           'XMPPHP_PORT'   => array ('int', 'caption=Порт за връзка->Порт'),
      
-           'XMPPHP_DOMAIN'   => array ('varchar'),
+           'XMPPHP_DOMAIN'   => array ('varchar', 'caption=Домейн->Домейн'),
     
-           'XMPPHP_USER'   => array ('identifier', 'mandatory'),
+           'XMPPHP_USER'   => array ('identifier', 'mandatory, caption=Име на потребител->Ник'),
     
-           'XMPPHP_PASSWORD'   => array ('password', 'mandatory')
+           'XMPPHP_PASSWORD'   => array ('password', 'mandatory, caption=Парола->Парола')
     
     
         );
