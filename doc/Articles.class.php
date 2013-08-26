@@ -256,7 +256,7 @@ class doc_Articles extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на коментар не променя състоянието на треда
+     * Добавянето на статия не променя състоянието на треда
      */
     static function getThreadState($id)
     {
