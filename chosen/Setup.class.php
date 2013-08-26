@@ -51,7 +51,7 @@ class chosen_Setup extends core_ProtoSetup {
     var $configDescription = array(
     
             // Минималния брой елементи, за които няма да сработи Chosen
-            'CHOSEN_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за използване на Chosen->Опции'),
+            'CHOSEN_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Chosen->Опции'),
     
         );
     
