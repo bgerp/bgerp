@@ -69,10 +69,10 @@ class crm_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Име на собствената компания (тази за която ще работи bgERP)
-            'BGERP_OWN_COMPANY_NAME' => array ('text', 'mandatory, caption=Име на собствената компания->Текст'),
+            'BGERP_OWN_COMPANY_NAME' => array ('varchar', 'mandatory, caption=Име на собствената компания->Фирма'),
     
             // Държавата на собствената компания (тази за която ще работи bgERP)
-            'BGERP_OWN_COMPANY_COUNTRY' => array ('text', 'caption=Държавата на собствената компания->Текст')
+            'BGERP_OWN_COMPANY_COUNTRY' => array ('varchar', 'caption=Държава на собствената компания->Държава')
         );
     
         
