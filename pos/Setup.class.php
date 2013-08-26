@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  Константа за тема по-подразбиране на блога
+ *  Tемата по-подразбиране за пос терминала
  */
 defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos/themes/default');
 
@@ -50,7 +50,7 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Tемата по-подразбиране в блога->Път до темата'),
+    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Tемата по-подразбиране за пос терминала->Път до темата'),
         );
     
 
