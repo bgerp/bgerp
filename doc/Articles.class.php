@@ -4,7 +4,6 @@
 /**
  * Статии в системата
  *
- *
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -25,7 +24,7 @@ class doc_Articles extends core_Master
     /**
      * Полета, които ще се клонират
      */
-//    var $cloneFields = 'subject, body';
+    var $cloneFields = 'subject, body';
     
     
     /**
@@ -98,7 +97,7 @@ class doc_Articles extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-//    var $singleIcon = 'img/16/article.png';
+    var $singleIcon = 'img/16/article.png';
     
     
     /**
@@ -110,19 +109,19 @@ class doc_Articles extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-//    var $searchFields = 'subject, body';
+    var $searchFields = 'subject, body';
     
     
     /**
      * Полето "Относно" да е хипервръзка към единичния изглед
      */
-//    var $rowToolsSingleField = 'subject';
+    var $rowToolsSingleField = 'subject';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-//    var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
+    var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
 
 
 	/**
@@ -150,9 +149,8 @@ class doc_Articles extends core_Master
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,changable');
         $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Статия,mandatory,changable');
-        $this->FLD('version', 'varchar', 'caption=Версия,changable,input=none,width=100%');
+        $this->FLD('version', 'varchar', 'caption=Версия,input=none,width=100%,changable');
         $this->FLD('subVersion', 'int', 'caption=Подверсия,input=hidden,changable');
-//        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     }
     
     
@@ -164,21 +162,38 @@ class doc_Articles extends core_Master
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
+            
+            // Ако редактраиме записа
             if ($id = $form->rec->id) {
+                
+                // Вземаме записа
                 $rec = $mvc->fetch($id);
+                
+                // Ако няма промени
                 if (($form->rec->subject == $rec->subject) && ($form->rec->body == $rec->body)) {
+                    
+                    // Сетваме грешка
                     $form->setError(array('subject', 'body'), 'Нямате промени');
                 }
             }
         }
+        
+        // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
             
+            // Ако няма версия
             if (!$form->rec->version) {
+                
+                // Стойността по подразбране
                 $form->rec->version = 0;
             }
             
+            // Ако няма подверсия
             if (!$form->rec->subVersion) {
+                
+                // Стойността по подразбиране
                 $form->rec->subVersion = 1;
             }
         }
@@ -194,14 +209,25 @@ class doc_Articles extends core_Master
      */
     function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
+        // Ако има промени, тогава да се променя подверсията "версията"
 //        if ($oldRec->subject != $newRec->subjet) || ($oldRec->body != $newRec->body)
-//        bp($oldRec, $newRec);
+
+        // Ако не е променяна версията
         if ($oldRec->version == $newRec->version) {
+            
+            // Увеличаваме подверсията
             $newRec->subVersion++;
         } else {
+            
+            // Ако е променяна версията, подверсията да е 1
             $newRec->subVersion = 1;
         }
+        
+        // Версията и подверсията на стария запис и новия да са еднакви
+        $oldRec->version = $newRec->version;
+        $oldRec->subVersion = $newRec->subVersion;
     }
+    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
@@ -213,9 +239,11 @@ class doc_Articles extends core_Master
         
         // Вземаме записите
         $recsArr = log_Documents::getRecs($data->rec->containerId, $action);
+        
+        // Ако има записи, добавяме бутон за версиите
         if (count($recsArr[0]->data->{$action})) {
             
-            $data->toolbar->addBtn('Версии', array($mvc, 'versions', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_sign.png, row=2');
+//            $data->toolbar->addBtn('Версии', array($mvc, 'versions', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_sign.png, row=2');
         }
     }
     
@@ -225,6 +253,7 @@ class doc_Articles extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, &$data)
     {
+        // Показва версията и подверсията
         $data->row->versionInfo = "{$data->row->version}.{$data->row->subVersion}";
     }
     
