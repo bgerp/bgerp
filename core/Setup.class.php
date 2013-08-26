@@ -76,7 +76,7 @@ class core_Setup {
     /**
      * Описание на модула
      */
-    var $info = "Ядро на Experta Framework";
+    var $info = "Администриране на приложението";
     
     
     /**
