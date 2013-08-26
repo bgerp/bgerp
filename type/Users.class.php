@@ -116,7 +116,7 @@ class type_Users extends type_Keylist
             foreach($teams as $t) {
                 $group = new stdClass();
                 $group->title = tr('Екип') . " \"" . core_Roles::getVerbal($t, 'role') . "\"";
-                $group->attr = array('class' => 'team');
+                $group->attr = array('class' => 'team', 'style' => 'background-color:#000;color:#fc0');
                 
                 $this->options[$t . ' team'] = $group;
                 
