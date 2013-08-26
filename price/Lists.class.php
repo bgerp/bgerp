@@ -160,8 +160,7 @@ class price_Lists extends core_Master
 	            $parentOptions = self::makeArray4select('title', $cond);
 	            $form->setOptions('parent', $parentOptions);
 	        } else {
-	        	$conf = core_Packs::getConfig('price');
-	            $rec->parent = $conf->PRICE_LIST_CATALOG;
+	            $rec->parent = price_ListRules::PRICE_LIST_CATALOGG;
 	        }
         }
             
@@ -226,11 +225,9 @@ class price_Lists extends core_Master
      */
     function on_AfterSetupMVC($mvc, $res)
     {
-        $conf = core_Packs::getConfig('price');
-		
-        if(!$mvc->fetchField($conf->PRICE_LIST_COST, 'id')) {
+		if(!$mvc->fetchField(price_ListRules::PRICE_LIST_COST, 'id')) {
             $rec = new stdClass();
-            $rec->id = $conf->PRICE_LIST_COST;
+            $rec->id = price_ListRules::PRICE_LIST_COST;
             $rec->parent = NULL;
             $rec->title  = 'Себестойност';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
@@ -241,10 +238,10 @@ class price_Lists extends core_Master
             $mvc->save($rec, NULL, 'REPLACE');
         }
         
-        if(!$mvc->fetchField($conf->PRICE_LIST_CATALOG, 'id')) {
+        if(!$mvc->fetchField(price_ListRules::PRICE_LIST_CATALOG, 'id')) {
             $rec = new stdClass();
-            $rec->id = $conf->PRICE_LIST_CATALOG;
-            $rec->parent = $conf->PRICE_LIST_COST;
+            $rec->id = price_ListRules::PRICE_LIST_CATALOG;
+            $rec->parent = price_ListRules::PRICE_LIST_COST;
             $rec->title  = 'Каталог';
             $rec->currency = acc_Periods::getBaseCurrencyCode();
             $rec->vat = 'yes';
@@ -254,5 +251,4 @@ class price_Lists extends core_Master
             $mvc->save($rec, NULL, 'REPLACE');
         }
     }
-    
 }

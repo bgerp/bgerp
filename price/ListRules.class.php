@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Правилата за ценоразписите за продуктите от каталога
  *
@@ -16,12 +15,28 @@
  */
 class price_ListRules extends core_Detail
 {
+	
+	
+    /**
+     * ид на политика "Себестойност"
+     */
+    const PRICE_LIST_COST = 1;
+
     
-    
+    /**
+     * ид на политика "Каталог"
+     */
+    const PRICE_LIST_CATALOG = 2;
+
     /**
      * Заглавие
      */
     var $title = 'Ценоразписи->Правила';
+    
+    
+    /**
+     * Единично заглавие
+     */
     var $singleTitle = 'Правило';
     
     
@@ -31,7 +46,6 @@ class price_ListRules extends core_Detail
     var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys';
                     
  
-     
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -171,7 +185,7 @@ class price_ListRules extends core_Detail
         } else {
             if($parent = price_Lists::fetchField($listId, 'parent')) {
             	$conf = core_Packs::getConfig('price');
-            	if($parent == $conf->PRICE_LIST_COST){
+            	if($parent == price_ListRules::PRICE_LIST_COST){
             		
             		// Ако няма запис за продукта или групата
             		// му и бащата на ценоразписа е "себестойност"
@@ -473,16 +487,15 @@ class price_ListRules extends core_Detail
     static function setup()
     {
         $csvFile = __DIR__ . "/setup/csv/Groups.csv";
-        $conf = core_Packs::getConfig('price');
         $inserted = 0;
         
         if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
             	if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
             		
-            		if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = {$conf->PRICE_LIST_CATALOG} AND #groupId = {$groupId}")){
+            		if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = " . price_ListRules::PRICE_LIST_CATALOG . " AND #groupId = {$groupId}")){
             			$rec = new stdClass();
-		        		$rec->listId = $conf->PRICE_LIST_CATALOG;
+		        		$rec->listId = price_ListRules::PRICE_LIST_CATALOG;
 		        		$rec->groupId = $groupId;
 		        		$rec->discount = $csvRow[2]; // Задаваме груповата наддценка в проценти
 		        		$rec->type = 'groupDiscount';

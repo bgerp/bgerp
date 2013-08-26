@@ -195,7 +195,7 @@ class price_ConsumptionNorms extends core_Master {
     	
     	if($data->rec->state == 'active' && price_Lists::haveRightFor('single')){
 	    	$conf = core_Packs::getConfig('price');
-	    	$data->toolbar->addBtn('Ценова история', array('price_Lists', 'single', $conf->PRICE_LIST_COST, 'product' => $data->rec->productId), NULL, 'ef_icon=img/16/money_dollar.png');
+	    	$data->toolbar->addBtn('Ценова история', array('price_Lists', 'single', price_ListRules::PRICE_LIST_COST, 'product' => $data->rec->productId), NULL, 'ef_icon=img/16/money_dollar.png');
     	}
     }
    
@@ -317,7 +317,7 @@ class price_ConsumptionNorms extends core_Master {
     	
     	if(price_ListRules::haveRightFor('read')){
     		$conf = core_Packs::getConfig('price');
-    		$data->toolbar->addBtn('Себестойности', array('price_Lists', 'single', $conf->PRICE_LIST_COST), NULL, 'ef_icon=img/16/view.png');
+    		$data->toolbar->addBtn('Себестойности', array('price_Lists', 'single', price_ListRules::PRICE_LIST_COST), NULL, 'ef_icon=img/16/view.png');
     	}
     }
     
@@ -437,8 +437,7 @@ class price_ConsumptionNorms extends core_Master {
 				$price += $pPrice;
 			}
    		} else {
-	    	$conf = core_Packs::getConfig('price');
-    		$price = price_ListRules::getPrice($conf->PRICE_LIST_COST, $productId, NULL, $datetime);
+	    	$price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, NULL, $datetime);
     		expect($price, "Проблем при изчислението на себестойноста на продукт: {$productId}");
     	}
     	
@@ -466,7 +465,6 @@ class price_ConsumptionNorms extends core_Master {
     {
     	$this->requireRightFor('write');
     	$count = 0;
-    	$conf = core_Packs::getConfig('price');
     	$query = $this->getQuery();
     	$query->where("#state = 'active'");
     	
@@ -487,7 +485,7 @@ class price_ConsumptionNorms extends core_Master {
     	
     	while($rec = $query->fetch()) {
     		$listRec = new stdClass();
-    		$listRec->listId = $conf->PRICE_LIST_COST;
+    		$listRec->listId = price_ListRules::PRICE_LIST_COST;
     		$listRec->productId = $rec->productId;
     		$listRec->price = price_ConsumptionNorms::calcCost($rec->productId, 1, NULL, $rec->uom);
     		$listRec->type = 'value';

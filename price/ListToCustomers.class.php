@@ -363,8 +363,7 @@ class price_ListToCustomers extends core_Detail
         if($validRec) {
             $listId   = $validRec->listId;
         } else {
-            $conf = core_Packs::getConfig('price');
-            $listId = $conf->PRICE_LIST_CATALOG;
+            $listId = price_ListRules::PRICE_LIST_CATALOG;
         }
         
         return $listId;

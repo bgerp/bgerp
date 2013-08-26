@@ -1,9 +1,5 @@
 <?php
 
-defIfNot('PRICE_LIST_COST', 1);
-
-defIfNot('PRICE_LIST_CATALOG', 2);
-
 
 /**
  * Инсталиране на модул 'price'
@@ -44,18 +40,6 @@ class price_Setup extends core_ProtoSetup
     var $info = "Ценови политики, ценоразписи, разходни норми";
     
     
-    /**
-     * Описание на конфигурационните константи за този модул
-     */
-    var $configDescription = array(
-            
-            //Задаване на основна валута
-            'PRICE_LIST_COST' => array ('int', 'mandatory'),
-         
-    		'PRICE_LIST_CATALOG' => array ('int', 'mandatory'),
-        );
-    
-
     /**
      * Списък с мениджърите, които съдържа пакета
      */
