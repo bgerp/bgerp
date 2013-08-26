@@ -316,10 +316,10 @@ class core_Packs extends core_Manager
         
         $imageUrl = sbf("img/100/default.png","");
         
-        $filename=getFullPath("{$rec->name}/icon.png");
-        
-       	if(file_exists($filename)){
-       		$imageUrl=sbf("{$rec->name}/icon.png","");
+        $filePath = getFullPath("{$rec->name}/icon.png");
+
+        if($filePath){
+       		$imageUrl = sbf("{$rec->name}/icon.png","");
        	}
        	
        	$row->img = ht::createElement("img", array('src' => $imageUrl));
