@@ -54,7 +54,7 @@ class hclean_Setup extends core_ProtoSetup
     var $configDescription = array(
     
         // Дали да се вкара CSS'а в inline атрибут
-        'HCLEAN_PLACE_CSS_TO_INLINE' => array ("enum(yes=Да, no=Не)"),
+        'HCLEAN_PLACE_CSS_TO_INLINE' => array ("enum(yes=Да, no=Не)", 'caption=Да се вкарали CSS вътре в таговете->Да/Не'),
     );
     
     

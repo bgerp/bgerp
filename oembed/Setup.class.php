@@ -58,9 +58,10 @@ class oembed_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'OEMBED_MAX_WIDTH' => array ('int'),
+           'OEMBED_MAX_WIDTH' => array ('int', 'caption=Максимална широчина на вградените елементи->Размер в пиксели'),
            'OEMBED_SERVICES' => array ('set(blip.tv,Dailymotion,Flickr Photos,Hulu,Qik Video,Revision3,
-           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)')
+           Scribd,Viddler Video,Vimeo,YouTube,dotSUB.com,YFrog,Clikthrough,Photobucket,Picasa,Slideshare,Vbox7,Cacco,Embed.ly)',
+    		'caption=Услуги на които по подразбиране се вграждат връзките към тяхно съдържание->Списък')
 
              );
     

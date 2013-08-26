@@ -51,7 +51,7 @@ class fconv_Setup extends core_ProtoSetup
     var $configDescription = array(
     
         // 
-       'FCONV_TEMP_PATH'   => array ('varchar', 'caption=Пътя до директорията с временните файлов->Път')
+       'FCONV_TEMP_PATH'   => array ('varchar', 'caption=Директорията с временните файлов->Път до директорията')
         );
         
         

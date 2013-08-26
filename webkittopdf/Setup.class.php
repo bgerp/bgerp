@@ -79,11 +79,11 @@ class webkittopdf_Setup extends core_ProtoSetup
     
            'WEBKIT_TO_PDF_XVFB_RUN'   => array ('varchar', 'caption=Оказва дали да се изпълни помощната програма (xvfb-run)->Да/Не'),
     
-           'WEBKIT_TO_PDF_SCREEN_WIDTH'   => array ('int', 'caption=Ширина на екрана->Число'),
+           'WEBKIT_TO_PDF_SCREEN_WIDTH'   => array ('int', 'caption=Ширина на екрана->Размер в пиксели'),
     
-           'WEBKIT_TO_PDF_SCREEN_HEIGHT'   => array ('int', 'caption=Височина на екрана->Число'),
+           'WEBKIT_TO_PDF_SCREEN_HEIGHT'   => array ('int', 'caption=Височина на екрана->Размер в пиксели'),
     
-           'WEBKIT_TO_PDF_SCREEN_BIT'   => array ('int', 'caption=Дълбочина на цвета->Число'),
+           'WEBKIT_TO_PDF_SCREEN_BIT'   => array ('int', 'caption=Дълбочина на цвета->Размер в пиксели'),
         );
     
         
