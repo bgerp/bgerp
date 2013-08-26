@@ -1,10 +1,5 @@
 <?php
 
-// Тип данни за размер на файл
-
-cls::load('type_Int');
-
-
 /**
  * Клас 'fileman_FileSize' -
  *
@@ -17,7 +12,7 @@ cls::load('type_Int');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_FileSize extends type_Int {
+class fileman_FileSize extends type_Bigint {
     
     
     /**
@@ -53,8 +48,10 @@ class fileman_FileSize extends type_Int {
         if($this->params['size']) {
             $attr['size'] = $this->params['size'];
         }
+
+        $value = str_replace('&nbsp;', ' ', $this->toVerbal($value));
         
-        $tpl = ht::createTextInput($name, $this->toVerbal($value), $attr);
+        $tpl = ht::createTextInput($name, $value, $attr);
         
         return $tpl;
     }
