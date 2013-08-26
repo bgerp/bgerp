@@ -760,7 +760,7 @@ class core_Html
             } elseif(is_object($o)) {
                 $res = '(array)';
             } elseif(is_scalar($o)) {
-                $res = $o;
+                $res = htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
             } else {
                 $res = '...';
             }
