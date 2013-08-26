@@ -523,7 +523,7 @@ class acc_Periods extends core_Manager
         $periodRec = static::fetchByDate($date);
         
         if(!($baseCurrencyId = $periodRec->baseCurrencyId)) {
-        	$conf = core_Packs::getConfig('currency');
+        	$conf = core_Packs::getConfig('acc');
         	$baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
         }
         
