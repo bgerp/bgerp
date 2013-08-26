@@ -91,22 +91,22 @@ class email_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory, caption=Максимално време за еднократно теглене на писма->Число'),
+            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory, caption=Максимално време за еднократно теглене на писма->Време в секунди'),
     
             // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory, caption=Максималното време за изчакване на буфера->Число'),
+            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory, caption=Максималното време за изчакване на буфера->Време в секунди'),
             
             // Максималната разрешена памет за използване
             'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване->Размер на паметта'),
 
             // Шаблон за име на папки
-            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки'),
+            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки->Път до шаблона'),
 
             // Максималната големина на файловете, които ще се приемат за CID
-            'EMAIL_MAXIMUM_CID_LEN' => array ('int'),
+            'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
             
             // Ниво за score на SpamAssassin, над което писмото се обявява за твърд СПАМ
-            'SPAM_SA_SCORE_LIMIT' => array ('int'),
+            'SPAM_SA_SCORE_LIMIT' => array ('int', 'caption=Ниво за score на SpamAssassin|*&comma;| над което писмото се обявява за твърд СПАМ->Ниво'),
 
             
         );

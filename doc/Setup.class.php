@@ -57,7 +57,7 @@ class doc_Setup
     var $configDescription = array(
     
             // Кой пакет да използваме за генериране на PDF от HTML ?
-            'BGERP_PDF_GENERATOR' => array ('enum(dompdf,webkittopdf)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML'),
+            'BGERP_PDF_GENERATOR' => array ('enum(dompdf,webkittopdf)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
           
         );
     

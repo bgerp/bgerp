@@ -60,11 +60,11 @@ class forum_Setup extends core_ProtoSetup
             
             'FORUM_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Тема по подразбиране в блога->Път до темата'),
          
-    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory, caption=Броят на темите в една страница->Число'),
+    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory, caption=Броят на темите в една страница->Бр. теми'),
     
-    		'GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Текст'),
+    		'GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
          
-    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory, caption=Броят на постовете на една страница->Число'),
+    		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory, caption=Броят на постовете на една страница->Бр. постове'),
         );
     
 
