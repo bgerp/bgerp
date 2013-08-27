@@ -75,8 +75,6 @@ class webkittopdf_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'WEBKIT_TO_PDF_BIN' => array ('varchar', 'mandatory, caption=Изпълнимия файл на програмата->Път до файла'),
-    
            'WEBKIT_TO_PDF_XVFB_RUN'   => array ('varchar', 'caption=Оказва дали да се изпълни помощната програма (xvfb-run)->Да/Не'),
     
            'WEBKIT_TO_PDF_SCREEN_WIDTH'   => array ('int', 'caption=Ширина на екрана->Размер в пиксели'),
