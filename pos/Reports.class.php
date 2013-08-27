@@ -423,7 +423,7 @@ class pos_Reports extends core_Master {
     	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
-    	//bp($details, $receipts);
+    	
     	return array('receipts' => $receipts, 'receiptDetails' => $details);
     }
     

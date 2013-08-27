@@ -238,8 +238,7 @@ class bank_ExchangeDocument extends core_Master
 		    }
 		    
 		    $sharedUsers = bank_OwnAccounts::fetchField($rec->peroTo, 'operators');
-    		bp($sharedUsers);
-		    $rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
+    		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
 		}
     }
     

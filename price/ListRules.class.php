@@ -471,7 +471,7 @@ class price_ListRules extends core_Detail
 			$data->query->where(array("#productId = [#1#]", $productId));
 		}
 		
-    	if($from = $data->listFilter->rec->from){bp($date);
+    	if($from = $data->listFilter->rec->from){
 			$data->query->where(array("#validFrom >= '[#1#]'", $from));
 		}
 		
