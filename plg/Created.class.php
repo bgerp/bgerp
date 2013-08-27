@@ -36,7 +36,7 @@ class plg_Created extends core_Plugin
         $invoker->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
         
         // По подразбиране никой не може да редактира данни, записани от системата
-        setIfNot($invoker->canEditsysdata, 'user');
+        setIfNot($invoker->canEditsysdata, 'no_one');
         setIfNot($invoker->canDeletesysdata, 'no_one');
     }
     
