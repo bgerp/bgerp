@@ -91,10 +91,10 @@ class email_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory, caption=Максимално време за еднократно теглене на писма->Време в секунди'),
+            'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за еднократно теглене на писма->Време'),
     
             // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory, caption=Максималното време за изчакване на буфера->Време в секунди'),
+            'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Максималното време за изчакване на буфера->Време'),
             
             // Максималната разрешена памет за използване
             'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване->Размер на паметта'),
