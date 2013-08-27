@@ -646,7 +646,7 @@ class core_Db extends core_BaseClass
         global $_GET, $setupFlag;
         
         // Ако има грешка при извикване от крон-а - игнорираме.
-        if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+        if (($_GET['Ctr'] == 'core_Cron' && !$_GET['forced'])) {
         	
         	return;
         }
@@ -668,7 +668,7 @@ class core_Db extends core_BaseClass
 
                 $err->class  = 'core_Db';
                 $err->errNum = $errno;
-                
+                 
                 throw $err;
                 
                 error("Грешка {$errno} в БД при " . $action, array(
