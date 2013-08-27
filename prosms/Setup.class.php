@@ -69,13 +69,13 @@ class prosms_Setup extends core_ProtoSetup
     
 
     var $configDescription = array (
-        'PROSMS_URL' => array('url', 'mandatory'),
-        'PROSMS_USER' => array('identifier', 'mandatory'),
-        'PROSMS_PASS' => array('password', 'mandatory'),
+        'PROSMS_URL' => array('url', 'mandatory, caption=Адрес за изпращане на SMS->URL адрес'),
+        'PROSMS_USER' => array('identifier', 'mandatory, caption=Потребителско име->Ник'),
+        'PROSMS_PASS' => array('password', 'mandatory, caption=Парола->Парола'),
     
-        'PROSMS_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Избор'),
-        'PROSMS_MAX_STRING_LEN' => array('int', 'caption=Максималната дължина на стринга->Число'),
-        'PROSMS_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Текст'),
+        'PROSMS_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
+        'PROSMS_MAX_STRING_LEN' => array('int', 'caption=Максималната дължина на стринга->Бррой символи'),
+        'PROSMS_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Списък с имена'),
         );
     
         
