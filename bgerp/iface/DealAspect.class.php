@@ -53,6 +53,14 @@ class bgerp_iface_DealAspect
      */
     public $payment;
     
+    
+	public function __construct()
+	{
+		$this->delivery = new bgerp_iface_DealDelivery();
+		$this->payment = new bgerp_iface_DealPayment();
+	}
+
+
     /**
      * Добавя друг аспект (детайл) на сделката към текущия аспект
      * 
