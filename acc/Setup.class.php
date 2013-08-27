@@ -72,7 +72,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'ACC_FIRST_PERIOD_START' => array('date', 'caption=Начало на първия счетоводен период->Дата'), 
-        'ACC_DEFAULT_VAT_RATE' => array('percent', 'caption=Максимално отклонение във валутните курсове->Отклонение')
+        'ACC_DEFAULT_VAT_RATE' => array('percent', 'caption=ДДС по подразбиране->Процент')
     );
     
     
