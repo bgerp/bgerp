@@ -19,6 +19,12 @@ defIfNot("COUNTRY_PHONE_CODE", '359');
 
 
 /**
+ * Избягвани под-стрингове при парсиране на вход. писма
+ */
+defIfNot("DRDATA_AVOID_IN_EXT_ADDRESS", '');
+
+
+/**
  * class drdata_Setup
  *
  * Инсталиране/Деинсталиране на
