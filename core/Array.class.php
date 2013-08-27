@@ -70,7 +70,7 @@ class core_Array
      * които могат да се запишат във вида "a=23,b=ddd,c=ert->wer"
      * Само знаците '=' и ',' не могат да се използват в ключовете или стойностите
      */
-    static function make($mixed, $noIntKeys = FALSE)
+    static function make($mixed, $noIntKeys = FALSE, $sep = NULL)
     {
         if (!$mixed) {
             return array();
@@ -78,13 +78,15 @@ class core_Array
             $p = $mixed;
         } elseif (is_object($mixed)) {
             $p = get_object_vars($mixed);
-        } elseif (is_string($mixed)) {
-            $sep = substr($mixes, 0, 1);
-
-            if (strlen($mixed) > 3 && $sep == substr($mixes, -1) && ($sep == ',' || $sep == '|')) {
-                $mixed = trim($mixes, $sep);
-            } else {
-                $sep = ',';
+        } elseif (is_scalar($mixed)) {
+            
+            if(!$sep) {
+                $sep = substr($mixed, 0, 1);
+                if (strlen($mixed) > 3 && $sep == substr($mixed, -1) && ($sep == ',' || $sep == '|')) {
+                    $mixed = trim($mixed, $sep);
+                } else {
+                    $sep = ',';
+                }
             }
 
             /**
