@@ -36,7 +36,8 @@ class plg_LastUsedKeys extends core_Plugin
                     $mvc->lastUsedKeys[] = $name;
                 }
             }
-            $noCheckLastUsedField = FALSE;
+            $mvc->noCheckLastUsedField = FALSE;
+            core_Debug::log('Не е дефиниран lastUsedKeys');
         } else {
             $mvc->lastUsedKeys = arr::make($mvc->lastUsedKeys);
             
@@ -49,8 +50,11 @@ class plg_LastUsedKeys extends core_Plugin
                     'Полето в lastUsedFields не е key или keylist',
                     $field);
             }
-            
-            $noCheckLastUsedField = TRUE;
+            if ($mvc->noCheckLastUsedField !== FALSE) {
+                $noCheckLastUsedField = TRUE;
+            } else {
+                $noCheckLastUsedField = FALSE;
+            }
         }
         
         foreach($mvc->lastUsedKeys as $field) {
