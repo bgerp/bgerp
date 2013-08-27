@@ -159,6 +159,15 @@ class core_FieldSet extends core_BaseClass
             }
              
             foreach ($params as $member => $value) {
+                // Ако има - задаваме suggestions (предложенията в падащото меню)
+                if($member == 'suggestions') {
+                    if(is_scalar($value)) {
+                        $value =  array('' => '') + arr::make($value, TRUE, '|');
+                    } 
+                    $this->fields[$name]->type->suggestions = $value;
+                    continue;
+                }
+
                 if($member) {
                     $this->fields[$name]->{$member} = $value;
                 }
@@ -173,6 +182,7 @@ class core_FieldSet extends core_BaseClass
             if (!empty($params['before'])) {
                 $this->moveBefore($name, $params['before']);
             }
+
         }
     }
     
