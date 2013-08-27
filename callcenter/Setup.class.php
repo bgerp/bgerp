@@ -72,7 +72,7 @@ class callcenter_Setup
      */
     var $configDescription = array(
        'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ'),
-       'CALLCENTER_DRAFT_TO_NOANSWER' => array('int', 'caption=След колко секунди да се промени в без отговор->Секунди'),
+       'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимална продължителност на разговора->Време, width=100px'),
        'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се генерира обаждане->IP адрес'),
     );
     

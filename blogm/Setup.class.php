@@ -2,7 +2,7 @@
 /**
  * Константи за брой дни след които статията се заключва за коментиране
  */
-defIfNot('BLOGM_MAX_COMMENT_DAYS', '50');
+defIfNot('BLOGM_MAX_COMMENT_DAYS', 50*24*60*60);
 
 
 /**
@@ -81,7 +81,7 @@ class blogm_Setup extends core_ProtoSetup
 	var $configDescription = array(
 	
 			// Константи за инициализиране на таблицата с контактите
-			'BLOGM_MAX_COMMENT_DAYS' => array ('int', 'caption=Броят дни след които статията се заключва за коментиране->Дни'),
+			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време след което статията се заключва за коментиране->Дни'),
 
             'BLOGM_ARTICLE_SHARE' => array ('html', 'caption=Код за споделяне на статията->HTML код'),
 
