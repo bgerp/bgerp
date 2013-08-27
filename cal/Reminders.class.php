@@ -303,7 +303,7 @@ class cal_Reminders extends core_Master
     			$timeStart = self::fetchField($rec->id, 'timeStart');
     		}
 	       
-	        if($timeStart < $now && $rec->state != $exState){
+	        if($timeStart < $now && ($rec->state != $exState && $rec->state != 'rejected')){
 	       		redirect(array('cal_Reminders', 'single', $rec->id), FALSE, tr("Не може да се направи напомняне в миналото |* "));
 	        }
     		
