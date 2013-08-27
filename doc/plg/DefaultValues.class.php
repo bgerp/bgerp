@@ -157,7 +157,7 @@ class doc_plg_DefaultValues extends core_Plugin
 				$value = static::getStrategyOne($mvc, $name, $rec, $fld);
     			break;
     		case '2':
-    			//$value = static::getStrategyTwo($mvc, $name, $rec->folderId, $cu);
+    			$value = static::getContragentData($mvc, $name, $rec);
     			break;
     		case '3':
     			//$value = static::getStrategyThree($mvc, $name, $rec->folderId, $cu);
@@ -165,6 +165,39 @@ class doc_plg_DefaultValues extends core_Plugin
     	}
     	
     	return $value;
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $mvc
+     * @param unknown_type $name
+     * @param unknown_type $rec
+     */
+    private function getContragentData($mvc, $name, $rec)
+    {
+    	if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
+	    	$query = $mvc->getQuery();
+	    	$query->where("#folderId = {$rec->folderId}");
+	    	$query->orderBy('createdOn', 'DESC');
+	    	$lastRec = $query->fetch();
+	    	if($lastRec && cls::existsMethod($mvc, 'getContragentData')){
+	    		$data = $mvc::getContragentData($lastRec->id);
+	    	}
+    	}
+    	
+    	if(!$data) {
+    		$contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    		$contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    		$data = $contragentClass::getContragentData($contragentId);
+    	}
+    	
+	    if(isset($data->{$name})){
+	    	return $data->{$name};
+	    } elseif(isset($data->{"p".ucfirst($name).""})){
+	    	return $data->{"p".ucfirst($name).""};
+	    }
     }
     
     

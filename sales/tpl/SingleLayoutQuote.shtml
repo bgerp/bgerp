@@ -27,8 +27,8 @@
 		<td>
 		<div class='receiver-block'>
 			<p class='title-info receiver'>|Получател|*:</p>
-			<p class='title-info'>[#recipient#]</p>
-			<p class='title-info'>[#attn#]</p>
+			<p class='title-info'>[#company#]</p>
+			<p class='title-info'>[#person#]</p>
 			<p class='title-info'>[#contragentAdress#]</p>
 			
 			<!--ET_BEGIN email-->

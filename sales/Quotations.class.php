@@ -120,7 +120,7 @@ class sales_Quotations extends core_Master
    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'paymentMethodId, reff, recipient, attn, email, address';
+    var $searchFields = 'paymentMethodId, reff, company, person, email, address';
     
     
    /**
@@ -147,15 +147,15 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова,defaultStrategy=1');
         
-		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,defaultStrategy=1, changable');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,defaultStrategy=1, changable');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,defaultStrategy=1, changable');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,defaultStrategy=1, changable');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,defaultStrategy=1, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,defaultStrategy=1, changable');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=1, changable');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,defaultStrategy=1, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,defaultStrategy=1, changable');
+		$this->FLD('company', 'varchar', 'caption=Адресант->Фирма,defaultStrategy=2, changable');
+        $this->FLD('person', 'varchar', 'caption=Адресант->Лице,defaultStrategy=2, changable');
+        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,defaultStrategy=2, changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,defaultStrategy=2, changable');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,defaultStrategy=2, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,defaultStrategy=2, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=2, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,defaultStrategy=2, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,defaultStrategy=2, changable');
     	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
     	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
     	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
@@ -186,8 +186,8 @@ class sales_Quotations extends core_Master
        		$data->form->setField('quantity1,quantity2,quantity3', 'input');
        }
        
-       if(!$rec->attn){
-       	  $data->form->setSuggestions('attn', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
+       if(!$rec->person){
+       	  $data->form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
     }
     
@@ -260,12 +260,12 @@ class sales_Quotations extends core_Master
     	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($rec->date);
     	$rec->paymentCurrencyId = $currencyCode;
     	
-    	if ($data->company && empty($rec->recipient)) {
-    		$rec->recipient = $data->company;
+    	if ($data->company && empty($rec->company)) {
+    		$rec->company = $data->company;
     	}
     		
-    	if($data->person && empty($rec->attn)) {
-    		$rec->attn = $data->person;
+    	if($data->person && empty($rec->person)) {
+    		$rec->person = $data->person;
     	}
     		
     	if(!$data->country){
@@ -567,11 +567,13 @@ class sales_Quotations extends core_Master
     {
         //Вземаме данните от визитката
         $rec = static::fetch($id);
+        if(!$rec) return;
+        
         $contrData = new stdClass();
-        $contrData->company = $rec->recipient;
+        $contrData->company = $rec->company;
          
         //Заместваме и връщаме данните
-        if (!$rec->attn) {
+        if (!$rec->person) {
         	$contrData->companyId = $rec->contragentId;
             $contrData->tel = $rec->tel;
             $contrData->fax = $rec->fax;
@@ -580,7 +582,7 @@ class sales_Quotations extends core_Master
             $contrData->address = $rec->address;
             $contrData->email = $rec->email;
         } else {
-        	$contrData->person = $rec->attn;
+        	$contrData->person = $rec->person;
             $contrData->pTel = $rec->tel;
             $contrData->pFax = $rec->fax;
             $contrData->pCode = $rec->pCode;
