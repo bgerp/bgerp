@@ -13,9 +13,10 @@
  * @license   GPL 3
  * @since     v 0.1
  * 
- * Текущ период = период в който поада днешната дата
+ * Текущ период = период в който попада днешната дата
  * Активен период = период в състояние 'active'. Може да има само един активен период
- * Неприключен период - период в състояние "draft" или "active"
+ * Чакащ период - период в състояния 'pending' който е след активния период и преди текущия (ако двата не съвпадат)
+ * Бъдещ период - период, който започва след изтичането на текущия
  * Приключен период - период в състояние "closed"
  */
 class acc_Periods extends core_Manager
@@ -32,12 +33,7 @@ class acc_Periods extends core_Manager
      * Заглавие в единствено число
      */
     var $singleTitle = 'Период';
-
-
-    /**
-     * Активен таб на менюто
-     */
-    var $menuPage = 'Счетоводство:Настройки';
+    
     
     /**
      * Плъгини за зареждане
@@ -48,7 +44,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, lastEntry, reports=Справки, close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry, reports=Справки,close=Приключване";
     
     
     /**
@@ -61,7 +57,6 @@ class acc_Periods extends core_Manager
      * Кой може да пише?
      */
     var $canEdit = 'ceo,acc';
-    
     
     
     /**
@@ -88,7 +83,7 @@ class acc_Periods extends core_Manager
     function description()
     {
         $this->FLD('end', 'date(format=d.m.Y)', 'caption=Край,mandatory');
-        $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен,pending=Чакащ)', 'caption=Състояние,input=none');
         $this->FNC('start', 'date(format=d.m.Y)', 'caption=Начало', 'dependFromFields=end');
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
         $this->FLD('lastEntry', 'datetime', 'caption=Последен запис,input=none');
@@ -134,14 +129,17 @@ class acc_Periods extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        /*if($mvc->haveRightFor('reports', $rec)) {
-           $row->reports = Ht::createBtn('Справки', array('acc_Reports', 'List', $rec->id), NULL, NULL, 'ef_icon=img/16/report.png');
-        }*/
-        
         if($mvc->haveRightFor('close', $rec)) {
-            if ($rec->state == 'active'){
-                $row->close = Ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png');
-            }
+           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png');
+        }
+        
+        if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
+        	$row->reports = ht::createBtn('Справки', array('acc_Balances', 'Single', $repId), NULL, NULL, 'ef_icon=img/16/report.png');
+        }
+        
+        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        if($rec->end == $curPerEnd){
+        	$row->id = "<img src=" . sbf('img/16/control_play.png') . " style='display:inline-block;margin-right:5px'\">{$row->id}";
         }
     }
     
@@ -155,7 +153,6 @@ class acc_Periods extends core_Manager
     static function fetchByDate($date = NULL)
     {
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
-         
         $rec = self::fetch("#end = '{$lastDayOfMonth}'");
 
         return $rec;
@@ -179,6 +176,7 @@ class acc_Periods extends core_Manager
         return $recPrev;
     }
 
+    
     /**
      * Проверява датата в указаното поле на формата дали е в отворен период
      * и записва във формата съобщение за грешка или предупреждение
@@ -286,17 +284,17 @@ class acc_Periods extends core_Manager
         // Връзка към сингълтон инстанса
         $me = cls::get('acc_Periods');
 
-        // Ако датата е точно началния период, създаваме го, ало липсва и го връщаме
+        // Ако датата е точно началния период, създаваме го, ако липсва и го връщаме
         if($end == $firstRec->end) {
             if(!$firstRec->id) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
-                $firstRec->baseCurrencyId = $conf->BASE_CURRENCY_CODE;
+                $firstRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
                 self::save($firstRec);
                 $firstRec = self::fetch($firstRec->id); // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период $firstRec->title</li>";
             }
 
-            return $firsRec;
+            return $firstRec;
         }
 
         // Ако периода е след началния, то:
@@ -310,18 +308,24 @@ class acc_Periods extends core_Manager
         $rec->end = $end;
 
         // Периодите се създават в състояние драфт
-        $rec->state = 'draft';
+        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        if($rec->end > $curPerEnd){
+        	$rec->state = 'draft';
+        } else {
+        	$rec->state = 'pending';
+        }
         
         // Вземаме последните
         setIfnot($rec->vatRate, $prevRec->vatRate, ACC_DEFAULT_VAT_RATE);
-
+		
         if($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
-            $rec->baseCurrencyId = $conf->BASE_CURRENCY_CODE;
+            $rec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
         }
-
+		
         self::save($rec);
+        
         $rec = self::fetch($rec->id);
 
         $me->actLog .= "<li style='color:green;'>Създаден е период $rec->title</li>";
@@ -405,15 +409,15 @@ class acc_Periods extends core_Manager
             return;
         }
 
+        // Последния ден на текущия период
+        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        
         // Забраняваме всички модификации за всички минали периоди
         if ($action == 'edit'){
-            if($rec->state == 'closed') {
+            if($rec->end <= $curPerEnd) {
                 $requiredRoles = "no_one";
             }
         }
-        
-        // Последния ден на текущия период
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
         
         // Забраняваме изтриването за текущия период
         if($action == 'delete') {
@@ -482,11 +486,13 @@ class acc_Periods extends core_Manager
         $conf = core_Packs::getConfig('acc');
 
         $firstPeriodStart = $conf->ACC_FIRST_PERIOD_START ? $conf->ACC_FIRST_PERIOD_START : dt::verbal2mysql();
-
+		
         $this->forcePeriod($firstPeriodStart);
 
         $this->forceActive();
 
+        $this->updateExistingPeriodsState();
+        
         $Cron = cls::get('core_Cron');
         
         $rec = new stdClass();
@@ -502,11 +508,32 @@ class acc_Periods extends core_Manager
         return $this->actLog;
     }
 
+    
+    /**
+     * Обновява състоянията на съществуващите чернови периоди
+     */
+    function updateExistingPeriodsState()
+    {
+    	$curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+    	$query = $this->getQuery();
+    	$query->where("#state = 'draft'");
+    	
+    	while($rec = $query->fetch()){
+    		if($rec->end <= $curPerEnd){
+	        	$rec->state = 'pending';
+	        }
+	        
+	        $this->save($rec);
+    	}
+    }
+    
+    
     // Създава бъдещи (3 месеца напред) счетоводни периоди
     function cron_CreateFuturePeriods()
     {
         $this->forcePeriod(dt::getLastDayOfMonth(NULL, 3));
         $this->forceActive();
+        $this->updateExistingPeriodsState();
     }
    
  
