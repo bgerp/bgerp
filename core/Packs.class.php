@@ -662,22 +662,27 @@ class core_Packs extends core_Manager
 
         $form->title = "Настройки на пакета |*<b style='color:green;'>{$packName}<//b>";
 
-        foreach($description as $field => $params) {
-            $attr = arr::make($params[1], TRUE);
-            $attr['input'] = 'input';
+        foreach($description as $field => $arguments) {
+            $type   = $arguments[0];
+            $params = arr::combine($arguments[1], $arguments[2]);
+            
+            // Полето ще се въвежда
+            $params['input'] = 'input';
+            
+            // Ако не е зададено, заглавието на полето е неговото име
+            setIfNot($params['caption'], '|*' . $field);
 
-            setIfNot($attr['caption'], '|*' . $field);
-
-            if(defined($field) && $data[$field]) {
-                    $attr['hint'] .= ($attr['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . constant($field) . '"';
+            if(defined($field)) {
+                $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . constant($field) . '"';
             }
 
-            $form->FNC($field, $params[0], $attr);
+            $form->FNC($field, $type, $params);
+            
             if($data[$field]) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
-                $form->setField($field, array('attr' => array('style' => 'color:#999;')));
+                $form->setField($field, array('attr' => array('class' => 'const-default-value')));
             }
         }
 
