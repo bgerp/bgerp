@@ -1,14 +1,17 @@
 <?php
 
+
 /**
  * Роля за основен екип
  */
 defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
 
+
 /**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
-defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
+defIfNot('BGERP_PDF_GENERATOR', 'dompdf_Converter');
+
 
 /**
  * class dma_Setup
@@ -57,10 +60,10 @@ class doc_Setup
     var $configDescription = array(
     
             // Кой пакет да използваме за генериране на PDF от HTML ?
-            'BGERP_PDF_GENERATOR' => array ('enum(dompdf,webkittopdf)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
-          
+            'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
         );
     
+        
     /**
      * Инсталиране на пакета
      */

@@ -88,8 +88,6 @@ class doc_PdfCreator extends core_Manager
      */
     static function convert($html, &$name)
     {
-    	$conf = core_Packs::getConfig('doc');
-        
         $md5 = md5($html);
         
         //Проверяваме дали файла със същото име съществува в кофата
@@ -123,10 +121,10 @@ class doc_PdfCreator extends core_Manager
             $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
             
             // Инстанция на класа
-            $inst = cls::get($CssToInline);
+            $CssToInlineInst = cls::get($CssToInline);
             
             // Стартираме процеса
-            $html = $inst->convert($html, $css); 
+            $html = $CssToInlineInst->convert($html, $css); 
             
             $html = str::cut($html, '<div id="begin">', '<div id="end">');
             
@@ -135,14 +133,9 @@ class doc_PdfCreator extends core_Manager
             // Вземаме конфигурацията на пакета doc
             $confDoc = core_Packs::getConfig('doc');
 
-            // Генерираме PDF и му вземаме файловия манипулатор
-            if($confDoc->BGERP_PDF_GENERATOR == 'dompdf') {
-                $fileHnd = dompdf_Converter::convert($html, $name, self::PDF_BUCKET);
-            } elseif($confDoc->BGERP_PDF_GENERATOR == 'webkittopdf') {
-                $fileHnd = webkittopdf_Converter::convert($html, $name, self::PDF_BUCKET);
-            } else {
-                expect(FALSE, $conf->BGERP_PDF_GENERATOR);
-            }
+            $PdfCreatorInst = cls::get($confDoc->BGERP_PDF_GENERATOR);
+            
+            $fileHnd = $PdfCreatorInst->convert($html, $name, self::PDF_BUCKET);
             
             //Записваме данните за текущия файл
             $rec = new stdClass();
@@ -188,8 +181,12 @@ class doc_PdfCreator extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+        // Вземаме конфига
     	$conf = core_Packs::getConfig('doc');
-        
+    	
+    	// Пакета, който ще се инсталира
+    	$setupPack = 'dompdf';
+    	
     	// Ако няма запис в модела
     	if (!$conf->_data['BGERP_PDF_GENERATOR']) {
     	    
@@ -200,29 +197,20 @@ class doc_PdfCreator extends core_Manager
             if ($erroCode == 1 || $erroCode == 0) {
                 
                 // Да използваме webkittopdf
-                $pdfGenerator = 'webkittopdf';
-    	        $data['BGERP_PDF_GENERATOR'] = $pdfGenerator;
+    	        $data['BGERP_PDF_GENERATOR'] = core_Classes::getId('webkittopdf_Converter');
     	        
     	        // Добавяме в записите
                 core_Packs::setConfig('doc', $data);
+                
+                // Пакета, който ще се инсталира да е webkittopdf
+                $setupPack = 'webkittopdf';
             }
     	}
     	
-    	// Ако не сме определили
-    	if (!$pdfGenerator) {
-    	    
-    	    // Да използваме от конфигурацията по подразбиране
-    	    $pdfGenerator = $conf->BGERP_PDF_GENERATOR;
-    	}
+    	// Инсталираме пакета
+        $Packs = cls::get('core_Packs');
+        $res .= $Packs->setupPack($setupPack);
     	
-    	// Ако има зададен генератор
-        if($pdfGenerator) {
-            
-            // Инсталираме пакета
-            $Packs = cls::get('core_Packs');
-            $res .= $Packs->setupPack($pdfGenerator);
-        }
-        
         //Създаваме, кофа, където ще държим всички генерирани PDF файлове
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
