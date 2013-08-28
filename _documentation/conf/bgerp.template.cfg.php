@@ -1409,7 +1409,7 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  *****************************************************************************/
 
 // Дали да се вкара CSS'а в inline атрибут
- # defIfNot('HCLEAN_PLACE_CSS_TO_INLINE', 'yes');
+ # defIfNot('HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE', 'yes');
 
 
 /*****************************************************************************
