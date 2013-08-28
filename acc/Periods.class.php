@@ -485,7 +485,7 @@ class acc_Periods extends core_Manager
     {
         $conf = core_Packs::getConfig('acc');
 
-        $firstPeriodStart = $conf->ACC_FIRST_PERIOD_START ? $conf->ACC_FIRST_PERIOD_START : dt::verbal2mysql();
+        $firstPeriodStart = ACC_FIRST_PERIOD_START ? ACC_FIRST_PERIOD_START : dt::verbal2mysql();
 		
         $this->forcePeriod($firstPeriodStart);
 

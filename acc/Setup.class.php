@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Задаване начало на първия активен счетоводен период
- */
-defIfNot('ACC_FIRST_PERIOD_START', '');
-
 
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
@@ -65,15 +60,6 @@ class acc_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Двустранно счетоводство: Настройки, Журнали";
-    
-
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-        'ACC_FIRST_PERIOD_START' => array('date', 'caption=Начало на първия счетоводен период->Дата'), 
-        'ACC_DEFAULT_VAT_RATE' => array('percent', 'caption=ДДС по подразбиране->Процент')
-    );
     
     
     /**
