@@ -9,75 +9,78 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table border='1px' class='order-table' cellpadding='4px'>
-	<tr>
-		<td class='top-head'><b>|Вносител|*</b></td>
-		<td  rowspan='2' class='title-order'>
-			<h2 style='margin-bottom:15px;margin-top:0px'>|ПРИХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
-			№:&nbsp;&nbsp;<b>[#number#]</b><br>
-			|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
-			<h3 style='margin:10px'>[#state#]</h3>
-		</td>
-		<td class='top-head'><b>|Организация|*</b></td>
-	</tr>
-	<tr>
-		<td style='padding-top:10px;'>
-		<b>[#contragentName#]</b><br><br>[#creditAccounts#]</td>
-		<td style='padding-top:10px;' class='align-top-td'>
-		<b>[#organisation#]</b><br><br>[#peroCase#]
-		</td>
-	</tr>
-	</table>
-	<div class='lines'></div>
-	<table border='1px' cellpadding='5px' class='border-table'>
-		<tr>
-			<td width='67%' align='left' style='padding-left:10px;'>
-				<b>|Основание|*:</b>&nbsp;&nbsp;&nbsp;[#reason#]
-			</td>
-			<td style='padding-left:10px;'>
-				<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
-			</td>
-		</tr>
-		<tr>
-			<td id='with-words' colspan='2'>
-				<b>|словом|*:</b>&nbsp;&nbsp;<span class='cCode'>[#currencyId#]</span>
-				&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
-			</td>
-		</tr>
-	</table>
-	<table border='1px ' cellpadding='0' class="pko-notes">
-		<tr>
-			<td colspan='2'>
-			<table border='0'>
-			<tr>
-				<td colspan='2' id='notes' >|Бележки|*: &nbsp;&nbsp;[#notes#]</td>
-				<td style='vertical-align:middle !important'>
-				<!--ET_BEGIN equals-->
-					<div id ='misc'>
-					<span class='labels'>|Курс|*:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
-					<div style='margin-top:7px;'>
-					<span class='labels'>|Равностойност|*:</span>
-					<span class='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
-					</div>
-				<!--ET_END equals-->
-				</td>
-			</tr>
-			</table>
-		</tr>
-		<tr>
-			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-				<br>
-				|Броил|* &nbsp;&nbsp;..........................<br>
-				<span class='sign_names'>( <b>[#depositor#]</b> )</span>
-			</td>
-			<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-				<br>
-				|Касиер|* &nbsp;&nbsp;..........................<br>
-				<span class='sign_names'>( <b>[#cashier#]</b> )</span>
-			</td>
-		</tr>
-	</table>
-	
+	<div class='scrolling-holder'>
+		<div class='display-table'>
+				<table border='1px' class='order-table' cellpadding='4px'>
+				<tr>
+					<td class='top-head'><b>|Вносител|*</b></td>
+					<td  rowspan='2' class='title-order'>
+						<h2 style='margin-bottom:15px;margin-top:0px'>|ПРИХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
+						№:&nbsp;&nbsp;<b>[#number#]</b><br>
+						|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
+						<h3 style='margin:10px'>[#state#]</h3>
+					</td>
+					<td class='top-head'><b>|Организация|*</b></td>
+				</tr>
+				<tr>
+					<td style='padding-top:10px;'>
+					<b>[#contragentName#]</b><br><br>[#creditAccounts#]</td>
+					<td style='padding-top:10px;' class='align-top-td'>
+					<b>[#organisation#]</b><br><br>[#peroCase#]
+					</td>
+				</tr>
+				</table>
+				<div class='lines'></div>
+				<table border='1px' cellpadding='5px' class='border-table'>
+					<tr>
+						<td width='67%' align='left' style='padding-left:10px;'>
+							<b>|Основание|*:</b>&nbsp;&nbsp;&nbsp;[#reason#]
+						</td>
+						<td style='padding-left:10px;'>
+							<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+						</td>
+					</tr>
+					<tr>
+						<td id='with-words' colspan='2'>
+							<b>|словом|*:</b>&nbsp;&nbsp;<span class='cCode'>[#currencyId#]</span>
+							&nbsp;&nbsp;[#amountVerbal#] &nbsp;&nbsp;<br>
+						</td>
+					</tr>
+				</table>
+				<table border='1px ' cellpadding='0' class="pko-notes">
+					<tr>
+						<td colspan='2'>
+						<table border='0'>
+						<tr>
+							<td colspan='2' id='notes' >|Бележки|*: &nbsp;&nbsp;[#notes#]</td>
+							<td style='vertical-align:middle !important'>
+							<!--ET_BEGIN equals-->
+								<div id ='misc'>
+								<span class='labels'>|Курс|*:</span> &nbsp;&nbsp;<b>[#rate#]</b><br>
+								<div style='margin-top:7px;'>
+								<span class='labels'>|Равностойност|*:</span>
+								<span class='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b>[#equals#]</b></div>
+								</div>
+							<!--ET_END equals-->
+							</td>
+						</tr>
+						</table>
+					</tr>
+					<tr>
+						<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
+							<br>
+							|Броил|* &nbsp;&nbsp;..........................<br>
+							<span class='sign_names'>( <b>[#depositor#]</b> )</span>
+						</td>
+						<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
+							<br>
+							|Касиер|* &nbsp;&nbsp;..........................<br>
+							<span class='sign_names'>( <b>[#cashier#]</b> )</span>
+						</td>
+					</tr>
+				</table>
+		</div>
+	</div>
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 			[#DETAILS#]
