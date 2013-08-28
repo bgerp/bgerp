@@ -554,7 +554,8 @@ class pos_Receipts extends core_Master {
         expect($data->rec = $this->fetch($id));
         
         $conf = core_Packs::getConfig('pos');
-        $data->theme = $conf->POS_PRODUCTS_DEFAULT_THEME;
+        $themeClass = cls::get(($conf->POS_PRODUCTS_DEFAULT_THEME) ? $conf->$conf->POS_PRODUCTS_DEFAULT_THEME : 'pos_DefaultTheme');
+        $data->theme = $themeClass->getSbf();
         
         $this->requireRightFor('single', $data->rec);
         $this->prepareSingle($data);
