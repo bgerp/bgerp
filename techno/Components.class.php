@@ -227,7 +227,7 @@ class techno_Components extends core_Manager {
 	        $deleteUrl = array('techno_Components', 'configure', $specificationId, 'delete' => $componentId, 'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$componentId}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете компонента да бъде изтрит?'), "id=delS{$componentId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, 'Наистина ли желаете компонента да бъде изтрит?', "id=delS{$componentId}");
     		
 	        $tpl = new ET($editLink . " " . $deleteLink);
     	}
