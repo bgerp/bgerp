@@ -1,22 +1,6 @@
 <?php
 
 
-
-/**
- * Константи за инициализиране на таблицата с контактите
- */
-defIfNot('BGERP_OWN_COMPANY_ID', '1');
-
-
-/**
- * Име на собствената компания (тази за която ще работи bgERP)
- */
-defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
-
-
-
-
-
 /**
  * Фирми
  *
@@ -768,8 +752,7 @@ class crm_Companies extends core_Master
      */
     static function fetchOurCompany()
     {
-        $conf = core_Packs::getConfig('crm');
-        $rec = self::fetch($conf->BGERP_OWN_COMPANY_ID);
+        $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
         $rec->classId = core_Classes::fetchIdByName('crm_Companies');
         
         return $rec;
@@ -785,14 +768,12 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$conf = core_Packs::getConfig('crm');
-    	
         if(Request::get('Full')) {
             
             $query = $mvc->getQuery();
             
             while($rec = $query->fetch()) {
-                if($rec->id == $conf->BGERP_OWN_COMPANY_ID) {
+                if($rec->id == crm_Setup::BGERP_OWN_COMPANY_ID) {
                     $rec->state = 'active';
                 } elseif($rec->state == 'active') {
                     $rec->state = 'closed';
@@ -811,10 +792,10 @@ class crm_Companies extends core_Master
     {
         $conf = core_Packs::getConfig('crm');
         
-        if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
+        if (!static::fetch(crm_Setup::BGERP_OWN_COMPANY_ID)){
 
             $rec = new stdClass();
-            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
+            $rec->id = crm_Setup::BGERP_OWN_COMPANY_ID;
             $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
             
             //$rec->groupList = '|7|';
@@ -829,7 +810,7 @@ class crm_Companies extends core_Master
             if(static::save($rec, NULL, 'REPLACE')) {
                 
                 $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+                crm_Setup::BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
             }
         }
         
@@ -875,15 +856,14 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Фирмата, от чието лице работи bgerp (BGERP_OWN_COMPANY_ID)
+     * Фирмата, от чието лице работи bgerp (crm_Setup::BGERP_OWN_COMPANY_ID)
      * 
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      */
     public static function fetchOwnCompany()
     {
-        $conf = core_Packs::getConfig('crm');
         
-        return static::getContragentData($conf->BGERP_OWN_COMPANY_ID);
+        return static::getContragentData(crm_Setup::BGERP_OWN_COMPANY_ID);
     }
     
     

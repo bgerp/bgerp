@@ -342,9 +342,8 @@ class crm_Locations extends core_Master {
      */
     static function getOwnLocations()
     {
-        cls::load('crm_Setup');
         
-        return static::getContragentOptions('crm_Companies', BGERP_OWN_COMPANY_ID);
+        return static::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
     }
 
 

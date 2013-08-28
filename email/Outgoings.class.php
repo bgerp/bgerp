@@ -1254,8 +1254,7 @@ class email_Outgoings extends core_Master
         if (!($companyId = $crmPersonRec->buzCompanyId)) {
             
             // Вземаме фирмата по подразбиране
-            $conf = core_Packs::getConfig('crm');
-            $companyId = $conf->BGERP_OWN_COMPANY_ID;        
+            $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;        
         }
         
         // Вземаме данните за нашата фирма
