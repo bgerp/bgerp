@@ -43,16 +43,6 @@ class fconv_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Конвертиране на файлове";
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-    
-        // 
-       'FCONV_TEMP_PATH'   => array ('varchar', 'caption=Директорията с временните файлов->Път до директорията')
-        );
         
         
     /**
