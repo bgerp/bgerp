@@ -425,6 +425,25 @@ class core_Html
 
    
     /**
+     * Създава бутон, който при натискане предизвиква съобщение за грешка
+     */
+    static function createErrBtn($title, $error, $attr = array())
+    {
+    	$attr = arr::make($attr);
+    	$attr['error'] = $error;
+    	$attr['ef_icon'] = 'img/16/error.png';
+    	
+    	$msg = new stdClass();
+        $msg->text = tr($error);
+        $msg->tpl = 'page_Error';
+        $Crypt = cls::get('core_Crypt');
+        $msg = $Crypt->encodeVar($msg, Mode::getPermanentKey());
+    	
+        return static::createBtn($title, array('core_Message', 'view', 'msg' => $msg), NULL, NULL, $attr);
+    }
+    
+    
+    /**
      * Създава бутон - хиперлинк
      */
     static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
@@ -459,7 +478,9 @@ class core_Html
 
         // Оцветяваме бутона в зависимост от особеностите му
         if(!$attr['disabled']) {
-            if ($warning) {
+            if($attr['error']){
+            	$attr['style'] .= 'color:#9A5919;';
+            } elseif($warning) {
                 $attr['style'] .= 'color:#772200;';
             } elseif ($newWindow) {
                 $attr['style'] .= 'color:#008800;';
@@ -487,6 +508,10 @@ class core_Html
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
         }
 
+        if ($attr['error']) {
+        	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
+        }
+        
         // Вкарваме JavaScript-a
         if ($newWindow) {
             if (is_string($newWindow) && ($newWindow != '_blank')) {
