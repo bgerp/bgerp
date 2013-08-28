@@ -8,7 +8,7 @@
 		<div class="clearfix" style="min-height:10px;"></div>
 		<!--ET_BEGIN event-->	
 		
-         <div class='block_left'>
+         <div class='scrolling-holder'>
          		<div class="clearfix21"></div>
                 <table cellspacing='1' class='mc-calendar mc-calendar-week'>
 				<tr>

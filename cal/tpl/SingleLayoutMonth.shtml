@@ -9,7 +9,7 @@
 
 	    <div class="clearfix" style="min-height:10px;"></div>
 		<!--ET_BEGIN event-->	
-         <div class='block_left'>
+         <div class='scrolling-holder'>
        
 	            <table class='mc-header' width='1000px' cellpadding='0'>
 	                <tr>
