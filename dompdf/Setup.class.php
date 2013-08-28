@@ -8,7 +8,7 @@ defIfNot("DOMPDF_DPI", "120");
 /**
  * @todo Чака за документация...
  */
-defIfNot('DOMPDF_VER', '3.0');
+defIfNot('DOMPDF_VER', '0.6.0b3');
 
 
 /**
