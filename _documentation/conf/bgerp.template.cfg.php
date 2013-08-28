@@ -1328,18 +1328,6 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  # defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows();
 
 
-// Разширения на файлове, от които е допустимо да се извлече съдържание
- # defIfNot('FILEINFO_GET_CONTENT_EXT', 'pdf, rtf, odt');
-
-
-// Разширения на файлове, от които  е допустимо да се създаде JPG файлове
- # defIfNot('FILEINFO_CONVERT_JPG_EXT', 'pdf, rtf, odt');
-
-
-// Разширения на файлове, от които е допустимо да се извлече баркод
- # defIfNot('FILEINFO_GET_BARCODES_EXT', 'pdf');
-
-
 // Минималната дължина на файла, до която ще се търси баркод
 // 15kB
  # defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
