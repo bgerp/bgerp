@@ -3,7 +3,7 @@
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('FORUM_DEFAULT_THEME', 'forum/themes/default');
+defIfNot('FORUM_DEFAULT_THEME', '');
 
 defIfNot('FORUM_THEMES_PER_PAGE', '10');
 
@@ -58,9 +58,9 @@ class forum_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             
-            'FORUM_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Тема по подразбиране в блога->Път до темата'),
+            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в блога->Тема'),
          
-    		'FORUM_THEMES_PER_PAGE' => array ('int', 'mandatory, caption=Tемите в една страница->Брой'),
+    		'FORUM_THEMES_PER_PAGE' => array ('int', 'caption=Tемите в една страница->Брой'),
     
     		'GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
          
@@ -91,7 +91,21 @@ class forum_Setup extends core_ProtoSetup
             array(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
         );
 	
-	
+        
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+    	$html = parent::install();
+    	
+    	// Добавяме класа връщащ темата в core_Classes
+        core_Classes::add('forum_DefaultTheme');
+        
+        return $html;
+    }
+    
+    
 	/**
 	 * Де-инсталиране на пакета
 	 */

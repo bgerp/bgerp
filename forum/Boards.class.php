@@ -202,7 +202,7 @@ class forum_Boards extends core_Master {
 		
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->forumTheme = static::getTheme();
         $data->title = tr($conf->GREETING_MESSAGE);
         $data->action = 'forum';
         $data->display = 'public';
@@ -449,8 +449,7 @@ class forum_Boards extends core_Master {
 		$data->query = $this->getQuery();
 		
 		// Тема по подразбиране
-		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->forumTheme = static::getTheme();
         $data->action = 'browse';
         $data->display = 'public';
         expect($data->rec = $this->fetch($id));
@@ -696,5 +695,17 @@ class forum_Boards extends core_Master {
      static function on_AfterCreate($mvc, $rec)
      {
      	forum_Categories::updateCategory($rec->category);
+     }
+     
+     
+     /**
+      * Помощен метод връщащ пътя към темата зададена
+      * от потребителя, или базовата тема ако няма зададена
+      */
+     public static function getTheme()
+     {
+     	$conf = core_Packs::getConfig('forum');
+     	$themeClass = cls::get(($conf->FORUM_DEFAULT_THEME) ? $conf->FORUM_DEFAULT_THEME : 'forum_DefaultTheme');
+     	return $themeClass->getSbf();
      }
 }

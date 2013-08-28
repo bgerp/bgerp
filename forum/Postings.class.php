@@ -243,8 +243,7 @@ class forum_Postings extends core_Detail {
 		$data = new stdClass();
 		expect($data->rec = $this->fetch($id));
 		$data->query = $this->getQuery();
-		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->forumTheme = forum_Boards::getTheme();
         $data->action = 'theme';
         $data->display = 'public';
         
@@ -412,8 +411,7 @@ class forum_Postings extends core_Detail {
 		
 		$data = new stdClass();
 		$data->rec = $rec;
-		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->forumTheme = forum_Boards::getTheme();
         $data->action = 'new';
         $data->display = 'public';
         
@@ -765,8 +763,7 @@ class forum_Postings extends core_Detail {
 	{
 		$data = new stdClass();
 		$data->query = $this->getQuery();
-		$conf = core_Packs::getConfig('forum');
-		$data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+		$data->forumTheme = forum_Boards::getTheme();
 		$data->action = 'search';
         $data->display = 'public';
         $data->q = Request::get('q');
