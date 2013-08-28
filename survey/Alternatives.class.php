@@ -369,7 +369,7 @@ class survey_Alternatives extends core_Detail {
    		}
    		
 		if($action == 'add' && !isset($rec)) {
-			bp();
+			
 			// Предпазване от добавяне на нов постинг в act_List
 			$res = 'no_one';
 		}
