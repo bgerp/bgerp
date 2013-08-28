@@ -44,7 +44,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry, reports=Справки,close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry,close=Приключване";
     
     
     /**
@@ -58,6 +58,8 @@ class acc_Periods extends core_Manager
      */
     var $canEdit = 'ceo,acc';
     
+    
+    var $canEditsysdata = 'ceo,acc';
     
     /**
      * Кой може да го разглежда?
@@ -130,11 +132,11 @@ class acc_Periods extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if($mvc->haveRightFor('close', $rec)) {
-           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png');
+           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-        	$row->reports = ht::createBtn('Справки', array('acc_Balances', 'Single', $repId), NULL, NULL, 'ef_icon=img/16/report.png');
+        	$row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, 'ef_icon=img/16/report.png');
         }
         
         $curPerEnd = static::getPeriodEnd();
@@ -519,7 +521,7 @@ class acc_Periods extends core_Manager
     	
     	$query = $this->getQuery();
     	$query->where("#end > '{$activeRec->end}'");
-    	$query->where("#end < '{$curPerEnd}'");
+    	$query->where("#end <= '{$curPerEnd}'");
     	
     	while($rec = $query->fetch()){
 	        $rec->state = 'pending';
