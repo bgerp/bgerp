@@ -155,14 +155,29 @@ class acc_plg_Contable extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('conto', $data->rec)) {
+        	
+        	// Ако документа е в бъдещ/затворен или несъществуващ период,
+        	// бутона става не-активен
+        	$docPeriod = acc_Periods::fetchByDate($data->rec->valior);
+        	if($docPeriod){
+	        	if($docPeriod->state == 'closed'){
+	        		$error = ",error=Неможе да се контира в затворен сч. период";
+	        	} elseif($docPeriod->end > acc_Periods::getPeriodEnd()){
+	        		$error = ",error=Неможе да се контира в бъдещ сч. период";
+	        	}
+        	} else {
+        		$error = ",error=Неможе да се контира в несъществуващ сч. период";
+        	}
+            
             $contoUrl = array(
-                'acc_Journal',
-                'conto',
-                'docId' => $data->rec->id,
-                'docType' => $mvc->className,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=btnConto,warning=Наистина ли желаете документа да бъде контиран?', 'ef_icon = img/16/tick-circle-frame.png');
+	           'acc_Journal',
+	           'conto',
+	           'docId' => $data->rec->id,
+	           'docType' => $mvc->className,
+	           'ret_url' => TRUE
+            	);
+        	
+            $data->toolbar->addBtn("Контиране", $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png');
         }
         
         if ($mvc->haveRightFor('revert', $data->rec)) {
@@ -298,6 +313,10 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        
+        // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
+        $period = acc_Periods::fetchByDate($rec->valior);
+        expect($period && ($period->state != 'closed' && $period->state != 'draft'));
         
         $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
