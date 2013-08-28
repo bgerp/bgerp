@@ -3,7 +3,7 @@
 /**
  * Тема по подразбиране
  */
-defIfNot('CMS_THEME', 'cms/themes/default');
+defIfNot('CMS_THEME', '');
 
 
 /**
@@ -65,11 +65,11 @@ class cms_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 	
-			'CMS_THEME' => array ('varchar', 'caption=Тема по подразбиране->Път до темата'),
+			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране->Тема'),
 
             'CMS_SHARE' => array ('html', 'caption=Код за споделяне-> HTML код'),
 	
-			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за ograph-а->Изображение'),
+			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
 	
 	);
 
@@ -123,6 +123,9 @@ class cms_Setup extends core_ProtoSetup
         core_Plugins::installPlugin('Галерии и картинки в RichText', 'cms_plg_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на cms_plg_RichTextPlg към полетата за RichEdit - (Активно)";
 
+        // Добавяме класа връщащ темата в core_Classes
+        core_Classes::add('cms_DefaultTheme');
+        
         return $html;
     }
     
