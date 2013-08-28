@@ -58,7 +58,7 @@ class mobio_Setup extends core_ProtoSetup
     
         'MOBIO_SUPPORT_UTF8' => array('enum(no=Не, yes=Да)', 'caption=Дали поддържа UTF-8->Да/Не'),
         'MOBIO_MAX_STRING_LEN' => array('int',  'caption=Максималната дължина на стринга->Бр. символи'),
-        'MOBIO_ALLOWED_USER_NAMES' => array('varchar', 'caption=Стринг с позволените имена за изпращач->Списък с имена'),
+        'MOBIO_ALLOWED_USER_NAMES' => array('text(rows=1)', 'caption=Стринг с позволените имена за изпращач->Списък с имена'),
         );
     
         
