@@ -45,24 +45,6 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWi
 
 
 /**
- * Разширения на файлове, от които е допустимо да се извлече съдържание
- */
-defIfNot('FILEINFO_GET_CONTENT_EXT', 'pdf, rtf, odt');
-
-
-/**
- * Разширения на файлове, от които  е допустимо да се създаде JPG файлове
- */
-defIfNot('FILEINFO_CONVERT_JPG_EXT', 'pdf, rtf, odt');
-
-
-/**
- * Разширения на файлове, от които е допустимо да се извлече баркод
- */
-defIfNot('FILEINFO_GET_BARCODES_EXT', 'pdf');
-
-
-/**
  * Минималната дължина на файла, до която ще се търси баркод
  * 15kB
  */
@@ -146,9 +128,6 @@ class fileman_Setup extends core_ProtoSetup
        'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Височина на изгледа в мобилен режим->Размер в пиксели'), 
        'FILEMAN_FILE_COMMAND'   => array ('varchar', 'caption='),
 
-       'FILEINFO_GET_CONTENT_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими за извличане на съдържание->Списък с разширения'),
-       'FILEINFO_CONVERT_JPG_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими да се създаде JPG файлове->Списък с разширения'),
-       'FILEINFO_GET_BARCODES_EXT'   => array ('varchar', 'caption=Разширенията на файлове допустими за извличане на баркод->Списък с разширения'),
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int', 'caption=Максималната дължина на файла до която ще се търси баркод (1 mB)->Размер'),
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int', 'caption=Минималната дължина на файла до която ще се търси баркод (15kB)->Размер'),
        'FILEINFO_MAX_ARCHIVE_LEN'   => array ('int', 'caption=Максималната дължина на архивите за които ще се визуализира информация (100 mB)->Размер'),
