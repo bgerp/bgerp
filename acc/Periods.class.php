@@ -137,7 +137,7 @@ class acc_Periods extends core_Manager
         	$row->reports = ht::createBtn('Справки', array('acc_Balances', 'Single', $repId), NULL, NULL, 'ef_icon=img/16/report.png');
         }
         
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         if($rec->end == $curPerEnd){
         	$row->id = "<img src=" . sbf('img/16/control_play.png') . " style='display:inline-block;margin-right:5px'\">{$row->id}";
         }
@@ -308,7 +308,7 @@ class acc_Periods extends core_Manager
         $rec->end = $end;
 
         // Периодите се създават в състояние драфт
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         if($rec->end > $curPerEnd){
         	$rec->state = 'draft';
         } else {
@@ -410,7 +410,7 @@ class acc_Periods extends core_Manager
         }
 
         // Последния ден на текущия период
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         
         // Забраняваме всички модификации за всички минали периоди
         if ($action == 'edit'){
@@ -514,15 +514,15 @@ class acc_Periods extends core_Manager
      */
     function updateExistingPeriodsState()
     {
-    	$curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+    	$curPerEnd = static::getPeriodEnd();
+    	$activeRec = $this->forceActive();
+    	
     	$query = $this->getQuery();
-    	$query->where("#state = 'draft'");
+    	$query->where("#end > '{$activeRec->end}'");
+    	$query->where("#end < '{$curPerEnd}'");
     	
     	while($rec = $query->fetch()){
-    		if($rec->end <= $curPerEnd){
-	        	$rec->state = 'pending';
-	        }
-	        
+	        $rec->state = 'pending';
 	        $this->save($rec);
     	}
     }
@@ -567,5 +567,16 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyCode($date = NULL)
     {
         return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
+    }
+    
+    
+    /**
+     * Връща края на даден период
+     * @param date $date - дата от период, NULL  ако е текущия
+     * @return date - крайната дата на периода (ако съществува)
+     */
+    public static function getPeriodEnd($date = NULL)
+    {
+    	return acc_Periods::fetchByDate($date)->end;
     }
 }
