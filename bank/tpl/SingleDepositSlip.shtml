@@ -1,15 +1,16 @@
 [#SingleToolbar#]
 
 <div class='document'>
+	<!--ET_BEGIN blank-->
+			[#blank#]
+	<!--ET_END blank-->
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]' style='width:99%'>
 		<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
 	<div class='belejka_container'>
-	<!--ET_BEGIN blank-->
-			[#blank#]
-	<!--ET_END blank-->
+		<div class='scrolling-holder'>
 	      <div class='belejka_header'>
 	            <div class='container'>
 	                <div class='label_left'>|До|*</div>
@@ -165,7 +166,7 @@
 	            
 	        </div>
 	        <!-- END belejka -->
-	        
+	    </div>
 			<!--ET_BEGIN DETAILS-->
 				<div class='details'>
 					[#DETAILS#]
@@ -174,4 +175,5 @@
 			
 	    </div>
 	<!-- END belejka_container -->
+	
 </div><!-- document -->

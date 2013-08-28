@@ -1,67 +1,69 @@
-<div style="display:inline-block" class="singleView">
+<div class="singleView">
 [#SingleToolbar#]
-	<div class="folder-cover [#STATE_CLASS#]">
-		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Информация|*</legend>
-				<div class="groupList">
-					<table>
-						<tr>
-							<td class='dt'>|Номер|*:</td>
-							<td>[#id#]</td>
-						</tr>
-						<tr>
-							<td class='dt'>|Сметка|*:</td>
-							<td><b>[#bankAccountId#]</b></td>
-						</tr>
-						<tr>
-							<td class='dt'>|Тип|*:</dt>
-							<td><b>[#type#]</b></td>
-						</tr>
-						<tr>
-							<td class='dt'>|Титуляри|*:</td>
-							<td><b>[#titulars#]</b></td>
-						</tr>
-						<tr>
-							<td class='dt'>|Представляват|*:</td>
-							<td>[#together#]</td>
-						</tr>
-						<tr>
-							<td class='dt'>|Oператори|*:</td>
-							<td>[#operators#]</td>
-						</tr>
-						
-					</table>
-				</div>
-			</fieldset>
-			
-			<fieldset class="detail-info">
-		    <legend class="groupTitle">|Прaва|*</legend>
-		    <div class="groupList">
-				<table>
-				<tr>
-					<td class='dt'>|Отговорник|*:</td>
-					<td> <b>[#inCharge#]</b></td>
-				</tr>
-				<tr>
-					<td class='dt'>|Достъп|*:</td>
-					<td> <b>[#access#]</b></td>
-				</tr>
-				<tr>
-					<!--ET_BEGIN shareBlock-->
-						<td class='dt'>|Споделяне|*:</td>
-						<td> <b>[#shared#]</b></td>
-					<!--ET_END shareBlock-->
-				</tr>
-				<tr>
-					<td class='dt'>|Създаване|*: </td>
-					<td> |от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
-				</tr>
-				</table>
+	<div class='scrolling-holder'>
+		<div class="folder-cover [#STATE_CLASS#]">
+			<div class="inner-folder">
+				<div class="block_title state-active special-title">[#SingleIcon#] |Банкова сметка|* <b style="color:green;">[#title#]</b></div>
+				<fieldset class="detail-info">
+					<legend class="groupTitle">|Информация|*</legend>
+					<div class="groupList">
+						<table>
+							<tr>
+								<td class='dt'>|Номер|*:</td>
+								<td>[#id#]</td>
+							</tr>
+							<tr>
+								<td class='dt'>|Сметка|*:</td>
+								<td><b>[#bankAccountId#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Тип|*:</dt>
+								<td><b>[#type#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Титуляри|*:</td>
+								<td><b>[#titulars#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Представляват|*:</td>
+								<td>[#together#]</td>
+							</tr>
+							<tr>
+								<td class='dt'>|Oператори|*:</td>
+								<td>[#operators#]</td>
+							</tr>
+							
+						</table>
+					</div>
+				</fieldset>
 				
-		     </div>
-		</fieldset>
+				<fieldset class="detail-info">
+			    <legend class="groupTitle">|Прaва|*</legend>
+			    <div class="groupList">
+					<table>
+					<tr>
+						<td class='dt'>|Отговорник|*:</td>
+						<td> <b>[#inCharge#]</b></td>
+					</tr>
+					<tr>
+						<td class='dt'>|Достъп|*:</td>
+						<td> <b>[#access#]</b></td>
+					</tr>
+					<tr>
+						<!--ET_BEGIN shareBlock-->
+							<td class='dt'>|Споделяне|*:</td>
+							<td> <b>[#shared#]</b></td>
+						<!--ET_END shareBlock-->
+					</tr>
+					<tr>
+						<td class='dt'>|Създаване|*: </td>
+						<td> |от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
+					</tr>
+					</table>
+					
+			     </div>
+			</fieldset>
+			</div>
 		</div>
 	</div>
 </div>
