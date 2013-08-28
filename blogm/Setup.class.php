@@ -81,11 +81,11 @@ class blogm_Setup extends core_ProtoSetup
 	var $configDescription = array(
 	
 			// Константи за инициализиране на таблицата с контактите
-			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време след което статията се заключва за коментиране->Дни'),
+			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време, след което статията се заключва за коментиране->Дни'),
 
             'BLOGM_ARTICLE_SHARE' => array ('html', 'caption=Код за споделяне на статията->HTML код'),
 
-            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Броят на статии които да се показват->Бр. статии'),
+            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Броят на статии, които да се показват на страница->Бр. статии '),
 	
 	);
 	
