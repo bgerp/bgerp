@@ -2132,10 +2132,10 @@ class log_Documents extends core_Manager
         if (!$containerId) return FALSE;
         
         // Конфигурацията на пакета
-        $conf = core_Packs::getConfig('log');
+        $conf = core_Packs::getConfig('email');
         
         // Датата след което ще се брои за повторно изпращане
-        $resendingTime = time() - $conf->LOG_EMAIL_RESENDING_TIME;
+        $resendingTime = time() - $conf->EMAIL_RESENDING_TIME;
         
         // В MYSQL вид
         $resendingTime = dt::timestamp2Mysql($resendingTime);
