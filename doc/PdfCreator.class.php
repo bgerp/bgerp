@@ -190,8 +190,11 @@ class doc_PdfCreator extends core_Manager
     	// Ако няма запис в модела
     	if (!$conf->_data['BGERP_PDF_GENERATOR']) {
     	    
+    	    // Вземаме конфига
+    	    $confWebkit = core_Packs::getConfig('webkittopdf');
+    	    
     	    // Изпълянваме процеса
-    	    exec('wkhtmltopdf', $dummy, $erroCode);
+    	    exec($confWebkit->WEBKIT_TO_PDF_BIN, $dummy, $erroCode);
     	    
     	    // Ако я има инсталирана
             if ($erroCode == 1 || $erroCode == 0) {
