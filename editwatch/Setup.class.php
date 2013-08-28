@@ -3,7 +3,7 @@
 /**
  * Колко секунди да пази записите в таблицата минимално
  */
-defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
+defIfNot('EDITWATCH_REC_LIFETIME', 5);
 
 
 /**
@@ -53,9 +53,8 @@ class editwatch_Setup extends core_ProtoSetup
     
             // Колко секунди да пази записите в таблицата минимално
             'EDITWATCH_REC_LIFETIME' => 
-                array ('int', 
-                    'mandatory, caption=Колко секунди да пази записите в таблицата минимално->Секунди',
-                    'placeholder=Колко секунди да пази записите в таблицата минимално',
+                array ('time(suggestions=5 сек.|10 сек.|15 сек.|20 сек.|25 сек.|30 сек)', 
+                    'mandatory, caption=Колко време да пази записите в таблицата минимално->Секунди',
                     'defValue' => 300), 
         
         );
