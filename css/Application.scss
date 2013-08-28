@@ -247,7 +247,7 @@ tr.noHover td:hover {
 }
 
 .narrow #subMenu a{
-	padding:0 2px;
+	padding:0 1px;
 }
 
 #subMenu a.selected:hover  { 
@@ -398,7 +398,6 @@ div.folder-cover{
 	line-height:1.3em;
 	margin-left:0px;
 	margin-top:8px;
-	min-width:350px;
 	max-width: 750px;
 	font-size:0.9em;
 	padding:10px 10px 12px 10px;
@@ -953,7 +952,9 @@ pre.document{
 	border-left:1px solid #000;
 	border-right:1px solid #000;
 }
-
+.nowrap{
+	white-space:nowrap;
+}
 /*край на стилове за документи*/
 
 
@@ -1223,15 +1224,19 @@ td.constrColumnLeft {
 
 
 /*стилове за история и автор*/
-table.profile-summary-table{
+.profile-summary{
 	margin-left:2px;
 	margin-top:3px;
 	margin-bottom:0px;
 	text-decoration:none;
-	td{
+	div{
 		white-space:nowrap; 
 		padding-right:5px;
 		text-decoration:none !important;
+		span{
+			display:block;
+			margin-bottom:2px;
+		}
 	}
 }
 
@@ -1317,12 +1322,11 @@ ul.history {
 	li{
 		line-height: 1.2;
 		display: inline-block;
-		margin-left: 10px;
+		margin-right: 7px;
 	}
 	b{
-		padding-top:3px
+		padding-top:3px;
 	}
-	&.summary
 }
 
 .narrow ul.history.summary li span { 
@@ -1761,7 +1765,7 @@ fieldset.sharing-history {
 }
 
 .narrow .webdrvFieldset img{
-	width:auto;
+	max-width:100%;
 	height:auto;
 }
 
@@ -1795,49 +1799,97 @@ fieldset.sharing-history {
 /*край на стилове за блог*/
 
 
-/*стилове при скролиране на таблица*/
+/*стилове при скролиране*/
 .main-container{
 	display: inline-block;
 	min-width:100%;
+}
+
+.narrow .main-container.narrow-scroll{
+	display:block;
 }
 
 .switching-display{
 	display:table;
 }
 
-.narrow .whole-page .switching-display{
+.narrow .narrow-scroll .switching-display{
 	display:block;
 }
 
-.narrow .main-container.whole-page{
-	display:block;
+.narrow .listRows .listTable{
+	margin-bottom:5px;
 }
 
-.narrow .whole-page .listRows .listTable{
-	margin-bottom:2px;
+.narrow .narrow-scroll .document .listTable{
+	margin-bottom:0px;
 }
 
-.narrow .whole-page div.alphabet  div.tab-row {
+.narrow .narrow-scroll div.alphabet  div.tab-row {
 	width: 100%;
 }
 
-.narrow .whole-page .listRows{
+.narrow .narrow-scroll .listRows{
 	width: 100% !important;
 	overflow-y: auto !important;
 	_overflow: auto !important;
-	
 }
-.narrow .whole-page .listRows::-webkit-scrollbar{
+
+.narrow .narrow-scroll .single-thread .listRows{
+	overflow:visible !important;
+	_overflow: visible !important;
+	width:auto !important;
+}
+
+.narrow .narrow-scroll .listRows::-webkit-scrollbar{
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow .whole-page .listRows::-webkit-scrollbar-thumb{
+.narrow .narrow-scroll .listRows::-webkit-scrollbar-thumb{
 	border-radius: 8px;
 	background-color: rgba(0, 0, 0, .2);
 }
-/*край на стилове при скролиране на таблица*/
+
+.narrow .scrolling-holder{
+	display:inline;
+}
+
+.narrow .narrow-scroll .scrolling-holder{
+	width: 100% !important;
+	overflow-x: auto !important;
+	_overflow: auto !important;
+	margin-bottom:3px;
+	display:block;
+	> div{
+		margin-bottom:5px;
+	}
+	.folder-cover{
+		margin-right:2px;
+	}
+	.document{
+		border:none;
+		padding:0 2px 0 0 ;
+	}
+	.display-table{
+		display:table;
+		width:100%;
+	}
+}
+
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar{
+	-webkit-appearance: none;
+	width: 10px;
+	height: 10px;
+}
+
+.narrow  .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb{
+	border-radius: 8px;
+	background-color: rgba(0, 0, 0, .2);
+}
+/*край на стилове за скролиране */
+
 
 
 /*стилове за автор в документ*/
@@ -1888,7 +1940,12 @@ fieldset.sharing-history {
 .styled-table th{
 	border-bottom:none;
 }
-
+.wide .singleView{
+	display:inline-block;
+}
+.narrow .singleView{
+	display:block;
+}
 .singleView .title-style{
 	color:#666;	
 }
@@ -2281,23 +2338,14 @@ div.location{
 
 .preview-holder .document{
 	width:850px !important;
+	border: solid 1px $gray4 !important;
+	background: #ffffff;
+	@include border-radius(5px !important);
+	padding: 10px !important;
 }
 
 /*край на бъгфиксове*/
 
-/*Стилове за скролиране на публикувани обекти*/
-.scrolling-holder{
-	width: 100% !important;
-	overflow-x: auto !important;
-	_overflow: auto !important;
-	> div{
-		margin-bottom:5px;
-	}
-	.folder-cover{
-		margin-right:2px;
-	}
-}
-/*край на стилове за скролиране на публикувани обекти*/
 
 /*queries*/
 
@@ -2414,14 +2462,38 @@ div.location{
     .narrow .single-thread .listTable .rich-text{
 		max-width:530px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:560px;
+	}
+	.narrow .chzn-container{
+		max-width:550px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:548px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:538px;
+	}
 }
 
 @media handheld, only screen and (max-width: 533px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:463px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:493px;
+	}
 	.narrow #all{
 		border:none;
+	}
+	.narrow .chzn-container{
+		max-width:483px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:481px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:471px;
 	}
 }
 
@@ -2429,14 +2501,38 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:430px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:460px;
+	}
+	.narrow .chzn-container{
+		max-width:450px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:448px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:438px;
+	}
 }
 
 @media handheld, only screen and (max-width: 480px) { 
 	.narrow .single-thread .listTable .rich-text{
 		max-width:410px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:440px;
+	}
 	.narrow #all{
 		border:none;
+	}
+	.narrow .chzn-container{
+		max-width:430px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:428px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:418px;
 	}
 }
 
@@ -2444,8 +2540,20 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:290px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:310px;
+	}
 	.narrow #all{
 		border:none;
+	}
+	.narrow .chzn-container{
+		max-width:310px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:308px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:298px;
 	}
 }
 
@@ -2454,8 +2562,20 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:250px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:280px;
+	}
 	.narrow #all{
 		border:none;
+	}
+	.narrow .chzn-container{
+		max-width:270px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:268px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:258px;
 	}
 }
 
@@ -2463,8 +2583,20 @@ div.location{
 	.narrow .single-thread .listTable .rich-text{
 		max-width:170px;
 	}
+	.narrow .single-thread .scrolling-holder{
+		max-width:200px;
+	}
 	.narrow #all{
 		border:none;
+	}
+	.narrow .chzn-container{
+		max-width:190px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width:188px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width:178px;
 	}
 }
 
