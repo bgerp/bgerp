@@ -45,14 +45,14 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWi
 
 
 /**
- * Минималната дължина на файла, до която ще се търси баркод
+ * Минималната големина на файла, до която ще се търси баркод
  * 15kB
  */
 defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
 
 
 /**
- * Максималната дължина на файла, до която ще се търси баркод
+ * Максималната големина на файла, до която ще се търси баркод
  * 1 mB
  */
 defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
@@ -127,9 +127,9 @@ class fileman_Setup extends core_ProtoSetup
        'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Височина на изгледа в мобилен режим->Размер в пиксели'), 
        
        'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('fileman_FileSize', 'caption=Минималната големина на файла в тесен режим->Размер, suggestions=50 KB|100 KB|200 KB|300 KB'), 
-       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Максималната дължина на файла до която ще се търси баркод (1 mB)->Размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
-       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Минималната дължина на файла до която ще се търси баркод->Размер, suggestions=5KB|15 KB|30 KB|50 KB'),
-       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('fileman_FileSize', 'caption=Максималната големина на архивите за които ще се визуализира информация->Размер, suggestions=50 MB|100 MB|200 MB|300 MB'),
+       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('fileman_FileSize', 'caption=Максималната големина на архивите|*&comma;| за които ще се визуализира информация->Архив, suggestions=50 MB|100 MB|200 MB|300 MB'),
+       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Минимален размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
+       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Максимален размер, suggestions=5KB|15 KB|30 KB|50 KB'),
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption= След колко време да се изтрие от индекса (грешката) за съответния тип на файла->Минути'), 
     );
     
