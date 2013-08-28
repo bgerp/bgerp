@@ -318,7 +318,7 @@ class fileman_Indexes extends core_Manager
             $conf = core_Packs::getConfig('fileman');
             
             // Времето след което ще се изтрият
-            $time = time() - ($conf->FILEMAN_WEBDRV_ERROR_CLEAN * 60);
+            $time = time() - $conf->FILEMAN_WEBDRV_ERROR_CLEAN;
             
             // Съдържанието
             $content = fileman_Indexes::decodeContent($rec->content);
