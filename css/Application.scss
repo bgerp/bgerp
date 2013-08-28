@@ -2121,6 +2121,13 @@ div.location{
 		text-align:left;
 		color:#333;
 	}
+	td,th{
+		border-color:#000 !important;
+	}
+	input{
+		margin-bottom:3px;
+		margin-top:0;
+	}
 }
 .blast_ListDetails .listToolbar{
 	border-bottom:none !important;
@@ -2129,9 +2136,7 @@ div.location{
 	max-width: 850px; 
 	overflow: auto; 
 }
-.narrow .blast-overflow{
-	max-width:393px;
-}
+
 /*край на бласт*/
 
 
