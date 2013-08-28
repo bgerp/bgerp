@@ -80,9 +80,16 @@ class core_Toolbar extends core_BaseClass
             unset($params['warning']);
         }
         
+    	if($params['error']) {
+            $btn->error = $params['error'];
+            unset($params['error']);
+        }
+        
         if($params['order']) {
             $btn->order = $params['order'];
             unset($params['order']);
+        } elseif($btn->error){
+        	$btn->order = 40;
         } elseif($btn->warning) {
             $btn->order = 30;
         } elseif($btn->newWindow) {
@@ -207,7 +214,10 @@ class core_Toolbar extends core_BaseClass
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
-                if ($btn->type == 'submit') {
+				
+				if($btn->error){
+					$toolbar->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
+				} elseif ($btn->type == 'submit') {
                     $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
                     $toolbar->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
