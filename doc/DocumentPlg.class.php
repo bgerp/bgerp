@@ -814,7 +814,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $oRec->folderId;
             
             $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div>[#DOCUMENT#]</div>");
+            $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
             
             // TODO: да се замени с интерфейсен метод
             
