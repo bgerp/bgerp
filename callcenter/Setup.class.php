@@ -71,9 +71,9 @@ class callcenter_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-       'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ'),
+       'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ, width=100%'),
        'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимална продължителност на разговора->Време, width=100px'),
-       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се генерира обаждане->IP адрес'),
+       'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
     );
     
     
