@@ -177,9 +177,17 @@ class doc_plg_DefaultValues extends core_Plugin
      */
     private function getContragentData($mvc, $name, $rec)
     {
+    	if(!$folderId = $rec->folderId){
+    		if($rec->originId){
+    			$folderId = doc_Containers::fetchField($rec->originId, 'folderId');
+    		} elseif($rec->threadId){
+    			$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+    		}
+    	}
+    	
     	if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
 	    	$query = $mvc->getQuery();
-	    	$query->where("#folderId = {$rec->folderId}");
+	    	$query->where("#folderId = {$folderId}");
 	    	$query->orderBy('createdOn', 'DESC');
 	    	$lastRec = $query->fetch();
 	    	if($lastRec && cls::existsMethod($mvc, 'getContragentData')){
