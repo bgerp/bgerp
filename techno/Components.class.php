@@ -116,7 +116,7 @@ class techno_Components extends core_Manager {
         	}
         }
         
-        $form->title = "{$action} на компоненти към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
+        $form->title = "{$action} на компонент към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
     }
     
@@ -295,13 +295,4 @@ class techno_Components extends core_Manager {
     	
     	return $paramBlock;
     }
-    
-    
-	/**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     */
-    /*public static function canAdd($rec)
-    {
-    	return (count(static::getRemainingOptions($rec))) ? TRUE : FALSE;
-    }*/
 }

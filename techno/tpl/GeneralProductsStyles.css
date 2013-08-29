@@ -134,3 +134,9 @@ th{
 #components-table1{
 	font-size:1px;
 }
+
+.spec-add-btn{
+	display:inline-block;
+	width:16px;
+	height:16px;
+}
