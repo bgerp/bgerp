@@ -941,6 +941,21 @@ class fileman_Files extends core_Master
         // Добавяме бутон за сваляне
         $downloadUrl = toUrl(array('fileman_Download', 'Download', 'fh' => $data->rec->fileHnd, 'forceDownload' => TRUE), FALSE);
         $data->toolbar->addBtn('Сваляне', $downloadUrl, 'id=btn-download', 'ef_icon = img/16/down16.png', array('order=8'));
+        
+        // Вземаме конфигурацията за fileman
+        $conf = core_Packs::getConfig('fileman');
+        try {
+            
+            // Ако има зададен клас
+            if (trim($conf->FILEMAN_OCR)) {
+                
+                // Опитваме се да вземаме инстанция на класа
+                $OcrInst = cls::get($conf->FILEMAN_OCR);
+                
+                // Добавяме бутон в тулбара
+                $OcrInst->addOcrBtn($data->toolbar, $data->rec);
+            }
+        } catch (Exception $e) { }
     }
     
     
@@ -1018,79 +1033,6 @@ class fileman_Files extends core_Master
         
         return $nameArr;
     }
-    
-    
-    /**
-     * Екшън за вземане на текстовата част на файл с OCR програма
-     */
-    function act_getTextByOcr()
-    {
-        // Манипулатора на файла
-        $fh = $this->db->escape(Request::get('id'));
-        
-        // Типа на файла
-        $type = Request::get('type');
-        
-        // Очакваме да има такъв запис
-        expect($rec = $this->fetchByFh($fh), 'Няма такъв запис');
-        
-        // Очакваме да има права за single        
-        $this->requireRightFor('single', $rec);
-        
-        // URL' то където ще се редиректне
-        $retUrl = getRetUrl();
-        
-        // Ако няма такова URL
-        if (!$retUrl) {
-            
-            // Създавме го
-            $retUrl = toUrl(array('fileman_Files', 'single', $fh, 'currentTab' => 'text', '#' => 'fileDetail'));
-        }
-
-        // Проверяваме дали за файла има текстова част или процеса е стартиран
-        $params['type'] = 'text';
-        $params['dataId'] = $rec->dataId;
-        $textProc = fileman_Indexes::isProcessStarted($params, TRUE);
-        
-        // Ако има текстова част или в момента се извлича
-        if ($textProc) {
-            
-            // Добавяме съобщение в статуса
-            core_Statuses::add('Има извлечена текстова част');
-            
-            return redirect($retUrl); 
-        }
-        
-        // Проверяваме дали за файла има извлечена текстова част или в момента се извлича с OCR
-        $paramsOcr['type'] = 'textOcr';
-        $paramsOcr['dataId'] = $rec->dataId;
-        $textOcrProc = fileman_Indexes::isProcessStarted($paramsOcr);
-        
-        // Ако има текстова OCR част или в момента се извлича
-        if ($textOcrProc) {
-            
-            // Добавяме съобщение в статуса
-            core_Statuses::add('Разпознаването на текст за текущия файл е бил стартиран');
-            
-            return redirect($retUrl);
-        }
-
-        // В зависимост от подадения тип, стартираме съответния процес
-        switch ($type) {
-            
-            case 'abbyy':
-                $this->getTextByAbbyyOcr($fh);
-            break;
-            
-            default:
-                
-                // Очакваме да има такъв тип
-                expect(FALSE, "Типа не е верен {$type}");
-            break;
-        }
-        
-        return redirect($retUrl);
-    }    
     
     
     /**

@@ -78,6 +78,12 @@ defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
 
 
 /**
+ * Коя програма да се използва за OCR обработка
+ */
+defIfNot('FILEMAN_OCR', '');
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -131,6 +137,7 @@ class fileman_Setup extends core_ProtoSetup
        'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Минимален размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
        'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Максимален размер, suggestions=5KB|15 KB|30 KB|50 KB'),
        'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption= След колко време да се изтрие от индекса (грешката) за съответния тип на файла->Минути'), 
+       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Коя програма да се използва за OCR обработка->Клас'),
     );
     
     
