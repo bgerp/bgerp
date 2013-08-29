@@ -3,7 +3,7 @@
 
 
 /**
- * Клас връщащ темата за форума
+ * Клас за дефолт темата на форума
  * 
  * @category  bgerp
  * @package   forum
@@ -32,11 +32,138 @@ class forum_DefaultTheme extends core_Manager {
      */
     
     
-	/**
-     * Инициализиране драйвъра
+    /**
+     * Връща изгледа на дъските
+     * @return core_ET
      */
-    public static function getSbf()
+	public function getBoardsLayout()
     {
-    	return 'forum/themes/default';
+    	return getTplFromFile('forum/themes/default/Boards.shtml');
+    }
+    
+    
+    /**
+     * Връща началната страница на форума
+     * @return core_ET
+     */
+	public function getIndexLayout()
+    {
+    	return getTplFromFile('forum/themes/default/Index.shtml');
+    }
+    
+    
+    /**
+     * Връща изгледа за единична тема
+     * @return core_ET
+     */
+    public function getSingleThemeLayout()
+    {
+    	return getTplFromFile('forum/themes/default/SingleTheme.shtml');
+    }
+    
+    
+    /**
+     * Променя изгледа на формата за добавяне на нов коментар
+     * @return core_ET
+     */
+	public function getPostFormLayout(core_Form &$form)
+    {
+    	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
+    	$form->layout = $tpl->getBlock('FORM');
+        $form->fieldsLayout = $tpl->getBlock('FORM_FIELDS');
+    }
+    
+    
+    /**
+     * Връща шаблона на коментарите
+     * @return core_ET
+     */
+	public function getCommentsLayout()
+    {
+    	return getTplFromFile('forum/themes/default/Comments.shtml');
+    }
+    
+    
+    /**
+     * Връща шаблона на страницата за показване на резултати
+     * @return core_ET
+     */
+    public function getResultsLayout()
+    {
+    	return getTplFromFile('forum/themes/default/Results.shtml');
+    }
+    
+    
+    /**
+     * Връща шаблона на страницата за добавяне на нова тема
+     * @return core_ET
+     */
+	public function getAddThemeLayout()
+    {
+    	return getTplFromFile('forum/themes/default/New.shtml');
+    }
+    
+    
+    /**
+     * Променя изгледа на формата за добавяне на нова тема
+     */
+    public function getAddThemeFormLayout(core_Form &$form)
+    {
+    	$formTpl = getTplFromFile('forum/themes/default/AddForm.shtml');
+		$form->layout = $formTpl->getBlock("FORM");
+        $form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
+    }
+    
+    
+	/**
+     * Връща изгледа на темата
+     * @return core_ET
+     */
+    public function getThemeLayout()
+    {
+    	return getTplFromFile('forum/themes/default/Themes.shtml');
+    }
+    
+    
+	/**
+     * Връща шаблона на браузването на една дъска
+     * @return core_ET
+     */
+    public function getBrowseLayout()
+    {
+    	return getTplFromFile('forum/themes/default/Browse.shtml');
+    }
+    
+    
+	/**
+     * Връща шаблона на формата за търсене
+     * @return core_ET
+     */
+    public function getSearchFormLayout()
+    {
+    	return getTplFromFile('forum/themes/default/SearchForm.shtml');
+    }
+    
+    
+	/**
+     * Връща пътя къмс тиловете на темата
+     */
+    public function getStyles()
+    {
+    	return 'forum/themes/default/styles.css';
+    }
+    
+    
+    /**
+     * Връща картинка от темата
+     * @param string $imgName - име на картинката
+     * @param int $size - размер на картинката
+     * Картинката трябва да е в папка 'img' на темата,
+     * в подпапка '$size'
+     */
+    public function getImage($imgName, $size = '')
+    {
+    	$filePath = sbf("forum/themes/default/img/{$size}/{$imgName}", '');
+    	return ht::createElement('img', array('src' => $filePath, 'width' => "{$size}px"));
     }
 }

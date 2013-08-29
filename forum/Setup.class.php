@@ -58,7 +58,7 @@ class forum_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             
-            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в блога->Тема'),
+            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в форум->Тема'),
          
     		'FORUM_THEMES_PER_PAGE' => array ('int', 'caption=Tемите в една страница->Брой'),
     

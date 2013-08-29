@@ -202,7 +202,7 @@ class forum_Boards extends core_Master {
 		
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = static::getTheme();
+        $data->ForumTheme = static::getThemeClass();
         $data->title = tr($conf->GREETING_MESSAGE);
         $data->action = 'forum';
         $data->display = 'public';
@@ -346,7 +346,7 @@ class forum_Boards extends core_Master {
 	function renderSearchForm_(&$data)
     {
  		if($data->searchForm){
-	    	$data->searchForm->layout = new ET(getFileContent($data->forumTheme . '/SearchForm.shtml'));
+	    	$data->searchForm->layout = $data->ForumTheme->getSearchFormLayout();
 	 		$data->searchForm->layout->replace(toUrl(array('forum_Postings', 'search')), 'ACTION');
 			$data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
 			
@@ -388,15 +388,15 @@ class forum_Boards extends core_Master {
 	 */
 	function renderForum($data)
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/Index.shtml'));
+		$tpl = $data->ForumTheme->getIndexLayout();
  		$tpl->replace('<h2>' . $data->title . '</h2>', 'GREETING');
-		$boards = new ET(getFileContent($data->forumTheme . '/Boards.shtml'));
+		$boards = $data->ForumTheme->getBoardsLayout();
 		
 		if(count($data->categories)) {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = $tpl->getBlock("category");
-            $icon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/Card-file-icon.png", "")));
+            $icon = $data->ForumTheme->getImage('forum.png', '50');
         	
             foreach($data->categories as $category) {
                 
@@ -430,7 +430,7 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
-		$tpl->push($data->forumTheme . '/styles.css', 'CSS');
+		$tpl->push($data->ForumTheme->getStyles(), 'CSS');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -449,7 +449,7 @@ class forum_Boards extends core_Master {
 		$data->query = $this->getQuery();
 		
 		// Тема по подразбиране
-        $data->forumTheme = static::getTheme();
+        $data->ForumTheme = static::getThemeClass();
         $data->action = 'browse';
         $data->display = 'public';
         expect($data->rec = $this->fetch($id));
@@ -489,8 +489,7 @@ class forum_Boards extends core_Master {
 	 */
 	function renderBrowse_($data) 
 	{
-		$tpl = new ET(getFileContent($data->forumTheme . '/Browse.shtml'));
-		
+		$tpl = $data->ForumTheme->getBrowseLayout();
 		$tpl->placeObject($data->row);
 		
 		// Рендираме всички теми от дъската
@@ -504,7 +503,7 @@ class forum_Boards extends core_Master {
 			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
 		}
 		
-		$tpl->push($data->forumTheme . '/styles.css', 'CSS');
+		$tpl->push($data->ForumTheme->getStyles(), 'CSS');
         $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         $tpl->replace($this->renderSearchForm($data), 'SEARCH_FORM');
          
@@ -699,13 +698,12 @@ class forum_Boards extends core_Master {
      
      
      /**
-      * Помощен метод връщащ пътя към темата зададена
+      * Помощен метод връщащ класа на темата зададена
       * от потребителя, или базовата тема ако няма зададена
       */
-     public static function getTheme()
+     public static function getThemeClass()
      {
      	$conf = core_Packs::getConfig('forum');
-     	$themeClass = cls::get(($conf->FORUM_DEFAULT_THEME) ? $conf->FORUM_DEFAULT_THEME : 'forum_DefaultTheme');
-     	return $themeClass->getSbf();
+     	return cls::get(($conf->FORUM_DEFAULT_THEME) ? $conf->FORUM_DEFAULT_THEME : 'forum_DefaultTheme');
      }
 }
