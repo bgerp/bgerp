@@ -40,20 +40,11 @@ class abbyyocr_Setup extends core_ProtoSetup
     
     
     /**
-     * Инсталиране на пакета
+     * Списък с мениджърите, които съдържа пакета
      */
-    function install()
-    {
-    	$html = parent::install();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме
-        $html .= $Plugins->forcePlugin('Разпознаване на текст', 'abbyyocr_Plugin', 'fileman_Files', 'private');
-        
-        return $html;
-    }
+    var $managers = array(
+            'abbyyocr_Converter',
+        );
     
     
     /**
@@ -63,12 +54,20 @@ class abbyyocr_Setup extends core_ProtoSetup
     {
     	$html = parent::deinstall();
     	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('abbyyocr_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'abbyyocr_Plugin'";
+        // Вземаме конфига
+    	$conf = core_Packs::getConfig('fileman');
+    	
+    	// Ако текущия клас е избран по подразбиране
+    	if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter')) {
+    	    
+            // Премахваме го
+	        $data['FILEMAN_OCR'] = NULL;
+
+	        // Добавяме в записите
+            core_Packs::setConfig('fileman', $data);
+            
+            $html .= "<li><font color='green'>Премахнат е 'abbyyocr_Converter' от конфигурацията</font></li>";
+    	}
         
         return $html;
     }
