@@ -440,7 +440,7 @@ class blogm_Articles extends core_Master {
      */
     function getArticleLayout($data)
     {
-        return new ET(getFileContent($data->theme . '/Article.shtml'));
+        return $data->ThemeClass->getArticleLayout();
     }
 
 
@@ -485,9 +485,7 @@ class blogm_Articles extends core_Master {
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
         }
 		
-		// Ограничаваме показаните статии спрямо спрямо константа и номера на страницата
-		$conf = core_Packs::getConfig('blogm');
-        $data->theme = $conf->BLOGM_DEFAULT_THEME;
+        $data->ThemeClass = $this->getThemeClass();
          
         // Подготвяме данните необходими за списъка със стаии
         $this->prepareBrowse($data);
@@ -496,7 +494,7 @@ class blogm_Articles extends core_Master {
         $tpl = $this->renderBrowse($data);
         
         // Добавяме стиловете от темата
-        $tpl->push($data->theme . '/styles.css', 'CSS');
+        $tpl->push($data->ThemeClass->getStyles(), 'CSS');
 
         // Генерираме мета таговете на OGP
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
@@ -568,7 +566,7 @@ class blogm_Articles extends core_Master {
 	 */
 	function renderBrowse_($data)
     {
-		$layout = new ET(getFileContent($data->theme . '/Browse.shtml'));
+		$layout = $data->ThemeClass->getBrowseLayout();
         
         if(count($data->rows)) {
             foreach($data->rows as $row) {
@@ -619,12 +617,9 @@ class blogm_Articles extends core_Master {
         $this->prepareArchive($data);
         
         blogm_Links::prepareLinks($data);
-        
-        // Конфигурация на пакета
-        $data->conf = core_Packs::getConfig('blogm');
 
         // Тема за блога
-        $data->theme = $data->conf->BLOGM_DEFAULT_THEME;
+        $data->ThemeClass = $this->getThemeClass();
 
         $selfId = core_Classes::fetchIdByName($this);
 
@@ -637,7 +632,7 @@ class blogm_Articles extends core_Master {
 	 */
 	function renderNavigation_($data)
     {   
-        $layout = new ET(getFileContent($data->theme . '/Navigation.shtml'));
+        $layout = $data->ThemeClass->getNavigationLayout();
 
         // Рендираме формата за търсене
 		$layout->append($this->renderSearch($data), 'SEARCH_FORM');
@@ -655,15 +650,15 @@ class blogm_Articles extends core_Master {
         
         // Рендираме Линковете
         $layout->replace(blogm_Links::renderLinks($data), 'LINKS');
-
+		
         // Добавяме стиловете от темата
-        $layout->push($data->theme . '/styles.css', 'CSS');
+        $layout->push($data->ThemeClass->getStyles(), 'CSS');
 		
         // Поставяме шаблона за външен изглед
 		Mode::set('wrapper', 'cms_tpl_Page');
 
         // Добавяме лейаута на страницата
-        Mode::set('cmsLayout', $data->theme . '/BlogLayout.shtml');
+        Mode::set('cmsLayout', $data->ThemeClass->getBlogLayout());
 
 
         return $layout;
@@ -685,7 +680,7 @@ class blogm_Articles extends core_Master {
 	 */
 	function renderSearch_(&$data)
     {
- 		$data->searchForm->layout = new ET(getFileContent($data->theme . '/SearchForm.shtml'));
+ 		$data->searchForm->layout = $data->ThemeClass->getSearchFormLayout();
  		
         $data->searchForm->layout->replace(toUrl(array('blogm_Articles' )), 'ACTION');
 		
@@ -815,4 +810,14 @@ class blogm_Articles extends core_Master {
     	return $items;
     }
     
+    
+	/**
+      * Помощен метод връщащ пътя към темата зададена
+      * от потребителя, или базовата тема ако няма зададена
+      */
+     public function getThemeClass()
+     {
+     	$conf = core_Packs::getConfig('blogm');
+     	return cls::get(($conf->BLOGM_DEFAULT_THEME) ? $conf->BLOGM_DEFAULT_THEME : 'blogm_DefaultTheme');
+     }
 }

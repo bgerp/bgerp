@@ -179,15 +179,14 @@ class blogm_Comments extends core_Detail {
 	{
         if(count($data->commentsRows)) {
             foreach($data->commentsRows as $row) {
-                $commentTpl = new ET(getFileContent($data->theme . '/Comment.shtml'));
+                $commentTpl = $data->ThemeClass->getCommentsLayout();
               	$commentTpl->placeObject($row);  
                 $layout->append($commentTpl, 'COMMENTS');
             }
         }
 
         if($data->commentForm) { 
-            $data->commentForm->layout = new ET(getFileContent($data->theme . '/CommentForm.shtml'));
-            $data->commentForm->fieldsLayout = new ET(getFileContent($data->theme . '/CommentFormFields.shtml'));
+            $data->ThemeClass->getCommentFormLayout($data->commentForm);
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
 	
