@@ -137,13 +137,14 @@ class cms_Articles extends core_Manager
         
         $conf = core_Packs::getConfig('cms');
         
-		//bp($conf->CMS_OGRAPH_IMAGE, toUrl($conf->CMS_OGRAPH_IMAGE,'absolute'));
-        if(Mode::is('screenMode', 'narrow')) {
-            Mode::set('cmsLayout', $conf->CMS_THEME . '/ArticlesNarrow.shtml');
+		$ThemeClass = cls::get(($conf->CMS_THEME) ? $conf->CMS_THEME : 'cms_DefaultTheme');
+        
+		if(Mode::is('screenMode', 'narrow')) {
+            Mode::set('cmsLayout', $ThemeClass->getNarrowArticleLayout());
         } else {
-            Mode::set('cmsLayout', $conf->CMS_THEME . '/Articles.shtml');
+            Mode::set('cmsLayout', $ThemeClass->getArticleLayout());
         }
-
+		
         $id = Request::get('id', 'int');
         
         if(!$id || !is_numeric($id)) { 

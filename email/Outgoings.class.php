@@ -238,7 +238,7 @@ class email_Outgoings extends core_Master
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на имейла, който ще изпратим
-        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div><div class='scrolling-holder'>[#EMAIL_HTML#]<pre class=\"document\" style=\"width:95%; white-space: pre-wrap;\">[#EMAIL_TEXT#]</pre></div></div>");
        
         $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
         $preview->append(core_Type::escape($this->getEmailText($data->rec, $lg)) , 'EMAIL_TEXT');
@@ -1254,8 +1254,7 @@ class email_Outgoings extends core_Master
         if (!($companyId = $crmPersonRec->buzCompanyId)) {
             
             // Вземаме фирмата по подразбиране
-            $conf = core_Packs::getConfig('crm');
-            $companyId = $conf->BGERP_OWN_COMPANY_ID;        
+            $companyId = crm_Setup::BGERP_OWN_COMPANY_ID;        
         }
         
         // Вземаме данните за нашата фирма

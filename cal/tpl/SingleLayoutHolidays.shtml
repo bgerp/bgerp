@@ -1,14 +1,10 @@
 [#SingleToolbar#]
-                 
-	<div class='document'>
+	<div class='document' style='min-width:80px;border:none;padding:0'>
 		<div class='header'>
 			<span style='[#iconStyle#]'>[#title#]</span>
 		</div>
 
         <!-- BEGIN Блок ляво -->
-        <div class='block_left'>
-        
-            <br/>
 			 <table cellspacing='1' class='top-table'>
 			     
 	             <tr>
@@ -42,8 +38,8 @@
                  
                 
              </table>
-         </div>    
+            
          <!-- END Блок ляво -->   
                      
          <div style='clear: both;'></div>
-    </div>         
+    </div>

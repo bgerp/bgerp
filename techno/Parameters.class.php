@@ -177,7 +177,7 @@ class techno_Parameters extends core_Manager {
 	        $deleteUrl = array('techno_Parameters', 'configure', $specificationId, 'delete' => $paramId, 'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$paramId}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете параметърът да бъде изтрит?'), "id=delS{$paramId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, 'Наистина ли желаете параметърът да бъде изтрит?', "id=delS{$paramId}");
     		
 	        $tpl = new ET($editLink . " " . $deleteLink);
     	}

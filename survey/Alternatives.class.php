@@ -342,7 +342,7 @@ class survey_Alternatives extends core_Detail {
 	 */
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{  
-   		if($action == 'write' && isset($rec->id)) {
+   		if($action == 'write' && isset($rec->surveyId)) {
    			
    			/* Неможем да добавяме/редактираме нови въпроси
    			 * в следните случаи: Анкетата е затворена,
@@ -355,7 +355,7 @@ class survey_Alternatives extends core_Detail {
    			   $surveyRec->createdBy != core_Users::getCurrent()) {
    			   
    			   $res = 'no_one';
-   			}  
+   			} 
    		}
    		
    		if($action == 'vote' && isset($rec->id)) {

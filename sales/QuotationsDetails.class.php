@@ -518,6 +518,7 @@ class sales_QuotationsDetails extends core_Detail {
     		$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
     		
     		$dRec->price = $price->price;
+    		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
     		$dRec->vatPercent = $Policy->getVat($dRec->productId, $rec->date);
     		

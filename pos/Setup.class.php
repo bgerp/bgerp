@@ -3,7 +3,7 @@
 /**
  *  Tемата по-подразбиране за пос терминала
  */
-defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos/themes/default');
+defIfNot('POS_PRODUCTS_DEFAULT_THEME', '');
 
 
 /**
@@ -50,7 +50,7 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'POS_PRODUCTS_DEFAULT_THEME' => array ('varchar', 'mandatory, caption=Tемата по-подразбиране за пос терминала->Път до темата'),
+    		'POS_PRODUCTS_DEFAULT_THEME' => array ('class(interface=pos_ThemeIntf,select=title,allowEmpty)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
         );
     
 
@@ -93,6 +93,9 @@ class pos_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('pos_ProductsImages', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
          
+        // Добавяме класа връщащ темата в core_Classes
+        core_Classes::add('pos_DefaultTheme');
+        
         return $html;
     }
     

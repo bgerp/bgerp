@@ -8,7 +8,7 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', 50*24*60*60);
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('BLOGM_DEFAULT_THEME', 'blogm/themes/default');
+defIfNot('BLOGM_DEFAULT_THEME', '');
 
 
 /**
@@ -79,13 +79,13 @@ class blogm_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-	
-			// Константи за инициализиране на таблицата с контактите
-			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време след което статията се заключва за коментиране->Дни'),
+			'BLOGM_DEFAULT_THEME' => array ('class(interface=blogm_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в блога->Тема'),
+			
+			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време, след което статията се заключва за коментиране->Дни'),
 
             'BLOGM_ARTICLE_SHARE' => array ('html', 'caption=Код за споделяне на статията->HTML код'),
 
-            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Броят на статии които да се показват->Бр. статии'),
+            'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Броят на статии, които да се показват на страница->Бр. статии '),
 	
 	);
 	
@@ -142,7 +142,9 @@ class blogm_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html  .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'user', 'every_one');
 
-
+		// Добавяме класа връщащ темата в core_Classes
+        core_Classes::add('blogm_DefaultTheme');
+        
 		return $html;
 	}
 

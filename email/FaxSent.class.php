@@ -260,7 +260,7 @@ class email_FaxSent extends core_Manager
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на факса, който ще изпратим
-        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div><div class='scrolling-holder'>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div></div>");
 
         $Email = cls::get('email_Outgoings');
         

@@ -125,7 +125,7 @@ class blogm_Categories extends core_Manager {
             }
 			
 			// Създаваме линк, който ще покаже само статиите от избраната категория
-			$title = ht::createLink(tr($title), $id ? array('blogm_Articles', 'browse', 'category'  => $id) : array('blogm_Articles'));
+			$title = ht::createLink($title, $id ? array('blogm_Articles', 'browse', 'category'  => $id) : array('blogm_Articles'));
 			
             // Див-обвивка
             $title = ht::createElement('div', $attr, $title);

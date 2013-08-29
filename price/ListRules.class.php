@@ -410,12 +410,11 @@ class price_ListRules extends core_Detail
         // Вербален изказ на правилото
         $price    = $mvc->getVerbal($rec, 'price');
         $discount = $mvc->getVerbal($rec, 'discount');
-
         
         if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
-            $discount = "Надценка <font color='#000066'>" . (-$discount) . " %</font>";
+            $discount = "|Надценка|* <font color='#000066'>" . (-$discount) . " %</font>";
         } else {
-            $discount = "Отстъпка <font color='#660000'>{$discount}</font>";
+            $discount = "|Отстъпка|*  <font color='#660000'>{$discount}</font>";
         }
         
         if($rec->productId) {
@@ -437,13 +436,13 @@ class price_ListRules extends core_Detail
 
         switch($rec->type) {
             case 'groupDiscount' :
-                $row->rule = "{$discount} за {$group}";
+                $row->rule = tr("{$discount} |за|* {$group}");
                 break;
             case 'discount' :
-                $row->rule = "{$discount} за {$product}";
+                $row->rule = tr("{$discount} |за|* {$product}");
                 break;
             case 'value' :
-                $row->rule = "Цена {$price} {$currency} за {$product}";
+                $row->rule = tr("|Цена|* {$price} {$currency} |за|* {$product}");
                 break;
         }        
         

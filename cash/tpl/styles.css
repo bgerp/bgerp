@@ -1,4 +1,4 @@
-table {
+.document table {
 	border-collapse:collapse;
 	border-bottom-style:none;
 	width:100%;
@@ -10,6 +10,7 @@ table {
 h2{
 	line-height:120%;
 }
+
 .order-table td{
 	padding:10px;
 }

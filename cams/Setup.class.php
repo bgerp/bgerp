@@ -83,22 +83,22 @@ class cams_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Колко да е продължителността на един клип в секунд
-            'CAMS_CLIP_DURATION' => array ('time(suggestions=1 мин.|2 мин.|3 мин.|4 мин.|5 мин.|10 мин.)', 'mandatory, caption=Колко да е продължителността на един клип?->Продължителност'),
+            'CAMS_CLIP_DURATION' => array ('time(suggestions=1 мин.|2 мин.|3 мин.|4 мин.|5 мин.|10 мин.)', 'mandatory, caption=Колко да е продължителността на един запис?->Продължителност'),
             
             // Колко да е минималното дисково пространство
             'CAMS_MIN_DISK_SPACE'   => array ('fileman_FileSize', 'mandatory, caption=Колко да е минималното дисково пространство?->Размер'),
             
             // Колко клипа да показва на ред при широк екран
-            'CAMS_CLIPS_PER_WIDE_ROW'   => array ('int', 'mandatory, caption=Колко клипа да се показват при широк екран?->Колони в един ред'),
+            'CAMS_CLIPS_PER_WIDE_ROW'   => array ('int', 'mandatory, caption=Колко записа да се показват при широк екран?->Колони в един ред'),
             
             // Колко клипа да показва на страница при широк екран
-            'CAMS_CLIPS_PER_WIDE_PAGE'   => array ('int', 'mandatory, caption=Колко клипа да се показват при широк екран?->На една страница'),
+            'CAMS_CLIPS_PER_WIDE_PAGE'   => array ('int', 'mandatory, caption=Колко записа да се показват при широк екран?->На една страница'),
         
             // Колко клипа да показва на ред при тесен екран
-            'CAMS_CLIPS_PER_NARROW_ROW'   => array ('int', 'mandatory, caption=Колко клипа да се показват при мобилен режим?->Колони в един ред'),
+            'CAMS_CLIPS_PER_NARROW_ROW'   => array ('int', 'mandatory, caption=Колко записа да се показват при мобилен режим?->Колони в един ред'),
             
             // Колко клипа да показва на страница при тесен екран
-            'CAMS_CLIPS_PER_NARROW_PAGE'   => array ('int', 'mandatory, caption=Колко клипа да се показват при мобилен режим?->На една страница'),
+            'CAMS_CLIPS_PER_NARROW_PAGE'   => array ('int', 'mandatory, caption=Колко записа да се показват при мобилен режим?->На една страница'),
     
     
         );

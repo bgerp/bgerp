@@ -246,7 +246,7 @@ class doc_Containers extends core_Manager
         }
 
         if(Mode::is('screenMode', 'narrow')) {
-            $row->created = new ET("<table class='profile-summary-table'><tr><td rowspan='2' valign='top'>[#2#]</td><td>[#3#]</td><td rowspan='2' style='width:50%'>[#HISTORY#]</td></tr><tr><td>[#1#]</td></tr></table>",
+            $row->created = new ET("<div class='profile-summary'><div class='fleft'><div class='fleft'>[#2#]</div><div class='fleft'><span>[#3#]</span>[#1#]</div></div><div class='fleft'>[#HISTORY#]</div><div class='clearfix21'></div></div>",
                 $mvc->getVerbal($rec, 'createdOn'),
                 $avatar,
                 $row->created);

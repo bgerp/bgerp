@@ -1,4 +1,5 @@
 <!--ET_BEGIN LONG-->
+<div class='fleft'>	
 <table class = 'styled-table' id='components-table'>
 	<!--ET_BEGIN addBtnComp-->
 	<tr>
@@ -44,6 +45,7 @@
 	</tr>
 	<!--ET_END totalAmount-->
 	</table>
+</div>
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->

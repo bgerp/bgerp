@@ -864,7 +864,7 @@ class blast_Letters extends core_Master
         $tpl = $form->renderHtml();
         
         // Добавяме превю на първото писмо, което ще печатаме
-        $preview = new ET("<div style='display:table' class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерно писмо") . "</b></div>[#BLAST_LET#]</div>");
+        $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерно писмо") . "</b></div><div class='scrolling-holder'>[#BLAST_LET#]</div></div>");
         
         // Добавяме към шаблона
         $preview->append($res, 'BLAST_LET');

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Константи за инициализиране на таблицата с контактите
- */
-defIfNot('BGERP_OWN_COMPANY_ID', '1');
-
 
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
@@ -32,6 +27,12 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  */
 class crm_Setup extends core_ProtoSetup
 {
+    
+    
+    /**
+     * ID на нашата фирма
+     */
+    const BGERP_OWN_COMPANY_ID = 1;
     
     
     /**
@@ -63,19 +64,7 @@ class crm_Setup extends core_ProtoSetup
      */
     var $info = "Визитник и управление на контактите";
     
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
     
-            // Име на собствената компания (тази за която ще работи bgERP)
-            'BGERP_OWN_COMPANY_NAME' => array ('varchar', 'mandatory, caption=Име на собствената компания->Фирма'),
-    
-            // Държавата на собствената компания (тази за която ще работи bgERP)
-            'BGERP_OWN_COMPANY_COUNTRY' => array ('varchar', 'caption=Държава на собствената компания->Държава')
-        );
-    
-        
     /**
      * Списък с мениджърите, които съдържа пакета
      */

@@ -1,5 +1,4 @@
 ﻿.belejka_container {
-	width: 848px;
     margin: 0;
 	margin-top:10px;
     padding: 0;
@@ -52,6 +51,7 @@
         width:847px;
         -moz-box-shadow: 2px 2px 2px #cccccc;
         background: #fff;
+        padding:5px 0;
         }
         
     .belejka_container .belejka_header .container {
@@ -60,20 +60,20 @@
         }    
         
     .belejka_container .belejka_header .container .label_left {
-        width: 30px; 
+        width: 35px; 
         padding: 0 10px; 
         line-height: 40px;
         font-size: 11px;
         }    
     
     .belejka_container .belejka_header .container .right_block {
-        width: 360px; 
+        width: 355px; 
         height: 40px; 
    		margin-right: 10px; 
         }
         
     .belejka_container .belejka_header .container .right_block .text {    
-        width: 360px; 
+        width: 355px; 
         height: 15px; 
         line-height: 15px; 
         padding-top: 10px;

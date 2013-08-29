@@ -190,11 +190,11 @@ class forum_Postings extends core_Detail {
 	 */
     function renderBoardThemes_($data, $layout)
 	{
-		$tpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/Themes.shtml')));
+		$tpl = $data->ForumTheme->getThemeLayout();
 		
 		// Иконките на отключените и заключените теми взети от текущата тема
-		$openIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/unlocked.png", ""), 'width' => '32px'));
-		$lockedIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/locked.png", ""), 'width' => '32px'));
+		$openIcon = $data->ForumTheme->getImage('unlocked.png', '32');
+		$lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
 		
 		// Ако имаме теми в дъската ние ги рендираме
 		if(count($data->themeRows)) {
@@ -243,8 +243,7 @@ class forum_Postings extends core_Detail {
 		$data = new stdClass();
 		expect($data->rec = $this->fetch($id));
 		$data->query = $this->getQuery();
-		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->ForumTheme = forum_Boards::getThemeClass();
         $data->action = 'theme';
         $data->display = 'public';
         
@@ -352,8 +351,8 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderTheme_($data)
 	{
-		$tpl = new ET(tr('|*' .getFileContent($data->forumTheme . '/SingleTheme.shtml')));
-		$commentTpl = new ET(getFileContent($data->forumTheme . '/Comments.shtml'));
+		$tpl = $data->ForumTheme->getSingleThemeLayout();
+		$commentTpl = $data->ForumTheme->getCommentsLayout();
 		$tpl->replace($data->title, 'THREAD_HEADER');
 		$tpl->placeObject($data->row);
 		
@@ -372,10 +371,8 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			$formTpl = new ET(tr('|*'.getFileContent($data->forumTheme . '/PostForm.shtml')));
-            $data->postForm->layout = $formTpl->getBlock('FORM');
-            $data->postForm->fieldsLayout = $formTpl->getBlock('FORM_FIELDS');
-            $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
+			$data->ForumTheme->getPostFormLayout($data->postForm);
+			$tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
         	(core_Users::getCurrent()) ? $msg = 'Темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
         	$tpl->replace("<b>" . tr($msg) . "</b>", 'COMMENT_FORM');
@@ -389,12 +386,12 @@ class forum_Postings extends core_Detail {
         	$tpl->append(ht::createBtn('Работилница', $data->topicUrl), 'ANSWER');
         }
         
-        $tpl->push($data->forumTheme . '/styles.css', 'CSS');
+        $tpl->push($data->ForumTheme->getStyles(), 'CSS');
 		$tpl->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
 		 
-		$icon = sbf($data->forumTheme . "/img/32/top.png");
-		$topLink = ht::createLink(' ', getCurrentUrl(), NULL, array('style'=>"background-image:url({$icon})", 'class' => 'goTopBtn'));
+		$topIcon = $data->ForumTheme->getImage('top.png', '32');
+		$topLink = ht::createLink($topIcon, getCurrentUrl(), NULL, array('class' => 'goTopBtn'));
 		
 		$tpl->replace($topLink, 'topLink');
         return $tpl;
@@ -412,8 +409,7 @@ class forum_Postings extends core_Detail {
 		
 		$data = new stdClass();
 		$data->rec = $rec;
-		$conf = core_Packs::getConfig('forum');
-        $data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+        $data->ForumTheme = forum_Boards::getThemeClass();
         $data->action = 'new';
         $data->display = 'public';
         
@@ -440,7 +436,7 @@ class forum_Postings extends core_Detail {
         
         // Рендираме Формата
 		$layout = $this->renderNew($data);
-		$layout->push($data->forumTheme . '/styles.css', 'CSS');
+		$layout->push($data->ForumTheme->getStyles(), 'CSS');
 		$layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
 		
 		return $layout;
@@ -479,11 +475,9 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderNew($data)
 	{
-		$formTpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/AddForm.shtml')));
-		$data->form->layout = $formTpl->getBlock("FORM");
-        $data->form->fieldsLayout = $formTpl->getBlock("FORM_FIELDS");
+		$data->ForumTheme->getAddThemeFormLayout($data->form);
 		
-        $tpl = new ET(getFileContent($data->forumTheme . '/New.shtml'));
+        $tpl = $data->ForumTheme->getAddThemeLayout();
 		$tpl->replace($data->header, 'header');
 		$tpl->replace($data->form->renderHtml(), 'FORM');
         
@@ -765,8 +759,7 @@ class forum_Postings extends core_Detail {
 	{
 		$data = new stdClass();
 		$data->query = $this->getQuery();
-		$conf = core_Packs::getConfig('forum');
-		$data->forumTheme = $conf->FORUM_DEFAULT_THEME;
+		$data->ForumTheme = forum_Boards::getThemeClass();
 		$data->action = 'search';
         $data->display = 'public';
         $data->q = Request::get('q');
@@ -776,7 +769,7 @@ class forum_Postings extends core_Detail {
         $this->prepareListFilter($data);
         
         $layout = $this->renderSearch($data);
-        $layout->push($data->forumTheme . '/styles.css', 'CSS');
+        $layout->push($data->ForumTheme->getStyles(), 'CSS');
         $layout->replace($this->Master->renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
         
@@ -849,10 +842,10 @@ class forum_Postings extends core_Detail {
      */
     function renderSearch($data)
     {
-    	$tpl = new ET(tr('|*' . getFileContent($data->forumTheme . '/Results.shtml')));
+    	$tpl = $data->ForumTheme->getResultsLayout();
     	$tableTpl = $tpl->getBlock('ROW');
-    	$openIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/unlocked.png", ""), 'width' => '32px'));
-		$lockedIcon = ht::createElement('img', array('src' => sbf($data->forumTheme . "/img/32/locked.png", ""), 'width' => '32px'));
+    	$openIcon = $data->ForumTheme->getImage('unlocked.png', '32');
+		$lockedIcon = $data->ForumTheme->getImage('locked.png', '32');
 		
 		if(count($data->rows)) {
 	      foreach($data->rows as $row) {
@@ -864,11 +857,11 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	      }
 		} else {
-			$tableTpl->replace("<h2>" . tr("Няма теми") . "</h2>");
+			$tableTpl->replace("<tr><td colspan=3><h3>" . tr("Няма теми") . "</h3></td></tr>");
 		}
 		
 		$tableTpl->replace($data->pager->getHtml(), 'PAGER');
-		
+		$tableTpl->append2master();
     	return $tpl;
     }
     

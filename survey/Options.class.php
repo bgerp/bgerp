@@ -95,11 +95,16 @@ class survey_Options extends core_Manager {
     
     
     /**
-     * Модификации по формата
+     * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-	public static function on_AfterPrepareEditForm($mvc, &$data)
+    function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-    	
+        if ($data->form->rec) {
+			$surveyId = survey_Alternatives::fetchField($data->form->rec->alternativeId, 'surveyId');
+            
+			// retUrl-то е single-a на анкетата
+            $data->retUrl = toUrl(array('survey_Surveys', 'single', $surveyId));
+        }
     }
     
     

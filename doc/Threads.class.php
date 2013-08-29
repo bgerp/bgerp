@@ -520,7 +520,7 @@ class doc_Threads extends core_Manager
         // TODO: да се замени с интерфейсен метод
         if($threadId = $exp->getValue('threadId')) {
             $threadRec = self::fetch($threadId);
-            $originTpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Първи документ в нишката") . "</b></div>[#DOCUMENT#]</div>");
+            $originTpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Първи документ в нишката") . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div>");
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
             $docHtml = $document->getInlineDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');

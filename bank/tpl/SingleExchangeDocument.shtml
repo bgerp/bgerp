@@ -7,7 +7,7 @@
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
-	<div style='margin-top:10px'>
+	<div class='scrolling-holder' style='margin-top:10px'>
 		<div class='fleft'>
 				<table class='default-table'>
 					<tr><td class="quiet" align="right">|Номер|*:</td><td>[#number#]</td></tr>
@@ -17,6 +17,7 @@
 					<tr><td class="quiet" align="right">|Към|*:</td><td>[#peroTo#]</td></tr>
 					<tr><td class="quiet" align="right">|Основание|*:</td><td>[#reason#]</td></tr>
 				</table>
+				<br>
 		</div>
 		<div class='fleft internal-amount'>	
 				<div class="amounts">
@@ -43,6 +44,7 @@
 					</table>
 				</div>
 		</div>
+	</div>
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 			[#DETAILS#]
@@ -54,5 +56,5 @@
         	[#shareLog#]
     	</div>
     <!--ET_END shareLog-->	
-	</div>
+	
 </div>

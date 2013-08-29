@@ -116,7 +116,7 @@ class techno_Components extends core_Manager {
         	}
         }
         
-        $form->title = "{$action} на компоненти към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
+        $form->title = "{$action} на компонент към |*" . $Specifications->recToVerbal($rec, 'id,title,-list')->title;
     	return $Specifications->renderWrapping($form->renderHtml());
     }
     
@@ -227,7 +227,7 @@ class techno_Components extends core_Manager {
 	        $deleteUrl = array('techno_Components', 'configure', $specificationId, 'delete' => $componentId, 'ret_url' => TRUE);
 
 	        $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edtS{$componentId}");
-	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, tr('Наистина ли желаете компонента да бъде изтрит?'), "id=delS{$componentId}");
+	        $deleteLink = ht::createLink($deleteImg, $deleteUrl, 'Наистина ли желаете компонента да бъде изтрит?', "id=delS{$componentId}");
     		
 	        $tpl = new ET($editLink . " " . $deleteLink);
     	}
@@ -295,13 +295,4 @@ class techno_Components extends core_Manager {
     	
     	return $paramBlock;
     }
-    
-    
-	/**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     */
-    /*public static function canAdd($rec)
-    {
-    	return (count(static::getRemainingOptions($rec))) ? TRUE : FALSE;
-    }*/
 }

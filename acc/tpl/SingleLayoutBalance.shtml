@@ -1,4 +1,4 @@
-<div class="singleView" style="display:inline-block">
+<div class="singleView">
        		[#SingleToolbar#] 
             <h2>[#SingleTitle#]</h2>
             <!--ET_BEGIN accountId-->

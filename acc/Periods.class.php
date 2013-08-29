@@ -44,7 +44,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry, reports=Справки,close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry,close=Приключване";
     
     
     /**
@@ -58,6 +58,8 @@ class acc_Periods extends core_Manager
      */
     var $canEdit = 'ceo,acc';
     
+    
+    var $canEditsysdata = 'ceo,acc';
     
     /**
      * Кой може да го разглежда?
@@ -130,14 +132,14 @@ class acc_Periods extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if($mvc->haveRightFor('close', $rec)) {
-           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png');
+           $row->close = ht::createBtn('Приключване', array($this, 'Close', $rec->id), 'Наистина ли желаете да приключите периода?', NULL, 'ef_icon=img/16/lock.png,title=Приключване на периода');
         }
         
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
-        	$row->reports = ht::createBtn('Справки', array('acc_Balances', 'Single', $repId), NULL, NULL, 'ef_icon=img/16/report.png');
+        	$row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, 'ef_icon=img/16/report.png');
         }
         
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         if($rec->end == $curPerEnd){
         	$row->id = "<img src=" . sbf('img/16/control_play.png') . " style='display:inline-block;margin-right:5px'\">{$row->id}";
         }
@@ -308,7 +310,7 @@ class acc_Periods extends core_Manager
         $rec->end = $end;
 
         // Периодите се създават в състояние драфт
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         if($rec->end > $curPerEnd){
         	$rec->state = 'draft';
         } else {
@@ -410,7 +412,7 @@ class acc_Periods extends core_Manager
         }
 
         // Последния ден на текущия период
-        $curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+        $curPerEnd = static::getPeriodEnd();
         
         // Забраняваме всички модификации за всички минали периоди
         if ($action == 'edit'){
@@ -485,7 +487,7 @@ class acc_Periods extends core_Manager
     {
         $conf = core_Packs::getConfig('acc');
 
-        $firstPeriodStart = $conf->ACC_FIRST_PERIOD_START ? $conf->ACC_FIRST_PERIOD_START : dt::verbal2mysql();
+        $firstPeriodStart = ACC_FIRST_PERIOD_START ? ACC_FIRST_PERIOD_START : dt::verbal2mysql();
 		
         $this->forcePeriod($firstPeriodStart);
 
@@ -514,15 +516,15 @@ class acc_Periods extends core_Manager
      */
     function updateExistingPeriodsState()
     {
-    	$curPerEnd = dt::getLastDayOfMonth(dt::verbal2mysql());
+    	$curPerEnd = static::getPeriodEnd();
+    	$activeRec = $this->forceActive();
+    	
     	$query = $this->getQuery();
-    	$query->where("#state = 'draft'");
+    	$query->where("#end > '{$activeRec->end}'");
+    	$query->where("#end <= '{$curPerEnd}'");
     	
     	while($rec = $query->fetch()){
-    		if($rec->end <= $curPerEnd){
-	        	$rec->state = 'pending';
-	        }
-	        
+	        $rec->state = 'pending';
 	        $this->save($rec);
     	}
     }
@@ -567,5 +569,16 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyCode($date = NULL)
     {
         return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
+    }
+    
+    
+    /**
+     * Връща края на даден период
+     * @param date $date - дата от период, NULL  ако е текущия
+     * @return date - крайната дата на периода (ако съществува)
+     */
+    public static function getPeriodEnd($date = NULL)
+    {
+    	return acc_Periods::fetchByDate($date)->end;
     }
 }
