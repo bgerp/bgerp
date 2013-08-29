@@ -23,6 +23,18 @@ class webkittopdf_Converter extends core_Manager
     
     
     /**
+     * Заглавие
+     */
+    var $title = 'webkittopdf';
+    
+    
+    /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    var $interfaces = 'doc_ConvertToPdfIntf';
+    
+    
+    /**
      * Конвертира html към pdf файл
      *
      * @param string $html - HTML стинга, който ще се конвертира

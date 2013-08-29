@@ -24,7 +24,7 @@ class change_Log extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'docClass, docId, field, oldValue, newValue';
+    var $listFields = 'docClass, docId, field, values';
     
     
     /**
@@ -65,8 +65,8 @@ class change_Log extends core_Manager
         $this->FLD('docClass' , 'class', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('field', 'varchar', 'caption=Поле');
-        $this->FLD('oldValue', 'richtext', 'caption=Стара стойност');
-        $this->FLD('newValue', 'richtext', 'caption=Нова стойност');
+        $this->FLD('values', 'blob(serialize,compress)', 'caption=Стойности');
+        
     }
     
     
@@ -107,8 +107,7 @@ class change_Log extends core_Manager
             $rec->docClass = $docClassId;
             $rec->docId = $oldRec->id;
             $rec->field = $field;
-            $rec->oldValue = $oldRec->$field;
-            $rec->newValue = $newRec->$field;
+            $rec->values = array('oldValue' => $oldRec->$field, 'newValue' => $newRec->$field);
             
             // Записваме
             static::save($rec);
@@ -200,7 +199,7 @@ class change_Log extends core_Manager
     static function getValue($rec, $field='oldValue')
     {
         // Старата стойност
-        $value = $rec->{$field};
+        $value = $rec->values[$field];
         
         // Инстанция на класа
         $class = cls::get($rec->docClass);

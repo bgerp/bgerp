@@ -51,7 +51,7 @@ class fileman_FileSize extends type_Bigint {
 
         $value = str_replace('&nbsp;', ' ', $this->toVerbal($value));
         
-        $tpl = ht::createTextInput($name, $value, $attr);
+        $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
     }

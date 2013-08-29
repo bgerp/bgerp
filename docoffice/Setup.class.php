@@ -57,12 +57,6 @@ class docoffice_Setup extends core_ProtoSetup
     
         // Кой клас да се използва за конвертиране на офис документи
         'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
-    
-        // Коя програма да се използва за конвертиране
-        'OFFICE_CONVERTER_UNOCONV' => array ('varchar', 'caption=Коя програма да се използва за конвертиране->Име на програмата'),
-        
-        // Кой python да се използва
-    	'OFFICE_CONVERTER_PYTHON' => array ('varchar', 'caption=Пътя до python-a|*&comma;| който искаме да използваме->Път до пакета'),
     );
     
     

@@ -3,7 +3,7 @@
 /**
  * Минималния брой елементи, за които няма да сработи Chosen
  */
-defIfNot('CHOSEN_MIN_ITEMS', 32);
+defIfNot('CHOSEN_MIN_ITEMS', 30);
 
 
 /**
@@ -51,7 +51,7 @@ class chosen_Setup extends core_ProtoSetup {
     var $configDescription = array(
     
             // Минималния брой елементи, за които няма да сработи Chosen
-            'CHOSEN_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Chosen->Опции'),
+            'CHOSEN_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Chosen->Опции, suggestions=10|20|30|40|50'),
     
         );
     

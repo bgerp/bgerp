@@ -45,39 +45,21 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWi
 
 
 /**
- * Разширения на файлове, от които е допустимо да се извлече съдържание
- */
-defIfNot('FILEINFO_GET_CONTENT_EXT', 'pdf, rtf, odt');
-
-
-/**
- * Разширения на файлове, от които  е допустимо да се създаде JPG файлове
- */
-defIfNot('FILEINFO_CONVERT_JPG_EXT', 'pdf, rtf, odt');
-
-
-/**
- * Разширения на файлове, от които е допустимо да се извлече баркод
- */
-defIfNot('FILEINFO_GET_BARCODES_EXT', 'pdf');
-
-
-/**
- * Минималната дължина на файла, до която ще се търси баркод
+ * Минималната големина на файла, до която ще се търси баркод
  * 15kB
  */
 defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 15360);
 
 
 /**
- * Максималната дължина на файла, до която ще се търси баркод
+ * Максималната големина на файла, до която ще се търси баркод
  * 1 mB
  */
 defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 1048576);
 
 
 /**
- * Максималната дължина на архивите, за които ще се визуализира информация
+ * Максималната големина на архивите, за които ще се визуализира информация
  * 100 mB
  */
 defIfNot('FILEINFO_MAX_ARCHIVE_LEN', 104857600);
@@ -90,9 +72,15 @@ defIfNot('FILEMAN_GHOSTSCRIPT_PATH', '');
 
 
 /**
- * След колко минити да се изтрие от индекса, записа (грешката) за съответния тип на файла
+ * След колко време да се изтрие от индекса, записа (грешката) за съответния тип на файла
  */
-defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 5);
+defIfNot('FILEMAN_WEBDRV_ERROR_CLEAN', 300);
+
+
+/**
+ * Коя програма да се използва за OCR обработка
+ */
+defIfNot('FILEMAN_OCR', '');
 
 
 /**
@@ -139,22 +127,17 @@ class fileman_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
                
-       'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('int', 'caption=Минималната големина на файла в тесен режим->Размер в байтове'), 
        'FILEMAN_PREVIEW_WIDTH'   => array ('int', 'caption=Широчината на изгледа->Размер в пиксели'), 
        'FILEMAN_PREVIEW_HEIGHT'   => array ('int', 'caption=Височина на изгледаната->Размер в пиксели'), 
        'FILEMAN_PREVIEW_WIDTH_NARROW'   => array ('int', 'caption=Широчината на изгледа в мобилен режим->Размер в пиксели'), 
        'FILEMAN_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Височина на изгледа в мобилен режим->Размер в пиксели'), 
-       'FILEMAN_FILE_COMMAND'   => array ('varchar', 'caption='),
-
-       'FILEINFO_GET_CONTENT_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими за извличане на съдържание->Списък с разширения'),
-       'FILEINFO_CONVERT_JPG_EXT'   => array ('varchar', 'caption=Разширенията на файловете допустими да се създаде JPG файлове->Списък с разширения'),
-       'FILEINFO_GET_BARCODES_EXT'   => array ('varchar', 'caption=Разширенията на файлове допустими за извличане на баркод->Списък с разширения'),
-       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('int', 'caption=Максималната дължина на файла до която ще се търси баркод (1 mB)->Размер'),
-       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('int', 'caption=Минималната дължина на файла до която ще се търси баркод (15kB)->Размер'),
-       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('int', 'caption=Максималната дължина на архивите за които ще се визуализира информация (100 mB)->Размер'),
-       'FILEMAN_GHOSTSCRIPT_PATH'   => array ('varchar', 'caption='),
-       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('int', 'caption= След колко минити да се изтрие от индекса записа (грешката) за съответния тип на файла->Минути'), 
-    
+       
+       'LINK_NARROW_MIN_FILELEN_SHOW'   => array ('fileman_FileSize', 'caption=Минималната големина на файла в тесен режим->Размер, suggestions=50 KB|100 KB|200 KB|300 KB'), 
+       'FILEINFO_MAX_ARCHIVE_LEN'   => array ('fileman_FileSize', 'caption=Максималната големина на архивите|*&comma;| за които ще се визуализира информация->Архив, suggestions=50 MB|100 MB|200 MB|300 MB'),
+       'FILEINFO_MIN_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Минимален размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
+       'FILEINFO_MAX_FILE_LEN_BARCODE'   => array ('fileman_FileSize', 'caption=Големина на файла|*&comma;| до която ще се търси баркод->Максимален размер, suggestions=5KB|15 KB|30 KB|50 KB'),
+       'FILEMAN_WEBDRV_ERROR_CLEAN'   => array ('time(suggestions=1 мин.|5 мин.|10 мин.|30 мин.|1 час)', 'caption= След колко време да се изтрие от индекса (грешката) за съответния тип на файла->Минути'), 
+       'FILEMAN_OCR' => array ('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Коя програма да се използва за OCR обработка->Клас'),
     );
     
     

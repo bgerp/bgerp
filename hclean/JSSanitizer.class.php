@@ -62,7 +62,7 @@ class hclean_JSSanitizer extends core_Manager
         $conf = core_Packs::getConfig('hclean');        
         
         // Ако е зададено да се вкара CSS' а като inline
-        if ($conf->HCLEAN_PLACE_CSS_TO_INLINE == 'yes') {
+        if ($conf->HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE == 'yes') {
           $content = csstoinline_ToInline::inlineCssFromHtml($content);
           $content = csstoinline_ToInline::inlineCssFromHtmlLink($content);
         }

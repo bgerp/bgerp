@@ -4,7 +4,7 @@
 /**
  * Дали да се вкара CSS'а в inline атрибут
  */
-defIfNot('HCLEAN_PLACE_CSS_TO_INLINE', 'yes');
+defIfNot('HCLEAN_JSSANITIZER_PLACE_CSS_TO_INLINE', 'yes');
 
 
 /**
@@ -46,16 +46,6 @@ class hclean_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Изчистване на HTML";
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-    
-        // Дали да се вкара CSS'а в inline атрибут
-        'HCLEAN_PLACE_CSS_TO_INLINE' => array ("enum(yes=Да, no=Не)", 'caption=Да се вкарали CSS вътре в таговете->Да/Не'),
-    );
     
     
     /**

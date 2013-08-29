@@ -18,6 +18,18 @@ class dompdf_Converter extends core_Manager
     
     
     /**
+     * Заглавие
+     */
+    var $title = 'dompdf';
+    
+    
+    /**
+     * Какви интерфейси поддържа този мениджър
+     */
+    var $interfaces = 'doc_ConvertToPdfIntf';
+    
+    
+    /**
      * Конвертира към PDF използвайки пакета DOMPDF
      */
     static function convert($html, $fileName, $bucketName)

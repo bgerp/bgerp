@@ -4,7 +4,7 @@
 /**
  * Клас 'docoffice_ConverterIntf' - Интерфейс за конвертиране на office документи
  *
- * @category  bgerp
+ * @category  vendors
  * @package   docoffice
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

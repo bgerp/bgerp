@@ -19,6 +19,12 @@ defIfNot("COUNTRY_PHONE_CODE", '359');
 
 
 /**
+ * Избягвани под-стрингове при парсиране на вход. писма
+ */
+defIfNot("DRDATA_AVOID_IN_EXT_ADDRESS", '');
+
+
+/**
  * class drdata_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -67,7 +73,7 @@ class drdata_Setup extends core_ProtoSetup
             'SENDER_HOST'   => array ('identifier', 'mandatory, caption=Настойки на проверителя на имейл адреси->Хост'),
             'SENDER_EMAIL'  => array ('email', 'mandatory, caption=Настойки на проверителя на имейл адреси->`От` имейл'),
             'COUNTRY_PHONE_CODE'  => array ('int', 'mandatory, caption=Код на държава по подразбиране->Код'),
-            'DRDATA_AVOID_IN_EXT_ADDRESS' => array('text', 'caption=Избягвани под-стрингове при парсиране на вход. писма->Стрингове'),
+            'DRDATA_AVOID_IN_EXT_ADDRESS' => array('text', 'caption=Избягвани думи при извличане на адресни данни от текст->Стрингове'),
         );
 
         
@@ -81,8 +87,6 @@ class drdata_Setup extends core_ProtoSetup
             'drdata_Vats',
             'drdata_Domains',
     		'drdata_Languages',
-        	
-        
         );
     
     

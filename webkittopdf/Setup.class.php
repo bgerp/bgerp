@@ -4,11 +4,11 @@
 /**
  * Изпълнимия файл на програмата
  */
-defIfNot('WEBKIT_TO_PDF_BIN', "/usr/bin/wkhtmltopdf");
+defIfNot('WEBKIT_TO_PDF_BIN', "wkhtmltopdf");
 
 
 /**
- * Оказва дали да се изпълни помощната програма (xvfb-run)
+ * Указва дали да се изпълни помощната програма (xvfb-run)
  */
 defIfNot('WEBKIT_TO_PDF_XVFB_RUN', TRUE);
 
@@ -75,9 +75,7 @@ class webkittopdf_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'WEBKIT_TO_PDF_BIN' => array ('varchar', 'mandatory, caption=Изпълнимия файл на програмата->Път до файла'),
-    
-           'WEBKIT_TO_PDF_XVFB_RUN'   => array ('varchar', 'caption=Оказва дали да се изпълни помощната програма (xvfb-run)->Да/Не'),
+           'WEBKIT_TO_PDF_XVFB_RUN'   => array ('enum(0=Не, 1=Да)', 'caption=Указва дали да се изпълни помощната програма->xvfb-run'),
     
            'WEBKIT_TO_PDF_SCREEN_WIDTH'   => array ('int', 'caption=Ширина на екрана->Размер в пиксели'),
     
