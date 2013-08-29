@@ -473,14 +473,12 @@ class sales_Invoices extends core_Master
     function renderSingleLayout_(&$data)
     {
     	$conf = core_Packs::getConfig('sales');
-        if($path = $conf->INV_LAYOUT){
-        	$path = basename($path);
-        	expect($res = getTplFromFile("/sales/tpl/{$path}"), 'Няма такъв файл');
-        	
-        	return $res;
-        }
+    	$conf->INV_LAYOUT = NULL;
+    	if($conf->INV_LAYOUT){
+    		return getTplFromFile($conf->INV_LAYOUT . ".shtml");
+    	}
         
-        return parent::renderSingleLayout_($data);
+    	return parent::renderSingleLayout_($data);
     }
     
     
