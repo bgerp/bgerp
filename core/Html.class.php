@@ -433,13 +433,9 @@ class core_Html
     	$attr['error'] = $error;
     	$attr['ef_icon'] = 'img/16/error.png';
     	
-    	$msg = new stdClass();
-        $msg->text = tr($error);
-        $msg->tpl = 'page_Error';
-        $Crypt = cls::get('core_Crypt');
-        $msg = $Crypt->encodeVar($msg, Mode::getPermanentKey());
-    	
-        return static::createBtn($title, array('core_Message', 'view', 'msg' => $msg), NULL, NULL, $attr);
+    	// Url-то се заменя с такова водещо към грешка
+    	$url = core_Message::getErrorUrl($error, 'page_Error');
+    	return static::createBtn($title, $url, NULL, NULL, $attr);
     }
     
     
