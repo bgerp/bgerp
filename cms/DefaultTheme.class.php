@@ -33,10 +33,21 @@ class cms_DefaultTheme extends core_Manager {
     
     
 	/**
-     * Инициализиране драйвъра
+     * Връща шаблона за статия от cms-а
+     * @return файла на шаблона
      */
-    public static function getSbf()
+    public static function getArticleLayout()
     {
-    	return 'cms/themes/default';
+    	return 'cms/themes/default/Articles.shtml';
+    }
+    
+    
+	/**
+     * Връща шаблона за статия от cms-а  за мобилен изглед
+     * @return файла на шаблона
+     */
+    public static function getNarrowArticleLayout()
+    {
+    	return 'cms/themes/default/ArticlesNarrow.shtml';
     }
 }

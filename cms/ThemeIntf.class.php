@@ -17,11 +17,21 @@
 class cms_ThemeIntf
 {
     /**
-     * Подготвя пътя към темата
-     * @return string пътя към темата
+     * Връща шаблона за статия от cms-а за широк режим
+     * @return файла на шаблона
      */
-    function getSbf()
+    function getArticleLayout()
     {
-    	return $this->class->getSbf();
+    	return $this->class->getArticleLayout();
+    }
+    
+    
+    /**
+     * Връща шаблона за статия от cms-а  за мобилен изглед
+     * @return файла на шаблона
+     */
+	function getNarrowArticleLayout()
+    {
+    	return $this->class->getNarrowArticleLayout();
     }
 }
