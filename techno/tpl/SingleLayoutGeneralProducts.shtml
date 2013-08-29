@@ -5,7 +5,7 @@
 			<!--ET_BEGIN OTHERS-->
 			<table class = 'styled-table'>
 			<tr>
-				<th colspan='3'>|Параметри|* [#OTHERS#] [#addBtn#]</th>
+				<th colspan='2'>|Параметри|* [#OTHERS#] [#addBtn#]</th>
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]
 			<tr>
@@ -40,8 +40,9 @@
 		</table>
 		<!--ET_END OTHERS-->
 	</li>
-	[#COMPONENTS#]
-	
+	<div class='scrolling-holder'>
+		[#COMPONENTS#]
+	</div>
 	<!--ET_BEGIN image-->
 	<li class='product-image'>
 	[#image#]

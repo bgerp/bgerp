@@ -69,19 +69,11 @@ ol.short{
 	max-width:380px !important;
 }
 
-.styled-table{
-	width:300px;
-	margin-right:20px;
-}
-
 #components-table{
 	width:700px;
 }
 
-.narrow .styled-table{
-	width:100%;
-	margin-right:0;
-}
+
 	
 i.misc-values{
 	color:#040404;
