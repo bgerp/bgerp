@@ -141,12 +141,15 @@ class type_Time extends type_Varchar {
             if($this->params['suggestions']) {
                 $suggestions = explode('|', $this->params['suggestions']);
                 $this->suggestions[''] = '';
-                if($value) {
-                    $this->suggestions[$value] = $value;
-                }
+                
                 foreach($suggestions as $opt) {
                     $this->suggestions[$opt] = $opt;
                 }
+                
+                if($value) {
+                    $this->suggestions[$value] = $value;
+                }
+                
             } else {
                 $this->suggestions = array('' => '',
                     'на момента' => 'на момента',

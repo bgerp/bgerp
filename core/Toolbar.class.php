@@ -80,9 +80,16 @@ class core_Toolbar extends core_BaseClass
             unset($params['warning']);
         }
         
+    	if($params['error']) {
+            $btn->error = $params['error'];
+            unset($params['error']);
+        }
+        
         if($params['order']) {
             $btn->order = $params['order'];
             unset($params['order']);
+        } elseif($btn->error){
+        	$btn->order = 40;
         } elseif($btn->warning) {
             $btn->order = 30;
         } elseif($btn->newWindow) {
@@ -183,8 +190,8 @@ class core_Toolbar extends core_BaseClass
             $rowId = $attr['id'];
             if(count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') ||
             	count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')){
-	            $toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW0#][#ROW1#]</div>" . 
-	                "<!--ET_BEGIN ROW2--><div style='margin-top:10px;display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
+	            $toolbar = new ET("<div class='clearfix21 toolbar' {$id}><span>[#ROW0#][#ROW1#]</span>" . 
+	                "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div>");
         	}
         	else{
         		$toolbar = new ET("<div class='clearfix21 toolbar'{$id}><div>[#ROW1#][#ROW2#]</div></div>");
@@ -207,7 +214,10 @@ class core_Toolbar extends core_BaseClass
 				if($place == 'ROW2'){
 					$flagRow2 = TRUE;
 				}
-                if ($btn->type == 'submit') {
+				
+				if($btn->error){
+					$toolbar->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
+				} elseif ($btn->type == 'submit') {
                     $toolbar->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
                 } elseif ($btn->type == 'function') {
                     $toolbar->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);

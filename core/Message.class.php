@@ -74,22 +74,34 @@ class core_Message extends core_BaseClass
      */
     static function redirect($text, $tpl = 'error', $cancel = '', $next = '')
     {
-        // Създава съобщението
+        $errorUrl = static::getErrorUrl($text, $tpl, $cancel, $next);
+        redirect($errorUrl);
+    }
+    
+    
+    /**
+     * Връща url към съобщение за грешка
+     */
+    public static function getErrorUrl($text, $tpl = 'error', $cancel = '', $next = '')
+    {
+    	// Създава съобщението
         $msg = new stdClass();
         $msg->text = tr($text);
         $msg->tpl = $tpl;
-        
-        if ($next)
-        $msg->next = $next;
-        
-        if ($cancel)
-        $msg->cancel = $cancel;
         $msg->wrapper = Mode::get('wrapper');
+        
+        if ($next){
+        	$msg->next = $next;
+        }
+        
+        if ($cancel){
+        	$msg->cancel = $cancel;
+        }
         
         $Crypt = cls::get('core_Crypt');
         $key = Mode::getPermanentKey();
         $msg = $Crypt->encodeVar($msg, $key);
         
-        redirect(array('core_Message', 'view', 'msg' => $msg));
+        return array('core_Message', 'view', 'msg' => $msg);
     }
 }

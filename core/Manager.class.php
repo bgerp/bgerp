@@ -590,7 +590,7 @@ class core_Manager extends core_Mvc
           ");
         
         if($data->listScroll){
-        	$listLayout->replace('whole-page', 'WHOLEPAGE');
+        	$listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
         		
         return $listLayout;
