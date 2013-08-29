@@ -215,10 +215,12 @@ if (!defined('EF_APP_NAME')) {
     DEFINE('EF_APP_NAME_FIXED', TRUE);
 }
 
+
 /**
  * Пътя до директорията за статичните браузърни файлове към приложението
  */
-defIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
+defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
+
 
 // Зареждаме конфигурационния файл на приложението. 
 // Ако липсва - показваме грешка.
