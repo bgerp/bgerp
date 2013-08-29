@@ -19,8 +19,18 @@ class pos_ThemeIntf
      * Подготвя пътя към темата
      * @return string пътя към темата
      */
-    function getSbf()
+    function getStyleFile()
     {
-    	return $this->class->getSbf();
+    	return $this->class->getStyleFile();
+    }
+    
+    
+	/**
+     * Връща шаблона на продуктите за бързо избиране
+     * @return core_ET - шаблон
+     */
+    function getFavouritesTpl()
+    {
+    	return $this->class->getStyleFile();
     }
 }

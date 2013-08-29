@@ -33,10 +33,19 @@ class pos_DefaultTheme extends core_Manager {
     
     
 	/**
-     * Инициализиране драйвъра
+     *Pодготвя стиловете за пос-a
      */
-    public static function getSbf()
+    public function getStyleFile()
     {
-    	return 'pos/themes/default';
+    	return 'pos/themes/default/style.css';
+    }
+    
+    
+	/**
+     * Подготвя стиловете за пос-a
+     */
+    public function getFavouritesTpl()
+    {
+    	return getTplFromFile('pos/themes/default/Favourites.shtml');
     }
 }

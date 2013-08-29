@@ -36,7 +36,7 @@ class cms_DefaultTheme extends core_Manager {
      * Връща шаблона за статия от cms-а
      * @return файла на шаблона
      */
-    public static function getArticleLayout()
+    public function getArticleLayout()
     {
     	return 'cms/themes/default/Articles.shtml';
     }
@@ -46,7 +46,7 @@ class cms_DefaultTheme extends core_Manager {
      * Връща шаблона за статия от cms-а  за мобилен изглед
      * @return файла на шаблона
      */
-    public static function getNarrowArticleLayout()
+    public function getNarrowArticleLayout()
     {
     	return 'cms/themes/default/ArticlesNarrow.shtml';
     }

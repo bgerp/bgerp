@@ -220,7 +220,9 @@ class pos_Favourites extends core_Manager {
      */
     public static function renderPosProducts($data)
     {
-    	$tpl = getTplFromFile($data->theme . '/Favourites.shtml');
+    	$conf = core_Packs::getConfig('pos');
+        $ThemeClass = cls::get(($conf->POS_PRODUCTS_DEFAULT_THEME) ? $conf->$conf->POS_PRODUCTS_DEFAULT_THEME : 'pos_DefaultTheme');
+    	$tpl = $ThemeClass->getFavouritesTpl();
     	$self = cls::get(get_called_class());
     	if($data->arr){
     		$self->renderProducts($data->arr, $tpl);
