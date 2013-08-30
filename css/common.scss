@@ -495,7 +495,7 @@ select{
 
 .wide .chzn-container .chzn-single{
 	height:1.4em !important;
-	padding-top:1px !important;
+	padding-top:2px !important;
 }
 
 .narrow .chzn-container .chzn-single{
@@ -1382,7 +1382,7 @@ div.hFormField {
 	margin-bottom:10px;
 }
 
-.narrow .horizontal .formFields div {
+.narrow .horizontal .formFields>div {
 	margin-bottom: 10px;
 }
 /*край на хоризонтални форми*/
