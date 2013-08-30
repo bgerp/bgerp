@@ -346,7 +346,7 @@ class core_Packs extends core_Manager
        
 
         if($conf->getConstCnt()) {
-            $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-config"));
+            $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config"));
         }
 
         if($conf->haveErrors()) {
@@ -693,6 +693,12 @@ class core_Packs extends core_Manager
 
         $form->input();
 
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
         if($form->isSubmitted()) {
             
             // $data = array();
@@ -711,7 +717,7 @@ class core_Packs extends core_Manager
             // Правим запис в лога
             $this->log($data->cmd, $rec->id, "Промяна на конфигурацията на пакет {$packName}");
             
-            return new Redirect(array($this));
+            return new Redirect($retUrl);
         }
         
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png');
@@ -722,9 +728,9 @@ class core_Packs extends core_Manager
                 $form->toolbar->addBtn($name, $url);
             }
         }
-
-        $form->toolbar->addBtn('Отказ', array($this),  'ef_icon = img/16/close16.png');
-
+        
+        $form->toolbar->addBtn('Отказ', $retUrl,  'ef_icon = img/16/close16.png');
+        
         return $this->renderWrapping($form->renderHtml());
 
     }
