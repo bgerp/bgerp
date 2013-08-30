@@ -7,7 +7,7 @@ defIfNot('FORUM_DEFAULT_THEME', '');
 
 defIfNot('FORUM_THEMES_PER_PAGE', '10');
 
-defIfNot('GREETING_MESSAGE', 'Добре дошли в нашия форум');
+defIfNot('FORUM_GREETING_MESSAGE', 'Добре дошли в нашия форум');
 
 defIfNot('FORUM_POSTS_PER_PAGE', '10');
 
@@ -62,7 +62,7 @@ class forum_Setup extends core_ProtoSetup
          
     		'FORUM_THEMES_PER_PAGE' => array ('int', 'caption=Tемите в една страница->Брой'),
     
-    		'GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
+    		'FORUM_GREETING_MESSAGE' => array ('text', 'mandatory, caption=Съобщение за поздрав->Съобщение'),
          
     		'FORUM_POSTS_PER_PAGE' => array ('int', 'mandatory, caption=Постовете на една страница->Брой'),
         );

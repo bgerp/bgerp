@@ -371,7 +371,8 @@ class forum_Postings extends core_Detail {
 		
 		// Ако имаме право да добавяме коментар рендираме формата в края на нишката
 		if($data->postForm) {
-			$data->ForumTheme->getPostFormLayout($data->postForm);
+			$data->postForm->layout = $data->ForumTheme->getPostFormLayout();
+			$data->postForm->fieldsLayout = $data->ForumTheme->getPostFormFieldsLayout();
 			$tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
         	(core_Users::getCurrent()) ? $msg = 'Темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';

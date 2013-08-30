@@ -66,11 +66,21 @@ class forum_DefaultTheme extends core_Manager {
      * Променя изгледа на формата за добавяне на нов коментар
      * @return core_ET
      */
-	public function getPostFormLayout(core_Form &$form)
+	public function getPostFormLayout()
     {
     	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
-    	$form->layout = $tpl->getBlock('FORM');
-        $form->fieldsLayout = $tpl->getBlock('FORM_FIELDS');
+    	return $tpl->getBlock('FORM');
+    }
+    
+    
+	/**
+     * Променя изгледа полетата от формата за добавяне на нов коментар
+     * @return core_ET
+     */
+	public function getPostFormFieldsLayout()
+    {
+    	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
+    	return $tpl->getBlock('FORM_FIELDS');
     }
     
     

@@ -811,7 +811,7 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
 
 
 // 
- # defIfNot('GREETING_MESSAGE', 'Добре дошли в нашия форум');
+ # defIfNot('FORUM_GREETING_MESSAGE', 'Добре дошли в нашия форум');
 
 
 // 
