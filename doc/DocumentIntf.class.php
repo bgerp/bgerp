@@ -60,15 +60,6 @@ class doc_DocumentIntf
     
     
     /**
-     * @todo Чака за документация...
-     */
-    function getIconStyle($id)
-    {
-        return $this->class->getIconStyle($id);
-    }
-    
-    
-    /**
      * Връща визуалното представяне на документа
      */
     function getDocumentBody($id, $mode = 'html', $options = NULL)
