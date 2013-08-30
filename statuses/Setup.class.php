@@ -38,7 +38,7 @@ class statuses_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'STATUSES_TOAST_MESSAGE_VERSION' => array('text', 'caption=Версията на toast message->Версия'),                
+        'STATUSES_TOAST_MESSAGE_VERSION' => array ('enum(0.3.0f)', 'caption=Версия на `ToastMessage`->Версия'),                
     );
     
     /**
