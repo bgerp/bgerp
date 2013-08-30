@@ -43,6 +43,12 @@ class core_Classes extends core_Manager
 
     
     /**
+     * Работен кеш за извлечените интерфейсни методи
+     */
+    static $interfaceMehods = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -263,5 +269,55 @@ class core_Classes extends core_Manager
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * След подготовка на вербалните стойности
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+    	if($fields['-list']){
+    		if($rec->state == 'active'){
+    			$row->interfaces = $mvc->getVerbalInterfaces($rec);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвя интерфейсите на класа за показване в лист изгледа
+     * Ако класа не имплементира някои методи на даден итнерфейс, то на
+     * итнерфейса има хинт за това кои методи не са имплементирани
+     * @param stdClass $rec
+     * @return string $verbalInterfaces
+     */
+    private function getVerbalInterfaces($rec)
+    {
+    	$verbalInterfaces = '';
+    	$ClassMethods = cls::getAccessibleMethods($rec->name);
+    	$intArray = keylist::toArray($rec->interfaces);
+    	
+    	if(count($intArray)){
+    		foreach ($intArray as $id){
+    			$intName = core_Interfaces::fetchField($id, 'name');
+    			if(!static::$interfaceMehods[$intName]){
+    				static::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
+    			}
+    			$methods = static::$interfaceMehods[$intName];
+    			
+    			// Намират се всички неимплементирани методи от класа
+    			$notImplemented = array_diff_assoc($methods, $ClassMethods);
+    			$verbalInterfaces .= $verbalInterfaces ? ',' : '';
+    			if(!count($notImplemented)){
+    				$verbalInterfaces .= " <span class='interface-container not-implemented' style='color:green;'>{$intName}</span>";
+    			} else {
+    				$hint = implode(', ', $notImplemented);
+    				$verbalInterfaces .= " <span class='interface-container implemented' style='color:orange;' title='{$hint}'>{$intName}</span>";
+    			}
+    		}
+    	}
+    	
+    	return $verbalInterfaces;
     }
 }
