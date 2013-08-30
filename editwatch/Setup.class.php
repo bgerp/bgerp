@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Колко секунди да пази записите в таблицата минимално
+ * Колко секунди да се пазят записите в таблицата минимално
  */
-defIfNot('EDITWATCH_REC_LIFETIME', 5);
+defIfNot('EDITWATCH_REC_LIFETIME', 5*60);
 
 
 /**
@@ -53,9 +53,8 @@ class editwatch_Setup extends core_ProtoSetup
     
             // Колко секунди да пази записите в таблицата минимално
             'EDITWATCH_REC_LIFETIME' => 
-                array ('time(suggestions=5 сек.|10 сек.|15 сек.|20 сек.|25 сек.|30 сек)', 
-                    'mandatory, caption=Колко време да пази записите в таблицата минимално->Секунди',
-                    'defValue' => 300), 
+                array ('time(suggestions=15 сек.|30 сек.|60 сек.|2 мин.|3 мин.|4 мин.|5 мин.|10 мин.)', 
+                    'mandatory, caption=Колко време да пази записите в таблицата минимално->Секунди'), 
         
         );
     

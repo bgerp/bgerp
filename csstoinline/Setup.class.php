@@ -49,8 +49,8 @@ class csstoinline_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     
-        // Кой клас да се използва за конвертиране на офис документи
-        'CSSTOINLINE_CONVERTER_CLASS' => array ('class(interface=csstoinline_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
+        // Клас за инлайн вмъкване на CSS дефиниции
+        'CSSTOINLINE_CONVERTER_CLASS' => array ('class(interface=csstoinline_ConverterIntf, select=title)', 'mandatory, caption=Клас за инлайн вмъкване на CSS дефиниции->Клас'),
     );
     
     
