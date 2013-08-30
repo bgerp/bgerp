@@ -75,7 +75,7 @@ class dompdf_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-            'DOMPDF_VER' => array ('enum(3.0)', 'caption=Коя версия на dompdf да се използва->Версия'),
+            'DOMPDF_VER' => array ('enum(0.6.0b3)', 'caption=Коя версия на dompdf да се използва->Версия'),
             'DOMPDF_DPI'   => array ('int', 
                                      'caption=Плътност на растеризацията->Точки на инч',
                                      'suggestions=120|96|75'),
