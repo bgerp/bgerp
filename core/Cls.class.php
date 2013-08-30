@@ -436,6 +436,48 @@ class core_Cls
         
         return FALSE;
     }
+    
+    
+    /**
+     * Връща всички методи, които могат да се извикат от даден клас.
+     * Връща неговите методи, наследените методи и методите от
+     * неговите плъгини
+     * @param mixed $class - име или инстанция на клас
+     * @return param $array - всички достъпни методи за класа
+     */
+    public static function getAccessibleMethods($class)
+    {
+    	expect($Class = static::get($class));
+    	$accessibleMethods = array();
+    	$Ref = new ReflectionClass($class);
+    	$methodsArr = $Ref->getMethods();
+    	
+    	// Нормализиране на името на методите
+    	if(count($methodsArr)){
+	    	foreach ($methodsArr as $m){
+	    		$name = str_replace("on_Before", "", $m->name);
+	    		$name = str_replace("on_After", "", $name);
+	    		$name = rtrim($name, '_');
+	    		$name = lcfirst($name);
+	    		$accessibleMethods[$name] = $name;
+	    	}
+    	}
+    	
+    	// За всеки закачен плъгин (ако има) рекурсивно се извиква ф-ята
+    	if(method_exists($Class, 'getPlugins')){
+	    	$plugins = $Class->getPlugins();
+	    	if(count($plugins)){
+	    		foreach ($plugins as $name => $Plugin){
+	    			$plgMethodsArr = static::getAccessibleMethods($Plugin);
+	    			
+	    			// Мърджване на методите на плъгина с тези на класа
+	    			$accessibleMethods = array_merge($accessibleMethods, $plgMethodsArr);
+	    		}
+	    	}
+    	}
+    	
+    	return  $accessibleMethods;
+    }
 }
 
 // Съкратено име, за по-лесно писане
