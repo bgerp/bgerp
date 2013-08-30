@@ -306,7 +306,7 @@ class core_BaseClass
     
     /**
      * Връща масив от заредените инстанции на плъгини
-     * @return array - масив от инстамции плъгини
+     * @return array - масив от инстанции на плъгини
      */
     public function getPlugins()
     {
