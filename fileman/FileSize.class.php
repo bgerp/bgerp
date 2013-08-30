@@ -18,20 +18,26 @@ class fileman_FileSize extends type_Bigint {
     /**
      * @todo Чака за документация...
      */
-    var $sizes = array("&nbsp;Bytes", "&nbsp;kB", "&nbsp;MB", "&nbsp;GB", "&nbsp;TB", "&nbsp;PB", "&nbsp;EB", "&nbsp;ZB", "&nbsp;YB");
+    var $sizes = array("Bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB");
     
     
     /**
      * @todo Чака за документация...
      */
-    function toVerbal($size)
+    function toVerbal_($size)
     {
         if($size === NULL) return NULL;
         
+        $space = '&nbsp;';
+
+        if(Mode::is(text, 'plain')) {
+            $space = ' ';
+        }
+
         if ($size == 0) {
-            return('0&nbsp;Bytes');
+            return($space . 'Bytes');
         } else {
-            return (round($size / pow(1024, ($i = floor(log($size, 1024)))), $i > 1 ? 2 : 0) . $this->sizes[$i]);
+            return (round($size / pow(1024, ($i = floor(log($size, 1024)))), $i > 1 ? 2 : 0) . $space . $this->sizes[$i]);
         }
     }
     
@@ -48,9 +54,13 @@ class fileman_FileSize extends type_Bigint {
         if($this->params['size']) {
             $attr['size'] = $this->params['size'];
         }
-
-        $value = str_replace('&nbsp;', ' ', $this->toVerbal($value));
         
+        $this->fromVerbalSuggestions($value);
+        
+        Mode::push('text', 'plain');
+        $value = $this->error ? $value : $this->toVerbal($value);
+        Mode::pop('text');
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
@@ -60,7 +70,7 @@ class fileman_FileSize extends type_Bigint {
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
      */
-    function fromVerbal($value)
+    function fromVerbal_($value)
     {
         if($value === NULL) return NULL;
         
