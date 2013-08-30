@@ -169,6 +169,8 @@ class type_Time extends type_Varchar {
             }
         }
         
+        $this->fromVerbalSuggestions($value);
+
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -181,8 +183,6 @@ class type_Time extends type_Varchar {
         if(!isset($value) || !is_numeric($value)) return NULL;
         
         $v = abs($value);
-        
-
         
         $weeks    = floor($v / (7 * 24 * 60 * 60));
         $days     = floor(($v - $weeks * (7 * 24 * 60 * 60)) / (24 * 60 * 60));

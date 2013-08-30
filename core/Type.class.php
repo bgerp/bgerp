@@ -279,6 +279,32 @@ class core_Type extends core_BaseClass
         
         return $tpl;
     }
+
+
+    /**
+     * Подреждане на предложенията по вътрешните им стойности и добавяне на $value
+     * Приема се, че предложенията са зададени с вербални стойности
+     */
+    function fromVerbalSuggestions($value)
+    {   
+        if(is_array($this->suggestions) && count($this->suggestions)) {
+            $opt[''] = '';
+            if($this->error) {
+                $opt[$this->fromVerbal($value)] = $value;
+            } else {
+                $opt[$value] = $this->toVerbal($value);
+            }
+            foreach($this->suggestions as $s) {
+                $opt[$this->fromVerbal($s)] = $s;
+            }
+            ksort($opt);
+            $this->suggestions = array();
+            foreach($opt as $о => $s) {
+                $v = $this->toVerbal_($о);
+                $this->suggestions[$v] = $v;
+            }
+        }
+    }
     
     
     /**
@@ -287,8 +313,10 @@ class core_Type extends core_BaseClass
      */
     static function getByName($name)
     {
-        if (is_object($name) && cls::isSubclass($name, "core_Type"))
-        return $name;
+        if (is_object($name) && cls::isSubclass($name, "core_Type")) {
+
+            return $name;
+        }
         
         $leftBracketPos = strpos($name, "(");
         
