@@ -15,7 +15,7 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 /**
  *  Код за споделяне на съдържание
  */
-defIfNot('CMS_SHARE', '');
+defIfNot('CMS_SHARE', 'cms_DefaultThemeIntf');
 
 
 /**
@@ -65,12 +65,15 @@ class cms_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 	
-			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране->Тема'),
+            'CMS_LANGS' => array ('set(bg,en,ro,fr,de,ru,it,es,tr,el)', 'caption=Езици за публичното съдържание->Езици'),
 
-            'CMS_SHARE' => array ('html', 'caption=Код за споделяне-> HTML код'),
+			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
+
+            'CMS_SHARE' => array ('html', 'caption=Код за споделяне-> HTML код,width=100%'),
 	
 			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
-	
+		    
+
 	);
 
 	
