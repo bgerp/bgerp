@@ -1821,7 +1821,7 @@ fieldset.sharing-history {
 	margin-bottom:5px;
 }
 
-.narrow .narrow-scroll .document .listTable{
+.narrow .document .listTable{
 	margin-bottom:0px;
 }
 
@@ -1862,9 +1862,6 @@ fieldset.sharing-history {
 	_overflow: auto !important;
 	margin-bottom:3px;
 	display:block;
-	> div{
-		margin-bottom:5px;
-	}
 	.folder-cover{
 		margin-right:2px;
 	}
