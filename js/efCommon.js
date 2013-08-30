@@ -725,6 +725,14 @@ function flashDocCss3(docId)
 
 function flashDocInterpolation(docId)
 {
+	var el = get$(docId); // your element
+	
+	// Ако е null или undefined
+	if (!el || el=='undefined') {
+		
+		return ;
+	}
+	
 	// linear interpolation between two values a and b
     // u controls amount of a/b and is in range [0.0,1.0]
     function lerp(a,b,u) {
@@ -748,8 +756,8 @@ function flashDocInterpolation(docId)
     };
     
     // in action
-    var el = get$(docId); // your element
-    var endColorHex = getBackgroundColor(el);
+    
+	var endColorHex = getBackgroundColor(el);
     var flashColor = {r:255, g:  255, b:  128};  // yellow
 
     el.style.backgroundColor='#ffff80';
@@ -768,7 +776,6 @@ function flashDocInterpolation(docId)
     };
     
     fade(el,'background-color', flashColor, endColor, 2000);
-
 }
 
 function getBackgroundColor(el)
