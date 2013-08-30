@@ -1,4 +1,4 @@
-<div style="display:inline-block; max-width:650px" class="singleView" >
+<div class="singleView" >
 [#SingleToolbar#]
 	<h2>
 		<div style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Условие на доставка|* <b style="color:green;">[#codeName#]</b></div>
