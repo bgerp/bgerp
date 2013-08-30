@@ -1,5 +1,6 @@
-<div class='singleView' style='display:inline-block'>
+<div class='singleView'>
 	[#SingleToolbar#]
+	
 	<div class="location">
 			<h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
 			
@@ -75,5 +76,6 @@
 		        </ul>  
 			</div>
 		</fieldset>
-	</div>
+	
+</div>
 </div>
