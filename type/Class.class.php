@@ -42,6 +42,10 @@ class type_Class extends type_Key {
         if(!$value) {
             $value = $attr['value'];
         }
+
+        if(!is_numeric($value)) {
+            $value = $this->fromVerbal($value);
+        }
         
         $interface = $this->params['interface'];
         
@@ -63,11 +67,13 @@ class type_Class extends type_Key {
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
-    function fromVerbal($value)
+    function fromVerbal_($value)
     {
         if(empty($value)) return NULL;
         
-        $value = core_Classes::getId($value);
+        if(!is_numeric($value)) {
+            $value = core_Classes::getId($value);
+        }
         
         $interface = $this->params['interface'];
         
@@ -83,5 +89,18 @@ class type_Class extends type_Key {
             
             return $value;
         }
+    }
+
+
+    /**
+     * Конвертира текстова или числова (id от core_Classes) стойност
+     * за име на клас към вербална (текстова)
+     */
+    function toVerbal($value)
+    {
+        if(is_numeric($value)) {
+            $value = parent::toVerbal($value);
+        }
+
     }
 }
