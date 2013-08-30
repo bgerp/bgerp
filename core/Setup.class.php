@@ -25,20 +25,30 @@ defIfNot('EF_STATUSE_SALT', '');
  */
 defIfNot('EF_DATE_FORMAT', 'd.m.YEAR');
 
+
 /**
  * Формат по подразбиране за датата при тесни екрани
  */
 defIfNot('EF_DATE_NARROW_FORMAT', 'd.m.year');
+
 
 /**
  * @todo Чака за документация...
  */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
+
 /**
  * Езикът по подразбиране е български
  */
 defIfNot('EF_DEFAULT_LANGUAGE', 'bg');
+
+
+/**
+ * Максимален брой записи, които могат да се експортират на веднъж
+ */
+defIfNot('EF_MAX_EXPORT_CNT', 100000);
+
 
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
