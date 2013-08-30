@@ -672,8 +672,11 @@ class core_Packs extends core_Manager
             // Ако не е зададено, заглавието на полето е неговото име
             setIfNot($params['caption'], '|*' . $field);
 
+            $typeInst = core_Type::getByName($type);
+
             if(defined($field)) {
-                $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . constant($field) . '"';
+                $defVal = $typeInst->toVerbal(constant($field));
+                $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
 
             $form->FNC($field, $type, $params);
@@ -696,7 +699,7 @@ class core_Packs extends core_Manager
 
             foreach($description as $field => $params) {
                 $sysDefault = defined($field) ? constant($field) : '';
-                if($sysDefault != $form->rec->{$field}) { //bp($field, constant($field), $data[$field], BGERP_BLAST_SUCCESS_ADD);
+                if($sysDefault != $form->rec->{$field}) {
                     $data[$field] = $form->rec->{$field};
                 } else {
                     $data[$field] = '';
