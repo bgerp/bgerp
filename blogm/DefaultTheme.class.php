@@ -80,10 +80,18 @@ class blogm_DefaultTheme extends core_Manager {
 	/**
      * Променя изгледа на формата за добавяне на коментари
      */
-    public function getCommentFormLayout(core_Form &$form)
+    public function getCommentFormLayout()
     {
-    	$form->layout = getTplFromFile('blogm/themes/default/CommentForm.shtml');
-        $form->fieldsLayout = getTplFromFile('blogm/themes/default/CommentFormFields.shtml');
+    	return getTplFromFile('blogm/themes/default/CommentForm.shtml');
+    }
+    
+    
+    /**
+     * Променя изгледа на полетата от формата за добавяне на коментари
+     */
+    public function getCommentFormFieldsLayout()
+    {
+    	return getTplFromFile('blogm/themes/default/CommentFormFields.shtml');
     }
     
     

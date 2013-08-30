@@ -63,9 +63,18 @@ class blogm_ThemeIntf
 	/**
      * Променя изгледа на формата за добавяне на коментари
      */
-    public function getCommentFormLayout(core_Form &$form)
+    public function getCommentFormLayout()
     {
-    	return $this->class->getCommentFormLayout($form);
+    	return $this->class->getCommentFormLayout();
+    }
+    
+    
+	/**
+     * Променя изгледа на полетата от формата за добавяне на коментари
+     */
+    public function getCommentFormFieldsLayout()
+    {
+    	return $this->class->getCommentFormFieldsLayout();
     }
     
     
