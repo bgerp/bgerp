@@ -302,4 +302,14 @@ class core_BaseClass
         
         $this->interfaces[$interface] = $implementationClass;
     }
+    
+    
+    /**
+     * Връща масив от заредените инстанции на плъгини
+     * @return array - масив от инстамции плъгини
+     */
+    public function getPlugins()
+    {
+    	return $this->_plugins;
+    }
 }
