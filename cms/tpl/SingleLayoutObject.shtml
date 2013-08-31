@@ -1,4 +1,4 @@
-<div style="display:inline-block" class="singleView">
+<div class="singleView">
 [#SingleToolbar#]
 	<h2><div style="padding:5px;" class=" [#STATE_CLASS#]">|Обект|* <b style="color:green;">[#titleTag#]</b></div></h2>
 	<table class="styled-table" width="100%">
@@ -21,7 +21,8 @@
 	</table>
 	<div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
 	<div style='margin:10px 0'>|Изглед|*:</div>
-	
+	<div class='scrolling-holder'>
 	[#view#]
+	</div>
 	
 </div>

@@ -203,7 +203,7 @@ class forum_Boards extends core_Master {
 		// Тема по подразбиране
 		$conf = core_Packs::getConfig('forum');
         $data->ForumTheme = static::getThemeClass();
-        $data->title = tr($conf->GREETING_MESSAGE);
+        $data->title = tr($conf->FORUM_GREETING_MESSAGE);
         $data->action = 'forum';
         $data->display = 'public';
         $data->category = Request::get('cat');

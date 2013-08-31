@@ -186,7 +186,8 @@ class blogm_Comments extends core_Detail {
         }
 
         if($data->commentForm) { 
-            $data->ThemeClass->getCommentFormLayout($data->commentForm);
+            $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
+            $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
         }
 	

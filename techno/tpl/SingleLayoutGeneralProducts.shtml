@@ -40,13 +40,16 @@
 		</table>
 		<!--ET_END OTHERS-->
 	</li>
-	<div class='scrolling-holder'>
-		[#COMPONENTS#]
-	</div>
-	<!--ET_BEGIN image-->
 	<li class='product-image'>
 	[#image#]
 	</li>
+	<li class='fleft'>
+		<div class='scrolling-holder'>
+			[#COMPONENTS#]
+		</div>
+	</li>
+	<!--ET_BEGIN image-->
+	
 	<!--ET_END image-->
 </ul>
 <div class='clearfix21'></div>

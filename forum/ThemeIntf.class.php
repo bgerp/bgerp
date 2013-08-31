@@ -49,9 +49,20 @@ class forum_ThemeIntf
      * Променя изгледа на формата за добавяне на нов коментар
      * @return core_ET
      */
-	public function getPostFormLayout(core_Form &$form)
+	public function getPostFormLayout()
     {
-    	return $this->class->getPostFormLayout($form);
+    	return $this->class->getPostFormLayout();
+    }
+    
+    
+	/**
+     * Променя изгледа полетата от формата за добавяне на нов коментар
+     * @return core_ET
+     */
+	public function getPostFormFieldsLayout()
+    {
+    	$tpl = getTplFromFile('forum/themes/default/PostForm.shtml');
+    	return $tpl->getBlock('FORM_FIELDS');
     }
     
     

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -59,7 +59,11 @@ class acc_Periods extends core_Manager
     var $canEdit = 'ceo,acc';
     
     
+    /**
+     * Кой може да редактира системните данни
+     */
     var $canEditsysdata = 'ceo,acc';
+    
     
     /**
      * Кой може да го разглежда?
@@ -89,7 +93,7 @@ class acc_Periods extends core_Manager
         $this->FNC('start', 'date(format=d.m.Y)', 'caption=Начало', 'dependFromFields=end');
         $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
         $this->FLD('lastEntry', 'datetime', 'caption=Последен запис,input=none');
-        $this->FLD('vatRate', 'percent', 'caption=Параметри->%ДДС,oldFieldName=vatPercent');
+        $this->FLD('vatRate', 'percent', 'caption=Параметри->ДДС,oldFieldName=vatPercent');
         $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code, allowEmpty)', 'caption=Параметри->Валута,width=5em');
     }
 
@@ -138,10 +142,10 @@ class acc_Periods extends core_Manager
         if($repId = acc_Balances::fetchField("#periodId = {$rec->id}", 'id')){
         	$row->title = ht::createLink($row->title, array('acc_Balances', 'Single', $repId), NULL, 'ef_icon=img/16/report.png');
         }
-        
+       
         $curPerEnd = static::getPeriodEnd();
         if($rec->end == $curPerEnd){
-        	$row->id = "<img src=" . sbf('img/16/control_play.png') . " style='display:inline-block;margin-right:5px'\">{$row->id}";
+        	$row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block;margin-right:5px')) . $row->id;
         }
     }
     
@@ -171,7 +175,6 @@ class acc_Periods extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#end < '{$rec->end}'");
-        $query->limit(1);
         $query->orderBy('end', 'DESC');
         $recPrev = $query->fetch();
         
@@ -221,35 +224,6 @@ class acc_Periods extends core_Manager
         }
 
         return TRUE;
-    }
-
-
-    /**
-     * Проверява дали края на редактирания период не попада в активния период
-     *
-     * @param acc_Periods $mvc
-     * @param core_Form $form
-     */
-    static function on_AfterInputEditForm($mvc, &$form)
-    {
-        // проверка дали формата е submit-ната
-        if (!$form->isSubmitted()){
-            return;
-        }
-                
-        $activeRec = $mvc->forceActive();
-        
-        if ($form->rec->end <= $activeRec->start){
-            $form->setError('end', 'Не може да е преди началото на активния период ');
-        }
-        
-        // Ако редактираме период, който не е активен проверяваме 
-        // дали неговия край не попада в активния период
-        if ($activeRec->id != $form->rec->id){
-            if ($form->rec->end <= $activeRec->end){
-                $form->setError('end', 'Не може да е преди края на активния период ');
-            }
-        }
     }
 
 
@@ -356,7 +330,7 @@ class acc_Periods extends core_Manager
 
             self::save($rec, 'state');
             
-            $me->actLog .= "<li style='color:green;'>Зададен е активен период $rec->end</li>";
+            $me->actLog .= "<li style='color:green;'>Зададен е активен период {$rec->end}</li>";
         }
 
         return $rec;
@@ -417,13 +391,6 @@ class acc_Periods extends core_Manager
         // Забраняваме всички модификации за всички минали периоди
         if ($action == 'edit'){
             if($rec->end <= $curPerEnd) {
-                $requiredRoles = "no_one";
-            }
-        }
-        
-        // Забраняваме изтриването за текущия период
-        if($action == 'delete') {
-            if ($rec->end <= $curPerEnd){
                 $requiredRoles = "no_one";
             }
         }
@@ -541,9 +508,7 @@ class acc_Periods extends core_Manager
  
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
-     * Ако не е зададена валута за периода взимаме основната валута по
-     * подразбиране от пакета currency
-     * 
+     * Ако не е зададе
      * @param string $date Ако е NULL - текущата дата
      * @return int key(mvc=currency_Currencies)
      */
