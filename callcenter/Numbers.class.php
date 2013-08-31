@@ -122,8 +122,10 @@ class callcenter_Numbers extends core_Manager
                 // Вземаме профила
                 $userId = crm_Profiles::fetchField($rec->contragentId, 'userId');
                 
-                // Вземам линк към профила на отговорника
-                $card = crm_Profiles::createLink($userId);
+                if($userId) {
+                    // Вземам линк към профила на отговорника
+                    $card = crm_Profiles::createLink($userId);
+                }
             } else {
                 
                 // Ако имаме права за сингъла на записа
