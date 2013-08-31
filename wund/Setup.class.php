@@ -58,11 +58,11 @@ class wund_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             
+    // Api key за Wunderground.com
+            'WUND_API_KEY' => array ('varchar', 'mandatory, caption=Ключ от http://www.wunderground.com/weather/api/->Ключ за '),
+            
             // Задаване на мястото по подразбиране
             'WUND_DEFAULT_LOCATION' => array ('varchar', 'caption=Задаване на локация->Държава/Град, suggestions=Bulgaria/Sofia|Bulgaria/Veliko Tarnovo|Bulgaria/Varna|Bulgaria/Burgas|Bulgaria/Plovdiv|Bulgaria/Pleven|Bulgaria/Stara Zagora'),
-            
-            // Api key за Wunderground.com
-            'WUND_API_KEY' => array ('varchar', 'mandatory, caption=Ключ за приложението->Ключ за Wunderground.com'),
        
         );
     
