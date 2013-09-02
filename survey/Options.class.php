@@ -99,10 +99,10 @@ class survey_Options extends core_Manager {
      */
     function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        if ($data->form->rec) {
-			$surveyId = survey_Alternatives::fetchField($data->form->rec->alternativeId, 'surveyId');
-            
-			// retUrl-то е single-a на анкетата
+        if ($data->form->rec && $data->form->cmd == 'save') {
+			
+        	// retUrl-то е single-a на анкетата
+        	$surveyId = survey_Alternatives::fetchField($data->form->rec->alternativeId, 'surveyId');
             $data->retUrl = toUrl(array('survey_Surveys', 'single', $surveyId));
         }
     }
