@@ -8,43 +8,44 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table cellpadding='2px' class='report-info' border='0'>
-		<tr>
-			<td>|Касиер|*: </td>
-			<td></td>
-			<td><b>[#cashier#]</b></td>
-		</tr>
-		<tr>
-			<td>|Точка на продажба|*:</td>
-			<td></td>
-			<td><b>[#pointId#]</b></td>
-		</tr>
-		<tr>
-			<td>|Склад|*:</td>
-			<td></td>
-			<td><b>[#storeId#]</b></td>
-		</tr>
-		<tr>
-			<td>|Продукти|*:</td>
-			<td></td>
-			<td class = 'summary-right'><b>[#productCount#]</b></td>
-		</tr>
-		<tr>
-			<td>|Продадено|*:</td>
-			<td><span class='cCode'>[#baseCurrency#]</span></td>
-			<td class = 'summary-right'><b>[#total#]</b></td>
-		</tr>
-		<tr>
-			<td>|Платено|*:</td>
-			<td><span class='cCode'>[#baseCurrency#]</span></td>
-			<td class = 'summary-right'><b>[#paid#]</b></td>
-		</tr>
-		<tr>
-			<td>|Ресто|*:</td>
-			<td><span class='cCode'>[#baseCurrency#]</span></td>
-			<td class = 'summary-right'><b>[#change#]</b></td>
-		</tr>
-	</table>
+	<div class='scrolling-holder'>
+		<table cellpadding='2px' class='report-info' border='0'>
+			<tr>
+				<td>|Касиер|*: </td>
+				<td></td>
+				<td><b>[#cashier#]</b></td>
+			</tr>
+			<tr>
+				<td>|Точка на продажба|*:</td>
+				<td></td>
+				<td><b>[#pointId#]</b></td>
+			</tr>
+			<tr>
+				<td>|Склад|*:</td>
+				<td></td>
+				<td><b>[#storeId#]</b></td>
+			</tr>
+			<tr>
+				<td>|Продукти|*:</td>
+				<td></td>
+				<td class = 'summary-right'><b>[#productCount#]</b></td>
+			</tr>
+			<tr>
+				<td>|Продадено|*:</td>
+				<td><span class='cCode'>[#baseCurrency#]</span></td>
+				<td class = 'summary-right'><b>[#total#]</b></td>
+			</tr>
+			<tr>
+				<td>|Платено|*:</td>
+				<td><span class='cCode'>[#baseCurrency#]</span></td>
+				<td class = 'summary-right'><b>[#paid#]</b></td>
+			</tr>
+			<tr>
+				<td>|Ресто|*:</td>
+				<td><span class='cCode'>[#baseCurrency#]</span></td>
+				<td class = 'summary-right'><b>[#change#]</b></td>
+			</tr>
+		</table>
 	<span>Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 		[#SALES#]
 	<!--ET_BEGIN SALE_PAGINATOR-->
@@ -56,5 +57,5 @@
 			[#DETAILS#]
 		</div>
 	<!--ET_END DETAILS-->
-	
+	</div>
 </div>
