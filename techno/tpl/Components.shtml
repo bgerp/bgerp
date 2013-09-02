@@ -6,8 +6,8 @@
 		<th colspan='6'>|Компоненти|* [#addBtnComp#]</th>
 	</tr>
 	<!--ET_END addBtnComp-->
-	<!--ET_BEGIN TH-->
-	[#TH#]
+	<!--ET_BEGIN COMPONENTS-->
+	[#COMPONENTS#]
 	<tr>
 		<th class='component-header'><b>№</b></th>
 		<th class='component-header'><b>|Продукт|*</b></th>
@@ -16,7 +16,6 @@
 		<th class='component-header' align='right'><b>|Стойност|*</b></th>
 		<th class='component-header' align='right'><b>|Такси|*</b></th>
 	</tr>
-	<!--ET_END TH-->
 	<!--ET_BEGIN COMPONENT-->
 	[#COMPONENT#]
 	<tr>
@@ -44,19 +43,20 @@
 		</td>
 	</tr>
 	<!--ET_END totalAmount-->
+	<!--ET_END COMPONENTS-->
 	</table>
 </div>
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->
-<!--ET_BEGIN compHeader-->
-[#compHeader#]
+<!--ET_BEGIN COMPONENTS-->
+[#COMPONENTS#]
 <b>|Компоненти|*</b>
-<!--ET_END compHeader-->
 		<ol class ='short']>
 			<!--ET_BEGIN COMPONENT-->
 			[#COMPONENT#]
-			<li>[#componentId#]<span style='margin-left:10px'>[#quantity#] [#cMeasureId#]</span></li>
+			<li>[#componentId#]<span style='margin-left:10px'>[#cquantity#] [#cMeasureId#]</span></li>
 			<!--ET_END COMPONENT-->
 		</ol>
+<!--ET_END COMPONENTS-->
 <!--ET_END SHORT-->
