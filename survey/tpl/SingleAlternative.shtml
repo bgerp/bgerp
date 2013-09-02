@@ -1,19 +1,20 @@
 <!--ET_BEGIN ROW-->
-<table border = '0' class='question-head' width ='90%' cellspacing='0' cellpadding='7px'>
+<table border = '0' class='question-head'  cellspacing='0'>
 	<tr>
-		<td colspan='2' class='question-text'>
-			[#icon#] &nbsp;
-			<span class='question-label'>[#label#]</span>
+		<td>
+			<h2>
+			<span class=''>[#icon#] [#label#]</span>
 			<span class='tools'>[#tools#]</span>
 			[#addOption#]
+			</h2>
 		</td>
 	</tr>
 <tr>
 <td id = 'td-answers'>
-<ul class='answers' style='padding-top:7px'>
+<ul class='answers'>
 [#answers#]
 </ul>
-<!--ET_BEGIN image--><div class="image" align='right' style='padding:20px 20px 15px 20px'>[#image#]</div><!--ET_END image-->
+<!--ET_BEGIN image--><div class="image" align='right' style='padding:10px'>[#image#]</div><!--ET_END image-->
 <div class="clearfix21"></div>
 </td>
 </tr>
