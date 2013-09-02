@@ -1873,6 +1873,12 @@ fieldset.sharing-history {
 		display:table;
 		width:100%;
 	}
+	.styled-table{
+		margin-bottom:2px;
+	}
+	>.antetka{
+		margin-top:0;
+	}
 }
 
 .narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar{
@@ -2100,8 +2106,18 @@ div.location{
 	border: solid 1px #ddddff;
 }
 
-.email-class h2{
-	margin:10px 0 12px;
+.email-class{
+	max-width:600px;
+	h3{
+		margin:10px 0 12px;
+	}
+}
+.long-input{
+	width:750px;
+}
+
+.narrow .long-input{
+	width:100%;
 }
 
 /*край на email*/
@@ -2461,7 +2477,7 @@ div.location{
     .narrow #cmsTop{
     	margin-top:-1px;
     }
-    .narrow .single-thread .listTable .rich-text{
+    .narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:530px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2479,7 +2495,7 @@ div.location{
 }
 
 @media handheld, only screen and (max-width: 533px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:463px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2500,7 +2516,7 @@ div.location{
 }
 
 @media handheld, only screen and (max-width: 500px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:430px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2518,7 +2534,7 @@ div.location{
 }
 
 @media handheld, only screen and (max-width: 480px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:410px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2539,7 +2555,7 @@ div.location{
 }
 
 @media handheld, only screen and (max-width: 360px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:290px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2561,7 +2577,7 @@ div.location{
 
 
 @media handheld, only screen and (max-width: 320px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:250px;
 	}
 	.narrow .single-thread .scrolling-holder{
@@ -2582,7 +2598,7 @@ div.location{
 }
 
 @media handheld, only screen and (max-width: 240px) { 
-	.narrow .single-thread .listTable .rich-text{
+	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote{
 		max-width:170px;
 	}
 	.narrow .single-thread .scrolling-holder{
