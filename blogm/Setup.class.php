@@ -8,7 +8,7 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', 50*24*60*60);
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('BLOGM_DEFAULT_THEME', '');
+defIfNot('BLOGM_DEFAULT_THEME', 'blogm_DefaultTheme');
 
 
 /**
