@@ -178,10 +178,10 @@ class survey_Alternatives extends core_Detail {
 	{
 		if($fields['-list']) {
 			
-			if($mvc->haveRightFor('edit', $rec)){
+			if(!Mode::is('printing') && $mvc->haveRightFor('edit', $rec)){
 				$img = sbf('img/16/add.png');
 				$addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'retUrl' => TRUE);
-				$row->addOption = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams'));
+				$row->addOption = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams'));
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
