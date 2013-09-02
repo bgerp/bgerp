@@ -220,20 +220,20 @@ class doc_plg_DefaultValues extends core_Plugin
     {
     	if(!$folderId = $rec->folderId){
     		if($rec->originId){
-    			$folderId = doc_Containers::fetchField($rec->originId, 'folderId');
+    			$rec->folderId = doc_Containers::fetchField($rec->originId, 'folderId');
     		} elseif($rec->threadId){
-    			$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+    			$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
     		} else {
     			return NULL;
     		}
     	}
     	
     	// Последния документ от потребителя в същата папка
-    	$value = static::getLastDocument($mvc, $folderId)->{$name};
+    	$value = static::getLastDocument($mvc, $rec->folderId)->{$name};
     	
     	// Последния документ в същата папка
     	if(!$value){
-    		$value = static::getLastDocument($mvc, $folderId, FALSE)->{$name};
+    		$value = static::getLastDocument($mvc, $rec->folderId, FALSE)->{$name};
     	}
     	
     	// Дефолт метода на мениджъра
@@ -242,7 +242,7 @@ class doc_plg_DefaultValues extends core_Plugin
     	}
     	
     	if(!$value && isset($fld->salecondSysId)){
-    		$value = static::getFromSaleCondition($folderId, $fld->salecondSysId);
+    		$value = static::getFromSaleCondition($rec->folderId, $fld->salecondSysId);
     	}
     	
     	return $value;
