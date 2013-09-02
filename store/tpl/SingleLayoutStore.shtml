@@ -1,4 +1,4 @@
-<div style="display:inline-block" class="singleView">
+<div class="singleView">
 [#SingleToolbar#]
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
@@ -35,7 +35,7 @@
 							<span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span></td>
 						</tr>
 						<!--ET_END creation-->
-					</dl>
+					</table>
 				</div>
 			</fieldset>
 			
@@ -47,7 +47,6 @@
 				</div>
 			</fieldset>
 			<!--ET_END comments-->
-		
 		</div>
 	</div>
 </div>
