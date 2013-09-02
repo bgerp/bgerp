@@ -55,29 +55,31 @@
 	<!--ET_END printHeader-->
 	</table>
 	<div style='margin-top:10px;text-indent:5px'>|Всички цени са|* [#vat#] |ДДС|* </div>
-	<table border='1' class = 'norm-table' width='100%'>
-	
-	<!--ET_BEGIN GROUP-->
-	[#GROUP#]
-	<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP_NAME#]</b></td></tr>
-	<tr>
-		<th>|Код|*</th>
-		<th style='width:380px !important'>|Продукт|*</th>
-		<th>|ЕАН|*</th>
-		<th>|Мярка / Опаковка|*</th>
-		<th>|Цена|*</th>
-	</tr>
-	<!--ET_BEGIN ROW-->
-	<tr>
-		<td class = 'product-code-style'>[#code#]</td>
-		<td>[#productId#]</td>
-		<td class = 'product-code-style'>[#eanCode#]</td>
-		<td class='norm-row-cell'>[#measureId#][#pack#]</td>
-		<td align='right'>[#price#]</td>
-	</tr>
-	<!--ET_END ROW-->
-	<!--ET_END GROUP-->
-	</table>
+	<div class='scrolling-holder'>
+		<table border='1' class = 'norm-table' width='100%'>
+		
+		<!--ET_BEGIN GROUP-->
+		[#GROUP#]
+		<tr><td colspan = '6' class='pricelist-group-label'><b>[#GROUP_NAME#]</b></td></tr>
+		<tr>
+			<th>|Код|*</th>
+			<th style='width:380px !important'>|Продукт|*</th>
+			<th>|ЕАН|*</th>
+			<th>|Мярка / Опаковка|*</th>
+			<th>|Цена|*</th>
+		</tr>
+		<!--ET_BEGIN ROW-->
+		<tr>
+			<td class = 'product-code-style'>[#code#]</td>
+			<td>[#productId#]</td>
+			<td class = 'product-code-style'>[#eanCode#]</td>
+			<td class='norm-row-cell'>[#measureId#][#pack#]</td>
+			<td align='right'>[#price#]</td>
+		</tr>
+		<!--ET_END ROW-->
+		<!--ET_END GROUP-->
+		</table>
+	</div>
 	<!--ET_BEGIN DETAILS-->
 	<div class='details'>
 		[#DETAILS#]
