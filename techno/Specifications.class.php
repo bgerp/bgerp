@@ -503,7 +503,7 @@ class techno_Specifications extends core_Master {
     	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
-    	unset($rec->id, $rec->containerId);
+    	unset($rec->id, $rec->containerId, $rec->createdOn, $rec->modifiedOn, $rec->createdBy, $rec->modifiedBy);
     	$rec->state = 'draft';
     	$rec->originId = $originId;
     	
