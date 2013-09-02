@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -33,14 +33,7 @@ class cms_Articles extends core_Manager
      * Поддържани интерфейси
      */
     var $interfaces = 'cms_SourceIntf';
-
-
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-   // var $listFields = ' ';
     
-     
     
     /**
      * Кой може да пише?
@@ -104,7 +97,9 @@ class cms_Articles extends core_Manager
     }
 
 
-
+	/**
+	 * @TODO
+	 */
     function getContentUrl($menuId)
     {
         $query = self::getQuery();
@@ -123,7 +118,7 @@ class cms_Articles extends core_Manager
 
 
     /**
-     *
+     * След подготовка на вербалното представяне
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {  
@@ -131,13 +126,15 @@ class cms_Articles extends core_Manager
     }
 
 
+    /**
+     * Екшън за разглеждане на статия
+     */
     function act_Article()
     {   
         Mode::set('wrapper', 'cms_tpl_Page');
         
         $conf = core_Packs::getConfig('cms');
-        
-		$ThemeClass = cls::get(($conf->CMS_THEME) ? $conf->CMS_THEME : 'cms_DefaultTheme');
+		$ThemeClass = cls::get($conf->CMS_THEME);
         
 		if(Mode::is('screenMode', 'narrow')) {
             Mode::set('cmsLayout', $ThemeClass->getNarrowArticleLayout());
@@ -170,12 +167,9 @@ class cms_Articles extends core_Manager
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
             
             // Рендираме тулбара за споделяне
-            $conf = core_Packs::getConfig('cms');
-            if($conf->CMS_SHARE) {
-                $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
-            }
-
-            $ptitle   = self::getVerbal($rec, 'title') . " » ";
+            $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            
+            $ptitle = self::getVerbal($rec, 'title') . " » ";
  
             $content->prepend($ptitle, 'PAGE_TITLE');
             
@@ -281,8 +275,7 @@ class cms_Articles extends core_Manager
         	
         	  // Генерираме ограф мета таговете
         	  $ogpHtml = ograph_Factory::generateOgraph($ogp);
-        	  //$content->append('prefix="og: http://ogp.me/ns#"', 'OG_PREFIX');
-              $content->append($ogpHtml);
+        	  $content->append($ogpHtml);
         }
         
         if($rec) {
@@ -336,5 +329,4 @@ class cms_Articles extends core_Manager
 	    
     	return $ogp;
     }
-
 }
