@@ -68,6 +68,12 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * Кой може да редактира системните данни
+     */
+    var $canEditsysdata = 'ceo,currency,admin';
+    
+    
+    /**
      * Кой може да променя?
      */
     var $canEdit = 'ceo,currency,admin';
