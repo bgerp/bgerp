@@ -3,7 +3,7 @@
 /**
  * Тема по подразбиране
  */
-defIfNot('CMS_THEME', 'cms_DefaultThemeIntf');
+defIfNot('CMS_THEME', 'cms_DefaultTheme');
 
 
 /**
