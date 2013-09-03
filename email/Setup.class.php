@@ -100,16 +100,16 @@ class email_Setup extends core_ProtoSetup
     var $configDescription = array(
     
             // Максимално време за еднократно фетчване на писма
-            'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за еднократно теглене на писма->Време'),
+            'EMAIL_MAX_FETCHING_TIME' => array ('time(suggestions=1 мин.|2 мин.|3 мин.)', 'mandatory, caption=Максимално време за получаване на имейли в една сесия->Време'),
     
             // Максималното време за изчакване на буфера
-            'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Максималното време за изчакване на буфера->Време'),
+            'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
             
             // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване->Размер на паметта'),
+            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер'),
 
             // Шаблон за име на папки
-            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки->Път до шаблона'),
+            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
 
             // Максималната големина на файловете, които ще се приемат за CID
             'EMAIL_MAXIMUM_CID_LEN' => array ('int', 'caption=Максималната големина на файловете|*&comma;| които ще се приемат за вградени изображения->Размер'),
@@ -118,7 +118,7 @@ class email_Setup extends core_ProtoSetup
             'SPAM_SA_SCORE_LIMIT' => array ('int', 'caption=Ниво за score на SpamAssassin|*&comma;| над което писмото се обявява за твърд СПАМ->Ниво'),
             
             // След колко време (в секунди) след първото изпращане към един имейл да се взема в предвид, че е изпратено преди (Повторно изпращане) 
-            'EMAIL_RESENDING_TIME' => array ('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=След колко време след първото изпращане към един имейл да се маркира, като повторно изпращане->Време'),
+            'EMAIL_RESENDING_TIME' => array ('time(suggestions=1 часа|2 часа|3 часа|5 часа|7 часа|10 часа|12 часа)', 'caption=Време от първото изпращане на имейл|*&comma;| след което се маркира "Преизпращане"->Време'),
         );
         
         
