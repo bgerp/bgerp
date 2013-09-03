@@ -1,0 +1,28 @@
+<style>
+ .langSelect .langLink a {
+	margin-top:20px;
+	font-size:1.4em;
+	display:block;
+	padding:5px;
+	background-color:#eee;
+	border:solid 1px #ccc;
+	max-width:600px;
+ }
+ 
+ .langSelect .langLink a.selected {
+ 	background-color:#cceeee;
+ }
+
+
+</style>
+
+<ul class='langSelect'>
+	<!--ET_BEGIN HEADER-->
+		<h2>[#HEADER#]</h2>
+	<!--ET_END HEADER-->
+	<!--ET_BEGIN SELECTOR-->
+	<div class='langLink'>
+		[#SELECTOR#]
+	</div>
+	<!--ET_END SELECTOR-->
+</ul>
