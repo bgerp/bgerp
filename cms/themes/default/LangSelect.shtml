@@ -16,13 +16,15 @@
 
 </style>
 
-<ul class='langSelect'>
+<center>
+<table class='langSelect'>
 	<!--ET_BEGIN HEADER-->
 		<h2>[#HEADER#]</h2>
 	<!--ET_END HEADER-->
 	<!--ET_BEGIN SELECTOR-->
-	<div class='langLink'>
-		[#SELECTOR#]
-	</div>
+	<tr class='langLink'>
+		<td>[#SELECTOR#]</td>
+	</tr>
 	<!--ET_END SELECTOR-->
-</ul>
+</table>
+</center>

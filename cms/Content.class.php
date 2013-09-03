@@ -148,7 +148,7 @@ class cms_Content extends core_Manager
         
         $lang = Mode::get(self::CMS_CURRENT_LANG);
 
-        if(!$langsArr[$lang]) {
+        if(!$langsArr[$lang] && !(haveRole('ceo,cms') && $lang)) {
             
             $lang = self::detectLang();
             
