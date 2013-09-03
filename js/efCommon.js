@@ -20,7 +20,8 @@ function runOnLoad(functionName)
 
 
 // Функция за лесно селектиране на елементи
-function get$() {
+function get$()
+{
 	var elements = new Array();
 	for (var i = 0; i < arguments.length; i++) {
 		var element = arguments[i];
@@ -553,6 +554,32 @@ function toggleDisplay(id)
 		var el = document.getElementById(id);  
 		if (el.style.display == 'none' || el.style.display == '') el.style.display='block';
 			else el.style.display='none';
+	}
+}
+
+function toggleRichtextGroups(id)
+{ 
+	if (typeof jQuery != 'undefined') {
+		var hidden = $("#" + id).css("display");
+		
+		$('.richtext-holder-group').css("display", "none" );
+	    if (hidden == 'none') {
+	    	$("#" + id).fadeToggle("slow");
+	    }
+		
+ 
+	} else {
+	
+		var el = document.getElementById(id);  
+		var hidden = el.style.display;
+		
+		document.getElementsByClassName('richtext-holder-group')[0].style.display='none';
+		document.getElementsByClassName('richtext-holder-group')[1].style.display='none';
+		document.getElementsByClassName('richtext-holder-group')[2].style.display='none';
+		
+		if (hidden != 'block' && (el.style.display == 'none' || el.style.display == '')) el.style.display='block';
+			else el.style.display='none';
+		
 	}
 }
 

@@ -1817,6 +1817,33 @@ div.richEdit {
 	border-bottom: 1px solid white; 
 	width:600px; 
 }
+
+.narrow .richedit-toolbar{
+	position:relative;
+}
+
+.narrow #richtext-emoticons{
+	position:absolute;
+	left:5px;
+	top:-20px;
+	display:none;
+	
+}
+
+.narrow #richtext-emoticons2{
+	position:absolute;
+	left:24px;
+	top:-20px;
+	display:none;
+}
+
+.narrow #richtext-emoticons3{
+	position:absolute;
+	left:11.5em;
+	top:-20px;
+	display:none;
+}
+
 a.rtbutton {
     border: 1px solid #bba;
     background: #eed;
