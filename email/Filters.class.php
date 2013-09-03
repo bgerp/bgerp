@@ -77,6 +77,13 @@ class email_Filters extends core_Manager
     var $canReject = 'admin';
     
     
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'admin';
+
+    
+    
     var $listFields =  'id, email, subject, body, action, folderId, note,state';
     
     
