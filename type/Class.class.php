@@ -101,6 +101,6 @@ class type_Class extends type_Key {
         if(is_numeric($value)) {
             $value = parent::toVerbal($value);
         }
-
+        return $value;
     }
 }
