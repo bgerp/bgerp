@@ -216,26 +216,36 @@ class type_CustomKey extends type_Key
 
     /**
      *
+   
      * @return core_Mvc
+    
      */
+    
     protected function getForeignModel()
+   
     {
-        return cls::get($this->params['mvc']);
+        
+         return cls::get($this->params['mvc']);
+   
     }
     
     
+
     /**
      * 
      * @param mixed $keyValue
      * @return stdClass
      */
-    protected function fetchForeignRec($keyValue)
+    
+     protected function fetchForeignRec($keyValue)
+ 
     {
+        
         $foreignModel = $this->getForeignModel();
         $keyField     = $this->getKeyField();
-         
+        
         return $foreignModel->fetch(array("#{$keyField} = '[#1#]'", $keyValue));
-    }
+     }
     
     
     /**
