@@ -88,7 +88,7 @@ class core_Lg extends core_Manager
     /**
      * Задава за текущия език на интерфейса, валиден за сесията
      */
-    function set($lg, $force = TRUE)
+    static function set($lg, $force = TRUE)
     {   
         $langArr = arr::make(EF_LANGUAGES, TRUE);
 
