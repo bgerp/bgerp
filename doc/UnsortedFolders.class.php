@@ -129,6 +129,12 @@ class doc_UnsortedFolders extends core_Master
     var $protectedSystemFields = 'none';
     
     
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'admin';
+
+    
     /**
      * Описание на полетата на модела
      */
