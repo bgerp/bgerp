@@ -353,7 +353,10 @@ class techno_Specifications extends core_Master {
     		$form->rec->threadId = $rec->threadId;
     	}
     	
-    	$form->FNC('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input');
+    	$form->FNC('sharedUsers', 'userList', "caption=Споделяне->Потребители,input");
+    	if (Mode::is('screenMode', 'narrow')) {
+            $form->setField('sharedUsers', array('maxColumns' => 2));    
+        }
     	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getretUrl()));
         if($rec->id){
         	
