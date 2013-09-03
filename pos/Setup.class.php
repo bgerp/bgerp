@@ -3,7 +3,7 @@
 /**
  *  Tемата по-подразбиране за пос терминала
  */
-defIfNot('POS_PRODUCTS_DEFAULT_THEME', '');
+defIfNot('POS_PRODUCTS_DEFAULT_THEME', 'pos_DefaultTheme');
 
 
 /**
@@ -50,7 +50,7 @@ class pos_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи за този модул
      */
     var $configDescription = array(
-    		'POS_PRODUCTS_DEFAULT_THEME' => array ('class(interface=pos_ThemeIntf,select=title,allowEmpty)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
+    		'POS_PRODUCTS_DEFAULT_THEME' => array ('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
         );
     
 

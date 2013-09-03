@@ -243,7 +243,7 @@ class pos_Receipts extends core_Master {
 	    	$tpl->push('pos/js/scripts.js', 'JS');
 	    	
 	    	$conf = core_Packs::getConfig('pos');
-        	$ThemeClass = cls::get(($conf->POS_PRODUCTS_DEFAULT_THEME) ? $conf->$conf->POS_PRODUCTS_DEFAULT_THEME : 'pos_DefaultTheme');
+        	$ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
         	$tpl->push($ThemeClass->getStyleFile(), 'CSS');
 	    	
 	    	if($data->products->arr) {
