@@ -23,6 +23,13 @@ defIfNot('CMS_SHARE', '');
  */
 defIfNot('CMS_BASE_LANG', 'bg');
 
+
+/**
+ * Допълнителни езици публичната част
+ */
+defIfNot('CMS_LANGS', '');
+
+
 /**
  * class cms_Setup
  *
