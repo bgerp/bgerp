@@ -704,6 +704,6 @@ class forum_Boards extends core_Master {
      public static function getThemeClass()
      {
      	$conf = core_Packs::getConfig('forum');
-     	return cls::get(($conf->FORUM_DEFAULT_THEME) ? $conf->FORUM_DEFAULT_THEME : 'forum_DefaultTheme');
+     	return cls::get($conf->FORUM_DEFAULT_THEME);
      }
 }

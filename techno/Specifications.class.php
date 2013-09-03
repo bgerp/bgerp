@@ -309,7 +309,7 @@ class techno_Specifications extends core_Master {
 	    	$double->params['decimals'] = 2;
 	    	
 	    	$technoClass = cls::get($rec->prodTehnoClassId);
-	    	$row->data = $technoClass->getVerbal($rec->data, $rec->id);
+	    	$row->data = $technoClass->getVerbal($rec->data, $rec->id, $rec->state);
 	    	$pInfo = $mvc->getProductInfo($rec->id);
 	    	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
 	    
@@ -503,7 +503,7 @@ class techno_Specifications extends core_Master {
     	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
-    	unset($rec->id, $rec->containerId);
+    	unset($rec->id, $rec->containerId, $rec->createdOn, $rec->modifiedOn, $rec->createdBy, $rec->modifiedBy);
     	$rec->state = 'draft';
     	$rec->originId = $originId;
     	
@@ -595,7 +595,7 @@ class techno_Specifications extends core_Master {
     	
     	$rec = static::fetch($id);
 	    $technoClass = cls::get($rec->prodTehnoClassId);
-	    return $technoClass->getVerbal($rec->data, $rec->id, TRUE);
+	    return $technoClass->getVerbal($rec->data, $rec->id, $rec->state, TRUE);
      }
      
      

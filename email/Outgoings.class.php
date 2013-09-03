@@ -488,8 +488,8 @@ class email_Outgoings extends core_Master
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, formOrder=4');
         $form->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
-        $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=750px,formOrder=2', array('attr' => array('data-role' => 'list')));
-        $form->FNC('emailsCc', 'emails', 'input,caption=Копие,width=750px,formOrder=3', array('attr' => array('data-role' => 'list' )));
+        $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
+        $form->FNC('emailsCc', 'emails', 'input,caption=Копие,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list' )));
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', 'id=save', 'ef_icon = img/16/move.png');

@@ -9,7 +9,8 @@
     <tbody>
     <tr>
         <td>
-           
+           	<div class='scrolling-holder'>
+           	<div class='display-table'>
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
@@ -113,6 +114,8 @@
                 </tr>           
                 </tbody>
             </table>
+            </div>
+            </div>
  				<!--ET_BEGIN DETAILS-->
 				<div class='details'>
 					[#DETAILS#]
@@ -122,4 +125,5 @@
     </tr>
     </tbody>
 </table>
+
 </div>

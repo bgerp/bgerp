@@ -3,7 +3,7 @@
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('FORUM_DEFAULT_THEME', '');
+defIfNot('FORUM_DEFAULT_THEME', 'forum_DefaultTheme');
 
 defIfNot('FORUM_THEMES_PER_PAGE', '10');
 
@@ -58,7 +58,7 @@ class forum_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             
-            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в форум->Тема'),
+            'FORUM_DEFAULT_THEME' => array ('class(interface=forum_ThemeIntf,select=title)', 'caption=Тема по подразбиране в форум->Тема'),
          
     		'FORUM_THEMES_PER_PAGE' => array ('int', 'caption=Tемите в една страница->Брой'),
     

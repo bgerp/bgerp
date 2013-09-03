@@ -1,20 +1,27 @@
-<div style="display: inline-block;">
+<div class='singleView'>
 	[#SingleToolbar#]
-	<div class="folder-cover">
-	  <div class="inner-folder">
-		<div class="block_title [#STATE_CLASS#] special-title">
-	         [#SingleIcon#] |Е-кутия|* <b style="color:green;">[#email#]</b>
-        </div>
-		<fieldset class="detail-info">
-	            <div class="groupList">
-					<dl>
-					<dt>|Имейл|*:</dt><dd> <b>[#email#]</b></dd>
-					<dt>|Сметка|*:</dt><dd> <b>[#accountId#]</b></dd>
-					
-					</dl>
-	             </div>
-	    </fieldset>
-		[#DETAILS#]
-	  </div>
+	<div class='scrolling-holder'>
+		<div class="folder-cover">
+		  <div class="inner-folder">
+			<div class="block_title [#STATE_CLASS#] special-title">
+		         [#SingleIcon#] |Е-кутия|* <b style="color:green;">[#email#]</b>
+	        </div>
+			<fieldset class="detail-info">
+		            <div class="groupList">
+						<table>
+							<tr>
+								<td class='dt'>|Имейл|*:</td>
+								<td> <b>[#email#]</b></td>
+							</tr>
+							<tr>
+								<td class='dt'>|Сметка|*:</td>
+								<td> <b>[#accountId#]</b></td>
+							</tr>
+						</table>
+		             </div>
+		    </fieldset>
+			[#DETAILS#]
+		  </div>
+		</div>
 	</div>
 </div>

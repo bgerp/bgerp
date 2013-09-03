@@ -8,7 +8,7 @@ defIfNot('BLOGM_MAX_COMMENT_DAYS', 50*24*60*60);
 /**
  *  Константа за тема по-подразбиране на блога
  */
-defIfNot('BLOGM_DEFAULT_THEME', '');
+defIfNot('BLOGM_DEFAULT_THEME', 'blogm_DefaultTheme');
 
 
 /**
@@ -79,7 +79,7 @@ class blogm_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'BLOGM_DEFAULT_THEME' => array ('class(interface=blogm_ThemeIntf,select=title,allowEmpty)', 'caption=Тема по подразбиране в блога->Тема'),
+			'BLOGM_DEFAULT_THEME' => array ('class(interface=blogm_ThemeIntf,select=title)', 'caption=Тема по подразбиране в блога->Тема'),
 			
 			'BLOGM_MAX_COMMENT_DAYS' => array ('time(suggestions=15 дни|30 дни|45 дни|50 дни)', 'caption=Време, след което статията се заключва за коментиране->Дни'),
 

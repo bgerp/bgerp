@@ -1,5 +1,6 @@
-<div style="display:inline-block" class="singleView">
+<div class="singleView">
 [#SingleToolbar#]
+<div class='scrolling-holder'>
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
 
@@ -59,4 +60,5 @@
 	[#DETAILS#]
 	</div>
 	</div>
+</div>
 </div>

@@ -1,11 +1,9 @@
 [#SingleToolbar#]
                  
-	<div class='document'>
+	
+		<div>
 		<div class='header'>
-			<p style='font: small Arial,sans-serif;
-	font-size: 1em;
-	text-align:left;
-	font-weight:bold;'>[#name#]</p>
+			<p style='font: small Arial,sans-serif;font-size: 1em; text-align:left; font-weight:bold;'>[#name#]</p>
 		</div>
 
         <!-- BEGIN Блок ляво -->
@@ -35,19 +33,16 @@
 					<td>[#groups#]</td>
 				</tr>
 				<!--ET_END groups-->
-				<!--ET_BEGIN nameday-->
 				<tr>
                      <td class="quiet" colspan="2" style='padding-top:10px;'>|Исторически курсове|*:</td>
                  </tr>
-
-                 <tr>
-                     <td colspan="2">[#DETAILS#]</td>
-                 </tr>
-				<!--ET_END nameday-->
-             </table>
+			  </table>
+             	<div class='scrolling-holder'>[#DETAILS#]</div>
+				
+           
              
          </div>    
          <!-- END Блок ляво -->   
                      
          <div style='clear: both;'></div>
-    </div>         
+ </div>       

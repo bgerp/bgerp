@@ -262,23 +262,14 @@ class techno_Components extends core_Manager {
     /**
      * Рендиране на компонентите
      * @param array $data - масив с данни
+     * @param string $state - състояние на спецификацията
      * @param bool $short - дали шаблона е за кратък изглед или не
      * @return core_ET $tpl
      */
-    public static function renderComponents($data, $short)
+    public static function renderComponents($data, $state, $short)
     {
     	$tplFile = getTplFromFile('techno/tpl/Components.shtml');
     	$paramBlock = ($short) ? $tplFile->getBlock('SHORT') : $tplFile->getBlock('LONG');
-    	
-    	if($short){
-    		$paramBlock->replace(' ', 'compHeader');
-    		if(isset($data->rows)){
-    			unset($data->rows['-1']);
-    			if(!count($data->rows)) return;
-    		}
-    	} else {
-    		$paramBlock->replace(' ', 'TH');
-    	}
     	
     	if(count($data->rows)){
 	    	if($data->total){
@@ -286,6 +277,12 @@ class techno_Components extends core_Manager {
 	    	}
 	    		
 	    	foreach($data->rows as $id => $row){
+	    		if($short){
+	    			// Основата ако я има не се показва
+	    			if($id == '-1') continue;
+	    			$row->cquantity = $row->quantity;
+	    			unset($row->quantity);
+	    		}
 	    		$blockCl = clone($paramBlock->getBlock('COMPONENT'));
 	    		$blockCl->placeObject($row);
 	    		$blockCl->removeBlocks();

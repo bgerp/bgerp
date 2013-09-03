@@ -99,10 +99,10 @@ class survey_Options extends core_Manager {
      */
     function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        if ($data->form->rec) {
-			$surveyId = survey_Alternatives::fetchField($data->form->rec->alternativeId, 'surveyId');
-            
-			// retUrl-то е single-a на анкетата
+        if ($data->form->rec && $data->form->cmd == 'save') {
+			
+        	// retUrl-то е single-a на анкетата
+        	$surveyId = survey_Alternatives::fetchField($data->form->rec->alternativeId, 'surveyId');
             $data->retUrl = toUrl(array('survey_Surveys', 'single', $surveyId));
         }
     }
@@ -128,10 +128,10 @@ class survey_Options extends core_Manager {
      * Enter description here ...
      * @param unknown_type $rec
      */
-    private function getverbalOptions($rec)
+    private function getVerbalOptions($rec)
     {
     	$row = static::recToVerbal($rec);
-    	$tpl = new ET("<li><input name='quest{$rec->alternativeId}' type='radio' [#data#] [#checked#]>&nbsp;&nbsp;[#answer#] <span class='opTools'>[#tools#]</span></li>");
+    	$tpl = new ET("<li><input  id='o{$rec->id}' name='quest{$rec->alternativeId}' type='radio' [#data#] [#checked#]><label for='o{$rec->id}'>[#answer#]</label> <span class='opTools'>[#tools#]</span></li>");
     	
 		// Кой е послед посочения отговор от потребителя
 		$lastVote = survey_Votes::lastUserVote($rec->alternativeId);

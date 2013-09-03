@@ -3,7 +3,7 @@
 /**
  * Тема по подразбиране
  */
-defIfNot('CMS_THEME', '');
+defIfNot('CMS_THEME', 'cms_DefaultThemeIntf');
 
 
 /**
@@ -15,7 +15,7 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 /**
  *  Код за споделяне на съдържание
  */
-defIfNot('CMS_SHARE', 'cms_DefaultThemeIntf');
+defIfNot('CMS_SHARE', '');
 
 
 /**

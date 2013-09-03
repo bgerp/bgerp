@@ -26,7 +26,7 @@ class page_InternalLayout extends core_ET
     function page_InternalLayout()
     {
          // Задаваме лейаута на страницата
-        $this->core_ET("<div class='clearfix21 main-container <!--ET_BEGIN NARROWSCROLL-->[#NARROWSCROLL#]<!--ET_END NARROWSCROLL-->'><div id=\"framecontentTop\"  class=\"container\">" .
+        $this->core_ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#]'><div id=\"framecontentTop\"  class=\"container\">" .
             "[#bgerp_Menu::renderMenu#]" .
             "</div>" .
             "<div id=\"maincontent\"><div>" .
@@ -38,6 +38,10 @@ class page_InternalLayout extends core_ET
             "[#PAGE_FOOTER#]" .
             "</div></div>");
 
+        if(Mode::get("checkNativeSupport")){
+        	$this->replace('narrow-scroll', "HAS_SCROLL_SUPPORT");
+        }
+        
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
     }

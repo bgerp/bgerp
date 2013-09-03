@@ -137,10 +137,11 @@ class techno_GeneralProducts extends core_Manager {
      * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
      * @param stdClass $data - Обект с данни от модела
      * @param int $sId - ид на спецификацията
+     * @param string $state - състояние на спецификацията
      * @param boolean $short - Дали да е кратко представянето 
      * @return core_ET $tpl - вербално представяне на изделието
      */
-    public function getVerbal($data, $sId, $short = FALSE)
+    public function getVerbal($data, $sId, $state, $short = FALSE)
     {
         expect($data = unserialize($data));
         $row = $this->toVerbal($data, $sId);
@@ -178,7 +179,7 @@ class techno_GeneralProducts extends core_Manager {
 	    	}
 	    }
     	
-	    $tpl = $this->getTpl($row, $data->params, $short);
+	    $tpl = $this->getTpl($row, $data->params, $state, $short);
 	    $tpl->replace($addBtn, 'addBtn');
     	$tpl->replace($compBtn, 'addBtnComp');
         $tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
@@ -191,14 +192,15 @@ class techno_GeneralProducts extends core_Manager {
      * Връща шаблона с добавени плейсхолдъри за параметрите
      * @param stdClass $row - Вербален запис
      * @param array $params - параметрите на продукта
+     * @param string $state - състояние на спецификацията
      * @param bool $short - дали изгледа е кратак 
      * @return core_ET $tpl - шаблон за показване
      */
-    private function getTpl($row, $params = array(), $short)
+    private function getTpl($row, $params = array(), $state, $short)
     {
     	$tpl = (!$short) ? getTplFromFile($this->singleLayoutFile) : getTplFromFile($this->singleShortLayoutFile);
     	techno_Parameters::renderParameters($row->params, $tpl, $short);
-    	$tpl->append(techno_Components::renderComponents($row->components, $short), 'COMPONENTS');
+    	$tpl->append(techno_Components::renderComponents($row->components, $state, $short), 'COMPONENTS');
     	
     	$tpl->placeObject($row);
     	
