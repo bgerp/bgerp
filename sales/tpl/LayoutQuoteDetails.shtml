@@ -31,7 +31,7 @@
 			</td>
 			
 			<td class='misc-info expandable' align='right' valign='top'>
-			[#price#] 
+			<b>[#price#] </b>
 			
 			<!--ET_BEGIN discount-->
 			<div class='discount'>- [#discount#] |ТО|*
@@ -39,16 +39,10 @@
 			<!--ET_END discount-->
 			</td>
 			<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>
-			<!--ET_BEGIN currencyId-->
-			<span class='cCode'>[#currencyId#]</span>
-			<!--ET_END currencyId-->
 			[#amount#]
 			
 			<!--ET_BEGIN discAmount-->
 			<div class='discount'>
-			<!--ET_BEGIN currencyId-->
-			<span class='cCode'>[#currencyId#]</span>
-			<!--ET_END currencyId-->
 			[#discAmount#]
 			</div>
 			<!--ET_END discAmount-->

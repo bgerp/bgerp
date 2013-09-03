@@ -89,10 +89,7 @@
 		                        <!--ET_BEGIN paymentMethodId-->
 		                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
-		                        
-		                        <!--ET_BEGIN currencyId-->
-		                            <div>|Валута|*:  <b>[#paymentCurrencyId#]</b> [#rate#]</div>
-		                        <!--ET_END currencyId-->
+		                       <div>|Валута|*:  <b>[#paymentCurrencyId#]</b> [#rate#]</div>
 		                    </td>
 		       
 		                    <td class="topCell expandable" align="right" valign="top" width="30%">

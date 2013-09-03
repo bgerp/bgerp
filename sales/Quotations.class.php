@@ -282,10 +282,9 @@ class sales_Quotations extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']){
-			$rec->date = '2006-08-15 14:28:48';
 			$quotDate = dt::mysql2timestamp($rec->date);
 			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
-			if($quotDate + $rec->validFor < $timeStamp){
+			if(($quotDate + $rec->validFor) < $timeStamp){
 				$row->expired = tr("офертата е изтекла");
 			}
 			
@@ -310,7 +309,7 @@ class sales_Quotations extends core_Master
 			if($rec->others){
 				$others = explode('<br>', $row->others);
 				$row->others = '';
-				foreach($others as $other){
+				foreach ($others as $other){
 					$row->others .= "<li>{$other}</li>";
 				}
 			}
