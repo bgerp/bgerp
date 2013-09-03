@@ -72,7 +72,7 @@ class drdata_Countries extends core_Manager {
         $this->FLD('letterCode3', 'varchar(3)', 'caption=ISO 3166-1->3, rem=ISO 3166-1 3 буквен код');
         $this->FLD('isoNumber', 'int', 'caption=ISO 3166-1->N, rem=ISO Номер');
         $this->FLD('domain', 'varchar(4)', 'caption=TLD, rem=IANA Country Code TLD');
-        $this->FNC('languages', 'varchar(2)', 'caption=Езици');
+        $this->FNC('languages', 'varchar', 'caption=Езици');
         $this->load('plg_RowTools');
         
         $this->setDbUnique('commonName');
