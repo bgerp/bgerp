@@ -81,6 +81,12 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'cat,ceo';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'cat,ceo';
