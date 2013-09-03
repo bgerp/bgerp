@@ -354,9 +354,8 @@ class techno_Specifications extends core_Master {
     	}
     	
     	$form->FNC('sharedUsers', 'userList', "caption=Споделяне->Потребители,input");
-    	if (Mode::is('screenMode', 'narrow')) {
-            $form->setField('sharedUsers', array('maxColumns' => 2));    
-        }
+    	$this->invoke('AfterPrepareEditForm', array((object)array('form' => $form)));
+    	
     	$this->prepareEditToolbar((object)array('form' => $form, 'retUrl' => getretUrl()));
         if($rec->id){
         	
