@@ -73,16 +73,12 @@ class core_Lg extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Екшън за задаване на текущия език на вътрешната част
      */
     function act_Set()
     {
         $lg = Request::get('lg');
         
-        $langArr = arr::make(EF_LANGUAGES, TRUE);
-
-        expect($langArr[$lg]);
-
         $this->set($lg);
         
         followRetUrl();
@@ -92,9 +88,11 @@ class core_Lg extends core_Manager
     /**
      * Задава за текущия език на интерфейса, валиден за сесията
      */
-    function set($lg)
-    {
-        if ($lg) {
+    function set($lg, $force = TRUE)
+    {   
+        $langArr = arr::make(EF_LANGUAGES, TRUE);
+
+        if($langArr[$lg] && ($force || !Mode::get('lg'))) {
             Mode::setPermanent('lg', $lg);
         }
     }
@@ -157,6 +155,7 @@ class core_Lg extends core_Manager
                         $translated .= substr($phrase, 1);
                         continue;
                     }
+
                     $translated .= $this->translate($phrase);
                 }
                 
@@ -229,11 +228,10 @@ class core_Lg extends core_Manager
      */
     static function getCurrent()
     {
-    	$conf = core_Packs::getConfig('core');
-    	
         $lg = Mode::get('lg');
         
         if (!$lg) {
+            $conf = core_Packs::getConfig('core');
             $lg = $conf->EF_DEFAULT_LANGUAGE;
         }
         
@@ -264,6 +262,11 @@ class core_Lg extends core_Manager
         $data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');
         
         $langArr = arr::make(EF_LANGUAGES, TRUE);
+
+        // Превод
+        foreach($langArr as $lg => &$lgName) {
+            $lgName = tr($lgName);
+        }
 
         $data->listFilter->setOptions('lg', $langArr);
         
