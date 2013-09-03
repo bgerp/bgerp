@@ -47,13 +47,37 @@ class plg_Modified extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {   
-        if($rec->createdBy == -1) {
+        if($rec->modifiedBy == -1) {
             $row->modifiedBy = '@sys';
-        } elseif($rec->createdBy == 0) {
+        } elseif($rec->modifiedBy == 0) {
             $row->modifiedBy = '@anonym';
         } else {
             $row->modifiedBy = core_Users::getVerbal($rec->modifiedBy, 'nick');
         }
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
     }
+
+
+    /**
+     * Изпълнява се след инициализиране на модела
+     */
+    function on_AfterSetupMVC($mvc, &$res)
+    {
+        if($mvc->fetch('1=1') && !$mvc->fetch("#modifiedOn > '1971-01-01 00:00:00'")) {  
+            $query = $mvc->getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->modifiedOn) {
+                    $rec->modifiedOn = $rec->createdOn;
+                    $rec->modifiedBy = $rec->createdBy;
+                    $mvc->save_($rec, 'modifiedOn,modifiedBy');
+                    $modRecs++;
+                }
+            }
+        }
+
+        if($modRecs) {
+            $res .= "<li style='color:green'>Обновено времето за модифициране на $modRecs запис(а)</li>";
+        }
+    }
+
 }
