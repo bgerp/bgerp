@@ -108,7 +108,7 @@ class pos_Receipts extends core_Master {
     function description()
     {
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,input=none');
-    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка на продажба');
+    	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
     	$this->FLD('contragentObjectId', 'int', 'input=none');
     	$this->FLD('contragentClass', 'key(mvc=core_Classes,select=name)', 'input=none');
