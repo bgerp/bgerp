@@ -2183,6 +2183,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	text-decoration:line-through !important;
 }
 
+.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b{
+	color:#444 !important;
+}
+
 .state-rejected .document img{
 	opacity:0.5;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
