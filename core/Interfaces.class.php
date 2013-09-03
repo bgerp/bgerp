@@ -28,7 +28,13 @@ class core_Interfaces extends core_Manager
 	 */
 	var $canList = 'admin';
 	
-    
+
+    /**
+     * Никой потребител не може да добавя или редактира тази таблица
+     */
+    var $canWrite = 'no_one';
+
+
     /**
      * Заглавие на мениджъра
      */
