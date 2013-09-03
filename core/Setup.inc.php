@@ -181,8 +181,8 @@ h1 {
 #logo {
     box-shadow: 2px 4px 3px rgba(0,0,0,0.3);
 	background: #FFF;
-	width:32px;
-	display:inline-block; 
+	display:block; 
+	float:left;
 	margin-right:10px;
 }
 
@@ -322,13 +322,8 @@ a.menu {
 	#init {
 		width:100%;
 	}
-	
-	#logo{
-		width:auto;
-	}
-	
 	#logo td{
-		height:6px;
+		height:4px;
 		width:4px;
 	}
 	#setupLog{
@@ -394,7 +389,8 @@ var hexcase=0;function hex_md5(a){return rstr2hex(rstr_md5(str2rstr_utf8(a)))}fu
 
 // Лейаута на HTML страницата
 $layout = 
-"<html>
+" <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n \"http://www.w3.org/TR/html4/loose.dtd\">
+<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=2\">
