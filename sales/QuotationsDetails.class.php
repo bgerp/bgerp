@@ -84,7 +84,7 @@ class sales_QuotationsDetails extends core_Detail {
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=1');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,width=10em');
     }
     
     
@@ -130,34 +130,40 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-       $form = &$data->form;
-       $rec = &$form->rec;
+    	$form = &$data->form;
+        $rec = &$form->rec;
        
-       $title = ($rec->id) ? "Редактиране" : "Добавяне";
-       $masterLink = sales_Quotations::getLink($form->rec->quotationId);
-       $form->title = $title . " " . "на артикул в" . " |*" . $masterLink;
+        
+        $masterLink = sales_Quotations::getLink($form->rec->quotationId);
+        $form->title = ($rec->id) ? "Редактиране" : "Добавяне" . " " . "на артикул в" . " |*" . $masterLink;
        
-       $masterRec = $mvc->Master->fetch($form->rec->quotationId);
-       $Policy = cls::get($rec->policyId);
-       $productMan = $Policy->getProductMan();
-       $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
+        $Policy = cls::get($rec->policyId);
+        $productMan = $Policy->getProductMan();
+        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        if($rec->productId){
+        	
+        	// При редакция единствения възможен продукт е редактируемия
+	   		$productName = $products[$rec->productId];
+	   		$products = array();
+	   		$products[$rec->productId] = $productName;
+	    } else {
+		   // Ако офертата е базирана на спецификация, то тя може да
+		   // се добавя редактира в нея дори ако е чернова
+		   if(isset($masterRec->originId)){
+			   $origin = doc_Containers::getDocument($masterRec->originId);
+			   if($origin->className == 'techno_Specifications'){
+			    	$products[$origin->that] = $origin->recToVerbal('title')->title;
+			   }
+		   } elseif(!count($products)) {
+		       	return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
+		   }
+	   }
+       
        $form->setDefault('optional', 'no');
-       
-       // Ако офертата е базирана на спецификация, то тя може да
-       // се добавя редактира в нея дори ако е чернова
-       if(isset($masterRec->originId)){
-	       	$origin = doc_Containers::getDocument($masterRec->originId);
-	    	if($origin->className == 'techno_Specifications'){
-	    		$products[$origin->that] = $origin->recToVerbal('title')->title;
-	    	}
-       	} elseif(!count($products)) {
-       		return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
-       }
-       
-       $form->setOptions('productId', $products);
+	   $form->setOptions('productId', $products);
        
        if($form->rec->price && $masterRec->rate){
-       	 	
        	 	if($masterRec->vat == 'yes'){
        	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
@@ -419,7 +425,6 @@ class sales_QuotationsDetails extends core_Detail {
     	// Ако няма опционални продукти не рендираме таблицата им
     	if($oCount > 1){
     		$oTpl->append(tr('Опционални'), 'TITLE');
-    		$misc = $data->masterData->rec->paymentCurrencyId;
     		$oTpl->append($misc, "MISC");
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
@@ -460,15 +465,15 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	if($rec->discount){
-    		$row->price = "<span class='oldAmount' style='text-decoration:none'>{$row->price}</span>";
-    		$row->discount = "<b>{$row->discount}</b>";
-    	} else {
-    		$row->price = "<b>{$row->price}</b>";
+    		$percent = cls::get('type_Percent');
+		    $parts = explode(".", $rec->discount * 100);
+		    $percent->params['decimals'] = count($parts[1]);
+		    $row->discount = $percent->toVerbal($rec->discount);
     	}
     	
     	$row->discAmount = $double->toVerbal($rec->discAmountVat);
+    	
     	if($rec->discAmountVat){
-    		$row->currencyId = $mvc->Master->fetchField($rec->quotationId, 'paymentCurrencyId');
     		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
     		$row->discAmount = "<b>{$row->discAmount}</b>";
     	} else {

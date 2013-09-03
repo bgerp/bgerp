@@ -83,7 +83,7 @@ class pos_Favourites extends core_Manager {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory');
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
     	$this->FLD('catId', 'key(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
-    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=title)', 'caption=Точка на Продажба');
+    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name)', 'caption=Точка на Продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
     	
     	$this->setDbUnique('productId, packagingId');

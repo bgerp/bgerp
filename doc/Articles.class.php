@@ -166,7 +166,7 @@ class doc_Articles extends core_Master
         if ($form->isSubmitted()) {
             
             // Ако редактраиме записа
-            if ($id = $form->rec->id) {
+            if (($id = $form->rec->id) &&  ($form->rec->state != 'draft')) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);

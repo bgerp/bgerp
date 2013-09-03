@@ -131,7 +131,7 @@ class pos_Reports extends core_Master {
      */
     function description()
     {
-    	$this->FLD('pointId', 'key(mvc=pos_Points, select=title)', 'caption=Точка, width=9em, mandatory');
+    	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory');
     	$this->FLD('cashier', 'user(roles=pos|ceo)', 'caption=Касиер, width=9em');
     	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
     	$this->FLD('change', 'double(decimals=2)', 'caption=Сума->Ресто, input=none, value=0, summary=amount');
@@ -160,7 +160,7 @@ class pos_Reports extends core_Master {
 	{	
         $data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
-		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=title, allowEmpty)', 'caption=Точка,width=12em,silent');
+		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
         $data->listFilter->showFields .= ',user,point';
         
         // Активиране на филтъра

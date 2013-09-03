@@ -94,16 +94,6 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
-     * Функция извиквана след като изпратим формата
-     */
-    static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if($form->isSubmitted()) {
-    	}
-    }
-    
-    
-    /**
      * Подготовка на Детайлите
      */
     function prepareDetail_($data)
@@ -181,7 +171,7 @@ class survey_Alternatives extends core_Detail {
 			if(!Mode::is('printing') && $mvc->haveRightFor('edit', $rec)){
 				$img = sbf('img/16/add.png');
 				$addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'retUrl' => TRUE);
-				$row->addOption = ht::createLink('', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams'));
+				$row->addOption = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addParams'));
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
@@ -204,11 +194,11 @@ class survey_Alternatives extends core_Detail {
     	$tpl = getTplFromFile('survey/tpl/SingleAlternative.shtml');
     	$tplAlt = $tpl->getBlock('ROW');
     	if($data->rows) {
-	    	foreach($data->rows as $row) {
+	    	foreach ($data->rows as $row) {
 	    		$rowTpl = clone($tplAlt);
 	    		$rowTpl->placeObject($row);
 	    		$rowTpl->removeBlocks();
-	    		$tpl->append($rowTpl);
+	    		$rowTpl->append2master();
 	    	}
     	}
     	

@@ -38,7 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, caseId';
+    var $listFields = 'tools=Пулт, name, caseId';
     
     
     /**
@@ -50,7 +50,7 @@ class pos_Points extends core_Master {
    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    var $rowToolsSingleField = 'name';
     
     
     /**
@@ -100,7 +100,7 @@ class pos_Points extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(255)', 'caption=Наименование, mandatory');
+    	$this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,oldFieldName=title');
     	$this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');

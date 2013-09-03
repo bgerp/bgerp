@@ -88,7 +88,13 @@ class price_Lists extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'price,ceo';
-    
+ 
+     
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'ceo';
+   
     
     /**
      * Поле за връзка към единичния изглед

@@ -98,7 +98,7 @@
 }
 
 .total-quote-td, .total-td-label{
-	background-color:white;
+	background-color:transparent;
 }
 
 .products-table{
@@ -109,7 +109,7 @@
 
 .products-table th{
 	border:1px solid #ccc;
-	background-color:#eee;
+	background-color:#e0e0e0;
 	padding:5px;
 }
 
