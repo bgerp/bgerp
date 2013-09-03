@@ -82,6 +82,12 @@ class acc_Operations extends core_Manager
      * Кой може да го отхвърли?
      */
     var $canReject = 'acc, ceo';
+
+    
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'acc, admin';
     
     
     /**
