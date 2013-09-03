@@ -177,12 +177,6 @@ tr.noHover td:hover {
 	min-width:700px;
 }
 
-.selectLang img {
-	padding:0px;
-	margin:0px;
-	vertical-align:middle;
-}
-
 #maincontent {
 	background-color: $gray1;
 }
@@ -2490,7 +2484,7 @@ div.location{
 		max-width:560px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
-		max-width:550px;
+		max-width:558px;
 	}
 	.narrow .chzn-container .chzn-drop {
 		max-width:548px;
@@ -2529,7 +2523,7 @@ div.location{
 		max-width:460px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
-		max-width:450px;
+		max-width:458px;
 	}
 	.narrow .chzn-container .chzn-drop {
 		max-width:448px;
@@ -2550,7 +2544,7 @@ div.location{
 		border:none;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
-		max-width:430px;
+		max-width:438px;
 	}
 	.narrow .chzn-container .chzn-drop {
 		max-width:428px;
@@ -2570,10 +2564,10 @@ div.location{
 	.narrow #all{
 		border:none;
 	}
-	.narrow .chzn-container{
-		max-width:310px;
-	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
+		max-width:318px;
+	}
+	.narrow .chzn-container .chzn-drop{
 		max-width:308px;
 	}
 	.narrow .chzn-container-single .chzn-search input {
@@ -2593,7 +2587,7 @@ div.location{
 		border:none;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
-		max-width:270px;
+		max-width:278px;
 	}
 	.narrow .chzn-container .chzn-drop {
 		max-width:268px;
@@ -2614,7 +2608,7 @@ div.location{
 		border:none;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select{
-		max-width:190px;
+		max-width:198px;
 	}
 	.narrow .chzn-container .chzn-drop{
 		max-width:188px;
