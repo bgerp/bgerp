@@ -69,7 +69,13 @@ class acc_Accounts extends core_Manager
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,acc';
+
     
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'acc';
+
     
     /**
      * Брой записи на страница
