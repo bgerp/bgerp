@@ -44,6 +44,12 @@ class core_Lg extends core_Manager
     /**
      * Кой може да записва?
      */
+    var $canEditsysdata = 'translator,admin';
+    
+    
+    /**
+     * Кой може да записва?
+     */
     var $canWrite = 'translator,admin';
     
     
