@@ -69,10 +69,10 @@ class cms_tpl_Page extends page_Html {
          </div>"), 
         'PAGE_CONTENT');
         
-        //Скрипт за генериране на min-height, според устройството
+        // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
         
-        //Падинг за логин формата
+        // Падинг за логин формата
         $this->append("runOnLoad(loginFormPadding);", "JQRUN");
         
         // Добавка за разпознаване на браузъра

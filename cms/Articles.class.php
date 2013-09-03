@@ -26,7 +26,7 @@ class cms_Articles extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid';
+    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_AutoFilter';
     
 
     /**
@@ -38,10 +38,12 @@ class cms_Articles extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-   // var $listFields = ' ';
+    var $listFields = 'level,title,modifiedOn,modifiedBy';
     
+    var $rowToolsField = 'level';
      
-    
+    var $searchFields = 'title,body';
+
     /**
      * Кой може да пише?
      */
@@ -72,12 +74,70 @@ class cms_Articles extends core_Manager
     function description()
     {
         $this->FLD('level', 'order', 'caption=Номер,mandatory');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent,autoFilter');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
+
+        $this->setDbUnique('menuId,level');
     }
 
     
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'search, menuId';
+        
+        $form->input('search, menuId', 'silent');
+
+        $form->setOptions('menuId', $opt = self::getMenuOpt());
+
+        if(!$opt[$form->rec->menuId]) {
+            $form->rec->menuId = key($opt);
+        }
+
+        $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+    }
+
+
+    /**
+     * Връща възможните опции за менюто, в което може да се намира дадената статия, 
+     * в зависимост от езика
+     */
+    static function getMenuOpt($lang = NULL)
+    {
+        if(!$lang) {
+            $lang = cms_Content::getLang();
+        }
+
+        $cQuery = cms_Content::getQuery();
+ 
+        $cQuery->where("#lang = '{$lang}'");
+         
+        $cQuery->orderBy('#menu');
+        
+        $options = array();
+
+        while($cRec = $cQuery->fetch("#source = " . self::getClassId())) {
+            $options[$cRec->id] = $cRec->menu;
+        }
+
+        return $options;
+    }
+
+
     /**
      *  Задава подредбата
      */
@@ -92,19 +152,17 @@ class cms_Articles extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $cQuery = cms_Content::getQuery();
+        if($menuId = $data->form->rec->menuId) {
+            $lang = cms_Content::fetchField($menuId, 'lang');
+        }
         
-        $selfClassId = core_Classes::fetchIdByName($mvc->className);
-
-        while($cRec = $cQuery->fetch()) {
-            $options[$cRec->id] = $cRec->menu;
-        } 
-
-        $data->form->setOptions('menuId', $options);
+        $data->form->setOptions('menuId', self::getMenuOpt($lang));
     }
 
 
-
+    /**
+     *
+     */
     function getContentUrl($menuId)
     {
         $query = self::getQuery();
@@ -114,20 +172,19 @@ class cms_Articles extends core_Manager
         $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
 
         if($rec) {
-            return toUrl(array($this, 'Article', $rec->vid ? $rec->vid : $rec->id));
+            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
         } else {
-            return toUrl(array($this, 'Article', 'menuId' => $menuId));
+            return toUrl(array('A', 'a', 'menuId' => $menuId));
         }
     }
 
 
-
     /**
-     *
+     * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {  
-        $row->title = ht::createLink($row->title, array($mvc, 'Article', $rec->vid ? $rec->vid : $rec->id));
+        $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
     }
 
 
@@ -244,7 +301,7 @@ class cms_Articles extends core_Manager
 
             $navTpl->append("<div class='nav_item {$class}'>");
             if(trim($rec1->body)) {
-                $navTpl->append(ht::createLink($title, array('cms_Articles', 'Article', $rec1->vid ? $rec1->vid : $rec1->id)));
+                $navTpl->append(ht::createLink($title, array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id)));
             } else {
                $navTpl->append($title);
             }
@@ -253,7 +310,7 @@ class cms_Articles extends core_Manager
                 $navTpl->append('&nbsp;');
                 $navTpl->append(
                     ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
-                                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('cms_Articles', 'Article', $rec1->id) ))); 
+                                    array('A', 'Edit', $rec1->id, 'ret_url' => array('A', 'a', $rec1->id) ))); 
             }
 
             $navTpl->append("</div>");
@@ -267,6 +324,10 @@ class cms_Articles extends core_Manager
         }
 		
         Mode::set('cMenuId', $menuId);
+
+        if($menuId) {
+            cms_Content::setLang(cms_Content::fetchField($menuId, 'lang'));
+        }
         
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($navTpl, 'NAVIGATION');

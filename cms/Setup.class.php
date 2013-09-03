@@ -19,6 +19,11 @@ defIfNot('CMS_SHARE', 'cms_DefaultThemeIntf');
 
 
 /**
+ * Основен език на публичната част
+ */
+defIfNot('CMS_BASE_LANG', 'bg');
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -64,8 +69,9 @@ class cms_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-	
-            'CMS_LANGS' => array ('set(bg,en,ro,fr,de,ru,it,es,tr,el)', 'caption=Езици за публичното съдържание->Езици'),
+            'CMS_BASE_LANG' => array ('customKey(mvc=drdata_Languages,select=languageName, key=code)', 'caption=Езици за публичното съдържание->Основен'),
+
+            'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
 
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
 
