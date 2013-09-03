@@ -44,6 +44,14 @@ class core_Cron extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
+
+
+
+    /**  
+	 * Кой има право да променя системните данни?  
+	 */  
+	var $canEditsysdata = 'admin';  
+
 	
     
     /**
