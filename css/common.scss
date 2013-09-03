@@ -646,11 +646,11 @@ input[type=radio]:checked + label, input[type=checkbox]:checked + label {
 }
 
 tr.zebra0 { 
-    background-color:$gray1;
+    background-color: rgba(238, 238, 238, 0.5);
 }
 
 tr.zebra1 {
-    background-color:#fff;
+    background-color:transparent;
 }
 
 .wide input[type=submit], .wide input[type=button] {
