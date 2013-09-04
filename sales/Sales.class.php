@@ -564,7 +564,7 @@ class sales_Sales extends core_Master
             $isInstantShipment = $isInstantShipment && 
                 ($form->rec->shipmentStoreId == store_Stores::getCurrent('id', FALSE));
             $isInstantShipment = $isInstantShipment && 
-                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
             
             $isInstantPayment = !empty($form->rec->caseId);
             $isInstantPayment = $isInstantPayment && 
