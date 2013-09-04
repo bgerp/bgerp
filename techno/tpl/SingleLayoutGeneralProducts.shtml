@@ -1,6 +1,6 @@
 <ul class='list-info'>
 	<li class='list-title'>[#title#]</li>
-	<li class='list-description'>[#description#][#image#]</li>
+	<li class='list-description'>[#description#]<div class='specification-img'>[#image#]</div></li>
 	<li class='fleft'>	
 			<!--ET_BEGIN OTHERS-->
 			<div class='title-group'><b>|Параметри|* [#OTHERS#] [#addBtn#]</b></div>

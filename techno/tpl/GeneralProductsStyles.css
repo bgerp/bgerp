@@ -61,17 +61,14 @@ ol.short{
 	min-width:160px;
 }
  
-.narrow .general-product .fleft{
-	width:100%;
-}
 
 .wideDesc{
 	max-width:380px !important;
 }
 
-#components-table{
+.specification-img{
+	margin-top:10px;
 }
-
 
 	
 i.misc-values{
@@ -128,9 +125,8 @@ th{
 	width:16px;
 	height:16px;
 }
-.fleft {
-	clear: both;
-	float: left;
+.list-info li.fleft{
+	clear:both;
 }
 .param-tools{
 	position:relative;
