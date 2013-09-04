@@ -4,7 +4,7 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
+defIfNot('BARCODE_SALT', md5(EF_SALT . '_BARCODE'));
 
 
 /**
