@@ -499,4 +499,28 @@ class core_Os
         
         return $res;
     }
+
+
+    /**
+     * Връща броя на стартираните процеси на Apache
+     */
+    function countApacheProc()
+    {   
+        $processes = 0;
+
+        if($this->isWindows()) {
+            $output = shell_exec("tasklist");
+            $lines = explode("\n", $output);
+            foreach($lines as $l) { 
+                if(strpos($l, 'httpd.exe') !== FALSE) {
+                    $processes++; 
+                }
+            }
+        } else {
+            exec('ps aux | grep apache', $output);
+            $processes = count($output);
+        }
+
+        return $processes;
+    }
 }

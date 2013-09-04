@@ -146,8 +146,12 @@ class core_Cron extends core_Manager
         }
         
         $host = gethostbyname($_SERVER['SERVER_NAME']);
+
+        $Os = cls::get('core_Os');
+
+        $apacheProc = $Os->countApacheProc();
         
-        $this->log("{$this->className} is working: {$i} processes was run in $currentMinute");
+        $this->log("{$this->className} is working: {$i} processes was run in $currentMinute, total {$apacheProc} Apaches on server");
         
         echo("<li> {$now} {$this->className}: $i processes was run");
         shutdown();
