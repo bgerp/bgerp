@@ -8,7 +8,6 @@
 }
 
 .narrow .chzn-container {
-	max-width:450px;
 	min-width:250px;
 }
 
@@ -23,7 +22,6 @@
   z-index: 1010;
 }
 .narrow .chzn-container .chzn-drop {
-	max-width:448px;
 	min-width:248px;
 }
 /* @end */
@@ -119,7 +117,6 @@
   font-size: 1em;
 }
 .narrow .chzn-container-single .chzn-search input{
-	max-width:438px;
 	min-width:238px;
 }
 .chzn-container-single .chzn-drop {
