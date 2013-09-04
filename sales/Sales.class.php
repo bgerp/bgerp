@@ -570,7 +570,7 @@ class sales_Sales extends core_Master
             $isInstantPayment = $isInstantPayment && 
                 ($form->rec->caseId == store_Stores::getCurrent('id', FALSE));
             $isInstantPayment = $isInstantPayment && 
-                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
             
             $form->setDefault('isInstantShipment', 
                 $isInstantShipment ? 'yes' : 'no');
