@@ -131,7 +131,7 @@ class plg_Chart extends core_Plugin
      */
     function getChart($data, $chartName, $chartType, $chartCaption, $chartField = NULL)
     {
-        $chart = ht::createElement('div', array('id' => $chartName), NULL, TRUE);
+        $chart = ht::createElement('div', array('id' => $chartName, 'class' => 'scrolling-holder'), NULL, TRUE);
         
         $chart->appendOnce("\n <script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>", "HEAD");
         
