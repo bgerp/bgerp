@@ -152,7 +152,7 @@ class techno_Parameters extends core_Manager {
 	    		$arr['paramId'] = cat_Params::getTitleById($paramId);
 	    		$arr['paramValue'] = (is_numeric($value)) ? $double->toVerbal($value) : $varchar->toVerbal($value);
 	    		$suffix = $varchar->toVerbal(cat_Params::fetchField($paramId, 'suffix'));
-	    		$arr['paramValue'] .= " &nbsp;{$suffix}";
+	    		$arr['paramValue'] .= " {$suffix}";
 	    		$arr['tools'] = static::getParamTools($paramId, $specId);
 	        	$res[$paramId] = $arr;
 	    	}

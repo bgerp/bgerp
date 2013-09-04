@@ -70,7 +70,6 @@ ol.short{
 }
 
 #components-table{
-	width:700px;
 }
 
 
@@ -98,6 +97,7 @@ th{
 	border: 1px solid rgb(204, 204, 204);
 	background-color: rgb(238, 238, 238);
 	padding: 5px;
+	text-align:center;
 }
 
 .cCode{
@@ -123,12 +123,20 @@ th{
 	}
 }
 
-#components-table1{
-	font-size:1px;
-}
-
 .spec-add-btn{
 	display:inline-block;
 	width:16px;
 	height:16px;
+}
+.fleft {
+	clear: both;
+	float: left;
+}
+.param-tools{
+	position:relative;
+	top:2px;
+	margin-left:10px;
+}
+.title-group{
+	margin-bottom:5px;
 }

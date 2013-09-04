@@ -1,20 +1,14 @@
 <!--ET_BEGIN LONG-->
-<div class='fleft'>	
 <table class = 'styled-table' id='components-table'>
-	<!--ET_BEGIN addBtnComp-->
-	<tr>
-		<th colspan='6'>|Компоненти|* [#addBtnComp#]</th>
-	</tr>
-	<!--ET_END addBtnComp-->
 	<!--ET_BEGIN COMPONENTS-->
 	[#COMPONENTS#]
 	<tr>
-		<th class='component-header'><b>№</b></th>
-		<th class='component-header'><b>|Продукт|*</b></th>
-		<th class='component-header' align='right'><b>|К-во|*</b></th>
-		<th class='component-header' align='right'><b>|Цена|*</b></th>
-		<th class='component-header' align='right'><b>|Стойност|*</b></th>
-		<th class='component-header' align='right'><b>|Такси|*</b></th>
+		<th class='component-header' width=1%>№</th>
+		<th class='component-header'>|Продукт|*</th>
+		<th class='component-header'>|К-во|*</th>
+		<th class='component-header'>|Цена|*</th>
+		<th class='component-header'>|Стойност|*</th>
+		<th class='component-header'>|Такси|*</th>
 	</tr>
 	<!--ET_BEGIN COMPONENT-->
 	[#COMPONENT#]
@@ -45,7 +39,6 @@
 	<!--ET_END totalAmount-->
 	<!--ET_END COMPONENTS-->
 	</table>
-</div>
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->
