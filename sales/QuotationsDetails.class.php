@@ -132,8 +132,6 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$form = &$data->form;
         $rec = &$form->rec;
-       
-        
         $masterLink = sales_Quotations::getLink($form->rec->quotationId);
         $form->title = ($rec->id) ? "Редактиране" : "Добавяне" . " " . "на артикул в" . " |*" . $masterLink;
        
@@ -141,25 +139,27 @@ class sales_QuotationsDetails extends core_Detail {
         $Policy = cls::get($rec->policyId);
         $productMan = $Policy->getProductMan();
         $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+    	
+        // Ако офертата е базирана на спецификация, то тя може да
+		// се добавя редактира в нея дори ако е чернова
+		if(isset($masterRec->originId)){
+			  $origin = doc_Containers::getDocument($masterRec->originId);
+			  if($origin->className == 'techno_Specifications'){
+			    $products[$origin->that] = $origin->recToVerbal('title')->title;
+			  }
+		}
+        
         if($rec->productId){
-        	
         	// При редакция единствения възможен продукт е редактируемия
 	   		$productName = $products[$rec->productId];
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
-	    } else {
-		   // Ако офертата е базирана на спецификация, то тя може да
-		   // се добавя редактира в нея дори ако е чернова
-		   if(isset($masterRec->originId)){
-			   $origin = doc_Containers::getDocument($masterRec->originId);
-			   if($origin->className == 'techno_Specifications'){
-			    	$products[$origin->that] = $origin->recToVerbal('title')->title;
-			   }
-		   } elseif(!count($products)) {
-		       	return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
-		   }
-	   }
+	    }
        
+       if(!count($products)) {
+		   return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
+	   }
+	   
        $form->setDefault('optional', 'no');
 	   $form->setOptions('productId', $products);
        
