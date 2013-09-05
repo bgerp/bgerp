@@ -679,7 +679,7 @@ tr.zebra1 {
 /*end of our common styles*/
 
 /* BUTTONS */
-a.button, input[type="button"], input[type="submit"] {
+a.button, input[type="button"], input[type="submit"], button {
 	margin-right: 0.5em;
 	margin-left:0;
 	margin-top:1px;
@@ -701,7 +701,7 @@ a.button, input[type="button"], input[type="submit"] {
 .toolbar .button{
 	margin-bottom:5px !important;
 }
-.narrow a.button, .narrow input[type=button], .narrow input[type=submit]{ 
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit] .narrow button{ 
 	border:1px solid #999; 
 	padding:0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;
@@ -709,7 +709,7 @@ a.button, input[type="button"], input[type="submit"] {
     margin-bottom:0;
 }
 
-a.button:hover, input:hover[type=button] , input:hover[type=submit]{
+a.button:hover, input:hover[type=button] , input:hover[type=submit], button:hover{
     background-color:#ffb; 
 }
 
