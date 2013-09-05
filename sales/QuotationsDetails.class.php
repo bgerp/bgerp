@@ -413,7 +413,7 @@ class sales_QuotationsDetails extends core_Detail {
     		$dTpl->placeObject($data->total);
     	}
     	
-    	$vatRow = ($data->masterData->rec->vat) ? tr('с') : tr('без');
+    	$vatRow = ($data->masterData->rec->vat == 'yes') ? tr('с') : tr('без');
     	$misc = $data->masterData->rec->paymentCurrencyId . ", " . $vatRow;
     	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
