@@ -4,7 +4,7 @@
 /**
  * Пътя до директорията с временните файлове
  */
-defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv/");
+defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv");
 
 
 /**

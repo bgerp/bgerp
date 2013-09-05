@@ -46,7 +46,7 @@ class fconv_Script
     function fconv_Script($tempDir = NULL)
     {
         $conf = core_Packs::getConfig('fconv');
-        $this->tempPath = $conf->FCONV_TEMP_PATH;
+        $this->tempPath = $conf->FCONV_TEMP_PATH . "/";
         $this->id = fconv_Processes::getProcessId();
         setIfNot($tempDir, $this->tempPath . $this->id . "/");
         $this->tempDir = $tempDir;
