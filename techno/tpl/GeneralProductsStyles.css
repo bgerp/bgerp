@@ -125,12 +125,14 @@ th{
 	width:16px;
 	height:16px;
 }
+
 .list-info li.fleft{
 	clear:both;
 }
+
 .param-tools{
 	position:relative;
-	top:2px;
+	float:right;
 	margin-left:10px;
 }
 .title-group{

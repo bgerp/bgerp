@@ -12,7 +12,7 @@
 				<!--ET_BEGIN tools-->
 				<!--ET_END tools-->
 				<td> [#paramId#]</td>
-				<td class='nowrap'><i>[#paramValue#]<span class='param-tools'>[#tools#]</span></i>
+				<td><i>[#paramValue#]<span class='param-tools'>[#tools#]</span></i>
 				</td>	
 			</tr>	
 			<!--ET_END PARAMS-->
