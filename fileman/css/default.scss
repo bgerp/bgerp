@@ -30,9 +30,14 @@ body{
  #filename {
  	display:none;
  }
-                                    
+
+/*
+ * За да работи трябва да не е display:none !important;
+ */                                   
 .ulfile { 
-	display:none !important;
+	width:0;
+	height:0;
+	border: none;
 }
 .btn-ulfile{
 	margin-top:10px; 
