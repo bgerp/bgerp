@@ -309,8 +309,8 @@ class sales_Sales extends core_Master
             return;
         }
     
-        // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
-        // използваме го за автоматично попълване на детайлите на ЕН
+        // Ако новосъздадения документ има origin, който поддържа bgerp_DealIntf,
+        // използваме го за автоматично попълване на детайлите на продажбата
     
         if ($origin->haveInterface('bgerp_DealIntf')) {
             /* @var $dealInfo bgerp_iface_DealResponse */
@@ -490,18 +490,66 @@ class sales_Sales extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Задаване на стойности на полетата на формата по подразбиране
+        self::setDefaultsFromOrigin($mvc, $data->form);
+        self::setDefaults($mvc, $data->form);
         
-        /* @var $form core_Form */
-        $form = $data->form;
-       
+        // Ако създаваме нов запис и то базиран на предхождащ документ ...
+        if (empty($data->form->rec->id) && !empty($data->form->rec->originId)) {
+            // ... и стойностите по подразбиране са достатъчни за валидиране
+            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
+            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
+            // е нужно в последствие.
+            
+            if ($mvc->validate($data->form)) {
+                if (self::save($data->form->rec)) {
+                    redirect(array($mvc, 'single', $data->form->rec->id));
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Зареждане на стойности по подразбиране от документа-основание 
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function setDefaultsFromOrigin(core_Mvc $mvc, core_Form $form)
+    {
+        if (!($origin = $mvc->getOrigin($form->rec)) || !$origin->haveInterface('bgerp_DealIntf')) {
+            // Не може да се използва `bgerp_DealIntf`
+            return false;
+        }
+        
+        /* @var $dealInfo bgerp_iface_DealResponse */
+        $dealInfo = $origin->getDealInfo();
+        $aspect   = $dealInfo->agreed; // @FIXME: не трябваше ли да е ->quoted ?
+        
+        $form->setDefault('deliveryTermId', $aspect->delivery->term);
+        $form->setDefault('deliveryLocationId', $aspect->delivery->location);
+        $form->setDefault('paymentMethodId', $aspect->payment->method);
+        $form->setDefault('bankAccountId', $aspect->payment->bankAccountId);
+        $form->setDefault('currencyId', $aspect->currency);
+    }
+    
+    
+    /**
+     * Зареждане на стойности по подразбиране 
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    protected static function setDefaults(core_Mvc $mvc, core_Form $form)
+    {
         $form->setDefault('valior', dt::now());
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
         $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         
-        if (empty($data->form->rec->dealerId)) {
-            $form->setDefault('dealerId', $mvc::getDefaultDealer($data->form->rec));
+        if (empty($form->rec->dealerId)) {
+            $form->setDefault('dealerId', $mvc::getDefaultDealer($form->rec));
         }
         
         if (empty($form->rec->folderId)) {
@@ -528,19 +576,19 @@ class sales_Sales extends core_Master
         /*
          * Валута на продажбата по подразбиране
          */
-        if (empty($data->form->rec->currencyId)) {
-            $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($data->form->rec));
+        if (empty($form->rec->currencyId)) {
+            $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($form->rec));
         }
         
         /*
          * Банкова сметка по подразбиране
          */
-        if (empty($data->form->rec->bankAccountId)) {
-            $form->setDefault('bankAccountId', $mvc::getDefaultBankAccountId($data->form->rec));
+        if (empty($form->rec->bankAccountId)) {
+            $form->setDefault('bankAccountId', $mvc::getDefaultBankAccountId($form->rec));
         }
         
-        if (empty($data->form->rec->makeInvoice)) {
-            $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($data->form->rec));
+        if (empty($form->rec->makeInvoice)) {
+            $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($form->rec));
         }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
@@ -576,20 +624,6 @@ class sales_Sales extends core_Master
                 $isInstantShipment ? 'yes' : 'no');
             $form->setDefault('isInstantPayment', 
                 $isInstantPayment ? 'yes' : 'no');
-        }
-        
-        // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id) && !empty($form->rec->originId)) {
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
         }
     }
     
