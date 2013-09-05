@@ -16,6 +16,11 @@
 class doc_UnsortedFolders extends core_Master
 {
     
+    /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    var $interfaces = 'accda_DaFolderCoverIntf';
+    
     
     /**
      * Плъгини за зареждане
@@ -58,10 +63,12 @@ class doc_UnsortedFolders extends core_Master
      */
     var $singleIcon = 'img/16/project-archive.png';
     
+    
     /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'doc/tpl/SingleLayoutUnsortedFolder.shtml';
+    
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
