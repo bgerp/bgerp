@@ -560,6 +560,9 @@ class techno_Specifications extends core_Master {
     	
     	if($priceInfo->price){
     		$price = new stdClass();
+    		if($priceInfo->discount){
+    			$price->discount = $priceInfo->discount;
+    		}
     		
     		$minCharge =  salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');

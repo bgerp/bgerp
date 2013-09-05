@@ -114,6 +114,7 @@ class techno_GeneralProducts extends core_Manager {
      * @param datetime $datetime - дата
      * @return stdClass $priceInfo - информация за цената на продукта
      * 				[price]- начална цена
+     * 				[discount]  - отстъпка
      * 				[tax]     - нач. такса
      */
     public function getPrice($data, $packagingId = NULL, $quantity = 1, $datetime = NULL)
