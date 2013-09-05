@@ -169,8 +169,7 @@ class fileman_Buckets extends core_Manager {
 
         $bucketRec = $this->fetch($fileRec->bucketId);
 
-        return new ET("<div style='margin-top:5px;padding:5px;border:solid 1px #ccc; " .
-            "background-color:#ffe;margin-bottom:5px;'> <b>{$fileRec->name}</b><br> " .
+        return new ET("<div class='uploaded-title'> <b>{$fileRec->name}</b> " .
             tr("е добавен в") . " \"<b>{$bucketRec->name}</b>\"</div>");
     }
 

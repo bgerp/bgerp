@@ -42,7 +42,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
-            $tpl->prepend("<button onclick='javascript:window.close();' style='float:right;font-size:0.8em;;'>x</button><b>{$this->info->title}</b>");
+            $tpl->prepend("<button onclick='javascript:window.close();' class='upload-close'>X</button><b>{$this->info->title}</b>");
 
             $tpl->append("<ul><small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
             
@@ -83,13 +83,7 @@ class fileman_DialogWrapper extends core_Plugin
             $tpl->prepend($this->info->title . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             
             $tpl->prepend("<style>
-            body{background-color:#f5f5f5;padding:5px} 
-            .filemanUpload .tab-title {
-                    padding-left:20px;  
-                    background-repeat:no-repeat;
-                    background-position: 0px center;
-                    font-size:1.1em;
-            }
+            		
             .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
             .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
             .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}

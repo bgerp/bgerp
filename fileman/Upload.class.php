@@ -180,24 +180,15 @@ class fileman_Upload extends core_Manager {
     function getProgressTpl($allowMultiUpload=FALSE)
     {
         $tpl = new ET('
-            <style type="text/css">
-                body{background-color:#f5f5f5;padding:5px}
-                .ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
-                #inputDiv input {display:block}
-                #uploadform {width:100%;}
-                #uploadprogressbar {display:none; width:100%; height:12px;}
-                #uploadBtn {display:block; margin-top:10px;background-image:url(\'' . sbf('fileman/img/upload.gif', '') . '\')}
-                #filename {display:none;}
-                                    
-                .ulfile { width:0; height:0; border: none;} 
-                .uploaded-file {white-space: pre;}
-            </style>
-
+            <style>
+        		.btn-ulfile{background-image:url(' . sbf('img/16/choose-icon.png', '') . ');}
+        		.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
+        	</style>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="btn-ulfile">' . tr('Избор') . '</button>
+                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Избор') . '</button>
                     
                     <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
                 </div>
