@@ -147,13 +147,13 @@ class fileman_Buckets extends core_Manager {
                 $ext = strtolower(mb_substr($fileName, $dotPos + 1));
 
                 if($ext && !$extensions[$ext]) {
-                    $err[] = "File extension|*<b> {$ext} </b>|is not allowed";
+                    $err[] = "Разширението на файла |* <b>{$ext}</b> | не е в допустимите|*: {$row->extensions}";
                 }
             }
         }
 
         if(filesize($filePath) > $rec->maxSize) {
-            $err[] = "File size exceeded the maximum size of|*<b>{$row->maxSize}</b>.";
+            $err[] = "Допустимия размер за файл в кофата е|*: <b>{$row->maxSize}</b>.";
         }
 
         if(!$err) return TRUE;
