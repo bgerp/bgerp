@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Генериране и изпълняване на шел скриптове за конвертиране в различни формати
  *
@@ -48,7 +47,7 @@ class fconv_Script
     {
         $conf = core_Packs::getConfig('fconv');
         $this->tempPath = $conf->FCONV_TEMP_PATH;
-        $this->id = str::getRand();
+        $this->id = fconv_Processes::getProcessId();
         setIfNot($tempDir, $this->tempPath . $this->id . "/");
         $this->tempDir = $tempDir;
     }

@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
-defIfNot('FCONV_HANDLER_LEN', 8);
-
-
 /**
  * Показва стартираните процеси
  *
@@ -36,11 +29,17 @@ class fconv_Processes extends core_Manager
     
     
     /**
+     * Дължина на манипулатора за processId
+     */
+    const FCONV_HANDLER_LEN = 8;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD("processId", "varchar(" . FCONV_HANDLER_LEN . ")",
+        $this->FLD("processId", "varchar(" . static::FCONV_HANDLER_LEN . ")",
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         $this->FLD("start", "type_Datetime", 'notNull, caption=Време на стартиране');
@@ -81,5 +80,24 @@ class fconv_Processes extends core_Manager
                 return TRUE;
             }
         }
+    }
+    
+    
+    /**
+     * Връща уникален идентификатор на процеса
+     * 
+     * @return string - Уникален `processId`
+     */
+    static function getProcessId()
+    {
+        // Шаблона
+        $pattern = str_repeat('*', static::FCONV_HANDLER_LEN);
+        
+        // Опитваме се да генерираме уникално id
+        do {
+            $processId = str::getRand($pattern);
+        } while (static::fetch(array("#processId = '[#1#]'", $processId)));
+        
+        return $processId;
     }
 }
