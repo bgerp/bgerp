@@ -3,7 +3,7 @@
 <div class='filesContainer' style='margin: 10px 0px 5px -1px;'>
 	<table class='top-table' width='100%' cellspacing='5' style='width:auto;'>
 	
-		<!--ET_BEGIN fileName--><tr><td colspan='2'><b>[#fileName#]</b></td></tr><!--ET_END fileName-->
+		<!--ET_BEGIN fileName--><tr><td colspan='2'><b style='word-break:break-word'>[#fileName#]</b></td></tr><!--ET_END fileName-->
 		
 		<!--ET_BEGIN versions-->          
 			<tr>

@@ -76,7 +76,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $headersStr = type_Varchar::escape($headersStr);
         
         // Добавяме стилове
-        $headersStr = "<div style='background-color: transparent; font-family: monospace \"courier new\";'>{$headersStr}</div>";
+        $headersStr = "<div class='email-source-holder'><div class='email-source'>{$headersStr}</div><div>";
         
         // Вземаме линковете към файловете
         $filesStr = static::getFiles($mime);
@@ -408,7 +408,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $source = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $source);
         
         // Преобразуваме към вербална стойност
-        $source = "<div class='email-source'>{$source}</div>";
+        $source = "<div class='email-source-holder'><div class='email-source'>{$source}</div></div>";
  
         return $source;
     }
