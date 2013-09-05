@@ -187,8 +187,11 @@ class fileman_Upload extends core_Manager {
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
+                
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Избор') . '</button>
+                    
+                    <span class="uploaded-filenames"> </span>
                     
                     <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
                 </div>
@@ -324,8 +327,8 @@ class fileman_Upload extends core_Manager {
                 	uploadedFileId += btnCntId;
     			}
                 
-    			// След бутона добавяме името на файла и линк за премахване
-                $(btnId).after('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
+    			// В държача за качени файлове добавяме името на файла и линк за премахване
+                $('.uploaded-filenames').prepend('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
                 
                 // Ако е зададен качване на много файлове едновременно
                 if (multiUpload != 0) {
