@@ -622,8 +622,10 @@ class blogm_Articles extends core_Master {
         $data->ThemeClass = $this->getThemeClass();
 
         $selfId = core_Classes::fetchIdByName($this);
+        
+        $lang = cms_Content::getLang();
 
-        Mode::set('cMenuId', cms_Content::fetchField("#source = {$selfId}", 'id'));
+        Mode::set('cMenuId', cms_Content::fetchField("#source = {$selfId} AND #lang = '{$lang}'", 'id'));
 	}
 
 
