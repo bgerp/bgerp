@@ -8,10 +8,9 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<table border = '0' id='quot-table'>
-	<tr>
-		<td id='quot-title-td' style="vertical-align:top">
-		<div class='quote_title'>|ОФЕРТА|*</div>
+	<div id='quot-table'>
+		<div id='quot-title-td'>
+			<div class='quote_title'>|ОФЕРТА|*</div>
 			<p class='title-info'>
 				№  &nbsp;<b>[#number#]</b> 
 			</p>
@@ -23,8 +22,7 @@
 				|Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
 			</p>
 			<!--ET_END reff-->
-		</td>
-		<td>
+		</div>
 		<div class='receiver-block'>
 			<p class='title-info receiver'>|Получател|*:</p>
 			<p class='title-info'>[#company#]</p>
@@ -41,9 +39,7 @@
 			<p class='title-info'>|Факс|*: [#fax#]</p>
 			<!--ET_END fax-->
 		</div>
-		</td>
-	</tr>
-	</table>
+	</div>	
 	
 	<div class="clearfix21"></div>
 	<!--ET_BEGIN MANDATORY-->
@@ -84,5 +80,4 @@
 			[#DETAILS#]
 			<!--ET_END DETAILS-->
 		</div>
-	</div>
 </div>

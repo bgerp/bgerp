@@ -16,14 +16,6 @@
 				[#PARAMS#]
 				<li>- [#paramId#]: <i>[#paramValue#]</i></li>
 			<!--ET_END PARAMS-->
-				
-			<!--ET_BEGIN code-->
-				<li>- |Вътр. код|*: <i>[#code#]</i></li>
-			<!--ET_BEGIN code-->
-			
-			<!--ET_BEGIN eanCode-->
-				<li>- |ЕАН|*: <i>[#eanCode#]</i></li>
-			<!--ET_END eanCode-->
 		</ul>
 	</li>
 	<!--ET_END OTHERS-->

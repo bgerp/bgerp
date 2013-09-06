@@ -166,13 +166,13 @@ class doc_Articles extends core_Master
         if ($form->isSubmitted()) {
             
             // Ако редактраиме записа
-            if (($id = $form->rec->id) &&  ($form->rec->state != 'draft')) {
+            if ($id = $form->rec->id) {
                 
                 // Вземаме записа
                 $rec = $mvc->fetch($id);
                 
                 // Ако няма промени
-                if (($form->rec->subject == $rec->subject) && ($form->rec->body == $rec->body)) {
+                if (($rec->state != 'draft') && ($form->rec->subject == $rec->subject) && ($form->rec->body == $rec->body)) {
                     
                     // Сетваме грешка
                     $form->setError(array('subject', 'body'), 'Нямате промени');

@@ -1,50 +1,50 @@
 <ul class='list-info'>
 	<li class='list-title'>[#title#]</li>
-	<li class='list-description'>[#description#]</li>
+	<li class='list-description'>[#description#]<div class='specification-img'>[#image#]</div></li>
 	<li class='fleft'>	
 			<!--ET_BEGIN OTHERS-->
+			<div class='title-group'><b>|Параметри|* [#OTHERS#] [#addBtn#]</b></div>
 			<table class = 'styled-table'>
 			<tr>
-				<th colspan='3'>|Параметри|* [#OTHERS#] [#addBtn#]</th>
 			<!--ET_BEGIN PARAMS-->
 				[#PARAMS#]
 			<tr>
 				<!--ET_BEGIN tools-->
-				<td style=''><div class="rowtools"><div class="l nw">[#tools#]</div></div></td>
 				<!--ET_END tools-->
-				<td>[#paramId#]</td>
-				<td><i>[#paramValue#]</i>
+				<td> [#paramId#]</td>
+				<td><i>[#paramValue#]<span class='param-tools'>[#tools#]</span></i>
 				</td>	
 			</tr>	
 			<!--ET_END PARAMS-->
 			<!--ET_BEGIN code-->
 			<tr>
-				<td colspan='2'>|Вътр. код|*</td>
+				<td>|Вътр. код|*</td>
 				<td><i>[#code#]</i></td>
 			</tr>
 			<!--ET_END code-->
 			<!--ET_END code-->
 			<!--ET_BEGIN eanCode-->
 			<tr>
-				<td colspan='2'>|ЕАН|*</td>
+				<td>|ЕАН|*</td>
 				<td><i>[#eanCode#]</i></td>
 			</tr>
 			<!--ET_END eanCode-->
 			
 			<!--ET_BEGIN meta-->
 			<tr>
-				<td colspan='2'>|Свойства|*</td>
+				<td>|Свойства|*</td>
 				<td><i>[#meta#]</i></td>
 			</tr>
 			<!--ET_END meta-->
 		</table>
 		<!--ET_END OTHERS-->
 	</li>
-	<li class='product-image'>
-	[#image#]
-	</li>
+	
 	
 	<li class='fleft'>
+		<!--ET_BEGIN addBtnComp-->
+			<div class='title-group'><b>|Компоненти|* </b>[#addBtnComp#]</div>
+	<!--ET_END addBtnComp-->
 		<div class='scrolling-holder'>
 			[#COMPONENTS#]
 		</div>

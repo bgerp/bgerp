@@ -1,5 +1,6 @@
 <div class="singleView">
 [#SingleToolbar#]
+<div class='scrolling-holder'>
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
 			<div class="block_title state-active special-title">[#SingleIcon#] |Склад|* <b style="color:green;">[#name#]</b></div>
@@ -49,4 +50,5 @@
 			<!--ET_END comments-->
 		</div>
 	</div>
+</div>
 </div>

@@ -40,7 +40,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, accda_Wrapper, plg_State2, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank,
-                     acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search';
+                     acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_BusinessDoc2';
     
     
     /**
@@ -175,7 +175,7 @@ class accda_Da extends core_Master
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     
-        return $folderClass == 'store_Stores';
+        return $folderClass == 'doc_UnsortedFolders';
     }
     
     
@@ -208,5 +208,13 @@ class accda_Da extends core_Master
         
         return $row;
     }
- 
+    
+    
+    /**
+     * В корици на папки с какви интерфейси може да се слага 
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('accda_DaFolderCoverIntf');
+    }
 }

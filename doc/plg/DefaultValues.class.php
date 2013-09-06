@@ -175,7 +175,7 @@ class doc_plg_DefaultValues extends core_Plugin
      * @param unknown_type $name
      * @param unknown_type $rec
      */
-    private function getContragentData($mvc, $name, $rec)
+    private static function getContragentData($mvc, $name, $rec)
     {
     	if(!$folderId = $rec->folderId){
     		if($rec->originId){

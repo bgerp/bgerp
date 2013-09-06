@@ -61,18 +61,14 @@ ol.short{
 	min-width:160px;
 }
  
-.narrow .general-product .fleft{
-	width:100%;
-}
 
 .wideDesc{
 	max-width:380px !important;
 }
 
-#components-table{
-	width:700px;
+.specification-img{
+	margin-top:10px;
 }
-
 
 	
 i.misc-values{
@@ -98,6 +94,7 @@ th{
 	border: 1px solid rgb(204, 204, 204);
 	background-color: rgb(238, 238, 238);
 	padding: 5px;
+	text-align:center;
 }
 
 .cCode{
@@ -123,12 +120,21 @@ th{
 	}
 }
 
-#components-table1{
-	font-size:1px;
-}
-
 .spec-add-btn{
 	display:inline-block;
 	width:16px;
 	height:16px;
+}
+
+.list-info li.fleft{
+	clear:both;
+}
+
+.param-tools{
+	position:relative;
+	float:right;
+	margin-left:10px;
+}
+.title-group{
+	margin-bottom:5px;
 }

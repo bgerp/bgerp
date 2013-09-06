@@ -1623,6 +1623,19 @@ class doc_DocumentPlg extends core_Plugin
     	}
     }
     
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    function on_AfterGetAllowedFolders($mvc, &$res)
+    {
+    	if(empty($res)){
+    		return NULL;
+    	} 
+    }
+    
+    
 	/**
      * Метод по подразбиране
      * Връща иконата на документа

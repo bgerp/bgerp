@@ -372,9 +372,8 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        if ($rec->state == 'rejected') {
-            self::on_AfterConto($mvc, $res, $id);
-        }
+        // Ре-контираме документа след възстановяването му
+        self::on_AfterConto($mvc, $res, $id);
     }
     
     
