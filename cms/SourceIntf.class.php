@@ -17,11 +17,20 @@
 class cms_SourceIntf
 {
     /**
-     * Връща URL към съдържание, което отговаря на посоченото меню
+     * Връща URL към съдържание в публичната част, което отговаря на посоченото меню
      */
     function getContentUrl($cMenuId)
     {
         return $this->class->getContentUrl($cMenuId);
+    }
+
+
+    /**
+     * Връща URL към съдържание във вътрешната част (работилницата), което отговаря на посоченото меню
+     */
+    function getWorkshopUrl($cMenuId)
+    {
+        return $this->class->getWorkshopUrl($cMenuId);
     }
 
 }

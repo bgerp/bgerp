@@ -67,13 +67,13 @@ class cms_Content extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    var $listFields = 'menu,lang,source,url';
+    var $listFields = '✍,menu,lang,source,url';
 
 
     /**
      * Поле за инструментите на реда
      */
-    var $rowToolsField = 'menu';
+    var $rowToolsField = '✍';
     
     
     /**
@@ -427,13 +427,17 @@ class cms_Content extends core_Manager
     
     
     /**
-     *
+     * Изпълнява се след подготовката на вербалните стойности
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
-        $url = $mvc->getContentUrl($rec);
-
-        $row->menu = ht::createLink($row->menu, $url);
+        if($rec->source) {
+            $Source = cls::getInterface('cms_SourceIntf', $rec->source);
+            $workUrl = $Source->getWorkshopUrl($rec->id);
+            $row->menu = ht::createLink($row->menu, $workUrl); 
+        }
+        
+        $publicUrl = $mvc->getContentUrl($rec);
     }
 
     

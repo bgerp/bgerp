@@ -38,7 +38,7 @@ class cms_Articles extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'level,title,modifiedOn,modifiedBy';
+    var $listFields = 'level,title,state,modifiedOn,modifiedBy';
     
     var $rowToolsField = 'level';
      
@@ -81,7 +81,6 @@ class cms_Articles extends core_Manager
         $this->setDbUnique('menuId,level');
     }
 
-    
 
     /**
      * Изпълнява се след подготовката на формата за филтриране
@@ -157,25 +156,6 @@ class cms_Articles extends core_Manager
         }
         
         $data->form->setOptions('menuId', self::getMenuOpt($lang));
-    }
-
-
-    /**
-     *
-     */
-    function getContentUrl($menuId)
-    {
-        $query = self::getQuery();
-        $query->where("#menuId = {$menuId}");
-        $query->orderBy("#level");
-
-        $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
-
-        if($rec) {
-            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
-        } else {
-            return toUrl(array('A', 'a', 'menuId' => $menuId));
-        }
     }
 
 
@@ -395,4 +375,55 @@ class cms_Articles extends core_Manager
 	    
     	return $ogp;
     }
+
+
+    /**
+     *
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($rec->state == 'active' && $action == 'delete') {
+            $roles = 'no_one';
+        }
+    }
+
+
+
+    /**********************************************************************************************************
+     *
+     * Интерфейс cms_SourceIntf
+     *
+     **********************************************************************************************************/
+
+
+    /**
+     * Връща URL към публичната част (витрината), отговаряща на посоченото меню
+     */
+    function getContentUrl($menuId)
+    {
+        $query = self::getQuery();
+        $query->where("#menuId = {$menuId}");
+        $query->orderBy("#level");
+
+        $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
+
+        if($rec) {
+            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
+        } else {
+            return NULL ;
+        }
+    }
+
+
+    /**
+     * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
+     */
+    function getWorkshopUrl($menuId)
+    {
+        $url = array('cms_Articles', 'list', 'menuId' => $menuId);
+ 
+        return $url;
+    }
+
+
 }

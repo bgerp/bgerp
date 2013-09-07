@@ -638,17 +638,8 @@ class forum_Boards extends core_Master {
 	        }
    		}
     }
-    
-   
-    /**
-     * Връща URL към себе си (форума)
-     */
-    function getContentUrl($cMenuId)
-    {
-        return array('forum_Boards', 'forum');
-    }
-    
-    
+
+
     /**
      * Ако сме в екшън за единичен изглед, подготвяме навигацията
      */
@@ -706,4 +697,33 @@ class forum_Boards extends core_Master {
      	$conf = core_Packs::getConfig('forum');
      	return cls::get($conf->FORUM_DEFAULT_THEME);
      }
+
+
+
+    /**********************************************************************************************************
+     *
+     * Интерфейс cms_SourceIntf
+     *
+     **********************************************************************************************************/
+
+    /**
+     * Връща URL към себе си (форума)
+     */
+    function getContentUrl($cMenuId)
+    {
+        return array('forum_Boards', 'forum');
+    }
+
+
+    /**
+     * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
+     */
+    function getWorkshopUrl($menuId)
+    {
+        $url = array('forum_Boards', 'list');
+
+        return $url;
+    }
+
+
 }
