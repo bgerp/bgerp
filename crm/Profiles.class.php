@@ -606,6 +606,12 @@ class crm_Profiles extends core_Master
                 $attr['class'] .= ' inactive';
             }
 
+            if($userRec->state != 'active') {
+                $attr['class'] .= ' state-' . $userRec->state;
+            }
+
+            $attr['title'] = $userRec->names;
+
             $link = ht::createLink($title, $url, $warning, $attr);
         }
         
