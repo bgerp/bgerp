@@ -110,7 +110,12 @@ class crm_Setup extends core_ProtoSetup
         
         // Кофа за crm файлове
         $html .= $Bucket->createBucket('crmFiles', 'CRM Файлове', NULL, '300 MB', 'user', 'user');
-
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме на плъгина за превръщане на никовете в оцветени линкове
+        $html .= $Plugins->forcePlugin('NickToLink', 'crm_ProfilesPlg', 'core_Manager', 'family');
 
         // Нагласяване на Cron        
         $rec = new stdClass();
