@@ -490,6 +490,13 @@ class fileman_Download extends core_Manager {
         // Клас на връзката
         $attr['class'] = 'file';
 
+        // Ограничаваме максиманата дължина на името на файла
+        $nameFix = str::limitLen($name, 32);
+
+        if($nameFix != $name) {
+            $attr['title'] = $name;
+        }
+
         //Инстанция на класа
         $FileSize = cls::get('fileman_FileSize');
         
@@ -512,7 +519,7 @@ class fileman_Download extends core_Manager {
                 if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
                     
                     //След името на файла добавяме размера в скоби
-                    $name = $name . "&nbsp;({$size})";     
+                    $nameFix = $nameFix . "&nbsp;({$size})";     
                 }
             } else {
                 
@@ -520,19 +527,18 @@ class fileman_Download extends core_Manager {
                 $size =  str_ireplace('&nbsp;', ' ', $size);
                 
                 //Добавяме към атрибута на линка информация за размера
-                $attr['title'] = tr("|Размер:|* {$size}");
-				
+                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
             }
             
             //Генерираме връзката 
             $url  = static::generateUrl($fh);
-            $link = ht::createLink($name, $url, NULL, $attr);
+            $link = ht::createLink($nameFix, $url, NULL, $attr);
         } else {
 			if(!file_exists($path)) {
 				$attr['style'] .= ' color:red;';
 			}
             //Генерираме името с иконата
-            $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$name} </span>";
+            $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
         }
         
         return $link;
