@@ -108,14 +108,14 @@ class fileman_Files extends core_Master
         
         // Състояние на файла
         $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)",
-            array('caption' => 'Състояние'));
+            array('caption' => 'Състояние', 'column' => 'none'));
         
         // Плъгини за контрол на записа и модифицирането
         $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
             'Download=fileman_Download,Versions=fileman_Versions,fileman_Wrapper');
         
         // 
-        $this->FLD('extractedOn', 'datetime(format=smartTime)', 'caption=Екстрактнато->На,input=none');
+        $this->FLD('extractedOn', 'datetime(format=smartTime)', 'caption=Екстрактнато->На,input=none,column=none');
         
         // Индекси
         $this->setDbUnique('fileHnd');
