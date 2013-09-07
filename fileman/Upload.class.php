@@ -185,15 +185,17 @@ class fileman_Upload extends core_Manager {
         		.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
         	</style>
             <form id="uploadform" enctype="multipart/form-data" method="post">
+            
+                <span class="uploaded-filenames"> </span>
+
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
                 
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Избор') . '</button>
+                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Избор') . '</button><input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
                     
-                    <span class="uploaded-filenames"> </span>
                     
-                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
+                    
                 </div>
                 
                 <div id="filename"></div>

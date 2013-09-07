@@ -7,7 +7,7 @@ body{
 }
 
 #inputDiv input {
-	display:block;
+	display4:block;
 }
 
 #uploadform {
@@ -21,7 +21,7 @@ body{
 }
 
 #uploadBtn {
-	display:block; 
+	display4:block; 
 	margin-top:10px;
 	background-image:url('../img/upload.gif');
 	background-position:5px center; 
@@ -98,4 +98,20 @@ body{
      background-repeat:no-repeat;
      background-position: 0px center;
      font-size:1.1em;
+}
+
+
+.uploaded-file {
+	background-color:#eee;
+	border:solid 1px #ccc;
+	font-size:0.8em;
+	padding:3px;
+	margin-bottom:5px;
+	display:table;
+	border-radius:3px;
+}
+
+.uploaded-file img {
+	width:14px;
+	height:14px;
 }
