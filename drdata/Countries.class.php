@@ -182,6 +182,8 @@ class drdata_Countries extends core_Manager {
 
     public static function getIdByName($country)
     {
+        static $countriesArr;
+
         $canonicNames = array(
             'malta' => "malta",
             'austria' => "austria",
@@ -318,63 +320,68 @@ class drdata_Countries extends core_Manager {
             'makedonija' => "macedonia" 
         );
 
-        $country = mb_strtolower($country);
+        $country = strtolower(trim(str::utf82ascii($rec->commonName)));
 
         if($canonicalNames[$country]) {
             $country = $canonicalNames[$country];
         }
 
-        $country = preg_replace('/[^a-zA-Z \'\d\p{L}]/u', "", $country);
+        $country = trim(preg_replace('/[^a-zA-Z \'\d\p{L}]/u', " ", $country));
         
         if(!$country) return FALSE;
 
-        $rec = self::fetch(array("LOWER(#formalName) LIKE '[#1#]'", $country));
-
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonName) LIKE '[#1#]'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '[#1#]'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonName) LIKE '%[#1#]'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '%[#1#]'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#formalName) LIKE '%[#1#]'", $country));
-        }
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonName) LIKE '%[#1#]%'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#formalName) LIKE '%[#1#]%'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#letterCode2) LIKE '[#1#]'", $country));
-        }
-        
-        if(!$rec) {
-            $rec = self::fetch(array("LOWER(#letterCode3) LIKE '[#1#]'", $country));
+        if(!$countriesArr) {
+            $countriesArr = self::prepareCountiesArr();
         }
 
-        if($rec) {
- 
-            return $rec->id;
+        if($id = $countriesArr[$country]) {
+
+            return $id;
         }
 
+
+        $country = " {$country} ";
+
+        foreach($countriesArr as $c => $id) {
+
+            if(strpos($country, " {$c} ") !== FALSE) {
+                
+                if(strlen($c) > 3) {
+
+                    return $id;
+                }
+            }
+
+            if(strpos(" {$c} ", $country) !== FALSE) {
+                if(strlen($country) > 5) {
+
+                    return $id;
+                }
+            }
+        }
+
+        return FALSE;
     }
+
+
+    /**
+     * Подготвя масив за търсене на страна
+     */
+    private static function prepareCountiesArr()
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch()) {
+            $res[strtolower(trim($rec->commonName))] = $rec->id;
+            $res[strtolower(trim($rec->formalName))] = $rec->id;
+            $res[strtolower(trim(str::utf82ascii($rec->commonName)))] = $rec->id;
+            $res[strtolower(trim($rec->letterCode2))] = $rec->id;
+            $res[strtolower(trim($rec->letterCode3))] = $rec->id;
+        }
+
+        return $res;
+    }
+
+
 
     function act_GetRegExpr()
     {
