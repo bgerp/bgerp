@@ -319,13 +319,12 @@ class drdata_Countries extends core_Manager {
             'swizerland' => "switzerland",
             'makedonija' => "macedonia" 
         );
-
-        $country = strtolower(trim(str::utf2ascii($rec->commonName)));
+ 
+        $country = strtolower(trim(str::utf2ascii($country)));
 
         if($canonicalNames[$country]) {
             $country = $canonicalNames[$country];
         }
-
         $country = trim(preg_replace('/[^a-zA-Z \'\d\p{L}]/u', " ", $country));
         
         if(!$country) return FALSE;
@@ -361,6 +360,14 @@ class drdata_Countries extends core_Manager {
         }
 
         return FALSE;
+    }
+
+
+    function act_Test()
+    {
+        $c = 'bulgaria';
+
+        bp(self::getIdByName($c));
     }
 
 
