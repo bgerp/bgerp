@@ -320,7 +320,7 @@ class drdata_Countries extends core_Manager {
             'makedonija' => "macedonia" 
         );
 
-        $country = strtolower(trim(str::utf82ascii($rec->commonName)));
+        $country = strtolower(trim(str::utf2ascii($rec->commonName)));
 
         if($canonicalNames[$country]) {
             $country = $canonicalNames[$country];
@@ -373,7 +373,7 @@ class drdata_Countries extends core_Manager {
         while($rec = $query->fetch()) {
             $res[strtolower(trim($rec->commonName))] = $rec->id;
             $res[strtolower(trim($rec->formalName))] = $rec->id;
-            $res[strtolower(trim(str::utf82ascii($rec->commonName)))] = $rec->id;
+            $res[strtolower(trim(str::utf2ascii($rec->commonName)))] = $rec->id;
             $res[strtolower(trim($rec->letterCode2))] = $rec->id;
             $res[strtolower(trim($rec->letterCode3))] = $rec->id;
         }
