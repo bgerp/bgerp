@@ -182,177 +182,175 @@ class drdata_Countries extends core_Manager {
 
     public static function getIdByName($country)
     {
-        static $countriesArr;
+        static $commonNamesArr, $namesArr;
+        
+        if(!$commonNamesArr) {
+            $query = self::getQuery();
+            while($rec = $query->fetch()) {
+                $commonNamesArr[strtolower(trim($rec->commonName))] = $rec->id;
+                $commonNamesArr[strtolower(trim(str::utf2ascii($rec->commonNameBg)))] = $rec->id;
+                $namesArr[strtolower(trim($rec->formalName))] = $rec->id;
+                $namesArr[strtolower(trim($rec->letterCode2))] = $rec->id;
+                $namesArr[strtolower(trim($rec->letterCode3))] = $rec->id;
+            }
 
-        $canonicNames = array(
-            'malta' => "malta",
-            'austria' => "austria",
-            'germany' => "germany",
-            'france' => "france",
-            'sweden' => "sweden",
-            'switzerland' => "switzerland",
-            'italy' => "italy",
-            'netherlands' => "netherlands",
-            'greece' => "greece",
-            'uk and spain' => "united kingdom",
-            'macedonia' => "macedonia",
-            'cyprus' => "cyprus",
-            'the netherlands' => "netherlands",
-            'belgium' => "belgium",
-            'nederlands' => "netherlands",
-            'spain' => "spain",
-            'german' => "germany",
-            'latvia' => "latvia",
-            'norway' => "norway",
-            'denmark' => "denmark",
-            'denmark' => "denmark",
-            'skopje macedonia' => "macedonia",
-            'united kingdom' => "united kingdom",
-            'ireland' => "ireland",
-            'romania' => "romania",
-            'norway' => "norway",
-            'lithuania' => "lithuania",
-            'portugal' => "portugal",
-            'czech republic' => "czech republic",
-            'england' => "united kingdom",
-            'luxembourg' => "luxembourg",
-            'hungary' => "hungary",
-            'slovenia' => "slovenia",
-            'bosnia and hercegowina' => "bosnia and hercegowina",
-            'roamnia' => "romania",
-            'croatia' => "croatia",
-            'uk' => "united kingdom",
-            'estonia' => "estonia",
-            'untited kingdom' => "united kingdom",
-            'bosnia and herzegovina' => "bosnia and herzegovina",
-            'slovakia' => "slovakia",
-            'slovak republic' => "slovakia",
-            'finland' => "finland",
-            'sewden' => "sweden",
-            'italia' => "italy",
-            'yugoslavia' => "yugoslavia",
-            'monaco' => "monaco",
-            'slovakia' => "slovakia",
-            'scotland' => "scotland",
-            'ch' => "switzerland",
-            'belgique' => "belgium",
-            'uk' => "united kingdom",
-            'kosovo' => "kosovo",
-            'nederland' => "netherlands",
-            'slowakische republik' => "slovakia",
-            'italy' => "italy",
-            'hellas' => "greece",
-            'macedonia' => "macedonia",
-            'iceland' => "iceland",
-            'italia' => "italy",
-            'switerland' => "switzerland",
-            'mallorca - spain' => "spain",
-            'greeece' => "greece",
-            'north ireland' => "north ireland",
-            'serbia' => "serbia",
-            'españa' => "spain",
-            'malta' => "malta",
-            'slovak republic' => "slovakia",
-            'belgium' => "belgium",
-            'germany' => "germany",
-            'deutschland' => "germany",
-            'france' => "france",
-            'united kongdom' => "united kingdom",
-            'grèce' => "greece",
-            'holland' => "netherlands",
-            'andorra' => "andorra",
-            'belgium' => "belgium",
-            'italy' => "italy",
-            'cz' => "czech republic",
-            'san marino' => "san marino",
-            'gemany' => "germany",
-            'norvège' => "norway",
-            'lithuania' => "lithuania",
-            'ittaly' => "italy",
-            'finand' => "finland",
-            'spain' => "spain",
-            'greese' => "greece",
-            'slovenija' => "slovenia",
-            'latvia' => "latvia",
-            'ireland' => "ireland",
-            'czech  republic' => "",
-            'czech rep.' => "czech republic",
-            'swiss' => "switzerland",
-            'northern ireland' => "north ireland",
-            'netherlands' => "netherlands",
-            'estona' => "estonia",
-            'creece' => "greece",
-            'svitzerland' => "switzerland",
-            'switzerland' => "switzerland",
-            'latvijas' => "latvia",
-            'холандия' => "netherlands",
-            'македонија' => "macedonia",
-            'lituanie' => "lithuania",
-            'румъния' => "romaina",
-            'france' => "france",
-            'francе' => "france",
-            'yougoslavie' => "yugoslavia",
-            'danmark' => "denmark",
-            'united kingdom, england' => "united kingdom",
-            'greece' => "greece",
-            'iraland' => "ireland",
-            'builgaria and uk' => "united kingdom",
-            'portugal' => "portugal",
-            'norawy' => "norway",
-            'liechtenstein' => "liechtenstein",
-            'roumanie' => "romania",
-            'romania' => "romania",
-            'slowenia' => "slovenia",
-            'belgium.' => "belgium",
-            'luxemburg' => "luxembourg",
-            'slovenska republika' => "slovenia",
-            'svizzera' => "switzerland",
-            'slovaquie' => "slovakia",
-            'marseille france' => "france",
-            'marseillr france' => "france",
-            'chez republic' => "czech republic",
-            'deutschland' => "germany",
-            'greek' => "greece",
-            'espana' => "spain",
-            'lithuania' => "lithuania",
-            'macedonia' => "macedonia",
-            'swizerland' => "switzerland",
-            'makedonija' => "macedonia" 
-        );
- 
+            $mis = array(
+                'aequatorial guinea' => 'equatorial guinea',
+                'algerie' => 'algeria',
+                'b' => 'bulgaria',
+                'balgaria' => 'bulgaria',
+                'balgium' => 'belgium',
+                'bealrus' => 'belarus',
+                'belgique' => 'belgium',
+                'belguim' => 'belgium',
+                'bilgium' => 'belgium',
+                'blagaria' => 'bulgaria',
+                'bosna i hercigovina' => 'bosnia and herzegovina',
+                'brasil' => 'brazil',
+                'bugaria' => 'bulgaria',
+                'bul' => 'bulgaria',
+                'bulagia' => 'bulgaria',
+                'bulagria' => 'bulgaria',
+                'bularia' => 'bulgaria',
+                'bulgairya' => 'bulgaria',
+                'bulgari' => 'bulgaria',
+                'bulgarien' => 'bulgaria',
+                'bulgyaria' => 'bulgaria',
+                'bylgariq' => 'bulgaria',
+                'cameroun' => 'cameroon',
+                'chech republic' => 'czech republic',
+                'chez republic' => 'czech republic',
+                'cote d ivoire' => 'cote d\'ivoire',
+                'cote d\'ivoir' => 'cote d\'ivoire',
+                'czech' => 'czech republic',
+                'd' => 'germany',
+                'danmark' => 'denmark',
+                'demnark' => 'denmark',
+                'deuschland' => 'germany',
+                'deutschland' => 'germany',
+                'dubai' => 'united arab emirates',
+                'england' => 'united kingdom',
+                'espana' => 'spain',
+                'estona' => 'estonia',
+                'f' => 'france',
+                'finalnd' => 'finland',
+                'finand' => 'finland',
+                'gemany' => 'germany',
+                'german' => 'germany',
+                'gramany' => 'germany',
+                'grecce' => 'greece',
+                'grece' => 'greece',
+                'greeece' => 'greece',
+                'greek' => 'greece',
+                'greese' => 'greece',
+                'guinee' => 'guinea',
+                'hellas' => 'greece',
+                'hing kong' => 'hong kong',
+                'holland' => 'netherlands',
+                'hrvatska' => 'harvatia',
+                'ile maurice' => 'mauritius',
+                'iraland' => 'ireland',
+                'israrel' => 'israel',
+                'italien' => 'italy',
+                'itally' => 'italy',
+                'korea south' => 'republic of korea',
+                'kosova' => 'kosovo',
+                'latvija' => 'latvia',
+                'lithunia' => 'lithuania',
+                'luxemburg' => 'luxembourg',
+                'makedonija' => 'macedonia',
+                'makedoniq' => 'macedonia',
+                'maroc' => 'morocco',
+                'marocco' => 'morocco',
+                'nederland' => 'netherlands',
+                'nederlands' => 'netherlands',
+                'netherland' => 'netherlands',
+                'niederlande' => 'netherlands',
+                'norawy' => 'norway',
+                'noruega' => 'norway',
+                'o.a.e.' => 'united arab emirates',
+                'oesterreich' => 'austria',
+                'osterreich' => 'austria',
+                'palestinian territory' => 'palestinа',
+                'polska' => 'poland',
+                'protugal' => 'portugal',
+                'rbulgaria' => 'bulgaria',
+                'srbija' => 'serbia',
+                'roamnia' => 'romania',
+                'rossia' => 'russia',
+                'rossii' => 'russia',
+                'schweiz' => 'switzerland',
+                'seoul, korea' => 'republic of korea',
+                'sewden' => 'sweden',
+                'slovania' => 'slovenia',
+                'slovenija' => 'slovenia',
+                'slovenska' => 'slovenia',
+                'slowakische' => 'slovakia',
+                'slowenia' => 'slovenia',
+                'south korea' => 'republic of korea',
+                'spainia' => 'spain',
+                'suomi' => 'finland',
+                'svizzera' => 'switzerland',
+                'sw' => 'switzerland',
+                'switerland' => 'switzerland',
+                'swizerland' => 'switzerland',
+                'polynesie francaise' => 'french polynesia',
+                'tannzania' => 'tanzania',
+                'trinidad & tobago' => 'trinidad and tobago',
+                'trinidad & tobago ' => 'trinidad and tobago',
+                'tukey' => 'turkey',
+                'tunisie' => 'tunisia',
+                'northern cyp' => 'northern cyprus',
+                'turkiye' => 'turkey',
+                'uae' => 'united arab emirates',
+                'uk' => 'united kingdom',
+                'ukraina' => 'ukraine',
+                'unaited states' => 'united states',
+                'unated states' => 'united states',
+                'united kigdom' => 'united kingdom',
+                'united kingom' => 'united kingdom',
+                'united kongdom' => 'united kingdom',
+                'untited kingdom' => 'united kingdom',
+                'untited states' => 'united kingdom',
+                'veliko tarnovo' => 'bulgaria',
+                'viet nam' => 'vietnam',
+                'việt nam' => 'vietnam',
+                'yugoslavia' => 'serbia',
+                'ελλαδα' => 'greece',
+                'usa' => 'united states',
+            );
+
+            foreach($mis as $w => $c) {
+                expect($id = $commonNamesArr[$c], $c, $commonNamesArr);
+                expect(!$commonNamesArr[$w], $w, $commonNamesArr);
+                $commonNamesArr[$w] = $id;
+            }
+        }
+
         $country = strtolower(trim(str::utf2ascii($country)));
 
-        if($canonicalNames[$country]) {
-            $country = $canonicalNames[$country];
-        }
-        $country = trim(preg_replace('/[^a-zA-Z \'\d\p{L}]/u', " ", $country));
+        $country = trim(preg_replace('/[^a-zA-Z\'\d\p{L}]/u', " ", $country));
         
         if(!$country) return FALSE;
+        
 
-        if(!$countriesArr) {
-            $countriesArr = self::prepareCountiesArr();
+        if($id = $namesArr[$country]) {
+
+            return $id;
         }
-
-        if($id = $countriesArr[$country]) {
+        
+        if($id = $commonNamesArr[$country]) {
 
             return $id;
         }
 
-
         $country = " {$country} ";
 
-        foreach($countriesArr as $c => $id) {
+        foreach($commonNamesArr as $c => $id) {
 
             if(strpos($country, " {$c} ") !== FALSE) {
                 
                 if(strlen($c) > 3) {
-
-                    return $id;
-                }
-            }
-
-            if(strpos(" {$c} ", $country) !== FALSE) {
-                if(strlen($country) > 5) {
 
                     return $id;
                 }
@@ -371,23 +369,7 @@ class drdata_Countries extends core_Manager {
     }
 
 
-    /**
-     * Подготвя масив за търсене на страна
-     */
-    private static function prepareCountiesArr()
-    {
-        $query = self::getQuery();
-        while($rec = $query->fetch()) {
-            $res[strtolower(trim($rec->commonName))] = $rec->id;
-            $res[strtolower(trim($rec->formalName))] = $rec->id;
-            $res[strtolower(trim(str::utf2ascii($rec->commonName)))] = $rec->id;
-            $res[strtolower(trim($rec->letterCode2))] = $rec->id;
-            $res[strtolower(trim($rec->letterCode3))] = $rec->id;
-        }
-
-        return $res;
-    }
-
+ 
 
 
     function act_GetRegExpr()
