@@ -131,8 +131,8 @@ class cal_TaskProgresses extends core_Detail
         
     	if(Mode::is('screenMode', 'narrow')){
 			$res = new ET('  <!--ET_BEGIN COMMENT_LI-->
-                                Дата: [#date#] <br /> 
-								Потребител: [#person#] <br />
+                                Дата: [#createdOn#] <br /> 
+								Потребител: [#createdBy#] <br />
 								Описание: [#message#] <br />
 								Отработено време: [#workingTime#] <br />
 								Прогрес: [#progress#]</br>
@@ -142,19 +142,11 @@ class cal_TaskProgresses extends core_Detail
                 ');
 			
 			foreach($data->recs as $rec){
-				$date = dt::mysql2verbal($rec->createdOn, "smartTime");
-				$person = core_Users::recToVerbal(core_Users::fetchField($rec->createdBy))->nick;
-				$message = $this->recToVerbal($rec)->message;
-				$time = cls::get(type_Time);
-				$workingTime = $time->toVerbal($rec->workingTime);
-				$progress = $rec->progress * 100 . "%";
-								
+				
+				$row = $this->recToVerbal($rec);
+							
 				$cTpl = $res->getBlock("COMMENT_LI");
-				$cTpl->replace($date, 'date');
-				$cTpl->replace($person, 'person');
-				$cTpl->replace($message, 'message');
-				$cTpl->replace($workingTime, 'workingTime');
-				$cTpl->replace($progress, 'progress');
+				$cTpl->placeObject($row);
 				$cTpl->removeBlocks();
 				$cTpl->append2master();
 			}
