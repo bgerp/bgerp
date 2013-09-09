@@ -106,7 +106,7 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_POP3_TIMEOUT'  => array ('time(suggestions=1 сек.|2 сек.|3 сек.)', 'mandatory, caption=Таймаут на POP3 сокета->Време'),
             
             // Максималната разрешена памет за използване
-            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер'),
+            'EMAIL_MAX_ALLOWED_MEMORY' => array ('fileman_FileSize', 'mandatory, caption=Максималната разрешена памет за използване при парсиране на имейли->Размер, suggestions=10 kB|20 kB|30 kB|40 kB'),
 
             // Шаблон за име на папки
             'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory, caption=Шаблон за име на папки с несортирани имейли->Шаблон'),
