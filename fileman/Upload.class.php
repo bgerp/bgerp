@@ -181,7 +181,7 @@ class fileman_Upload extends core_Manager {
     {
         $tpl = new ET('
             <style>
-        		.btn-ulfile{background-image:url(' . sbf('img/16/choose-icon.png', '') . ');}
+        		.btn-ulfile{background-image:url(' . sbf('img/16/paper_clip.png', '') . ');}
         		.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
         	</style>
             <form id="uploadform" enctype="multipart/form-data" method="post">
@@ -192,10 +192,8 @@ class fileman_Upload extends core_Manager {
                 <div id="inputDiv">
                 
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Избор') . '</button><input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
-                    
-                    
-                    
+                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button><input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
+
                 </div>
                 
                 <div id="filename"></div>

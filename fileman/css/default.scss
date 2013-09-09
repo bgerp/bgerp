@@ -6,10 +6,6 @@ body{
 	font-family:Helvetica,Verdana,Sans-serif;
 }
 
-#inputDiv input {
-	display4:block;
-}
-
 #uploadform {
 	width:100%;
 }
@@ -21,7 +17,6 @@ body{
 }
 
 #uploadBtn {
-	display4:block; 
 	margin-top:10px;
 	background-image:url('../img/upload.gif');
 	background-position:5px center; 
@@ -38,10 +33,14 @@ body{
 	width:0;
 	height:0;
 	border: none;
+	padding:0;
+	position:absolute;
+	top:0;
+	left:0;
 }
+
 .btn-ulfile{
 	margin-top:10px; 
-	padding-left:24px !important;
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
