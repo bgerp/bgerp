@@ -496,13 +496,7 @@ class sales_SaleRequests extends core_Master
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
-    	
-	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
-	    		$img = doc_Folders::getIconImg($rec->folderId);
-	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
-	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-            	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
-	    	}
+    	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	
 	    	if($rec->state == 'draft'){
 	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";

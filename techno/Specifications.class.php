@@ -324,12 +324,7 @@ class techno_Specifications extends core_Master {
 	    		$row->tools = ht::createLink($img, array($mvc, 'ajust', $rec->id, 'ret_url' => TRUE)) . $row->tools . " " . $rec->id;
 	    	}
 	    	
-	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
-	    		$img = doc_Folders::getIconImg($rec->folderId);
-	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
-	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-            	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
-	    	}
+	    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    }
     }
     
