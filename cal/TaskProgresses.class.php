@@ -144,6 +144,7 @@ class cal_TaskProgresses extends core_Detail
 			foreach($data->recs as $rec){
 				$date = dt::mysql2verbal($rec->createdOn, "smartTime");
 				$person = core_Users::recToVerbal(core_Users::fetchField($rec->createdBy))->nick;
+				$message = $this->recToVerbal($rec)->message;
 				$time = cls::get(type_Time);
 				$workingTime = $time->toVerbal($rec->workingTime);
 				$progress = $rec->progress * 100 . "%";
@@ -151,7 +152,7 @@ class cal_TaskProgresses extends core_Detail
 				$cTpl = $res->getBlock("COMMENT_LI");
 				$cTpl->replace($date, 'date');
 				$cTpl->replace($person, 'person');
-				$cTpl->replace($rec->message, 'message');
+				$cTpl->replace($message, 'message');
 				$cTpl->replace($workingTime, 'workingTime');
 				$cTpl->replace($progress, 'progress');
 				$cTpl->removeBlocks();
