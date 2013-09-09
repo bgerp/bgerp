@@ -39,7 +39,7 @@ class price_ListDocs extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc2';
     
     
     /**
@@ -157,14 +157,17 @@ class price_ListDocs extends core_Master
     private function getDefaultCurrency($rec)
     {
     	 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	 
     	 if(cls::haveInterface('doc_ContragentDataIntf', $folderClass)){
     	 	$coverId = doc_Folders::fetchCoverId($rec->folderId);
-    	 	$contragentData = $folderClass::getContragentData($coverId);
     	 	
-    	 	return drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
+    	 	$contragentData = $folderClass::getContragentData($coverId);
+    	 	if($contragentData->countryId){
+    	 		$currencyId = drdata_Countries::fetchField($contragentData->countryId, 'currencyCode');
+    	 	}
     	 }
     	 
-    	 return acc_Periods::getBaseCurrencyCode($rec->date);
+    	 return ($currencyId) ? $currencyId : acc_Periods::getBaseCurrencyCode($rec->date);
     }
     
     
@@ -545,5 +548,34 @@ class price_ListDocs extends core_Master
         $tpl = new ET(tr("Моля запознайте се с нашия ценоразпис:") . '#[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf', 'price_PriceListFolderCoverIntf');
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$allowedIntfs = static::getAllowedFolders();
+    	$cover = doc_Folders::getCover($folderId);
+    	foreach ($allowedIntfs as $intf){
+    		if($cover->haveInterface($intf)){
+    			return TRUE;
+    		}
+    	}
+    	return FALSE;
     }
 }
