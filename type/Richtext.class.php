@@ -285,6 +285,14 @@ class type_Richtext extends type_Blob
         
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
+        $from = array("[bQuote]", "[/bQuote]");
+        if(!Mode::is('text', 'plain')) {
+            $to = array("<pre class='richtext-quote'>", "</pre>");
+        } else {
+            $to = array("", "");
+        }
+        $html = str_replace($from, $to, $html);
+
         
         if(!Mode::is('text', 'plain')) {
             
@@ -544,7 +552,7 @@ class type_Richtext extends type_Blob
             }
             $code1 = "<pre class='rich-text code{$classLg}'><code>" . rtrim($code) . "</code></pre>"; 
         } else {
-            $code1 = "<pre class='rich-text'>" . rtrim($code) . "</pre>";
+            return "<pre class='rich-text'>" . rtrim($code) . "</pre>";
         }
         
         $this->_htmlBoard[$place] = $code1;
@@ -643,10 +651,7 @@ class type_Richtext extends type_Blob
             }
         }
         
-        // Добавяме към масива
-        $this->_htmlBoard[$place] = $quote;
-        
-        return "[#{$place}#]";
+        return $quote;
     }
     
     
