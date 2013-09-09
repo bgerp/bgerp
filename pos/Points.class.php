@@ -153,8 +153,7 @@ class pos_Points extends core_Master {
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$urlArr = toUrl(array('pos_Receipts', 'single'));
-    	$data->toolbar->addFnBtn("Отвори", "window.open('{$urlArr}')");
+    	$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'single'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
     }
     
     
@@ -165,7 +164,7 @@ class pos_Points extends core_Master {
     {
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
     		$urlArr = toUrl(array('pos_Receipts', 'single'));
-    		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn');
+    		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
     	}
     }
     
