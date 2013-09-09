@@ -716,6 +716,7 @@ div.acc-detail {
 	font-size:0.9em;	
 }
 
+
 td.portal-date {
 	text-align:right !important;
 	white-space:nowrap;
@@ -2274,6 +2275,15 @@ div.location{
 	background-position: center 2px;
 }
 /*край на търсене в портала*/
+
+
+/*прогрес на задачите*/
+.narrow .document  .progress-table .richtext{
+	min-width:0;
+	word-break:break-all;
+}
+/*край на прогрес на задачите*/
+
 
 /*напомняния*/
 .reminder-table td{

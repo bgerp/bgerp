@@ -130,15 +130,21 @@ class cal_TaskProgresses extends core_Detail
         }
         
     	if(Mode::is('screenMode', 'narrow')){
-			$res = new ET('  <!--ET_BEGIN COMMENT_LI-->
-                                Дата: [#createdOn#] <br /> 
-								Потребител: [#createdBy#] <br />
-								Описание: [#message#] <br />
-								Отработено време: [#workingTime#] <br />
-								Прогрес: [#progress#]</br>
-								</br>
-								<!--ET_END COMMENT_LI-->
-                                      
+			$res = new ET(' <table class="listTable progress-table"> 
+									<!--ET_BEGIN COMMENT_LI-->
+										<tr>
+	                               			<td>
+												<span class="nowrap">[#createdOn#]</span>&nbsp;	
+												[#createdBy#]&nbsp; 
+												[#progress#]&nbsp;
+												<span class="nowrap">[#workingTime#]</span> 
+											</td>
+											<td>
+												[#message#]
+											</td>
+										</tr>
+									<!--ET_END COMMENT_LI-->
+								</table>
                 ');
 			
 			foreach($data->recs as $rec){
