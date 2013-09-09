@@ -81,6 +81,7 @@ class cal_TaskProgresses extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {   
+    	
         expect($data->form->rec->taskId);
 
         $masterRec = cal_Tasks::fetch($data->form->rec->taskId);
@@ -107,18 +108,56 @@ class cal_TaskProgresses extends core_Detail
         if(!count($data->recs)) {
             return NULL;
         }
-        
+    	
         $tpl = new ET('<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
-                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">Прогрес</div>
-                                <div class="listRows">
-                                [#TABLE#]
-                                </div>
-                            </div>
-                        </div>           
-                ');
-        $tpl->replace($this->renderListTable($data), 'TABLE');
-
+	                            <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;margin-top:-30px;">Прогрес</div>
+	                                <div class="listRows">
+	                                [#TABLE#]
+	                                </div>
+	                            </div>
+	                        </div>           
+	                ');
+	        $tpl->replace($this->renderListTable($data), 'TABLE');
+		
         return $tpl;
+    }
+    
+    
+	function on_AfterRenderListTable($mvc, &$res, $data)
+    {
+        if(!count($data->recs)) {
+            return NULL;
+        }
+        
+    	if(Mode::is('screenMode', 'narrow')){
+			$res = new ET('  <!--ET_BEGIN COMMENT_LI-->
+                                Дата: [#date#] <br /> 
+								Потребител: [#person#] <br />
+								Описание: [#message#] <br />
+								Отработено време: [#workingTime#] <br />
+								Прогрес: [#progress#]</br>
+								</br>
+								<!--ET_END COMMENT_LI-->
+                                      
+                ');
+			
+			foreach($data->recs as $rec){
+				$date = dt::mysql2verbal($rec->createdOn, "smartTime");
+				$person = core_Users::recToVerbal(core_Users::fetchField($rec->createdBy))->nick;
+				$time = cls::get(type_Time);
+				$workingTime = $time->toVerbal($rec->workingTime);
+				$progress = $rec->progress * 100 . "%";
+								
+				$cTpl = $res->getBlock("COMMENT_LI");
+				$cTpl->replace($date, 'date');
+				$cTpl->replace($person, 'person');
+				$cTpl->replace($rec->message, 'message');
+				$cTpl->replace($workingTime, 'workingTime');
+				$cTpl->replace($progress, 'progress');
+				$cTpl->removeBlocks();
+				$cTpl->append2master();
+			}
+    	}
     }
     
 
