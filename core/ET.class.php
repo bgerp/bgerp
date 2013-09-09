@@ -392,6 +392,7 @@ class core_ET extends core_BaseClass
      */
     static function escape($str)
     {
+        expect(!($str instanceof stdClass), $str);
         return str_replace('[#', '&#91;#', $str);
     }
     
