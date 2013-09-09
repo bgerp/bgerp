@@ -1,6 +1,5 @@
 #quot-table{
 	margin-top:10px;
-	margin-left:30px;
 	border-collapse:collapse;
 	margin-bottom:0px;
 }
@@ -51,7 +50,6 @@
 }
 
 .wide #condition-title, .wide #conditions, .wide #quote-username{
-	margin-left:30px;
 	margin-top:20px;
 }
 
@@ -72,7 +70,6 @@
 }
 
 #details-holder, #optional-holder{
-	margin-left:30px;
 	padding-top:15px;
 }
 
@@ -148,14 +145,6 @@
 .quiantity-misc{
 	padding-top:5px;
 	font-size:0.9em;
-}
-
-.document .listToolbar{
-	margin-left:25px;
-}
-
-.other-tools {
-	margin-left:20px;
 }
 
 #add-others{

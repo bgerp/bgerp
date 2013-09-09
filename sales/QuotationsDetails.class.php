@@ -172,6 +172,7 @@ class sales_QuotationsDetails extends core_Detail {
        		$rec->price = $rec->price / $masterRec->rate;
        }
        
+       // Спецификациите немогат да са опционални
        if(!$productMan instanceof cat_Products){
        		$form->setField('optional', 'input=none');
        }
@@ -231,7 +232,7 @@ class sales_QuotationsDetails extends core_Detail {
             $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
            
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            foreach ($pricePolicies as $policyId=>$Policy) {
+            foreach ($pricePolicies as $policyId => $Policy) {
                 $Policy = cls::getInterface('price_PolicyIntf', $Policy);
                 
                 $data->toolbar->addBtn($Policy->getPolicyTitle($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId), $addUrl + array('policyId' => $policyId,),
@@ -301,7 +302,6 @@ class sales_QuotationsDetails extends core_Detail {
     
     /**
      * Изчисляване на общата сума на всички задължителни продукти
-     * Ако не е известна цялата сума, показваме "???"
      * @var stdClass $data
      */
     private function calcTotal($data)
@@ -336,7 +336,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$data->total = (object) array('total' => $double->toVerbal($total), 
     								  'totalDisc' => $double->toVerbal($afterDisc),
     								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE),
-    								  'currencyTotalId' =>$data->masterData->rec->paymentCurrencyId);
+    								  'currencyTotalId' => $data->masterData->rec->paymentCurrencyId);
     }
     
     
@@ -511,7 +511,7 @@ class sales_QuotationsDetails extends core_Detail {
     	// Изтриват се предишни записи на спецификацията в офертата
     	$this->delete("#quotationId = $rec->id AND #productId = {$sId} AND #policyId = {$policyId}");
     	
-    	foreach($quantities as $q) {
+    	foreach ($quantities as $q) {
     		if(empty($q)) continue;
     		
     		// Записва се нов детайл за всяко зададено к-во

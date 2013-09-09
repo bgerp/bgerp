@@ -96,7 +96,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, folderId, deliveryTermId, createdOn,createdBy';
+    public $listFields = 'id, date, folderId, paymentCurrencyId, state, createdOn,createdBy';
     
 
     /**
@@ -120,7 +120,7 @@ class sales_Quotations extends core_Master
    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'paymentMethodId, reff, company, person, email, address';
+   var $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
     
    /**
@@ -178,7 +178,10 @@ class sales_Quotations extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
        $rec = &$data->form->rec;
-       $mvc->populateDefaultData($rec);
+    	if(empty($rec->id)){
+       	  $mvc->populateDefaultData($data->form);
+       }
+       
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
@@ -189,6 +192,8 @@ class sales_Quotations extends core_Master
        if(!$rec->person){
        	  $data->form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
+       
+       $data->form->addAttr('paymentCurrencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
     
@@ -221,7 +226,7 @@ class sales_Quotations extends core_Master
 			}
 		
 	    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-			    $form->setWarning('rate', 'Изходната сума има голяма ралзика спрямо очакваното.
+			    $form->setWarning('rate', 'Изходната сума има голяма разлика спрямо очакваното.
 			    					  Сигурни ли сте че искате да запишете документа');
 			}
 		}
@@ -245,34 +250,35 @@ class sales_Quotations extends core_Master
 		}
     }
     
+    
     /**
      * Попълване на дефолт данни
      */
-    public function populateDefaultData(&$rec)
+    public function populateDefaultData(core_Form &$form)
     {
-    	$rec->date = dt::now();
-    	expect($data = doc_Folders::getContragentData($rec->folderId), "Проблем с данните за контрагент по подразбиране");
-    	$contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-    	$contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    	$rec->contragentClassId = $contragentClassId;
-    	$rec->contragentId = $contragentId;
+    	$form->setDefault('date', dt::now());
+    	expect($data = doc_Folders::getContragentData($form->rec->folderId), "Проблем с данните за контрагент по подразбиране");
+    	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+    	$form->setDefault('contragentClassId', $contragentClassId);
+    	$form->setDefault('contragentId', $contragentId);
     	
-    	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($rec->date);
-    	$rec->paymentCurrencyId = $currencyCode;
+    	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($form->rec->date);
+    	$form->setDefault('paymentCurrencyId', $currencyCode);
     	
     	if ($data->company && empty($rec->company)) {
-    		$rec->company = $data->company;
+    		$form->setDefault('company', $data->company);
     	}
     		
     	if($data->person && empty($rec->person)) {
-    		$rec->person = $data->person;
+    		$form->setDefault('person', $data->person);
     	}
     		
     	if(!$data->country){
     		$conf = core_Packs::getConfig('crm');
     		$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
     	}
-    	$rec->country = $data->country;
+    	$form->setDefault('country', $data->country);
     }
     
     
@@ -293,9 +299,7 @@ class sales_Quotations extends core_Master
 	    	}
 	    
 	    	$row->number = $mvc->getHandle($rec->id);
-			
-			$username = core_Users::fetch($rec->createdBy);
-			$row->username = core_Users::recToVerbal($username, 'names')->names;
+			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			
 			if($row->address){
 				$row->contragentAdress = $row->address . ",";
@@ -321,19 +325,14 @@ class sales_Quotations extends core_Master
 					}
 				}
 				
-				if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId) && !Mode::is('text', 'xhtml') && !Mode::is('printing')){
+				if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
 					$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
 				}
 			}
 		}
 		
     	if($fields['-list']){
-	    	if(doc_Folders::haveRightFor('single', $rec->folderId)){
-	    		$img = doc_Folders::getIconImg($rec->folderId);
-	    		$attr = array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . $img . ');');
-	    		$link = array('doc_Threads', 'list', 'folderId' => $rec->folderId);
-            	$row->folderId = ht::createLink($row->folderId, $link, NULL, $attr);
-	    	}
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    }
     }
     
@@ -412,7 +411,7 @@ class sales_Quotations extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата оферта:") . ' #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашата оферта") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
