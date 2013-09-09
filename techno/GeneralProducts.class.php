@@ -281,8 +281,12 @@ class techno_GeneralProducts extends core_Manager {
     
     
 	/**
-	 * Връща изпозлваните документи
-     * @see techno_ProductsIntf::getUsedDocs
+	 * Връща масив от използваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
      */
     function getUsedDocs($data)
     {
