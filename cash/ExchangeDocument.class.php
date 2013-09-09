@@ -224,7 +224,7 @@ class cash_ExchangeDocument extends core_Master
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		   
 		    if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
-		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма ралзика спрямо очакваното.
+		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма разлика спрямо очакваното.
 		    					   Сигурни ли сте че искате да запишете документа');
 		    }
 		    
