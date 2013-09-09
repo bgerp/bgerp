@@ -190,7 +190,7 @@ class cat_Params extends core_Manager
     		$row = static::recToVerbal($rec, 'name,suffix');
     		$title = $row->name;
     		if($rec->suffix){
-    			$title .= " - {$row->suffix}";
+    			$title .= " ({$row->suffix})";
     		}
     		$options[$rec->{$index}] = $title;
     	}
