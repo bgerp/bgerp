@@ -195,7 +195,7 @@ class fileman_Upload extends core_Manager {
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
-                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn" disabled="disabled"/>
+                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
 
                 </div>
                 
@@ -367,7 +367,7 @@ class fileman_Upload extends core_Manager {
                 }
                 
                 // Даваме възможност на бутона да се натисне
-                $('#uploadBtn').removeAttr('disabled');
+                $('#uploadBtn').removeAttr('disabled').removeClass('btn-disabled');
             }
             
             // Премахва посочения файл
@@ -425,7 +425,7 @@ class fileman_Upload extends core_Manager {
     				if (disableBtn == 'yes') {
     					
     					// Деактивираме бутона
-    					$('#uploadBtn').attr('disabled', 'disabled');
+    					$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled');
         			}
     			});
             }
