@@ -334,7 +334,7 @@ class fileman_Upload extends core_Manager {
     			}
                 
     			// В държача за качени файлове добавяме името на файла и линк за премахване
-                $('.uploaded-filenames').prepend('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
+                $('.uploaded-filenames').append('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
                 
                 // Ако е зададен качване на много файлове едновременно
                 if (multiUpload != 0) {
@@ -354,7 +354,7 @@ class fileman_Upload extends core_Manager {
                 	// Ако има accept
                 	if (accept) {
                 		
-                		// Добавяме към бътоба
+                		// Добавяме към бътона
                 		newBtnInput += 'accept=' + accept;
         			}
         			
