@@ -46,6 +46,10 @@ body{
     filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
 }
 
+#uploadBtn.only-one-file{
+	left:0px;
+}
+
 /*бутона за IE*/
 .ulfile {
 	position: absolute;
