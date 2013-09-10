@@ -49,7 +49,7 @@ class fileman_Upload extends core_Manager {
         }
         
         // Шаблона с качените файлове и грешките
-        $add = new ET();
+        $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');
         
         // Ако е стартрино качването
         if(Request::get('Upload')) {
@@ -81,11 +81,11 @@ class fileman_Upload extends core_Manager {
                             // Записваме му съдържанието
                             $this->Files->setContent($fh, $_FILES[$inputName]['tmp_name']);
                             
-                            $add->append($Buckets->getInfoAfterAddingFile($fh));
+                            $add->append($Buckets->getInfoAfterAddingFile($fh), 'ADD');
                             
                             if($callback && !$_FILES[$inputName]['error']) {
                                 $name = $this->Files->fetchByFh($fh, 'name');
-                                $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>");
+                                $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>", 'ADD');
                             }
                         }
                     } else {
@@ -113,7 +113,7 @@ class fileman_Upload extends core_Manager {
                     foreach($err as $e) {
                         $error->append("<li>" . tr($e) . "</li>", 'ERR');
                     }
-                    $add->append($error);
+                    $add->append($error, 'ERR');
                 }
             }
         }
