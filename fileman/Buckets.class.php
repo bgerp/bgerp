@@ -123,7 +123,7 @@ class fileman_Buckets extends core_Manager {
         }
 
         // Попълване на информацията
-        $info->title = tr("|* &quot;|$row->name|*&quot; - |добавяне на файл");
+        $info->title = tr("Добавяне на файл(ове)");
 
         $info->maxFileSize = $row->maxSize;
 
@@ -169,8 +169,7 @@ class fileman_Buckets extends core_Manager {
 
         $bucketRec = $this->fetch($fileRec->bucketId);
 
-        return new ET("<div class='uploaded-title'> <b>{$fileRec->name}</b> " .
-            tr("е добавен в") . " \"<b>{$bucketRec->name}</b>\"</div>");
+        return new ET("<div class='uploaded-title'> <b>{$fileRec->name}</b> </div>");
     }
 
 
