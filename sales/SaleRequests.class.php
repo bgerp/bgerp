@@ -95,7 +95,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, folderId, paymentCurrencyId, amount, state, createdOn, createdBy';
+    public $listFields = 'id, folderId, amount, state, createdOn, createdBy';
     
     
 	/**
@@ -503,6 +503,8 @@ class sales_SaleRequests extends core_Master
 	    		$row->id .= " " . ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE));
 	    	}
 	    	$row->id .= " {$id}";
+	    	
+	    	$row->amount = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->paymentCurrencyId}</span>" . $row->amount;
     	}
 	    
 	    if($fields['-single']){
