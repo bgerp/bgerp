@@ -69,23 +69,29 @@ class cash_Cases extends core_Master {
     
     
     /**
-     * 
+     *  Кой може да чете
      */
     var $canRead = 'ceo, cash';
     
     
     /**
-     * 
+     * Кой може да пише
      */
-    var $canWrite = 'ceo, cash';
+    var $canWrite = 'ceo, masterCash';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cash';
+	var $canList = 'ceo, cash';
 
 
+   /**
+	* Кой може да селектира?
+	*/
+	var $canSelect = 'ceo,cash';
+	
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -107,6 +113,7 @@ class cash_Cases extends core_Master {
      */
     var $autoList = 'case';
  
+    
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -197,7 +204,7 @@ class cash_Cases extends core_Master {
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo')){
+		if(!haveRole('ceo, masterCash')){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();

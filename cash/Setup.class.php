@@ -65,6 +65,7 @@ class cash_Setup extends core_ProtoSetup
      */
     var $roles = 'cash';
 
+    
     /**
      * Връзки от менюто, сочещи към модула
      */
@@ -72,6 +73,20 @@ class cash_Setup extends core_ProtoSetup
             array(2.2, 'Финанси', 'Каси', 'cash_Cases', 'default', "cash, ceo"),
         );
 
+        
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
+        
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('masterCash', 'cash') ? "<li style='color:green'>Добавена е роля <b>masterCash</b></li>" : '';
+    	
+        return $html;
+    }
+    
     
     /**
      * Де-инсталиране на пакета
