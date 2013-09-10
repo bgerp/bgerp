@@ -179,6 +179,9 @@ class fileman_Upload extends core_Manager {
      */
     function getProgressTpl($allowMultiUpload=FALSE)
     {
+        // CSS клас при качване на един файл
+        $onlyOneFile = (!$allowMultiUpload) ? 'only-one-file' : '';
+        
         $tpl = new ET('
             <style>
         		.uploaded-title{background-image:url(' . sbf('img/16/tick-circle-frame.png', '') . ');}
@@ -195,7 +198,7 @@ class fileman_Upload extends core_Manager {
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
-                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
+                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled ' . $onlyOneFile . '" id="uploadBtn" disabled="disabled"/>
 
                 </div>
                 
@@ -319,7 +322,7 @@ class fileman_Upload extends core_Manager {
             	var inputId = $(inputInst).attr('id');
             	
             	// Скриваме input за избор на файлове
-            	$('#' + inputId).css('z-index', '-50').css('width', '0').css('height', '0').css('border', 'none');
+            	$('#' + inputId).addClass('hidden-input');
             	
             	// id на бутона
                 var btnId = '#btn-' + inputId;
@@ -394,11 +397,12 @@ class fileman_Upload extends core_Manager {
     			// Скриваме бавно качения файл
     			$(uploadedFileId).hide('slow', function() { 
     				
+    				$(this).remove(); 
+    				
     				// Ако е зададено множество качаване
     				if (multiUpload) {
     					
     					// Премахваме всучко за този бутон и файл
-    					$(this).remove(); 
     					$(inputId).remove();
     					$(btnId).remove();
     				} else {
@@ -406,8 +410,8 @@ class fileman_Upload extends core_Manager {
     					// Показваме бутона
     					$(btnId).show();
     					
-						// Премахваме стойността на input'а
-    					$(inputId).val('');
+						// Премахваме стойността на input'а и класа за скриване
+    					$(inputId).val('').removeClass('hidden-input');
     				}
     				
     				// Дали да се деактивира бутона
