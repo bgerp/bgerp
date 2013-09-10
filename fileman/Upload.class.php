@@ -194,7 +194,7 @@ class fileman_Upload extends core_Manager {
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
-                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
+                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn" disabled="disabled"/>
 
                 </div>
                 
@@ -364,6 +364,9 @@ class fileman_Upload extends core_Manager {
                 	// Добавяме новия бутон
                     $(inputInst).parent().prepend(newBtnInput);
                 }
+                
+                // Даваме възможност на бутона да се натисне
+                $('#uploadBtn').removeAttr('disabled');
             }
             
             // Премахва посочения файл
@@ -397,8 +400,32 @@ class fileman_Upload extends core_Manager {
     					$(btnId).show();
     					
 						// Премахваме стойността на input'а
-    					$(inputId).val('')
+    					$(inputId).val('');
     				}
+    				
+    				// Дали да се деактивира бутона
+        			var disableBtn = 'yes';
+        			
+        			// Обхождаме всички инпути от зададения клас
+               		$('.ulfile').each(function() {
+               			
+               			// Ако имат стойност
+               			if ($(this).val()) {
+               				
+               				// Да не се деактивира бутоан
+               				disableBtn = 'none';
+               				
+               				// Спираме цикъла
+	           				return false;
+    					}
+    				});
+    				
+    				// Ако няма нито един избран файл
+    				if (disableBtn == 'yes') {
+    					
+    					// Деактивираме бутона
+    					$('#uploadBtn').attr('disabled', 'disabled');
+        			}
     			});
             }
 			
