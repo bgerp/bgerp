@@ -312,8 +312,18 @@ class fileman_Upload extends core_Manager {
             // След избиране на файл, добавя бутон за нов файл и показва името на файла
             function afterSelectFile(inputInst, multiUpload) 
             {
+            	// Пътя до файла
+            	var filePath = $(inputInst).val();
+            	
+            	// Ако няма път
+            	if (!filePath.length) {
+            		
+            		// Връщаме
+            		return;
+    			}
+    			
             	// Името на файла
-            	var fileName = getFileName($(inputInst).val());
+            	var fileName = getFileName(filePath);
             	
             	// id на инпута
             	var inputId = $(inputInst).attr('id');
