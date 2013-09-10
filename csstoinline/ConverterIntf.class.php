@@ -10,6 +10,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title     Интерфейс за превръщането на CSS' а в inline
  */
 class csstoinline_ConverterIntf
 {

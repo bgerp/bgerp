@@ -16,39 +16,77 @@ body{
 	height:12px;
 }
 
+ #filename {
+ 	display:none;
+ }
+ 
+.fileName{
+	font-size:0.9em;
+}
+
+#inputDiv {
+	position: relative;
+	height:30px;
+}
+
 #uploadBtn {
 	margin-top:10px;
 	background-image:url('../img/upload.gif');
 	background-position:5px center; 
-}
-
- #filename {
- 	display:none;
- }
-
-/*
- * За да работи трябва да не е display:none !important;
- */                                   
-.ulfile { 
-	width:0;
-	height:0;
-	border: none;
-	padding:0;
+	z-index: 50;
 	position:absolute;
-	top:0;
-	left:0;
+	left:70px;
 }
 
+#uploadBtn.btn-disabled{
+	opacity: 0.5;
+	-moz-opacity: 0.5;
+	filter: alpha(opacity=50);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
+}
+
+#uploadBtn.only-one-file{
+	left:0px;
+}
+
+/*бутона за IE*/
+.ulfile {
+	position: absolute;
+	width: 67px !important;
+	height:28px !important;
+	overflow:hidden;
+	z-index: 1000;
+	top:9px;
+	left:-1px;
+	opacity: 0;
+	-moz-opacity: 0;
+	filter: alpha(opacity=0);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+    cursor:pointer;
+}
+
+/*бутона файл*/
 .btn-ulfile{
-	margin-top:10px; 
+	padding-left:20px !important;
 	background-repeat:no-repeat;
 	background-position: 3px center;
+	position: absolute;
+	width: 66px;
+	z-index: 2;
+	top:9px;
 }
 
-.uploaded-file {
-	margin-top:5px;
-	padding-top:2px;
+.uploaded-filenames{
 	display:block;
+	max-height:84px;
+	overflow:auto;
+}
+
+#add-success-info{
+	max-height:104px;
+	overflow:auto;
 }
 
 .uploaded-file > a {
@@ -83,6 +121,13 @@ body{
 	border:solid 1px red;
 	background-color:#ffc;
 }
+.upload-еrror ul{
+	margin:0;
+	padding:5px;
+	list-style:none;
+	color:#F00;
+	font-size:0.9em;
+}
 
 .uploaded-title{
 	margin-top:5px;
@@ -90,6 +135,11 @@ body{
 	border:solid 1px #ccc;
 	background-color:#ffe;
 	margin-bottom:5px;
+	font-size:0.9em;
+	padding-left:23px !important;
+	background-repeat:no-repeat;
+	background-position: 3px center;
+	
 }
 
  .filemanUpload .tab-title {
@@ -99,18 +149,26 @@ body{
      font-size:1.1em;
 }
 
-
 .uploaded-file {
 	background-color:#eee;
 	border:solid 1px #ccc;
 	font-size:0.8em;
-	padding:3px;
-	margin-bottom:5px;
+	padding:2px;
+	margin-top:5px;
 	display:table;
 	border-radius:3px;
+	white-space:nowrap;
 }
-
 .uploaded-file img {
 	width:14px;
 	height:14px;
+}
+
+.hidden-input {
+	z-index: -50 !important;
+	width: 0 !important; 
+	height: 0 !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	border: none !important;
 }

@@ -49,7 +49,7 @@ class fileman_Upload extends core_Manager {
         }
         
         // Шаблона с качените файлове и грешките
-        $add = new ET();
+        $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');
         
         // Ако е стартрино качването
         if(Request::get('Upload')) {
@@ -81,11 +81,11 @@ class fileman_Upload extends core_Manager {
                             // Записваме му съдържанието
                             $this->Files->setContent($fh, $_FILES[$inputName]['tmp_name']);
                             
-                            $add->append($Buckets->getInfoAfterAddingFile($fh));
+                            $add->append($Buckets->getInfoAfterAddingFile($fh), 'ADD');
                             
                             if($callback && !$_FILES[$inputName]['error']) {
                                 $name = $this->Files->fetchByFh($fh, 'name');
-                                $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>");
+                                $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>", 'ADD');
                             }
                         }
                     } else {
@@ -113,7 +113,7 @@ class fileman_Upload extends core_Manager {
                     foreach($err as $e) {
                         $error->append("<li>" . tr($e) . "</li>", 'ERR');
                     }
-                    $add->append($error);
+                    $add->append($error, 'ERR');
                 }
             }
         }
@@ -181,6 +181,7 @@ class fileman_Upload extends core_Manager {
     {
         $tpl = new ET('
             <style>
+        		.uploaded-title{background-image:url(' . sbf('img/16/tick-circle-frame.png', '') . ');}
         		.btn-ulfile{background-image:url(' . sbf('img/16/paper_clip.png', '') . ');}
         		.ui-progressbar-value {background-image: url(' . sbf('jquery/ui-1.8.2/css/custom-theme/images/pbar-ani.gif', '') . '); }
         	</style>
@@ -192,7 +193,9 @@ class fileman_Upload extends core_Manager {
                 <div id="inputDiv">
                 
                     <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button><input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button" id="uploadBtn"/>
+                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
+                    
+                    <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
 
                 </div>
                 
@@ -220,6 +223,7 @@ class fileman_Upload extends core_Manager {
             // След като се зареди
             $(document).ready(function() {
             	
+            	// С новия начин (да се натиска скрития input) не би трябвало да се стига до тук
             	// Прихващаме натискането на бутона за избор на файл
             	$('.btn-ulfile').parent().on('click', '.btn-ulfile', function(e){
                 	
@@ -288,6 +292,12 @@ class fileman_Upload extends core_Manager {
                    		// Стартираме качаването
                    		beginUpload();
                    		
+                   		// Скриваме имената на файловете
+                   		$('.uploaded-filenames').hide('slow');
+                   		
+                   		// Скриваме информацията за файла
+                   		$('#add-file-info').hide('slow');
+                   		
                    		return true;
         			}
         			
@@ -302,11 +312,24 @@ class fileman_Upload extends core_Manager {
             // След избиране на файл, добавя бутон за нов файл и показва името на файла
             function afterSelectFile(inputInst, multiUpload) 
             {
+            	// Пътя до файла
+            	var filePath = $(inputInst).val();
+            	
+            	// Ако няма път
+            	if (!filePath.length) {
+            		
+            		// Връщаме
+            		return;
+    			}
+    			
             	// Името на файла
-            	var fileName = getFileName($(inputInst).val());
+            	var fileName = getFileName(filePath);
             	
             	// id на инпута
             	var inputId = $(inputInst).attr('id');
+            	
+            	// Скриваме input за избор на файлове
+            	$('#' + inputId).addClass('hidden-input');
             	
             	// id на бутона
                 var btnId = '#btn-' + inputId;
@@ -328,7 +351,7 @@ class fileman_Upload extends core_Manager {
     			}
                 
     			// В държача за качени файлове добавяме името на файла и линк за премахване
-                $('.uploaded-filenames').prepend('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
+                $('.uploaded-filenames').append('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
                 
                 // Ако е зададен качване на много файлове едновременно
                 if (multiUpload != 0) {
@@ -348,7 +371,7 @@ class fileman_Upload extends core_Manager {
                 	// Ако има accept
                 	if (accept) {
                 		
-                		// Добавяме към бътоба
+                		// Добавяме към бътона
                 		newBtnInput += 'accept=' + accept;
         			}
         			
@@ -357,7 +380,14 @@ class fileman_Upload extends core_Manager {
                 	
                 	// Добавяме новия бутон
                     $(inputInst).parent().prepend(newBtnInput);
-                }
+                } else {
+                
+                	// Добавяме класа
+                	$('#uploadBtn').addClass('only-one-file');
+    			}
+                
+                // Даваме възможност на бутона да се натисне
+                $('#uploadBtn').removeAttr('disabled').removeClass('btn-disabled');
             }
             
             // Премахва посочения файл
@@ -378,21 +408,46 @@ class fileman_Upload extends core_Manager {
     			// Скриваме бавно качения файл
     			$(uploadedFileId).hide('slow', function() { 
     				
+    				$(this).remove(); 
+    				
+    				// Дали да се деактивира бутона
+        			var disableBtn = 'yes';
+    				
     				// Ако е зададено множество качаване
     				if (multiUpload) {
     					
     					// Премахваме всучко за този бутон и файл
-    					$(this).remove(); 
     					$(inputId).remove();
     					$(btnId).remove();
+    					
+    					// Обхождаме всички инпути от зададения клас
+                   		$('.ulfile').each(function() {
+                   			
+                   			// Ако имат стойност
+                   			if ($(this).val()) {
+                   				
+                   				// Да не се деактивира бутона
+                   				disableBtn = 'none';
+                   				
+                   				// Спираме цикъла
+    	           				return false;
+        					}
+        				});
     				} else {
     					
     					// Показваме бутона
     					$(btnId).show();
     					
-						// Премахваме стойността на input'а
-    					$(inputId).val('')
+						// Премахваме стойността на input'а и класа за скриване
+    					$(inputId).val('').removeClass('hidden-input');
     				}
+    				
+    				// Ако няма нито един избран файл
+    				if (disableBtn == 'yes') {
+    					
+    					// Деактивираме бутона
+    					$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
+        			}
     			});
             }
 			
@@ -405,8 +460,11 @@ class fileman_Upload extends core_Manager {
             		// Разделяме името от пътя
             		var fileNameArray = filePath.split('\\\\');
             		
-                	// Връщаме името на файл
-                	return fileNameArray[fileNameArray.length-1];
+                	// Вземаме името на файл
+                	var string = fileNameArray[fileNameArray.length-1];
+                	
+                	// Лимитираме дължината и връщаме
+                	return limitLen(string, 32);
     			}
             }
             
