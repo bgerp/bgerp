@@ -37,8 +37,9 @@ body{
 /*бутона за IE*/
 .ulfile {
 	position: absolute;
-	width: 66px;
-	height:28px;
+	width: 67px !important;
+	height:28px !important;
+	overflow:hidden;
 	z-index: 1000;
 	top:9px;
 	left:-1px;
