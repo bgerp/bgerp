@@ -400,12 +400,29 @@ class fileman_Upload extends core_Manager {
     				
     				$(this).remove(); 
     				
+    				// Дали да се деактивира бутона
+        			var disableBtn = 'yes';
+    				
     				// Ако е зададено множество качаване
     				if (multiUpload) {
     					
     					// Премахваме всучко за този бутон и файл
     					$(inputId).remove();
     					$(btnId).remove();
+    					
+    					// Обхождаме всички инпути от зададения клас
+                   		$('.ulfile').each(function() {
+                   			
+                   			// Ако имат стойност
+                   			if ($(this).val()) {
+                   				
+                   				// Да не се деактивира бутона
+                   				disableBtn = 'none';
+                   				
+                   				// Спираме цикъла
+    	           				return false;
+        					}
+        				});
     				} else {
     					
     					// Показваме бутона
@@ -414,23 +431,6 @@ class fileman_Upload extends core_Manager {
 						// Премахваме стойността на input'а и класа за скриване
     					$(inputId).val('').removeClass('hidden-input');
     				}
-    				
-    				// Дали да се деактивира бутона
-        			var disableBtn = 'yes';
-        			
-        			// Обхождаме всички инпути от зададения клас
-               		$('.ulfile').each(function() {
-               			
-               			// Ако имат стойност
-               			if ($(this).val()) {
-               				
-               				// Да не се деактивира бутоан
-               				disableBtn = 'none';
-               				
-               				// Спираме цикъла
-	           				return false;
-    					}
-    				});
     				
     				// Ако няма нито един избран файл
     				if (disableBtn == 'yes') {
