@@ -14,7 +14,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Контрагенти
+ * @title     Интерфейс за източник на счетоводни пера от тип "контрагент"
  */
 class crm_ContragentAccRegIntf extends acc_RegisterIntf
 {

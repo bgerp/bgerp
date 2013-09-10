@@ -15,7 +15,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Стоки и продукти
+ * @title     Интерфейс за пера, които са стоки и продукти
  */
 class cat_ProductAccRegIntf extends acc_RegisterIntf
 {
