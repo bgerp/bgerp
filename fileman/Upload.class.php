@@ -222,6 +222,7 @@ class fileman_Upload extends core_Manager {
             // След като се зареди
             $(document).ready(function() {
             	
+            	// С новия начин (да се натиска скрития input) не би трябвало да се стига до тук
             	// Прихващаме натискането на бутона за избор на файл
             	$('.btn-ulfile').parent().on('click', '.btn-ulfile', function(e){
                 	
@@ -309,6 +310,9 @@ class fileman_Upload extends core_Manager {
             	
             	// id на инпута
             	var inputId = $(inputInst).attr('id');
+            	
+            	// Скриваме input за избор на файлове
+            	$('#' + inputId).css('z-index', '-50').css('width', '0').css('height', '0').css('border', 'none');
             	
             	// id на бутона
                 var btnId = '#btn-' + inputId;
