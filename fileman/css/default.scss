@@ -16,44 +16,55 @@ body{
 	height:12px;
 }
 
+ #filename {
+ 	display:none;
+ }
+
+#inputDiv {
+	position: relative;
+	height:30px;
+}
+
 #uploadBtn {
 	margin-top:10px;
 	background-image:url('../img/upload.gif');
 	background-position:5px center; 
 	z-index: 50;
+	position:absolute;
+	left:70px;
 }
 
- #filename {
- 	display:none;
- }
-
+/*бутона за IE*/
 .ulfile {
-
-	position: relative;
-	width: 66px;
-	z-index: 2;
-	
-	opacity: 0.2;
-}
-
-#inputDiv {
-	position: relative;
-}
-
-.btn-ulfile{
 	position: absolute;
-	top: 0;
-	left: 0;
-	margin-top:10px; 
+	width: 66px;
+	height:28px;
+	z-index: 1000;
+	top:9px;
+	left:-1px;
+	opacity: 0;
+	-moz-opacity: 0;
+	filter: alpha(opacity=0);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+}
+
+/*бутона файл*/
+.btn-ulfile{
 	padding-left:20px;
 	background-repeat:no-repeat;
 	background-position: 3px center;
+	position: absolute;
+	width: 66px;
+	z-index: 2;
+	top:9px;
 }
 
 .uploaded-file {
 	margin-top:5px;
 	padding-top:2px;
 	display:block;
+	white-space:nowrap;
 }
 
 .uploaded-file > a {
