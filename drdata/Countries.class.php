@@ -318,6 +318,7 @@ class drdata_Countries extends core_Manager {
                 'yugoslavia' => 'serbia',
                 'ελλαδα' => 'greece',
                 'usa' => 'united states',
+                'bahamas' => 'bahamas, the',
             );
 
             foreach($mis as $w => $c) {
@@ -326,8 +327,7 @@ class drdata_Countries extends core_Manager {
                 $commonNamesArr[$w] = $id;
             }
         }
-
-        $country = strtolower(trim(str::utf2ascii($country)));
+        $country = mb_strtolower(trim(str::utf2ascii($country)));
 
         $country = trim(preg_replace('/[^a-zA-Z\'\d\p{L}]/u', " ", $country));
         
