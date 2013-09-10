@@ -62,12 +62,12 @@ body{
 	top:9px;
 }
 
-.uploaded-file {
-	margin-top:5px;
-	padding-top:2px;
+.uploaded-filenames{
 	display:block;
-	white-space:nowrap;
+	max-height:84px;
+	overflow:auto;
 }
+
 
 .uploaded-file > a {
 	height:16px;
@@ -101,6 +101,13 @@ body{
 	border:solid 1px red;
 	background-color:#ffc;
 }
+.upload-еrror ul{
+	margin:0;
+	padding:5px;
+	list-style:none;
+	color:#F00;
+	font-size:0.9em;
+}
 
 .uploaded-title{
 	margin-top:5px;
@@ -108,6 +115,11 @@ body{
 	border:solid 1px #ccc;
 	background-color:#ffe;
 	margin-bottom:5px;
+	font-size:0.9em;
+	padding-left:23px !important;
+	background-repeat:no-repeat;
+	background-position: 3px center;
+	
 }
 
  .filemanUpload .tab-title {
@@ -117,17 +129,16 @@ body{
      font-size:1.1em;
 }
 
-
 .uploaded-file {
 	background-color:#eee;
 	border:solid 1px #ccc;
 	font-size:0.8em;
-	padding:3px;
-	margin-bottom:5px;
+	padding:2px;
+	margin-top:5px;
 	display:table;
 	border-radius:3px;
+	white-space:nowrap;
 }
-
 .uploaded-file img {
 	width:14px;
 	height:14px;
