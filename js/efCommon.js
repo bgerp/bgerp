@@ -1127,3 +1127,36 @@ function changeVisibility(id, type)
 
 	element.style.visibility=type;
 }
+
+/**
+ * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
+ * Работи подобно на str::limitLen(...)
+ */
+function limitLen(string, maxLen)
+{
+	// Дължината на подадения стринг
+	var stringLength = string.length;
+	
+	// Ако дължината на стринга е над допустмите
+	if (stringLength > maxLen) {
+		
+		// Ако максималния размер е над 20
+		if (maxLen > 20) {
+			
+			var remain = (maxLen - 5) / 2;
+			remain = parseInt(remain);
+			
+			// По средата на стринга добавяме ...
+			string = string.substr(0, remain) + ' ... ' + string.slice(-remain);
+		} else {
+			
+			var remain = (maxLen - 3);
+			remain = parseInt(remain);
+			
+			// Премахваме края на стринга
+			string = string.substr(0, remain);
+		}
+	}
+	
+	return string;
+}
