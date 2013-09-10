@@ -411,8 +411,11 @@ class fileman_Upload extends core_Manager {
             		// Разделяме името от пътя
             		var fileNameArray = filePath.split('\\\\');
             		
-                	// Връщаме името на файл
-                	return fileNameArray[fileNameArray.length-1];
+                	// Вземаме името на файл
+                	var string = fileNameArray[fileNameArray.length-1];
+                	
+                	// Лимитираме дължината и връщаме
+                	return limitLen(string, 32);
     			}
             }
             
