@@ -122,13 +122,14 @@ class plg_Current extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'select' && isset($rec)){
-    		if(isset($mvc->inChargeField)){
-	    		if($rec->{$mvc->inChargeField} && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE) && !haveRole('ceo')){
-	    			$res = 'no_one';
-	    		}
-    		} else {
-	    	    $res = $mvc->GetRequiredRoles('write', $rec);
-	        }
+    		
+    		// Ако има поле за отговорник и текущия потребител
+    		// не е отговорник, той няма права да избира
+    		if(isset($mvc->inChargeField) && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE && !haveRole('ceo'))){
+	    		$res = 'no_one';
+	    	} else {
+	    		$res = ($mvc->canSelect) ? $mvc->canSelect : $mvc->GetRequiredRoles('write', $rec);
+	    	}
     	}
     }
 }
