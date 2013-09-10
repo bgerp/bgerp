@@ -292,6 +292,12 @@ class fileman_Upload extends core_Manager {
                    		// Стартираме качаването
                    		beginUpload();
                    		
+                   		// Скриваме имената на файловете
+                   		$('.uploaded-filenames').hide('slow');
+                   		
+                   		// Скриваме информацията за файла
+                   		$('#add-file-info').hide('slow');
+                   		
                    		return true;
         			}
         			
