@@ -19,6 +19,10 @@ body{
  #filename {
  	display:none;
  }
+ 
+.fileName{
+	font-size:0.9em;
+}
 
 #inputDiv {
 	position: relative;
@@ -32,6 +36,14 @@ body{
 	z-index: 50;
 	position:absolute;
 	left:70px;
+}
+
+#uploadBtn.btn-disabled{
+	opacity: 0.5;
+	-moz-opacity: 0.5;
+	filter: alpha(opacity=50);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
 }
 
 /*бутона за IE*/
@@ -69,7 +81,7 @@ body{
 }
 
 #add-success-info{
-	max-height:102px;
+	max-height:104px;
 	overflow:auto;
 }
 
