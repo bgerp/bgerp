@@ -20,26 +20,30 @@ body{
 	margin-top:10px;
 	background-image:url('../img/upload.gif');
 	background-position:5px center; 
+	z-index: 50;
 }
 
  #filename {
  	display:none;
  }
 
-/*
- * За да работи трябва да не е display:none !important;
- */                                   
-.ulfile { 
-	width:0;
-	height:0;
-	border: none;
-	padding:0;
-	position:absolute;
-	top:0;
-	left:0;
+.ulfile {
+
+	position: relative;
+	width: 66px;
+	z-index: 2;
+	
+	opacity: 0.2;
+}
+
+#inputDiv {
+	position: relative;
 }
 
 .btn-ulfile{
+	position: absolute;
+	top: 0;
+	left: 0;
 	margin-top:10px; 
 	padding-left:20px;
 	background-repeat:no-repeat;
