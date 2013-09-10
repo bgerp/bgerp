@@ -11,6 +11,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title     Интерфейсен метод за създаване на входящи документи
  */
 class incoming_CreateDocumentIntf
 {
