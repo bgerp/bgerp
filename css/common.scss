@@ -2164,7 +2164,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-closed {
-    background-color: $gray1;
+    background-color: $gray2;
 }
 
 .state-stopped, .state-blocked {
@@ -2202,6 +2202,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 
 .state-revert {
  	background-color: #cc9933;
+}
+
+.state-wakeup{
+	background-color: #259641;
 }
 
 .stateIndicator {
