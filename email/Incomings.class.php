@@ -803,40 +803,6 @@ class email_Incomings extends core_Master
         return $res;
     }
     
-    /******************************************************************************************
-     *
-     * ИМПЛЕМЕНТАЦИЯ НА email_DocumentIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
-     * Текстов вид (plain text) на документ при изпращането му по имейл
-     *
-     * @param int $id ид на документ
-     * @param string $emailTo
-     * @param string $boxFrom
-     * @return string plain text
-     */
-    public function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
-    {
-        return static::fetchField($id, 'textPart');
-    }
-
-
-    /**
-     * Какъв да е събджекта на писмото по подразбиране
-     *
-     * @param int $id ид на документ
-     * @param string $emailTo
-     * @param string $boxFrom
-     * @return string
-     */
-    public function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
-    {
-        return 'FW: ' . static::fetchField($id, 'subject');
-    }
-    
     
     /****************************************************************************************
      *                                                                                      *

@@ -1460,58 +1460,6 @@ class email_Outgoings extends core_Master
     {
         $row->handle = $mvc->getHandle($rec->id);
     }
-
-
-    
-    
-    /******************************************************************************************
-     *
-     * ИМПЛЕМЕНТАЦИЯ НА email_DocumentIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
-     * Какъв да е събджекта на писмото по подразбиране
-     *
-     * @param int $id ид на документ
-     * @param string $emailTo
-     * @param string $boxFrom
-     * @return string
-     *
-     * @TODO това ще е полето subject на doc_Posting, когато то бъде добавено.
-     */
-    public function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
-    {
-        return static::fetchField($id, 'subject');
-    }
-    
-    
-    /**
-     * До кой е-имейл или списък с етрябва да се изпрати писмото
-     *
-     * @param int $id ид на документ
-     */
-    public function getDefaultEmailTo($id)
-    {
-        return static::fetchField($id, 'email');
-    }
-    
-    
-    /**
-     * Писмото (ако има такова), в отговор на което е направен този постинг
-     *
-     * @param int $id ид на документ
-     * @return int key(email_Incomings) NULL ако документа не е изпратен като отговор
-     */
-    public function getInReplayTo($id)
-    {
-        
-        /**
-         * @TODO
-         */
-        return NULL;
-    }
     
     
     /**

@@ -1839,15 +1839,6 @@ class blast_Emails extends core_Master
         
         return $row;
     }
-
-
-    /**
-     * Връща заглавието по подразбиране без да се заменят placeholder' ите
-     */
-    function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
-    {
-        return NULL;
-    }
     
     
     /**
