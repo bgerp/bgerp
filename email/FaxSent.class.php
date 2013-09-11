@@ -132,11 +132,21 @@ class email_FaxSent extends core_Manager
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
         $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
-
+        
+        // Полето имейл да не се показва при изпращане на факс
+        unset($data->rec->email);
+        
+        // Инстанция на класа
+        $Email = cls::get('email_Outgoings');
+        
+        //HTML частта на факса
+        $faxHtml = $Email->getEmailHtml($data->rec, $lg);
+        
+        //Текстовата част на факса
+        $faxText = $Email->getEmailText($data->rec, $lg);
+        
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-            
-            $Email = cls::get('email_Outgoings');
             
             //Услугата за изпращане на факс
             $service = $data->form->rec->service;
@@ -166,6 +176,9 @@ class email_FaxSent extends core_Manager
 //            $emailCss = getFileContent('css/email.css'); //TODO
             $success  = $failure = array(); // списъци с изпратени и проблемни получатели
             
+            // Инстанция на log_Documents за да работи on_Shutdown
+            cls::get('log_Documents');
+            
             // Обхождаме масива
             foreach ($faxToArr as $faxToA) {
                 
@@ -179,6 +192,7 @@ class email_FaxSent extends core_Manager
                 log_Documents::pushAction(
                     array(
                         'containerId' => $data->rec->containerId,
+                        'threadId'    => $data->rec->threadId,
                         'action'      => log_Documents::ACTION_FAX, 
                         'data'        => (object)array(
                             'service' => $service,
@@ -190,8 +204,8 @@ class email_FaxSent extends core_Manager
                 
                 // Подготовка на текста на писмото (HTML & plain text)
                 $data->rec->__mid = NULL;
-//                $data->rec->html = $Email->getEmailHtml($data->rec, $lg, $emailCss); //TODO не е нужно, защото HTML частта се добавя като прикачен файл
-                $data->rec->text = $Email->getEmailText($data->rec, $lg);
+//                $data->rec->html = $faxHtml //TODO не е нужно, защото HTML частта се добавя като прикачен файл
+                $data->rec->text = $faxText;
                 
                 // Генериране на прикачените документи
                 $data->rec->documentsFh = array();
@@ -227,8 +241,6 @@ class email_FaxSent extends core_Manager
                     $Email->log('Unable to send fax to ' . $faxTo, $data->rec->id);
                     $failure[] = $faxTo;
                 }
-                
-                log_Documents::popAction();
             }
 
             // Създаваме съобщение, в зависимост от състоянието на изпращане
@@ -261,17 +273,6 @@ class email_FaxSent extends core_Manager
         
         // Добавяме превю на факса, който ще изпратим
         $preview = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div><div class='scrolling-holder'>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div></div>");
-
-        $Email = cls::get('email_Outgoings');
-        
-        // Полето имейл да не се показва при изпращане на факс
-        unset($data->rec->email);
-        
-        //HTML частта на факса
-        $faxHtml = $Email->getEmailHtml($data->rec, $lg);
-        
-        //Текстовата част на факса
-        $faxText = $Email->getEmailText($data->rec, $lg);
         
         //Добавяме към шаблона
         $preview->append($faxHtml, 'FAX_HTML');
