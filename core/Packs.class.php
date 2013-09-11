@@ -312,6 +312,14 @@ class core_Packs extends core_Manager
         if($rec->startCtr) {
         	$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
         }
+        
+        if($rec->deinstall == 'yes') {
+        	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
+        } else {
+        	$row->deinstall = "";
+        }
+        
+        $row->name .= $row->deinstall;
         $row->name .= "<div><small>{$rec->info}</small></div>";
         
         $imageUrl = sbf("img/100/default.png","");
@@ -328,13 +336,9 @@ class core_Packs extends core_Manager
        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
        	}
        	
-        $row->install = ht::createLink(tr("Обновяване"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
+        $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
-        if($rec->deinstall == 'yes') {
-           $row->deinstall = ht::createLink(tr("Оттегляне"), array($mvc, 'deinstall', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-deinstall"));
-        } else {
-           $row->deinstall = "";
-        }
+       
         
         try {
             $conf = self::getConfig($rec->name);
