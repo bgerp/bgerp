@@ -1108,6 +1108,9 @@ class fileman_webdrv_Generic extends core_Manager
      */
     static function getHtmlTabTpl($htmlUrl)
     {
+        // Ако няма URL, връщаме FALSE
+        if (!$htmlUrl) return FALSE;
+        
         // Ако JS не е включен
         if (Mode::is('javascript', 'no')) {
             

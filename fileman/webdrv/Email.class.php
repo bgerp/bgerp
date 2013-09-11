@@ -83,23 +83,28 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
        
         // Подготвяме табовете
         
-        // Ако има HTML част
-//      if ($htmlPartCheck) {
-//      bp($htmlPartUrl);
-            // Вземаме съдържанието на таба за HTML
+        // Вземаме съдържанието на таба за HTML
         $htmlPart = static::getHtmlTabTpl($htmlPartUrl);
+        
+        // Ако няма HTML част
+        if ($htmlPart !== FALSE) {
             
-        // Таб за HTML част
-        $tabsArr['html'] = (object) 
+            // Таб за HTML част
+            $tabsArr['html'] = (object) 
     			array(
     				'title' => 'HTML',
     				'html'  => $htmlPart,
     				'order' => 3,
-    			);    
-//        }
+    			); 
+        } else {
+            
+            // Таба по подразбиране да е текстовия
+            $tabsArr['__defaultTab'] = 'text';
+        }
+        
         
         // Ако има текстова част
-//        if ($textPartCheck) {
+        if (trim($textPart)) {
             
             // Таб за текстовата част
             $tabsArr['text'] = (object) 
@@ -108,7 +113,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     				'html'  => "<div class='webdrvTabBody' style='white-space:pre-line;'><fieldset class='webdrvFieldset'><legend>" . tr("Текстовата част на имейла") . "</legend>{$textPart}</fieldset></div>",
     				'order' => 4,
     			);    
-//        }
+        }
         
 	    // Ако има прикачени файлове
 	    if ($filesStr) {
