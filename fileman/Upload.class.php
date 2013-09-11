@@ -48,14 +48,14 @@ class fileman_Upload extends core_Manager {
             } 
         }
         
+        // Вземаме id' то на кофата
+        $bucketId = Request::get('bucketId', 'int');
+        
         // Шаблона с качените файлове и грешките
         $add = new ET('<div id="add-file-info"><div id="add-error-info">[#ERR#]</div><div id="add-success-info">[#ADD#]</div></div>');
         
         // Ако е стартрино качването
         if(Request::get('Upload')) {
-            
-            // Вземаме параметрите от заявката
-            $bucketId = Request::get('bucketId', 'int');
             
             // Обхождаме качените файлове
             foreach ((array)$_FILES as $inputName => $inputArr) {
@@ -118,7 +118,14 @@ class fileman_Upload extends core_Manager {
             }
         }
         
-        $tpl = $this->getProgressTpl($allowMultiUpload);
+        // Ако има id на кофата
+        if ($bucketId) {
+            
+            // Вземаме максималния размер за файл в кофата
+            $maxAllowedFileSize = fileman_Buckets::fetchField($bucketId, 'maxSize');
+        }
+        
+        $tpl = $this->getProgressTpl($allowMultiUpload, $maxAllowedFileSize);
         
         $tpl->prepend($add);
         
@@ -177,7 +184,7 @@ class fileman_Upload extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function getProgressTpl($allowMultiUpload=FALSE)
+    function getProgressTpl($allowMultiUpload=FALSE, $maxAllowedFileSize=0)
     {
         $tpl = new ET('
             <style>
@@ -192,7 +199,7 @@ class fileman_Upload extends core_Manager {
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
                 
-                    <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ');" [#ACCEPT#]>
+                    <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
                     <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
@@ -310,8 +317,11 @@ class fileman_Upload extends core_Manager {
             var btnCntId = 0;
             
             // След избиране на файл, добавя бутон за нов файл и показва името на файла
-            function afterSelectFile(inputInst, multiUpload) 
+            function afterSelectFile(inputInst, multiUpload, maxFileSize) 
             {
+            	// Грешките за файла
+            	var fileError = new Object();
+            	
             	// Пътя до файла
             	var filePath = $(inputInst).val();
             	
@@ -321,6 +331,20 @@ class fileman_Upload extends core_Manager {
             		// Връщаме
             		return;
     			}
+    			
+    			// Ако браузъра поддъжа fileApi
+    			if (typeof FileReader !== 'undefined') {
+    				
+    				// Размера на файла
+                    var fileSize = inputInst.files[0].size;
+                    
+                    // Ако размера на файла е над допусмите
+                    if (maxFileSize && fileSize > maxFileSize) {
+                    	
+                    	// Сетваме грешката
+                    	fileError.fileSize = true;
+    				}
+                }
     			
             	// Името на файла
             	var fileName = getFileName(filePath);
@@ -349,9 +373,22 @@ class fileman_Upload extends core_Manager {
                 	// Добавяме номера след id' то
                 	uploadedFileId += btnCntId;
     			}
-                
+    			
+    			// Името на класа за качения файл
+				var uploadedFileClass = 'uploaded-file';
+    			
+				// Ако размера е над допусмите
+				if (fileError.fileSize) {
+					
+					// Добавяме класа за грешка
+    				uploadedFileClass += ' error-filesize';
+    				
+    				// Титлата на спана
+    				var uploadedFileTitle = 'title=\"File size exceeded the maximum size\"';
+    			}
+    			
     			// В държача за качени файлове добавяме името на файла и линк за премахване
-                $('.uploaded-filenames').append('<span class=\"uploaded-file\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
+                $('.uploaded-filenames').append('<span ' + uploadedFileTitle + ' class=\"' + uploadedFileClass + '\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
                 
                 // Ако е зададен качване на много файлове едновременно
                 if (multiUpload != 0) {
@@ -366,7 +403,7 @@ class fileman_Upload extends core_Manager {
                 	var accept = $(inputInst).attr(\"accept\");
                 	
                 	// Създаваме нов бутон
-                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile' + btnCntId + '\" type=\"file\" onchange=\"afterSelectFile(this, ' + multiUpload + ');\"';
+                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile' + btnCntId + '\" type=\"file\" onchange=\"afterSelectFile(this, ' + multiUpload + ', ' + maxFileSize + ');\"';
                 	
                 	// Ако има accept
                 	if (accept) {
@@ -388,6 +425,9 @@ class fileman_Upload extends core_Manager {
                 
                 // Даваме възможност на бутона да се натисне
                 $('#uploadBtn').removeAttr('disabled').removeClass('btn-disabled');
+                
+                // Скролира до последния качен файл
+				$('.uploaded-filenames').scrollTop($(this).height());
             }
             
             // Премахва посочения файл
