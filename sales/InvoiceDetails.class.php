@@ -96,12 +96,14 @@ class sales_InvoiceDetails extends core_Detail
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
             $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
            
-            $contragentItem = acc_Items::fetch($data->masterData->rec->contragentAccItemId);
+            $customerClass = $data->masterData->rec->contragentClassId;
+            $customerId    = $data->masterData->rec->contragentId;
+            
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
             foreach ($pricePolicies as $policyId=>$Policy) {
                 $Policy = cls::getInterface('price_PolicyIntf', $Policy);
                 
-                $data->toolbar->addBtn($Policy->getPolicyTitle($contragentItem->classId, $contragentItem->objectId), $addUrl + array('policyId' => $policyId,),
+                $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
                     "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
             }
             
@@ -120,8 +122,7 @@ class sales_InvoiceDetails extends core_Detail
         
         // Поакзваме само продуктите спрямо ценовата политиказа контрагента
         $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
-        $contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-        $products = $Policy->getProducts($contragentItem->classId, $contragentItem->objectId);
+        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         $form->setOptions('productId', $products);
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
@@ -159,12 +160,11 @@ class sales_InvoiceDetails extends core_Detail
             if(!$form->rec->price){
           	
 	            // Ако не е зададена цена, извличаме я от избраната политика
-	          	$contragentItem = acc_Items::fetch($masterRec->contragentAccItemId);
-	            $rec->price = $Policy->getPriceInfo($contragentItem->classId, $contragentItem->objectId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
+	          	$rec->price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
 	          	if(!$rec->price){
 		            $form->setError('price', 'Неможе да се определи цена');
 		        }
-          	} else {$l = $rec->price;
+          	} else {
           		$rec->price = round($rec->price * $masterRec->rate, 2);
           	}
           
