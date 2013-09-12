@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,6 +27,7 @@ class cash_Wrapper extends plg_ProtoWrapper
         $this->TAB('cash_Rko', 'РКО', 'cash, ceo');
         $this->TAB('cash_InternalMoneyTransfer', 'ВКТ', 'cash, ceo');
         $this->TAB('cash_ExchangeDocument', 'КОВ', 'cash, ceo');
+        $this->TAB(array('acc_OpenDeals', 'list', 'show' => 'cash'), 'Сделки', 'cash, ceo');
 
         $this->title = 'Фирмени каси';
     }

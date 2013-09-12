@@ -24,21 +24,18 @@ class store_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-      
-
-            $this->TAB('store_Stores', 'Складове', 'ceo,store');
-            $this->TAB('store_ShipmentOrders', 'Експедиция', 'ceo,store');
-
-            $this->TAB('store_Movements', 'Движения', 'ceo,store');
-            $this->TAB('store_Pallets', 'Палети', 'ceo,store');
-            $this->TAB('store_Racks', 'Стелажи', 'ceo,store');
-            $this->TAB('store_Zones', 'Зони', 'ceo,store');
-            $this->TAB('store_Products', 'Продукти', 'ceo,store');
-            $this->TAB('store_Stores', 'Складове', 'ceo,store');
-            $this->TAB('store_PalletTypes', 'Видове палети', 'ceo,store');
-            $this->TAB('store_Documents', 'Документи');
+        $this->TAB('store_Stores', 'Складове', 'ceo,store');
+        $this->TAB('store_ShipmentOrders', 'Експедиция', 'ceo,store');
+		$this->TAB('store_Movements', 'Движения', 'ceo,store');
+        $this->TAB('store_Pallets', 'Палети', 'ceo,store');
+        $this->TAB('store_Racks', 'Стелажи', 'ceo,store');
+        $this->TAB('store_Zones', 'Зони', 'ceo,store');
+        $this->TAB('store_Products', 'Продукти', 'ceo,store');
+        $this->TAB('store_Stores', 'Складове', 'ceo,store');
+        $this->TAB('store_PalletTypes', 'Видове палети', 'ceo,store');
+        $this->TAB('store_Documents', 'Документи');
+        $this->TAB(array('acc_OpenDeals', 'list', 'show' => 'store'), 'Сделки', 'store, ceo');
         
-            $this->title = 'Склад';
-       
+        $this->title = 'Склад';
     }
 }
