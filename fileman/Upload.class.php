@@ -199,7 +199,7 @@ class fileman_Upload extends core_Manager {
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
                 
-                    <input id="ulfile" class="ulfile" name="ulfile" type="file" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
+                    <input id="ulfile" class="ulfile" name="ulfile" type="file" size="1" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
                     <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
@@ -226,10 +226,12 @@ class fileman_Upload extends core_Manager {
         $url = toUrl(array($this, 'UploadProgress'));
         
         $tpl->appendOnce("
-             
             // След като се зареди
             $(document).ready(function() {
-            	
+				
+            	// Добавя стилове за по - стара версия на FF < 21
+            	addStyleForOldFf($('#ulfile'));
+            
             	// С новия начин (да се натиска скрития input) не би трябвало да се стига до тук
             	// Прихващаме натискането на бутона за избор на файл
             	$('.btn-ulfile').parent().on('click', '.btn-ulfile', function(e){
@@ -315,6 +317,30 @@ class fileman_Upload extends core_Manager {
             
             // Брояч на бутона, който е добавен
             var btnCntId = 0;
+            
+            // Добавя необходимите стилове за старите браузъри
+            function addStyleForOldFf(inst)
+        	{
+        		// Вземаме версията на браузъра
+        		var ffVerMatch = navigator.userAgent.match(/Firefox\\/(.*)$/);
+            	
+        		// Версията на FF
+        		var ffVersion=null;
+            	
+        		// Ако има открит резултат
+            	if (ffVerMatch && ffVerMatch.length >1) {
+            		
+            		// Вземаем версията
+            		var ffVersion = ffVerMatch[1];
+    			}
+    			
+    			// Ако има версия и е под 21
+    			if (ffVersion && ffVersion < 21) {
+    				
+    				// Добавяме нужния CSS
+    				inst.css('font-size', '0.58em').css('left', '-23px');
+    			}
+			}
             
             // След избиране на файл, добавя бутон за нов файл и показва името на файла
             function afterSelectFile(inputInst, multiUpload, maxFileSize) 
@@ -403,7 +429,7 @@ class fileman_Upload extends core_Manager {
                 	var accept = $(inputInst).attr(\"accept\");
                 	
                 	// Създаваме нов бутон
-                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile' + btnCntId + '\" type=\"file\" onchange=\"afterSelectFile(this, ' + multiUpload + ', ' + maxFileSize + ');\"';
+                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile' + btnCntId + '\" type=\"file\" size=\"1\"  onchange=\"afterSelectFile(this, ' + multiUpload + ', ' + maxFileSize + ');\"';
                 	
                 	// Ако има accept
                 	if (accept) {
@@ -417,6 +443,9 @@ class fileman_Upload extends core_Manager {
                 	
                 	// Добавяме новия бутон
                     $(inputInst).parent().prepend(newBtnInput);
+                    
+                    // Добавя стилове за по - стара версия на FF < 21
+                    addStyleForOldFf($('#ulfile' + btnCntId));
                 } else {
                 
                 	// Добавяме класа
