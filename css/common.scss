@@ -2164,7 +2164,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-closed {
-    background-color: $gray1;
+    background-color: $gray2;
 }
 
 .state-stopped, .state-blocked {
@@ -2202,6 +2202,10 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 
 .state-revert {
  	background-color: #cc9933;
+}
+
+.state-wakeup{
+	background-color: #259641;
 }
 
 .stateIndicator {
@@ -2276,6 +2280,18 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 			text-decoration:underline;
 		}
 	}
+	.deinstall-pack{
+			position:absolute;
+			right:5px;
+			top:5px;
+			width:20px;
+			height:16px;
+			padding:0 !important;
+			opacity:0.9;
+			&:hover{
+				opacity:1;
+			}
+	}
 	small{
 		display:block;
 		margin: 0.5em 0;
@@ -2301,6 +2317,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 		display:block;
 		float:right;
 		color:#999;
+		margin-right:-0.5em;
 		font-size:0.8em;
 		a{
 			display:inline-block;
@@ -2311,6 +2328,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 		}
 	}
 }
+
 
 .narrow .elem-holder{
 	width:265px;
