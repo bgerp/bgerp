@@ -27,9 +27,16 @@ class sales_model_Invoice extends core_Model
     public $number;
     
     /**
-     * @var int key(mvc=acc_Items)
+     * @var int class(interface=crm_ContragentAccRegIntf)
      */
-    public $contragentAccItemId;
+    public $contragentClassId;
+    
+    
+    /**
+     * @var int
+     */
+    public $contragentId;
+    
     
     /**
      * @var string

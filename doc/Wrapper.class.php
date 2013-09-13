@@ -105,8 +105,8 @@ class doc_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('doc_UnsortedFolders', 'Проекти');
         
-        // Показва таба за коментари, само ако имаме права за листване
-        $this->TAB('doc_Comments', 'Статии', 'ceo');
+        // Показва таба за Бележки, само ако имаме права за листване
+        $this->TAB('doc_Notes', 'Бележки', 'ceo');
              
         // Показва таба за коментари, само ако имаме права за листване
         $this->TAB('doc_Comments', 'Коментари', 'ceo');

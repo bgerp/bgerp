@@ -22,32 +22,6 @@ class email_plg_Document extends core_Plugin
     
     
     /**
-     * Реализация по подразбиране на интерфейсния метод email_DocumentIntf::getEmailHtml()
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int $id key(mvc=$mvc)
-     */
-    public function on_AfterGetEmailHtml($mvc, &$res, $id)
-    {
-        $res = $this->getDocumentBody($mvc, $id, 'html');
-    }
-    
-    
-    /**
-     * Реализация по подразбиране на интерфейсния метод email_DocumentIntf::getEmailText()
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int $id key(mvc=$mvc)
-     */
-    public function on_AfterGetEmailText($mvc, &$res, $id)
-    {
-        $res = $this->getDocumentBody($mvc, $id, 'plain');
-    }
-    
-    
-    /**
      * HTML или plain text изгледа на документ при изпращане по емайл.
      *
      * Използва single view на мениджъра на документа.

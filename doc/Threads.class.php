@@ -107,7 +107,6 @@ class doc_Threads extends core_Manager
                   pending=Чакащо,
                   active=Активирано,
                   opened=Отворено,
-                  waiting=Чакащо,
                   closed=Приключено,
                   hidden=Скрито,
                   rejected=Оттеглено,

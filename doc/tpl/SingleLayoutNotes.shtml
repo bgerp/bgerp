@@ -7,7 +7,7 @@
 	<!--ET_END blank-->
 
 	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>|Статия|* <b>[#ident#]</b> ([#state#]) - |вер|*. <b>[#versionInfo#]</b></div>
+		<div class='docBgIcon' style='[#iconStyle#];'>|Бележка|* <b>[#ident#]</b> ([#state#]) - |вер|*. <b>[#versionInfo#]</b></div>
 	</div>
 	
 	<div  class='clearfix21 antetka'>

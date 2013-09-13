@@ -714,4 +714,14 @@ class purchase_Requests extends core_Master
         return $rec;
     }
     
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	//if($rec->state == 'active'){
+    		acc_OpenDeals::saveRec($rec, $mvc);
+    	//}
+    }
 }

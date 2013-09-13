@@ -22,7 +22,6 @@ class doc_DocumentPlg extends core_Plugin
         'pending'  => 'Чакащо',
         'active'   => 'Активирано',
         'opened'   => 'Отворено',
-        'waiting'  => 'Чакащо',
         'closed'   => 'Приключено',
         'hidden'   => 'Скрито',
         'rejected' => 'Оттеглено',

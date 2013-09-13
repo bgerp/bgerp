@@ -701,8 +701,16 @@ class doc_Containers extends core_Manager
         }
         
         // Генериране на изгледа
-        $tpl = new ET();        
-        $tpl->append("\n<div class='listTitle'>" . tr('Добавяне на нов документ в нишката') . ":</div>");
+        $tpl = new ET();
+        
+        // Ако сме в нишка
+        if ($rec->threadId) {
+            $text = tr('Добавяне на нов документ в нишката');
+        } else {
+            $text = tr('Добавяне на нов документ (нишка) в папката');
+        }
+        
+        $tpl->append("\n<div class='listTitle'>" . $text . ":</div>");
         $tpl->append("<div class='accordian'><ul>");
         
         $active = ' class="active"';

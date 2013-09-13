@@ -138,7 +138,7 @@ class doc_Setup
             'doc_Search',
             'doc_Folders',
             'doc_Comments',
-            'doc_Articles',
+            'doc_Notes',
             'doc_PdfCreator',
             'doc_ThreadUsers',
             'doc_Files',

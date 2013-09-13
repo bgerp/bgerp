@@ -1359,4 +1359,15 @@ class sales_Sales extends core_Master
 		     unset($form->rec->threadId);
 		}
     }
+    
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	//if($rec->state == 'active'){
+    		acc_OpenDeals::saveRec($rec, $mvc);
+    	//}
+    }
 }

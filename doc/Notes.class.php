@@ -2,7 +2,7 @@
 
 
 /**
- * Статии в системата
+ * Бележки в системата
  *
  * @category  bgerp
  * @package   doc
@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Articles extends core_Master
+class doc_Notes extends core_Master
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'doc_Articles';
     
     
     /**
@@ -30,13 +36,13 @@ class doc_Articles extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Статии";
+    var $title = "Бележки";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Статия";
+    var $singleTitle = "Бележка";
     
     
     /**
@@ -91,19 +97,19 @@ class doc_Articles extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutArticles.shtml';
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutNotes.shtml';
     
     
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/article.png';
+    var $singleIcon = 'img/16/doc-note.png';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Art';
+    var $abbr = 'Not';
     
     
     /**
@@ -148,7 +154,7 @@ class doc_Articles extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,changable');
-        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Статия,mandatory,changable');
+        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory,changable');
         $this->FLD('version', 'varchar', 'caption=Версия,input=none,width=100%,changable');
         $this->FLD('subVersion', 'int', 'caption=Подверсия,input=hidden,changable');
     }
@@ -299,7 +305,7 @@ class doc_Articles extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на статия не променя състоянието на треда
+     * Добавянето на бележка не променя състоянието на треда
      */
     static function getThreadState($id)
     {

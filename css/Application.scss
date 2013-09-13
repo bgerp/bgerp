@@ -775,6 +775,7 @@ td.portal-date {
 .document {
     width:99%;
     min-width:800px;
+    max-width:900px;
 	border: solid 1px $gray4;
 	background: #ffffff;
 	@include border-radius(5px);

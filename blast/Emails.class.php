@@ -287,7 +287,7 @@ class blast_Emails extends core_Master
         if (($state == 'draft') || ($state == 'stopped')) {
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
             $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'ef_icon = img/16/lightning.png');
-        } elseif (($state == 'waiting') || ($state == 'active')) {
+        } elseif (($state == 'pending') || ($state == 'active')) {
             //Добавяме бутона Спри, ако състоянието е активно или изчакване
             $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'ef_icon = img/16/close16.png');
         }
@@ -817,7 +817,7 @@ class blast_Emails extends core_Master
             } else {
                 
                 // Сменя статуса на чакащ
-                $form->rec->state = 'waiting';
+                $form->rec->state = 'pending';
             }
             
             // Копира всички имеили, на които ще се изпраща имейл-а
@@ -1091,7 +1091,7 @@ class blast_Emails extends core_Master
             switch ($rec->state) {
                 
                 //Ако е на изчакване, тогава стартираме процеса
-                case 'waiting' :
+                case 'pending' :
                     //променяме статуса на имейл-а на активен
                     $recNew = new stdClass();
                     $recNew->id = $rec->id;
@@ -1838,15 +1838,6 @@ class blast_Emails extends core_Master
         $row->recTitle = $rec->subject;
         
         return $row;
-    }
-
-
-    /**
-     * Връща заглавието по подразбиране без да се заменят placeholder' ите
-     */
-    function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
-    {
-        return NULL;
     }
     
     
