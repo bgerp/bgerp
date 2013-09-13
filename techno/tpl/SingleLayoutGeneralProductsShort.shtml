@@ -9,16 +9,9 @@
 		</span>
 		<!--ET_END image-->
 	[#description#]</li>
-	<!--ET_BEGIN OTHERS-->
-	<li class='list-measures'><b>|Параметри|*</b>[#OTHERS#] 
-		<ul>
-			<!--ET_BEGIN PARAMS-->
-				[#PARAMS#]
-				<li>- [#paramId#]: <i>[#paramValue#]</i></li>
-			<!--ET_END PARAMS-->
-		</ul>
-	</li>
-	<!--ET_END OTHERS-->
+	<!--ET_BEGIN PARAMS-->
+	[#PARAMS#]
+	<!--ET_END PARAMS-->
 	<li>
 	[#COMPONENTS#]
 	</li>
