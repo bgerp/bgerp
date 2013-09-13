@@ -16,10 +16,15 @@
  */
 class lib_Diff {
     
-
+    /**
+     * От стара и нова версия на HTML, генерира изглед с оцветветени разлики между тях
+     *
+     * @param old string star HTML
+     * @param new string нов HTML
+     */
     static function getDiff(
         $old, $new, 
-        $insR = '<span class="ins">', $insR = '</span>', 
+        $insL = '<span class="ins">', $insR = '</span>', 
         $delL = '<span class="del">', $delR = '</span>', 
         $cngL = '<span title="#" class="cng">', $cngR = '</span>')
     {   
@@ -230,7 +235,5 @@ class lib_Diff {
             array_slice($new, $nmax, $maxlen),
             self::getArrDiff(array_slice($old, $omax + $maxlen), array_slice($new, $nmax + $maxlen)));
     }
-
-
 
  }
