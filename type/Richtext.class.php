@@ -228,17 +228,17 @@ class type_Richtext extends type_Blob
         // Обработваме едноредовите кодове: стрингове
         $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
-        // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
-        
-        // Обработваме имейлите, зададени в явен вид
-        $html = preg_replace_callback("/(\S+@\S+\.\w+)/i", array($this, '_catchEmails'), $html);
-        
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]([\r\n]{0,2})/is", array($this, '_catchHeaders'), $html);
         
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
+
+        // Обработваме хипервръзките, зададени в явен вид
+        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
+        
+        // Обработваме имейлите, зададени в явен вид
+        $html = preg_replace_callback("/(\S+@\S+\.\w+)/i", array($this, '_catchEmails'), $html);
 
         // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
