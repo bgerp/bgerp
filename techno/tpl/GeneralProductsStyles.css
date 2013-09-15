@@ -1,9 +1,7 @@
 .general-product .list-info {
 	list-style:none;
-	padding-left:0;
-	margin-top:0px;
-	margin-bottom:0;
-	padding-bottom:0;
+	padding:0 0;
+	margin:0 0;
 }
 
 .general-product .list-title{
@@ -17,18 +15,25 @@
 }
 
 .general-product .list-description-short .richtext{
+	font-size:0.9em;
 	font-family: Arial,Verdana;
+	padding:6px 0px;
 	text-align:justify;
 	color:#000;
 }
 
 .general-product .list-measures ul {
 	list-style:none;
-	padding-left:10px;
+	padding-left:20px;
 }
 
-ol.short{
-	padding-left:28px;
+.spec-short{
+	font-size:0.9em;
+	color:#222;
+}
+
+.general-product .list-info li b{
+	color:#222;
 }
 
 .general-product .product-image {
@@ -39,9 +44,7 @@ ol.short{
 
 .general-product .list-description-short .product-image{
 	float:right;
-	margin-top:0;
-	margin-left:10px;
-	margin-bottom:0px;
+	margin:6px 0 0 10px;
 }
 
 .narrow .general-product .product-image {
@@ -60,7 +63,6 @@ ol.short{
 .narrow .general-product .list-description-short .richtext{
 	min-width:160px;
 }
- 
 
 .wideDesc{
 	max-width:380px !important;
@@ -81,9 +83,6 @@ table.styled-table tr.components-total:hover td{
 
 table.styled-table tr.components-total td.has-hover:hover{
 	background-color:#ffc !important;
-}
-th{
-	padding-bottom:4px;
 }
 
 .custom-styled-table{
@@ -112,8 +111,7 @@ th{
 	}
 	.general-product .product-image{
 		float:left;
-		margin-top:0;
-		margin-bottom:10px;
+		margin:0 0 10px 0;
 	}
 	.general-product .list-description-short{
 		max-width:100%;
@@ -135,6 +133,7 @@ th{
 	float:right;
 	margin-left:10px;
 }
+
 .title-group{
 	margin-bottom:5px;
 }

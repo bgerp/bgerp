@@ -46,6 +46,9 @@ class techno_Setup extends core_ProtoSetup
      */
     var $managers = array(
         	'techno_Specifications',
+    		'techno_GeneralProducts',
+    		'techno_GeneralProductsDetails',
+    		'techno_GeneralProductsParameters',
         );
     
 
@@ -69,9 +72,6 @@ class techno_Setup extends core_ProtoSetup
     function install()
     {
     	$html = parent::install();
-        
-        // Добавяме Продуктовия драйвър в core_Classes
-        core_Classes::add('techno_GeneralProducts');
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');

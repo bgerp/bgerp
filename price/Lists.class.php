@@ -166,7 +166,7 @@ class price_Lists extends core_Master
 	            $parentOptions = self::makeArray4select('title', $cond);
 	            $form->setOptions('parent', $parentOptions);
 	        } else {
-	            $rec->parent = price_ListRules::PRICE_LIST_CATALOGG;
+	            $rec->parent = price_ListRules::PRICE_LIST_CATALOG;
 	        }
         }
             

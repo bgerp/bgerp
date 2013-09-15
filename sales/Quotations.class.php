@@ -239,15 +239,14 @@ class sales_Quotations extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec)
     {
     	if($rec->originId){
-			$origin = doc_Containers::getDocument($rec->originId);
-			if($origin->className == 'techno_Specifications'){
-				$originRec = $origin->fetch();
-				$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
-				if($originRec->isOfferable == 'yes' && ($quantities[0] || $quantities[1] || $quantities[2])){
-					$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin->that, $quantities);
-				}
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		expect(cls::haveInterface('techno_ProductsIntf', $origin->className));
+    		expect(doc_Folders::fetchCoverClassName($origin->fetchField('folderId')) != 'doc_UnsortedFolders');
+    		$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
+    		if(($quantities[0] || $quantities[1] || $quantities[2])){
+    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $quantities);
 			}
-		}
+    	}
     }
     
     

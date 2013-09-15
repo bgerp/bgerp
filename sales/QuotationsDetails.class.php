@@ -142,12 +142,12 @@ class sales_QuotationsDetails extends core_Detail {
     	
         // Ако офертата е базирана на спецификация, то тя може да
 		// се добавя редактира в нея дори ако е чернова
-		if(isset($masterRec->originId)){
+		/*if(isset($masterRec->originId)){
 			  $origin = doc_Containers::getDocument($masterRec->originId);
 			  if($origin->className == 'techno_Specifications'){
 			    $products[$origin->that] = $origin->recToVerbal('title')->title;
 			  }
-		}
+		}*/
         
         if($rec->productId){
         	// При редакция единствения възможен продукт е редактируемия
@@ -500,16 +500,26 @@ class sales_QuotationsDetails extends core_Detail {
      * Ако ориджина е спецификация вкарват се записи отговарящи
      * на посочените примерни количества в нея
      * @param stdClass $rec - запис на оферта
-     * @param int $sId - ид на спецификацията
+     * @param core_ObjectReference $origin - ид на спецификацията
      * @param array $quantities - количества подадени от заявката
      */
-    public function insertFromSpecification($rec, $sId, $quantities = array())
+    public function insertFromSpecification($rec, $origin, $quantities = array())
     {
+    	$docClassId = $origin->instance->getClassId();
+    	$docId = $origin->that;
+    	
+    	$specRec = techno_Specifications::fetch("#docClassId = {$docClassId} AND #docId = {$docId}");
+    	if(!$specRec){
+    		$docRec = $origin->fetch();
+    		$specId = techno_Specifications::saveRec($origin->instance, $docRec);
+    		$specRec = techno_Specifications::fetch($specId);
+    	}
+    	
     	$policyId = techno_Specifications::getClassId();
     	$Policy = cls::get($policyId);
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = $rec->id AND #productId = {$sId} AND #policyId = {$policyId}");
+    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #policyId = {$policyId}");
     	
     	foreach ($quantities as $q) {
     		if(empty($q)) continue;
@@ -517,7 +527,7 @@ class sales_QuotationsDetails extends core_Detail {
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $sId;
+    		$dRec->productId = $specRec->id;
     		$dRec->quantity = $q;
     		$dRec->policyId = $policyId;
     		$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);

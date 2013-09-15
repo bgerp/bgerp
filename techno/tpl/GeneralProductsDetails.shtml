@@ -4,7 +4,7 @@
 	[#COMPONENTS#]
 	<tr>
 		<th class='component-header' width=1%>№</th>
-		<th class='component-header'>|Продукт|*</th>
+		<th class='component-header'>|Компонент|*</th>
 		<th class='component-header'>|К-во|*</th>
 		<th class='component-header'>|Цена|*</th>
 		<th class='component-header'>|Стойност|*</th>
@@ -15,8 +15,8 @@
 	<tr>
 		<td><div class="rowtools"><div class='l nw'>[#tools#]</div><div class="r">[#num#]</div> </td>
 		<td>[#componentId#]</td>
-		<td width='12%' align='right'>[#quantity#] [#cMeasureId#]</td>
-		<td width='12%' align='right' class='expandable'>[#cPrice#]</td>
+		<td width='12%' align='right'>[#cquantity#] [#cMeasureId#]</td>
+		<td width='12%' align='right' class='expandable'>[#price#]</td>
 		<td width='12%' align='right' class='expandable'>[#amount#]</td>
 		<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>
 	</tr>
@@ -25,27 +25,30 @@
 	<tr class='components-total'>
 		<td colspan='3' style='border:0px;' class='no-hover'></td>
 		<td align='right' class='has-hover'><b>|Общо|*:</b></td>
-		<td align='right' class='has-hover expandable'><b>[#totalAmount#]</b>
+		<td align='right' class='has-hover expandable'>
 		<!--ET_BEGIN currencyId-->
 		<span class='cCode'>[#currencyId#]</span>
 		<!--ET_END currencyId-->
+		<b>[#totalAmount#]</b>
 		</td>
-		<td align='right' class='has-hover expandable'><b>[#totalTaxes#]</b>
-		<!--ET_BEGIN currencyTaxId-->
-		<span class='cCode'>[#currencyTaxId#]</span>
-		<!--ET_END currencyTaxId-->
+		<td align='right' class='has-hover expandable'>
+		<!--ET_BEGIN taxCurrencyId-->
+		<span class='cCode'>[#taxCurrencyId#]</span>
+		<!--ET_END taxCurrencyId-->
+		<b>[#totalTaxes#]</b>
 		</td>
 	</tr>
 	<!--ET_END totalAmount-->
 	<!--ET_END COMPONENTS-->
 	</table>
+	[#ListToolbar#]
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->
 <!--ET_BEGIN COMPONENTS-->
 [#COMPONENTS#]
 <b>|Компоненти|*</b>
-		<ol class ='short']>
+		<ol class ='spec-short'>
 			<!--ET_BEGIN COMPONENT-->
 			[#COMPONENT#]
 			<li>[#componentId#]<span style='margin-left:10px'>[#cquantity#] [#cMeasureId#]</span></li>

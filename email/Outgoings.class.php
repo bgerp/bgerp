@@ -1152,6 +1152,16 @@ class email_Outgoings extends core_Master
             // Задаваме стойност
             $data->form->setDefault('forward', $forward);  
         }
+        
+        // Ако има открит език
+        if ($lg) {
+            
+            $langAttrArr = array("lang" => $lg, "spellcheck" => "true");
+            
+            // Добавяме атрибути към тялото и заглавието
+            $data->form->addAttr('body', $langAttrArr);
+            $data->form->addAttr('subject', $langAttrArr);
+        }
     }
     
     
