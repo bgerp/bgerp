@@ -164,6 +164,10 @@ tr.noHover td:hover {
     margin-left:6px; 
 }
 
+body.narrow {
+    background-color:black;
+}
+
 
 #mainMenu {
 	background-color: $gray3;
@@ -2403,6 +2407,22 @@ div.location{
 	background: #ffffff;
 	@include border-radius(5px !important);
 	padding: 10px !important;
+}
+
+#rss-feeds {
+	padding:30px;
+}
+
+.narrow #rss-feeds {
+	padding:10px;
+}
+
+.rss-feeds-header {
+	padding-top:3px;
+	padding-left:32px; ;
+	background-repeat:no-repeat;
+	background-position: 5px center;
+    background-image:url('../cms/img/rss24.png');
 }
 
 /*край на бъгфиксове*/

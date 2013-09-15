@@ -1,7 +1,6 @@
+<div id='rss-feeds'>
+<h2 class='rss-feeds-header'>[#HEADER#]</h2>
 <ul style='list-style:none'>
-	<li>
-		<h2>[#ICON#]&nbsp;&nbsp;[#HEADER#]</h2>
-	</li>
 	<!--ET_BEGIN ROW-->
 	<li style = 'margin-top:5px'>
 		<table border='0'>
@@ -15,3 +14,4 @@
 	</li>
 	<!--ET_END ROW-->
 </ul>
+</div>

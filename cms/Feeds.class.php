@@ -220,8 +220,7 @@ class cms_Feeds extends core_Manager {
 		
 		// Поставяме иконка и заглавие
 		$layout->append(tr('Нашите емисии'), 'HEADER');
-		$icon = ht::createElement('img', array('src' => sbf("cms/img/rss_icon_glass32.PNG", ""), 'style' => 'float:left;;'));
-		$layout->append($icon, 'ICON');
+ 
 		if(count($data->rows) > 0) {
 			foreach($data->rows as $row) {
 				$feedTpl = $layout->getBlock('ROW');
