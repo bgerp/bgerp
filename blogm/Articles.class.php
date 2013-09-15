@@ -483,6 +483,7 @@ class blogm_Articles extends core_Master {
         if($data->archive) {
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive);
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
+            $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
         }
 		
         $data->ThemeClass = $this->getThemeClass();
