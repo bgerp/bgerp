@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'cms_tpl_Page' - Шаблон за публична страница
+ * Клас 'cms_Page' - Шаблон за публична страница
  *
  * Файлът може да се подмени с друг
  *
@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @link
  */
-class cms_tpl_Page extends page_Html {
+class cms_Page extends page_Html {
     
     
     /**
@@ -24,50 +24,27 @@ class cms_tpl_Page extends page_Html {
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function cms_tpl_Page()
+    function cms_Page()
     {
-    	$conf = core_Packs::getConfig('core');
-    	
+        // Конструктора на родителския клас
         $this->page_Html();
-
+    	
+        // Параметри от конфигурацията
+        $conf = core_Packs::getConfig('core');
+    	
+        // Кодировка - UTF-8
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->push("css/common.css",'CSS');
-        $this->push("css/Application.css",'CSS');
-        $this->push( 'cms/css/Wide.css', 'CSS');
+        $this->push('css/common.css','CSS');
+        $this->push('css/Application.css','CSS');
+        $this->push('cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
-        if(Mode::is('screenMode', 'wide')) {
-      	 	$headerImg = sbf("cms/img/bgERP.jpg");
-        } else {
-      	 	$headerImg = sbf("cms/img/bgERP-small.jpg");
-        }
-
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
-        $this->replace(new ET(
-        "<div class='clearfix21' id='all'>
-            <div id=\"cmsTop\"><img src=" . $headerImg .
-        		
-                " id='headerImg'/>[#PAGE_HEADER#]
-            </div>
-            <div id=\"cmsMenu\" class='menuRow'>
-                [#CMS_MENU#]
-            </div>
-            <div id=\"maincontent\" {$minHeighStyle}>
-                <div class='statuses' id='statuses' style='margin: 0 auto;'>
-                    [#STATUSES#]
-                </div>
-                 [#CMS_LAYOUT#]
-             </div>
-             <div id=\"cmsBottom\">
-                [#FEED#]
-                [#cms_Content::getFooter#]
-              </div>
-         </div>"), 
-        'PAGE_CONTENT');
+        $this->replace(new ET(getFileContent('cms/tpl/Page.shtml')), 'PAGE_CONTENT');
         
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
@@ -95,7 +72,7 @@ class cms_tpl_Page extends page_Html {
     {
         // Генерираме хедъра и Линка към хедъра
         $invoker->appendOnce(cms_Feeds::generateHeaders(), 'HEAD');
-        $invoker->replace(cms_Feeds::generateFeedLink(), 'FEED');
+        //$invoker->replace(cms_Feeds::generateFeedLink(), 'FEED');
         
         if (!Mode::get('lastNotificationTime')) {
             Mode::setPermanent('lastNotificationTime', time());    
@@ -125,4 +102,21 @@ class cms_tpl_Page extends page_Html {
        
         }
     }
+
+
+    /**
+     * Връща картинката за главата на публичната страница
+     */
+    static function getHeaderImg() 
+    {
+        if(Mode::is('screenMode', 'wide')) {
+      	 	$headerImg = sbf("cms/img/bgERP.jpg", '');
+        } else {
+      	 	$headerImg = sbf("cms/img/bgERP-small.jpg", '');
+        }
+        
+        return $headerImg;
+    }
+
+    
 }

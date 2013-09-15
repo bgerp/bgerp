@@ -112,25 +112,22 @@ class cms_Feeds extends core_Manager {
         // Взависимост от посоченият вид, инстанцираме определения клас хранилка
         switch ($rec->type) {
         	case 'rss' : 
-        		
         		 // Инстанцираме нова хранилка от тип RSS 1
         		 $feed = new RSS1FeedWriter();
-				 $feed->setChannelAbout('http://bgerp.com/blogm_Articles/');
+				 $feed->setChannelAbout(toUrl(array($this, 'get', $rec->id), 'absolute'));
 				 break;
+
         	case 'rss2' : 
-        		
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
-  				 
   				 if($rec->logo){
   				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), fileman_Download::getDownloadUrl($rec->logo));
   				 }
-  				 
   				 break;
+
         	case 'atom' : 
-        		
         		// Инстанцираме нова хранилка от тип ATOM
         		$feed = new ATOMFeedWriter();
         		$feed->setChannelElement('updated', date(DATE_ATOM, time()));
@@ -140,7 +137,7 @@ class cms_Feeds extends core_Manager {
         
         // Заглавие, Адрес и Описание на хранилката
 		$feed->setTitle($rec->title);
-		$feed->setLink(toUrl(array($this, 'get', $rec->id), 'absolute'));
+		$feed->setLink(toUrl(array('blogm_Articles'), 'absolute'));
         $feed->setDescription($rec->description);
         
         // Попълваме хранилката от източника
@@ -182,7 +179,7 @@ class cms_Feeds extends core_Manager {
 		$layout = $this->renderFeeds($data);
 		
 		// Поставяме обвивката за външен достъп
-		Mode::set('wrapper', 'cms_tpl_Page');
+		Mode::set('wrapper', 'cms_Page');
 		
 		return $layout;
 	}

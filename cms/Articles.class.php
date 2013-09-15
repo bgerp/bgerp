@@ -173,7 +173,7 @@ class cms_Articles extends core_Manager
      */
     function act_Article()
     {   
-        Mode::set('wrapper', 'cms_tpl_Page');
+        Mode::set('wrapper', 'cms_Page');
         
         $conf = core_Packs::getConfig('cms');
 		$ThemeClass = cls::get($conf->CMS_THEME);
@@ -209,7 +209,7 @@ class cms_Articles extends core_Manager
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
             
             // Рендираме тулбара за споделяне
-            $content->prepend(new ET("<div style='margin-bottom:15px;'>[#1#]</div>", $conf->CMS_SHARE));
+            $content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", $conf->CMS_SHARE));
             
             $ptitle = self::getVerbal($rec, 'title') . " » ";
  

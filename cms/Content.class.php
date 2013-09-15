@@ -280,7 +280,7 @@ class cms_Content extends core_Manager
             $s->append2master();
         }
         
-        Mode::set('wrapper', 'cms_tpl_Page');
+        Mode::set('wrapper', 'cms_Page');
 
         return $res;
     }
