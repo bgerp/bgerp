@@ -2204,7 +2204,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	color:#444 !important;
 }
 
-.state-rejected .document img{
+.state-rejected .document img, .state-rejected .anchor-arrow{
 	opacity:0.5;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 }
