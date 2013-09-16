@@ -1186,7 +1186,7 @@ div.hFormField {
 
 /*тулбар*/
 
-.wide .toolbar-first{
+.wide .single-thread .toolbar > div:first-child{
 	display:block;
 	margin-bottom:9px;
 }
