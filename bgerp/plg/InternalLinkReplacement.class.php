@@ -30,6 +30,9 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         // Парсираме URL' то
         $params = type_Richtext::parseInternalUrl($rest);
         
+        // Ако няма резултат, връщаме
+        if ($params === FALSE) return ;
+        
         // Всички параметри
         $ctr = strtolower($params['Ctr']);
         $act = strtolower($params['Act']);
