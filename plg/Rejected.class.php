@@ -81,7 +81,9 @@ class plg_Rejected extends core_Plugin
             $ws = $data->toolbar->buttons['with_selected'];
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
-            $data->toolbar->buttons['with_selected'] = $ws;
+            if(isset($ws)){
+            	$data->toolbar->buttons['with_selected'] = $ws;
+            }
         } else {
             $rejCnt = $data->rejQuery->count();
 
