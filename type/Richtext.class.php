@@ -1073,7 +1073,10 @@ class type_Richtext extends type_Blob
         }
 
         setIfNot($params['Ctr'], $restArr[0]);
-
+        
+        // Ако екшъна е SBF
+        if (strtolower($params['Ctr']) == 'sbf') return FALSE;
+        
         setIfNot($params['Act'], $restArr[1], 'default');
 
         if(count($restArr) % 2) {
