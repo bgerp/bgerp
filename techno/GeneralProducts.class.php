@@ -318,9 +318,11 @@ class techno_GeneralProducts extends core_Master {
     public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
     {
      	$rec = $mvc->fetchRec($id);
-    	$sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
-    	$sRec->state = 'rejected';
-    	techno_Specifications::save($sRec);
+     	if($rec->brState == 'active'){
+     		$sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
+	    	$sRec->state = 'rejected';
+	    	techno_Specifications::save($sRec);
+     	}
     }
     
     
@@ -330,8 +332,10 @@ class techno_GeneralProducts extends core_Master {
     public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
-    	$sRec->state = 'active';
-    	techno_Specifications::save($sRec);
+        if($rec->brState == 'active'){
+        	$sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
+	    	$sRec->state = 'active';
+	    	techno_Specifications::save($sRec);
+        }
     }
 }
