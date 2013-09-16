@@ -178,7 +178,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     	$query = static::getQuery();
     	$query->where("#generalProductId = {$generalProductId}");
-    	$query->show = 'componentId';
+    	$query->show('componentId');
     	while($rec = $query->fetch()){
     		if(isset($products[$rec->componentId])){
     			unset($products[$rec->componentId]);
