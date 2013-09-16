@@ -149,7 +149,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     /**
      * Подготвя полетата на формата
      */
-	private function getFormFields(&$form, $coversArr)
+	private static function getFormFields(&$form, $coversArr)
     {
     	foreach ($coversArr as $coverId){
     			
