@@ -248,4 +248,28 @@ class cat_Groups extends core_Master
     	
     	return $res;
     }
+    
+    
+    /**
+     * Връща групите които отговарят на посочени мета данни
+     * @param mixed $meta - списък от мета данни
+     * #return array $res - масив с опции
+     */
+    public static function getByMeta($meta)
+    {
+    	$metaArr = arr::make($meta);
+    	$query = static::getQuery();
+    	if(count($metaArr)){
+	    	foreach ($metaArr as $m){
+	    		$query->like('meta', $m);
+	    	}
+    	}
+    	
+    	$res = array();
+    	while($rec = $query->fetch()){
+    		$res[$rec->id] = static::getTitleById($rec->id);
+    	}
+    	
+    	return $res;
+    }
 }
