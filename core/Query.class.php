@@ -562,9 +562,9 @@ class core_Query extends core_FieldSet
         
         $this->where($cond);
         
-        $wh = $this->getWhereAndHaving();
+        $wh = $this->getWhereAndHaving(FALSE, TRUE);
         
-        $this->getShowFields();
+        $this->getShowFields(TRUE);
         
         $orderBy = $this->getOrderBy();
         $limit   = $this->getLimit();
@@ -733,7 +733,7 @@ class core_Query extends core_FieldSet
      * 
      * @param boolean $pureClause - Дали да добави ключовите думи пред клаузите
      */
-    function getWhereAndHaving($pureClause=FALSE)
+    function getWhereAndHaving($pureClause=FALSE, $isDelete = FALSE)
     {
         $this->useHaving = FALSE;
         
@@ -745,7 +745,7 @@ class core_Query extends core_FieldSet
         if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
                 //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
-                if ($fieldRec->externalKey) {
+                if ($fieldRec->externalKey && !$isDelete) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
                     $this->tables[$mvc->dbTableName] = TRUE;
@@ -791,7 +791,7 @@ class core_Query extends core_FieldSet
     /**
      * Връща полетата, които трябва да се показват
      */
-    function getShowFields()
+    function getShowFields($isDelete = FALSE)
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
         // без виртуалните и чуждестранните
@@ -833,6 +833,7 @@ class core_Query extends core_FieldSet
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
                 case "EXT" :
+                	if($isDelete) break;
                     $mvc = cls::get($f->externalClass);
                     $tableName = $mvc->dbTableName;
                     $this->tables[$tableName] = TRUE;
