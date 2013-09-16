@@ -20,7 +20,7 @@ class techno_Specifications extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'price_PolicyIntf, acc_RegisterIntf=techno_specifications_Register';
+    public $interfaces = 'price_PolicyIntf, acc_RegisterIntf=techno_specifications_Register,cat_ProductAccRegIntf';
     
     
     /**
@@ -322,7 +322,7 @@ class techno_Specifications extends core_Master {
     		'docClassId' => $classId,
     		'docId' => $rec->id,
     		'folderId' => $rec->folderId,
-    		'state' => 'active',
+    		'state' => ($rec->state != 'rejected') ? 'active' : 'rejected',
     		'createdOn' => dt::now(),
     		'createdBy' => core_Users::getCurrent(),
     		'common' => ($coverClass == 'doc_UnsortedFolders') ? "yes" : "no",
