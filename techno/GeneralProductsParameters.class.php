@@ -185,7 +185,7 @@ class techno_GeneralProductsParameters extends core_Manager
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-       if ($action == 'add') {
+       if ($action == 'add' || $action == 'edit' || $action == 'delete') {
        		if(empty($rec->generalProductId)){
        			$res = 'no_one';
        		} else {
