@@ -162,7 +162,7 @@ class fileman_RichTextPlg extends core_Plugin
                 $params = type_Richtext::parseInternalUrl($rest);
                 
                 // Ако е файл от fileman
-                if (strtolower($params['Ctr']) == 'fileman_files' && strtolower($params['Act']) == 'single' && $params['id']) {
+                if (($params !== FALSE) && (strtolower($params['Ctr']) == 'fileman_files' && strtolower($params['Act']) == 'single' && $params['id'])) {
                     
                     // Вземаме данните за файла
                     $fRec = fileman_Files::fetchByFh($params['id']);
