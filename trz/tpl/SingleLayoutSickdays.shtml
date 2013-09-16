@@ -7,7 +7,7 @@
 			<div class='antetka' style='line-height:160%;'>
 			<small>
 			<div>
-				<div><b>БОЛНИЧЕН ЛИСТ</b></div>
+				<div><b>|БОЛНИЧЕН ЛИСТ|*</b></div>
 				<!--ET_BEGIN createdDate--><div>№ [#fitNoteNum#] / [#createdDate#]|г|*.</div><!--ET_END createdDate-->
 			</div>
 		 	</small>
@@ -16,13 +16,13 @@
 	</div> 
 			
 			<div class='block_left'>
-			<!--ET_BEGIN personId--><p><b>Служител:</b> [#personId#]</p><!--ET_END personId-->
-			<p><b>Период:</b> от <b>[#startDate#]</b> до <b>[#toDate#]</b></p>
-	    	<p><b>Причина:</b> [#reason#]</p>
-	    	<!--ET_BEGIN note--><div class='richtext-holder'><b>Забележка:</b> [#note#]</div><!--ET_END note-->
-	    	<!--ET_BEGIN icdCode--><p><b>Код по MKB:</b> [#icdCode#]</p><!--ET_END icdCode-->
-	    	<!--ET_BEGIN paidByEmployer--><p><b>Заплащане от работодателя:</b> [#paidByEmployer#]</p><!--ET_END paidByEmployer-->
-	    	<!--ET_BEGIN paidByHI--><p><b>Заплащане от НЗК:</b> [#paidByHI#]</p><!--ET_END paidByHI-->
+			<!--ET_BEGIN personId--><p><b>|Служител|*:</b> [#personId#]</p><!--ET_END personId-->
+			<p><b>|Период|*:</b> |от|* <b>[#startDate#]</b> |до|* <b>[#toDate#]</b></p>
+	    	<p><b>|Причина|*:</b> [#reason#]</p>
+	    	<!--ET_BEGIN note--><div class='richtext-holder'><b>|Забележка|*:</b> [#note#]</div><!--ET_END note-->
+	    	<!--ET_BEGIN icdCode--><p><b>|Код по MKB|*:</b> [#icdCode#]</p><!--ET_END icdCode-->
+	    	<!--ET_BEGIN paidByEmployer--><p><b>|Заплащане от работодателя|*:</b> [#paidByEmployer#]</p><!--ET_END paidByEmployer-->
+	    	<!--ET_BEGIN paidByHI--><p><b>|Заплащане от НЗК|*:</b> [#paidByHI#]</p><!--ET_END paidByHI-->
             </div>
 
 

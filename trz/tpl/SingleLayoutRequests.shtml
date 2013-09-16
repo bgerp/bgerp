@@ -1,25 +1,25 @@
 [#SingleToolbar#]
 <div class='document'>
 	<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>Молба <b>[#ident#]</b> ([#state#])</div>
+			<div class='docBgIcon' style='[#iconStyle#]'>|Молба|* <b>[#ident#]</b> ([#state#])</div>
 	</div>
 	<!--ET_END header-->
-	<h3 class="centered">М О Л Б А </h3>
+	<h3 class="centered">|М О Л Б А|* </h3>
 	 <p class="centered">№ [#id#] / [#createdDate#]|г|*.</p>
-	 <p class="centered">От: <b>[#personId#]</b></p>
-	 <p class="centered">Относно: ползване на <b>[#paid#]</b> годишен отпуск</p></br>
-	 <p class="indent">Уважаеми г-н/ г-жо Управител,</p>
-	 <p class="indent">Моля, да ми разрешите да ползвам <b>[#leaveDays#] дни</b> платен годишен отпуск за [#useDaysFromYear#]г., считано от <b>[#leaveFrom#]</b> до <b>[#leaveTo#]</b>.</p>
-	 <p class="indent">Надявам се, че ще разрешите ползването на искания отпуск.</p></br> 
+	 <p class="centered">|От|*: <b>[#personId#]</b></p>
+	 <p class="centered">|Относно|*: |ползване на|* <b>[#paid#]</b> |годишен отпуск|*</p></br>
+	 <p class="indent">|Уважаеми г-н/ г-жо Управител|*,</p>
+	 <p class="indent">|Моля, да ми разрешите да ползвам|* <b>[#leaveDays#] |дни|*</b> |платен годишен отпуск за|* [#useDaysFromYear#]|г|*., |считано от|* <b>[#leaveFrom#]</b> |до|* <b>[#leaveTo#]</b>.</p>
+	 <p class="indent">|Надявам се, че ще разрешите ползването на искания отпуск|*.</p></br> 
      
     <table width=100%>
 	<tr>
-	<td>гр: .......................</td>
+	<td>|гр|*: .......................</td>
 	<td> </td>
-	<td valign=bottom align=right>Подпис: ...................</td>
+	<td valign=bottom align=right>|Подпис|*: ...................</td>
 	</tr>
 	<tr>
-	<td height=50 valign=bottom>Дата: [#createdDate#]</td>
+	<td height=50 valign=bottom>|Дата|*: [#createdDate#]</td>
 	<td> </td>
 	</tr>
 	</table>
