@@ -64,7 +64,7 @@ class techno_GeneralProductsParameters extends core_Manager
      */
     function description()
     {
-        $this->FLD('generalProductId', 'key(mvc=techno_GeneralProducts)', 'caption=Продукт,input=hidden,silent');
+    	$this->FLD('generalProductId', 'key(mvc=techno_GeneralProducts)', 'caption=Продукт,input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name,allowEmpty)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
         
@@ -185,16 +185,14 @@ class techno_GeneralProductsParameters extends core_Manager
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-       if ($action == 'add' || $action == 'edit' || $action == 'delete') {
-       		if(empty($rec->generalProductId)){
+       if (isset($rec->generalProductId)){
+       		$masterState = $mvc->Master->fetchField($rec->generalProductId, 'state');
+       		if ($masterState != 'draft'){
        			$res = 'no_one';
-       		} else {
-       			$masterState = $mvc->Master->fetchField($rec->generalProductId, 'state');
-       			if($masterState != 'draft'){
-       				$res = 'no_one';
-       			}
        		}
-        }
+       } elseif ($action == 'add'){
+       		$res = 'no_one';
+       }
     }
     
     

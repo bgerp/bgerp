@@ -32,13 +32,19 @@ class techno_Specifications extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search';
+    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search,plg_Rejected';
 
     
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Спецификация";
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'no_one';
     
     
     /**
@@ -121,7 +127,10 @@ class techno_Specifications extends core_Master {
     	$this->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $this->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-        //$this->FLD('isOfferable', 'enum(no=Не,yes=Да)', 'input=none,value=no');
+        $this->FLD('state', 
+            'enum(active=Активирано, rejected=Отказано)', 
+            'caption=Статус, input=none'
+        );
     	
     	$this->setDbUnique('title');
     }
@@ -166,7 +175,7 @@ class techno_Specifications extends core_Master {
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
-    	
+    	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
@@ -192,6 +201,8 @@ class techno_Specifications extends core_Master {
 	            $row->title = str::limitLen(strip_tags($row->title), 70);
 	            $row->title = ht::createLink($row->title, array($DocClass, 'single', $rec->docId), NULL, $attr);  
 	    	}
+	    	
+	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	}
     }
     
@@ -310,6 +321,7 @@ class techno_Specifications extends core_Master {
     		'docClassId' => $classId,
     		'docId' => $rec->id,
     		'folderId' => $rec->folderId,
+    		'state' => 'active',
     		'createdOn' => dt::now(),
     		'createdBy' => core_Users::getCurrent(),
     		'common' => ($coverClass == 'doc_UnsortedFolders') ? "yes" : "no",
@@ -325,5 +337,17 @@ class techno_Specifications extends core_Master {
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	$data->query->orderBy('id', 'DESC');
+    }
+    
+    
+    /**
+     * Ф-я извличаща спецификация по даден документ
+     * @param int $docClassId - ид на класа на документа
+     * @param int $docId - ид на документа
+     * @return stdRec - записа на спецификацията ако го има
+     */
+    public static function fetchByDoc($docClassId, $docId)
+    {
+    	return static::fetch("#docClassId = {$docClassId} AND #docId = {$docId}");
     }
 }

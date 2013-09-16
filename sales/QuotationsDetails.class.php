@@ -140,15 +140,6 @@ class sales_QuotationsDetails extends core_Detail {
         $productMan = $Policy->getProductMan();
         $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
     	
-        // Ако офертата е базирана на спецификация, то тя може да
-		// се добавя редактира в нея дори ако е чернова
-		/*if(isset($masterRec->originId)){
-			  $origin = doc_Containers::getDocument($masterRec->originId);
-			  if($origin->className == 'techno_Specifications'){
-			    $products[$origin->that] = $origin->recToVerbal('title')->title;
-			  }
-		}*/
-        
         if($rec->productId){
         	// При редакция единствения възможен продукт е редактируемия
 	   		$productName = $products[$rec->productId];
@@ -507,11 +498,9 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$docClassId = $origin->instance->getClassId();
     	$docId = $origin->that;
-    	
-    	$specRec = techno_Specifications::fetch("#docClassId = {$docClassId} AND #docId = {$docId}");
-    	if(!$specRec){
-    		$docRec = $origin->fetch();
-    		$specId = techno_Specifications::saveRec($origin->instance, $docRec);
+    
+    	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
+    		$specId = techno_Specifications::saveRec($origin->instance, $origin->fetch());
     		$specRec = techno_Specifications::fetch($specId);
     	}
     	

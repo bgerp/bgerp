@@ -109,7 +109,7 @@ class survey_Options extends core_Manager {
     
     
     /**
-     * Подготовка на маршрутите, показвани в Single-a на локациите
+     * Подготовка на опциите в въпросите
      */
     public function prepareOptions($id)
     {
