@@ -10,7 +10,7 @@
 	<!--ET_END header-->
 	<div id='quot-table'>
 		<div id='quot-title-td'>
-			<div class='quote_title'>|ОФЕРТА|*</div>
+			<h4 class='quote_title'>|ОФЕРТА|*</h4>
 			<p class='title-info'>
 				№  &nbsp;<b>[#number#]</b> 
 			</p>
