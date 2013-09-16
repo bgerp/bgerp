@@ -125,11 +125,9 @@ class plg_Current extends core_Plugin
     		
     		// Ако има поле за отговорник и текущия потребител
     		// не е отговорник, той няма права да избира
-    		if(isset($mvc->inChargeField) && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE && !haveRole('ceo'))){
+    		if(!(isset($mvc->canSelectAll) && haveRole($mvc->canSelectAll)) && isset($mvc->inChargeField) && ($rec->{$mvc->inChargeField} != $userId && strpos($rec->{$mvc->inChargeField}, "|$userId|") === FALSE)){
 	    		$res = 'no_one';
-	    	} else {
-	    		$res = ($mvc->canSelect) ? $mvc->canSelect : $mvc->GetRequiredRoles('write', $rec);
-	    	}
+	    	} 
     	}
     }
 }
