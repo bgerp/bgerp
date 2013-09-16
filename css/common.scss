@@ -698,9 +698,6 @@ a.button, input[type="button"], input[type="submit"], button {
     -webkit-appearance: none;	  
 }
 
-.toolbar .button{
-	margin-bottom:5px !important;
-}
 .narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button{ 
 	border:1px solid #999; 
 	padding:0.3em 0.4em;
@@ -840,6 +837,10 @@ table .linkWithIcon{
 	padding-left:0.3em !important;
 	padding-right:0.3em !important;
 	width:1.9em;
+}
+
+.narrow .more-btn{
+	float:none;
 }
 
 .more-btn.show-btn{
@@ -1184,9 +1185,25 @@ div.hFormField {
 /*общи стилове за елементите на формите*/
 
 /*тулбар*/
-.toolbarHide{
+
+.wide .toolbar-first{
+	display:block;
+	margin-bottom:9px;
+}
+
+.narrow .toolbar-first{
 	display:inline;
 }
+
+.wide .toolbarHide{
+	margin-top:-3px;
+	margin-bottom:9px;
+}
+
+.narrow .toolbarHide{
+	display:inline;
+}
+
 
 .formToolbar input { 
     margin-right:10px;
@@ -1228,12 +1245,12 @@ div.hFormField {
 }
 
 .narrow .toolbar{
-	margin:10px 0 10px 0;
+	margin:10px 0 10px 0px;
 }
 
 .narrow table.listTable .toolbar{
 	padding: 4px 4px 3px;
-	margin:0;
+	margin:0 0 3px 0;
 }
 
 .wide .doc_Search{
