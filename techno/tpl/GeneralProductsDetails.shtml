@@ -13,7 +13,7 @@
 	<!--ET_BEGIN COMPONENT-->
 	[#COMPONENT#]
 	<tr>
-		<td><div class="rowtools"><div class='l nw'>[#tools#]</div><div class="r">[#num#]</div> </td>
+		<td><div class="rowtools"><div class='l nw'>[#RowNumb#]</div><div class="r">[#num#]</div> </td>
 		<td>[#componentId#]</td>
 		<td width='12%' align='right'>[#cquantity#] [#cMeasureId#]</td>
 		<td width='12%' align='right' class='expandable'>[#price#]</td>

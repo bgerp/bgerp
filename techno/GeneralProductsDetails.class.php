@@ -30,7 +30,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'techno_Wrapper,plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals';
+    var $loadList = 'techno_Wrapper,plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals,plg_RowNumbering';
     
   
     /**
@@ -48,7 +48,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'RowNumb';
     
     
     /**
@@ -78,7 +78,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'tools=Пулт, componentId, cQuantity, price, amount, bTaxes';
+    var $listFields = 'RowNumb=Пулт, componentId, cQuantity, price, amount, bTaxes';
     
     
     /**
@@ -255,7 +255,7 @@ class techno_GeneralProductsDetails extends core_Detail {
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if(count($mvc->getRemainingOptions($data->masterData->rec->id))){
+    	if(isset($data->toolbar->buttons['btnAdd']) && count($mvc->getRemainingOptions($data->masterData->rec->id))){
     		$data->toolbar->buttons['btnAdd']->title = tr("Нов компонент");
     	} else {
     		$data->toolbar->removeBtn('btnAdd');
