@@ -96,7 +96,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
 	public static function on_AfterActivation($mvc, &$rec)
     {
-    	techno_Specifications::saveRec($mvc, $rec);
+    	techno_Specifications::forceRec($mvc, $rec);
     }
     
     

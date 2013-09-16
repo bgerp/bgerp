@@ -500,7 +500,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$docId = $origin->that;
     
     	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
-    		$specId = techno_Specifications::saveRec($origin->instance, $origin->fetch());
+    		$specId = techno_Specifications::forceRec($origin->instance, $origin->fetch());
     		$specRec = techno_Specifications::fetch($specId);
     	}
     	

@@ -307,11 +307,12 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Enter description here ...
-     * @param core_Mvc $mvc
-     * @param unknown_type $rec
+     * Форсира спецификация
+     * @param core_Mvc $mvc - mvc на модела
+     * @param stdClass $rec - запис от sales_Sales или purchase_Requests
+     * @return int - ид на създадения или обновения запис
      */
-    public static function saveRec(core_Mvc $mvc, $rec)
+    public static function forceRec(core_Mvc $mvc, $rec)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	$classId = $mvc::getClassId();
