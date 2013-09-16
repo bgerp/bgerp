@@ -93,6 +93,12 @@ class cash_Cases extends core_Master {
 	
 	
 	/**
+	 * Кой може да селектира всички записи
+	 */
+	var $canSelectAll = 'ceo,masterCash';
+	
+	
+	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'ceo,cash';
