@@ -29,7 +29,9 @@
 	position:relative;
 	height:1.5em;
 }
-
+.narrow #simpleSearch {
+	height:1.3em;
+}
 #simpleSearch input {
 	top:0.1em;
 	position:absolute;
@@ -37,6 +39,7 @@
 	border:none;
 	outline:none;
 	height:1.2em;
+	font-size:0.95em;
  	width:90%;
 	padding:0px;
 	padding-left:0.2em;
@@ -44,9 +47,9 @@
 
 #simpleSearch button {
 	width:10%;
-	padding:0px;
-	height:1.4em;
-	top:0.1em;
+	margin-right:0px;
+	padding:0;
+	height:1.8em;
 	right:0px;
 	position:absolute;
 	border:none;
@@ -54,7 +57,9 @@
 	cursor:pointer;
 	display:inline-block;
 }
-
+.narrow #simpleSearch button {
+	margin-right:3px;
+}
 #sBtn{
 	background-image:url('../../../img/search.png');
 	width:25px;
@@ -94,7 +99,6 @@
 	width:80%;
 	vertical-align:top;
 	float:left;
-	margin-left:10px;
 }
 
 #blogm-Comment {

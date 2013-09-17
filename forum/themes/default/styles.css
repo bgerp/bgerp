@@ -33,6 +33,7 @@ h3{
 	width:95%;
 	margin-left:auto;
 	margin-right:auto;
+	padding-top:20px;
 }
 
 .cms-row .ninecol{
@@ -48,7 +49,6 @@ h3{
 	color:black;
 	font-size:16px;
 	font-weight:bold;
-	margin-top:10px;
 }
 
 #navigation a:hover {

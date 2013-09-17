@@ -1,4 +1,4 @@
-<table class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]'>
+<table class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]' cellpadding='10px'>
 	<tr>
 		<td class='blogm-comment-who' align="center">
 			<div style='text-align:left;'>
