@@ -149,4 +149,21 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		}
     	}
     }
+    
+    
+	/**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     */
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    {
+        $allowedIntfs = $mvc->getAllowedFolders();
+    	$cover = doc_Folders::getCover($folderId);
+    	
+    	foreach ($allowedIntfs as $intf){
+    		if($cover->haveInterface($intf)){
+    			return $res = TRUE;
+    		}
+    	}
+    	return $res = FALSE;
+    }
 }    
