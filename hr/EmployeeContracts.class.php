@@ -165,14 +165,26 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	// В хоризонтален вид
-        $data->listFilter->view = 'horizontal';
-    	    	
+    	$data->listFilter->fields['departmentId']->caption = 'Отдел'; 
+    	$data->listFilter->fields['positionId']->caption = 'Длъжност'; 
+    	$data->listFilter->fields['departmentId']->mandatory = NULL; 
+    	$data->listFilter->fields['positionId']->mandatory = NULL;    	
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         $data->listFilter->showFields .= ' ,departmentId, positionId';
         
         $data->listFilter->input();
+
+        if($filterRec = $data->listFilter->rec){
+        	if($filterRec->departmentId){
+        		$data->query->where(array("#departmentId = '[#1#]'", $filterRec->departmentId));
+        	}
+        	
+        	if($filterRec->positionId){
+        		$data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
+        	}
+        }
+        
     }
     
     /**
