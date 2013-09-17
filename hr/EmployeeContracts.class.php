@@ -42,15 +42,16 @@ class hr_EmployeeContracts extends core_Master
     /**
      * За плъгина acc_plg_DocumentSummary
      */
-    var $filterDateField = 'startFrom';
+    var $filterFieldDateFrom = 'startFrom';
+    var $filterFieldDateTo = 'endOn';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
+                     doc_plg_BusinessDoc2 ';
     
     
     /**
@@ -140,9 +141,9 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
         
         // Работа
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name, allowEmpty=true)', 'caption=Работа->Отдел, mandatory,autoFilter');
         //$this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name, allowEmpty=true)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId,autoFilter');
         
         // УСЛОВИЯ
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Условия->Начало,mandatory");
@@ -154,6 +155,25 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
     }
     
+
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	// В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+    	    	
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields .= ' ,departmentId, positionId';
+        
+        $data->listFilter->input();
+    }
     
     /**
      * @todo Чака за документация...
@@ -374,16 +394,18 @@ class hr_EmployeeContracts extends core_Master
     {
         $coverClass = doc_Folders::fetchCoverClassName($folderId);
         
-        if ('crm_Persons' != $coverClass) {
-        	return FALSE;
+        if (cls::haveInterface('crm_PersonAccRegIntf', $coverClass)) {
+        	return TRUE;
         }
         
-        $personId = doc_Folders::fetchCoverId($folderId);
+        /*$personId = doc_Folders::fetchCoverId($folderId);
         
         $personRec = crm_Persons::fetch($personId);
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
-        return keylist::isIn($emplGroupId, $personRec->groupList);
+        return keylist::isIn($emplGroupId, $personRec->groupList);*/
+        
+        return FALSE;
     }
     
     
