@@ -161,7 +161,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     			$Class = cls::get($coverId);
 	    		list($pName, $coverName) = explode('_', $coverId);
 	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете само една папка->{$Class->singleTitle},width=100%");
+	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$options = array();
