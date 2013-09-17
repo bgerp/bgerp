@@ -106,7 +106,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	 * Филтрираме резултатите
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
-	{$f = $data->query->fetch();
+	{
 		if($filter = $data->listFilter->rec) {
 			
 			if($filter->search){
