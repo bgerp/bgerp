@@ -92,11 +92,25 @@ class techno_plg_SpecificationProduct extends core_Plugin
     
     
     /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->state != 'draft'){
+    		
+    		// Промяна на спецификацията при възстановяване/оттегляне/активиране
+    		$rec = $mvc->fetch(($rec->id) ? $rec->id : $rec);
+    		techno_Specifications::forceRec($mvc, $rec);
+    	}
+    }
+    
+    
+    /**
      *  След активация, записва продукта в спецификациите
      */
 	public static function on_AfterActivation($mvc, &$rec)
     {
-    	techno_Specifications::forceRec($mvc, $rec);
+    	//techno_Specifications::forceRec($mvc, $rec);
     }
     
     

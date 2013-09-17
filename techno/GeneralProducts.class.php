@@ -315,7 +315,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * След оттегляне на документа се оттегля спецификацията
      */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    public static function on_AfterReject5(core_Mvc $mvc, &$res, $id)
     {
      	$rec = $mvc->fetchRec($id);
      	if($rec->brState == 'active'){
@@ -329,7 +329,7 @@ class techno_GeneralProducts extends core_Master {
 	/**
      * При възстановяване, спецификацията се възстановява също
      */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    public static function on_AfterRestore5(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         if($rec->brState == 'active'){
