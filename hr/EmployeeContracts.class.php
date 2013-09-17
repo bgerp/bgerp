@@ -44,7 +44,8 @@ class hr_EmployeeContracts extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
-                     acc_plg_Registry, doc_DocumentPlg, plg_Search';
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search,
+                     doc_plg_BusinessDoc2';
     
     
     /**
@@ -396,6 +397,16 @@ class hr_EmployeeContracts extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('crm_PersonAccRegIntf');
     }
  
 }
