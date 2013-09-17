@@ -1044,19 +1044,7 @@ class fileman_Files extends core_Master
      */
     function getVerbalLinkFromClass($fileHnd)
     {
-        // Записите за файла
-        $fRec = static::fetchByFh($fileHnd);
-        
-        // Ако няма такъв запис или нямаме права за single
-        if ((!$fRec) || (!static::haveRightFor('single', $fRec))) return FALSE;
-        
-        // Името на файла
-        $name = static::getVerbal($fRec, 'name');
-        
-        // Преобразуваме линка към richText линк
-        $res = "[file={$fileHnd}]{$name}[/file]";
-        
-        return $res;
+        return fileman_Download::getDownloadLink($fileHnd);
     }
     
     

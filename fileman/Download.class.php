@@ -470,7 +470,7 @@ class fileman_Download extends core_Manager {
 		    // Ако не е подадено, използваме името на файла
 		    
 		    //Името на файла
-            $name = $fRec->name;
+            $name = fileman_Files::getVerbal($fRec, 'name');
 		}
         
         //Разширението на файла
@@ -500,45 +500,72 @@ class fileman_Download extends core_Manager {
         //Инстанция на класа
         $FileSize = cls::get('fileman_FileSize');
         
-        // Ако имаме права за сваляне на файла
+        // Титлата пред файла в plain режим
+        $linkFileTitlePlain = tr('Файл') . ": ";
+        
+        // Ако има данни за файла и съществува
         if (($fRec->dataId) && file_exists($path)) {
             
-            //Големината на файла в байтове
-            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
-            
-            //Преобразуваме големината на файла във вербална стойност
-            $size = $FileSize->toVerbal($fileLen);
-
-            // Ако линка е в iframe да се отваря в родителския(главния) прозорец
-            $attr['target'] = "_parent";
-            
-            //Ако сме в режим "Тесен"
-            if (Mode::is('screenMode', 'narrow')) {
+            // Ако сме в текстов режим
+            if(Mode::is('text', 'plain')) {
                 
-                //Ако големината на файла е по - голяма от константата
-                if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
-                    
-                    //След името на файла добавяме размера в скоби
-                    $nameFix = $nameFix . "&nbsp;({$size})";     
-                }
+                //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
+                $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+                
+                //Линк към файла
+                $link = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
+                
+                //Добаваме линка към файла
+                $link = "{$linkFileTitlePlain}$name ( $link )";
             } else {
                 
-                //Заместваме &nbsp; с празен интервал
-                $size =  str_ireplace('&nbsp;', ' ', $size);
+                //Големината на файла в байтове
+                $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
                 
-                //Добавяме към атрибута на линка информация за размера
-                $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
+                //Преобразуваме големината на файла във вербална стойност
+                $size = $FileSize->toVerbal($fileLen);
+    
+                // Ако линка е в iframe да се отваря в родителския(главния) прозорец
+                $attr['target'] = "_parent";
+                
+                //Ако сме в режим "Тесен"
+                if (Mode::is('screenMode', 'narrow')) {
+                    
+                    //Ако големината на файла е по - голяма от константата
+                    if ($fileLen >= $conf->LINK_NARROW_MIN_FILELEN_SHOW) {
+                        
+                        //След името на файла добавяме размера в скоби
+                        $nameFix = $nameFix . "&nbsp;({$size})";     
+                    }
+                } else {
+                    
+                    //Заместваме &nbsp; с празен интервал
+                    $size =  str_ireplace('&nbsp;', ' ', $size);
+                    
+                    //Добавяме към атрибута на линка информация за размера
+                    $attr['title'] .= ($attr['title'] ? "\n" : '') . tr("|Размер:|* {$size}");
+                }
+                
+                //Генерираме връзката 
+                $url  = static::generateUrl($fh);
+                $link = ht::createLink($nameFix, $url, NULL, $attr);
             }
-            
-            //Генерираме връзката 
-            $url  = static::generateUrl($fh);
-            $link = ht::createLink($nameFix, $url, NULL, $attr);
         } else {
-			if(!file_exists($path)) {
-				$attr['style'] .= ' color:red;';
-			}
-            //Генерираме името с иконата
-            $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
+            
+            // Ако няма файл
+            
+            // Ако сме в текстов режим
+            if(Mode::is('text', 'plain')) {
+                
+                // Линка 
+                $link = $linkFileTitlePlain . $name;
+            } else {
+                if(!file_exists($path)) {
+    				$attr['style'] .= ' color:red;';
+    			}
+                //Генерираме името с иконата
+                $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
+            }
         }
         
         return $link;
