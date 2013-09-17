@@ -280,12 +280,13 @@ class techno_Specifications extends core_Manager {
      */
      public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
-    	if(!$full) {
-    		return parent::getTitleById($id, $escaped);
-    	}
-    	
     	$rec = static::fetch($id);
 	    $TechnoClass = cls::get($rec->docClassId);
+	    
+     	if(!$full) {
+    		return $TechnoClass->getTitleById($rec->docId, $escaped);
+    	}
+    	
 	    return $TechnoClass->getShortLayout($rec->docId);
      }
     

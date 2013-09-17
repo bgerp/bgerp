@@ -40,7 +40,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	$mvc->requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $mvc->fetch($id));
-    	//expect($rec->state == 'active');
+    	expect($rec->state == 'active');
     	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
@@ -157,13 +157,15 @@ class techno_plg_SpecificationProduct extends core_Plugin
     function on_AfterCanAddToFolder($mvc, &$res, $folderId)
     {
         $allowedIntfs = $mvc->getAllowedFolders();
-    	$cover = doc_Folders::getCover($folderId);
-    	
-    	foreach ($allowedIntfs as $intf){
-    		if($cover->haveInterface($intf)){
-    			return $res = TRUE;
-    		}
+    	if(count($allowedIntfs)){
+	    	$cover = doc_Folders::getCover($folderId);
+	    	foreach ($allowedIntfs as $intf){
+	    		if($cover->haveInterface($intf)){
+	    			return $res = TRUE;
+	    		}
+	    	}
     	}
+    	
     	return $res = FALSE;
     }
 }    

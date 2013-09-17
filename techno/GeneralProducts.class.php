@@ -108,6 +108,12 @@ class techno_GeneralProducts extends core_Master {
     
     
     /**
+     * Шаблон за заглавието
+     */
+    public $recTitleTpl = '[#title#] <!--ET_BEGIN code-->([#code#])<!--ET_END code-->';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
