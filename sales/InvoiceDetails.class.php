@@ -122,6 +122,7 @@ class sales_InvoiceDetails extends core_Detail
         
         // Поакзваме само продуктите спрямо ценовата политиказа контрагента
         $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
+       
         $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         $form->setOptions('productId', $products);
         
