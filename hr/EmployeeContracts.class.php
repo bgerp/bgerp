@@ -39,13 +39,18 @@ class hr_EmployeeContracts extends core_Master
      */
     var $pageMenu = "Персонал";
     
+    /**
+     * За плъгина acc_plg_DocumentSummary
+     */
+    var $filterDateField = 'startFrom';
+    
     
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc2';
+                     doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
     /**
