@@ -60,11 +60,23 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+	* Кой може да селектира?
+	*/
+	var $canSelect = 'ceo,bank';
+	
+	
+    /**
      * Кой може да пише?
      */
-    var $canWrite = 'bank, ceo';
+    var $canWrite = 'masterBank, ceo';
     
     
+    /**
+	 * Кой може да селектира всички записи
+	 */
+	var $canSelectAll = 'ceo, masterBank';
+	
+	
     /**
 	 * Кой може да го разглежда?
 	 */
@@ -386,7 +398,7 @@ class bank_OwnAccounts extends core_Master {
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo')){
+		if(!haveRole('ceo,masterBank')){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
