@@ -16,6 +16,15 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Допустимото отклонение в секуди при регистриране на обажданията
+     * 
+     * @example - 1 час
+     */
+    const DEVIATION_BETWEEN_TIMES = 3600;
+    
+    
+    
+    /**
      * Заглавие на модела
      */
     var $title = 'Разговори';
@@ -393,6 +402,9 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterCall()
     {
+        // Масив с грешките
+        $errArr = array();
+        
         // Ключа за защита
         $protectKey = Request::get('p');
         
@@ -405,13 +417,73 @@ class callcenter_Talks extends core_Master
         $uniqId = Request::get('uniqueId');
         $outgoing = Request::get('outgoing');
         
+        // Ако има подадено начално време
+        if ($startTime) {
+            
+            // Вземаме текущото време
+            $now = dt::now();
+            
+            // Вземаме разликата във времето на сървъра и на подадения стринг
+            $deviationSecs = abs(core_DateTime::secBetwen($now, $startTime));
+            
+            // Ако разликата е над допустимите
+            if (($deviationSecs) && ($deviationSecs > static::DEVIATION_BETWEEN_TIMES)) {
+                
+                // Инстанция на класа
+                $TimeInst = cls::get('type_Time');
+                
+                // Разликата във вербален вид
+                $deviationVerbal = $TimeInst->toVerbal($deviationSecs);
+                
+                // Добавяме грешката
+                $errArr[] = "Разминаване във времето на сървара и подаденото в URL с {$deviationVerbal}";
+                
+                // Задаваме текущото време за начало на позвъняване
+                $startTime = $now;
+            }
+        } else {
+            
+            // Ако няма време
+            
+            // Задаваме текущото време за начало на позвъняване
+            $startTime = dt::now();
+            
+            // Добавяме грешката
+            $errArr[] = "Не е подадено начално време";
+        }
+
         // Ако е изходящо обаждане
         if ($outgoing) {
             $internalNum = Request::get('callerId');
             $externalNum = Request::get('extension');
         } else {
+            
+            // Ако е входящо обаждане
+            
             $internalNum = Request::get('extension');
             $externalNum = Request::get('callerId');
+        }
+        
+        // Ако не е подаден вътрешен номер
+        if (!$internalNum) {
+            
+            // Записваме грешката
+            $errArr[] = 'Не е подаден вътрешен номер';
+        } else {
+            
+            // Ако не е число
+            if (!is_numeric($internalNum)) {
+                
+                // Добавяме грешката
+                $errArr[] = 'Вътрешния номер не е число';
+            }
+        }
+        
+        // Проверяваме номера на контрагент
+        if ($externalNum && !is_numeric($internalNum)) {
+            
+            // Добавяме грешка
+            $errArr[] = 'Номерът на контрагента не е число';
         }
         
         // Създаваме обекта, който ще използваме
@@ -460,8 +532,18 @@ class callcenter_Talks extends core_Master
         }
         
         // Записваме
-        static::save($nRec);
-
+        $savedId = static::save($nRec, NULL, 'IGNORE');
+        
+        // Ако записът не е успешен
+        if (!$savedId) {
+            
+            // Добавяме грешката
+            $errArr[] = 'Грешка при записване';
+        }
+        
+        // Ако има грешки, ги записваме в лога
+        static::errToLog($errArr, $savedId, getSelfURL());
+        
         return TRUE;
     }
     
@@ -471,6 +553,9 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterEndCall()
     {
+        // Масив с грешките
+        $errArr = array();
+        
         // Ключа за защита
         $protectKey = Request::get('p');
         
@@ -495,19 +580,146 @@ class callcenter_Talks extends core_Master
                 // Отбелязваме
                 $rec->callType = 'outgoing';
             }
+            
             // Вземаме другите променливи
-            $rec->answerTime = Request::get('answertime');
-            $rec->endTime = Request::get('endtime');
+            $answerTime = Request::get('answertime');
+            $endTime = Request::get('endtime');
+            
+            // Вземаме текущото време
+            $now = dt::now();
+            
+            // Инстанция на класа
+            $TimeInst = cls::get('type_Time');
+            
+            // Ако има време отговор и край
+            if ($endTime && $answerTime) {
+                
+                // Ако времето на отговор е след времето на край
+                if ($answerTime > $endTime) {
+                    
+                    // Добавяме грешка
+                    $errArr[] = 'Време->Отговор е по - голямо от Време->Край';
+                }
+                
+                // Вземамем разликата във времето между отговор и край
+                $deviationsSecAnswEnd = core_DateTime::secBetwen($endTime, $answerTime);
+                
+                // Ако разликата е над допустимите
+                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                    
+                    // Разликата във вербален вид
+                    $deviationAnswEndVerbal = $TimeInst->toVerbal($deviationsSecAnswEnd);
+                    
+                    // Добавяме грешката
+                    $errArr[] = "Прекалено дълго време за разговор - {$deviationAnswEndVerbal}";
+                }
+            }
+            
+            // Ако има начало
+            if ($rec->startTime) {
+                
+                // Ако времето на отговор е преди началото
+                if ($answerTime && ($rec->startTime > $answerTime)) {
+                    
+                    // Добавяме грешка
+                    $errArr[] = 'Време->Начало е по - голямо от Време->Отговор';
+                }
+                
+                // Ако времето за край е преди началот
+                if ($endTime && ($rec->startTime > $endTime)) {
+                    
+                    // Добавяме грешка
+                    $errArr[] = 'Време->Начало е по - голямо от Време->Край';
+                }
+            }
+            
+            // Ако има време на отговор
+            if ($answerTime) {
+                
+                // Вземаме разликата във времето на сървъра и на подадения стринг
+                $deviationSecsAnsw = abs(core_DateTime::secBetwen($now, $answerTime));
+            
+                // Ако разликата е над допустимите
+                if (($deviationSecsAnsw) && ($deviationSecsAnsw > static::DEVIATION_BETWEEN_TIMES)) {
+                    
+                    // Разликата във вербален вид
+                    $deviationAnswVerbal = $TimeInst->toVerbal($deviationSecsAnsw);
+                    
+                    // Записваме в лога
+                    $errArr[] = "Разминаване във времето на сървара и подаденото в URL с {$deviationAnswVerbal} за Време->Отговор";
+                    
+                    // Задаваме текущото време
+                    $answerTime = $now;
+                }
+            }
+            
+            // Ако има време на край
+            if ($endTime) {
+                
+                // Вземаме разликата във времето на сървъра и на подадения стринг
+                $deviationSecsEnd = abs(core_DateTime::secBetwen($now, $endTime));
+                
+                // Ако разликата е над допустимите
+                if (($deviationSecsEnd) && ($deviationSecsEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                    
+                    // Разликата във вербален вид
+                    $deviationEndVerbal = $TimeInst->toVerbal($deviationSecsEnd);
+                    
+                    // Записваме в лога
+                    $errArr[] = "Разминаване във времето на сървара и подаденото в URL с {$deviationEndVerbal} за Време->Край";
+                    
+                    // Задаваме текущото време
+                    $endTime = $now;
+                }
+            }
+            
+            // Добавяме в rec
+            $rec->answerTime = $answerTime;
+            $rec->endTime = $endTime;
             $rec->dialStatus = Request::get('dialstatus');
             
             // Обновяваме записа
-            static::save($rec, NULL, 'UPDATE');
+            $savedId = static::save($rec, NULL, 'UPDATE');
             
             // Добавяме нотификация
             static::addNotification($rec);
             
-            // Връщаме
-            return TRUE;
+        } else {
+            // Ако няма такъв запис
+            
+            // Добавяме грешката
+            $errArr[] = 'Няма такъв запис';
+        }
+        
+        // Ако има грешки, ги записваме в лога
+        static::errToLog($errArr, $savedId, getSelfURL());
+        
+        // Връщаме
+        return TRUE;
+    }
+    
+    
+    /**
+     * Записва грешките в масива в лога
+     * 
+     * @param array $errArr
+     * @param intege $id
+     * @param URL $url
+     */
+    static function errToLog($errArr, $id=FALSE, $url=FALSE)
+    {
+        // Обхождаме подадения масив
+        foreach ((array)$errArr as $err) {
+            
+            // Ако има URL
+            if ($url) {
+                
+                // Добавяме към грешката
+                $err .= ": " . $url;
+            }
+            
+            // Записваме грешката
+            static::log($err, $id);
         }
     }
     
