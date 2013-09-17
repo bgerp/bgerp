@@ -80,26 +80,15 @@ class fileman_RichTextPlg extends core_Plugin
         $fh = $match['fileHnd'];
         $place = $this->mvc->getPlace();
         
-        if(Mode::is('text', 'plain')) {
-            
-            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml
-            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-            
-            //Линк към файла
-            $link = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
-            
-            //Добаваме линка към файла
-            $res = "File: $title ( $link )";
+        $link = fileman_Download::getDownloadLink($fh, $title);
+        
+        if (is_object($link)) {
+            $content = $link->getContent();
         } else {
-            $link = fileman_Download::getDownloadLink($fh, $title);
-            if (is_object($link)) {
-                $content = $link->getContent();
-            } else {
-                $content = $link;
-            }
-            $this->mvc->_htmlBoard[$place] = $content;
-            $res = "[#{$place}#]";
+            $content = $link;
         }
+        $this->mvc->_htmlBoard[$place] = $content;
+        $res = "[#{$place}#]";
         
         return  $res;
     }
