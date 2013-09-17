@@ -105,15 +105,6 @@ class techno_plg_SpecificationProduct extends core_Plugin
     }
     
     
-    /**
-     *  След активация, записва продукта в спецификациите
-     */
-	public static function on_AfterActivation($mvc, &$rec)
-    {
-    	//techno_Specifications::forceRec($mvc, $rec);
-    }
-    
-    
 	/**
      * След подготовка на туулбара за единичен изглед
      */

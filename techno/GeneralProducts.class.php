@@ -310,32 +310,4 @@ class techno_GeneralProducts extends core_Master {
     	 $data->listFilter->showFields = 'search';
     	 $data->listFilter->input();
     }
-    
-    
-    /**
-     * След оттегляне на документа се оттегля спецификацията
-     */
-    public static function on_AfterReject5(core_Mvc $mvc, &$res, $id)
-    {
-     	$rec = $mvc->fetchRec($id);
-     	if($rec->brState == 'active'){
-     		$sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
-	    	$sRec->state = 'rejected';
-	    	techno_Specifications::save($sRec);
-     	}
-    }
-    
-    
-	/**
-     * При възстановяване, спецификацията се възстановява също
-     */
-    public static function on_AfterRestore5(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        if($rec->brState == 'active'){
-        	$sRec = techno_Specifications::fetchByDoc($mvc->getClassId(), $rec->id);
-	    	$sRec->state = 'active';
-	    	techno_Specifications::save($sRec);
-        }
-    }
 }
