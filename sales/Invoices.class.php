@@ -317,7 +317,7 @@ class sales_Invoices extends core_Master
 	    	}
     	}
     }
-    
+
     
     /**
      * Помощна функция за прилагане на увеличение/намаляване на
@@ -580,7 +580,9 @@ class sales_Invoices extends core_Master
     		
     		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
     		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
+    		$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/declarations.png, row=2');
     	}
+    	    	 
     }
     
     

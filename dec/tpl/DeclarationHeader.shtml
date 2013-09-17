@@ -1,0 +1,22 @@
+<br>
+	Долуподписаният, <br> производител/доставчик: &nbsp; [#MyCompany#] с адрес &nbsp; [#MyCountry#],&nbsp; гр. [#MyAddress#], &nbsp; с ЕИН [#MyCompanyVatNo#][#uicId#]
+<!--ET_BEGIN manager-->
+	представляван от [#manager#] <br>
+<!--ET_END manager-->
+<br><br><br><p class="centered"><b>декларирам</b> на собствена отговорност, че:</p><br>
+<b>изделията: </b><br>
+	<ol>
+		<!--ET_BEGIN products-->
+			<li>[#products#]</li><br>
+		<!--ET_END products-->
+	</ol>
+<!--ET_BEGIN place-->
+	<b>проиведени в</b> [#place#],
+<!--ET_END place-->
+<br>доставени на фирма: &nbsp; [#contragentCompany#] с адрес &nbsp; [#contragentCountry#],&nbsp; гр. [#contragentAddress#], &nbsp; с ЕИН [#contragentCompanyVatNo#][#contragentUicId#]  
+<br><br><p class="centered">с фактура № [#invoiceNo#],</p><br>
+<!--ET_BEGIN material-->
+	<b>произведени от</b> [#material#]
+<!--ET_END material-->
+за който се отнася тази декларация <b>отговарят на изискванията</b>:
+
