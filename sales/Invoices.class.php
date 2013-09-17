@@ -615,7 +615,7 @@ class sales_Invoices extends core_Master
      * 
      * @param core_Form $form
      */
-    protected function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
+    protected static function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
     {
     	$rec = $form->rec;
         if($rec->id) return;
