@@ -320,5 +320,31 @@ class trz_Orders extends core_Master
     {
     	return array('crm_PersonAccRegIntf');
     }
+    
+    
+	/**
+     * Метод филтриращ опциите от корици на папка в които
+     * може да се постави даден документ
+     * @param array $options - Масив със записи от дадената корица
+     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     */
+    function filterCoverFolderOptions($options, $coverClass)
+    {   
+    	// Искаме да филтрираме само групата "Служители"
+    	$sysId = crm_Groups::getIdFromSysId('employees');
+    	
+    	// Ако имаме записи в масива
+    	if(count($options)){
+	    	foreach ($options as $id => $option){
+	    		$groupList = type_Keylist::toArray(crm_Persons::fetchField($id, 'groupList'));
+	    		
+	    		if(!in_array($sysId, $groupList)){
+	    			unset($options[$id]);
+	    		}
+	    	}
+    	}
+    	
+    	return $options;
+    }
 
 }
