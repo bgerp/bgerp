@@ -72,7 +72,7 @@ class techno_GeneralProducts extends core_Master {
     
     
     /**
-	 * Коментари на статията
+	 * Детайли на продукта
 	 */
 	var $details = 'techno_GeneralProductsDetails,Params=techno_GeneralProductsParameters';
 	

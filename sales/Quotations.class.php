@@ -178,7 +178,7 @@ class sales_Quotations extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
        $rec = &$data->form->rec;
-    	if(empty($rec->id)){
+       if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        }
        

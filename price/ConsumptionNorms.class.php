@@ -41,7 +41,7 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-	 * Коментари на статията
+	 * Детайли на рецептата
 	 */
 	var $details = 'price_ConsumptionNormDetails';
 	
