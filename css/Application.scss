@@ -1065,6 +1065,7 @@ table.mc-calendar {
     padding: 1px;
     font-weight: bold;
     cursor: pointer;
+    white-space:nowrap;
     &:hover {
       background-color: #ffff66;
     }
