@@ -39,6 +39,7 @@ class hr_EmployeeContracts extends core_Master
      */
     var $pageMenu = "Персонал";
     
+    
     /**
      * За плъгина acc_plg_DocumentSummary
      */

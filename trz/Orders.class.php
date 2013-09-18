@@ -37,7 +37,9 @@ class trz_Orders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
+    				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
+    				 plg_Printing, doc_plg_BusinessDoc2';
     
     
     /**
@@ -105,6 +107,11 @@ class trz_Orders extends core_Master
      */
     var $canDelete = 'ceo, trz';
   
+    /**
+     * За плъгина acc_plg_DocumentSummary
+     */
+    var $filterFieldDateFrom = 'leaveFrom';
+    var $filterFieldDateTo = 'leaveTo';
     
     var $canOrders = 'ceo, trz';
     /**
@@ -136,7 +143,7 @@ class trz_Orders extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
@@ -174,35 +181,6 @@ class trz_Orders extends core_Master
         }
 
     }
-    
-    /**
-     * Прилага филтъра, така че да се показват записите за определение потребител
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	if($data->listFilter->rec->leaveFrom) {
-    		$data->query->where("#leaveFrom = '{$data->listFilter->rec->leaveFrom}'");
-    	}elseif($data->listFilter->rec->leaveTo) {
-    		$data->query->where("#leaveTo = '{$data->listFilter->rec->leaveTo}'");
-    	}elseif($data->listFilter->rec->leaveTo && $data->listFilter->rec->leaveFrom) {
-    		$data->query->where("#leaveFrom >= '{$data->listFilter->rec->leaveFrom}'
-    							 AND #leaveTo <= '{$data->listFilter->rec->leaveTo}'");
-    	}
-    	
-        if($data->listFilter->rec->isPaid) {
-    		$data->query->where("#isPaid = '{$data->listFilter->rec->isPaid}'");
-    	}
-
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
-        }
-
-        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
-            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-            
-        }
-    }
 
     
     /**
@@ -214,22 +192,20 @@ class trz_Orders extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
-
-        // Добавяме поле във формата за търсене
-       
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->setDefault('selectedUsers', 'all_users');
-                
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
+    	// Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'selectedUsers, leaveFrom, leaveTo, isPaid';
+        $data->listFilter->showFields .= ',personId, isPaid';
         
-        $data->listFilter->input('selectedUsers, leaveFrom, leaveTo, isPaid', 'silent');
+        $data->listFilter->input('personId, isPaid', 'silent');
+        
+    	if($filterRec = $data->listFilter->rec){
+        	if($filterRec->personId){
+        		$data->query->where(array("#personId = '[#1#]'", $filterRec->personId));
+        	}
+    		if($filterRec->isPaid){
+        		$data->query->where(array("#isPaid = '[#1#]'", $filterRec->isPaid));
+        	}
+    	}
     }
 
     
@@ -333,6 +309,16 @@ class trz_Orders extends core_Master
         //$row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('crm_PersonAccRegIntf');
     }
 
 }

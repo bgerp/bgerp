@@ -37,7 +37,9 @@ class trz_Requests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
+    				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
+    				 plg_Printing, doc_plg_BusinessDoc2';
     
     
     /**
@@ -51,6 +53,14 @@ class trz_Requests extends core_Master
      */
     //var $searchFields = 'description';
 
+    
+    /**
+     * За плъгина acc_plg_DocumentSummary
+     */
+    var $filterFieldDateFrom = 'leaveFrom';
+    var $filterFieldDateTo = 'leaveTo';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -141,7 +151,7 @@ class trz_Requests extends core_Master
     function description()
     {
     	$this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител, autoFilter');
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
@@ -161,15 +171,6 @@ class trz_Requests extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	if($data->listFilter->rec->leaveFrom) {
-    		$data->query->where("#leaveFrom = '{$data->listFilter->rec->leaveFrom}'");
-    	}elseif($data->listFilter->rec->leaveTo) {
-    		$data->query->where("#leaveTo = '{$data->listFilter->rec->leaveTo}'");
-    	}elseif($data->listFilter->rec->leaveTo && $data->listFilter->rec->leaveFrom) {
-    		$data->query->where("#leaveFrom >= '{$data->listFilter->rec->leaveFrom}'
-    							 AND #leaveTo <= '{$data->listFilter->rec->leaveTo}'");
-    	}
-    	
         if($data->listFilter->rec->paid) {
     		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
     	}
@@ -182,6 +183,10 @@ class trz_Requests extends core_Master
         if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
             $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
+        
+    	if($data->listFilter->rec->personId) {
+    		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+    	}
     }
     
     
@@ -233,22 +238,17 @@ class trz_Requests extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
-
+    	$data->listFilter->fields['paid']->caption = 'Вид'; 
+    	
         // Добавяме поле във формата за търсене
-       
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setDefault('selectedUsers', 'all_users'); 
-              
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+                 
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'selectedUsers, leaveFrom, leaveTo, paid';
+        $data->listFilter->showFields .= ', selectedUsers, personId, paid';
         
-        $data->listFilter->input('selectedUsers, leaveFrom, leaveTo, paid', 'silent');
+        $data->listFilter->input('selectedUsers, personId, paid', 'silent');
     }
 
     
@@ -435,6 +435,15 @@ class trz_Requests extends core_Master
         //$row->recTitle = $rec->title;
         
         return $row;
+    }
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('crm_PersonAccRegIntf');
     }
 
 }

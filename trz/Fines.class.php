@@ -28,7 +28,7 @@ class trz_Fines extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper';
+                    trz_Wrapper, doc_plg_BusinessDoc2';
     
     
     /**
@@ -104,5 +104,15 @@ class trz_Fines extends core_Manager
     	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
 
         return $this->renderWrapping($underConstructionImg);
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('crm_PersonAccRegIntf');
     }
 }
