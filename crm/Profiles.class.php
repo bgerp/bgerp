@@ -693,6 +693,8 @@ class crm_Profiles extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->view = 'horizontal';
+    	
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	 
     	$data->listFilter->showFields = 'search';
         
