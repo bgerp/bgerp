@@ -32,13 +32,20 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, doc_FolderPlg';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
+    				 doc_FolderPlg, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name';
+    
+    
+    /**
+     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
+     */
+    var $searchFields = 'sysId, name, productCnt, info, meta';
     
     
     /**
@@ -161,6 +168,49 @@ class cat_Groups extends core_Master
         $this->setDbUnique("sysId");
     }
     
+/**
+     * Подредба и филтър на on_BeforePrepareListRecs()
+     * Манипулации след подготвянето на основния пакет данни
+     * предназначен за рендиране на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('#name');
+    	
+        if($data->listFilter->rec->product) {  
+        	$groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
+           		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+        	}
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search,product';
+        
+        $rec = $data->listFilter->input('product,search', 'silent');
+ 
+    }
     
      /**
      * Изпълнява се след подготовка на Едит Формата
