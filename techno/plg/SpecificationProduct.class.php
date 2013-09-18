@@ -110,7 +110,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('add') && $data->rec->state != 'active'){
+    	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
     		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
     	}
     	
@@ -134,7 +134,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     function on_AfterGetAllowedFolders($mvc, &$res)
     {
-    	$res =  array('doc_ContragentDataIntf', 'techno_SpecificationFolderCoverIntf');
+    	$res =  array('doc_ContragentDataIntf');//, 'techno_SpecificationFolderCoverIntf'
     }
     
     
