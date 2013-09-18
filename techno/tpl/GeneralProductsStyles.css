@@ -8,10 +8,11 @@
 	font-size:1.1em;
 	text-transform:uppercase;
 	color:#000;
+	margin-bottom:10px;
 }
 
 .general-product .list-description{
-	margin-bottom:10px;
+	margin-bottom:20px;
 }
 
 .general-product .list-description-short .richtext{
@@ -106,7 +107,7 @@ table.styled-table tr.components-total td.has-hover:hover{
 
 .specification-img {
 	float:left;
-	margin-left:20px;
+	margin-left:50px;
 	margin-bottom:20px;
 }
 
@@ -124,8 +125,8 @@ table.styled-table tr.components-total td.has-hover:hover{
 	padding-left:0;
 }
 
-.list-info li{
-	clear:both;
+.wide .base-info{
+	max-width:500px;
 }
 
 .param-tools{
