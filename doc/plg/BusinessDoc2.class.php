@@ -140,7 +140,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     	
     	// Подготовка на формата за избор на папка
     	$form = cls::get('core_Form');
-    	static::getFormFields($form, $coversArr);
+    	static::getFormFields($mvc, $form, $coversArr);
     	
     	return $form;
     }
@@ -149,7 +149,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     /**
      * Подготвя полетата на формата
      */
-	private static function getFormFields(&$form, $coversArr)
+	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
     	foreach ($coversArr as $coverId){
     			
@@ -171,7 +171,8 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    				$options[$oId] = $oName;
 	    			}
 	    		}
-	    		$form->setOptions($coverName, $options);
+	    		
+	    		$form->setOptions($coverName, $mvc::filterCoverFolderOptions($options, $Class));
     		}
     	}
     }
