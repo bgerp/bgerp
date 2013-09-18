@@ -9,14 +9,15 @@
 	<!--ET_END header-->
 	<h3 class="centered"><b>[#title#]</b></h3>
 	 <p class="centered">№ [#id#] / [#createdDate#]|г|*.</p>	 
-	 <p >[#header#]</p><br />
+	 <p >[#header#]</p>
 	 	
 	 <!--ET_BEGIN DETAILS-->
 		<div class='details'>
 			[#DETAILS#]
 		</div>
 	<!--ET_END DETAILS-->
-	 <p class="indent">[#footer#]</p></br>
+	 <p class="indent">[#footer#]</p>
+	 <br>
     <table width=100%>
 	<tr>
 	<td>Декларатор: ............................................................</td>

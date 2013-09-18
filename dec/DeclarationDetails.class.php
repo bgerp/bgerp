@@ -60,7 +60,7 @@ class dec_DeclarationDetails extends core_Detail
 		$res = new ET(' <ol>
 							<!--ET_BEGIN COMMENT_LI-->
 	
-								<li><b>[#title#]</b></br>[#text#]</li></br>
+								<li><b>[#title#]</b></br>[#text#]</li>
 	
 							<!--ET_END COMMENT_LI-->
 						</ol>
