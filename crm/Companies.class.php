@@ -1116,7 +1116,7 @@ class crm_Companies extends core_Master
         $query->orWhere("#access = 'team' AND '{$teammates}' LIKE CONCAT('%|', #inCharge, '|%')");
         
         // Състоянието да е активно
-        $query->where("#state = 'active'");
+        $query->where("#state != 'rejected'");
     }
     
 
