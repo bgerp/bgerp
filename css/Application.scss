@@ -741,15 +741,15 @@ td.portal-date {
 	vertical-align: top !important;
 }
 
-.doc_Containers table.listTable>tbody>tr:hover {
-	background-color: transparent;
-}
-
 .doc_Containers table.listTable>tbody>tr {
-	background-color: transparent;
+	background-color: #fff;
 	&.flash {
 	   background-color: #ff8 ;
 	}
+}
+
+.doc_Containers table.listTable>tbody>tr:hover {
+	background-color: #fff;
 }
 
 /*стилове при отворени тредове*/
