@@ -52,7 +52,7 @@ class hr_EmployeeContracts extends core_Master
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc2 ';
+                     doc_plg_BusinessDoc2,plg_AutoFilter ';
     
     
     /**

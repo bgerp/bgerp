@@ -38,7 +38,8 @@ class trz_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
-    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc2';
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc2,
+    				 plg_AutoFilter';
     
     
     /**
