@@ -206,11 +206,10 @@ class doc_DocumentIntf
     /**
      * Дефолт метод филтриращ опциите от корици на папка в които
      * може да се постави даден документ
-     * @param array $options - Масив със записи от дадената корица
      * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
      */
-    function filterCoverFolderOptions($options, $coverClass)
+    function getCoverOptions($coverClass)
     {
-    	return $this->class->filterCoverFolderOptions($options, $coverClass);
+    	return $this->class->getCoverOptions($coverClass);
     }
 }
