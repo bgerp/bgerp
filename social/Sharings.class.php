@@ -115,7 +115,7 @@ class social_Sharings extends core_Master
 	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
 	    	$redUrl = str_replace("[#SUMMERY#]", $summary, $redUrl);
     	}
-    	 bp($redUrl);
+    	
     	$rec->sharedCnt += 1;
     	self::save($rec);
     	
