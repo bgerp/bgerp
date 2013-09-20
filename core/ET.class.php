@@ -396,6 +396,11 @@ class core_ET extends core_BaseClass
         return str_replace('[#', '&#91;#', $str);
     }
     
+    static function unEscape($str)
+    {
+    	expect(!($str instanceof stdClass), $str);
+        return str_replace('&#91;#', '[#', $str);
+    }
     
     /**
      * @todo Чака за документация...
