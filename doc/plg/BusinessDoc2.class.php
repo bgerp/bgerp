@@ -165,7 +165,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$options = array();
-	    		foreach ($mvc->getCoverOptions($Class)as $oId => $oName){
+	    		foreach ($mvc->getCoverOptions($Class) as $oId => $oName){
 	    			$rec = $Class::fetch($oId);
 	    			if(doc_Folders::haveRightToObject($rec)){
 	    				$options[$oId] = $oName;

@@ -77,7 +77,7 @@ class crm_Locations extends core_Master {
     
     
     /**
-	 * Детайли към локацият
+	 * Детайли към локацията
 	 */
 	var $details = 'routes=sales_Routes';
 	
