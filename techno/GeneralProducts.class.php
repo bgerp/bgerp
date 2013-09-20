@@ -153,7 +153,7 @@ class techno_GeneralProducts extends core_Master {
     	
     	if($fields['-short']){
 	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-	    		$row->title = ht::createLinkRef($row->title, array($this, 'single', $rec->Id), NULL, 'title=Към спецификацията');
+	    		$row->title = ht::createLinkRef($row->title, array($mvc, 'single', $rec->id), NULL, 'title=Към спецификацията');
 	    	}
 	    	
 	    	if($rec->image){
