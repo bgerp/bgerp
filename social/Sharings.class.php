@@ -95,7 +95,7 @@ class social_Sharings extends core_Master
 			}
 
 		}
-		return $tpl;
+		return "<div class='soc-sharing-holder'>".$tpl."</div>";
     }
     
     
