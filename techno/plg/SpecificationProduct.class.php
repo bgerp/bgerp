@@ -134,7 +134,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     function on_AfterGetAllowedFolders($mvc, &$res)
     {
-    	$res =  array('doc_ContragentDataIntf');//, 'techno_SpecificationFolderCoverIntf'
+    	$res =  array('doc_ContragentDataIntf', 'techno_SpecificationFolderCoverIntf');
     }
     
     
@@ -167,5 +167,18 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	}
     	
     	return $res = FALSE;
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     * тя е Продукти, ограничаваме само до тези, които
+     * могат да се произвеждат (canManifacture)
+     */
+    function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
+    {
+    	if($coverClass instanceof cat_Products){
+    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #meta LIKE '%canManifacture%'");
+    	}
     }
 }    
