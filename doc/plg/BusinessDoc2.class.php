@@ -165,14 +165,14 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$options = array();
-	    		foreach ($Class::makeArray4Select(NULL, "#state != 'rejected'") as $oId => $oName){
+	    		foreach ($mvc->getCoverOptions($Class)as $oId => $oName){
 	    			$rec = $Class::fetch($oId);
 	    			if(doc_Folders::haveRightToObject($rec)){
 	    				$options[$oId] = $oName;
 	    			}
 	    		}
 	    		
-	    		$form->setOptions($coverName, $mvc::filterCoverFolderOptions($options, $Class));
+	    		$form->setOptions($coverName, $options);
     		}
     	}
     }
