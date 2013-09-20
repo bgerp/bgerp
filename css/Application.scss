@@ -1912,7 +1912,7 @@ fieldset.sharing-history {
 	display:inline;
 }
 
-.narrow .narrow-scroll .scrolling-holder{
+.narrow .narrow-scroll .scrolling-holder, .overflow-scroll{
 	width: 100% !important;
 	overflow-x: auto !important;
 	_overflow: auto !important;
