@@ -1638,35 +1638,38 @@ fieldset.sharing-history {
 }
 
 /*стилове за социални бутони*/
-.soc-sharing{
-	margin-top:10px;
-	margin-right:5px;
-	display:inline-block;
-	height:22px;
-	line-height:22px;
-	padding:0 3px;
-	color:#333;
-	@include border-radius(3px);
-	border:1px solid #ccc;
-	font-size:0.9em;
-	font-family:Verdana,Helvetica,sans-serif;
-	background: #D5D5D5;
-	background: -moz-linear-gradient(top,#FFF 0,#EFEFEF 48%,#D5D5D5 94%);
-	background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#FFF),color-stop(48%,#EFEFEF),color-stop(94%,#D5D5D5));
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#d5d5d5',GradientType=0);
-	&:hover{
-		cursor:pointer;
+.soc-sharing-holder{
+	margin:20px 0 15px;
+	.soc-sharing{
+		margin-right:5px;
+		margin-bottom:5px;
+		display:inline-block;
+		height:22px;
+		line-height:22px;
+		padding:0 3px;
 		color:#333;
+		@include border-radius(3px);
+		border:1px solid #ccc;
+		font-size:0.9em;
+		font-family:Verdana,Helvetica,sans-serif;
 		background: #D5D5D5;
-		background: -moz-linear-gradient(top,#D5D5D5 0,#EFEFEF 48%,#FFF 94%);
-		background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
-	}	
-	
-}
-.soc-sharing img{
-	top:3px;
-	position:relative;
+		background: -moz-linear-gradient(top,#FFF 0,#EFEFEF 48%,#D5D5D5 94%);
+		background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#FFF),color-stop(48%,#EFEFEF),color-stop(94%,#D5D5D5));
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#d5d5d5',GradientType=0);
+		&:hover{
+			cursor:pointer;
+			color:#333;
+			background: #D5D5D5;
+			background: -moz-linear-gradient(top,#D5D5D5 0,#EFEFEF 48%,#FFF 94%);
+			background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
+			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
+		}	
+		
+	}
+	.soc-sharing img{
+		top:3px;
+		position:relative;
+	}
 }
 /*край на CMS*/
 
