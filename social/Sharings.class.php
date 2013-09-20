@@ -104,7 +104,7 @@ class social_Sharings extends core_Master
     	$id = core_Request::get('id', 'key(mvc='.get_class($mvc).')');
     	$rec = self::fetch("#id = '{$id}'"); 
     	$curUrl = toUrl(getCurrentUrl());
-    	$arrayUrl = core_Url::parseUrl($curUrl); bp($arrayUrl);
+    	$arrayUrl = core_Url::parseUrl($curUrl); 
     	$domain = $arrayUrl['query_params']['domain'];
     	$url = $arrayUrl['query_params']['socUrl'];
     	$title = $arrayUrl['query_params']['socTitle'];
