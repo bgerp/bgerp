@@ -2,11 +2,11 @@
 
 
 /**
- * Декларации за съответствия
+ * Следене в социалните мрежи
  *
  *
  * @category  bgerp
- * @package   dec
+ * @package   social
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -19,53 +19,42 @@ class social_Followers extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Твърдения";
+    var $title = "Следени";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Твърдение";
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $pageMenu = "Декларации";
-    
+    var $singleTitle = "Следене";
+        
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, dec_Wrapper, plg_Created, plg_RowTools,  plg_Printing, plg_SaveAndNew';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, dec';
-    
-    
-    
+    var $canRead = 'ceo, social';
+            
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo, dec';
-    
+    var $canWrite = 'ceo, social';
 
-    /**
-     * Шаблон за единичния изглед
-     */
-    //var $singleLayoutFile = 'hr/tpl/SingleLayoutShift.shtml';
-    
     
     /**
      * Описание на модела
      */
     function description()
     {
-		
+		$this->FLD('title', 'varchar(32)', 'caption=Услуга');
+		$this->FLD('url', 'varchar(128)', 'caption=URL за последване');
+		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
+		$this->FLD('followersCnt', 'int', 'caption=Брой последователи');
     }
     
 }

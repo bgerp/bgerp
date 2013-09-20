@@ -3,23 +3,35 @@
 
 
 /**
- * Клас 'dec_Wrapper'
+ * Клас 'social_Wrapper'
  *
- * Поддържа системното меню и табове-те на пакета 'dec'
+ * Поддържа системното меню и табове-те на пакета 'social'
  *
  *
  * @category  bgerp
- * @package   dec
+ * @package   social
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
  */
-class dec_Wrapper extends sales_Wrapper
+class social_Wrapper extends plg_ProtoWrapper
 {
-    
-	function on_AfterRenderWrapping($mvc, &$tpl)
+    /**
+     * Описание на табовете
+     */
+    function description()
+    {
+       
+        
+        $this->TAB('social_Sharings', 'Споделяне', 'ceo,social');
+        $this->TAB('social_Followers', 'Следене', 'ceo,social');
+                
+        $this->title = 'Социални мрежи « Сайт';
+        Mode::set('menuPage','Сайт:Социални мрежи');
+    }
+	/*function on_AfterRenderWrapping($mvc, &$tpl)
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 
@@ -33,5 +45,5 @@ class dec_Wrapper extends sales_Wrapper
         
         Mode::set('pageMenu', 'Търговия');
 		Mode::set('pageSubMenu', 'Продажби'); 
-    }
+    }*/
 }

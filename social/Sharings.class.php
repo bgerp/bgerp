@@ -2,11 +2,11 @@
 
 
 /**
- * Декларации за съответствия
+ * Споделяне в социалните мрежи
  *
  *
  * @category  bgerp
- * @package   dec
+ * @package   social
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -31,22 +31,21 @@ class social_Sharings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'dec_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
     
     
     /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo, social';
-    
-    
-    
+        
     
     /**
      * Кой може да пише?
      */
     var $canWrite = 'ceo, social';
 
+    
     /**
      * Описание на модела
      */
@@ -60,65 +59,109 @@ class social_Sharings extends core_Master
     
     
     /**
-     * 
+     * Създаване на бутони за споделяне
      */
     static function getButtons()
     {
+    	// Взимаме всяко tpl, в което сме 
+    	// сложили прейсхолдер [#social_Sharings::getButtons#]
     	$tpl = new ET('');
     	
+    	// Правим заявка към базата
     	$query = static::getQuery();
 		$socialNetworks = $query->fetchAll();
 
+		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
+			
+			// ако услугата е "видима"
 			if($socialNetwork->state == 'active'){
+				
+				// Вземаме качената икона
 				if($socialNetwork->icon){
 					$icon = $socialNetwork->icon;
-				} else {
-					$socUrl = $socialNetwork->url;
-					$name = self::getServiceNameByUrl($socUrl);
-					$icon = sbf("cms/img/16/{$name}.png",'');
 					
+					// Ако тя липсва
+				} else {
+					
+					// Вземаме URL от базата
+					$socUrl = $socialNetwork->url;
+					
+					// Намираме името на функцията
+					$name = self::getServiceNameByUrl($socUrl);
+					
+					// Намираме иконата в sbf папката
+					$icon = sbf("cms/img/16/{$name}.png",'');
 				}
+				
+				// Създаваме иконата за бутона
 				$img = ht::createElement('img', array('src' => $icon));
 				
+				// Генерираме URL-то на бутона
 				$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => '[#SOC_URL#]', 'socTitle' => '[#SOC_TITLE#]', 'socSummary' => '[#SOC_SUMMARY#]');
-				//$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => $socialNetwork->url, 'socTitle' => $socialNetwork->name, 'socSummary' => "Shared '{$socialNetwork->name}'");
+				
+				// Създаваме линка на бутона
 				$link = ht::createLink("{$img} « " . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
 				
+				// Връщаме ескейпването, за да може да заменим
+				// по-късно плейсхолдерите
 				$link = str_replace('%5B%23', '[#', $link);
 				$link = str_replace('%23%5D', '#]', $link);
 				$link = str_replace('&amp;', '&', $link);
 			
 				$link = new ET(ET::unEscape($link));
 		        
+				// Добавямего към шаблона
 				$tpl->append($link);
 			}
-
 		}
+		
+		// Връщаме тулбар за споделяне в социалните мреци
 		return "<div class='soc-sharing-holder'>".$tpl."</div>";
     }
     
     
+    /**
+     * Функция за споделяне
+     */
     public function act_Redirect()
     {
+    	// Взимаме $ид-то на услугата
     	$id = core_Request::get('id', 'key(mvc='.get_class($mvc).')');
+    	
+    	// Намираме нейния запис
     	$rec = self::fetch("#id = '{$id}'"); 
+    	
+    	// Текущото URL
     	$curUrl = toUrl(getCurrentUrl());
-    	$arrayUrl = core_Url::parseUrl($curUrl); 
+    	
+    	// Парсираме го, за да извлечем параметрите от заявката
+    	$arrayUrl = core_Url::parseUrl($curUrl);
+
+    	// Домейна
     	$domain = $_SERVER['SERVER_NAME'];
+    	
+    	// URL към обекта който ще споделяме
     	$url = $domain.$arrayUrl['query_params']['socUrl'];
+    	
+    	// Заглавието на обекта
     	$title = $arrayUrl['query_params']['socTitle'];
+    	
+    	// Описание на обекта
     	$summary = $arrayUrl['query_params']['socSummary'];
+    	
+    	// Заместваме данните в URL за редиректване
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
-    	if(strpos($rec->url, "[#TITLE#]") || strpos($rec->url, "[#SUMMERY#]"))
+    	if(strpos($rec->url, "[#TITLE#]") || strpos($rec->url, "[#SUMMARY#]"))
     	{
 	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
-	    	$redUrl = str_replace("[#SUMMERY#]", $summary, $redUrl);
+	    	$redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
     	}
     	
+    	// Увеличаване на брояча на споделянията
     	$rec->sharedCnt += 1;
-    	self::save($rec);
     	
+    	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
                vislog_History::add("Споделяне " . $rec->name);
@@ -126,10 +169,14 @@ class social_Sharings extends core_Master
         }
     	self::save($rec);
     	
+    	// Връщаме URL-то
     	return new Redirect ($redUrl);
     }
     
     
+    /**
+     * Тестова функция
+     */
     function act_Test()
     {
     	$url = "https://plus.google.com/101118968403881827448/posts";
@@ -145,6 +192,8 @@ class social_Sharings extends core_Master
      */
     static function getServiceNameByUrl($url)
     {
+    	// Масив от домейни => имена на услуги
+    	// заредени при началното инициализиране
     	$services = array ( "plus.google.com"=>"google-plus",
     					    "svejo.net"=>"svejo",
 					    	"twitter.com"=>"twitter",
@@ -165,8 +214,11 @@ class social_Sharings extends core_Master
 					    	"evernote.com"=>"evernote",
 					    	"friendfeed.com"=>"friendfeed");
     	
+    	 
     	foreach($services as $servic=>$nameServic){
+    		// Проверява URL-to за първия срещнат домейн
     		if(strpos($url, $servic)){
+    			// и връща името на услугата
     			return $nameServic;
     		}
     	}

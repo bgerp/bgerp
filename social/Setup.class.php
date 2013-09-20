@@ -58,8 +58,16 @@ class social_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = 'social';
+    
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.9, 'Сайт', 'Социални мрежи', 'social_Sharings', 'list', "cms, social, admin, ceo"),
+        );
 
-            
+        
     /**
      * Инсталиране на пакета
      */
