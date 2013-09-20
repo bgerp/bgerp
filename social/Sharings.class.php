@@ -105,7 +105,7 @@ class social_Sharings extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	$curUrl = toUrl(getCurrentUrl());
     	$arrayUrl = core_Url::parseUrl($curUrl); 
-    	$domain = $arrayUrl['query_params']['domain'];
+    	$domain = $_SERVER['SERVER_NAME'];
     	$url = $arrayUrl['query_params']['socUrl'];
     	$title = $arrayUrl['query_params']['socTitle'];
     	$summary = $arrayUrl['query_params']['socSummary'];
