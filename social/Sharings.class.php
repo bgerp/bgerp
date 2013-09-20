@@ -106,7 +106,7 @@ class social_Sharings extends core_Master
     	$curUrl = toUrl(getCurrentUrl());
     	$arrayUrl = core_Url::parseUrl($curUrl); 
     	$domain = $_SERVER['SERVER_NAME'];
-    	$url = $arrayUrl['query_params']['socUrl'];
+    	$url = $domain.$arrayUrl['query_params']['socUrl'];
     	$title = $arrayUrl['query_params']['socTitle'];
     	$summary = $arrayUrl['query_params']['socSummary'];
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
@@ -115,7 +115,7 @@ class social_Sharings extends core_Master
 	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
 	    	$redUrl = str_replace("[#SUMMERY#]", $summary, $redUrl);
     	}
-    	$redUrl = $domain.$redUrl;
+    	 bp($redUrl);
     	$rec->sharedCnt += 1;
     	self::save($rec);
     	
