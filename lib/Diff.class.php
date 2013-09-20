@@ -189,7 +189,9 @@ class lib_Diff {
 
             $out .= $c;
         }
-
+        
+        $res[] = $out;
+        
         return $res;
     }
 
