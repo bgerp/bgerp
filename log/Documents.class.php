@@ -976,7 +976,7 @@ class log_Documents extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=От, field=Поле, oldValue=Стара стойност');
+        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=От, Version=Версия');
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
@@ -1483,10 +1483,10 @@ class log_Documents extends core_Manager
                     'docClass' => $logRec->docClass
                 );
             }
+            
+            // Пушваме съответното действие
+            static::pushAction($rec);
         }
-        
-        // Пушваме съответното действие
-        static::pushAction($rec);
         
         // Съобщение в лога
         $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
@@ -1716,9 +1716,29 @@ class log_Documents extends core_Manager
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
             
+            // Ако екшъна е change
+            if ($rec->action == $change) {
+                
+                // Обхождаме всички промени
+                foreach ((array)$rec->data->{$change} as $changeDataArr) {
+                    
+                    // За да не обикаляме едни и същи данни повече от един път
+                    $checkedChangesStr = $changeDataArr['docClass'] . '_' . $changeDataArr['docId'];
+                    
+                    // Ако ня сме търсили за този клас и документ
+                    if (!$changesArr[$checkedChangesStr]) {
+                        
+                        // Вземаме броя на промените
+                        $data[$rec->containerId]->summary[$change] += change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
+                        
+                        // Отбелязваме в масива, за да го прескочим
+                        $changesArr[$checkedChangesStr] = $checkedChangesStr;
+                    }
+                }
+            }
+            
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
-            $data[$rec->containerId]->summary[$change] += count($rec->data->{$change});
             $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
             $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
