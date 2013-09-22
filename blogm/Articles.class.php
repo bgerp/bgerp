@@ -702,6 +702,7 @@ class blogm_Articles extends core_Master {
         $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
         $query->groupBy("month");
         $query->show('month');
+        $query->orderBy('#createdOn', 'DESC');
         $query->where("#state = 'active'");
 
         while($rec = $query->fetch()) { 

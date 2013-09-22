@@ -329,6 +329,9 @@ class cms_Articles extends core_Manager
                 vislog_History::add($rec->title);
             }
         }
+
+        // Добавяне на параметрите за социално споделяне
+        // $content->append('????', 'SOC_URL');
 		
         return $content; 
     }
