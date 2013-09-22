@@ -317,7 +317,7 @@ class sales_Invoices extends core_Master
 	    	}
     	}
     }
-    
+
     
     /**
      * Помощна функция за прилагане на увеличение/намаляване на
@@ -419,7 +419,7 @@ class sales_Invoices extends core_Master
         }
             
         if (!empty($rec->folderId)) {
-            $rec->contragentClassId  = doc_Folders::fetchCoverClassName($rec->folderId);
+            $rec->contragentClassId  = doc_Folders::fetchCoverClassId($rec->folderId);
             $rec->contragentId     = doc_Folders::fetchCoverId($rec->folderId);
         }
     }
@@ -580,7 +580,10 @@ class sales_Invoices extends core_Master
     		
     		$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
     		$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
-    	}
+    		if(dec_Declarations::haveRightFor('add')){
+    			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/declarations.png, row=2');
+    		}
+    	}	 
     }
     
     
@@ -612,7 +615,7 @@ class sales_Invoices extends core_Master
      * 
      * @param core_Form $form
      */
-    protected function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
+    protected static function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
     {
     	$rec = $form->rec;
         if($rec->id) return;

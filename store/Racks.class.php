@@ -228,6 +228,9 @@ class store_Racks extends core_Master
             $data->form->setDefault('columns', 24);
             $data->form->setDefault('constrColumnsStep', 3);
         }
+        
+        // Може да се избира само от групите, чиите продукти могат да се складирар
+        $form->setSuggestions('groupsAllowed', cat_Groups::getByMeta('canStore'));
     }
     
     

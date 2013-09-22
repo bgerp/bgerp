@@ -976,7 +976,7 @@ class log_Documents extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Вземаме таблицата с попълнени данни
-        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=От, field=Поле, oldValue=Стара стойност');
+        $sendTpl = $inst->get($data->rows, 'createdOn=Дата, createdBy=От, Version=Версия');
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
@@ -1483,10 +1483,10 @@ class log_Documents extends core_Manager
                     'docClass' => $logRec->docClass
                 );
             }
+            
+            // Пушваме съответното действие
+            static::pushAction($rec);
         }
-        
-        // Пушваме съответното действие
-        static::pushAction($rec);
         
         // Съобщение в лога
         $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
@@ -1716,9 +1716,29 @@ class log_Documents extends core_Manager
                 $data[$rec->containerId]->summary[$rec->action] += 1;
             }
             
+            // Ако екшъна е change
+            if ($rec->action == $change) {
+                
+                // Обхождаме всички промени
+                foreach ((array)$rec->data->{$change} as $changeDataArr) {
+                    
+                    // За да не обикаляме едни и същи данни повече от един път
+                    $checkedChangesStr = $changeDataArr['docClass'] . '_' . $changeDataArr['docId'];
+                    
+                    // Ако ня сме търсили за този клас и документ
+                    if (!$changesArr[$checkedChangesStr]) {
+                        
+                        // Вземаме броя на промените
+                        $data[$rec->containerId]->summary[$change] += change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
+                        
+                        // Отбелязваме в масива, за да го прескочим
+                        $changesArr[$checkedChangesStr] = $checkedChangesStr;
+                    }
+                }
+            }
+            
             $data[$rec->containerId]->summary[$open] += count($rec->data->{$open});
             $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
-            $data[$rec->containerId]->summary[$change] += count($rec->data->{$change});
             $data[$rec->containerId]->summary[$forward] += count($rec->data->{$forward});
             $data[$rec->containerId]->summary[$used] += count($rec->data->{$used});
             $data[$rec->containerId]->containerId = $rec->containerId;
@@ -1772,6 +1792,7 @@ class log_Documents extends core_Manager
     public static function renderSummary($data)
     {
         static $wordings = NULL;
+        static $wordingsTitle = NULL;
         
         static $actionToTab = NULL;
         
@@ -1779,7 +1800,8 @@ class log_Documents extends core_Manager
             return '';
         }
         
-        if (!isset($wordings)) {
+        if (!isset($wordings) || !isset($wordings)) {
+            
             $wordings = array(
                 static::ACTION_SEND    => array('изпращане', 'изпращания'),
                 static::ACTION_RECEIVE => array('получаване', 'получавания'),
@@ -1790,9 +1812,30 @@ class log_Documents extends core_Manager
                 static::ACTION_CHANGE => array('промяна', 'промени'),
                 static::ACTION_FORWARD => array('препратен', 'препратени'),
                 static::ACTION_USED => array('използване', 'използвания'),
+                static::ACTION_FAX => array('факс', 'факс'),
+                static::ACTION_PDF => array('pdf', 'pdf'),
             );
+            
+            $wordingsTitle = $wordings;
+            
+            if (Mode::is('screenMode', 'narrow')) {
+                
+                $wordings = array(
+                    static::ACTION_SEND    => array('изпр', 'изпр'),
+                    static::ACTION_RECEIVE => array('п', 'п'),
+                    static::ACTION_RETURN  => array('вр', 'вр'),
+                    static::ACTION_PRINT   => array('отп', 'отп'),
+                    static::ACTION_OPEN   => array('в', 'в'),
+                    static::ACTION_DOWNLOAD => array('св', 'св'),
+                    static::ACTION_CHANGE => array('пром', 'пром'),
+                    static::ACTION_FORWARD => array('преп', 'преп'),
+                    static::ACTION_USED => array('изп', 'изп'),
+                    static::ACTION_FAX => array('факс', 'факс'),
+                    static::ACTION_PDF => array('pdf', 'pdf'),
+                );
+            }
         }
-
+        
         if (!isset($actionToTab)) {
             $actionToTab = array(
                 static::ACTION_SEND    => static::ACTION_SEND,
@@ -1816,12 +1859,19 @@ class log_Documents extends core_Manager
                 continue;
             }
             $actionVerbal = $action;
+            $actionTitle = $action;
+            
             if (isset($wordings[$action])) {
                 $actionVerbal = $wordings[$action][intval($count > 1)];
             }
+            
+            if (isset($wordingsTitle[$action])) {
+                $actionTitle = $wordingsTitle[$action][intval($count > 1)];
+            }
+            
             $actionVerbal = tr($actionVerbal);
             $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
-	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr);
+	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
         

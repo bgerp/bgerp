@@ -178,7 +178,7 @@ class sales_Quotations extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
        $rec = &$data->form->rec;
-    	if(empty($rec->id)){
+       if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        }
        
@@ -451,11 +451,11 @@ class sales_Quotations extends core_Master
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->className == 'techno_Specifications'){
+	    	if($origin->haveInterface('techno_ProductsIntf')){
 	    		$originRec = $origin->fetch();
 	    		if($originRec->state == 'draft'){
 	    			$originRec->state = 'active';
-	    			techno_Specifications::save($originRec);
+	    			$origin->getInstance()->save($originRec);
 	    		}		
 	    	}
     	}

@@ -575,21 +575,17 @@ class blogm_Articles extends core_Master {
                 $rowTpl->placeObject($row);
                 $rowTpl->append2master();
             }
-            
-        } else {
-            $rowTpl = $layout->getBlock('ROW');
-            $rowTpl->replace('<h3>Няма статии</h3>');
-            $rowTpl->append2master();
-        }
+        }   
+      
         
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
 			$title = 'Резултати при търсене на "<b>' . type_Varchar::escape($data->q) . '</b>"';
 		} elseif( isset($data->archive)) {  
    			$title = 'Архив за месец&nbsp;<b>' . dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>';
-        } elseif( isset($data->category)) {
+        } elseif( isset($data->category) && !count($data->rows)) {
             $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$title = 'Статии в категорията&nbsp;"<b>' . $category . '</b>"';
+   			$title = 'Няма статии в "<b>' . $category . '</b>"';
         }
         
         $layout->replace($title, 'BROWSE_HEADER');

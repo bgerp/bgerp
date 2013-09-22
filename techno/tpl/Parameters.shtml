@@ -1,17 +1,19 @@
 <!--ET_BEGIN LONG-->
-<b>|Параметри|*</b> [#ADD#]
-<table class = 'styled-table'>
-<!--ET_BEGIN PARAMS-->
-[#PARAMS#]
-<tr>
-<!--ET_BEGIN tools-->
-<!--ET_END tools-->
-<td> [#paramId#]</td>
-<td><i>[#value#]<span class='param-tools'>[#tools#]</span></i>
-</td>
-</tr>
-<!--ET_END PARAMS-->
-</table>
+
+	<b>|Параметри|*</b> [#ADD#]
+	<table class = 'styled-table'>
+	<!--ET_BEGIN PARAMS-->
+	[#PARAMS#]
+	<tr>
+	<!--ET_BEGIN tools-->
+	<!--ET_END tools-->
+	<td> [#paramId#]</td>
+	<td><i>[#value#]<span class='param-tools'>[#tools#]</span></i>
+	</td>
+	</tr>
+	<!--ET_END PARAMS-->
+	</table>
+
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->

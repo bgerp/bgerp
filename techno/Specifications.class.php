@@ -14,13 +14,13 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno_Specifications extends core_Master {
+class techno_Specifications extends core_Manager {
     
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'price_PolicyIntf, acc_RegisterIntf=techno_specifications_Register';
+    public $interfaces = 'price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf';
     
     
     /**
@@ -32,13 +32,19 @@ class techno_Specifications extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search';
+    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search,plg_Rejected';
 
     
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Спецификация";
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'no_one';
     
     
     /**
@@ -121,7 +127,10 @@ class techno_Specifications extends core_Master {
     	$this->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $this->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-        //$this->FLD('isOfferable', 'enum(no=Не,yes=Да)', 'input=none,value=no');
+        $this->FLD('state', 
+            'enum(active=Активирано, rejected=Отказано)', 
+            'caption=Статус, input=none'
+        );
     	
     	$this->setDbUnique('title');
     }
@@ -166,7 +175,7 @@ class techno_Specifications extends core_Master {
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
     	$query->orWhere("#common = 'yes'");
-    	
+    	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
     		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     	}
@@ -192,6 +201,8 @@ class techno_Specifications extends core_Master {
 	            $row->title = str::limitLen(strip_tags($row->title), 70);
 	            $row->title = ht::createLink($row->title, array($DocClass, 'single', $rec->docId), NULL, $attr);  
 	    	}
+	    	
+	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	}
     }
     
@@ -269,12 +280,13 @@ class techno_Specifications extends core_Master {
      */
      public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
-    	if(!$full) {
-    		return parent::getTitleById($id, $escaped);
-    	}
-    	
     	$rec = static::fetch($id);
 	    $TechnoClass = cls::get($rec->docClassId);
+	    
+     	if(!$full) {
+    		return $TechnoClass->getTitleById($rec->docId, $escaped);
+    	}
+    	
 	    return $TechnoClass->getShortLayout($rec->docId);
      }
     
@@ -296,11 +308,12 @@ class techno_Specifications extends core_Master {
     
     
     /**
-     * Enter description here ...
-     * @param core_Mvc $mvc
-     * @param unknown_type $rec
+     * Форсира спецификация
+     * @param core_Mvc $mvc - mvc на модела
+     * @param stdClass $rec - запис от sales_Sales или purchase_Requests
+     * @return int - ид на създадения или обновения запис
      */
-    public static function saveRec(core_Mvc $mvc, $rec)
+    public static function forceRec(core_Mvc $mvc, $rec)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	$classId = $mvc::getClassId();
@@ -310,6 +323,7 @@ class techno_Specifications extends core_Master {
     		'docClassId' => $classId,
     		'docId' => $rec->id,
     		'folderId' => $rec->folderId,
+    		'state' => ($rec->state != 'rejected') ? 'active' : 'rejected',
     		'createdOn' => dt::now(),
     		'createdBy' => core_Users::getCurrent(),
     		'common' => ($coverClass == 'doc_UnsortedFolders') ? "yes" : "no",
@@ -325,5 +339,77 @@ class techno_Specifications extends core_Master {
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	$data->query->orderBy('id', 'DESC');
+    }
+    
+    
+    /**
+     * Ф-я извличаща спецификация по даден документ
+     * @param int $docClassId - ид на класа на документа
+     * @param int $docId - ид на документа
+     * @return stdRec - записа на спецификацията ако го има
+     */
+    public static function fetchByDoc($docClassId, $docId)
+    {
+    	return static::fetch("#docClassId = {$docClassId} AND #docId = {$docId}");
+    }
+    
+    
+   /**
+	* Преобразуване на запис на регистър към запис за перо в номенклатура (@see acc_Items)
+	*
+	* @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	* @return stdClass запис за модела acc_Items:
+	*
+	* o num
+	* o title
+	* o uomId (ако има)
+	* o features - списък от признаци за групиране
+	*/
+    function getItemRec($objectId)
+    {
+        $info = $this->getProductInfo($objectId);
+        $itemRec = (object)array(
+            'num' => 'SPC' . $objectId,
+            'title' => $info->productRec->title,
+            'uomId' => $info->productRec->measureId,
+        );
+        
+        return $itemRec;
+    }
+    
+    
+   /**
+	* Хипервръзка към този обект
+	*
+	* @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	* @return mixed string или ET (@see ht::createLink())
+	*/
+    function getLinkToObj($objectId)
+    {
+        $rec = $this->fetchRec($objectId);
+    	return ht::createLink($rec->title, array(cls::get($rec->docClassId), 'single', $rec->docId));
+    }
+    
+    
+   /**
+	* Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
+	*
+	* @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	* @param boolean $inUse true - обекта е перо; false - обекта не е перо
+	*/
+    function itemInUse($objectId, $inUse)
+    {
+        /* TODO */
+    }
+    
+    
+   /**
+	* Имат ли обектите на регистъра размерност?
+	*
+	* @return boolean
+	*/
+    static function isDimensional()
+    {
+        return TRUE;
     }
 }

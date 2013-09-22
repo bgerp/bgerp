@@ -8,10 +8,11 @@
 	font-size:1.1em;
 	text-transform:uppercase;
 	color:#000;
+	margin-bottom:10px;
 }
 
 .general-product .list-description{
-	margin-bottom:10px;
+	margin-bottom:20px;
 }
 
 .general-product .list-description-short .richtext{
@@ -68,11 +69,6 @@
 	max-width:380px !important;
 }
 
-.specification-img{
-	margin-top:10px;
-}
-
-	
 i.misc-values{
 	color:#040404;
 }
@@ -87,6 +83,10 @@ table.styled-table tr.components-total td.has-hover:hover{
 
 .custom-styled-table{
 	width:300px;
+}
+
+#components-table{
+	margin-bottom:0;
 }
 
 #components-table th.component-header{
@@ -105,27 +105,28 @@ table.styled-table tr.components-total td.has-hover:hover{
 	white-space:nowrap;
 }
 
-@media print{
-	.styled-table{
-		width:400px;
-	}
-	.general-product .product-image{
-		float:left;
-		margin:0 0 10px 0;
-	}
-	.general-product .list-description-short{
-		max-width:100%;
-	}
+.specification-img {
+	float:left;
+	margin-left:50px;
+	margin-bottom:20px;
 }
 
-.spec-add-btn{
-	display:inline-block;
-	width:16px;
-	height:16px;
-}
-
-.list-info li.fleft{
+.narrow .specification-img{
+	margin-left:0;
 	clear:both;
+}
+
+.general-product .listToolbar{
+	margin-top:0;
+	margin-bottom:10px;
+}
+
+.general-product .listToolbar .toolbar{
+	padding-left:0;
+}
+
+.wide .base-info{
+	max-width:500px;
 }
 
 .param-tools{
@@ -136,4 +137,20 @@ table.styled-table tr.components-total td.has-hover:hover{
 
 .title-group{
 	margin-bottom:5px;
+}
+
+.spec-add-btn{
+	display:inline-block;
+	width:16px;
+	height:16px;
+}
+
+@media print{
+	.general-product .product-image{
+		float:left;
+		margin:0 0 10px 0;
+	}
+	.general-product .list-description-short{
+		max-width:100%;
+	}
 }

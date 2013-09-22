@@ -19,7 +19,7 @@ class cat_Products extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,techno_SpecificationFolderCoverIntf';
     
     
     /**
@@ -445,7 +445,7 @@ class cat_Products extends core_Master {
     	
     	$products = array();
     	while($rec = $query->fetch()){
-    		$products[$rec->id] = $rec->name;
+    		$products[$rec->id] = static::getTitleById($rec->id);
     	}
     	
     	return $products;

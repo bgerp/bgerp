@@ -4,7 +4,7 @@
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
 
-	<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] Артикул <b style="color:green;">[#name#]</b></div>
+	<div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></div>
 
 	<!--ET_BEGIN image-->
 		<div class="productImage">

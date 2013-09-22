@@ -37,7 +37,9 @@ class trz_Sickdays extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
+    				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc2,
+    				 plg_AutoFilter';
     
     
     /**
@@ -51,6 +53,14 @@ class trz_Sickdays extends core_Master
      */
     //var $searchFields = 'description';
 
+    
+    /**
+     * За плъгина acc_plg_DocumentSummary
+     */
+    var $filterFieldDateFrom = 'startDate';
+    var $filterFieldDateTo = 'toDate';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -134,6 +144,7 @@ class trz_Sickdays extends core_Master
      */
     var $newBtnGroup = "5.4|Човешки ресурси"; 
     
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -145,7 +156,7 @@ class trz_Sickdays extends core_Master
      */
     function description()
     {
-    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител,readonly');
+    	$this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty=TRUE)', 'caption=Служител,readonly, autoFilter');
     	$this->FLD('startDate', 'date', 'caption=Отсъствие->От, mandatory');
     	$this->FLD('toDate', 'date', 'caption=Отсъствие->До, mandatory');
     	$this->FLD('fitNoteNum', 'varchar', 'caption=Болничен лист->Номер, hint=Номер/Серия/Година');
@@ -168,25 +179,7 @@ class trz_Sickdays extends core_Master
     	$this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=none');
     	$this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=none');
     }
-    
-    
-    /**
-     * Прилага филтъра, така че да се показват записите за определение потребител
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-       
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
-        }
 
-        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
-            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-            
-        }  
-    }
-    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -197,21 +190,17 @@ class trz_Sickdays extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$cu = core_Users::getCurrent();
-
-        // Добавяме поле във формата за търсене
-       
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-                
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'selectedUsers';
+        $data->listFilter->showFields .= ',personId';
         
-        $data->listFilter->input('selectedUsers', 'silent');
+        $data->listFilter->input('personId', 'silent');
+        
+    	if($filterRec = $data->listFilter->rec){
+        	if($filterRec->personId){
+        		$data->query->where(array("#personId = '[#1#]'", $filterRec->personId));
+        	}
+    	}
     }
 
     
@@ -426,6 +415,32 @@ class trz_Sickdays extends core_Master
     function act_Accruals()
     {
     	self::requireRightFor('аccruals');
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('crm_PersonAccRegIntf');
+    }
+  
+    
+	/**
+     * Преди да се подготвят опциите на кориците, ако
+     */
+    function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
+    {
+    	
+    	if($coverClass instanceof crm_Persons){
+    		
+    		// Искаме да филтрираме само групата "Служители"
+    		$sysId = crm_Groups::getIdFromSysId('employees');
+    	
+    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
+    	}
     }
 
 }

@@ -30,7 +30,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'techno_Wrapper,plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals';
+    var $loadList = 'techno_Wrapper,plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals,plg_RowNumbering';
     
   
     /**
@@ -48,7 +48,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'RowNumb';
     
     
     /**
@@ -78,7 +78,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'tools=Пулт, componentId, cQuantity, price, amount, bTaxes';
+    var $listFields = 'RowNumb=Пулт, componentId, cQuantity, price, amount, bTaxes';
     
     
     /**
@@ -116,6 +116,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     		$products = static::getRemainingOptions($rec->generalProductId, $products);
     		expect(count($products));
     		$form->setOptions('componentId', $products);
+    		$data->remainingProducts = count($products) - 1;
     	} else {
     		if($rec->componentId == -1){
     			$rec->price = $rec->amount;
@@ -124,6 +125,19 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     	
     	$form->fields['componentId']->type = cls::get("type_Enum", array('options' => $products));
+    }
+    
+    
+     /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	if (empty($data->form->rec->id)) {
+    		if(!$data->remainingProducts){
+    			$data->form->toolbar->removeBtn('Запис и Нов');
+    		}
+    	}
     }
     
     
@@ -166,7 +180,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     }
     
-	
+    
     /**
      * Помощен метод за показване само на тези компоненти, които
      * не са добавени към спецификацията
@@ -178,7 +192,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     	$query = static::getQuery();
     	$query->where("#generalProductId = {$generalProductId}");
-    	$query->show = 'componentId';
+    	$query->show('componentId');
     	while($rec = $query->fetch()){
     		if(isset($products[$rec->componentId])){
     			unset($products[$rec->componentId]);
@@ -255,7 +269,7 @@ class techno_GeneralProductsDetails extends core_Detail {
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if(count($mvc->getRemainingOptions($data->masterData->rec->id))){
+    	if(isset($data->toolbar->buttons['btnAdd']) && count($mvc->getRemainingOptions($data->masterData->rec->id))){
     		$data->toolbar->buttons['btnAdd']->title = tr("Нов компонент");
     	} else {
     		$data->toolbar->removeBtn('btnAdd');

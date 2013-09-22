@@ -75,8 +75,9 @@ class crm_Locations extends core_Master {
      */
     var $singleIcon = 'img/16/location_pin.png';
     
+    
     /**
-	 * Коментари на статията
+	 * Детайли към локацията
 	 */
 	var $details = 'routes=sales_Routes';
 	

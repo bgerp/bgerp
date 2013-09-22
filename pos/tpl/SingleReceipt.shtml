@@ -13,7 +13,7 @@
 					</td>
 				</tr>
 				<tr id='receipt-details-th'>
-					<td id='th-quantity'>|Количество|*</td>
+					<td id='th-quantity'>|К-во|*</td>
 					<td id='th-price'>|Цена|*</td>
 					<td>|Стойност|*</td>
 				</tr>

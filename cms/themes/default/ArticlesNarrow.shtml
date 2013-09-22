@@ -1,6 +1,6 @@
 <div class='cms-row'>
 						
-	<div style='margin:2%;'>
+	<div style='margin:0 2%;'>
 		[#PAGE_CONTENT#] 
 	</div>
 	<!--ET_BEGIN NAVIGATION-->

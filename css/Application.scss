@@ -741,15 +741,15 @@ td.portal-date {
 	vertical-align: top !important;
 }
 
-.doc_Containers table.listTable>tbody>tr:hover {
-	background-color: transparent;
-}
-
 .doc_Containers table.listTable>tbody>tr {
-	background-color: transparent;
+	background-color: #fff;
 	&.flash {
 	   background-color: #ff8 ;
 	}
+}
+
+.doc_Containers table.listTable>tbody>tr:hover {
+	background-color: #fff;
 }
 
 /*стилове при отворени тредове*/
@@ -1065,6 +1065,7 @@ table.mc-calendar {
     padding: 1px;
     font-weight: bold;
     cursor: pointer;
+    white-space:nowrap;
     &:hover {
       background-color: #ffff66;
     }
@@ -1635,6 +1636,41 @@ fieldset.sharing-history {
     display:block;
     clear: both;
 }
+
+/*стилове за социални бутони*/
+.soc-sharing-holder{
+	margin:20px 0 15px;
+	.soc-sharing{
+		margin-right:5px;
+		margin-bottom:5px;
+		display:inline-block;
+		height:22px;
+		line-height:22px;
+		padding:0 3px;
+		color:#333;
+		@include border-radius(3px);
+		border:1px solid #ccc;
+		font-size:0.9em;
+		font-family:Verdana,Helvetica,sans-serif;
+		background: #D5D5D5;
+		background: -moz-linear-gradient(top,#FFF 0,#EFEFEF 48%,#D5D5D5 94%);
+		background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#FFF),color-stop(48%,#EFEFEF),color-stop(94%,#D5D5D5));
+		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#d5d5d5',GradientType=0);
+		&:hover{
+			cursor:pointer;
+			color:#333;
+			background: #D5D5D5;
+			background: -moz-linear-gradient(top,#D5D5D5 0,#EFEFEF 48%,#FFF 94%);
+			background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
+			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
+		}	
+		
+	}
+	.soc-sharing img{
+		top:3px;
+		position:relative;
+	}
+}
 /*край на CMS*/
 
 
@@ -1654,10 +1690,6 @@ fieldset.sharing-history {
 	margin: 0 auto;
 	overflow: hidden;
 	padding-top: 20px;
-}
-
-.narrow .cms-row {
-	padding-top: 0px;
 }
 
 .onecol,.twocol,.threecol,.fourcol,.fivecol,.sixcol,.sevencol,.eightcol,.ninecol,.tencol,.elevencol
@@ -1883,7 +1915,7 @@ fieldset.sharing-history {
 	display:inline;
 }
 
-.narrow .narrow-scroll .scrolling-holder{
+.narrow .narrow-scroll .scrolling-holder, .overflow-scroll{
 	width: 100% !important;
 	overflow-x: auto !important;
 	_overflow: auto !important;
@@ -2811,5 +2843,7 @@ div.location{
 .callcenter_Talks tr.group-by-date-row {
     background-color:#f0f0e0;
 }
+
+
 
 @import "partials/sales";

@@ -84,7 +84,7 @@ class survey_Surveys extends core_Master {
     
     
     /**
-	 * Коментари на статията
+	 * Детайли на анкетата
 	 */
 	var $details = 'survey_Alternatives';
 	

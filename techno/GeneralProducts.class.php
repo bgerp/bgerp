@@ -37,7 +37,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_DocumentPlg,plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank, doc_plg_BusinessDoc2, techno_plg_SpecificationProduct,
+    public $loadList = 'techno_plg_SpecificationProduct,doc_DocumentPlg,plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank, doc_plg_BusinessDoc2,
                     doc_ActivatePlg, plg_Search, doc_SharablePlg';
     
     
@@ -72,7 +72,7 @@ class techno_GeneralProducts extends core_Master {
     
     
     /**
-	 * Коментари на статията
+	 * Детайли на продукта
 	 */
 	var $details = 'techno_GeneralProductsDetails,Params=techno_GeneralProductsParameters';
 	
@@ -108,6 +108,12 @@ class techno_GeneralProducts extends core_Master {
     
     
     /**
+     * Шаблон за заглавието
+     */
+    public $recTitleTpl = '[#title#] <!--ET_BEGIN code-->([#code#])<!--ET_END code-->';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -135,7 +141,7 @@ class techno_GeneralProducts extends core_Master {
     	
     	if($fields['-single'] && !$fields['-short']){
 	    	if($rec->image){
-	     		$size = array(200, 350);
+	     		$size = array(280, 300);
 				$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($rec->image, $size, array(550, 550));
 	    	}
@@ -147,7 +153,7 @@ class techno_GeneralProducts extends core_Master {
     	
     	if($fields['-short']){
 	    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-	    		$row->title = ht::createLinkRef($row->title, array($this, 'single', $rec->Id), NULL, 'title=Към спецификацията');
+	    		$row->title = ht::createLinkRef($row->title, array($mvc, 'single', $rec->id), NULL, 'title=Към спецификацията');
 	    	}
 	    	
 	    	if($rec->image){

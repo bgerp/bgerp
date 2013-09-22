@@ -184,7 +184,7 @@ class cms_Articles extends core_Manager
             Mode::set('cmsLayout', $ThemeClass->getArticleLayout());
         }
 		
-        $id = Request::get('id', 'int');
+        $id = Request::get('id', 'int'); 
         
         if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
@@ -200,7 +200,7 @@ class cms_Articles extends core_Manager
             $rec = self::fetch($id);
         }
         
-        if($rec) {
+        if($rec) { //bp(toUrl(getCurrentUrl()));
 
             $menuId = $rec->menuId;
 
@@ -209,7 +209,10 @@ class cms_Articles extends core_Manager
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
             
             // Рендираме тулбара за споделяне
-            $content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", $conf->CMS_SHARE));
+            //$content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", $conf->CMS_SHARE));
+            $content->replace(toUrl(getCurrentUrl()), 'SOC_URL');
+            $content->replace(self::getVerbal($rec, 'title'), 'SOC_TITLE');
+            $content->replace('article', 'SOC_SUMMARY');
             
             $ptitle = self::getVerbal($rec, 'title') . " » ";
  

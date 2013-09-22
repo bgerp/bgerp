@@ -201,4 +201,15 @@ class doc_DocumentIntf
     {
     	return $this->class->getUsedDocs($id);
     }
+    
+    
+    /**
+     * Дефолт метод филтриращ опциите от корици на папка в които
+     * може да се постави даден документ
+     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     */
+    function getCoverOptions($coverClass)
+    {
+    	return $this->class->getCoverOptions($coverClass);
+    }
 }

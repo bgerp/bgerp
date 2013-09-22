@@ -30,7 +30,8 @@
  * се казва по друг начин се дефинира константата 'filterDateField' която
  * показва по кое поле ще се филтрира
  * 
- *
+ * За търсене по дата, когато документа има начална и крайна дата се дефинират
+ * 'filterFieldDateFrom' и 'filterFieldDateTo'
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
@@ -127,11 +128,19 @@ class acc_plg_DocumentSummary extends core_Plugin
 	        }
 	       
 			if($dateRange[0]) {
-    			$data->query->where(array("#{$mvc->filterDateField} >= '[#1#]'", $dateRange[0]));
+				$fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
+    			$data->query->where(array("#{$fromField} >= '[#1#]'", $dateRange[0]));
+    			if($mvc->filterFieldDateTo){
+    				$data->query->orWhere(array("#{$fromField} IS NULL", $dateRange[0]));
+    			}
     		}
     		
 			if($dateRange[1]) {
-    			$data->query->where(array("#{$mvc->filterDateField} <= '[#1#] 23:59:59'", $dateRange[1]));
+				$toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
+    			$data->query->where(array("#{$toField} <= '[#1#] 23:59:59'", $dateRange[1]));
+    			if($mvc->filterFieldDateFrom){
+    				$data->query->orWhere(array("#{$toField} IS NULL", $dateRange[1]));
+    			}
     		}
 		}
 	}

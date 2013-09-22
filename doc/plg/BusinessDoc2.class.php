@@ -140,7 +140,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     	
     	// Подготовка на формата за избор на папка
     	$form = cls::get('core_Form');
-    	static::getFormFields($form, $coversArr);
+    	static::getFormFields($mvc, $form, $coversArr);
     	
     	return $form;
     }
@@ -149,7 +149,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     /**
      * Подготвя полетата на формата
      */
-	private function getFormFields(&$form, $coversArr)
+	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
     	foreach ($coversArr as $coverId){
     			
@@ -161,16 +161,17 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     			$Class = cls::get($coverId);
 	    		list($pName, $coverName) = explode('_', $coverId);
 	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете само една папка->{$Class->singleTitle},width=100%");
+	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$options = array();
-	    		foreach ($Class::makeArray4Select(NULL, "#state != 'rejected'") as $oId => $oName){
+	    		foreach ($mvc->getCoverOptions($Class) as $oId => $oName){
 	    			$rec = $Class::fetch($oId);
 	    			if(doc_Folders::haveRightToObject($rec)){
 	    				$options[$oId] = $oName;
 	    			}
 	    		}
+	    		
 	    		$form->setOptions($coverName, $options);
     		}
     	}

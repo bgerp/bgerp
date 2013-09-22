@@ -49,7 +49,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Search, plg_Sorting';
+    var $loadList = 'plg_Search, plg_Sorting, plg_Rejected';
     
     
     /**
@@ -74,7 +74,7 @@ class acc_OpenDeals extends core_Manager {
     	$this->FLD('valior', 'date', 'caption=Дата');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано');
     	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено');
-    	$this->FLD('state', 'enum(active=Активно, closed=Приключено)', 'caption=Състояние');
+    	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
     }
@@ -115,7 +115,8 @@ class acc_OpenDeals extends core_Manager {
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		$data->query->orderBy('state,id');
+		$data->query->orderBy('state', "ASC");
+		$data->query->orderBy('id', "DESC");
 	}
 	
 	
@@ -189,14 +190,13 @@ class acc_OpenDeals extends core_Manager {
     public static function saveRec($rec, $docClass)
     {
     	// Записа се записва само при активация на документа със сума на сделката
-    	//@TODO да заменя draft с active
-    	if($rec->state == 'draft' && $rec->amountDeal){
+    	if($rec->amountDeal){
     		$classId = $docClass::getClassId();
     		$new = array(
     			'valior' => $rec->valior,
     			'amountDeal' => $rec->amountDeal,
     			'amountPaid' => $rec->amountPaid, 
-    			'state' => ($rec->amountDeal > $rec->amountPaid) ? 'active' : 'closed',
+    			'state' => static::getDealState($rec),
     			'docClass' => $classId,
     			'docId' => $rec->id,
     			'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
@@ -204,6 +204,32 @@ class acc_OpenDeals extends core_Manager {
     		
 	    	static::save((object)$new);
     	}
+    }
+    
+    
+    /**
+     * След подготовка на list туулбара се добавя флага за
+     * обвивката на пакета
+     */
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+    	if(!Request::get('Rejected', 'int')){
+    		$data->toolbar->buttons['binBtn']->url['show'] = Request::get('show');
+    	} else {
+    		$data->toolbar->buttons['listBtn']->url = array($mvc, 'list', 'show' => Request::get('show'));
+    	}
+    }
+    
+    
+    /**
+     * Определя състоянието на сделката от записа
+     * @TODO по правилно да се определя кога сделката е приключила
+     * @param stdClass $rec - запис от sales_Sales или purchase_Requests
+     */
+    private static function getDealState($rec)
+    {
+    	if($rec->state == 'rejected') return 'rejected';
+    	return ($rec->amountDeal > $rec->amountPaid) ? 'active' : 'closed';
     }
     
     

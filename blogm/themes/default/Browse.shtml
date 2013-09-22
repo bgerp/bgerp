@@ -8,10 +8,13 @@
 
 	<!--ET_BEGIN ROW-->
 	<div class='blogm-browse-article'>
+	<!--ET_BEGIN articleBrowse-->
+	[#articleBrowse#]
 		<div class='blogm-article-info'>
 			<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
 			[#createdOn#], [#author#] в [#categories#] 
 		</div>
+	<!--ET_END articleBrowse-->
 		<div class='blogm-article-title'>
 			[#title#]
 		</div>

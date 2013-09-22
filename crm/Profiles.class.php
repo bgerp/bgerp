@@ -52,7 +52,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing';
+    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search';
 
 
     /**
@@ -95,6 +95,12 @@ class crm_Profiles extends core_Master
      * 
      */
     var $listFields = 'userId,personId,lastLoginTime=Последно логване';
+    
+    
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'userId, personId';
     
     
     /**
@@ -676,6 +682,24 @@ class crm_Profiles extends core_Master
         }
     }
     
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	 
+    	$data->listFilter->showFields = 'search';
+        
+        $data->listFilter->input('search', 'silent');
+    }
     
     /**
      * 

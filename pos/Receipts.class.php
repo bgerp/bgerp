@@ -49,7 +49,7 @@ class pos_Receipts extends core_Master {
     
     
     /**
-	 * Коментари на статията
+	 * Детайли на бележката
 	 */
 	var $details = 'pos_ReceiptDetails';
 	

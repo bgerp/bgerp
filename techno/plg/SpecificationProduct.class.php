@@ -40,7 +40,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	$mvc->requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $mvc->fetch($id));
-    	//expect($rec->state == 'active');
+    	expect($rec->state == 'active');
     	$originId = $rec->containerId;
     	
     	// Копието е нов документ(чернова), в същата папка в нов тред
@@ -92,11 +92,16 @@ class techno_plg_SpecificationProduct extends core_Plugin
     
     
     /**
-     *  След активация, записва продукта в спецификациите
+     * Извиква се след успешен запис в модела
      */
-	public static function on_AfterActivation($mvc, &$rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	techno_Specifications::saveRec($mvc, $rec);
+    	if($rec->state != 'draft'){
+    		
+    		// Промяна на спецификацията при възстановяване/оттегляне/активиране
+    		$rec = $mvc->fetch(($rec->id) ? $rec->id : $rec);
+    		techno_Specifications::forceRec($mvc, $rec);
+    	}
     }
     
     
@@ -105,7 +110,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('add') && $data->rec->state != 'active'){
+    	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
     		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
     	}
     	
@@ -142,6 +147,38 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		if(!$rec->id){
     			$res = 'no_one';
     		}
+    	}
+    }
+    
+    
+	/**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     */
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId)
+    {
+        $allowedIntfs = $mvc->getAllowedFolders();
+    	if(count($allowedIntfs)){
+	    	$cover = doc_Folders::getCover($folderId);
+	    	foreach ($allowedIntfs as $intf){
+	    		if($cover->haveInterface($intf)){
+	    			return $res = TRUE;
+	    		}
+	    	}
+    	}
+    	
+    	return $res = FALSE;
+    }
+    
+    
+    /**
+     * Преди да се подготвят опциите на кориците, ако
+     * тя е Продукти, ограничаваме само до тези, които
+     * могат да се произвеждат (canManifacture)
+     */
+    function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
+    {
+    	if($coverClass instanceof cat_Products){
+    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #meta LIKE '%canManifacture%'");
     	}
     }
 }    

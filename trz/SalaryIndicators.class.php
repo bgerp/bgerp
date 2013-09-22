@@ -137,6 +137,7 @@ class trz_SalaryIndicators extends core_Manager
     	$to = $data->listFilter->rec->to;
     	$person = $data->listFilter->rec->person;
     	$indicators = $data->listFilter->rec->indicators;
+    	$group = $data->listFilter->rec->group;
 
     	if($from && $to){
     		if($from > $to){
@@ -149,6 +150,7 @@ class trz_SalaryIndicators extends core_Manager
 	    
     	if($from){
 			$data->query->where("#date >= '{$from}'");
+			
 	    }
 	    
     	if($to){
@@ -157,6 +159,10 @@ class trz_SalaryIndicators extends core_Manager
 	    
 	    if($person){
 	    	$data->query->where("#personId = '{$person}'");
+	    }
+	    
+	    if($indicators){
+	    	$data->query->where("#indicator = '{$indicators}'");
 	    }
 	    
     }
@@ -180,7 +186,9 @@ class trz_SalaryIndicators extends core_Manager
         $data->listFilter->FNC('group', 'enum(1=,
         									  2=По дати,
         									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
-                        
+
+        $ind = $mvc->getIndicatorNames();
+        $data->listFilter->setOptions('indicators', $ind);
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -204,7 +212,7 @@ class trz_SalaryIndicators extends core_Manager
     function act_Test()
     {
     	$date = '2013-07-16';
-    	bp(self::pushIndicators($date));
+    	bp(self::getIndicatorNames());
     }
     
     
@@ -281,6 +289,19 @@ class trz_SalaryIndicators extends core_Manager
             
 	    	
     	}
+    }
+    
+    
+    function getIndicatorNames()
+    {
+    	$query = $this->getQuery();
+    	$query->groupBy('indicator');
+    	
+    	while($rec = $query->fetch()){
+    		$indicatorsName[$rec->indicator] = $rec->indicator;
+    	}
+    	
+    	return array(""=>"") + $indicatorsName;
     }
 
     

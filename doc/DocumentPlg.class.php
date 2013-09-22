@@ -1635,6 +1635,19 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Дефолт метод филтриращ опциите от корици на папка в които
+     * може да се постави даден документ
+     * @param core_Mvc $coverClass - Корица на папка за която филтрираме записите
+     */
+    function on_AfterGetCoverOptions($mvc, &$res, $coverClass)
+    {
+    	if(empty($res)){
+    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected'");
+    	}
+    }
+    
+    
 	/**
      * Метод по подразбиране
      * Връща иконата на документа

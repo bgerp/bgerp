@@ -32,7 +32,8 @@ class crm_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, doc_FolderPlg';
+    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
+    				 plg_Rejected, doc_FolderPlg, plg_Search';
     
     
     /**
@@ -58,6 +59,11 @@ class crm_Groups extends core_Master
      */
     var $rowToolsField = 'id';
     
+    
+    /**
+     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
+     */
+    var $searchFields = 'sysId, name, allow, companiesCnt, personsCnt, info';
     
     /**
      * Права
@@ -134,13 +140,68 @@ class crm_Groups extends core_Master
    
 
     /**
-     *  Задава подредбата
+     * Подредба и филтър на on_BeforePrepareListRecs()
+     * Манипулации след подготвянето на основния пакет данни
+     * предназначен за рендиране на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $data->query->orderBy('#name');
-    }
+    	$data->query->orderBy('#name');
+    	
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
 
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
+            
+        	$user = type_Keylist::toArray($data->listFilter->rec->users);
+            
+        	foreach($user as $u){
+        		
+        		$groupList = crm_Persons::fetchField($u, 'groupList');
+        		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+        	}
+
+        }
+
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        
+        // Вземаме стойността по подразбиране, която може да се покаже
+        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+        
+        // Задаваме стойността по подразбиране
+        $data->listFilter->setDefault('users', $default);
+                        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search,users';
+        
+        $rec = $data->listFilter->input('users,search', 'silent');
+ 
+    }
+ 
 
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
