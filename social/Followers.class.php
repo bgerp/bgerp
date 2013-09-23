@@ -141,7 +141,7 @@ class social_Followers extends core_Master
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
-               vislog_History::add("Споделяне " . $rec->name);
+               vislog_History::add("Последване в " . $rec->name);
             }
         }
     	self::save($rec);
