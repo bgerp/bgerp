@@ -112,7 +112,10 @@ class social_Sharings extends core_Master
 				$link = new ET(ET::unEscape($link));
 		        
 				// Добавямего към шаблона
-				$tpl->append($link);
+				$tpl->append($link);  
+				$tpl->replace(toUrl(getCurrentUrl()), 'SOC_URL');
+				$tpl->replace('aaaaa', 'SOC_TITLE');
+				$tpl->replace('aaaa', 'SOC_SUMMARY');
 			}
 		}
 		
@@ -133,7 +136,7 @@ class social_Sharings extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	
     	// Текущото URL
-    	$curUrl = toUrl(getCurrentUrl());
+    	$curUrl = toUrl(getCurrentUrl());bp($curUrl);
     	
     	// Парсираме го, за да извлечем параметрите от заявката
     	$arrayUrl = core_Url::parseUrl($curUrl);
@@ -160,7 +163,7 @@ class social_Sharings extends core_Master
     	
     	// Увеличаване на брояча на споделянията
     	$rec->sharedCnt += 1;
-    	
+    	self::save($rec);
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
@@ -240,7 +243,7 @@ class social_Sharings extends core_Master
     		1 => "url",
     		2 => "icon",
     		3 => "sharedCnt",
-    		3 => "state",
+    		4 => "state",
     	
     		
     	);
