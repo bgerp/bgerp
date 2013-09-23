@@ -101,7 +101,7 @@ class social_Sharings extends core_Master
 				$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => '[#SOC_URL#]', 'socTitle' => '[#SOC_TITLE#]', 'socSummary' => '[#SOC_SUMMARY#]');
 				
 				// Създаваме линка на бутона
-				$link = ht::createLink("{$img} « " . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
+				$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
 				
 				// Връщаме ескейпването, за да може да заменим
 				// по-късно плейсхолдерите

@@ -1649,7 +1649,6 @@ fieldset.sharing-history {
 		margin-bottom:5px;
 		display:inline-block;
 		height:22px;
-		line-height:22px;
 		padding:0 3px;
 		color:#333;
 		@include border-radius(3px);
@@ -1667,6 +1666,10 @@ fieldset.sharing-history {
 			background: -moz-linear-gradient(top,#D5D5D5 0,#EFEFEF 48%,#FFF 94%);
 			background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
 			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
+		}
+		sup{
+			position:relative;
+			top:-2px;
 		}	
 	}
 	.soc-sharing img{
