@@ -240,6 +240,7 @@ class social_Sharings extends core_Master
     		1 => "url",
     		2 => "icon",
     		3 => "sharedCnt",
+    		3 => "state",
     	
     		
     	);
