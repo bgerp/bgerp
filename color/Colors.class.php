@@ -36,7 +36,7 @@ class color_Colors {
 	 * @param enum $type - цветовия модел
 	 * Допустими типове (rgb, cmyk, hsv, cielab, xyz)
 	 */
-	static function get($type)
+	public static function get($type)
 	{
 		expect(in_array($type, array('rgb','cmyk','hsv','cielab','xyz')));
 		$Class = cls::get(get_called_class());
@@ -240,7 +240,7 @@ class color_Colors {
 	/**
 	 * Конвертира към CIE-L*ab, преминавайки през XYZ и RGB при нужда
 	 */
-	function toCielab()
+	public function toCielab()
 	{	
 		if($this->type != 'xyz'){
 			$this->toRGB();
@@ -271,22 +271,22 @@ class color_Colors {
 	 */
 	private function cielabToXYZ($values)
 	{
-	   $y = ($values['l'] + 16.0) / 116.0;
-       $y3 = pow($y, 3.0);
-       $x = ($values['a'] / 500.0) + $y;
-       $x3 = pow($x, 3.0);
-       $z = $y - ($values['b'] / 200.0);
-       $z3 = pow($z, 3.0);
+	    $y = ($values['l'] + 16.0) / 116.0;
+        $y3 = pow($y, 3.0);
+        $x = ($values['a'] / 500.0) + $y;
+        $x3 = pow($x, 3.0);
+        $z = $y - ($values['b'] / 200.0);
+        $z3 = pow($z, 3.0);
 
-       $y = ($y3 > 0.008856) ? $y3 : ($y - (16.0 / 116.0)) / 7.787;
-       $x = ($x3 > 0.008856) ? $x3 : ($x - (16.0 / 116.0)) / 7.787;
-       $z = ($z3 > 0.008856) ? $z3 : ($z - (16.0 / 116.0)) / 7.787;
+        $y = ($y3 > 0.008856) ? $y3 : ($y - (16.0 / 116.0)) / 7.787;
+        $x = ($x3 > 0.008856) ? $x3 : ($x - (16.0 / 116.0)) / 7.787;
+        $z = ($z3 > 0.008856) ? $z3 : ($z - (16.0 / 116.0)) / 7.787;
 
-       $x = $x * 95.047;
-       $y = $y * 100;
-       $z = $z * 108.883;
+        $x = $x * 95.047;
+        $y = $y * 100;
+        $z = $z * 108.883;
       
-		return array('x' => $x, 'y' => $y, 'z' => $z);
+	    return array('x' => $x, 'y' => $y, 'z' => $z);
 	}
 	
 	
@@ -397,7 +397,7 @@ class color_Colors {
 	/**
 	 * Връща стойност от обекта
 	 */
-	function getValue($v)
+	public function getValue($v)
 	{
 		expect(isset($this->values[$v]));
 		return $this->values[$v];
@@ -414,5 +414,65 @@ class color_Colors {
     	$g = (int)$this->getValue('g');
     	$b = (int)$this->getValue('b');
 		return "rgb({$r}, {$g}, {$b})";
+	}
+	
+	
+	/**
+	 * Конвертира от всичко към  CMYK (минавайки през CMY)
+	 */
+	public function toCmyk()
+	{	
+		if($this->type == 'cmyk') return;
+		$this->toRGB();
+		$this->type = 'cmyk';
+		
+		$c = 1 - ($this->values['r'] / 255);
+		$m = 1 - ($this->values['g'] / 255);
+		$y = 1 - ($this->values['b'] / 255);
+		
+		$k = 1;
+		if ($c < $k)   $k = $c;
+		if ($m < $k)   $k = $m;
+		if ($y < $k)   $k = $y;
+		if ($k == 1){ 
+   			$c = $m = $y = 0;
+		}
+		else {
+   			$c = ($c - $k) / (1 - $k);
+   			$m = ($m - $k) / (1 - $k);
+   			$y = ($y - $k) / (1 - $k);
+		}
+		
+		$this->values = array('c' => $c, 'm' => $m, 'y' => $y, 'k' => $k);
+	}
+	
+	
+	/**
+	 * Конвертира от всичко до HSV (h и v са между 0-1)
+	 */
+	public function toHsv()
+	{
+		$this->toRGB();
+		$this->type = 'hsv';
+		
+		$r = ( $this->values['r'] / 255 );                     
+		$g = ( $this->values['g'] / 255 );
+		$b = ( $this->values['b'] / 255 );
+		
+		$min = min(array($r, $g, $b)) ;
+		$max = max(array($r, $g, $b));  
+		$delMax = $max - $min;
+		
+		if ($delMax == 0){
+		    $s = $h = 0;
+		} else{
+			$d = ($r == $min) ? $g - $b : (($b == $min) ? $r - $g : $b - $r);
+			$h = ($r == $min) ? 3 : (($b == $min) ? 1 : 5);
+			$h = 60*($h - $d/($max - $min));
+			$s = $delMax / $max;
+			$v = $max;
+		}
+		
+		$this->values = array('h' => $h, 's' => $s, 'v' => $v);
 	}
 }
