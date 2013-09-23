@@ -310,7 +310,7 @@ class cms_Feeds extends core_Manager {
 
         $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;' . $stuleAdd));
 
-		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
+		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:7px 0px 4px 7px;float:left;'));
 		
 		// Добавяме линка към шаблона
 		$tpl->append($link);
