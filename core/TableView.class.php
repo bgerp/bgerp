@@ -226,15 +226,11 @@ class core_TableView extends core_BaseClass
         if ($this->rowBefore) {
             $rowBefore = new ET("<tr><td style=\"border:0px; padding-top:5px; \" colspan=\"" . $this->colspan . "\">[#1#]</td></tr>", $this->rowBefore);
             $tpl->replace($rowBefore, "ROW-BEFORE");
-        } else {
-            $tpl->replace('', "ROW-BEFORE");
         }
         
         if ($this->rowAfter) {
             $rowAfter = new ET("<tr><td style=\"border:0px; padding-top:5px; \" colspan=\"" . $this->colspan . "\">[#1#]</td></tr>", $this->rowAfter);
             $tpl->replace($rowAfter, "ROW-AFTER");
-        } else {
-            $tpl->replace('', "ROW-AFTER");
         }
         
         return $tpl;
