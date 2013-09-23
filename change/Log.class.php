@@ -118,9 +118,6 @@ class change_Log extends core_Manager
         // Обхождаме масива с полетата
         foreach ((array)$fieldsArr as $field) {
             
-            // Ако няма промяна в полето
-            if ($oldRec->$field == $newRec->$field) continue;
-            
             // Обекта, който ще записваме
             $rec = new stdClass();
             $rec->docClass = $docClassId;
@@ -521,7 +518,10 @@ class change_Log extends core_Manager
         } else {
             
             // Задаваме версията
-            $versionStr =  static::getVersionStr($rec->version, $rec->subVersion);
+            $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
+            
+            // Ескейпваме стринга
+            $versionStr = static::escape($versionStr);
         }
         
         // Ако е зададено да няма линк
@@ -619,24 +619,32 @@ class change_Log extends core_Manager
      * 
      * @param string $version - Версията
      * @param int $subVersion - Подверсията
-     * @param boolena $escape - Дали да се ескейпва
      * 
      * @return string $versionStr
      */
-    static function getVersionStr($version, $subVersion, $escape=TRUE)
+    static function getVersionStr($version, $subVersion)
     {
         // Сърираме версията и подверсията
         $versionStr = $version . static::VERSION_DELIMITER . $subVersion;
         
-        // Ако е зададено да се ескейпва
-        if ($escape) {
-            
-            // Ескейпваме
-            $versionStr = core_Type::escape($versionStr);
-            $versionStr = core_ET::escape($versionStr);
-        }
-
         return $versionStr;
+    }
+    
+    
+    /**
+     * Ескейпва подадения стринг
+     * 
+     * @param string $string - Стринга, който ще се ескейпва
+     * 
+     * @return string $string
+     */
+    static function escape($string)
+    {
+        // Ескейпваме стринга
+        $string = core_Type::escape($string);
+        $string = core_ET::escape($string);
+        
+        return $string;
     }
     
     
@@ -703,7 +711,7 @@ class change_Log extends core_Manager
             
             // Обхождамва масива
             foreach ($versionArr as $keyVer => $dummy) {
-
+                
                 // Ако е последна версия, прескачаме
                 if ($keyVer == $lastVer) continue;
                 
@@ -767,7 +775,7 @@ class change_Log extends core_Manager
         
         // Вземаме един запис
         $rec = $query->fetch();
-
+        
         // Ако няма запис връщаме FALSE
         if (!$rec) return FALSE;
         
