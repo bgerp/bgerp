@@ -412,4 +412,28 @@ class techno_Specifications extends core_Manager {
     {
         return TRUE;
     }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    function getDocumentRow($id)
+    {
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    function getIcon($id)
+    {
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    static function getHandle($id)
+    {
+    }
 }
