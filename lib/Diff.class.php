@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * Клас  'lib_Diff' - Визуализира разликите между две версии на HTML
  *
@@ -15,6 +13,11 @@
  * @link
  */
 class lib_Diff {
+    
+    /**
+     * Списък с препинателни знаци, ескейпнати за регулярен израз
+     */
+    const PUNCTUATION = "\\.\\,\\?\\-\\!";
     
     /**
      * От стара и нова версия на HTML, генерира изглед с оцветветени разлики между тях
@@ -31,7 +34,7 @@ class lib_Diff {
 
         $oldArr  = self::explodeHtml($old);
         $newArr  = self::explodeHtml($new);
-        $arrDiff = self::getArrDiff($oldArr, $newArr);
+        $arrDiff = self::ses($oldArr, $newArr);
 
         $out = $mode = $buf = '';
 
@@ -47,24 +50,33 @@ class lib_Diff {
             }
             
             // Замяна
-            if(count($e['d']) && count($e['i'])) {
-                $deleted = self::getTextFromArray($e['d']);
-                foreach($e['i'] as $i) {
-                    $out = new stdClass();
-                    if($i{0} == '<') {
-                        $out->mode = 't';
-                        $out->str  = $i;
-                    } else {
-                        $out->mode = 'c';
-                        $out->str  = $i;
-                        $out->del = $deleted;
-                    }
-                    $res[] = $out;
-                    continue;
+            while(count($e['d']) && count($e['i']) && (($ct = self::getCharType($e['d'])) == self::getCharType($e['i']))) {
+                
+                $kd = key($e['d']);
+                $ki = key($e['i']);
+
+                $out = new stdClass();
+                if($ct == 'tag') {
+                    $out->mode = 't';
+                    $out->str  = $e['i'][$ki];
+                } else {
+                    $out->mode = 'c';
+                    $out->str  = $e['i'][$ki];
+                    $out->del  = $e['d'][$kd];
                 }
-                continue;
+                $res[] = $out;
+                unset($e['d'][$kd], $e['i'][$ki]);
+
+                $last = count($res) - 1;
+
+                if(($last >=2) && $res[$last]->mode == 'c' && $res[$last-1]->mode == 't' && $res[$last-2]->mode == 'c') {
+                    $res[$last-2]->str .= $res[$last-1]->str . $res[$last]->str;
+                    $res[$last-2]->del .= $res[$last-1]->str . $res[$last]->del;
+                    unset($res[$last], $res[$last-1]); 
+                }
             }
-            
+
+
             // Изтриване
             if(count($e['d'])) {
                 foreach($e['d'] as $d) {
@@ -78,14 +90,13 @@ class lib_Diff {
                     $res[] = $out;
                     continue;
                 }
-                continue;
             }
             
             // Добавяне
             if(count($e['i'])) {
                 foreach($e['i'] as $i) {
                     $out = new stdClass();
-                    if($d{0} == '<') {
+                    if($i{0} == '<') {
                         $out->mode = 't';
                         $out->str  = $i;
                     } else {
@@ -95,7 +106,6 @@ class lib_Diff {
                     $res[] = $out;
                     continue;
                 }
-                continue;
             }
         }
         
@@ -132,6 +142,33 @@ class lib_Diff {
 
         return $out;
     }
+
+
+    /**
+     * Връща типа на знака
+     */
+    static function getCharType($c)
+    {
+        if(is_array($c)) {
+            $c = reset($c);
+        }
+
+        $c = mb_substr($c, 0, 1);
+
+        if(preg_match("/[\s]+/", $c)) {
+
+            return "ws";
+        } elseif(preg_match("/[" . self::PUNCTUATION . "]+/", $c)) {
+
+            return 'dev';
+        } elseif($c == '<') {
+
+            return 'tag';
+        } else {
+
+            return 'text';
+        }
+    }
     
     
     /**
@@ -157,85 +194,138 @@ class lib_Diff {
      */
     private static function explodeHtml($html)
     {
-        $i = 0;
-        $mode = 'text';
-        $out = '';   
-        while('' != ($c = str::nextChar($html, $i))) { 
-            if($mode == 'tag') {
-                $out .= $c;
-                if($c == '>') {
-                    $res[] = $out;
-                    $out = '';
-                    $mode = 'text';
-                }
-                
-                continue;
-            } elseif($c == '<') {
-                if($out) {
-                    $res[] = $out;
-                }
-                $out = $c;
-                $mode = 'tag';
-                continue;
-            }
+       
+        $ptr = "/(<[^>]*>|[\\s]+|[" . self::PUNCTUATION . "]+|[^\\s" . self::PUNCTUATION . "\\<]+)/";
  
-            $wsC = self::isDevider($c);
-            $wsO = self::isDevider($out);
-
-            if(($wsC && !$wsO) || (!$wsC && $wsO)) {
-                $res[] = $out;
-                $out = '';
-            }
-
-            $out .= $c;
-        }
-        
-        $res[] = $out;
-        
-        return $res;
+        preg_match_all($ptr, $html, $matches);
+ 
+        return $matches[0];
     }
 
 
-    /**
-     * Дали символа е разделите или интервал
-     */
-    private static function isDevider($c)
-    {
-        for($i = 0; $i < strlen($c); $i++) {
-            if(!ctype_space($c{$i}) && strpos(",:;-!", $c{$i}) === FALSE) {
-
-                return FALSE;
-            }
-        }
-
-        return TRUE;
-    }
-
 
     /**
-     * Определяне на разликата между два масива
+     * Намиране на най-краткия скрипт за редактиране (SES) чрез бърз алгоритъм от книгата
+     * "An O(ND) Difference Algorithm and Its Variations" by Eugene W.Myers, 1986.
+     * 
+     *
+     * @param array          $src            Оригинален масив
+     * @param array          $dst            Нов Масив
+     *
+     * @return array
      */
-    private static function getArrDiff($old, $new)
-    {
-        $matrix = array();
-        $maxlen = 0;
-        foreach($old as $oindex => $ovalue){
-            $nkeys = array_keys($new, $ovalue);
-            foreach($nkeys as $nindex){
-                $matrix[$oindex][$nindex] = isset($matrix[$oindex - 1][$nindex - 1]) ?
-                    $matrix[$oindex - 1][$nindex - 1] + 1 : 1;
-                if($matrix[$oindex][$nindex] > $maxlen){
-                    $maxlen = $matrix[$oindex][$nindex];
-                    $omax = $oindex + 1 - $maxlen;
-                    $nmax = $nindex + 1 - $maxlen;
+     public static function ses($src, $dst)
+     {
+        $cx = count($src);
+        $cy = count($dst);
+         
+        $stack = array();
+        $V = array(1=>0);
+        $end_reached = false;
+         
+        # Find LCS length
+        for ($D = 0; $D < $cx+$cy+1 && !$end_reached; $D++)
+        {
+            for ($k = -$D; $k <= $D; $k += 2)
+            {
+                $x = ($k == -$D || $k != $D && $V[$k-1] < $V[$k+1])
+                    ? $V[$k+1] : $V[$k-1]+1;
+                $y = $x-$k;
+                 
+                while ($x < $cx && $y < $cy && $src[$x] == $dst[$y])
+                {
+                    $x++; $y++;
+                }
+                 
+                $V[$k] = $x;
+                 
+                if ($x == $cx && $y == $cy) {
+                    $end_reached = true;
+                    break;
                 }
             }
+            $stack[] = $V;
         }
-        if($maxlen == 0) return array(array('d'=>$old, 'i'=>$new));
-        return array_merge(
-            self::getArrDiff(array_slice($old, 0, $omax), array_slice($new, 0, $nmax)),
-            array_slice($new, $nmax, $maxlen),
-            self::getArrDiff(array_slice($old, $omax + $maxlen), array_slice($new, $nmax + $maxlen)));
-    }
+        $D--;
+         
+        # Recover edit path
+        $res = array();
+        for ($D = $D; $D > 0; $D--)
+        {
+            $V = array_pop($stack);
+            $cx = $x;
+            $cy = $y;
+             
+            # Try right diagonal
+            $k++;
+            $x = $V[$k];
+            $y = $x-$k;
+            $y++;
+             
+            while ($x < $cx && $y < $cy
+            && isset($src[$x]) && isset($dst[$y]) && $src[$x] == $dst[$y])
+            {
+                $x++; $y++;
+            }
+             
+            if ($x == $cx && $y == $cy) {
+                $x = $V[$k];
+                $y = $x-$k;
+                 
+                $res[] = array('i',$x,$y);
+                continue;
+            }
+             
+            # Right diagonal wasn't the solution, use left diagonal
+            $k -= 2;
+            $x = $V[$k];
+            $y = $x-$k;
+            $res[] = array('d',$x,$y);
+        }
+         
+        $res = array_reverse($res);
+ 
+        // Указател към не-сортирания резултат
+        $p = 0;
+        
+        // Масив за форматирания резултат
+        $r = array();
 
+        // Подготовка на форматирания резултат
+        foreach($src as $i => $el) {
+            if(($o = $res[$p][0]) && ($res[$p][1] == $i)) {
+                
+
+                $li = NULL; $flag = FALSE;
+
+                while($res[$p][1] == $i) {
+                    if(!isset($li)) {
+                        $li = count($r) - 1;
+                        if(!is_array($r[$li])) {
+                            $li++;
+                            $r[$li] = array();
+                        }
+                    }
+
+                    if($o == 'd') {
+                        $r[$li]['d'][] = $src[$res[$p][1]];
+                    } else {
+                        expect($o == 'i');
+                        $r[$li]['i'][] = $dst[$res[$p][2]];
+                        if($res[$p][0] != 'd' && !$flag) {
+                             $r[] = $el;
+                             $flag = TRUE;
+                        }
+                    }
+
+                    $p++;
+                }
+
+            } else {
+                $r[] = $el;
+            }
+        }
+
+        return $r;
+     }
  }

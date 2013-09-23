@@ -2396,7 +2396,8 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
         background-color:#cfc;
 	}
 	span.cng { 
-		background-color:$beige;
+		background-color:#ffa;
+		border-bottom:dotted 1px #cc9;
 	}
 /* Край на стилове за diff */
 
@@ -2408,4 +2409,4 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	const-default-value option{
 		color:black;
 	}
-/* Край на стилове за diff */
+/* Край на стилове за core_Packs */
