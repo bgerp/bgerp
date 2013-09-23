@@ -91,6 +91,7 @@ $orange:#f90; /*оранжево като при ховър на менюто*/
 		width:63%;
 	}
 }
+
 .groupList table{
 	td{
 		vertical-align:top;
@@ -104,6 +105,7 @@ $orange:#f90; /*оранжево като при ховър на менюто*/
 		padding-right:10px;
 	}
 }
+
 tr.noHover td:hover { 
 	color: #999999; 
 	background: white;
@@ -167,7 +169,6 @@ tr.noHover td:hover {
 body.narrow {
     background-color:black;
 }
-
 
 #mainMenu {
 	background-color: $gray3;
@@ -500,6 +501,7 @@ div.folder-cover{
 		min-width:85px
 	}
 }
+
 .narrow .user-profile{
 	margin-top:7px; 
 	min-width:100px;
@@ -975,6 +977,7 @@ pre.document{
 	display: inline-block;
 	margin: 2px;
 }
+
 div.attachments {
 	display: block;
 	width:100%;
@@ -1092,6 +1095,7 @@ table.mc-calendar {
     border: solid 2px red;
   }
 }
+
 table.mc-header a {
   color: #999;
 }
@@ -1664,7 +1668,6 @@ fieldset.sharing-history {
 			background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
 			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
 		}	
-		
 	}
 	.soc-sharing img{
 		top:3px;
@@ -1692,8 +1695,7 @@ fieldset.sharing-history {
 	padding-top: 20px;
 }
 
-.onecol,.twocol,.threecol,.fourcol,.fivecol,.sixcol,.sevencol,.eightcol,.ninecol,.tencol,.elevencol
-	{
+.onecol,.twocol,.threecol,.fourcol,.fivecol,.sixcol,.sevencol,.eightcol,.ninecol,.tencol,.elevencol{
 	margin-right: 3.8%;
 	float: left;
 	min-height: 1px;
@@ -1940,14 +1942,14 @@ fieldset.sharing-history {
 	}
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar{
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar{
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow  .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb{
-	border-radius: 8px;
+.narrow  .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb{
+	@include border-radius(8px);
 	background-color: rgba(0, 0, 0, .2);
 }
 /*край на стилове за скролиране */
@@ -2002,12 +2004,15 @@ fieldset.sharing-history {
 .styled-table th{
 	border-bottom:none;
 }
+
 .wide .singleView{
 	display:inline-block;
 }
+
 .narrow .singleView{
 	display:block;
 }
+
 .singleView .title-style{
 	color:#666;	
 }
@@ -2060,7 +2065,6 @@ div.location{
 		vertical-align:baseline;
 	}
 }
-
 /*край на стилове за локации*/
 
 .info-table ul{
@@ -2147,7 +2151,6 @@ div.location{
 	margin:10px 0;
 }
 
-
 .cCode {
 	border:solid 1px #ccc;
 	color:black !important;
@@ -2186,6 +2189,7 @@ div.location{
 .blast-table{
 	display:inline-block;
 }
+
 .blast-table table{
 	width:100%;
 	font-size: 0.9em;
@@ -2201,9 +2205,11 @@ div.location{
 		margin-top:0;
 	}
 }
+
 .blast_ListDetails .listToolbar{
 	border-bottom:none !important;
 }
+
 .blast-overflow{
 	max-width: 850px; 
 	overflow: auto; 
@@ -2301,7 +2307,6 @@ div.location{
 	background-color: transparent !important;
 	cursor: pointer;
 	display: inline-block;
-
 }
 
 .portal-filter .button::-moz-focus-inner {
@@ -2342,6 +2347,7 @@ div.location{
 	display:block;
 	float:left;
 }
+
 .narrow .reminder-half{
 	width:100%;
 }
@@ -2398,9 +2404,11 @@ div.location{
 .calendar table{
 	border-collapse:separate;
 }
+
 .calendar table td{
 	vertical-align:middle;
 }
+
 .doc_Containers .formToolbar .toolbar{
 	padding:0;
 	margin:0;
@@ -2482,7 +2490,6 @@ div.location{
 	body {
 		-webkit-text-size-adjust: none;
 	}
-
 
 	#cmsTop, #all, #cmsBottom { 
 		width: 100% !important;
@@ -2784,15 +2791,12 @@ div.location{
 	table.mc-calendar td.rest span, .cal-legend td.rest{
 		color:#D00; important!
 	}
-	
 	table.mc-calendar td.first span, .cal-legend td.first{
 		color: #008400; important!
 	}
-	
 	table.mc-calendar td.second span, .cal-legend td.second{
 		color:#df770b; important!
 	}
-	
 	table.mc-calendar td.third span, .cal-legend td.third{
 		color: #0005c1; important!
 	}
@@ -2815,6 +2819,7 @@ div.location{
 		padding-left:2px !important;
 	}
 }
+
 .external {
 	width:860px;
 }
@@ -2841,7 +2846,5 @@ div.location{
 .callcenter_Talks tr.group-by-date-row {
     background-color:#f0f0e0;
 }
-
-
 
 @import "partials/sales";
