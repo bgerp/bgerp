@@ -114,8 +114,8 @@ class social_Sharings extends core_Master
 				// Добавямего към шаблона
 				$tpl->append($link);  
 				$tpl->replace(toUrl(getCurrentUrl()), 'SOC_URL');
-				$tpl->replace('aaaaa', 'SOC_TITLE');
-				$tpl->replace('aaaa', 'SOC_SUMMARY');
+				//$tpl->replace('aaaaa', 'SOC_TITLE');
+				//$tpl->replace('aaaa', 'SOC_SUMMARY');
 			}
 		}
 		
@@ -136,7 +136,7 @@ class social_Sharings extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	
     	// Текущото URL
-    	$curUrl = toUrl(getCurrentUrl());bp($curUrl);
+    	$curUrl = toUrl(getCurrentUrl()); 
     	
     	// Парсираме го, за да извлечем параметрите от заявката
     	$arrayUrl = core_Url::parseUrl($curUrl);
