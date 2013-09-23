@@ -69,54 +69,45 @@ class social_Sharings extends core_Master
     	
     	// Правим заявка към базата
     	$query = static::getQuery();
-		$socialNetworks = $query->fetchAll();
+		$socialNetworks = $query->fetchAll("#state = 'active'");
 
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
-			
-			// ако услугата е "видима"
-			if($socialNetwork->state == 'active'){
 				
-				// Вземаме качената икона
-				if($socialNetwork->icon){
-					$icon = $socialNetwork->icon;
+			// Вземаме качената икона
+			if($socialNetwork->icon){
+				$icon = $socialNetwork->icon;
 					
-					// Ако тя липсва
-				} else {
+				// Ако тя липсва
+			} else {
 					
-					// Вземаме URL от базата
-					$socUrl = $socialNetwork->url;
+				// Вземаме URL от базата
+				$socUrl = $socialNetwork->url;
 					
-					// Намираме името на функцията
-					$name = self::getServiceNameByUrl($socUrl);
+				// Намираме името на функцията
+				$name = self::getServiceNameByUrl($socUrl);
 					
-					// Намираме иконата в sbf папката
-					$icon = sbf("cms/img/16/{$name}.png",'');
-				}
-				
-				// Създаваме иконата за бутона
-				$img = ht::createElement('img', array('src' => $icon));
-				
-				// Генерираме URL-то на бутона
-				$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => '[#SOC_URL#]', 'socTitle' => '[#SOC_TITLE#]', 'socSummary' => '[#SOC_SUMMARY#]');
-				
-				// Създаваме линка на бутона
-				$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
-				
-				// Връщаме ескейпването, за да може да заменим
-				// по-късно плейсхолдерите
-				$link = str_replace('%5B%23', '[#', $link);
-				$link = str_replace('%23%5D', '#]', $link);
-				$link = str_replace('&amp;', '&', $link);
-			
-				$link = new ET(ET::unEscape($link));
-		        
-				// Добавямего към шаблона
-				$tpl->append($link);  
-				$tpl->replace(toUrl(getCurrentUrl()), 'SOC_URL');
-				//$tpl->replace('aaaaa', 'SOC_TITLE');
-				//$tpl->replace('aaaa', 'SOC_SUMMARY');
+				// Намираме иконата в sbf папката
+				$icon = sbf("cms/img/16/{$name}.png",'');
 			}
+				
+			// Създаваме иконата за бутона
+			$img = ht::createElement('img', array('src' => $icon));
+				
+			// Генерираме URL-то на бутона
+			$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => 'SOC_URL', 'socTitle' => 'SOC_TITLE', 'socSummary' => 'SOC_SUMMARY');				
+				
+			// Създаваме линка на бутона
+			$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
+				
+			$link = (string) $link;
+		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
+		    $to = array (rawurlencode(toUrl(getCurrentUrl())), rawurlencode(Mode::get('SOC_TITLE')), rawurlencode((Mode::get('SOC_SUMMARY'))));
+					
+		 	$link = str_replace($from, $to, $link);
+				
+			// Добавяме го към шаблона
+			$tpl->append($link);
 		}
 		
 		// Връщаме тулбар за споделяне в социалните мреци

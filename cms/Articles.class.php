@@ -207,12 +207,10 @@ class cms_Articles extends core_Manager
             $lArr = explode('.', self::getVerbal($rec, 'level'));
             
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
-            //$content = new ET(social_Sharings::getButtons());
+           
             // Рендираме тулбара за споделяне
             //$content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", toUrl(getCurrentUrl())));
-            //$content->replace(toUrl(getCurrentUrl()), 'SOC_URL');
-            //$content->replace(self::getVerbal($rec, 'title'), 'SOC_TITLE');
-            //$content->replace('article', 'SOC_SUMMARY');
+
             
             $ptitle = self::getVerbal($rec, 'title') . " » ";
  
@@ -220,7 +218,10 @@ class cms_Articles extends core_Manager
             
         	// Подготвяме информаията за ографа на статията
             $ogp = $this->prepareOgraph($rec);
-        }
+        } 
+        
+        Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
+        Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
 
         if(!$content) $content = new ET(); 
 
@@ -332,7 +333,7 @@ class cms_Articles extends core_Manager
                 vislog_History::add($rec->title);
             }
         }
-///bp($content);
+
         return $content; 
     }
     
