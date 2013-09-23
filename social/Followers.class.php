@@ -101,7 +101,7 @@ class social_Followers extends core_Master
 				$url = array('social_Followers', 'Redirect', $socialNetwork->id);
 				
 				// Създаваме линка на бутона
-				$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("target"=>"_blank"));
+				$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following", "target"=>"_blank"));
 				
 				// Връщаме ескейпването, за да може да заменим
 				// по-късно плейсхолдерите
@@ -120,7 +120,7 @@ class social_Followers extends core_Master
 		}
 
 		// Връщаме тулбар за споделяне в социалните мреци
-		return "<div class='soc-following-holder'>".$tpl."</div>";
+		return $tpl;
     }
     
     
