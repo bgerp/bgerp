@@ -69,54 +69,39 @@ class social_Followers extends core_Master
     	
     	// Правим заявка към базата
     	$query = static::getQuery();
-		$socialNetworks = $query->fetchAll();
+		$socialNetworks = $query->fetchAll("#state = 'active'");
 
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
 			
-			// ако услугата е "видима"
-			if($socialNetwork->state == 'active'){
-				
-				// Вземаме качената икона
-				if($socialNetwork->icon){
-					$icon = $socialNetwork->icon;
+			// Вземаме качената икона
+			if($socialNetwork->icon){
+				$icon = $socialNetwork->icon;
 					
-					// Ако тя липсва
-				} else {
+				// Ако тя липсва
+			} else {
 					
-					// Вземаме URL от базата
-					$socUrl = $socialNetwork->url;
+				// Вземаме URL от базата
+				$socUrl = $socialNetwork->url;
 					
-					// Намираме името на функцията
-					$name = social_Sharings::getServiceNameByUrl($socUrl);
+				// Намираме името на функцията
+				$name = social_Sharings::getServiceNameByUrl($socUrl);
 					
-					// Намираме иконата в sbf папката
-					$icon = sbf("cms/img/24/{$name}.png",'');
-				}
-				
-				// Създаваме иконата за бутона
-				$img = ht::createElement('img', array('src' => $icon));
-				
-				// Генерираме URL-то на бутона
-				$url = array('social_Followers', 'Redirect', $socialNetwork->id);
-				
-				// Създаваме линка на бутона
-				$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following", "target"=>"_blank"));
-				
-				// Връщаме ескейпването, за да може да заменим
-				// по-късно плейсхолдерите
-				$link = str_replace('%5B%23', '[#', $link);
-				$link = str_replace('%23%5D', '#]', $link);
-				$link = str_replace('&amp;', '&', $link);
-			
-				$link = new ET(ET::unEscape($link));
-		        
-				// Добавямего към шаблона
-				$tpl->append($link);  
-				//$tpl->replace(toUrl(getCurrentUrl()), 'SOC_URL');
-				//$tpl->replace('aaaaa', 'SOC_TITLE');
-				//$tpl->replace('aaaa', 'SOC_SUMMARY');
+				// Намираме иконата в sbf папката
+				$icon = sbf("cms/img/24/{$name}.png",'');
 			}
+				
+			// Създаваме иконата за бутона
+			$img = ht::createElement('img', array('src' => $icon));
+				
+			// Генерираме URL-то на бутона
+			$url = array('social_Followers', 'Redirect', $socialNetwork->id);
+				
+			// Създаваме линка на бутона
+			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following", "target"=>"_blank"));
+        
+			// Добавямего към шаблона
+			$tpl->append($link);  
 		}
 
 		// Връщаме тулбар за споделяне в социалните мреци
@@ -136,8 +121,9 @@ class social_Followers extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	    	    	
     	// Увеличаване на брояча на споделянията
-    	$rec->sharedCnt += 1;
+    	$rec->followersCnt += 1;
     	self::save($rec);
+    	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
@@ -149,5 +135,4 @@ class social_Followers extends core_Master
     	// Връщаме URL-то
     	return new Redirect ($rec->url);
     }
-       
 }

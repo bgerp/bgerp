@@ -311,16 +311,23 @@ class blogm_Articles extends core_Master {
                 return new Redirect(array('blogm_Articles', 'Article', $data->rec->id), 'Благодарим за вашия коментар;)');
             }
         }
-		 // Подготвяме лейаута за статията
+        //bp($data->ogp->siteInfo['Description']);
+        Mode::set('SOC_TITLE', $data->ogp->siteInfo['Title']);
+        Mode::set('SOC_SUMMARY', $data->ogp->siteInfo['Description']);
+        
+		// Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
         
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-		 
+				        
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
-        $tpl->append($ogpHtml);
         
+        
+                
+        $tpl->append($ogpHtml);
+
 		// Записваме, че потребителя е разглеждал тази статия
 		$this->log(('Blog article: ' .  $data->row->title), $id);
 		
@@ -425,7 +432,8 @@ class blogm_Articles extends core_Master {
         
         // Рендираме тулбара за споделяне
         $conf = core_Packs::getConfig('cms');
-        $layout->replace($conf->CMS_SHARE, 'SHARE_TOOLBAR');
+        $sharing = social_Sharings::getButtons(); 
+        $layout->replace($sharing, 'SHARE_TOOLBAR');
 
         // Рендираме навигацията
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
