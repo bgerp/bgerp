@@ -349,34 +349,40 @@ class change_Log extends core_Manager
     
     
     /**
-     * Връща вербалната стойност на данните в зададеното поле
+     * Връща вербалната стойност на данните за полетата
      * 
      * @param int $docClass - id на класа
      * @param int $docId - id на документа
      * @param string $versionStr - Стринга на версията и подверсията
-     * @param string $field - Името на полето
+     * @param array $fieldsArr - Масив с полетата
      * 
-     * @return string $value - Вербалната стойност
+     * @return array $resArr - Масив с вербалните стойности на съответните полетата
      */
-    static function getVerbalValue($docClass, $docId, $versionStr, $field)
+    static function getVerbalValue($docClass, $docId, $versionStr, $fieldsArr)
     {
         // Вземаме записа
-        $rec = static::getRec($docClass, $docId, $versionStr, $field);
+        $recArr = static::getRec($docClass, $docId, $versionStr, $fieldsArr);
 
         // Ако няма запис връщаме FALSE
-        if (!$rec) return FALSE;
-        
-        // Стойност
-        $value = $rec->value;
+        if (!$recArr) return FALSE;
         
         // Инстанция на класа
         $class = cls::get($docClass);
         
-        // Типа на полето
-        $type = $class->fields[$field]->type;
+        // Обхождаме записите
+        foreach ((array)$recArr as $field => $rec) {
+            
+            // Стойност
+            $value = $rec->value;
+            
+            // Типа на полето
+            $type = $class->fields[$field]->type;
+            
+            // Стойността във вербален вид
+            $resArr[$field] = $type->toVerbal($value);
+        }
         
-        // Стойността във вербален вид
-        return $type->toVerbal($value);
+        return $resArr;
     }
     
     
@@ -716,8 +722,14 @@ class change_Log extends core_Manager
                 if ($keyVer == $lastVer) continue;
                 
                 // Вземаме записа
-                $rec = static::getRec($docClass, $docId, $keyVer);
-
+                $recArr = static::getRec($docClass, $docId, $keyVer);
+                
+                // Ако няма записи
+                if ($recArr === FALSE) continue;
+                
+                // Вземаме първия запис от масива
+                $rec = $recArr[0];
+                
                 // Ако няма избран първа версия или е по старата
                 if (!$firstTime || ($firstTime > $rec->createdOn)) {
                     
@@ -750,9 +762,9 @@ class change_Log extends core_Manager
      * @param int $docClass - id на класа
      * @param int $docId - id на документа
      * @param string $versionStr - Версията и подверсията
-     * @param string $field - Името на полето
+     * @param mixed $field - Името на полето или масив с полетата
      * 
-     * return stdObject $rec
+     * return array $recArr - Масив с откритите записи
      */
     static function getRec($docClass, $docId, $versionStr, $field=FALSE)
     {
@@ -767,18 +779,38 @@ class change_Log extends core_Manager
         $query->where(array("#docId = '[#1#]'", $docId));
         
         // Ако има подадено поле
-        if ($field) {
+        if ($field !== FALSE) {
             
-            // Добавяме условие за полето
-            $query->where(array("#field = '[#1#]'", $field));
+            // Ако е масив
+            if (is_array($field)) {
+                
+                // Добавяме условие за полетата
+                $query->orWhereArr('field', $field);
+            } else {
+                
+                // Добавяме условие за полето
+                $query->where(array("#field = '[#1#]'", $field));
+            }
         }
         
         // Вземаме един запис
-        $rec = $query->fetch();
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма подададено поле
+            if ($field === FALSE) {
+                
+                // Добавямв към масива
+                $recArr[] = $rec;
+            } else {
+                
+                // Добавяме към масива с ключ името на полето
+                $recArr[$rec->field] = $rec;
+            }
+        }
         
         // Ако няма запис връщаме FALSE
-        if (!$rec) return FALSE;
+        if (!count($recArr)) return FALSE;
         
-        return $rec;
+        return $recArr;
     }
 }
