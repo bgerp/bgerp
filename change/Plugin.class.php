@@ -127,8 +127,15 @@ class change_Plugin extends core_Plugin
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
-            // Ако сме променили версията и подверсията
-            if ($form->rec->version != $rec->version) {
+            // Ако не е подадена версия
+            if (!$form->rec->version) {
+                
+                // Да е нула
+                $form->rec->version = '0';
+            }
+            
+            // Ако сме променили версията
+            if ((string)$form->rec->version != (string)$rec->version) {
                 
                 // Подверсията
                 $subVersion = 0;
@@ -177,17 +184,58 @@ class change_Plugin extends core_Plugin
         // Ако няма грешки
         if (!$form->gotErrors()) {
             
-            // Обхождаме стария запис
-            foreach ((array)$rec as $key => $value) {
+            // Вземаме данните
+            $vRec = $rec;
+            
+            // id на класа
+            $classId = core_Classes::getId($mvc);
+            
+            // Масива с първата и последната версия
+            $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
+            
+            // Ако няма последна версия
+            if (!$versionArr['last']) {
                 
-                // Ако е в полетата, които ще се променята
-                if (!$allowedFieldsArr[$key]) continue;
+                // Ако има първа версия
+                if ($versionArr['first']) {
+
+                    // Версията, която ще използваме е първата
+                    $versionStr = $versionArr['first'];
+                }
+            } else {
+                
+                // Версията, която ще използваме е последната
+                $versionStr = $versionArr['last'];
+            }
+            
+            // Вземаме записитеи за съответния ред
+            $gRecArr = change_Log::getRec($classId, $rec->id, $versionStr, $fieldsArrLogSave);
+            
+            // Ако има записи
+            if ($gRec !== FALSE) {
+                
+                // Обхождаме масива
+                foreach ((array)$gRecArr as $field => $gRec) {
+                    
+                    // Ако няма запис - прескачаме
+                    if (!$gRec) continue;
+                    
+                    // Добавяме полето към записа
+                    $vRec->$field = $gRec->value;
+                    
+                    // Добавяме версията
+                    $vRec->version = $gRec->version;
+                }
+            }
+            
+            // Обхождаме стария запис
+            foreach ((array)$fieldsArrShow as $field) {
                 
                 // Добавяме старта стойност
-                $form->rec->{$key} = $value;
+                $form->rec->$field = $vRec->$field;
             }    
         }
-
+        
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = $fieldsArrShow;
         
@@ -200,7 +248,17 @@ class change_Plugin extends core_Plugin
         
         // Титлата на формата
         $form->title = "Промяна на|*: <i>{$title}</i>";
-
+        
+        // Ако има стринг за версията
+        if ($versionStr && $versionStr != change_Log::LAST_VERSION_STRING) {
+            
+            // Ескейпваме стринга
+            $versionStrRaw = change_Log::escape($versionStr);
+            
+            // Добавяме към заглавието, съответната версия
+            $form->title .= " (<b style='color:red;'>{$versionStrRaw}</b>)";
+        }
+        
         // Рендираме изгледа
         $tpl = $mvc->renderWrapping($form->renderHtml());
         
@@ -225,23 +283,11 @@ class change_Plugin extends core_Plugin
         // Вземаме всички полета, които могат да се променят
         $allowedFieldsArr = (array)static::getAllowedFields($form);
         
-        // Обхождаме полетата
-        foreach ($allowedFieldsArr as $allowedField) {
-            
-            // Резултта
-            $res = NULL;
-            
-            // Първата версия
-            $first = NULL;
-            
-            // Последната версия
-            $last = NULL;
+        // Ако има избрана версия
+        if ($selVerArr['first']) {
             
             // Вземаме стойността за съответното поле, за първата версия
-            $first = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedField);
-            
-            // Ако няма такъв запис, прескачаме
-            if ($first === FALSE) continue;
+            $firstArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedFieldsArr);
             
             // Ако има последна версия
             if ($selVerArr['last']) {
@@ -249,35 +295,51 @@ class change_Plugin extends core_Plugin
                 // Ако последната версия е последния вариант
                 if ($selVerArr['last'] == change_Log::LAST_VERSION_STRING) {
                     
-                    // Вземаме текста
-                    $last = $data->row->$allowedField;
+                    // Обхождаме всички позволени полеоте, които ще се променят
+                    foreach ($allowedFieldsArr as $allowedField) {
+                        
+                        // Добавяме в масива
+                        $lastArr[$allowedField] = $data->row->$allowedField;
+                    }
                 } else {
                     
                     // Вземаме стойността за съответното поле, за последната версия
-                    $last = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['last'], $allowedField);
+                    $lastArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['last'], $allowedFieldsArr);
                 }
-                
-                // Ако няма такъв запис, прескачаме
-                if ($last === FALSE) continue;
-                
-                // Вземаме разликата има
-                $res = lib_Diff::getDiff($first, $last);
                 
             } else {
                 
-                // Резултата да е избраната
-                $res = $first;
+                // Флаг, който посочва, че няма последна версия
+                $noLast = TRUE;
             }
             
-            // Заместваме резултата в съответното поле
-            $data->row->$allowedField = $res;
+            // Обхождаме всички позволени версии
+            foreach ($allowedFieldsArr as $allowedField) {
+                
+                // Вземаме първата версия
+                $first = $firstArr[$allowedField];
+                
+                // Ако няма последна версия
+                if ($noLast) {
+                    
+                    // Задаваме първата версия
+                    $data->row->$allowedField = $first;
+                } else {
+                    
+                    // Вземаме последната версия
+                    $last = $lastArr[$allowedField];
+                    
+                    // Сравняваме двата варианта
+                    $data->row->$allowedField = lib_Diff::getDiff($first, $last);
+                }
+            }
         }
         
         // Последна версия
-        $data->row->LastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion, FALSE);
+        $data->row->LastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
         
         // Първата избрана версия
-        $data->row->FirstSelectedVersion = $selVerArr['first'];
+        $data->row->FirstSelectedVersion = change_Log::escape($selVerArr['first']);
         
         // Ако последната версия е последния вариант
         if ($selVerArr['last'] == change_Log::LAST_VERSION_STRING) {
@@ -287,7 +349,7 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $selVerArr['last'];
+            $data->row->LastSelectedVersion = change_Log::escape($selVerArr['last']);
         }
     }
     
@@ -375,7 +437,7 @@ class change_Plugin extends core_Plugin
         if ($form->isSubmitted()) {
             
             if (!$form->rec->id) {
-                $form->rec->version = 0;
+                $form->rec->version = '0';
                 $form->rec->subVersion = 1;
             }
         }
