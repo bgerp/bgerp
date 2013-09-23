@@ -162,7 +162,7 @@ class change_Plugin extends core_Plugin
             $mvc->invoke('AfterInputChanges', array($rec, $form->rec));
             
             // Записваме промени
-            $mvc->save($form->rec, $allowedFieldsArr);
+            $mvc->save($form->rec);
             
             // Записваме лога на промените
             $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $form->rec);
