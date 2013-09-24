@@ -8,7 +8,7 @@
 
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>|Бележка|* <b>[#ident#]</b> ([#state#]) - |вер|*. <b>[#LastVersion#]</b>
-			<!--ET_BEGIN FFF-->[#FFF#](<!--ET_BEGIN LastSelectedVersion--><b style='color: red;'>[#LastSelectedVersion#]</b> => <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion--><b style='color: red;'>[#FirstSelectedVersion#]</b><!--ET_BEGIN FirstSelectedVersion-->)<!--ET_END FFF-->
+			<!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]<!--ET_BEGIN LastSelectedVersion--><b style='color: red;'>[#LastSelectedVersion#]</b> / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion--><b style='color: red;'>[#FirstSelectedVersion#]</b><!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSION_REMOVE-->
 		</div>
 	</div>
 	
