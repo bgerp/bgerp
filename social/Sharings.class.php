@@ -95,10 +95,14 @@ class social_Sharings extends core_Master
 			$img = ht::createElement('img', array('src' => $icon));
 				
 			// Генерираме URL-то на бутона
-			$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 'socUrl' => 'SOC_URL', 'socTitle' => 'SOC_TITLE', 'socSummary' => 'SOC_SUMMARY');				
+			$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 
+														'socUrl' => 'SOC_URL', 
+														'socTitle' => 'SOC_TITLE', 
+														'socSummary' => 'SOC_SUMMARY');				
 				
 			// Създаваме линка на бутона
-			$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, $url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
+			$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, 
+									$url, NULL, array("class"=>"soc-sharing", "target"=>"_blank"));
 				
 			$link = (string) $link;
 		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
@@ -134,11 +138,17 @@ class social_Sharings extends core_Master
     	// Парсираме го, за да извлечем параметрите от заявката
     	$arrayUrl = core_Url::parseUrl($curUrl);
 
+    	if(strstr(core_App::getSelfURL(), ".", TRUE) !== FALSE) {
+    		$protocol = strstr(core_App::getSelfURL(), ".", TRUE);
+    	} else {
+    		$protocol = strstr(core_App::getSelfURL(), "//", TRUE) . "//";
+    	}
+    	
     	// Домейна
-    	$domain = $_SERVER['SERVER_NAME'];
+    	$domain = $_SERVER['SERVER_NAME']; //bp($_SERVER, strstr(core_App::getSelfURL(), ".", TRUE),core_App::getSelfURL());
     	
     	// URL към обекта който ще споделяме
-    	$url = $domain.$arrayUrl['query_params']['socUrl'];
+    	$url = $protocol.$domain.$arrayUrl['query_params']['socUrl'];
     	
     	// Заглавието на обекта
     	$title = $arrayUrl['query_params']['socTitle'];
@@ -165,9 +175,7 @@ class social_Sharings extends core_Master
                }
             }
         }
-        
-    	
-    	
+
     	// Връщаме URL-то
     	return new Redirect ($redUrl);
     }
@@ -212,8 +220,7 @@ class social_Sharings extends core_Master
 					    	"ping.fm"=>"pingfm",
 					    	"evernote.com"=>"evernote",
 					    	"friendfeed.com"=>"friendfeed");
-    	
-    	 
+    	    	 
     	foreach($services as $servic=>$nameServic){
     		// Проверява URL-to за първия срещнат домейн
     		if(strpos($url, $servic)){
@@ -229,7 +236,6 @@ class social_Sharings extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	
     	// Подготвяме пътя до файла с данните 
     	$file = "social/data/Sharings.csv";
     	
@@ -240,17 +246,13 @@ class social_Sharings extends core_Master
     		2 => "icon",
     		3 => "sharedCnt",
     		4 => "state",
-    	
-    		
     	);
-    	
-    	
+    	    	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
- 		
     }
 }
