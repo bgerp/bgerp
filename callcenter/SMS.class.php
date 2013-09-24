@@ -72,7 +72,7 @@ class callcenter_SMS extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_Created, plg_RefreshRows,plg_AutoFilter';
     
     
     /**
@@ -123,7 +123,7 @@ class callcenter_SMS extends core_Master
         $this->FLD('text', 'text', 'caption=Текст, mandatory');
         
         $this->FLD('uid', 'varchar', 'caption=Хендлър, input=none');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none, hint=Статус на съобщението');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Статус, input=none, hint=Статус на съобщението,autoFilter');
         $this->FLD('receivedTime', 'datetime(format=smartTime)', 'caption=Получено на, input=none');
         
         $this->setDbUnique('uid');

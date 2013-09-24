@@ -26,7 +26,7 @@ class acc_Balances extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing';
+    var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, plg_AutoFilter';
                     
     
     
@@ -94,7 +94,7 @@ class acc_Balances extends core_Master
      */
     function description()
     {
-        $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory');
+        $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
         $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип,input=none');
@@ -186,6 +186,28 @@ class acc_Balances extends core_Master
         $mvc->acc_BalanceDetails->calculateBalance($rec);
     }
     
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'periodId';
+        
+        $form->input('periodId', 'silent');
+              
+        $data->query->where(array("#periodId = '[#1#]'", $form->rec->periodId));
+    }
     
     /**
      * @todo Чака за документация...
