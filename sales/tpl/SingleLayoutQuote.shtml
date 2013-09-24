@@ -59,7 +59,7 @@
 	<ol id='conditions'>
 		<!--ET_BEGIN rate--><li>|Валутен курс|* [#rate#]</li><!--ET_END rate-->
 		<!--ET_BEGIN validFor-->
-			<li>|Офертата е валидна до|* [#validFor#] |дни след датата на издаване|* 
+			<li>|Офертата е валидна до|* [#validFor#] |след датата на издаване|* 
 			<!--ET_BEGIN expired-->
 			<span class='expired-quote'>([#expired#])</span>
 			<!--ET_END expired-->
