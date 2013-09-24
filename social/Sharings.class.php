@@ -106,7 +106,7 @@ class social_Sharings extends core_Master
 				
 			$link = (string) $link;
 		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
-		    $to = array (rawurlencode(toUrl(getCurrentUrl())), 
+		    $to = array (rawurlencode(toUrl(getCurrentUrl(), 'absolute')), 
 		    			 rawurlencode(Mode::get('SOC_TITLE')), 
 		    			 core_String::truncate(rawurlencode((Mode::get('SOC_SUMMARY'))), 200));
 					
@@ -131,30 +131,15 @@ class social_Sharings extends core_Master
     	
     	// Намираме нейния запис
     	$rec = self::fetch("#id = '{$id}'"); 
-    	
-    	// Текущото URL
-    	$curUrl = toUrl(getCurrentUrl()); 
-    	
-    	// Парсираме го, за да извлечем параметрите от заявката
-    	$arrayUrl = core_Url::parseUrl($curUrl);
-
-    	if(strpos(core_App::getSelfURL(), 'www.')) {
-    		$protocol = strstr(core_App::getSelfURL(), "w", TRUE) . "www";
-    	} else {
-    		$protocol = strstr(core_App::getSelfURL(), "//", TRUE) . "//";
-    	}
-    	
-    	// Домейна
-    	$domain = $_SERVER['SERVER_NAME']; //bp($_SERVER, strstr(core_App::getSelfURL(), ".", TRUE),core_App::getSelfURL());
-    	
+    	    	
     	// URL към обекта който ще споделяме
-    	$url = $protocol.$domain.$arrayUrl['query_params']['socUrl'];
+    	$url = Request::get('socUrl');
     	
     	// Заглавието на обекта
-    	$title = $arrayUrl['query_params']['socTitle'];
+    	$title = Request::get('socTitle');
     	
     	// Описание на обекта
-    	$summary = $arrayUrl['query_params']['socSummary'];
+    	$summary = Request::get('socSummary');
     	
     	// Заместваме данните в URL за редиректване
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
@@ -163,14 +148,14 @@ class social_Sharings extends core_Master
 	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
 	    	$redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
     	}
-    	
-    	// Увеличаване на брояча на споделянията
-    	$rec->sharedCnt += 1;
-    	
+    	    	   	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
                if(vislog_History::add("Споделяне " . $rec->name)){
+               	
+               	 // Увеличаване на брояча на споделянията
+    			 $rec->sharedCnt += 1;
                	 self::save($rec, 'sharedCnt');
                }
             }
