@@ -57,7 +57,7 @@ class core_Logs extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_AutoFilter';
     
     
     /**
@@ -111,7 +111,7 @@ class core_Logs extends core_Manager
     static function on_AfterPrepareListFilter($mvs, &$res, $data)
     {   
         
-        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител');
+        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
         $data->listFilter->FNC('class', 'customKey(mvc=core_Classes,select=name,key=name,allowEmpty)', 'placeholder=Клас');
 
