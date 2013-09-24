@@ -156,14 +156,17 @@ class social_Sharings extends core_Master
     	
     	// Увеличаване на брояча на споделянията
     	$rec->sharedCnt += 1;
-    	self::save($rec);
+    	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
-               vislog_History::add("Споделяне " . $rec->name);
+               if(vislog_History::add("Споделяне " . $rec->name)){
+               	 self::save($rec, 'sharedCnt');
+               }
             }
         }
-    	self::save($rec);
+        
+    	
     	
     	// Връщаме URL-то
     	return new Redirect ($redUrl);

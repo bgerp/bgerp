@@ -122,7 +122,7 @@ class social_Followers extends core_Master
     	    	    	
     	// Увеличаване на брояча на споделянията
     	$rec->followersCnt += 1;
-    	self::save($rec);
+    	
     	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
@@ -130,7 +130,7 @@ class social_Followers extends core_Master
                vislog_History::add("Последване в " . $rec->title);
             }
         }
-    	self::save($rec);
+    	self::save($rec, 'followersCnt');
     	
     	// Връщаме URL-то
     	return new Redirect ($rec->url);
