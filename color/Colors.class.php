@@ -438,7 +438,7 @@ class color_Colors {
 		   $r = 255 * $this->hue2Rgb( $v1, $v2, $h + ( 1 / 3 ));
 		   $g = 255 * $this->hue2Rgb( $v1, $v2, $h );
 		   $b = 255 * $this->hue2Rgb( $v1, $v2, $h - ( 1 / 3 ));
-		   bp($r,$g,$b);
+		   
 		   return array('r' => $r, 'g' => $g, 'b' => $b);
 		}
 	}
