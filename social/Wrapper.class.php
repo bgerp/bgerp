@@ -28,8 +28,8 @@ class social_Wrapper extends plg_ProtoWrapper
         $this->TAB('social_Sharings', 'Споделяне', 'ceo,social');
         $this->TAB('social_Followers', 'Следене', 'ceo,social');
                 
-        $this->title = 'Социални мрежи « Сайт';
-        Mode::set('menuPage','Сайт:Социални мрежи');
+        $this->title = 'SNM « Сайт';
+        Mode::set('menuPage','Сайт:SNM');
     }
 
 }
