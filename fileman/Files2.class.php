@@ -597,7 +597,6 @@ class fileman_Files2 extends core_Master
         $query = fileman_Files::getQuery();
         $query->where("#bucketId = '{$bucketId}' AND #dataId = '{$dataId}'");
         $query->show('fileHnd, name');
-        $query->limit(1);
         $query->orderBy('name', 'ASC');
         
         // Нормализираме името на файла
