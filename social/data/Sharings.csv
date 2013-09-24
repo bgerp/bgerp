@@ -11,6 +11,5 @@
 "Technorati","http://technorati.com/faves?add=[#URL#]&title=[#TITLE#]","","0","closed"
 "Reddit","http://www.reddit.com/submit?url=[#URL#]&title=[#TITLE#]","","0","closed"
 "Newsvine","http://www.newsvine.com/_tools/seed&save?u=[#URL#]&h=[#TITLE#]","","0","closed"
-"Ping.fm","http://ping.fm/ref/?link=[#URL#]&title=[#TITLE#]&body=[#SUMMARY#]","","0","closed"
 "Friendfeed","http://www.friendfeed.com/share?url=[#URL#]&title=[#TITLE#]","","0","closed"
 "StumbleUpon","http://www.stumbleupon.com/submit?url=[#URL#]&title=[#TITLE#]","","0","closed"
