@@ -302,7 +302,7 @@ class lib_Diff {
 
                 $li = NULL; $flag = FALSE;
 
-                while($res[$p][1] == $i) {
+                while(($res[$p][1] == $i) && ($res[$p] !== NULL)) {
                     if(!isset($li)) {
                         $li = count($r) - 1;
                         if(!is_array($r[$li])) {
