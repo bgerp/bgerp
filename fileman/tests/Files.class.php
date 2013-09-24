@@ -166,10 +166,13 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual((($fh1 != $fh2) && ($fh1 != $otherName)), TRUE);
         
         // Качваме първия файл с името на втория
-        $otherNameUnd = fileman::absorbStr($content1, $bucket, 'test 2_1.txt');
+        $otherNameUnd = fileman::absorbStr($content1, $bucket, 'test 2_UNIQ_1.txt');
+        
+        // Качваме първия файл с името на втория
+        $otherNameUnd2 = fileman::absorbStr($content1, $bucket, 'test 2_UNIQ.txt');
         
         // Очакваме манипулаторите им да са равни
-        ut::expectEqual($otherNameUnd, $otherName);
+        ut::expectEqual($otherNameUnd, $otherNameUnd2);
         
         // Ако няма добавени файлове 
         if (!count(static::$fhArr)) {
