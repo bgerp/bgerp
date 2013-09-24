@@ -100,6 +100,11 @@ class dec_Declarations extends core_Master
      */
     var $abbr = "Dec";
     
+    /**
+     * Групиране на документите
+     */ 
+   	var $newBtnGroup = "3.8|Търговия";
+    
     
     /**
      * Описание на модела

@@ -297,7 +297,7 @@ class cms_Feeds extends core_Manager {
 	static function generateFeedLink()
 	{
 		// Шаблон в който ще се добави линка
-		$tpl = new ET("<span id='feeds'>[#FEEDS#]</span>");
+		$tpl = new ET('');
 		
 		$query = static::getQuery();
 		$feeds = $query->fetchAll();
@@ -306,36 +306,16 @@ class cms_Feeds extends core_Manager {
 		// Подготвяме иконка с линк към публичния лист на хранилката
 		$url = array('cms_Feeds', 'feeds');
 		
-        $src = sbf('cms/img/rss_icon_glass_gray24.PNG', '');
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;'));
-		$link = ht::createLink($img, $url, NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
-		$tpl->append($link, 'FEEDS');
-        
-        /* 
-        ТЕСТ
-        $src = sbf('cms/img/24/facebook.png', '');
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;'));
-		$link = ht::createLink($img, 'https://facebook.com/?url=[#SOC_URL#]', NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
-        $link = new ET(ET::unEscape($link));
-		$tpl->append($link, 'FEEDS');
-        
-        $src = sbf('cms/img/24/twitter.png', '');
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;'));
-		$link = ht::createLink($img, 'https://facebook.com/', NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
-		$tpl->append($link, 'FEEDS');
-        
-        $src = sbf('cms/img/24/google-plus.png', '');
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;'));
-		$link = ht::createLink($img, 'https://facebook.com/', NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
-		$tpl->append($link, 'FEEDS');
+        $src = sbf("cms/img/rss_icon_glass_gray24.PNG", "");
 
-        $src = sbf('cms/img/24/linkedin.png', '');
-        $img = ht::createElement('img', array('src' => $src, 'style' => 'margin:0px;padding:0px;vertical-align:middle;'));
-		$link = ht::createLink($img, 'https://facebook.com/', NULL, array('style' => 'margin:0px;padding:7px;float:left;'));
-		$tpl->append($link, 'FEEDS');
-        */
+        $img = ht::createElement('img', array('src' => $src));
 
-        // Връщаме шаблона
-		return $tpl; 
+		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following'));
+		
+		// Добавяме линка към шаблона
+		$tpl->append($link);
+		
+		// Връщаме шаблона
+		return $tpl;
 	}
 }

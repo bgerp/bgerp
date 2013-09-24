@@ -57,4 +57,82 @@ class social_Followers extends core_Master
 		$this->FLD('followersCnt', 'int', 'caption=Брой последователи');
     }
     
+ 
+    /**
+     * Създаване на бутони за споделяне
+     */
+    static function getButtons()
+    {
+    	// Взимаме всяко tpl, в което сме 
+    	// сложили прейсхолдер [#social_Followers::getButtons#]
+    	$tpl = new ET('');
+    	
+    	// Правим заявка към базата
+    	$query = static::getQuery();
+		$socialNetworks = $query->fetchAll("#state = 'active'");
+
+		// За всеки един запис от базата
+		foreach($socialNetworks as $socialNetwork){
+			
+			// Вземаме качената икона
+			if($socialNetwork->icon){
+				$icon = $socialNetwork->icon;
+					
+				// Ако тя липсва
+			} else {
+					
+				// Вземаме URL от базата
+				$socUrl = $socialNetwork->url;
+					
+				// Намираме името на функцията
+				$name = social_Sharings::getServiceNameByUrl($socUrl);
+					
+				// Намираме иконата в sbf папката
+				$icon = sbf("cms/img/24/{$name}.png",'');
+			}
+				
+			// Създаваме иконата за бутона
+			$img = ht::createElement('img', array('src' => $icon));
+				
+			// Генерираме URL-то на бутона
+			$url = array('social_Followers', 'Redirect', $socialNetwork->id);
+				
+			// Създаваме линка на бутона
+			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following", "target"=>"_blank"));
+        
+			// Добавямего към шаблона
+			$tpl->append($link);  
+		}
+
+		// Връщаме тулбар за споделяне в социалните мреци
+		return $tpl;
+    }
+    
+    
+    /**
+     * Функция за споделяне
+     */
+    public function act_Redirect()
+    {
+    	// Взимаме $ид-то на услугата
+    	$id = core_Request::get('id', 'key(mvc='.get_class($mvc).')');
+    	
+    	// Намираме нейния запис
+    	$rec = self::fetch("#id = '{$id}'"); 
+    	    	    	
+    	// Увеличаване на брояча на споделянията
+    	$rec->followersCnt += 1;
+    	self::save($rec);
+    	
+    	// Записваме в историята, че сме направели споделяне
+    	if($rec) {
+            if(core_Packs::fetch("#name = 'vislog'")) {
+               vislog_History::add("Последване в " . $rec->title);
+            }
+        }
+    	self::save($rec);
+    	
+    	// Връщаме URL-то
+    	return new Redirect ($rec->url);
+    }
 }

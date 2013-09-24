@@ -241,7 +241,9 @@ class sales_Quotations extends core_Master
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
     		expect(cls::haveInterface('techno_ProductsIntf', $origin->className));
-    		expect(doc_Folders::fetchCoverClassName($origin->fetchField('folderId')) != 'doc_UnsortedFolders');
+    		$originRec = $origin->fetch();
+    		expect(doc_Folders::fetchCoverClassName($originRec->folderId) != 'doc_UnsortedFolders');
+    		expect($originRec->state != 'rejected');
     		$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
     		if(($quantities[0] || $quantities[1] || $quantities[2])){
     			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $quantities);

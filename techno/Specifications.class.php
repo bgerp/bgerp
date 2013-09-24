@@ -126,8 +126,7 @@ class techno_Specifications extends core_Manager {
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
     	$this->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $this->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
-    	$this->FLD('data', 'blob(serialize,compress)', 'caption=Данни,input=none');
-        $this->FLD('state', 
+    	$this->FLD('state', 
             'enum(active=Активирано, rejected=Отказано)', 
             'caption=Статус, input=none'
         );
@@ -262,6 +261,7 @@ class techno_Specifications extends core_Manager {
     					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
     		
     		$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
+    		
     		return $price;
     	}
     	
@@ -411,5 +411,29 @@ class techno_Specifications extends core_Manager {
     static function isDimensional()
     {
         return TRUE;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    function getDocumentRow($id)
+    {
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    function getIcon($id)
+    {
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод за съвместимост със стари записи
+     */
+    static function getHandle($id)
+    {
     }
 }

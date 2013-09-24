@@ -31,19 +31,5 @@ class social_Wrapper extends plg_ProtoWrapper
         $this->title = 'Социални мрежи « Сайт';
         Mode::set('menuPage','Сайт:Социални мрежи');
     }
-	/*function on_AfterRenderWrapping($mvc, &$tpl)
-    {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 
-        $tabs->TAB('dec_Declarations', 'Списък');
-        $tabs->TAB('dec_Statements', 'Твърдения');
-       
-      
-
-        $tpl = $tabs->renderHtml($tpl, $mvc->className);
-        $mvc->currentTab = 'Декларации';
-        
-        Mode::set('pageMenu', 'Търговия');
-		Mode::set('pageSubMenu', 'Продажби'); 
-    }*/
 }

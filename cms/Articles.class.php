@@ -163,7 +163,7 @@ class cms_Articles extends core_Manager
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {  
+    { 
         $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
     }
 
@@ -200,19 +200,17 @@ class cms_Articles extends core_Manager
             $rec = self::fetch($id);
         }
         
-        if($rec) { //bp(toUrl(getCurrentUrl()));
+        if($rec) { 
 
             $menuId = $rec->menuId;
 
             $lArr = explode('.', self::getVerbal($rec, 'level'));
-
-            $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
             
+            $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
+           
             // Рендираме тулбара за споделяне
-            //$content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", $conf->CMS_SHARE));
-            $content->replace(toUrl(getCurrentUrl()), 'SOC_URL');
-            $content->replace(self::getVerbal($rec, 'title'), 'SOC_TITLE');
-            $content->replace('article', 'SOC_SUMMARY');
+            //$content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", toUrl(getCurrentUrl())));
+
             
             $ptitle = self::getVerbal($rec, 'title') . " » ";
  
@@ -220,9 +218,12 @@ class cms_Articles extends core_Manager
             
         	// Подготвяме информаията за ографа на статията
             $ogp = $this->prepareOgraph($rec);
-        }
+        } 
+        
+        Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
+        Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
 
-        if(!$content) $content = new ET();
+        if(!$content) $content = new ET(); 
 
         // Подготвя навигацията
         $query = self::getQuery();
@@ -248,7 +249,7 @@ class cms_Articles extends core_Manager
             }
 
             $title = self::getVerbal($rec1, 'title');
-
+            
 
             if(!$rec && $rec1->body) {
 
@@ -333,9 +334,6 @@ class cms_Articles extends core_Manager
             }
         }
 
-        // Добавяне на параметрите за социално споделяне
-        // $content->append('????', 'SOC_URL');
-		
         return $content; 
     }
     

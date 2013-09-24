@@ -8,9 +8,9 @@
 </div>
 
 <!--ET_BEGIN SHARE_TOOLBAR-->
-<div id='blog-article-share'>
+
 	[#SHARE_TOOLBAR#]
-</div>
+
 <!--ET_END SHARE_TOOLBAR-->
 
 <!--ET_BEGIN COMMENTS-->
