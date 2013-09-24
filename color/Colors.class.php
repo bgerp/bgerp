@@ -485,16 +485,16 @@ class color_Colors {
 	/**
 	 * Обръща цвета във rgb подходящ за използване в уеб
 	 */
-	public function getImg($width = 16, $height = 16)
+	public function getImg($width = 1, $height = 1)
 	{
 		$this->toRGB();
 		$r = (int)$this->getValue('r');
     	$g = (int)$this->getValue('g');
     	$b = (int)$this->getValue('b');
-        
+    	
     	Request::setProtected('w,h,r,g,b');
     	$url = toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b), 'absolute');
-       	return ht::createElement('img', array('src' => $url));
+        return ht::createElement('img', array('src' => $url));
     }
 	
     
