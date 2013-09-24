@@ -301,7 +301,7 @@ class change_Log extends core_Manager
         if ($lastVer) {
             
             // Стринга на версията
-            $versionStr = static::LAST_VERSION_STRING;
+            $versionStr = static::getLastVersionFromDoc($classId, $docId);
         } else {
             
             // Вземаме стринга за версията и подверсията
@@ -319,10 +319,17 @@ class change_Log extends core_Manager
             }
             
             // Ако остане избрана само последната версия
-            if (($dataArr[static::LAST_VERSION_STRING]) && (count($dataArr) == 1)) {
+            if (count($dataArr) == 1) {
                 
-                // Премахваме я от масива
-                unset($dataArr[static::LAST_VERSION_STRING]);
+                // Последната версия
+                $lastVersion = static::getLastVersionFromDoc($classId, $docId);
+                
+                // Ако последната версия е избрана сама
+                if ($dataArr[$lastVersion]) {
+                    
+                    // Премахваме я от масива
+                    unset($dataArr[$lastVersion]);
+                }
             }
         } else {
             
@@ -477,22 +484,22 @@ class change_Log extends core_Manager
         // Екшъна да сочи към избиране
         $action = 'select';
         
+        // Ако линка е за последната версия
+        if ($lastVer) {
+            
+            // Вземаме последната версия
+            $versionStr = static::getLastVersionFromDoc($rec->docClass, $rec->docId);            
+        } else {
+            
+            // Вземаме стринга за версията
+            $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
+        }
+        
         // Ако има такъв масив
         if ($dataArr) {
             
-            // Ако линка е за последната версия
-            if ($lastVer) {
-                
-                // Вземаме стринга за версията от константата
-                $versionStrRaw = static::LAST_VERSION_STRING;
-            } else {
-                
-                // Вземаме стринга за версията
-                $versionStrRaw = static::getVersionStr($rec->version, $rec->subVersion);
-            }
-            
             // Ако текущата версия е избрана
-            if ($dataArr[$versionStrRaw]) {
+            if ($dataArr[$versionStr]) {
                 
                 // Иконата за избрана версия
                 $icon = 'img/16/checkbox_yes.png';
@@ -516,20 +523,9 @@ class change_Log extends core_Manager
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
         
-        // Ако е последната версия
-        if ($lastVer) {
+        // Ескейпваме стринга
+        $versionStrRaw = static::escape($versionStr);
             
-            // Задаваме стринга
-            $versionStr =  tr('Последна');
-        } else {
-            
-            // Задаваме версията
-            $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
-            
-            // Ескейпваме стринга
-            $versionStr = static::escape($versionStr);
-        }
-        
         // Ако е зададено да няма линк
         if ($noLink) {
             
@@ -551,7 +547,7 @@ class change_Log extends core_Manager
         }
         
         // Връщаме линка
-        return ht::createLink($versionStr, $link, NULL, $attr);
+        return ht::createLink($versionStrRaw, $link, NULL, $attr);
     }
     
     
@@ -703,7 +699,7 @@ class change_Log extends core_Manager
             // Ако са избрани повече версии
             
             // Стринг за последната версия
-            $lastVer = static::LAST_VERSION_STRING;
+            $lastVer = static::getLastVersionFromDoc($docClass, $docId);
             
             // Ако е избрана последна версия
             if ($versionArr[$lastVer]) {
@@ -753,6 +749,39 @@ class change_Log extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща последната версия на документа, който е записан в модела на класа
+     * 
+     * @param mixed $class - id или инстанция на класа
+     * @param int $docId - id на докуемнта
+     * 
+     * @return mixed - Стринга на версията
+     */
+    static function getLastVersionFromDoc($class, $docId)
+    {
+        try {
+            
+            // Инстанция на класа
+            $class = cls::get($class);
+            
+            // Вземаме записа
+            $rec = $class->fetch($docId);
+            
+            // Ако има версия и подверсия
+            if (isset($rec->version) && isset($rec->subVersion)) {
+                
+                // Връщаме стринга на версията и подверсията
+                return static::getVersionStr($rec->version, $rec->subVersion);
+            }
+        } catch (Exception $e) {
+            
+            return FALSE;
+        }
+        
+        return FALSE;
     }
     
     

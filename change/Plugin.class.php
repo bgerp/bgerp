@@ -250,13 +250,20 @@ class change_Plugin extends core_Plugin
         $form->title = "Промяна на|*: <i>{$title}</i>";
         
         // Ако има стринг за версията
-        if ($versionStr && $versionStr != change_Log::LAST_VERSION_STRING) {
+        if ($versionStr) {
             
-            // Ескейпваме стринга
-            $versionStrRaw = change_Log::escape($versionStr);
+            // Вземаме стринга за последната версия
+            $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $form->rec->id);
             
-            // Добавяме към заглавието, съответната версия
-            $form->title .= " (<b style='color:red;'>{$versionStrRaw}</b>)";
+            // Ако стринга не е последната версия
+            if ($versionStr != $lastVersionStr) {
+                
+                // Ескейпваме стринга
+                $versionStrRaw = change_Log::escape($versionStr);
+                
+                // Добавяме към заглавието, съответната версия
+                $form->title .= " <b style='color:red;'>{$versionStrRaw}</b>";
+            }
         }
         
         // Рендираме изгледа
@@ -292,8 +299,11 @@ class change_Plugin extends core_Plugin
             // Ако има последна версия
             if ($selVerArr['last']) {
                 
+                // Стринга на последната версия
+                $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $data->rec->id);
+                
                 // Ако последната версия е последния вариант
-                if ($selVerArr['last'] == change_Log::LAST_VERSION_STRING) {
+                if ($selVerArr['last'] == $lastVersionStr) {
                     
                     // Обхождаме всички позволени полеоте, които ще се променят
                     foreach ($allowedFieldsArr as $allowedField) {
@@ -353,7 +363,7 @@ class change_Plugin extends core_Plugin
         $data->row->FirstSelectedVersion = change_Log::escape($selVerArr['first']);
         
         // Ако последната версия е последния вариант
-        if ($selVerArr['last'] == change_Log::LAST_VERSION_STRING) {
+        if ($lastVersionStr && ($selVerArr['last'] == $lastVersionStr)) {
             
             // Последната избрана версия
             $data->row->LastSelectedVersion = $lastVersion;
