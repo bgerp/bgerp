@@ -57,7 +57,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	while($mvc->fetch("#title = '{$newTitle}'")){
     		$newTitle = str::increment($newTitle);
     	}
-    	$rec->title = $data->title = $newTitle;
+    	$rec->title = $newTitle;
     	
     	// Запис и редирект
     	$mvc->save($rec);
