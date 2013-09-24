@@ -381,8 +381,8 @@ class color_Colors {
 	private function hsvToRgb($values)
 	{
 		$h = $values['h'] / 360.0;
-		$s = ($values['s'] > 0) ? $values['s'] / 100.0 : $values['s'];
-		$v = ($values['v'] > 0) ? $values['v'] / 100.0 : $values['v'];
+		$s = ($values['s'] > 1) ? $values['s'] / 100.0 : $values['s'];
+		$v = ($values['v'] > 1) ? $values['v'] / 100.0 : $values['v'];
 			 
 		if ($s == 0) {
 			$r = $v * 255.0;
@@ -438,7 +438,7 @@ class color_Colors {
 		   $r = 255 * $this->hue2Rgb( $v1, $v2, $h + ( 1 / 3 ));
 		   $g = 255 * $this->hue2Rgb( $v1, $v2, $h );
 		   $b = 255 * $this->hue2Rgb( $v1, $v2, $h - ( 1 / 3 ));
-		   
+		   bp($r,$g,$b);
 		   return array('r' => $r, 'g' => $g, 'b' => $b);
 		}
 	}
