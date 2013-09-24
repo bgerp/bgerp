@@ -207,7 +207,7 @@ class social_Sharings extends core_Master
 					    	"digg.com"=>"digg",
 					    	"facebook.com"=>"facebook",
 					    	"stumbleupon.com"=>"stumbleupon",
-					    	"del.icio.us"=>"delicious",
+					    	"delicious.com"=>"delicious",
 					    	"google.com"=>"google-buzz",
 					    	"linkedin.com"=>"linkedin",
 					    	"slashdot.org"=>"slashdot",
