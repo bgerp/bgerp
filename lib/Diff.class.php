@@ -31,7 +31,10 @@ class lib_Diff {
         $delL = '<span class="del">', $delR = '</span>', 
         $cngL = '<span title="#" class="cng">', $cngR = '</span>')
     {   
-
+        
+        // Ако няма промени, няма смисъл от обработка
+        if ($old == $new) return $new;
+        
         $oldArr  = self::explodeHtml($old);
         $newArr  = self::explodeHtml($new);
         $arrDiff = self::ses($oldArr, $newArr);
