@@ -38,7 +38,7 @@ class color_Colors {
 	 */
 	public static function get($type)
 	{
-		expect(in_array($type, array('rgb','cmyk','hsv','cielab','xyz')));
+		expect(in_array($type, array('rgb','cmyk','hsv','cielab','xyz','hsl')));
 		$Class = cls::get(get_called_class());
 		$Class->type = $type;
 		
@@ -64,6 +64,9 @@ class color_Colors {
 				break;
 			case "hsv":
 				$this->values = $this->getHSV($v1, $v2, $v3);
+				break;
+			case "hsl":
+				$this->values = $this->getHSL($v1, $v2, $v3);
 				break;
 			case "cielab":
 				$this->values = $this->getLAB($v1, $v2, $v3);
@@ -159,6 +162,26 @@ class color_Colors {
 	
 	
 	/**
+	 * Задава стойностите на HSL
+	 * @param double $v1 - Hue
+	 * @param double $v2 - Saturation
+	 * @param double $v3 - Lightness
+	 */
+	private function getHSL($v1, $v2, $v3)
+	{
+		if ($v1 <= 0) { $v1 = 0; }
+		if ($v2 <= 0) { $v2 = 0; }
+		if ($v3 <= 0) { $v3 = 0; }
+		 
+		if ($v1 > 360) { $v1 = 360; }
+		if ($v2 > 100) { $v2 = 100; }
+		if ($v3 > 100) { $v3 = 100; }
+		
+		return array('h' => $v1, 's' => $v2, 'l' => $v3);
+	}
+	
+	
+	/**
 	 * Задава CIE-L*ab стойностите
 	 * @param int $v1 - L*
 	 * @param double $v2 - a*
@@ -195,6 +218,9 @@ class color_Colors {
 				break;
 			case "hsv":
 				$this->values = $this->hsvToRgb($this->values);
+				break;
+			case "hsl":
+				$this->values = $this->hslToRgb($this->values);
 				break;
 			case "cielab":
 				$r = $this->values;
@@ -341,9 +367,9 @@ class color_Colors {
 		$g = 1 - min(array(1, $m * ( 1 - $k ) + $k ));
 		$b = 1 - min(array(1, $y * ( 1 - $k ) + $k ));
 		
-		$r = round( $r * 255.0 );
-		$g = round( $g * 255.0 );
-		$b = round( $b * 255.0 );
+		$r = $r * 255.0;
+		$g = $g * 255.0;
+		$b = $b * 255.0;
 		
 		return array('r' => $r, 'g' => $g, 'b' => $b);
 	}
@@ -395,6 +421,45 @@ class color_Colors {
 	
 	
 	/**
+	 * Конвертира от HSL към RGB
+	 */
+	private function hslToRgb($values)
+	{
+		$h = $values['h'] / 360;
+		$s = $values['s'];
+		$l = $values['l'];
+		
+		if ($s == 0){
+		   $r = $g = $b = $l * 255;
+		} else {
+		   $v2 = ($l < 0.5) ? $l * (1 + $s) : ( $l + $s) - ($s * $l);    
+		   $v1 = 2 * $l - $v2;
+			
+		   $r = 255 * $this->hue2Rgb( $v1, $v2, $h + ( 1 / 3 ));
+		   $g = 255 * $this->hue2Rgb( $v1, $v2, $h );
+		   $b = 255 * $this->hue2Rgb( $v1, $v2, $h - ( 1 / 3 ));
+		   
+		   return array('r' => $r, 'g' => $g, 'b' => $b);
+		}
+	}
+	
+	
+	/**
+	 * Помощна ф-я при конвертирането от HSL към RGB
+	 */
+	private function hue2Rgb($v1, $v2, $vH)
+	{
+		
+	   if ( $vH < 0 ) $vH += 1;
+	   if ( $vH > 1 ) $vH -= 1;
+	   if ( ( 6 * $vH ) < 1 ) return ( $v1 + ( $v2 - $v1 ) * 6 * $vH );
+	   if ( ( 2 * $vH ) < 1 ) return ( $v2 );
+	   if ( ( 3 * $vH ) < 2 ) return ( $v1 + ( $v2 - $v1 ) * ( ( 2 / 3 ) - $vH ) * 6 );
+	   return $v1;
+	}
+	
+	
+	/**
 	 * Връща стойност от обекта
 	 */
 	public function getValue($v)
@@ -418,26 +483,65 @@ class color_Colors {
 	
 	
 	/**
+	 * Обръща цвета във rgb подходящ за използване в уеб
+	 */
+	public function getImg($width = 16, $height = 16)
+	{
+		$this->toRGB();
+		$r = (int)$this->getValue('r');
+    	$g = (int)$this->getValue('g');
+    	$b = (int)$this->getValue('b');
+        
+    	Request::setProtected('w,h,r,g,b');
+    	$url = toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b), 'absolute');
+       	return ht::createElement('img', array('src' => $url));
+    }
+	
+    
+	/**
+	 * Конвертира от всичко към  HSL (минавайки през HSV)
+	 */
+	public function toHsl()
+	{	
+		if($this->type == 'hsl') return;
+		$this->toHSV();
+		$this->type = 'hsl';
+		
+		$h = $this->values['h'];
+		$s = $this->values['s'];
+		$v = $this->values['v'];
+		
+		$H = $h;
+      	$L = (2 - $s) * $v;
+        $S = $s * $v;
+        $S /= ($L <= 1) ? ($L) : 2 - ($L);
+        $L /= 2;
+        
+        $this->values = array('h' => $H, 's' => $S, 'l' => $L);
+	}
+	
+	
+	/**
 	 * Конвертира от всичко към  CMYK (минавайки през CMY)
 	 */
-	public function toCmyk()
+	public function toCmyk($k = 1)
 	{	
 		if($this->type == 'cmyk') return;
 		$this->toRGB();
 		$this->type = 'cmyk';
 		
+		if($k < 0) $k = 0;
+		if($k > 1) $k = 1; 
 		$c = 1 - ($this->values['r'] / 255);
 		$m = 1 - ($this->values['g'] / 255);
 		$y = 1 - ($this->values['b'] / 255);
 		
-		$k = 1;
 		if ($c < $k)   $k = $c;
 		if ($m < $k)   $k = $m;
 		if ($y < $k)   $k = $y;
 		if ($k == 1){ 
    			$c = $m = $y = 0;
-		}
-		else {
+		} else {
    			$c = ($c - $k) / (1 - $k);
    			$m = ($m - $k) / (1 - $k);
    			$y = ($y - $k) / (1 - $k);
