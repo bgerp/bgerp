@@ -102,7 +102,9 @@ class social_Sharings extends core_Master
 				
 			$link = (string) $link;
 		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
-		    $to = array (rawurlencode(toUrl(getCurrentUrl())), rawurlencode(Mode::get('SOC_TITLE')), core_String::truncate(rawurlencode((Mode::get('SOC_SUMMARY'))), 200));
+		    $to = array (rawurlencode(toUrl(getCurrentUrl())), 
+		    			 rawurlencode(Mode::get('SOC_TITLE')), 
+		    			 core_String::truncate(rawurlencode((Mode::get('SOC_SUMMARY'))), 200));
 					
 		 	$link = str_replace($from, $to, $link);
 				
