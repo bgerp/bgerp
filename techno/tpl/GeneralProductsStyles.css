@@ -31,6 +31,7 @@
 .spec-short{
 	font-size:0.9em;
 	color:#222;
+	margin:0;
 }
 
 .general-product .list-info li b{
@@ -63,6 +64,10 @@
 
 .narrow .general-product .list-description-short .richtext{
 	min-width:160px;
+}
+
+.color-mode{
+	padding-bottom:6px;	
 }
 
 .wideDesc{
