@@ -74,7 +74,7 @@ class vislog_History extends core_Manager {
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Query');
                 
-        $this->setDbUnique('ip,HistoryResourceId');
+        $this->setDbUnique('ip,HistoryResourceId,createdBy');
     }
     
     
@@ -102,6 +102,9 @@ class vislog_History extends core_Manager {
 	        	
 	        	return $historyQuery->count();
         	}
+        } else {
+
+            return $rec->id;
         }
 	}
     
