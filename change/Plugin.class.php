@@ -336,7 +336,18 @@ class change_Plugin extends core_Plugin
         }
         
         // Последна версия
-        $data->row->LastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
+        $lastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
+        
+        // Ако има избрана версия
+        if ($selVerArr['first']) {
+            
+            // Добавяме в променлива
+            $data->row->LastSavedVersion = $lastVersion;
+        } else {
+            
+            // Добавяме в друга променлива
+            $data->row->LastVersion = $lastVersion;
+        }
         
         // Първата избрана версия
         $data->row->FirstSelectedVersion = change_Log::escape($selVerArr['first']);
@@ -345,7 +356,7 @@ class change_Plugin extends core_Plugin
         if ($selVerArr['last'] == change_Log::LAST_VERSION_STRING) {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $data->row->LastVersion;
+            $data->row->LastSelectedVersion = $lastVersion;
         } else {
             
             // Последната избрана версия
