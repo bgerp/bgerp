@@ -114,7 +114,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
     	}
     	
-    	if(sales_Quotations::haveRightFor('add') && $data->rec->state == 'active'){
+    	if(sales_Quotations::haveRightFor('add') && $data->rec->state != 'rejected'){
     		$coverClass = doc_Folders::fetchCoverClassName($data->rec->folderId);
     		if($coverClass != 'doc_UnsortedFolders'){
     			$qId = sales_Quotations::fetchField(("#originId = {$data->rec->containerId} AND #state='draft'"), 'id');
