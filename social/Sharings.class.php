@@ -138,8 +138,8 @@ class social_Sharings extends core_Master
     	// Парсираме го, за да извлечем параметрите от заявката
     	$arrayUrl = core_Url::parseUrl($curUrl);
 
-    	if(strstr(core_App::getSelfURL(), ".", TRUE) !== FALSE) {
-    		$protocol = strstr(core_App::getSelfURL(), ".", TRUE);
+    	if(strpos(core_App::getSelfURL(), 'www.')) {
+    		$protocol = strstr(core_App::getSelfURL(), "w", TRUE) . "www";
     	} else {
     		$protocol = strstr(core_App::getSelfURL(), "//", TRUE) . "//";
     	}
