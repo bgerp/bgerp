@@ -883,6 +883,10 @@ pre.document{
 	margin: 0px;
 }
 
+.listTable > tbody > tr > td div.document .listTable tr{
+	background-color:transparent;
+}
+
 .antetka {
 	margin-top: 10px;
 	margin-bottom:5px;
