@@ -85,6 +85,22 @@ class lib_tests_Diff extends unit_Class
         $oldArr[12] = 'Text original текст';
         $newArr[12] = 'Text changed текст';
         $expectArr[12] = 'Text <span title="original" class="cng">changed</span>&nbsp;текст';
+        
+        $oldArr[13] = 'Text text';
+        $newArr[13] = 'AllChanged';
+        $expectArr[13] = '<span title="Text" class="cng">AllChanged</span><span class="del">&nbsp;text</span>';
+        
+        $oldArr[14] = 'Text text';
+        $newArr[14] = 'All Changed';
+        $expectArr[14] = '<span title="Text text" class="cng">All Changed</span>';
+        
+        $oldArr[15] = NULL;
+        $newArr[15] = NULL;
+        $expectArr[15] = '';
+        
+        $oldArr[16] = '';
+        $newArr[16] = '';
+        $expectArr[16] = '';
         // Край на масивите
         
         // Отварящ таг
