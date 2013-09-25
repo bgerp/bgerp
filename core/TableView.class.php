@@ -184,7 +184,7 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead>[#ROW-BEFORE#]{$tableHeader}</thead>{$row}[#ROW-AFTER#]</table>\n");
+        $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead><!--ET_BEGIN ROW_BEFORE-->[#ROW_BEFORE#]<!--ET_END ROW_BEFORE-->{$tableHeader}</thead>{$row}<!--ET_BEGIN ROW_AFTER-->[#ROW_AFTER#]<!--ET_END ROW_AFTER--></table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {
@@ -225,16 +225,12 @@ class core_TableView extends core_BaseClass
         
         if ($this->rowBefore) {
             $rowBefore = new ET("<tr><td style=\"border:0px; padding-top:5px; \" colspan=\"" . $this->colspan . "\">[#1#]</td></tr>", $this->rowBefore);
-            $tpl->replace($rowBefore, "ROW-BEFORE");
-        } else {
-            $tpl->append('', "ROW-BEFORE");
+            $tpl->replace($rowBefore, "ROW_BEFORE");
         }
         
         if ($this->rowAfter) {
             $rowAfter = new ET("<tr><td style=\"border:0px; padding-top:5px; \" colspan=\"" . $this->colspan . "\">[#1#]</td></tr>", $this->rowAfter);
-            $tpl->replace($rowAfter, "ROW-AFTER");
-        } else {
-             $tpl->append('', "ROW-AFTER");
+            $tpl->replace($rowAfter, "ROW_AFTER");
         }
         
         return $tpl;
