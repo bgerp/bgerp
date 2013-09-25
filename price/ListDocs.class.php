@@ -39,7 +39,8 @@ class price_ListDocs extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc2';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc2,
+    	 plg_AutoFilter';
     
     
     /**
@@ -120,13 +121,36 @@ class price_ListDocs extends core_Master
     function description()
     {
     	$this->FLD('date', 'date(smartTime)', 'caption=Дата,mandatory,width=6em;');
-    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em');
+    	$this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Политика, silent, mandotory,width=15em, autoFilter');
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name, translate)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    }
+    
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'policyId';
+        
+        $form->input('policyId', 'silent');
+
+        $data->query->where(array("#policyId = '[#1#]'", $form->rec->policyId));
     }
     
     
@@ -139,7 +163,7 @@ class price_ListDocs extends core_Master
     	$form->setDefault('date', dt::now());
     	$form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
     	$folderClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
-    		
+    	
     	// Намираме политиката на зададената папка, ако няма
     	// по подразбиране е "каталог"
     	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
