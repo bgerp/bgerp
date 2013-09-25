@@ -14,6 +14,7 @@
 class plg_AutoFilter extends core_Plugin
 {
     
+    const EMPTY_STR = '__EMPTY__';
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -34,7 +35,11 @@ class plg_AutoFilter extends core_Plugin
             foreach($autoFields as $name => $field) {
                 $modeName = 'lastAutoFielter_' . $name;
                 if(!$rec->{$name} && ($lastValue = Mode::get($modeName))) {
+                    if($value == md5(self::EMPTY_STR . Mode::getPermanentKey())) {
+                        $value = '';
+                    }
                     $form->setDefault($name, $lastValue);
+                    
                 }
             }
         }
@@ -61,6 +66,9 @@ class plg_AutoFilter extends core_Plugin
             if($value = Request::get($name)) {
                 $valueInt = $field->type->fromVerbal($value);
                 if(!$field->type->error) {
+                    if($value == '') {
+                        $value = md5(self::EMPTY_STR . Mode::getPermanentKey());
+                    }
                     Mode::setPermanent($modeName, $value);
                 }
             } else {
