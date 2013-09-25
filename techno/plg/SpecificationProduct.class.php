@@ -116,7 +116,9 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	
     	if(sales_Quotations::haveRightFor('add') && $data->rec->state != 'rejected'){
     		$coverClass = doc_Folders::fetchCoverClassName($data->rec->folderId);
-    		if($coverClass != 'doc_UnsortedFolders'){
+    		
+    		// Ако офертата е в папка на контрагент и може да се изчисли цена
+    		if($coverClass != 'doc_UnsortedFolders' && $mvc->getPriceInfo($data->rec->id)->price){
     			$qId = sales_Quotations::fetchField(("#originId = {$data->rec->containerId} AND #state='draft'"), 'id');
 	    		if($qId){
 	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
