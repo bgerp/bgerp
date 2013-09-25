@@ -15,9 +15,9 @@
 	<!--ET_BEGIN ROW-->
 	[#ROW#]
 	<tr class='[#TR_CLASS#]'>
-		<td>[#tools#]<div class='tc'>[#index#]</div></td>
+		<td class = '[#rowspanId#]'>[#tools#]<div class='tc'>[#index#]</div></td>
 			<!--ET_BEGIN productId-->
-			<td rowspan = '[#rowspan#]' valign='top' class='product-id[#OPTP#]'>[#productId#]</td>
+			<td id='[#rowspanpId#]' rowspan = '[#rowspan#]' valign='top' class='product-id[#OPTP#]'>[#productId#]</td>
 			<!--ET_END productId-->
 			
 			<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>

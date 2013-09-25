@@ -350,12 +350,13 @@ class sales_QuotationsDetails extends core_Detail {
     	$hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
-	    		list(, $optional) = explode("|", $index);
+	    		list($pId, $optional) = explode("|", $index);
 	    		foreach($arr as $key => $row){
 	    			if($key == 0){
 	    				
 	    				// Задаваме rowspan на полето за продукта, взависимост от данните
 	    				$row->rowspan = count($arr);
+	    				$row->rowspanId = $row->rowspanpId = "product-row{$pId}{$optional}";
 	    			}
 	    			
 	    			// Взависимост дали е опционален продукта 
@@ -384,6 +385,7 @@ class sales_QuotationsDetails extends core_Detail {
 					if($row->productId){
 						$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
 					} else {
+						$row->rowspanId = $data->rows[$index][0]->rowspanId;
 						$row->TR_CLASS = $data->rows[$index][0]->TR_CLASS;
 					}
 	    			
@@ -393,7 +395,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    	}
     	}
-    	
+
     	if($data->total){
     		if($data->total->totalDisc){
     			$data->total->totalClass = 'oldAmount';
@@ -424,6 +426,10 @@ class sales_QuotationsDetails extends core_Detail {
     		$tpl->append(".quote-col-opt{$data->masterData->rec->id} {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
     	}
     	
+    	// Закачане на JS
+        jquery_Jquery::enable($tpl);
+        $tpl->push('sales/js/ResizeQuoteTable.js', 'JS');
+        
     	return $tpl;
     }
     
