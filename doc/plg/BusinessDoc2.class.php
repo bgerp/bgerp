@@ -155,13 +155,16 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
 	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
 	    		
-	    		// Показват се само обектите до които има достъп потребителя
-	    		$options = array();
+	    		$options = $mvc->getCoverOptions($Class);
+	    		$optionList = implode(", ", array_keys($options)); 
 	    		
-	    		foreach ($mvc->getCoverOptions($Class) as $oId => $oName){
-	    			$rec = $Class::fetch($oId, 'inCharge,access,shared', TRUE);
+	    		// Показват се само обектите до които има достъп потребителя
+	    		$query = $Class::getQuery();
+	    		$query->where("#id IN ({$optionList})");
+	    		$query->show('inCharge,access,shared');
+	    		while($rec = $query->fetch()){
 	    			if(doc_Folders::haveRightToObject($rec)){
-	    				$options[$oId] = $oName;
+	    				$options[$rec->id] = $options[$rec->id];
 	    			}
 	    		}
 	    		
