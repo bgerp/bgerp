@@ -2863,6 +2863,10 @@ div.location.public{
 	.aHeader{
 		padding-left:2px !important;
 	}
+	.printing-title{
+		margin-bottom:10px;
+		display:block;
+	}
 }
 
 .external {
@@ -2884,7 +2888,11 @@ div.location.public{
 		margin-top: 10px;
 		min-width: 0px;
 		width:850px;
-	} 
+	}
+	.printing-title{
+		margin-bottom:10px;
+		display:block;
+	}
 }
 
 /* Стилове за callcenter*/
