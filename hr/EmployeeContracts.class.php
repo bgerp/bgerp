@@ -193,7 +193,7 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $pQuery = crm_Persons::getQuery();
+        /*$pQuery = crm_Persons::getQuery();
         
         cls::load('crm_Companies');
         
@@ -201,7 +201,7 @@ class hr_EmployeeContracts extends core_Master
             $options[$pRec->id] = crm_Persons::getVerbal($pRec, 'name');
         }
         
-        $data->form->setOptions('managerId', $options);
+        $data->form->setOptions('managerId', $options);*/
         
     	$rec = $data->form->rec;
         
