@@ -154,9 +154,9 @@ class store_Racks extends core_Master
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField("#id = {$selectedStoreId}", 'name');
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
-        $data->title = "Стелажи в СКЛАД \"{$selectedStoreName}\"";
+        $data->title = "|Стелажи в СКЛАД|* \"{$selectedStoreName}\"";
     }
     
     
@@ -166,7 +166,7 @@ class store_Racks extends core_Master
     static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField("#id = {$selectedStoreId}", 'name');
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
         $data->title = "|СКЛАД|* \"{$selectedStoreName}\", |стелаж|* № {$data->rec->id}";
     }
@@ -423,7 +423,7 @@ class store_Racks extends core_Master
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
         
         // if (!empty($detailsForRackArr)) bp($detailsForRackArr);
-        $constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
+        $constrColumnsStep = $mvc->fetchField($rec->id, 'constrColumnsStep');
         
         // html
         $html .= "<div style='clear: left;
@@ -716,11 +716,11 @@ class store_Racks extends core_Master
     static function checkIfProductGroupsAreAllowed($rackId, $productId) {
         $selectedStoreId = store_Stores::getCurrent();
         
-        $productName = store_Products::fetchField("#id = {$productId}", 'name');
-        $productGroups = cat_Products::fetchField("#id = {$productName}", 'groups');
+        $productName = store_Products::fetchField($productId, 'name');
+        $productGroups = cat_Products::fetchField($productName, 'groups');
         $productGroupsArr = keylist::toArray($productGroups);
         
-        $groupsAllowed = self::fetchField("#id = {$rackId}", 'groupsAllowed');
+        $groupsAllowed = self::fetchField($rackId, 'groupsAllowed');
         $groupsAllowedArr = keylist::toArray($groupsAllowed);
         
         if (count($groupsAllowedArr)) {
@@ -768,7 +768,7 @@ class store_Racks extends core_Master
         $rackColumn = $positionArr[2];
         
         // Ако няма стелаж с това id
-        if (!$recRacks = store_Racks::fetch("#id = {$rackId} AND #storeId = {$selectedStoreId}")) return FALSE;
+        if (!$recRacks = store_Racks::fetch($rackId AND #storeId = {$selectedStoreId}")) return FALSE;
         
         // Ако реда не е сред ключовете на масива $rackRowsArr
         if (!array_key_exists($rackRow, $rackRowsArr)) return FALSE;
@@ -881,7 +881,7 @@ class store_Racks extends core_Master
         
         $rackId = $positionArr[0];
         
-        $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
+        $rackNum = store_Racks::fetchField($rackId, 'num');
         
         if (!$rackNum) {
             $fResult[0] = FALSE;
