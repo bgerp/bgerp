@@ -426,6 +426,10 @@ div.folder-cover{
 	}
 }
 
+.public.folder-cover{
+	margin:0;
+}
+
 .special-title{
 	padding:10px !important;
 	font-size:0.9em;
@@ -2095,6 +2099,12 @@ div.location{
 		vertical-align:baseline;
 	}
 }
+div.location.public{
+	border:none;
+	margin:0;
+	padding:0;
+}
+
 /*край на стилове за локации*/
 
 .info-table ul{
