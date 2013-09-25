@@ -131,7 +131,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Тип");
         
-        $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
+        $this->FLD('managerId', 'key(mvc=crm_Persons,select=name,group=managers)', 'caption=Управител, mandatory');
         
         // Служител
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Имена, mandatory,width=100%');
