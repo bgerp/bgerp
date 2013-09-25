@@ -439,21 +439,23 @@ class price_ListDocs extends core_Master
     private function groupProductsByGroups(&$array, $groupsArr)
     {
     	$grouped = array();
-    	foreach($array as $id => $product){
-    		foreach ($product->groups as $group){
-    			if($groupsArr){
-    				if(in_array($group, $groupsArr)){
-    					$firstGroup = $group;
-    					break;
-    				}
-    			} else {
-    				$firstGroup = $group;
-    				break;
-    			}
-    		}
-    		
-    		$grouped[$firstGroup][] = clone $product;
-    		unset($array[$id]);
+    	if(count($array)){
+	    	foreach($array as $id => $product){
+	    		foreach ($product->groups as $group){
+	    			if($groupsArr){
+	    				if(in_array($group, $groupsArr)){
+	    					$firstGroup = $group;
+	    					break;
+	    				}
+	    			} else {
+	    				$firstGroup = $group;
+	    				break;
+	    			}
+	    		}
+	    		
+	    		$grouped[$firstGroup][] = clone $product;
+	    		unset($array[$id]);
+	    	}
     	}
     	
     	return $grouped;
