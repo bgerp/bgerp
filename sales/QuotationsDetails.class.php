@@ -271,11 +271,12 @@ class sales_QuotationsDetails extends core_Detail {
     	if(!$data->rows) return;
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
+    		$polId = $data->recs[$i]->policyId;
     		$optional = $data->recs[$i]->optional;
     		
     		// Сездава се специален индекс на записа productId|optional, така
     		// резултатите са разделени по продукти и дали са опционални или не
-    		$pId = $pId . "|{$optional}";
+    		$pId = $pId . "|{$optional}|" . $polId;
     		if(array_key_exists($pId, $newRows)){
     			
     			// Ако има вече такъв продукт, го махаме от записа
@@ -350,13 +351,17 @@ class sales_QuotationsDetails extends core_Detail {
     	$hasQuantityColOpt = FALSE;
     	if($data->rows){
 	    	foreach($data->rows as $index => $arr){
-	    		list($pId, $optional) = explode("|", $index);
+	    		list($pId, $optional, $polId) = explode("|", $index);
 	    		foreach($arr as $key => $row){
 	    			if($key == 0){
 	    				
 	    				// Задаваме rowspan на полето за продукта, взависимост от данните
 	    				$row->rowspan = count($arr);
-	    				$row->rowspanId = $row->rowspanpId = "product-row{$pId}{$optional}";
+	    				
+	    				// Добавяне на защитен уникале индекс на 
+	    				// продукта за автоматичен resize на JS-та
+	    				$prot = md5($pId.$optional.$polId);
+	    				$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
 	    			}
 	    			
 	    			// Взависимост дали е опционален продукта 
