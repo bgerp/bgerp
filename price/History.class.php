@@ -27,7 +27,7 @@ class price_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_AutoFilter';
                     
     
     /**
@@ -95,14 +95,49 @@ class price_History extends core_Manager
      */
     function description()
     {
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис');
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис, autoFilter');
         $this->FLD('validFrom', 'datetime', 'caption=В сила от');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent, autoFilter');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка, autoFilter');
         $this->FLD('price', 'double(decimals=5)', 'caption=Цена');
     }
 
-
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'listId, productId, packagingId';
+        
+        $form->fields['productId']->mandatory = FALSE;
+        
+        $form->input('listId, productId, packagingId', 'silent');
+		
+        if($form->rec->listId){
+        	$data->query->where(array("#listId = '{$form->rec->listId}'"));
+        }
+        
+        if($form->rec->productId){
+        	$data->query->where(array("#productId = '{$form->rec->productId}'"));
+        }
+        
+    	if($form->rec->packagingId){
+        	$data->query->where(array("#packagingId = '{$form->rec->packagingId}'"));
+        }
+    }
+    
+    
     /**
      * Връща началото на най-близкия исторически интервал до посоченото време
      */
