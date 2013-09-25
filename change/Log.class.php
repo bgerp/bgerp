@@ -83,7 +83,7 @@ class change_Log extends core_Manager
         $this->FLD('docClass' , 'class', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('field', 'varchar', 'caption=Поле');
-        $this->FLD('value', 'blob(compress)', 'caption=Стойности');
+        $this->FLD('value', 'blob(1000000,compress)', 'caption=Стойности');
         
         $this->FLD('version', 'varchar', 'caption=Версия,input=none');
         $this->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
