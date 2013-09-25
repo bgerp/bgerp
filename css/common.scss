@@ -1989,8 +1989,19 @@ p.richtext {
 
 .richtext h3 {
     margin:5px;
-    line-height:2em;
     margin-left:0px;
+}
+
+.narrow .richtext h1{
+	font-size:1.2em;
+}
+
+.narrow .richtext h2{
+	font-size:1.1em;
+}
+
+.narrow .richtext h3{
+	font-size:1em;
 }
 
 .richtext div span{
