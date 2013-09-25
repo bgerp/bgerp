@@ -35,9 +35,9 @@ class plg_AutoFilter extends core_Plugin
             foreach($autoFields as $name => $field) {
                 $modeName = 'lastAutoFielter_' . $name;
                 if(!$rec->{$name} && ($lastValue = Mode::get($modeName))) {
-                    if($value == md5(self::EMPTY_STR . Mode::getPermanentKey())) {
-                        $value = '';
-                    }
+                    if($lastValue == md5(self::EMPTY_STR . Mode::getPermanentKey())) {
+                        $lastValue = '';
+                    } bp($lastValue);
                     $form->setDefault($name, $lastValue);
                     
                 }
@@ -54,8 +54,8 @@ class plg_AutoFilter extends core_Plugin
         $form = $data->listFilter;
         $rec  = $form->rec;
 
-        $autoFields = $form->selectFields('autoFilter');
-        foreach($autoFields as $name => &$field) {
+        $autoFields = $form->selectFields('#autoFilter');
+        foreach($autoFields as $name => &$field) { 
             $attr = &$field->attr;
             if(!$attr['onchange']) {
                 $attr['onchange'] = 'this.form.submit();';
@@ -63,16 +63,20 @@ class plg_AutoFilter extends core_Plugin
             
             $modeName = 'lastAutoFielter_' . $name;
 
-            if($value = Request::get($name)) {
+            if(($value = Request::get($name)) !== FALSE) { 
                 $valueInt = $field->type->fromVerbal($value);
                 if(!$field->type->error) {
                     if($value == '') {
                         $value = md5(self::EMPTY_STR . Mode::getPermanentKey());
                     }
-                    Mode::setPermanent($modeName, $value);
+                   Mode::setPermanent($modeName, $value);
                 }
             } else {
                 if($value = Mode::get($modeName)) {
+                	if($value == '') {
+                       return;
+                	}
+                       
                     Request::push(array($name => $value));
                 }
             }
