@@ -329,8 +329,8 @@ class hr_WorkingCycles extends core_Master
         
     	if(Mode::is('printing')) {
     		//bp($data);
-    		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'M',  'bg'), MB_CASE_LOWER, "UTF-8"); 
-    		$title = tr("Работен график на структорно звено "). tr($prepareRecs->name). tr(" за месец ") . tr($month);
+    		$month =  mb_convert_case(dt::getMonth($prepareRecs->month, 'F',  'bg'), MB_CASE_LOWER, "UTF-8"); 
+    		$title = "<b calss='printing-title'>" . tr("Работен график на структорно звено "). tr($prepareRecs->name). tr(" за месец ") . tr($month) . "<br /></b>";
     		$tpl->append($title, 'title');
     		
     		$calendar = cal_Calendar::renderCalendar($prepareRecs->year, $prepareRecs->month, $prepareRecs->d);
