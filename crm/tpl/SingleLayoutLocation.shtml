@@ -41,16 +41,13 @@
 	        <legend class="groupTitle">|Адрес|*</legend>
 	         <div class="groupList">
 	          <!--ET_BEGIN countryId-->
-				<div><span class="gray-title">|Страна|*:</span> [#countryId#]</div>
+				<div>[#countryId#]</div>
 			  <!--ET_END countryId-->
 			  <!--ET_BEGIN place-->
-				<div><span class="gray-title">|Населено място|*:</span> [#place#]</div>
+				<div>[#pCode#] [#place#]</div>
 			  <!--ET_END place-->
-			  <!--ET_BEGIN pCode-->
-				<div><span class="gray-title">|Пощенски код|*:</span> [#pCode#]</div>
-			 <!--ET_END pCode-->
 			 <!--ET_BEGIN address-->
-				<div><span class="gray-title">|Адрес|*:</span> [#address#]</div>
+				<div>[#address#]</div>
 			 <!--ET_END address-->
 			</div>
 		</fieldset>
