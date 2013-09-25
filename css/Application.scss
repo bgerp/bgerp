@@ -1648,7 +1648,14 @@ fieldset.sharing-history {
 /*стилове за социални бутони*/
 .soc-sharing-holder{
 	margin:20px 0 15px;
+	clear:both;
+	&:after {
+	    content:'';
+	    display:block;
+	    clear: both;
+	}
 	.soc-sharing{
+		white-space:nowrap;
 		margin-right:5px;
 		margin-bottom:5px;
 		display:inline-block;
