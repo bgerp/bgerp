@@ -5,10 +5,10 @@
 }
 
 .general-product .list-title{
-	font-size:1.1em;
 	text-transform:uppercase;
 	color:#000;
-	margin-bottom:10px;
+	margin-bottom:5px;
+	font-weight:bold;
 }
 
 .general-product .list-description{
@@ -64,10 +64,6 @@
 
 .narrow .general-product .list-description-short .richtext{
 	min-width:160px;
-}
-
-.color-mode{
-	padding-bottom:6px;	
 }
 
 .wideDesc{
