@@ -1666,17 +1666,27 @@ fieldset.sharing-history {
 		border:1px solid #ccc;
 		font-size:0.9em;
 		font-family:Verdana,Helvetica,sans-serif;
-		background: #D5D5D5;
-		background: -moz-linear-gradient(top,#FFF 0,#EFEFEF 48%,#D5D5D5 94%);
-		background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#FFF),color-stop(48%,#EFEFEF),color-stop(94%,#D5D5D5));
-		filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#d5d5d5',GradientType=0);
+		background: #ffffff; /* Old browsers */
+		background: -moz-linear-gradient(top, #ffffff 0%, #d5d5d5 100%); /* FF3.6+ */
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#d5d5d5)); /* Chrome,Safari4+ */
+		background: -webkit-linear-gradient(top, #ffffff 0%,#d5d5d5 100%); /* Chrome10+,Safari5.1+ */
+		background: -o-linear-gradient(top, #ffffff 0%,#d5d5d5 100%); /* Opera 11.10+ */
+		background: -ms-linear-gradient(top, #ffffff 0%,#d5d5d5 100%); /* IE10+ */
+		background: linear-gradient(to bottom, #ffffff 0%,#d5d5d5 100%); /* W3C */
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#d5d5d5',GradientType=0 ); /* IE6-9 */
+		
 		&:hover{
 			cursor:pointer;
 			color:#333;
-			background: #D5D5D5;
-			background: -moz-linear-gradient(top,#D5D5D5 0,#EFEFEF 48%,#FFF 94%);
-			background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#D5D5D5),color-stop(48%,#EFEFEF),color-stop(94%,#FFF));
-			filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#d5d5d5',endColorstr='#ffffff',GradientType=0);
+			background: #d5d5d5; /* Old browsers */
+			background: -moz-linear-gradient(top,  #d5d5d5 0%, #ffffff 100%); /* FF3.6+ */
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d5d5d5), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+			background: -webkit-linear-gradient(top,  #d5d5d5 0%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+			background: -o-linear-gradient(top,  #d5d5d5 0%,#ffffff 100%); /* Opera 11.10+ */
+			background: -ms-linear-gradient(top,  #d5d5d5 0%,#ffffff 100%); /* IE10+ */
+			background: linear-gradient(to bottom,  #d5d5d5 0%,#ffffff 100%); /* W3C */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d5d5d5', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+
 		}
 		sup{
 			position:relative;
