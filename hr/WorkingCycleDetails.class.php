@@ -21,6 +21,9 @@ class hr_WorkingCycleDetails extends core_Detail
     var $title = "Работни цикли - детайли";
     
     
+    var $singleTitle = "Работен цикъл";
+    
+    
     var $masterKey = 'cycleId';
     
     /**
@@ -63,7 +66,18 @@ class hr_WorkingCycleDetails extends core_Detail
 
     }
 
+    
+	/**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {           	
+    	if(count($data->form->fields['day']->options) <= 1) {
+    		$data->form->toolbar->removeBtn('Запис и Нов');
+    	}
+    }
 
+    
     /**
      * Сортиране
      */
