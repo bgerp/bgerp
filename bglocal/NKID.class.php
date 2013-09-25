@@ -63,7 +63,7 @@ class bglocal_NKID extends core_Master
      */
     static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if(isset($rec->csv_title) && strlen($rec->csv_title)){
+    	if(isset($rec->csv_title)){
     		$rec->title = $rec->key. " ". $rec->csv_title;
     	}
     }
