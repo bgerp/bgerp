@@ -333,7 +333,7 @@ class trz_Orders extends core_Master
     		// Искаме да филтрираме само групата "Служители"
     		$sysId = crm_Groups::getIdFromSysId('employees');
     	
-    		return$coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
+    		return $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
     	}
     }
 }
