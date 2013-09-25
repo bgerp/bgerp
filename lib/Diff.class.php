@@ -33,7 +33,7 @@ class lib_Diff {
     {   
         
         // Ако няма промени, няма смисъл от обработка
-        if ($old == $new) return $new;
+        if ($old == $new) return (string)$new;
         
         $oldArr  = self::explodeHtml($old);
         $newArr  = self::explodeHtml($new);
