@@ -21,8 +21,10 @@
 		</tr>
 		<!--ET_END employersCnt-->
 	</table>
-	<br />
 	[#DETAILS#]
-	<div><span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+	<div style='margin-top:10px;'>
+		<span class="title-style">|Създаване|*: </span> |от|* [#createdBy#] 
+		<!--ET_BEGIN createdOn-->|на|* [#createdOn#]<!--ET_END createdOn-->
+	</div>
 
 </div>
