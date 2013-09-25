@@ -184,7 +184,7 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead><!--ET_BEGIN ROW_BEFORE-->[#ROW_BEFORE#]<!--ET_END ROW_BEFORE-->{$tableHeader}</thead>{$row}<!--ET_BEGIN ROW_AFTER-->[#ROW_AFTER#]<!--ET_END ROW_AFTER--></table>\n");
+        $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead>[#ROW_BEFORE#]{$tableHeader}</thead>{$row}[#ROW_AFTER#]</table>\n");
         
         if (count($rows)) {
             foreach ($rows as $r) {
