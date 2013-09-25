@@ -20,7 +20,7 @@ class store_Zones extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Стелажи';
+    var $title = 'Зони';
     
     
     /**
@@ -137,8 +137,9 @@ class store_Zones extends core_Manager
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
-        $data->title = "Зони в СКЛАД № {$selectedStoreId}";
+        $data->title = "|Зони в СКЛАД|* \"{$selectedStoreName}\"";
     }
     
     
