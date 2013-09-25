@@ -74,7 +74,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      * @param $id - ид на продукта, който ще се копира
      * @param $newId - ид-то на копието на продукта
      */
-    private function copyDetails(core_Mvc $mvc, $id, $newId)
+    private static function copyDetails(core_Mvc $mvc, $id, $newId)
     {
     	if(count($mvc->details)){
     		foreach ($mvc->details as $name => $class){
