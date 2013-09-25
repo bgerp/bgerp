@@ -84,15 +84,6 @@ class doc_plg_BusinessDoc2 extends core_Plugin
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
-        // Закачане на JS към полетата от формата
-        jquery_Jquery::enable($tpl);
-        $jsFnc = "$('form select, form input').live('change', function(){
-	    		var value = $(this).val();
-	    		$('form')[0].reset();
-	    		$(this).val(value);
-			});";
-        $tpl->appendOnce($jsFnc, 'JQRUN');
-        
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return FALSE;
     }
@@ -151,8 +142,9 @@ class doc_plg_BusinessDoc2 extends core_Plugin
      */
 	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
+    	core_Debug::$isLogging = FALSE;
     	foreach ($coversArr as $coverId){
-    			
+    		
     		// Подадената корица, трябва да е съществуващ 
     		// клас и да може да бъде корица на папка
     		if(cls::haveInterface('doc_FolderIntf', $coverId)){
@@ -165,8 +157,9 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$options = array();
+	    		
 	    		foreach ($mvc->getCoverOptions($Class) as $oId => $oName){
-	    			$rec = $Class::fetch($oId);
+	    			$rec = $Class::fetch($oId, 'inCharge,access,shared', TRUE);
 	    			if(doc_Folders::haveRightToObject($rec)){
 	    				$options[$oId] = $oName;
 	    			}
@@ -175,6 +168,8 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		$form->setOptions($coverName, $options);
     		}
     	}
+    	
+	    core_Debug::$isLogging = TRUE;
     }
     
     
