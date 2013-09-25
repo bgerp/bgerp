@@ -130,12 +130,6 @@ class price_ListRules extends core_Detail
     static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
     {
         price_ListToCustomers::canonizeTime($datetime);
-		
-       // $price = price_History::getPrice($listId, $datetime, $productId, $packagingId);
-
-        if($price) {
-            return $price;
-        }
 
         $datetime = price_History::canonizeTime($datetime);
 
@@ -262,10 +256,18 @@ class price_ListRules extends core_Detail
     {
     	$now = dt::now();
     	$options = array();
-    	$catQuery = cat_Products::getQuery();
-    	while($productRec = $catQuery->fetch()){
-    		if($productGroup = price_GroupOfProducts::getGroup($productRec->id, $now)) {
-    			$options[$productRec->id] = cat_Products::getTitleById($productRec->id);
+    	
+    	$groupsQuery = price_GroupOfProducts::getQuery();
+    	$groupsQuery->where("#validFrom <= '{$now}'");
+    	$groupsQuery->orderBy('productId,validFrom', 'DESC');
+    	$groupsQuery->show('groupId,productId,validFrom');
+    	
+    	// Извличат се тези продукти, които имат група
+    	while($grRec = $groupsQuery->fetch()){
+    		if(!array_key_exists($grRec->productId, $options)){
+    			if($pRec = cat_Products::fetch($grRec->productId, 'name', FALSE)){
+    				$options[$grRec->productId] = cat_Products::getRecTitle($pRec);
+    			}
     		}
     	}
     	
