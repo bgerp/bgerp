@@ -332,7 +332,7 @@ class trz_Trips extends core_Master
 	/**
      * Преди да се подготвят опциите на кориците, ако
      */
-    function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
+    function getCoverOptions($coverClass)
     {
     	
     	if($coverClass instanceof crm_Persons){
@@ -340,8 +340,7 @@ class trz_Trips extends core_Master
     		// Искаме да филтрираме само групата "Служители"
     		$sysId = crm_Groups::getIdFromSysId('employees');
     	
-    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
+    		return $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
     	}
     }
-
 }
