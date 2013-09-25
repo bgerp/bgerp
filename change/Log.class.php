@@ -192,6 +192,8 @@ class change_Log extends core_Manager
         // Последната версия на записа
         $docRec = $class->fetch($docId);
         
+        // Вземаме последната версия
+        
         $row = new stdClass();
         
         // Версията
@@ -547,7 +549,16 @@ class change_Log extends core_Manager
         }
         
         // Връщаме линка
-        return ht::createLink($versionStrRaw, $link, NULL, $attr);
+        $linkEt = ht::createLink($versionStrRaw, $link, NULL, $attr);
+        
+        // Ако е избран
+        if (static::isSelected($rec->docClass, $rec->docId, $versionStr)) {
+            
+            // Добавяме класа
+            $linkEt->append("class='change-selected-version'", 'ROW_ATTR');
+        }
+        
+        return $linkEt;
     }
     
     
@@ -678,7 +689,10 @@ class change_Log extends core_Manager
     static function getFirstAndLastVersion($docClass, $docId)
     {
         // Масива, който ще връщаме
-        $res = array();
+        static $res = array();
+        
+        // Ако е генериран преди
+        if ($res) return $res;
         
         // Всички избрани версии
         $versionArr = (array)static::getSelectedVersionsArr($docClass, $docId);
@@ -776,12 +790,119 @@ class change_Log extends core_Manager
                 // Връщаме стринга на версията и подверсията
                 return static::getVersionStr($rec->version, $rec->subVersion);
             }
-        } catch (Exception $e) {
+        } catch (Exception $e) { }
+        
+        return static::LAST_VERSION_STRING;
+    }
+    
+    
+    /**
+     * Проверява дали версията е между избраниете
+     * 
+     * @param int $docClass - id на клас
+     * @param int $docId - id на документ
+     * @param string $versionStr - Версия
+     * 
+     * @return boolean
+     */
+    static function isSelected($docClass, $docId, $versionStr)
+    {
+        // Вземаме версиите между избраните
+        $versionsBetweenArr = static::getSelectedVersionsBetween($docClass, $docId);
+        
+        // Ако е в избраните, връщаме TRUE
+        if ($versionsBetweenArr[$versionStr]) return TRUE;
+    }
+    
+    
+    /**
+     * Връща масив между избраните версии
+     * 
+     * @param int $docClass - id на клас
+     * @param int $docId - id на документ
+     * 
+     * @return array - Масив с версиите между избраните
+     */
+    static function getSelectedVersionsBetween($docClass, $docId)
+    {
+        // Масива, който ще връщаме
+        static $arr = array();
+        
+        // Ако е генерирано преди, връщаме
+        if ($arr) return $arr;
+        
+        // Вземаме първата и последна версия
+        $firstAndLastVerArr = static::getFirstAndLastVersion($docClass, $docId);
+        
+        // Ако има избрана първа версия
+        if ($firstAndLastVerArr['first']) {
             
-            return FALSE;
+            // Вземаме масива със записа
+            $firstRecArr = static::getRec($docClass, $docId, $firstAndLastVerArr['first']);
+            
+            // Вземаме първия запис
+            $firstRec = $firstRecArr[0];
+            
+            // Добавяме в масива, който ще връщаме
+            $arr[$firstAndLastVerArr['first']] = $firstAndLastVerArr['first'];
         }
         
-        return FALSE;
+        // Ако име последна версия
+        if ($firstAndLastVerArr['last']) {
+            
+            // Вземаме масива със записа
+            $lastRecArr = static::getRec($docClass, $docId, $firstAndLastVerArr['last']);
+            
+            // Вземаме първия запис
+            $lastRec = $lastRecArr[0];
+            
+            // Добавяме в масива, който ще връщаме
+            $arr[$firstAndLastVerArr['last']] = $firstAndLastVerArr['last'];
+        }
+        
+        // Ако има избрана версия
+        if (($lastRecArr !== NULL) && $firstRec && ($firstCreatedOn = $firstRec->createdOn)) {
+            
+            // Запитване за да вземем записите
+            $query = static::getQuery();
+            $query->where(array("#docClass = '[#1#]'", $docClass));
+            $query->where(array("#docId = '[#1#]'", $docId));
+            $query->groupBy('version, subVersion');
+            
+            // Ако няма последна версия
+            if (!$lastRecArr) {
+                
+                // Ако не може да се вземе последния запис
+                if ($lastRecArr === FALSE) {
+                    
+                    // Добавяме време
+                    $query->where(array("#createdOn >= '[#1#]'", $firstCreatedOn));
+                }
+            } else {
+                
+                // Ако има избрана последна версия
+                
+                // Вземаме времето
+                if (($lastCreatedOn = $lastRec->createdOn)) {
+                    
+                    // Добавяме условието
+                    $query->where(array("#createdOn <= '[#1#]'", $lastCreatedOn));
+                    $query->where(array("#createdOn >= '[#1#]'", $firstCreatedOn));
+                }
+            }
+            
+            // Обхождаме резултата
+            while ($rec = $query->fetch()) {
+                
+                // Вземаме стринга за версиите
+                $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
+                
+                // Добавяме в масива
+                $arr[$versionStr] = $versionStr;
+            }
+        }
+        
+        return $arr;
     }
     
     
