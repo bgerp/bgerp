@@ -38,4 +38,14 @@ class color_Renderer extends core_Manager
 		imagedestroy($im);
 		shutdown();
     }
+    
+    
+    /**
+     * Връща url ресурс изображение с подадени данни
+     */
+    public static function getResourceUrl($width = 1, $height = 1, $r, $g, $b)
+    {
+    	Request::setProtected('w,h,r,g,b');
+    	return toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b));
+    }
 }

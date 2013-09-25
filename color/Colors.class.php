@@ -492,11 +492,10 @@ class color_Colors {
     	$g = (int)$this->getValue('g');
     	$b = (int)$this->getValue('b');
     	
-    	Request::setProtected('w,h,r,g,b');
-    	$url = toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b), 'absolute');
-        return ht::createElement('img', array('src' => $url));
+    	$url = color_Renderer::getResourceUrl($width = 1, $height = 1, $r, $g, $b);
+       	return ht::createElement('img', array('src' => $url));
     }
-	
+    
     
 	/**
 	 * Конвертира от всичко към  HSL (минавайки през HSV)
