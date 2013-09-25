@@ -154,8 +154,9 @@ class store_Racks extends core_Master
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField("#id = {$selectedStoreId}", 'name');
         
-        $data->title = "Стелажи в СКЛАД № {$selectedStoreId}";
+        $data->title = "Стелажи в СКЛАД \"{$selectedStoreName}\"";
     }
     
     
@@ -165,8 +166,9 @@ class store_Racks extends core_Master
     static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField("#id = {$selectedStoreId}", 'name');
         
-        $data->title = "СКЛАД № {$selectedStoreId}, стелаж № {$data->rec->id}";
+        $data->title = "|СКЛАД|* \"{$selectedStoreName}\", |стелаж|* № {$data->rec->id}";
     }
     
     
