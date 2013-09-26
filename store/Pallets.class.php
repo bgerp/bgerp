@@ -691,7 +691,7 @@ class store_Pallets extends core_Manager
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         store_Products::save($recProducts);
         
-        return new Redirect(array($this));
+        return new Redirect(array($mvc));
     }
     
     
@@ -702,7 +702,7 @@ class store_Pallets extends core_Manager
      * @return int $productQuantityOnPallets
      */
     static function calcProductQuantityOnPalletes($productId) {
-        $query = $this->getQuery();
+        $query = static::getQuery();
         $where = "#productId = {$productId}";
         
         $productQuantityOnPallets = 0;
