@@ -32,7 +32,9 @@ class acc_Limits extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, acc_WrapperSettings, plg_State2, Items=acc_Items, Lists=acc_Lists';
+    var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, 
+    				 acc_WrapperSettings, plg_State2, Items=acc_Items, 
+    				 Lists=acc_Lists, plg_AutoFilter';
     
     
     /**
@@ -69,7 +71,7 @@ class acc_Limits extends core_Manager
         $this->FLD('startDate', 'combodate', 'caption=От начална дата');
         $this->FLD('limitDuration', 'int', 'caption=Продължителност');
         
-        $this->FLD('acc', 'key(mvc=acc_Accounts, select=title, allowEmpty)', 'caption=Сметка->Име, silent');
+        $this->FLD('acc', 'key(mvc=acc_Accounts, select=title, allowEmpty)', 'caption=Сметка->Име, silent, autoFilter');
         $this->FLD('item1', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 1, input=none');
         $this->FLD('item2', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 2, input=none');
         $this->FLD('item3', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 3, input=none');
@@ -121,5 +123,32 @@ class acc_Limits extends core_Manager
     static function on_AfterInputEditForm($mvc, $form)
     {
         //bp($form->fields, $form->rec);
+    }
+    
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'acc';
+        
+        $form->input('acc', 'silent');
+        
+        if($form->rec->acc == ""){
+        	$data->query->groupBy("acc");
+        }else {
+        	$data->query->where(array("#acc = '[#1#]'", $form->rec->acc));
+        }
     }
 }
