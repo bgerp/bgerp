@@ -165,8 +165,9 @@ class store_Movements extends core_Manager
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
-        $data->title = "Движения на палети в СКЛАД № {$selectedStoreId}";
+        $data->title = "Движения на палети в СКЛАД \"{$selectedStoreName}\"";
     }
     
     
