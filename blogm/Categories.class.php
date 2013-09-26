@@ -30,7 +30,7 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields='id, title, description';
+	var $listFields='id, title, description, lang';
 	
 	
 	/**
@@ -70,7 +70,8 @@ class blogm_Categories extends core_Manager {
 	{
 		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
 		$this->FLD('description', 'text', 'caption=Описание');
-
+		$this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter,value=bg');
+		
 		$this->setDbUnique('title');
 	}
 	
@@ -85,19 +86,35 @@ class blogm_Categories extends core_Manager {
 	
 	
 	/**
-	 * Метод за извличане на всички Категории и съхраняването им в масив от обекти
+	 * Филтрира заявката за категориите, така че да показва само тези
+	 * от текущия език
 	 */
-	static function prepareCategories(&$data)
+	private static function filterByLang(core_Query &$query)
 	{
-		// Взимаме Заявката към Категориите
-		$query = static::getQuery();
-			
-		// За всеки запис създаваме клас, който натрупваме в масива $data
-		while($rec = $query->fetch()) {
-            
-			// Добавяме категорията като нов елемент на $data
-			$data->categories[$rec->id] = static::getVerbal($rec, 'title');
+		$conf = core_Packs::getConfig('cms');
+		$lang = cms_Content::getLang();
+		$query->where("#lang = '{$lang}'");
+		if($lang == $conf->CMS_BASE_LANG){
+			$query->orWhere("#lang = ''");
 		}
+	}
+	
+	
+	/**
+	 * Връща категориите по текущия език
+	 */
+	static function getCategoriesByLang()
+	{
+		$options = array();
+		
+		// Взимаме заявката към категориите, според избрания език
+		$query = static::getQuery();
+		static::filterByLang($query);
+		while($rec = $query->fetch()) {
+			$options[$rec->id] = static::getVerbal($rec, 'title');
+		}
+		
+		return $options;
 	}
 	
 	
@@ -113,7 +130,9 @@ class blogm_Categories extends core_Manager {
             $data->categories = array();
         }
 
-        $cat = array('' => 'Всички') + $data->categories;
+        $Lg = cls::get('core_Lg');
+        $allCaption = $Lg->translate('Всички', FALSE, cms_Content::getLang());
+        $cat = array('' => $allCaption) + $data->categories;
 		
 		// За всяка Категория, създаваме линк и го поставяме в списъка
 		foreach($cat as $id => $title){
@@ -138,7 +157,13 @@ class blogm_Categories extends core_Manager {
 		// Връщаме вече рендираният шаблон
 		return $tpl;
 	}
-
-
-
+	
+	
+	/**
+     * Преди извличане на записите от БД
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	static::filterByLang($data->query);
+    }
 }

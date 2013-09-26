@@ -171,7 +171,9 @@ class blogm_Articles extends core_Master {
 	{
 		// Подреждаме статиите по датата им на публикуане в низходящ ред	
 		$data->query->orderBy('createdOn', 'DESC');
-		
+		$categories = blogm_Categories::getCategoriesByLang();
+		$data->query->likeKeylist('categories', keylist::fromArray($categories));
+	
 		// Ако метода е 'browse' показваме само активните статии
 		if($data->action == 'browse'){
 			
@@ -213,7 +215,7 @@ class blogm_Articles extends core_Master {
                 $title = blogm_Categories::getVerbal($catRec, 'title');
                 
                 // В заглавието на list  изгледа се поставя името на избраната категория
-                $data->title = 'Статии от категория:&nbsp;&nbsp;&nbsp;&nbsp;' . $title;
+                $data->title = 'Статии от категория: ' . $title;
             }
 		}
 	}
@@ -230,6 +232,8 @@ class blogm_Articles extends core_Master {
             $form->setDefault('author', core_Users::getCurrent('nick'));
             $form->setDefault('commentsMode', 'confirmation');
         }
+        
+        $form->setSuggestions('categories', blogm_Categories::getCategoriesByLang());
  	}
 	
 	
@@ -242,7 +246,7 @@ class blogm_Articles extends core_Master {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent');
-
+		$data->listFilter->setOptions('category', blogm_Categories::getCategoriesByLang());
         $data->listFilter->showFields = 'search,category';
         
         // Активиране на филтъра
@@ -311,7 +315,7 @@ class blogm_Articles extends core_Master {
                 return new Redirect(array('blogm_Articles', 'Article', $data->rec->id), 'Благодарим за вашия коментар;)');
             }
         }
-        //bp($data->ogp->siteInfo['Description']);
+        
         Mode::set('SOC_TITLE', $data->ogp->siteInfo['Title']);
         Mode::set('SOC_SUMMARY', $data->ogp->siteInfo['Description']);
         
@@ -479,6 +483,9 @@ class blogm_Articles extends core_Master {
         // Създаваме заявка към модела
 		$data->query = $this->getQuery();
 		
+		$categories = blogm_Categories::getCategoriesByLang();
+		$data->query->likeKeylist('categories', keylist::fromArray($categories));
+		
         // Въвеждаме ако има, категорията от заявката
         $data->category = Request::get('category', 'int');
 		
@@ -538,7 +545,6 @@ class blogm_Articles extends core_Master {
         
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
-		
         
         $fields = $this->selectFields("");
         $fields['-browse'] = TRUE;
@@ -546,7 +552,7 @@ class blogm_Articles extends core_Master {
         $conf = core_Packs::getConfig('blogm');
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->BLOGM_ARTICLES_PER_PAGE));
         $data->pager->setLimit($data->query);
-
+		
         while($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
@@ -584,7 +590,6 @@ class blogm_Articles extends core_Master {
                 $rowTpl->append2master();
             }
         }   
-      
         
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
@@ -616,8 +621,8 @@ class blogm_Articles extends core_Master {
 	function prepareNavigation_(&$data)
     {
 		$this->prepareSearch($data);
-                
-        blogm_Categories::prepareCategories($data);
+        
+		$data->categories = blogm_Categories::getCategoriesByLang();
 
         $this->prepareArchive($data);
         
@@ -847,6 +852,4 @@ class blogm_Articles extends core_Master {
 
         return $url;
     }
-
-
 }
