@@ -77,6 +77,12 @@ class hr_WorkingCycles extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'ceo,hr';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,hr';
 
 
     var $singleFields = 'id,name,cycleDuration,info';
