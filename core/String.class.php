@@ -437,5 +437,84 @@ class core_String
 
         return $str;
     }
-
+    
+    
+    /**
+     * Връща масив с гласните букви на латиница и кирилица
+     */
+    static function getVowelArr()
+    {
+        
+        return array("a"=>"a", "e"=>"e", "i"=>"i", "o"=>"o", "u"=>"u",
+    					"а"=>"а", "ъ"=>"ъ", "о"=>"о", "у"=>"у", "е"=>"е", "и"=>"и");
+    }
+    
+    
+    /**
+     * Проверява даден символ дали е гласна буква
+     * 
+     * @param char $char - Симвът, който ще проверяваме
+     * 
+     * @return boolena - Ако е гласна връщаме TRUE
+     */
+    static function isVowel($char)
+    {
+        // Масива със съгласните букви
+        static $vowelArr;
+        
+        // Ако не е сетнат
+	    if (!$vowelArr) {
+	        
+	        // Вземаме масива
+	        $vowelArr = static::getVowelArr();
+	    }
+	    
+	    // Буквата в долен регистър
+	    $char = mb_strtolower($char);
+	    
+	    // Ако е съгласна
+	    return (boolean)$vowelArr[$char];
+    }
+    
+    
+    /**
+     * Връща масив с съгласните букви на латиница и кирилица
+     */
+    static function getConsonentArr()
+    {
+        
+        return array("б"=>"б","в"=>"в", "г"=>"г", "д"=>"д", "ж"=>"ж", "з"=>"з", "к"=>"к",
+        				"л"=>"л", "м"=>"м", "н"=>"н", "п"=>"п", "р"=>"р", "с"=>"с", "т"=>"т",
+        				"ф"=>"ф", "х"=>"х", "ц"=>"ц", "ч"=>"ч", "ш"=>"ш",
+        				"b"=>"b", "c"=>"c", "d"=>"d", "f"=>"f", "g"=>"g", "h"=>"h", "j"=>"j",
+        				"k"=>"k", "l"=>"l", "m"=>"m", "n"=>"n", "p"=>"p", "q"=>"q", "r"=>"r", "s"=>"s",
+        				"t"=>"t", "v"=>"v", "x"=>"x", "z"=>"z");
+    }
+    
+    
+    /**
+     * Проверява даден символ дали е съгласна буква
+     * 
+     * @param char $char - Симвът, който ще проверяваме
+     * 
+     * @return boolena - Ако е съгласна връщаме TRUE
+     */
+	static function isConsonent($char)
+	{
+	    // Масива със съгласните букви
+	    static $consonentArr;
+	    
+	    // Ако не е сетнат
+	    if (!$consonentArr) {
+	        
+	        // Вземаме масива
+	        $consonentArr = static::getConsonentArr();
+	    }
+	    
+	    // Буквата в долен регистър
+	    $char = mb_strtolower($char);
+	    
+	    // Ако е съгласна
+	    return (boolean)$consonentArr[$char];
+	}
 }
