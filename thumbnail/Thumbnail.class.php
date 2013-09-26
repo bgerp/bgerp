@@ -67,7 +67,7 @@ class thumbnail_Thumbnail extends core_Manager {
         $ext = mb_strtolower($ext);
         
         // Очакваме да е от познатите разширения за растерни файлове
-        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
+        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp' || $ext == 'ico', $ext);
         
         // Ако не са зададени параметрите
         if (!isset($attr['isAbsolute'])) {
@@ -94,7 +94,9 @@ class thumbnail_Thumbnail extends core_Manager {
                  */
                 return FALSE;
             } else {
-                if (!static::saveImage($thumbFile, $thumbFilePath)) return FALSE;
+            	if($thumbFile == "TheSame"){
+            		copy($filePath, $thumbFilePath);
+            	}elseif (!static::saveImage($thumbFile, $thumbFilePath)) return FALSE;
             }
         }
         
@@ -165,7 +167,10 @@ class thumbnail_Thumbnail extends core_Manager {
         // Calculate aspect ratio
         $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
-        
+       
+        if($wRatio == 1 && $hRatio == 1) { 
+        	return 'TheSame';
+        }
     	// Ако е FALSE взимаме по малкото отношение да стане с размери максимум
     	// подадените, иначе взимаме по-голямото отношение и изображението става
     	// до минимум подадените размери
