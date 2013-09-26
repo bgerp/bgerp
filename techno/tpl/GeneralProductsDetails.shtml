@@ -17,7 +17,7 @@
 		<tr>
 			<td><div class="rowtools"><div class='l nw'>[#RowNumb#]</div><div class="r">[#num#]</div> </td>
 			<td>[#componentId#]</td>
-			<td width='12%' align='right'>[#cquantity#] [#cMeasureId#]</td>
+			<td width='12%' align='right'>[#cQuantity#] [#cMeasureId#]</td>
 			<td width='12%' align='right' class='expandable'>[#price#]</td>
 			<td width='12%' align='right' class='expandable'>[#amount#]</td>
 			<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>

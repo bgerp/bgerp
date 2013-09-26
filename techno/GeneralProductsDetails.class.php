@@ -30,7 +30,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'techno_Wrapper,plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals,plg_RowNumbering';
+    var $loadList = 'techno_Wrapper, plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals,plg_RowNumbering';
     
   
     /**
@@ -78,7 +78,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'RowNumb=Пулт, componentId, cQuantity, price, amount, bTaxes';
+    var $listFields = 'RowNumb=Пулт, componentId, cQuantity, cMeasureId, price, amount, bTaxes';
     
     
     /**
@@ -116,7 +116,6 @@ class techno_GeneralProductsDetails extends core_Detail {
     		$products = static::getRemainingOptions($rec->generalProductId, $products);
     		expect(count($products));
     		$form->setOptions('componentId', $products);
-    		$data->remainingProducts = count($products) - 1;
     	} else {
     		if($rec->componentId == -1){
     			$rec->price = $rec->amount;
@@ -134,7 +133,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
     	if (empty($data->form->rec->id)) {
-    		if(!$data->remainingProducts){
+    		if(!(count(static::getRemainingOptions($data->form->rec->generalProductId)) - 1)){
     			$data->form->toolbar->removeBtn('Запис и Нов');
     		}
     	}
@@ -190,6 +189,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     	if(empty($products)){
     		$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
     	}
+    	
     	$query = static::getQuery();
     	$query->where("#generalProductId = {$generalProductId}");
     	$query->show('componentId');
