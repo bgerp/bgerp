@@ -55,22 +55,28 @@ class hr_ContractTypes extends core_Master
     
     /**
     * Кой може да го разглежда?
-	*/
-	var $canList = 'ceo,hr';
+    */
+    var $canList = 'ceo,hr';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,hr';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,hr';
 
 	
-	/**
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,hr';
 
-    
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'ceo,hr';
+
+
     /**
      * Описание на модела
      */
