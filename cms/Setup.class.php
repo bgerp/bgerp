@@ -7,18 +7,6 @@ defIfNot('CMS_THEME', 'cms_DefaultTheme');
 
 
 /**
- * Изображение което ще се показва в Ографа
- */
-defIfNot('CMS_OGRAPH_IMAGE', '');
-
-
-/**
- *  Код за споделяне на съдържание
- */
-defIfNot('CMS_SHARE', '');
-
-
-/**
  * Основен език на публичната част
  */
 defIfNot('CMS_BASE_LANG', 'bg');
@@ -81,11 +69,6 @@ class cms_Setup extends core_ProtoSetup
             'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
 
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
-
-            'CMS_SHARE' => array ('html', 'caption=Код за споделяне-> HTML код,width=100%'),
-	
-			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
-		    
 
 	);
 

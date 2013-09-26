@@ -208,10 +208,6 @@ class cms_Articles extends core_Manager
             
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
            
-            // Рендираме тулбара за споделяне
-            //$content->append(new ET("<div style='margin-top:15px;margin-bottom:15px;clear:both;'>[#1#]</div>", toUrl(getCurrentUrl())));
-
-            
             $ptitle = self::getVerbal($rec, 'title') . " » ";
  
             $content->prepend($ptitle, 'PAGE_TITLE');
