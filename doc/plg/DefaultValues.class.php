@@ -68,7 +68,7 @@ class doc_plg_DefaultValues extends core_Plugin
      * потребител или не
      * @return mixed $rec - последния запис
      */
-    private static function getLastDocument(core_Mvc $mvc, $folderId, $fromUser = TRUE)
+    private static function getLastDocumentValue(core_Mvc $mvc, $folderId, $fromUser = TRUE, $name)
     {
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
@@ -76,8 +76,9 @@ class doc_plg_DefaultValues extends core_Plugin
     	if($fromUser){
     		$query->where("#createdBy = {$cu}");
     	}
-    	$query->orderBy('createdOn', 'DESC');
     	
+    	$query->orderBy('createdOn', 'DESC');
+    	$query->show($name);
     	return $query->fetch();
     }
     
@@ -189,6 +190,7 @@ class doc_plg_DefaultValues extends core_Plugin
 	    	$query = $mvc->getQuery();
 	    	$query->where("#folderId = {$folderId}");
 	    	$query->orderBy('createdOn', 'DESC');
+	    	$query->show('id');
 	    	$lastRec = $query->fetch();
 	    	if($lastRec && cls::existsMethod($mvc, 'getContragentData')){
 	    		$data = $mvc::getContragentData($lastRec->id);
@@ -236,11 +238,11 @@ class doc_plg_DefaultValues extends core_Plugin
     	}
     	
     	// Последния документ от потребителя в същата папка
-    	$value = static::getLastDocument($mvc, $rec->folderId)->{$name};
+    	$value = static::getLastDocumentValue($mvc, $rec->folderId, TRUE, $name)->{$name};
     	
     	// Последния документ в същата папка
     	if(!$value){
-    		$value = static::getLastDocument($mvc, $rec->folderId, FALSE)->{$name};
+    		$value = static::getLastDocumentValue($mvc, $rec->folderId, FALSE, $name)->{$name};
     	}
     	
     	// Дефолт метода на мениджъра
