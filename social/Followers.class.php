@@ -93,8 +93,15 @@ class social_Followers extends core_Master
 			
 			// Вземаме качената икона
 			if($socialNetwork->icon){
-				$icon = $socialNetwork->icon;
-					
+				
+				$attr = array('baseName' => $socialNetwork->title, 'isAbsolute' => TRUE, 'qt' => '');
+            
+	            // Размера на thumbnail изображението
+	            $size = array('24', '24');
+	            
+	            // Създаваме тумбнаил с параметрите
+	            $icon = thumbnail_Thumbnail::getLink($socialNetwork->icon, $size, $attr);
+		
 				// Ако тя липсва
 			} else {
 					
@@ -116,7 +123,7 @@ class social_Followers extends core_Master
 				
 			// Създаваме линка на бутона
 			$link = ht::createLink("{$img}" . $socialNetwork->sharedCnt, $url, NULL, array("class" => "soc-following", "target"=>"_blank", "title" => tr('Последвайте ни в '). $socialNetwork->title));
-        
+       
 			// Добавямего към шаблона
 			$tpl->append($link);  
 		}
