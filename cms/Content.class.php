@@ -273,10 +273,12 @@ class cms_Content extends core_Manager
             } else {
                 $attr = array('class' => '');
             }
-
+            
+            $imageUrl = sbf("img/flags/" . $lg . ".png", "");
+            $img = ht::createElement("img", array('src' => $imageUrl));
+            
             $url = array($this, 'SelectLang', 'lang' => $lg);
-            $s->replace(ht::createLink( ' » ' . drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), $url, NULL, $attr), 'SELECTOR');
-
+            $s->replace(ht::createLink($img . drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), $url, NULL, $attr), 'SELECTOR');
             $s->append2master();
         }
         
