@@ -338,6 +338,7 @@ class sales_QuotationsDetails extends core_Detail {
     function renderDetail_($data)
     {
     	$tpl = new ET("");
+    	$qId = $data->masterData->rec->id;
     	
     	// Шаблон за задължителните продукти
     	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
@@ -360,7 +361,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    				
 	    				// Добавяне на защитен уникале индекс на 
 	    				// продукта за автоматичен resize на JS-та
-	    				$prot = md5($pId.$optional.$polId);
+	    				$prot = md5($pId.$optional.$polId.$qId);
 	    				$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
 	    			}
 	    			
