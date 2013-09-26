@@ -82,12 +82,14 @@ class store_Setup extends core_ProtoSetup
      */
     function install()
     {
-       $html = parent::install();
+        $html = parent::install();
                    
         core_Classes::add('store_ArrangeStrategyTop');
         core_Classes::add('store_ArrangeStrategyBottom');
         core_Classes::add('store_ArrangeStrategyMain');
         
+        // Добавяне на роля за старши складажия
+        $html .= core_Roles::addRole('masterStore', 'store') ? "<li style='color:green'>Добавена е роля <b>masterStore</b></li>" : '';
         return $html;
     }
     

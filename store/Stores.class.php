@@ -87,11 +87,23 @@ class store_Stores extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой може да пише
      */
-    var $canWrite = 'ceo,store';
+    var $canWrite = 'ceo,masterStore';
     
     
+    /**
+	 * Кой може да селектира всички записи
+	 */
+	var $canSelectAll = 'ceo,masterStore';
+	
+	
+   /**
+	* Кой може да селектира?
+	*/
+	var $canSelect = 'ceo,store';
+	
+	
     /**
      * Брой записи на страница
      */
@@ -144,21 +156,6 @@ class store_Stores extends core_Master
         $this->FLD('chiefId', 'key(mvc=core_Users, select=names)', 'caption=Отговорник,mandatory');
         $this->FLD('workersIds', 'userList(store,storeWorker,ceo)', 'caption=Товарачи');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
-    }
-    
-    
-    /**
-     * Ако потребителя на е с роля 'ceo' скриваме полетата 'tools' и 'selectedPlg'
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListFields($mvc, $data)
-    {
-        if (!haveRole('ceo')) {
-            unset($data->listFields['tools']);
-            unset($data->listFields['selectedPlg']);
-        }
     }
     
     
@@ -238,7 +235,7 @@ class store_Stores extends core_Master
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo')){
+		if(!haveRole('ceo,masterStore')){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
