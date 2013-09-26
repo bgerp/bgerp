@@ -389,7 +389,7 @@ class store_Pallets extends core_Manager
             $data->form->FNC('zone', 'varchar(64)', 'caption=Позициониране->1. Палетиране в зона');
             
             // Как да се постави палета
-            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->2. Генериране на движение<br>към позиция');
+            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->2. Генериране на движение към позиция');
             
             // Подготвя $palletPlaceHowto suggestions
             $palletPlaceHowto = array('' => '',
