@@ -181,7 +181,7 @@ class sales_Quotations extends core_Master
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        }
-       
+      
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
@@ -273,23 +273,6 @@ class sales_Quotations extends core_Master
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
     	$form->setDefault('contragentClassId', $contragentClassId);
     	$form->setDefault('contragentId', $contragentId);
-    	
-    	$currencyCode = ($data->countryId) ? drdata_Countries::fetchField($data->countryId, 'currencyCode') : acc_Periods::getBaseCurrencyCode($form->rec->date);
-    	$form->setDefault('paymentCurrencyId', $currencyCode);
-    	
-    	if ($data->company && empty($rec->company)) {
-    		$form->setDefault('company', $data->company);
-    	}
-    		
-    	if($data->person && empty($rec->person)) {
-    		$form->setDefault('person', $data->person);
-    	}
-    		
-    	if(!$data->country){
-    		$conf = core_Packs::getConfig('crm');
-    		$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
-    	}
-    	$form->setDefault('country', $data->country);
     }
     
     

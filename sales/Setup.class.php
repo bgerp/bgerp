@@ -3,7 +3,12 @@
  *  Изглед за фактурата
  */
 defIfNot('INV_LAYOUT', 'sales/tpl/SingleLayoutInvoice');
+
+/**
+ * Изглед на header-а на оферта
+ */
 defIfNot('QUOTE_LAYOUT', 'Letter');
+
 
 /**
  * Покупки - инсталиране / деинсталиране
@@ -67,7 +72,6 @@ class sales_Setup extends core_ProtoSetup
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
     		'sales_SaleRequestDetails',
-    
         );
 
         
