@@ -135,7 +135,7 @@ class techno_GeneralProducts extends core_Master {
     	
     	if($fields['-single'] && !$fields['-short']){
 	    	if($rec->image){
-	     		$size = array(280, 300);
+	     		$size = array(280, 150);
 				$Fancybox = cls::get('fancybox_Fancybox');
 				$row->image = $Fancybox->getImage($rec->image, $size, array(550, 550));
 	    	}
