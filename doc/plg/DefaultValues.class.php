@@ -201,6 +201,13 @@ class doc_plg_DefaultValues extends core_Plugin
     		$data = $contragentClass::getContragentData($contragentId);
     	}
     	
+    	if($name == 'country'){
+    		if(!$data->country){
+	    		$conf = core_Packs::getConfig('crm');
+	    		$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+    		}
+    	}
+    	
 	    if(isset($data->{$name})){
 	    	return $data->{$name};
 	    } elseif(isset($data->{"p".ucfirst($name).""})){
