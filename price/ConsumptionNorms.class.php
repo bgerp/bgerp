@@ -603,7 +603,7 @@ class price_ConsumptionNorms extends core_Master {
     
     
     /**
-	 *  Филтриране на статиите по ключови думи и категория
+	 *  След подготовка на филтър формата
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{	

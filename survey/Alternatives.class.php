@@ -162,7 +162,7 @@ class survey_Alternatives extends core_Detail {
     
     
     /**
-	 * Обработка на вербалното представяне на статиите
+	 * Обработка на вербалното представяне на въпросите
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{

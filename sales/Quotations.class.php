@@ -122,6 +122,12 @@ class sales_Quotations extends core_Master
      */
    var $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
+   
+   /**
+    * Брой оферти на страница
+    */
+   var $listItemsPerPage = '20';
+    
     
    /**
      * Групиране на документите
