@@ -29,9 +29,28 @@ class social_Sharings extends core_Master
 
     
     /**
+     * Разглеждане на листов изглед
+     */
+    var $canSingle = 'no_one';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    
+    
+   
+    /**
+     * Полета за листовия изглед
+     */
+    var $listFields = '✍,name,url,icon,sharedCnt,state';
+
+
+    /**
+     * Поле за инструментите на реда
+     */
+    var $rowToolsField = '✍';
     
     
     /**
@@ -52,9 +71,9 @@ class social_Sharings extends core_Master
     function description()
     {
 		$this->FLD('name', 'varchar(32)', 'caption=Услуга');
-		$this->FLD('url', 'varchar(128)', 'caption=URL за споделяне');
+		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('sharedCnt', 'int', 'caption=Брой споделяния, input=none');
+		$this->FLD('sharedCnt', 'int', 'caption=Cподеляния, input=none');
     }
     
     
@@ -241,6 +260,20 @@ class social_Sharings extends core_Master
     	$res .= $cntObj->html;
     }
 
+    
+ 	/**
+     * Пренасочва URL за връщане след запис към лист изгледа
+     */
+    function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако е субмитната формата 
+        if ($data->form && $data->form->isSubmitted()) {
+
+            // Променяма да сочи към single'a
+            $data->retUrl = toUrl(array($mvc, 'list'));
+        }
+    }
+    
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)

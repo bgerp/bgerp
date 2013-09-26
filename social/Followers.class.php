@@ -35,6 +35,18 @@ class social_Followers extends core_Master
     
     
     /**
+     * Полета за листовия изглед
+     */
+    var $listFields = '✍,title,url,icon,followersCnt,state';
+
+
+    /**
+     * Поле за инструментите на реда
+     */
+    var $rowToolsField = '✍';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo, social';
@@ -45,6 +57,11 @@ class social_Followers extends core_Master
      */
     var $canWrite = 'ceo, social';
 
+    /**
+     * Кои може да гледа сингъла
+     */
+    var $canSingle = 'no_one';
+    
     
     /**
      * Описание на модела
@@ -52,9 +69,9 @@ class social_Followers extends core_Master
     function description()
     {
 		$this->FLD('title', 'varchar(32)', 'caption=Услуга');
-		$this->FLD('url', 'varchar(128)', 'caption=URL за последване');
+		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL на вашата страница');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('followersCnt', 'int', 'caption=Брой последователи, input=none');
+		$this->FLD('followersCnt', 'int', 'caption=Последователи, input=none');
     }
     
  
@@ -134,6 +151,20 @@ class social_Followers extends core_Master
     	
     	// Връщаме URL-то
     	return new Redirect ($rec->url);
+    }
+    
+    
+	/**
+     * Пренасочва URL за връщане след запис към лист изгледа
+     */
+    function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако е субмитната формата 
+        if ($data->form && $data->form->isSubmitted()) {
+
+            // Променяма да сочи към single'a
+            $data->retUrl = toUrl(array($mvc, 'list'));
+        }
     }
     
     
