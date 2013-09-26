@@ -15,11 +15,7 @@
 			<td>[#nkpd#]</td>
 		</tr>
 		<tr>
-			<td class="title-style">НКИД</td>
-			<td>[#nkid#]</td>
-		</tr>
-		<tr>
-			<td class="title-style">@Характеристика</td>
+			<td class="title-style">Характеристика</td>
 			<td>[#descriptions#]</td>
 		</tr>
 	 	<!--ET_BEGIN employersCnt-->
