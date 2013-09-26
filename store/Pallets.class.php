@@ -155,8 +155,9 @@ class store_Pallets extends core_Manager
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
-        $data->title = "Палети в СКЛАД № {$selectedStoreId}";
+        $data->title = "|Палети в СКЛАД|* \"{$selectedStoreName}\"";
     }
     
     
