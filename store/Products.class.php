@@ -114,8 +114,9 @@ class store_Products extends core_Manager
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
         
-        $data->title = "Продукти в СКЛАД № {$selectedStoreId}";
+        $data->title = "|Продукти в СКЛАД|* \"{$selectedStoreName}\"";
     }
     
     
