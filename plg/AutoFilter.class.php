@@ -37,7 +37,7 @@ class plg_AutoFilter extends core_Plugin
                 if(!$rec->{$name} && ($lastValue = Mode::get($modeName))) {
                     if($lastValue == md5(self::EMPTY_STR . Mode::getPermanentKey())) {
                         $lastValue = '';
-                    } bp($lastValue);
+                    } 
                     $form->setDefault($name, $lastValue);
                     
                 }
