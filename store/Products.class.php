@@ -99,7 +99,7 @@ class store_Products extends core_Manager
         $this->FLD('quantity', 'int', 'caption=Количество->Общо');
         $this->FNC('quantityNotOnPallets', 'int', 'caption=Количество->Непалетирано');
         $this->FLD('quantityOnPallets', 'int', 'caption=Количество->На палети');
-        $this->FNC('makePallets', 'varchar(255)', 'caption=Палетирай');
+        $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
     }
     
     
@@ -164,7 +164,7 @@ class store_Products extends core_Manager
         $measureShortName = cat_UoM::getShortName($measureId);
         
         if (haveRole('ceo,store')) {
-            $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));
+            $row->makePallets = Ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id));
         }
         
         $row->quantity .= ' ' . $measureShortName;
