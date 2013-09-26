@@ -86,13 +86,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Полета за списъчния изглед
      */
-    var $listFields = 'tools=Пулт,title,folderId,createdOn,createdBy';
-    
-    
-    /**
-     * Поле за туулбара за редактиране
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id=Пулт,title,folderId,createdOn,createdBy';
     
     
     /**
