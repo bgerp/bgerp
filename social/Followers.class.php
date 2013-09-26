@@ -54,7 +54,7 @@ class social_Followers extends core_Master
 		$this->FLD('title', 'varchar(32)', 'caption=Услуга');
 		$this->FLD('url', 'varchar(128)', 'caption=URL за последване');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('followersCnt', 'int', 'caption=Брой последователи');
+		$this->FLD('followersCnt', 'int', 'caption=Брой последователи, input=none');
     }
     
  
@@ -134,5 +134,35 @@ class social_Followers extends core_Master
     	
     	// Връщаме URL-то
     	return new Redirect ($rec->url);
+    }
+    
+    
+  	/**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if ($form->isSubmitted()) {
+	    	if (empty($form->rec->title)) {
+	    		
+	            // Сетваме грешката
+	            $form->setError('title', 'Непопълнено име на социалната мрежа');
+	        }
+	        
+	        if(empty($form->rec->url)){
+	        	
+	        	// Сетваме грешката
+	            $form->setError('url', 'Непопълнено URL за споделяне');
+	        }
+    	}
+    }
+    
+    
+    /**
+     * Преди да вкараме записа в базата
+     */
+    static function on_BeforeSave($mvc,$res,$rec)
+    {
+    	$rec->followersCnt = 0;
     }
 }

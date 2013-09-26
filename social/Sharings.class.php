@@ -54,7 +54,7 @@ class social_Sharings extends core_Master
 		$this->FLD('name', 'varchar(32)', 'caption=Услуга');
 		$this->FLD('url', 'varchar(128)', 'caption=URL за споделяне');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('sharedCnt', 'int', 'caption=Брой споделяния');
+		$this->FLD('sharedCnt', 'int', 'caption=Брой споделяния, input=none');
     }
     
     
@@ -239,5 +239,35 @@ class social_Sharings extends core_Master
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
+    }
+
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if ($form->isSubmitted()) {
+	    	if (empty($form->rec->name)) {
+	    		
+	            // Сетваме грешката
+	            $form->setError('name', 'Непопълнено име на социалната мрежа');
+	        }
+	        
+	        if(empty($form->rec->url)){
+	        	
+	        	// Сетваме грешката
+	            $form->setError('url', 'Непопълнено URL за споделяне');
+	        }
+    	}
+    }
+    
+    
+    /**
+     * Преди да вкараме записа в базата
+     */
+    static function on_BeforeSave($mvc,$res,$rec)
+    {
+    	$rec->sharedCnt = 0;
     }
 }
