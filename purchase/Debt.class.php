@@ -28,7 +28,7 @@ class purchase_Debt extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    purchase_Wrapper';
+                    purchase_Wrapper, plg_AutoFilter';
     
     
     /**
@@ -90,15 +90,43 @@ class purchase_Debt extends core_Manager
      */
     function description()
     {
-   	 $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице');
-    	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма');
+   	     $this->FLD('person', 'key(mvc=crm_Persons,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Лице, autoFilter');
+    	 $this->FLD('companies', 'key(mvc=crm_Companies,select=name,group=suppliers, allowEmpty=true)', 'caption=Контрагент->Фирма,autoFilter');
     	 $this->FLD('document', 'varchar', 'caption=Доставка->Номер');
        	 $this->FLD('date', 'date', 'caption=Доставка->Дата');
        	 $this->FLD('sum', 'double', 'caption=Доставка->Сума');
     	 $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Доставка->Детайли');
-    	 
-    	 
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'person,companies';
+        
+        $form->input('person,companies', 'silent');
+
+        if($form->rec->person){
+        	$data->query->where(array("#person = '[#1#]'", $form->rec->person));
+        }
+        
+    	if($form->rec->companies){
+        	$data->query->where(array("#companies = '[#1#]'", $form->rec->companies));
+        }
+    }
+    
     
     /**
      * @todo Чака за документация...
