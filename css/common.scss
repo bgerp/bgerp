@@ -1974,34 +1974,23 @@ div.richtextHide {
 p.richtext {
 	border: solid 1px red;
 }
-
-.richtext h1 {
+.narrow .richtext{
+	font-size:0.9 em;
+}
+.richtext h1, .richtext h2, .richtext h3 {
 	margin-top:0px;
-	margin-bottom:0px;
-	line-height:1.2em;
-}
-
-.richtext h2 { 
-	margin-left:0px;
-	margin-bottom:5px;
-	padding:5px;
-}
-
-.richtext h3 {
-    margin:5px;
-    margin-left:0px;
 }
 
 .narrow .richtext h1{
-	font-size:1.2em;
+	font-size:1.3em;
 }
 
 .narrow .richtext h2{
-	font-size:1.1em;
+	font-size:1.2em;
 }
 
 .narrow .richtext h3{
-	font-size:1em;
+	font-size:1.1em;
 }
 
 .richtext div span{
