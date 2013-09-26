@@ -12,7 +12,16 @@
  * @since     v 0.1
  * @link
  */
-class lib_Diff {
+class lib_Diff
+{
+    
+    
+    /**
+     * Макимално разрешения брой елементи в масива за разликите
+     * При по - големи стойности свършва паметта
+     */
+    const MAX_STACK_COUNT = 1000;
+    
     
     /**
      * Списък с препинателни знаци, ескейпнати за регулярен израз
@@ -38,7 +47,14 @@ class lib_Diff {
         $oldArr  = self::explodeHtml($old);
         $newArr  = self::explodeHtml($new);
         $arrDiff = self::ses($oldArr, $newArr);
-
+        
+        // Ако процеса за открираване на разлики е спрял принудително
+        if ($arrDiff === FALSE) {
+            
+            // Връщаме предупреждение и най - новата версия
+            return "<div style='color: red;'>" . tr("Внимание! Има много разлик и не може да се изчислят.") . "</div>" . $new;
+        }
+        
         $out = $mode = $buf = '';
 
         foreach($arrDiff as $e) {
@@ -247,7 +263,11 @@ class lib_Diff {
                     break;
                 }
             }
+            
             $stack[] = $V;
+            
+            // Ако броя на разликите е над допустимото, връщаме FALSE
+            if (count($stack) > static::MAX_STACK_COUNT) return FALSE;
         }
         $D--;
          
