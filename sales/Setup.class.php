@@ -3,7 +3,7 @@
  *  Изглед за фактурата
  */
 defIfNot('INV_LAYOUT', 'sales/tpl/SingleLayoutInvoice');
-
+defIfNot('QUOTE_LAYOUT', 'Letter');
 
 /**
  * Покупки - инсталиране / деинсталиране
@@ -49,6 +49,7 @@ class sales_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 			'INV_LAYOUT' => array ("enum(sales/tpl/SingleLayoutInvoice=Основен изглед,sales/tpl/SingleLayoutInvoice2=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
+			'QUOTE_LAYOUT' => array ("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 	);
 	
 	
