@@ -114,7 +114,7 @@ class store_Racks extends core_Master
         $this->FLD('comment', 'text', 'caption=Коментар');
         $this->FNC('rackView', 'text', 'caption=Стелажи');
         $this->FLD('groupsAllowed', 'keylist(mvc=cat_Groups, select=name, translate)', 'caption=Групи');
-        $this->FLD('constrColumnsStep', 'int', 'caption=Носещи колони през брой палет места');
+        $this->FLD('constrColumnsStep', 'int', 'caption=Носещи колони през<br>брой палет места');
         
         $this->setDbUnique('storeId,num');
     }
