@@ -77,7 +77,7 @@ class social_Setup extends core_ProtoSetup
     	 
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('social', 'Прикачени файлове в социални мрежи', NULL, '1GB', 'user', 'social');
+        $html .= $Bucket->createBucket('social', 'Прикачени файлове в социални мрежи', 'png,gif,ico,bmp,jpg,jpeg,image/*', '10KB', 'user', 'social');
         
         return $html;
     }
