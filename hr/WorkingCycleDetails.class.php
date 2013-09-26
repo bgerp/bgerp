@@ -40,7 +40,16 @@ class hr_WorkingCycleDetails extends core_Detail
     var $listFields = 'day,mode=Режим,start,duration,break';
     
     var $rowToolsField = 'day';
+
     
+
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,hr';
+
+
+
     /**
      * Описание на модела
      */
