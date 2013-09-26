@@ -231,6 +231,8 @@ class cash_Rko extends core_Master
         
         $form->setDefault('peroCase', cash_Cases::getCurrent());
         $form->setReadOnly('peroCase');
+        
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
     

@@ -188,6 +188,7 @@ class bank_IncomeDocument extends core_Master
         $form->setOptions('operationSysId', $options);
      
         static::getContragentInfo($form, 'contragentName');
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
     
      
