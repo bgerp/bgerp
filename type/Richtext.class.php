@@ -51,8 +51,26 @@ class type_Richtext extends type_Blob
      * Шаблон за намиране на линкове в текст
      */
     // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
-
 	
+    
+	/**
+     * Минималната дължина на стринга, над която ще се хифенира стринга
+     */
+    const TRANSFER_WORD_MIN_LENGTH = 15;
+    
+    
+	/**
+     * Минималната дължина след която ще се добавя знак за хифенация
+     */
+    const MIN_LENGTH_HYPHEN = 5;
+    
+    
+    /**
+     * Максималната дължина след която ще се добавя знак за хифенация
+     */
+    const MAX_LENGTH_HYPHEN = 9;
+    
+    
 	/**
      * Инициализиране на типа
      * Задава, че да се компресира
@@ -251,7 +269,12 @@ class type_Richtext extends type_Blob
             // Търсим в шаблона
             $html = preg_replace_callback($patternBold, array($this, '_catchBold'), $html);   
         }
-            
+        
+        // Регулярен израз за откриване на думите за хифениране
+        // Думи без интервал по подълги от зададена в констатнтата
+        $regExpHyphenWord = "/(\S{" . static::TRANSFER_WORD_MIN_LENGTH . ",})/ui";
+        $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
+        
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
@@ -292,7 +315,6 @@ class type_Richtext extends type_Blob
             $to = array("", "");
         }
         $html = str_replace($from, $to, $html);
-
         
         if(!Mode::is('text', 'plain')) {
             
@@ -676,6 +698,75 @@ class type_Richtext extends type_Blob
         $this->_htmlBoard[$place] = $code1;
         
         return "[#{$place}#]";
+    }
+	
+    
+	/**
+     * Хифенира стринговете
+     */
+    function _hyphenWord($match)
+    {
+        // Разделяме масива на стрингове
+        $stringArr = preg_split('/(?<!^)(?!$)/ui', $match[0]);
+        
+        // Брояча за сивмовилите
+        $i = 0;
+        
+        // Стринга
+        $str = '';
+        
+        // Обхождаме масива със символите от стринга
+        foreach ($stringArr as $position => $char) {
+            
+            // Флаг, дали да се добавя знак за хифенация
+            $addHyphen = FALSE;
+            
+            // Увеличаваме брояча
+            $i++;
+            
+            // Ако брояча е над първия допустим праг
+            if ($i > static::MIN_LENGTH_HYPHEN) {
+                
+                // Взмема следващия символ
+                $nextChar = $stringArr[$position+1];
+                
+                // Ако има следващ
+                if ($nextChar) {
+                    
+                    // Ако сегашния символ не е съгласна, а следващия е съгласна
+                    if (!core_String::isConsonent($char) && core_String::isConsonent($nextChar)) {
+                        
+                        // Вдигаме влага за добавяне на хифенация
+                        $addHyphen = TRUE;
+                        
+                    } else {
+                        
+                        // Ако брояча е над втория допустим праг
+                        if ($i > static::MAX_LENGTH_HYPHEN) {
+                            
+                            // Вдигаме влага за добавяне на хифенация
+                            $addHyphen = TRUE;
+                        }
+                    }
+                }
+            } 
+            
+            // Ако флага е вдигнат
+            if ($addHyphen) {
+                // Добавяме знака за хифенация след символа, който ще се показва от браузърите, само, ако думата е пренесена на нов ред
+                //soft hyphen
+                $str .= $char . "&#173;";
+                
+                // Нулираме брояча
+                $i = 0;
+            } else {
+                
+                // Добавяме символа
+                $str .= $char;
+            }
+        }
+        
+        return $str;
     }
     
     
