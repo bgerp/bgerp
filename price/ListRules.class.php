@@ -265,7 +265,7 @@ class price_ListRules extends core_Detail
     	// Извличат се тези продукти, които имат група
     	while($grRec = $groupsQuery->fetch()){
     		if(!array_key_exists($grRec->productId, $options)){
-    			if($pRec = cat_Products::fetch($grRec->productId, 'name', FALSE)){
+    			if($pRec = cat_Products::fetch($grRec->productId, 'name,code', FALSE)){
     				$options[$grRec->productId] = cat_Products::getRecTitle($pRec);
     			}
     		}
