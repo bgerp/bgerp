@@ -56,27 +56,27 @@ class hr_WorkingCycles extends core_Master
     
     
     /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'ceo,hr';
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,hr';
 
 
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,hr';
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    var $canSingle = 'ceo,hr';
 
 	
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,dma';
+    var $canRead = 'ceo,hr';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo,dma';
+    var $canWrite = 'ceo,hr';
 
 
     var $singleFields = 'id,name,cycleDuration,info';
