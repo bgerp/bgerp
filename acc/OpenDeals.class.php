@@ -65,6 +65,12 @@ class acc_OpenDeals extends core_Manager {
 	
 	
 	/**
+	 * Кой може да създава
+	 */
+	var $canAdd = 'no_one';
+	
+	
+	/**
      * Описание на модела
      */
     function description()
