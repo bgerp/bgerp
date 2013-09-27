@@ -52,6 +52,6 @@ class bglocal_BulgarianLNC
             return TRUE;
         }
         
-        return "<br />Не е валидно ЛНЧ.";
+        return "|*<br>|Не е валидно ЛНЧ.";
     }
 }
