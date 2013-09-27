@@ -109,7 +109,7 @@ class support_Issues extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'support_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, plg_Search, 
-    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin';
+    				doc_SharablePlg, doc_AssignPlg, plg_Sorting, change_Plugin, doc_plg_BusinessDoc2';
 
     
     /**
@@ -608,5 +608,17 @@ class support_Issues extends core_Master
             // Добавяме към споделените
             $shared = keylist::merge($maintainers, $shared);
         }
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * 
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+        
+    	return array('support_IssueIntf');
     }
 }

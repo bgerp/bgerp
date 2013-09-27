@@ -110,7 +110,7 @@ class support_Systems extends core_Master
      */
     var $interfaces =
     // Интерфейс за корица на папка
-    'doc_FolderIntf';
+    'doc_FolderIntf, support_IssueIntf';
     
     
     /**
