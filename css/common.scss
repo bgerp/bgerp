@@ -560,10 +560,6 @@ legend img {
 	vertical-align: middle;
 }
 
-.wide h2, .wide h3{
-	margin-top:0px;
-}
-
 .wide input.contactData, .wide textarea.contactData, .wide select.contactData {
 	width:400px;
 }
@@ -1975,18 +1971,21 @@ p.richtext {
 	border: solid 1px red;
 }
 .narrow .richtext{
-	font-size:0.9 em;
+	font-size:0.9em;
 }
+
 .richtext h1, .richtext h2, .richtext h3 {
 	margin-top:0px;
+	margin-bottom:5px;
+	line-height:normal;
 }
 
 .narrow .richtext h1{
-	font-size:1.3em;
+	font-size:1.4em;
 }
 
 .narrow .richtext h2{
-	font-size:1.2em;
+	font-size:1.25em;
 }
 
 .narrow .richtext h3{
