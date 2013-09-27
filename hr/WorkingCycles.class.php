@@ -128,7 +128,7 @@ class hr_WorkingCycles extends core_Master
         $maxNight = $tTime->toVerbal($maxNight);
         
 
-        $data->row->info = "Max night: $maxNight<br>";
+        //$data->row->info = "Max night: $maxNight<br>";
     }
     
     

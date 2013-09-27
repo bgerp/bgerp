@@ -14,12 +14,12 @@
 			<td class="title-style">|Брой дни|*</td>
 			<td>[#cycleDuration#]</td>
 		</tr>
-	 	<!--ET_BEGIN employersCnt-->
+	 	<!--ET_BEGIN info-->
 		<tr>
 			<td class="title-style">|Информация|*</td>
 			<td>[#info#]</td>
 		</tr>
-		<!--ET_END employersCnt-->
+		<!--ET_END info-->
 	</table>
 	[#DETAILS#]
 	<div style='margin-top:10px;'>
