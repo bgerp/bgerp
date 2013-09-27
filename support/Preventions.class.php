@@ -210,4 +210,14 @@ class support_Preventions extends core_Master
         
         $data->row->subject = tr("ПД|*: {$data->row->subject}");
     }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        // Премахваме бутона за добанвяне на нов запис в листовия изглед
+        $data->toolbar->removeBtn('btnAdd');
+    }
 }

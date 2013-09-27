@@ -231,4 +231,14 @@ class support_Resolutions extends core_Master
             support_Issues::closeIssue($nRec->threadId);   
         }
     }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        // Премахваме бутона за добанвяне на нов запис в листовия изглед
+        $data->toolbar->removeBtn('btnAdd');
+    }
 }
