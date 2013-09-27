@@ -54,12 +54,13 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	if(!str::increment($newTitle)){
     		$newTitle .= " v2";
     	}
+    	
     	while($mvc->fetch("#title = '{$newTitle}'")){
     		$newTitle = str::increment($newTitle);
     	}
-    	$rec->title = $newTitle;
     	
     	// Запис и редирект
+    	$rec->title = $newTitle;
     	$mvc->save($rec);
     	static::copyDetails($mvc, $parentId, $rec->id);
     	
@@ -88,7 +89,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     			}
     		}
     	}
-    }
+     }
     
     
     /**
@@ -136,7 +137,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     function on_AfterGetAllowedFolders($mvc, &$res)
     {
-    	$res =  array('doc_ContragentDataIntf', 'techno_SpecificationFolderCoverIntf');
+    	$res = array('doc_ContragentDataIntf', 'techno_SpecificationFolderCoverIntf');
     }
     
     

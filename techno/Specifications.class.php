@@ -122,7 +122,7 @@ class techno_Specifications extends core_Manager {
 		$this->FLD('docClassId', 'class(interface=techno_ProductsIntf,select=title)', 'caption=Тип,input=none,silent');
 		$this->FLD('docId', 'int', 'caption=Документ,input=none');
 		$this->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
-		$this->FLD('common', 'enum(no=Не,yes=Общо)', 'caption=Общи,input=none,value=no');
+		$this->FLD('common', 'enum(no=Частен,yes=Общ)', 'caption=Достъп,input=none,value=no,autoFilter');
     	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
     	$this->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $this->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
@@ -142,8 +142,14 @@ class techno_Specifications extends core_Manager {
     {
     	 $data->listFilter->view = 'horizontal';
     	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
-    	 $data->listFilter->showFields = 'search';
+    	 $data->listFilter->setOptions('common', array('' => '', 'no' => 'Общ', 'yes' => 'Частен'));
+    	 $data->listFilter->setDefault('common', '');
+    	 $data->listFilter->showFields = 'search,common';
     	 $data->listFilter->input();
+    	 
+    	 if($data->listFilter->rec->common){
+    	 	$data->query->where("#common = '{$data->listFilter->rec->common}'");
+    	 }
     }
     
     
@@ -326,7 +332,7 @@ class techno_Specifications extends core_Manager {
     		'state' => ($rec->state != 'rejected') ? 'active' : 'rejected',
     		'createdOn' => dt::now(),
     		'createdBy' => core_Users::getCurrent(),
-    		'common' => ($coverClass == 'doc_UnsortedFolders') ? "yes" : "no",
+    		'common' => !cls::haveInterface('doc_ContragentDataIntf', $coverClass) ? "yes" : "no",
     	);
     	
     	return static::save((object)$arr);
