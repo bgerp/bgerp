@@ -91,12 +91,9 @@ class blogm_Categories extends core_Manager {
 	 */
 	private static function filterByLang(core_Query &$query)
 	{
-		$conf = core_Packs::getConfig('cms');
 		$lang = cms_Content::getLang();
 		$query->where("#lang = '{$lang}'");
-		if($lang == $conf->CMS_BASE_LANG){
-			$query->orWhere("#lang = ''");
-		}
+		//if($lang == $conf->CMS_BASE_LANG)
 	}
 	
 	
@@ -165,5 +162,21 @@ class blogm_Categories extends core_Manager {
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	static::filterByLang($data->query);
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$conf = core_Packs::getConfig('cms');
+    	$query = $mvc->getQuery();
+    	while($rec = $query->fetch()){
+    		if(!strlen($rec->lang)){
+    			 $rec->lang = $conf->CMS_BASE_LANG;
+    			 $mvc->save($rec);
+    		}
+    	}
     }
 }
