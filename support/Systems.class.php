@@ -149,7 +149,7 @@ class support_Systems extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
-        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, width=100%');
+        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, width=100%, maxColumns=3');
         $this->FLD('prototype', 'key(mvc=support_Systems, select=name, allowEmpty)', "caption=Прототип, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание, width=100%");
         
@@ -346,5 +346,23 @@ class support_Systems extends core_Master
         }
         
         return $arr;
+    }
+    
+
+    /**
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+            
+            // Да има само 1 колони
+            $data->form->setField('allowedTypes', array('maxColumns' => 1));    
+        }
     }
 }
