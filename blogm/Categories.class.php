@@ -89,24 +89,25 @@ class blogm_Categories extends core_Manager {
 	 * Филтрира заявката за категориите, така че да показва само тези
 	 * от текущия език
 	 */
-	private static function filterByLang(core_Query &$query)
+	private static function filterByLang(core_Query &$query, $lang = NULL)
 	{
-		$lang = cms_Content::getLang();
+		if(empty($lang)){
+			$lang = cms_Content::getLang();
+		}
 		$query->where("#lang = '{$lang}'");
-		//if($lang == $conf->CMS_BASE_LANG)
 	}
 	
 	
 	/**
 	 * Връща категориите по текущия език
 	 */
-	static function getCategoriesByLang()
+	static function getCategoriesByLang($lang = NULL)
 	{
 		$options = array();
 		
 		// Взимаме заявката към категориите, според избрания език
 		$query = static::getQuery();
-		static::filterByLang($query);
+		static::filterByLang($query, $lang);
 		while($rec = $query->fetch()) {
 			$options[$rec->id] = static::getVerbal($rec, 'title');
 		}

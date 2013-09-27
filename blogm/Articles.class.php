@@ -119,8 +119,7 @@ class blogm_Articles extends core_Master {
             'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
   		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
-  		$this->FLD('language', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
-         
+  		
 		$this->setDbUnique('title');
 	}
 
@@ -782,8 +781,9 @@ class blogm_Articles extends core_Master {
     	$query = $this->getQuery();
     	
     	// Филтрираме, подреждаме и ограничаваме броя на резултатите
-    	$query->where("#language = '{$lg}'");
-    	$query->orderBy('createdOn', 'DESC');
+    	$categories = blogm_Categories::getCategoriesByLang($lg);
+    	$query->likeKeylist('categories', keylist::fromArray($categories));
+		$query->orderBy('createdOn', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
