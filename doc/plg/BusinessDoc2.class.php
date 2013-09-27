@@ -54,6 +54,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
         
     	if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
+            Request::get('cloneId', 'key(mvc=doc_Containers)') ||
             Request::get('originId', 'key(mvc=doc_Containers)') ) {
             // Има основание - не правим нищо
             return;
