@@ -373,4 +373,24 @@ class core_Lg extends core_Manager
         
         return $str;
     }
+    
+    
+    /**
+     * Проверява подадения език, дали е добър за използване
+     * 
+     * @param string $lg - Езика, който ще се проверява
+     * 
+     * @return boolean
+     */
+    static function isGoodLg($lg)
+    {
+        // Езика в долен регистър
+        $lg = strtolower($lg);
+        
+        // Вземаме езика от сесията
+        $currLg = strtolower(core_Lg::getCurrent());
+        
+        // Проверяваме дали са еднакви
+        return (boolean)($lg == $currLg);
+    }
 }
