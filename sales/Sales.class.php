@@ -45,7 +45,7 @@ class sales_Sales extends core_Master
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
+                    doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
     
     /**
@@ -1369,5 +1369,15 @@ class sales_Sales extends core_Master
     	if($rec->state != 'draft'){
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf');
     }
 }

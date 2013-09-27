@@ -47,7 +47,7 @@ class sales_Invoices extends core_Master
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg,
-                    doc_SequencerPlg, doc_plg_BusinessDoc, acc_plg_Contable';
+                    doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable';
     
     
     /**
@@ -983,5 +983,15 @@ class sales_Invoices extends core_Master
         }
         
         return $result;
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf');
     }
 }

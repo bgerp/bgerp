@@ -32,7 +32,7 @@ class bank_CostDocument extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_plg_BusinessDoc,doc_DocumentPlg, acc_plg_DocumentSummary,
+     	plg_Sorting, doc_plg_BusinessDoc2,doc_DocumentPlg, acc_plg_DocumentSummary,
      	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
     
     
@@ -380,5 +380,15 @@ class bank_CostDocument extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
     	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf');
     }
 }

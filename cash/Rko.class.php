@@ -32,7 +32,7 @@ class cash_Rko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc,
+     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
     
@@ -494,4 +494,14 @@ class cash_Rko extends core_Master
     {
         return static::fetch("#number = '{$parsedHandle['id']}'");
     } 
+    
+    
+	/**
+     * В кои корици може да се вкарва документа
+     * @return array - интефейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf');
+    }
 }
