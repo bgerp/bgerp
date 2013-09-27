@@ -272,7 +272,7 @@ class type_Richtext extends type_Blob
         
         // Регулярен израз за откриване на думите за хифениране
         // Думи без интервал по подълги от зададена в констатнтата
-        $regExpHyphenWord = "/(\S{" . static::TRANSFER_WORD_MIN_LENGTH . ",})/ui";
+        $regExpHyphenWord = "/(^|\s){1}[^\[\]\s]{". static::TRANSFER_WORD_MIN_LENGTH . "}(\S){" . static::TRANSFER_WORD_MIN_LENGTH . ",}($|\s)/ui";
         $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
@@ -706,66 +706,77 @@ class type_Richtext extends type_Blob
      */
     function _hyphenWord($match)
     {
-        // Разделяме масива на стрингове
-        $stringArr = preg_split('/(?<!^)(?!$)/ui', $match[0]);
+        // Стринга
+        $string = $match[0];
         
         // Брояча за сивмовилите
         $i = 0;
         
-        // Стринга
-        $str = '';
+        // За циклене по стринга
+        $p = 0;
         
-        // Обхождаме масива със символите от стринга
-        foreach ($stringArr as $position => $char) {
-            
+        // Резултатния стринг
+        $resStr = '';
+        
+        // Обхождаме всички символи
+        while('' != ($char = core_String::nextChar($match[0], $p))) {
+
             // Флаг, дали да се добавя знак за хифенация
             $addHyphen = FALSE;
             
             // Увеличаваме брояча
             $i++;
             
-            // Ако брояча е над първия допустим праг
-            if ($i > static::MIN_LENGTH_HYPHEN) {
+            // Ако брояча е под първия минимум
+            if ($i <= static::MIN_LENGTH_HYPHEN) {
                 
-                // Взмема следващия символ
-                $nextChar = $stringArr[$position+1];
+                // Добавяме символа
+                $resStr .= $char;
                 
-                // Ако има следващ
-                if ($nextChar) {
+                continue;
+            }
+            
+            // Pointer за следващия символ
+            $pNext += strlen($char);
+            
+            // Взмема следващия символ
+            $nextChar = core_String::nextChar($match[0], $pNext);
+            
+            // Ако има следващ
+            if ($nextChar != '') {
+                
+                // Ако сегашния символ не е съгласна, а следващия е съгласна
+                if (!core_String::isConsonent($char) && core_String::isConsonent($nextChar)) {
                     
-                    // Ако сегашния символ не е съгласна, а следващия е съгласна
-                    if (!core_String::isConsonent($char) && core_String::isConsonent($nextChar)) {
+                    // Вдигаме влага за добавяне на хифенация
+                    $addHyphen = TRUE;
+                    
+                } else {
+                    
+                    // Ако брояча е над втория допустим праг
+                    if ($i > static::MAX_LENGTH_HYPHEN) {
                         
                         // Вдигаме влага за добавяне на хифенация
                         $addHyphen = TRUE;
-                        
-                    } else {
-                        
-                        // Ако брояча е над втория допустим праг
-                        if ($i > static::MAX_LENGTH_HYPHEN) {
-                            
-                            // Вдигаме влага за добавяне на хифенация
-                            $addHyphen = TRUE;
-                        }
                     }
                 }
-            } 
+            }
             
             // Ако флага е вдигнат
             if ($addHyphen) {
-                // Добавяме знака за хифенация (soft hyphen) след символа, който ще се показва от браузърите, само, ако думата е пренесена на нов ред
-                $str .= $char . "&#173;";
+//                $str .= $char . "&#173;"; // Знак за softHyphne
+                $str .= $char . "<wbr>";
                 
                 // Нулираме брояча
                 $i = 0;
             } else {
                 
                 // Добавяме символа
-                $str .= $char;
+                $resStr .= $char;
             }
         }
         
-        return $str;
+        return $resStr;
     }
     
     
