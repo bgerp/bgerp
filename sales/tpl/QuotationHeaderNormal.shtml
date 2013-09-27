@@ -11,7 +11,7 @@
 				  <div class='invInfo'>|Място|* / Place</div>
                   <div class="bigData">[#place#]</div>
                   <!--ET_BEGIN reff-->
-                  <div class='invInfo'>|Ваш реф.|* / Reff</div>
+                  <div class='invInfo'>|Ваш реф|*. / Reff</div>
                   <div class="bigData">[#reff#]</div>
                   <!--ET_END reff-->
        </td>
@@ -21,6 +21,7 @@
        <td class="cell">
            <p class='title-info'>[#company#]</p>
 		   <p class='title-info'>[#person#]</p>
+		   <p class='title-info'>[#contragentAdress#]</p>
        </td>
 
        <td class="cell">
@@ -29,45 +30,6 @@
        </td>
    </tr>
    <tr>
-       <td class="cell">
-           <!--<table cellpadding="0" cellspacing="2">
-               <tbody>
-               <tr>
-                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
-               </tr>
-               <tr>
-                   <td class="bigData">[#contragentVatNo#]</td>
-               </tr>
-               <tr>
-                   <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
-               </tr>
-               <tr>
-                   <td class="bigData">[#contragentUiC#]</td>
-               </tr>
-               </tbody>
-           </table>-->
-       </td>
-
-       <td class="cell">
-           <table>
-               <tbody>
-               <!--ET_BEGIN MyCompanyVatNo-->
-               <tr>	
-                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
-               </tr>
-               <tr>
-                   <td class="bigData">[#MyCompanyVatNo#]</td>
-               </tr>
-               <!--ET_END MyCompanyVatNo-->
-               <tr>
-                   <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
-               </tr>
-               <tr>
-                   <td class="bigData">[#uicId#]</td>
-               </tr>
-               </tbody>
-           </table>            
-       </td>
 	</tr>
 	</tbody>
 </table>

@@ -373,18 +373,12 @@ class sales_Quotations extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	if ($conf->QUOTE_LAYOUT == 'Letter') {
+    		
     		$header = getTplFromFile('sales/tpl/QuotationHeaderLetter.shtml');
     	}else {
     		
     		$header = getTplFromFile('sales/tpl/QuotationHeaderNormal.shtml');
     		$ownCompanyData = crm_Companies::fetchOwnCompany();
-    		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-        	if($uic != $ownCompanyData->vatNo){
-    			$header->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
-    		} 
-    		
-    		$cData = cls::get($data->rec->contragentClassId)->getContragentData($data->rec->contragentId);
-    		$header->replace($uic, 'uicId');
     		$header->replace($ownCompanyData->company, 'MyCompany');
 	        $header->replace($ownCompanyData->country, 'MyCountry');
 	    }
