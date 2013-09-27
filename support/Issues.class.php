@@ -532,13 +532,18 @@ class support_Issues extends core_Master
             
             // Ако не са избрани всички потребители
             if (strpos($maintainers, '|-1|') === FALSE) {
-        
-                // Добавяме външно поле за търсене
-                $data->query->EXT("componentMaintainers", 'support_Components', "externalName=maintainers");
-        
-                // Да се показват само сигнали за избран потребител
-                $data->query->likeKeylist("componentMaintainers", $maintainers);
-                $data->query->where("#componentId = `support_components`.`id`");
+                
+                // Всички споделени потребители или присъединени(възложен на)
+                // Не търси по създадено от и възложено от
+                
+                // Търсим по споделените потребители
+                $data->query->likeKeylist("sharedUsers", $maintainers);
+                
+                // Масив с избрани потребители
+                $maintainersArr = type_Keylist::toArray($maintainers);
+                
+                // Търсим по възложените потребители
+                $data->query->orWhereArr("assign", $maintainersArr, TRUE);
             }        
         }
     }
