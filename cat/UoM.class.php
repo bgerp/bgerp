@@ -137,7 +137,8 @@ class cat_UoM extends core_Manager
      * @param int $to - Id на мярката към която конвертираме
      * @return double - Конвертираната стойност
      */
-    public static function convertValue($value, $from, $to){
+    public static function convertValue($value, $from, $to)
+    {
     	expect($fromRec = static::fetch($from), 'Проблем при изчислението на първата валута');
     	expect($toRec = static::fetch($to), 'Проблем при изчислението на втората валута');
     	

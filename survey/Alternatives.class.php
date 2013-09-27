@@ -327,6 +327,15 @@ class survey_Alternatives extends core_Detail {
     }
     
     
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	 $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
  	/**
 	 * Модификация на ролите, които могат да видят избраната тема
 	 */
@@ -357,11 +366,5 @@ class survey_Alternatives extends core_Detail {
 				$res = 'every_one';
 			}
    		}
-   		
-		if($action == 'add' && !isset($rec)) {
-			
-			// Предпазване от добавяне на нов постинг в act_List
-			$res = 'no_one';
-		}
    	}
 }

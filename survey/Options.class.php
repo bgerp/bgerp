@@ -27,12 +27,6 @@ class survey_Options extends core_Manager {
      */
     var $singleTitle = 'Опция';
     
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    //var $listFields = 'tools=Пулт, locationId, salesmanId, dateFld, repeatWeeks, state, createdOn, createdBy';
-    
 	
 	/**
 	 * Брой рецепти на страница
@@ -175,7 +169,7 @@ class survey_Options extends core_Manager {
 	
 	
 	/**
-	 * 
+	 * Преброява точките
 	 */
 	public function countPoints($alternativeId)
 	{

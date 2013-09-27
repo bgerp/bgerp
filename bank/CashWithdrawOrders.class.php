@@ -98,7 +98,7 @@ class bank_CashWithdrawOrders extends core_Master
     /**
      * Кой може да създава
      */
-    var $canAdd = 'no_one';
+    var $canAdd = 'bank, ceo';
     
     
     /**
@@ -308,12 +308,10 @@ class bank_CashWithdrawOrders extends core_Master
     
     
 	/**
-     * След проверка на ролите
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if($action == 'add' && (isset($rec) && $rec->originId)){
-    		$res = 'bank, ceo';
-    	}
+    	 $data->toolbar->removeBtn('btnAdd');
     }
 }
