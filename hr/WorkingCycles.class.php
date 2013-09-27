@@ -255,7 +255,7 @@ class hr_WorkingCycles extends core_Master
 	    		}
 	    		$d[$i]->type = (string)static::getShiftDay($cycleDetails, $date, $startingOn);
 	    		
-	    		$url = array("cal_Calendar" => "day", "from" => $i . '.' . $month . '.' . $year);
+	    		$url = array("cal_Calendar" , "day", "from" => $i . '.' . $month . '.' . $year);
 	    		$url = toUrl($url);
 	    		
 	    		$d[$i]->url = $url;
