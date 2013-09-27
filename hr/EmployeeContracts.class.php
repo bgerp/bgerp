@@ -262,7 +262,10 @@ class hr_EmployeeContracts extends core_Master
         }
 
         $row->positionRec = hr_Positions::fetch($rec->positionId);
-        
+        //$row->positionRec->nkpd = hr_Positions::fetch("#nkpd = '{$rec->positionId}'");
+//        /bp($row->positionRec->nkpd);
+        $row->departmentRec = hr_Departments::fetch($rec->departmentId);
+     
         $houresInSec = self::houresForAWeek($rec->id);
         $houres = $houresInSec / 60 / 60;
         
@@ -276,6 +279,8 @@ class hr_EmployeeContracts extends core_Master
 	        // да добавя и минитуте
 			$row->shiftRec->weekhours =  $houres . " часа";
         }
+        
+        $row->term = (int)$rec->term;
         
 		$res = $data;
     }
