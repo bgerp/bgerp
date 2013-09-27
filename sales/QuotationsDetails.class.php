@@ -197,6 +197,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    		
 	    		// Конвертираме цената към посочената валута в офертата
+	    		// @TODO да го махна и изтествам
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
@@ -268,11 +269,18 @@ class sales_QuotationsDetails extends core_Detail {
     private function groupResultData(&$data)
     {
     	$newRows = array();
+    	$dZebra = $oZebra = 'zebra0';
     	if(!$data->rows) return;
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
     		$polId = $data->recs[$i]->policyId;
     		$optional = $data->recs[$i]->optional;
+    		
+    		if($optional == 'no'){
+    			$zebra = &$dZebra;
+    		} else {
+    			$zebra = &$oZebra;
+    		} 
     		
     		// Сездава се специален индекс на записа productId|optional, така
     		// резултатите са разделени по продукти и дали са опционални или не
@@ -281,9 +289,19 @@ class sales_QuotationsDetails extends core_Detail {
     			
     			// Ако има вече такъв продукт, го махаме от записа
     			unset($row->productId);
+    			
+    			// Слагаме клас на клетките около rospan-а за улеснение на JS
+    			$row->rowspanId = $newRows[$pId][0]->rowspanId;
+    			$row->TR_CLASS = $data->rows[$pId][0]->TR_CLASS;
+    		} else {
+    			// Слагаме уникален индекс на клетката с продукта
+    			$prot = md5($pId.$data->masterData->rec->id);
+	    		$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
+	    		$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
     		}
     		
     		$newRows[$pId][] = $row;
+    		$newRows[$pId][0]->rowspan = count($newRows[$pId]);
     	}
     	
     	// Така имаме масив в който резултатите са групирани 
@@ -338,7 +356,6 @@ class sales_QuotationsDetails extends core_Detail {
     function renderDetail_($data)
     {
     	$tpl = new ET("");
-    	$qId = $data->masterData->rec->id;
     	
     	// Шаблон за задължителните продукти
     	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
@@ -346,7 +363,6 @@ class sales_QuotationsDetails extends core_Detail {
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
     	$oCount = $dCount = 1;
-    	$oZebra = $dZebra = 'zebra0';
     	
     	// Променливи за определяне да се скриват ли някои колони
     	$hasQuantityColOpt = FALSE;
@@ -354,26 +370,14 @@ class sales_QuotationsDetails extends core_Detail {
 	    	foreach($data->rows as $index => $arr){
 	    		list($pId, $optional, $polId) = explode("|", $index);
 	    		foreach($arr as $key => $row){
-	    			if($key == 0){
-	    				
-	    				// Задаваме rowspan на полето за продукта, взависимост от данните
-	    				$row->rowspan = count($arr);
-	    				
-	    				// Добавяне на защитен уникале индекс на 
-	    				// продукта за автоматичен resize на JS-та
-	    				$prot = md5($pId.$optional.$polId.$qId);
-	    				$row->rowspanId = $row->rowspanpId = "product-row{$prot}";
-	    			}
 	    			
 	    			// Взависимост дали е опционален продукта 
 	    			// го добавяме към определения шаблон
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
-	    				$zebra = &$dZebra;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
-	    				$zebra = &$oZebra;
 	    				
 	    				// слага се 'opt' в класа на колоната да се отличава
 	    				$rowTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
@@ -388,13 +392,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    			}
 	    			
 	    			$row->index = $id++;
-					if($row->productId){
-						$zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
-					} else {
-						$row->rowspanId = $data->rows[$index][0]->rowspanId;
-						$row->TR_CLASS = $data->rows[$index][0]->TR_CLASS;
-					}
-	    			
 	    			$rowTpl->placeObject($row);
 	    			$rowTpl->removeBlocks();
 	    			$rowTpl->append2master();

@@ -375,8 +375,8 @@ class sales_Quotations extends core_Master
     	if ($conf->QUOTE_LAYOUT == 'Letter') {
     		$header = getTplFromFile('sales/tpl/QuotationHeaderLetter.shtml');
     	}else {
-    		$header = getTplFromFile('sales/tpl/QuotationHeaderNormal.shtml');
     		
+    		$header = getTplFromFile('sales/tpl/QuotationHeaderNormal.shtml');
     		$ownCompanyData = crm_Companies::fetchOwnCompany();
     		$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         	if($uic != $ownCompanyData->vatNo){
@@ -387,8 +387,8 @@ class sales_Quotations extends core_Master
     		$header->replace($uic, 'uicId');
     		$header->replace($ownCompanyData->company, 'MyCompany');
 	        $header->replace($ownCompanyData->country, 'MyCountry');
-	        
-    	}
+	    }
+    	
     	$tpl->replace($header, 'QUOTE_HEADER');
     	$tpl->push('sales/tpl/styles.css', 'CSS');
     }
