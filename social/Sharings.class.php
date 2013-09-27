@@ -70,10 +70,10 @@ class social_Sharings extends core_Master
      */
     function description()
     {
-		$this->FLD('name', 'varchar(32)', 'caption=Услуга');
-		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне');
+		$this->FLD('name', 'varchar(32)', 'caption=Услуга,mandatory');
+		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне,mandatory');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('sharedCnt', 'int', 'caption=Cподеляния, input=none');
+		$this->FLD('sharedCnt', 'int', 'caption=Cподеляния, input=none,notNull');
     }
     
     
@@ -178,11 +178,11 @@ class social_Sharings extends core_Master
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
-               if(vislog_History::add("Споделяне " . $rec->name)){
+               if(vislog_History::add("Споделяне в " . $rec->name . "на " .$url)){
                	
                	 // Увеличаване на брояча на споделянията
-    			 $rec->sharedCnt += 1;
-               	 self::save($rec, 'sharedCnt');
+    			 $rec->sharedCnt++;
+               	 self::save($rec, 'sharedCnt');bp($rec);
                }
             }
         }
@@ -300,14 +300,5 @@ class social_Sharings extends core_Master
 	            $form->setError('url', 'Непопълнено URL за споделяне');
 	        }
     	}
-    }
-    
-    
-    /**
-     * Преди да вкараме записа в базата
-     */
-    static function on_BeforeSave($mvc,$res,$rec)
-    {
-    	$rec->sharedCnt = 0;
     }
 }

@@ -68,10 +68,10 @@ class social_Followers extends core_Master
      */
     function description()
     {
-		$this->FLD('title', 'varchar(32)', 'caption=Услуга');
-		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL на вашата страница');
+		$this->FLD('title', 'varchar(32)', 'caption=Услуга, mandatory');
+		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL на вашата страница, mandatory');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('followersCnt', 'int', 'caption=Последователи, input=none');
+		$this->FLD('followersCnt', 'int', 'caption=Последователи, input=none, notNull');
     }
     
  
@@ -145,7 +145,7 @@ class social_Followers extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	    	    	
     	// Увеличаване на брояча на споделянията
-    	$rec->followersCnt += 1;
+    	$rec->followersCnt++;
     	
     	
     	// Записваме в историята, че сме направели споделяне
@@ -193,14 +193,5 @@ class social_Followers extends core_Master
 	            $form->setError('url', 'Непопълнено URL за споделяне');
 	        }
     	}
-    }
-    
-    
-    /**
-     * Преди да вкараме записа в базата
-     */
-    static function on_BeforeSave($mvc,$res,$rec)
-    {
-    	$rec->followersCnt = 0;
     }
 }
