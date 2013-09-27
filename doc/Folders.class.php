@@ -623,24 +623,32 @@ class doc_Folders extends core_Master
         //Името на корицата на класа
         $coverClass = cls::getClassName($coverClassId);
         
-        //Ако корицата е Лице или Фирма
-        if (($coverClass == 'crm_Persons') || ($coverClass == 'crm_Companies')) {
+        //Ако корицата не е Лице или Фирма
+        if (($coverClass != 'crm_Persons') && ($coverClass != 'crm_Companies')) return ;
             
-            //Вземаме държавата
-            $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
+        //Вземаме държавата
+        $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
+        
+        //Ако няма въведена държава
+        if (!$classRec->country) return ;
             
-            //Ако има въведена държава
-            if ($classRec->country) {
-
-                //Ако държавата е българия
-                if (drdata_Countries::fetchField($classRec->country, 'letterCode2') == 'BG') {
-                    $lg = 'bg'; 
-                } else {
-                    $lg = 'en';
-                }
-                
-                return $lg;
-            }
+        // Вземаме стринга с официалните езици
+        $lgStr = drdata_Countries::fetchField($classRec->country, 'languages');
+        
+        // Ако няма нищо
+        if (!$lgStr) return ;
+        
+        // Превръщаме в масив
+        $lgArr = explode(',', $lgStr);
+        
+        // Обхождаме масива
+        foreach ((array)$lgArr as $lg) {
+            
+            // Ако няам език прескачаме
+            if (!$lg) continue;
+            
+            // Първия добър език
+            return strtolower($lg);
         }
     }
 

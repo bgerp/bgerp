@@ -1296,11 +1296,13 @@ class blast_Letters extends core_Master
      */
     static function getLanguage($body)
     {
-        //Масив с всички предполагаеми езици
+        // Вземаме езиак
         $lg = i18n_Language::detect($body);
         
-        //Ако езика не е bg, връщаме en
-        if ($lg != 'bg') {
+        //Ако езика не е добър
+        if (!$lg || !core_Lg::isGoodLg($lg)) {
+            
+            // Използваме английски
             $lg = 'en';
         }
         
