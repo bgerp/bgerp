@@ -50,6 +50,12 @@ class cat_UoM extends core_Manager
     
     
     /**
+     * 
+     */
+    var $listFields = "id,name,shortName";
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
