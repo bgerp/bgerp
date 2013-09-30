@@ -8,6 +8,30 @@ defIfNot('OFFICE_CONVERTER_CLASS', 'docoffice_Jodconverter');
 
 
 /**
+ * Широчината на preview' то
+ */
+defIfNot('OFFICE_PREVIEW_WIDTH', 850);
+
+
+/**
+ * Височината на preview' то
+ */
+defIfNot('OFFICE_PREVIEW_HEIGHT', 1200);
+
+
+/**
+ * Широчината на preview' то в мобилен режим
+ */
+defIfNot('OFFICE_PREVIEW_WIDTH_NARROW', 560);
+
+
+/**
+ * Височината на preview' то в мобилен режим
+ */
+defIfNot('OFFICE_PREVIEW_HEIGHT_NARROW', 800);
+
+
+/**
  * Пътя до python' a, който искаме да използваме
  */
 defIfNot('OFFICE_CONVERTER_PYTHON', '');
@@ -57,6 +81,14 @@ class docoffice_Setup extends core_ProtoSetup
     
         // Кой клас да се използва за конвертиране на офис документи
         'OFFICE_CONVERTER_CLASS' => array ('class(interface=docoffice_ConverterIntf, select=title)', 'mandatory, caption=Кой клас да се използва за конвертиране на офис документи->Клас'),
+        
+    	'OFFICE_PREVIEW_WIDTH'   => array ('int', 'caption=Размер на изгледа в широк режим->Широчина,unit=pix'),
+           
+    	'OFFICE_PREVIEW_HEIGHT'   => array ('int', 'caption=Размер на изгледа в широк режим->Височина,unit=pix'), 
+
+    	'OFFICE_PREVIEW_WIDTH_NARROW'   => array ('int', 'caption=Размер на изгледа в мобилен режим->Широчина,unit=pix'),
+
+    	'OFFICE_PREVIEW_HEIGHT_NARROW'   => array ('int', 'caption=Размер на изгледа в мобилен режим->Височина,unit=pix'), 
     );
     
     
