@@ -165,7 +165,7 @@ class support_Preventions extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на коментар не променя състоянието на треда
+     * Добавянето на превенция не променя състоянието на треда
      */
     static function getThreadState($id)
     {

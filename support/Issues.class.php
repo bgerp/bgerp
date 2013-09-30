@@ -255,6 +255,7 @@ class support_Issues extends core_Master
     
 	/**
      * Реализация  на интерфейсния метод ::getThreadState()
+     * Добавянето на сигнал отваря треда
      */
     static function getThreadState($id)
     {

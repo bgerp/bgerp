@@ -165,7 +165,7 @@ class support_Ratings extends core_Master
 
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
-     * Добавянето на коментар не променя състоянието на треда
+     * Добавянето на оценка не променя състоянието на треда
      */
     static function getThreadState($id)
     {
