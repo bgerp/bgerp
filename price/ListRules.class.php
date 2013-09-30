@@ -215,7 +215,7 @@ class price_ListRules extends core_Detail
 
         $masterTitle = price_Lists::getVerbal($masterRec, 'title');
 		
-        $availableProducts = $mvc->getAvailableProducts();
+        $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
         	$form->setOptions('productId', $availableProducts);
         } else {
@@ -244,44 +244,6 @@ class price_ListRules extends core_Detail
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
             $rec->validUntil = Mode::get('PRICE_VALID_UNTIL');
         }
-    }
-
-    
-    /**
-     * Връща всички продукти които са добавени поне в една ценова група
-     * Така продукт без група няма да може да бъде добавен в "себестойности"
-     * @return array $options - списък с разрешените продукти
-     */
-    private function getAvailableProducts()
-    {
-    	$now = dt::now();
-    	$options = array();
-    	
-    	// Тук ще се записват продуктите, които са в празна ценова група
-    	$exclude = array();
-    	
-    	$groupsQuery = price_GroupOfProducts::getQuery();
-    	$groupsQuery->where("#validFrom <= '{$now}'");
-    	
-    	$groupsQuery->orderBy('productId,validFrom', 'DESC');
-    	$groupsQuery->show('groupId,productId,validFrom');
-    	
-    	// Извличат се тези продукти, които имат група
-    	while($grRec = $groupsQuery->fetch()){
-    		if(!array_key_exists($grRec->productId, $options) && !$exclude[$grRec->productId]){
-    			if(isset($grRec->groupId)){
-	    			if($pRec = cat_Products::fetch($grRec->productId, 'name,code', FALSE)){
-	    				$options[$grRec->productId] = cat_Products::getRecTitle($pRec);
-	    			}
-    			} else {
-    				
-    				// Ако групата е празна, не добавяме продукта към опциите
-    				$exclude[$grRec->productId] = TRUE;
-    			}
-    		}
-    	}
-    	
-    	return $options;
     }
 
     
