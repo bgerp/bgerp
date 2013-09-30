@@ -257,6 +257,13 @@ class doc_Folders extends core_Master
         // Иконката на папката според достъпа и
         $img = static::getIconImg($rec, $haveRight);
         
+        // Ако състоянието е оттеглено
+        if ($rec->state == 'rejected') {
+            
+           // Добавяме към класа да е оттеглено
+            $attr['class'] .= ' state-rejected';
+        }
+        
         if($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
             $link = array('doc_Threads', 'list', 'folderId' => $rec->id);
