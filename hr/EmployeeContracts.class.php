@@ -150,6 +150,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Условия->Начало,mandatory");
         $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Условия->Край");
         $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
+        $this->FLD('salary', 'double(decimals=2)', "caption=Условия->Основна заплата");
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
         $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
         $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
@@ -261,16 +262,18 @@ class hr_EmployeeContracts extends core_Master
             unset($row->managerRec->egn);
         }
 
+        // Взимаме данните за Длъжността
         $row->positionRec = hr_Positions::fetch($rec->positionId);
-        //$row->positionRec->nkpd = hr_Positions::fetch("#nkpd = '{$rec->positionId}'");
-//        /bp($row->positionRec->nkpd);
+
+        // Извличане на данните за Структурата
         $row->departmentRec = hr_Departments::fetch($rec->departmentId);
      
+        // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
         $houres = $houresInSec / 60 / 60;
         
         $row->shiftRec = new stdClass();
-        
+                        
         if($houres % 2 !== 0){
         	$min = round(($houres - round($houres)) * 60);
         	
@@ -279,7 +282,8 @@ class hr_EmployeeContracts extends core_Master
 	        // да добавя и минитуте
 			$row->shiftRec->weekhours =  $houres . " часа";
         }
-        
+       
+        // Продължителността на договора
         $row->term = (int)$rec->term;
         
 		$res = $data;
@@ -374,14 +378,17 @@ class hr_EmployeeContracts extends core_Master
 			$cycleDetails [] = $rec;
 		}
 		
-		foreach($cycleDetails as $cycDuration){
-		
-			$allHours += $cycDuration->duration;
-			$break += $cycDuration->break;
+		if(is_array($cycleDetails)){
+			foreach($cycleDetails as $cycDuration){
+			
+				$allHours += $cycDuration->duration;
+				$break += $cycDuration->break;
+			}
+			
+			$hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
+		} else {
+			$hoursWeekSec = 0;
 		}
-		
-		$hoursWeekSec = ($allHours - $break) / $duration  * 7 ;
-		
 		return $hoursWeekSec;
     }
 
