@@ -282,13 +282,13 @@ class purchase_Requests extends core_Master
             $isInstantShipment = $isInstantShipment && 
                 ($form->rec->shipmentStoreId == store_Stores::getCurrent('id', FALSE));
             $isInstantShipment = $isInstantShipment && 
-                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
             
             $isInstantPayment = !empty($form->rec->caseId);
             $isInstantPayment = $isInstantPayment && 
                 ($form->rec->caseId == store_Stores::getCurrent('id', FALSE));
             $isInstantPayment = $isInstantPayment && 
-                store_Stores::fetchField('chiefId', $form->rec->shipmentStoreId);
+                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
             
             $form->setDefault('isInstantShipment', 
                 $isInstantShipment ? 'yes' : 'no');
