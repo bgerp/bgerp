@@ -13,14 +13,14 @@
 
 <!--ET_BEGIN CATEGORIES-->
 <div id='blogm-categories'>
-	<div class='nav_item  level1'>Категории</div>
+	<div class='nav_item  level1'>|Категории|*</div>
 	[#CATEGORIES#]
 </div>
 <!--ET_END CATEGORIES-->
 
 <!--ET_BEGIN ARCHIVE-->
 <div id='blogm-archive'>
-	<div class='nav_item  level1'>Архив</div>
+	<div class='nav_item  level1'>|Архив|*</div>
 	[#ARCHIVE#]
 </div>
 <!--ET_END ARCHIVE-->
@@ -28,7 +28,7 @@
 
 <!--ET_BEGIN LINKS-->
 <div id='blogm-links'>
-<div class='nav_item  level1'>Ние четем</div>
+<div class='nav_item  level1'>|Ние четем|*</div>
 [#LINKS#]
 </div>
 <!--ET_END LINKS-->
