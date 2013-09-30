@@ -266,16 +266,20 @@ class cms_Content extends core_Manager
             $s = $res->getBlock('SELECTOR');
 
         foreach($langsArr as $lg) {
-         
-
+        	
             if($lg == $lang) {
                 $attr = array('class' => 'selected');
             } else {
                 $attr = array('class' => '');
             }
             
-            $imageUrl = sbf("img/flags/" . $lg . ".png", "");
-            $img = ht::createElement("img", array('src' => $imageUrl));
+            $filePath = getFullPath("img/flags/" . $lg . ".png");
+            $img = " ";
+            
+            if($filePath){
+            	$imageUrl = sbf("img/flags/" . $lg . ".png", "");
+            	$img = ht::createElement("img", array('src' => $imageUrl));
+            }
             
             $url = array($this, 'SelectLang', 'lang' => $lg);
             $s->replace(ht::createLink($img . drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'), $url, NULL, $attr), 'SELECTOR');
@@ -314,7 +318,7 @@ class cms_Content extends core_Manager
         } else {
             $form->setDefault('lang', $lang = self::getLang());
         }
-        
+       
         $data->query->where(array("#lang = '[#1#]'", $lang));
     }
 
