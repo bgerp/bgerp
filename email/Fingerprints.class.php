@@ -17,7 +17,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper';
+    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_AutoFilter';
     
     
     /**
@@ -62,12 +62,35 @@ class email_Fingerprints extends core_Manager
     function description()
     {
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш');
-        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка');
+        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка, autoFilter');
         $this->FLD('uid', 'int', 'caption=Имейл UID');
         $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted)', 'caption=Статус,notNull');
 
         $this->setDbUnique('hash');
         $this->setDbIndex('accountId,uid');
+    }
+    
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'accountId';
+        
+        $form->input('accountId', 'silent');
+
+        $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
     }
     
 
