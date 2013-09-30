@@ -49,7 +49,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals';
     
     
     /**
