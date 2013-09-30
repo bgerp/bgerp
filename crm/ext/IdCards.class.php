@@ -6,14 +6,29 @@ class crm_ext_IdCards extends core_Detail
      */
     var $masterKey = 'personId';
 
+    
+    /**
+     * Заглавие
+     */
     var $title = 'Лични карти';
 
+    
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'crm_Wrapper,plg_RowTools';
     
+    
+    /**
+     * Текущ таб
+     */
     var $currentTab = 'Лица';
+    
+    
+    /**
+     * Кой може да редактира
+     */
+    var $canEdit = 'user';
     
     
     /**
@@ -31,9 +46,12 @@ class crm_ext_IdCards extends core_Detail
 
         // Може ли двама души да имат една карта?
         // $this->setDbUnique('idCardNumber');
-
-    }
+	}
     
+	
+	/**
+	 * Подготовка за показване в указателя
+	 */
     public static function prepareIdCard($data)
     {
         $data->TabCaption = 'ЛК';
@@ -51,9 +69,13 @@ class crm_ext_IdCards extends core_Detail
         $data->canChange         = static::haveRightFor('edit');
     }
     
+    
+    /**
+     * Рендиране на показването в указателя
+     */
     public static function renderIdCard($data)
     {
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Лична карта'), 'title');        
 

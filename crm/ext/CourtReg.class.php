@@ -6,14 +6,29 @@ class crm_ext_CourtReg extends core_Detail
      */
     var $masterKey = 'companyId';
 
+    
+    /**
+     * Заглавие
+     */
     var $title = 'Лични карти';
 
+    
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'crm_Wrapper,plg_RowTools';
     
+    
+    /**
+     * Текущ таб
+     */
     var $currentTab = 'Фирми';
+    
+   
+    /**
+     * Кой може да редактира
+     */
+    var $canEdit = 'user';
     
     
     /**
@@ -33,15 +48,11 @@ class crm_ext_CourtReg extends core_Detail
         $this->FLD('regCompanyFileYear', 'int', 'caption=Фирмено дело->Година');
 
         $this->setDbUnique('companyId');
-
-        // Може ли двама души да имат една карта?
-        // $this->setDbUnique('idCardNumber');
-
     }
     
 
     /**
-     *
+     * Подготовка за показване в указателя
      */
     public static function prepareCourtReg($data)
     {
@@ -62,11 +73,11 @@ class crm_ext_CourtReg extends core_Detail
     
 
     /**
-     *
+     * Рендиране на списъчния изглед в указателя
      */
     public static function renderCourtReg($data)
     {
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Съдебна регистрация'), 'title');        
 
@@ -128,8 +139,6 @@ class crm_ext_CourtReg extends core_Detail
         }
         
         $form->setSuggestions('regCourt', $dcSug);
-
- 
-        $data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
+ 		$data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
 }
