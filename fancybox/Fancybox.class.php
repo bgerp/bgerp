@@ -50,7 +50,7 @@ class fancybox_Fancybox {
         setIfNot($imgAttr['alt'], $baseName);
         $imgTpl = ht::createElement('img', $imgAttr);
 
-        if($imgAttr['height'] >= $maxSize[0] && $imgAttr['width'] >= $maxSize[1]) {
+        if($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
 
             return $imgTpl;
         }

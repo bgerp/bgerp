@@ -63,7 +63,7 @@ class thumbnail_Thumbnail extends core_Manager {
             $baseName = baseName($fileName, "." . $ext);
             $attr['baseName'] = $baseName;
         }
-        
+       
         $ext = mb_strtolower($ext);
         
         // Очакваме да е от познатите разширения за растерни файлове
@@ -85,7 +85,7 @@ class thumbnail_Thumbnail extends core_Manager {
         if(!file_exists($thumbFilePath)) {
             $filePath = fileman_Files::fetchByFh($fh, 'path');
             
-            if (($thumbFile = self::makeThumbnail($filePath, $size)) === FALSE) {
+            if (($thumbFile = self::makeThumbnail($filePath, $size)) === FALSE) { 
                 // Неуспех при създаването на тъмбнейл
                 /**
                  * @TODO: До тук се стига при невъзможност за създаване на thumbnail. Може
@@ -96,7 +96,9 @@ class thumbnail_Thumbnail extends core_Manager {
             } else {
             	if($thumbFile == "TheSame"){
             		copy($filePath, $thumbFilePath);
-            	}elseif (!static::saveImage($thumbFile, $thumbFilePath)) return FALSE;
+            	} elseif (!static::saveImage($thumbFile, $thumbFilePath)) {
+                    return FALSE;
+                }
             }
         }
         
