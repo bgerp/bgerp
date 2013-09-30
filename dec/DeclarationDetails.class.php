@@ -21,7 +21,11 @@ class dec_DeclarationDetails extends core_Detail
     var $title = "Декларации - детайли";
     
     
+    var $singleTitle = "Условие";
+    
+    
     var $masterKey = 'declarationId';
+    
     
     /**
      * @todo Чака за документация...
@@ -34,9 +38,12 @@ class dec_DeclarationDetails extends core_Detail
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_RowZebra, Declarations=dec_Declarations';
 
+    
     var $listFields = 'id, statementId';
     
+    
     var $rowToolsField = 'id';
+    
     
     /**
      * Описание на модела
