@@ -49,7 +49,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -139,7 +139,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$form = &$data->form;
         $rec = &$form->rec;
         $masterLink = sales_Quotations::getLink($form->rec->quotationId);
-        $form->title = ($rec->id) ? "Редактиране" : "Добавяне" . " " . "на артикул в" . " |*" . $masterLink;
+        $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " " . "на артикул в" . " |*" . $masterLink;
        
         $masterRec = $mvc->Master->fetch($form->rec->quotationId);
         $Policy = cls::get($rec->policyId);
