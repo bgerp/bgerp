@@ -1,2 +1,5 @@
 ForceType application/octet-stream
-Header set Content-Disposition attachment
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex"
+    Header set Content-Disposition attachment
+</IfModule>
