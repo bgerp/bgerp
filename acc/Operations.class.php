@@ -27,7 +27,9 @@ class acc_Operations extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, plg_Created, plg_Sorting, plg_ExportCsv';
+    var $loadList = 'plg_RowTools, acc_WrapperSettings, plg_Search, 
+    				 plg_Created, plg_Sorting, plg_ExportCsv,
+    				 plg_AutoFilter';
     
     
     /**
@@ -97,7 +99,7 @@ class acc_Operations extends core_Manager
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory,export=Csv');
     	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory,export=Csv');
-    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory,export=Csv');
+    	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory,export=Csv, autoFilter');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory,export=Csv');
     	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, mandatory,export=Csv');
     	
@@ -116,6 +118,31 @@ class acc_Operations extends core_Manager
     	
     	$creditRec = acc_Accounts::getRecBySystemId($rec->creditAccount);
     	$row->creditAccount = acc_Accounts::getRecTitle($creditRec);
+    }
+    
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'debitAccount';
+        
+        $form->input('debitAccount', 'silent');
+
+        if($form->rec->debitAccount){
+        	$data->query->where(array("#debitAccount = '{$form->rec->debitAccount}' OR #creditAccount = '{$form->rec->debitAccount}'"));
+        }
     }
     
     
