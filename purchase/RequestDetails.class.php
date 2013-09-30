@@ -250,12 +250,12 @@ class purchase_RequestDetails extends core_Detail
      * @param int $masterId ключ на мастър модела
      * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
      */
-    public static function updateMasterSummary($masterId, $hotRec = NULL)
+    public function updateMasterSummary($masterId, $hotRec = NULL)
     {
-        $purchaseRec = purchase_Requests::fetchRec($masterId);
+        $purchaseRec = $this->Master->fetchRec($masterId);
         
         /* @var $query core_Query */
-        $query = static::getQuery();
+        $query = $this->getQuery();
         
         $amountDeal = 0;
         
@@ -272,12 +272,8 @@ class purchase_RequestDetails extends core_Detail
             $amountDeal += $rec->amount * $VAT;
         }
         
-        purchase_Requests::save(
-            (object)array(
-                'id' => $masterId,
-                'amountDeal' => $amountDeal,
-            )
-        );
+        $purchaseRec->amountDeal = $amountDeal;
+        $this->Master->save($purchaseRec);
     }
 
     /**
