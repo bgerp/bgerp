@@ -30,9 +30,14 @@ class salecond_DeliveryTerms extends core_Master
      */
     var $listFields = 'id, codeName, term';
     
+    
+    /**
+     * Поле в което ще се показва тулбара
+     */
     var $rowToolsSingleField = 'codeName';
 
     /**
+     * 
      * Полетата, които ще се показват в единичния изглед
      */
     var $singleFields = 'id, term, codeName, forSeller, forBuyer, transport';
@@ -85,10 +90,12 @@ class salecond_DeliveryTerms extends core_Master
      */
     var $title = 'Условия на доставка';
     
+    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Условие на доставка";
+    
     
     /**
      * Икона по подразбиране за единичния обект
@@ -114,20 +121,6 @@ class salecond_DeliveryTerms extends core_Master
         $this->FLD('transport', 'text', 'caption=Транспорт');
         
         $this->setDbUnique('codeName');
-    }
-    
-    
-    /**
-     * Условия на доставка по подразбиране според клиента
-     * 
-     * @see doc_ContragentDataIntf
-     * @param stdClass $contragentInfo
-     * @return int key(mvc=salecond_DeliveryTerms) 
-     */
-    public static function getDefault($contragentInfo)
-    {
-        // @TODO
-        return static::fetchField("#codeName = 'EXW'", 'id'); // за тест
     }
     
     
