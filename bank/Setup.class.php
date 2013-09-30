@@ -86,7 +86,7 @@ class bank_Setup extends core_ProtoSetup
         $html = parent::install();
         
         // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('masterBank', 'bank') ? "<li style='color:green'>Добавена е роля <b>masterBank</b></li>" : '';
+        $html .= core_Roles::addRole('bankMaster', 'bank') ? "<li style='color:green'>Добавена е роля <b>bankMaster</b></li>" : '';
     	
         return $html;
     }

@@ -89,13 +89,13 @@ class store_Stores extends core_Master
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,masterStore';
+    var $canWrite = 'ceo,storeMaster';
     
     
     /**
 	 * Кой може да селектира всички записи
 	 */
-	var $canSelectAll = 'ceo,masterStore';
+	var $canSelectAll = 'ceo,storeMaster';
 	
 	
    /**
@@ -235,7 +235,7 @@ class store_Stores extends core_Master
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo,masterStore')){
+		if(!haveRole('ceo,storeMaster')){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();

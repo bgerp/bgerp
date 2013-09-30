@@ -77,7 +77,7 @@ class cash_Cases extends core_Master {
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo, masterCash';
+    var $canWrite = 'ceo, cashMaster';
     
     
     /**
@@ -95,7 +95,7 @@ class cash_Cases extends core_Master {
 	/**
 	 * Кой може да селектира всички записи
 	 */
-	var $canSelectAll = 'ceo,masterCash';
+	var $canSelectAll = 'ceo,cashMaster';
 	
 	
 	/**
@@ -210,7 +210,7 @@ class cash_Cases extends core_Master {
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo, masterCash')){
+		if(!haveRole('ceo, cashMaster')){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();

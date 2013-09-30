@@ -89,7 +89,7 @@ class store_Setup extends core_ProtoSetup
         core_Classes::add('store_ArrangeStrategyMain');
         
         // Добавяне на роля за старши складажия
-        $html .= core_Roles::addRole('masterStore', 'store') ? "<li style='color:green'>Добавена е роля <b>masterStore</b></li>" : '';
+        $html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b></li>" : '';
         return $html;
     }
     
