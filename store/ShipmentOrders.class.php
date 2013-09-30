@@ -43,7 +43,7 @@ class store_ShipmentOrders extends core_Master
      * var string|array
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv,
+                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc2, acc_plg_Registry';
     
@@ -176,7 +176,7 @@ class store_ShipmentOrders extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Доставено,input=none'); // Сумата на доставената стока
+        $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
         
         /*
          * Контрагент
@@ -656,128 +656,18 @@ class store_ShipmentOrders extends core_Master
                     $row->contragentClassId = $contragent->getHyperlink();
                 }
             }
-        }
-            
+        }     
     }
-
+    
     
     /**
-     * Филтър на продажбите
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * След подготовка на заглавието за списъчния изглед
      */
-    static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
-    {
-        $data->listFilter = cls::get('core_Form', array('method'=>'get'));
-        
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('fromDate', 'date', 'placeholder=От,caption=От,width=100px');
-        $data->listFilter->FNC('toDate', 'date', 'placeholder=До,caption=До,width=100px');
-    
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    
-        // Показваме тези полета. Иначе и другите полета на модела ще се появят
-        $data->listFilter->showFields = 'fromDate, toDate';
-        
-        $filter = $data->listFilter->input();
-        
-        /* @var $query core_Query */
-        $query = $data->query;
-        
-        /*
-         * Филтър по дати
-         */
-        $dateRange = array();
-        
-        if (!empty($filter->fromDate)) {
-            $dateRange[0] = $filter->fromDate; 
-        }
-        if (!empty($filter->toDate)) {
-            $dateRange[1] = $filter->toDate; 
-        }
-        
-        if (count($dateRange) == 2) {
-            sort($dateRange);
-        }
-        
-        if (!empty($dateRange[0])) {
-            $query->where(array("#valior >= '[#1#]'", $dateRange[0]));
-        }
-        if (!empty($dateRange[1])) {
-            $query->where(array("#valior <= '[#1#]'", $dateRange[1]));
-        }
-    }
-    
-    
     public static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Използваме заглавието на списъка за заглавие на филтър-формата
         $data->listFilter->title = $data->title;
         $data->title = NULL;
-    }
-    
-    
-    public static function on_AfterRenderListSummary($mvc, $tpl, $data)
-    {
-        /*
-         * Подготвяне на тоталите - използваме същата заявка, с която сме извлекли списъка.
-         */
-        
-        /* @var $query core_Query */
-        $query = clone $data->query;
-        
-        $query->limit = $query->start = NULL;
-        $query->orderBy = array();
-        $query->executed = FALSE;
-        $query->show = arr::make('amountDelivered,valior', TRUE);
-        
-        $now = dt::now();
-        $total = (object)array(
-            'amountDelivered' => 0.0,
-        );
-        
-        // Кеш за вече извличаните валутни курсове
-        // ключ - код на валута; стойност - курс на тази валута към основната за днес
-        $ratesCache = array();
-        
-        while ($rec = $query->fetch()) {
-            $total->countDeal       += 1;
-            if (!isset($ratesCache[$rec->currencyId])) {
-                $ratesCache[$rec->currencyId] = 
-                    currency_CurrencyRates::getRate($now, $rec->currencyId, $total->currencyId);
-                expect($ratesCache[$rec->currencyId], 
-                    sprintf('Липсва курс на %s към %s за %s', $rec->currencyId, $total->currencyId, $now)
-                );
-            }
-            $total->amountDelivered += (float)$rec->amountDelivered * $ratesCache[$rec->currencyId];
-        }
-        
-        /*
-         * Рендиране на съмърито 
-         */
-        
-        // Форматиране на сумите
-        foreach (array('amountDelivered') as $amountField) {
-            $total->{$amountField} = sprintf("%0.02f", round($total->{$amountField}, 2));
-        }
-        
-        $tpl = new core_ET('
-            <div style="float: right; background: #eee; padding: 10px;">
-                <table>
-                    <tr>
-                        <td class="quiet">Нареждания</td>
-                        <td align="right">[#countShipments#]</td>
-                    </tr>
-                    <tr>
-                        <td class="quiet">Доставено</td>
-                        <td align="right">[#amountDelivered#] [#currencyId#]</td>
-                    </tr>
-                </table>
-            </div>
-        ');
-        
-        $tpl->placeObject($total);
     }
 
 
