@@ -70,6 +70,12 @@ class sales_QuotationsDetails extends core_Detail {
     var $currentTab = 'Оферти';
     
     
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,discount,amount,discAmount';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -79,8 +85,8 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
-    	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em;');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em;');
+    	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em');
+        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -196,8 +202,6 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    		}
 	    		
-	    		// Конвертираме цената към посочената валута в офертата
-	    		// @TODO да го махна и изтествам
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
@@ -247,18 +251,18 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * Подготовка на детайлите
+     * След подготовка на детайлите, изчислява се общата цена
+     * и данните се групират
      */
-    function prepareDetail_($data)
+    static function on_AfterPrepareDetail($mvc, $res, $data)
     {
-    	// Подготвяме записите
-    	parent::prepareDetail_($data);
-    	
-    	// Изчисляваме общата сума (ако е възможно)
-    	$this->calcTotal($data);
-    	
+    	if(!isset($data->noTotal)){
+    		// Изчисляваме общата сума (ако е възможно)
+	    	$mvc->calcTotal($data);
+    	}
+	     
     	// Групираме резултатите по продукти и дали са опционални или не
-    	$this->groupResultData($data);
+    	$mvc->groupResultData($data);
     }
     
     
@@ -292,7 +296,7 @@ class sales_QuotationsDetails extends core_Detail {
     			
     			// Слагаме клас на клетките около rospan-а за улеснение на JS
     			$row->rowspanId = $newRows[$pId][0]->rowspanId;
-    			$row->TR_CLASS = $data->rows[$pId][0]->TR_CLASS;
+    			$row->TR_CLASS = $newRows[$pId][0]->TR_CLASS;
     		} else {
     			// Слагаме уникален индекс на клетката с продукта
     			$prot = md5($pId.$data->masterData->rec->id);
@@ -339,6 +343,7 @@ class sales_QuotationsDetails extends core_Detail {
     	if($totalDisc != 0){
     		$afterDisc = $total - $totalDisc;
     	}
+    	
     	$double = cls::get('type_Double');
     	$double->params['decimals'] = 2;
     	$sayWords = ($afterDisc) ? $afterDisc : $total;
