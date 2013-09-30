@@ -257,16 +257,26 @@ class price_ListRules extends core_Detail
     	$now = dt::now();
     	$options = array();
     	
+    	// Тук ще се записват продуктите, които са в празна ценова група
+    	$exclude = array();
+    	
     	$groupsQuery = price_GroupOfProducts::getQuery();
     	$groupsQuery->where("#validFrom <= '{$now}'");
+    	
     	$groupsQuery->orderBy('productId,validFrom', 'DESC');
     	$groupsQuery->show('groupId,productId,validFrom');
     	
     	// Извличат се тези продукти, които имат група
     	while($grRec = $groupsQuery->fetch()){
-    		if(!array_key_exists($grRec->productId, $options)){
-    			if($pRec = cat_Products::fetch($grRec->productId, 'name,code', FALSE)){
-    				$options[$grRec->productId] = cat_Products::getRecTitle($pRec);
+    		if(!array_key_exists($grRec->productId, $options) && !$exclude[$grRec->productId]){
+    			if(isset($grRec->groupId)){
+	    			if($pRec = cat_Products::fetch($grRec->productId, 'name,code', FALSE)){
+	    				$options[$grRec->productId] = cat_Products::getRecTitle($pRec);
+	    			}
+    			} else {
+    				
+    				// Ако групата е празна, не добавяме продукта към опциите
+    				$exclude[$grRec->productId] = TRUE;
     			}
     		}
     	}
