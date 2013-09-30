@@ -19,7 +19,9 @@ class email_Inboxes extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools, plg_Rejected';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, 
+    				 plg_Modified, doc_FolderPlg, plg_RowTools, 
+    				 plg_Rejected, plg_AutoFilter';
     
     
     /**
@@ -135,7 +137,7 @@ class email_Inboxes extends core_Master
     function description()
     {
         $this->FLD("email", "email(link=no)", "caption=Имейл");
-        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка');
+        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, autoFilter');
          
         $this->setDbUnique('email');
     }
@@ -162,7 +164,30 @@ class email_Inboxes extends core_Master
         return $rec->email;
     }
 
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'accountId';
+        
+        $form->input('accountId', 'silent');
 
+        $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
+    }
+    
+    
     /**
      * Преди рендиране на формата за редактиране
      */
