@@ -345,14 +345,6 @@ div.scrollWrapper{
 	margin-top:15px;
 }
 
-.report-info{
-	width:450px;
-}
-
-.narrow .report-info{
-	width:380px;
-}
-
 .document .listTable tr td:last-child{
 	text-align:right;
 }
