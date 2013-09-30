@@ -81,6 +81,10 @@ class cash_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
+    	if($roleRec = core_Roles::fetch("#role = 'masterCash'")){
+    		core_Roles::delete("#role = 'masterCash'");
+    	}
+    	
         // Добавяне на роля за старши касиер
         $html .= core_Roles::addRole('cashMaster', 'cash') ? "<li style='color:green'>Добавена е роля <b>cashMaster</b></li>" : '';
     	
