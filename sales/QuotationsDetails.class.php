@@ -182,7 +182,7 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	$rec = &$form->rec;bp($rec);
+	    	$rec = &$form->rec;
 	    	$Policy = cls::get($rec->policyId);
 	    	$productMan = $Policy->getProductMan();
 	    	if(!$rec->vatPercent){ 

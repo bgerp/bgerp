@@ -41,7 +41,7 @@ class store_ShipmentOrderDetails extends core_Detail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals';
+                        plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -110,7 +110,12 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     var $rowToolsField = 'RowNumb';
     
-
+	/**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,amount,discount,packPrice';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

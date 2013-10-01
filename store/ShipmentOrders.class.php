@@ -44,10 +44,8 @@ class store_ShipmentOrders extends core_Master
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
                     doc_plg_BusinessDoc2, acc_plg_Registry';
-    
-    
 
     
     /**
@@ -150,14 +148,20 @@ class store_ShipmentOrders extends core_Master
     /**
      * 
      */
-   var $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
+    var $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
 
    
     /**
      * Групиране на документите
      */ 
-   var $newBtnGroup = "3.2|Търговия";
+    var $newBtnGroup = "3.2|Търговия";
    
+    
+   /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'amountDelivered';
+    
     
     /**
      * Описание на модела (таблицата)

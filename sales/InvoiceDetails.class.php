@@ -25,7 +25,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -68,6 +68,12 @@ class sales_InvoiceDetails extends core_Detail
      * Кой таб да бъде отворен
      */
     var $currentTab = 'Фактури';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,amount';
     
     
     /**

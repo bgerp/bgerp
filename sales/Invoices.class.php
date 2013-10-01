@@ -47,7 +47,7 @@ class sales_Invoices extends core_Master
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg,
-                    doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable';
+                    doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
     
     /**
@@ -136,9 +136,9 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * SystemId на номенклатура "Клиенти"
+     * Полета свързани с цени
      */
-    const CLIENTS_ACC_LIST = 'clients';
+    var $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent';
     
     
     /**
