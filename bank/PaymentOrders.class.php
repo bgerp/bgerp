@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -158,8 +158,9 @@ class bank_PaymentOrders extends core_Master
     	if($originId) {
     		$doc = doc_Containers::getDocument($originId);
     		$rec = $doc->fetch();
+    		$cClass = $doc->className;
     		
-    		$form->setDefault('originClassId', $class::getClassId());
+    		$form->setDefault('originClassId', $cClass::getClassId());
     		$form->setDefault('currencyId', $rec->currencyId);
     		$form->setDefault('amount', $rec->amount);
     		$form->setDefault('reason', $rec->reason);

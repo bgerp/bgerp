@@ -6,9 +6,9 @@
  *
  *
  * @category  bgerp
- * @package   cash
+ * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -32,7 +32,7 @@ class bank_CashWithdrawOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary,
-     	plg_Sorting, doc_DocumentPlg,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank';
+     	plg_Sorting, doc_DocumentPlg,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_DefaultValues';
     
     
     /**
@@ -118,6 +118,7 @@ class bank_CashWithdrawOrders extends core_Master
      */
     var $searchFields = 'valior, reason, proxyName, proxyEgn, proxyIdCard';
     
+    
     /**
      * Групиране на документите
      */
@@ -133,13 +134,13 @@ class bank_CashWithdrawOrders extends core_Master
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('ordererIban', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Сметка,mandatory,width=16em');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=От->Банка,width=100%,mandatory');
-    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=От->Клон,width=100%');
-        $this->FLD('execBankAdress', 'varchar(255)', 'caption=От->Адрес,width=100%');
-    	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory');
-    	$this->FLD('proxyEgn', 'bglocal_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory');
-    	$this->FLD('proxyIdCard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory');
+    	$this->FLD('ordererIban', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Сметка,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=От->Банка,width=100%,mandatory,defaultStrategy=1');
+    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=От->Клон,width=100%,defaultStrategy=1');
+        $this->FLD('execBankAdress', 'varchar(255)', 'caption=От->Адрес,width=100%,defaultStrategy=1');
+    	$this->FLD('proxyName', 'varchar(255)', 'caption=Упълномощено лице->Име,mandatory,defaultStrategy=1');
+    	$this->FLD('proxyEgn', 'bglocal_EgnType', 'caption=Упълномощено лице->ЕГН,mandatory,defaultStrategy=1');
+    	$this->FLD('proxyIdCard', 'varchar(16)', 'caption=Упълномощено лице->Лк. No,mandatory,defaultStrategy=1');
     }
     
     
@@ -161,34 +162,20 @@ class bank_CashWithdrawOrders extends core_Master
     	$form = &$data->form;
     	$originId = $form->rec->originId;
     	
-    	// Намираме кой е последния запис от този клас в същия тред
-    	$query = static::getQuery();
-    	$query->where("#folderId = {$form->rec->folderId}");
-    	$query->orderBy('createdOn', 'DESC');
-    	$query->limit(1);
-    	if($lastRec = $query->fetch()) {
-    		$form->setDefault('ordererIban', $lastRec->ordererIban);
-    		$form->setDefault('execBank', $lastRec->execBank);
-    		$form->setDefault('execBankBranch', $lastRec->execBankBranch);
-    		$form->setDefault('execBankAdress', $lastRec->execBankAdress);
-    		$form->setDefault('proxyEgn', $lastRec->proxyEgn);
-    		$form->setDefault('proxyIdCard', $lastRec->proxyIdCard);
-    	} 
-    	
     	if($originId) {
     		$doc = doc_Containers::getDocument($originId);
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$rec = $class::fetch($dId);
+    		$rec = $doc->fetch();
     		
     		// Извличаме каквато информация можем от оригиналния документ
     		$form->setDefault('currencyId', $rec->currencyId);
-    		$form->setDefault('ordererIban',$rec->ordererIban);
     		$form->setDefault('amount', $rec->amount);
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
-    		$account = bank_OwnAccounts::getOwnAccountInfo($rec->ordererIban);
+    		
+    		$account = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     		$form->setDefault('execBank', $account->bank);
+    		$form->setDefault('ordererIban', $rec->ownAccount);
+    		$form->setReadOnly('ordererIban');
     		
     		// Ако контрагента е лице, слагаме името му за получател
     		$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
@@ -200,17 +187,10 @@ class bank_CashWithdrawOrders extends core_Master
 				$form->setDefault('proxyEgn', $proxyEgn);
     			
 				// Номер на Л. картата на лицето ако е записана в системата
-				if($idCard = crm_ext_IdCards::fetch("#personId = {$rec->contragentId}")) {
+				if($idCard = crm_ext_IdCards::fetchField("#personId = {$rec->contragentId}", 'idCardNumber')) {
 					$form->setDefault('proxyIdCard', $idCard);
 				}
 			}
-    	} else {
-    		$today = dt::verbal2mysql();
-    		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		$form->setDefault('ordererIban', bank_OwnAccounts::getCurrent());
-    		$account = bank_OwnAccounts::getOwnAccountInfo();
-    		$form->setDefault('execBank', $account->bank);
-    		$form->setDefault('valior', $today);
     	}
     }
     
