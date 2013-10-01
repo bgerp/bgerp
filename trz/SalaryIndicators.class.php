@@ -71,10 +71,8 @@ class trz_SalaryIndicators extends core_Manager
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,trz';
+
     
-    //var $canDeletesysdata= 'ceo,trz';
-    
-        
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -104,6 +102,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->setDbUnique('docId, docClass, personId, indicator');
     	
     }
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -209,6 +208,7 @@ class trz_SalaryIndicators extends core_Manager
 
     }
     
+    
     function act_Test()
     {
     	$date = '2013-07-16';
@@ -286,12 +286,12 @@ class trz_SalaryIndicators extends core_Manager
             	$rec->id = $exRec->id;
             	self::save($rec);
             }
-            
-	    	
     	}
     }
     
-    
+    /**
+     * Извличаме имената на идикаторите
+     */
     function getIndicatorNames()
     {
     	$query = $this->getQuery();
