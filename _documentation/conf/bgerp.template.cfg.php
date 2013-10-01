@@ -40,6 +40,12 @@
 // "Подправка" за кодиране на паролите
    defIfNot('EF_USERS_PASS_SALT', '[#EF_USERS_PASS_SALT#]');
    
+// Бранч в който се работи
+   defIfNot('BGERP_GIT_BRANCH', '[#BGERP_GIT_BRANCH#]');
+
+// Абсолютен път до GIT
+   defIfNot('BGERP_GIT_PATH', '[#BGERP_GIT_PATH#]');
+      
 // Имейла по подразбиране
    defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
 
