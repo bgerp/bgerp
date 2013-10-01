@@ -159,7 +159,7 @@ class sales_Quotations extends core_Master
         $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,defaultStrategy=2, changable');
         $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,defaultStrategy=2, changable');
         $this->FLD('country', 'varchar', 'caption=Адресант->Държава,defaultStrategy=2, changable');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=2, changable');
+        $this->FLD('pCode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=2, changable,oldFieldName=pcode');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,defaultStrategy=2, changable');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,defaultStrategy=2, changable');
     	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
