@@ -32,7 +32,7 @@ class bank_PaymentOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary, plg_Search,
-     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank';
+     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_DefaultValues';
     
     
     /**
@@ -136,13 +136,13 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
     	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
-    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
-    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em');
-    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
-        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
-        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
+    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em,defaultStrategy=1');
+    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em,defaultStrategy=1');
+    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em,defaultStrategy=1');
+        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em,defaultStrategy=1');
+        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em,defaultStrategy=1');
      	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     
@@ -154,33 +154,10 @@ class bank_PaymentOrders extends core_Master
     {
     	$form = &$data->form;
     	$originId = $form->rec->originId;
-    	
-    	// Намираме кой е последния запис от този клас в същия тред
-    	$query = static::getQuery();
-    	$query->where("#folderId = {$form->rec->folderId}");
-    	if($form->rec->threadId) {
-    		$query->where("#threadId = {$form->rec->threadId}");
-    	} 
-    	$query->orderBy('createdOn', 'DESC');
-    	$query->limit(1);
-    	if($lastRec = $query->fetch()) {
-    		$form->setDefault('execBranch', $lastRec->execBranch);
-    		$form->setDefault('currencyId', $lastRec->currencyId);
-    		$form->setDefault('execBank', $lastRec->execBank);
-    		$form->setDefault('execBankBic', $lastRec->execBankBic);
-    		$form->setDefault('execBranch', $lastRec->execBranch);
-    		$form->setDefault('execBranchAddress', $lastRec->execBranchAddress);
-    		$form->setDefault('orderer', $lastRec->orderer);
-    		$form->setDefault('ordererIban', $lastRec->ordererIban);
-    		$form->setDefault('beneficiaryName', $lastRec->beneficiaryName);
-    		$form->setDefault('beneficiaryIban', $lastRec->beneficiaryIban);
-    	} 
 	    
     	if($originId) {
     		$doc = doc_Containers::getDocument($originId);
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$rec = $class::fetch($dId);
+    		$rec = $doc->fetch();
     		
     		$form->setDefault('originClassId', $class::getClassId());
     		$form->setDefault('currencyId', $rec->currencyId);
@@ -188,6 +165,7 @@ class bank_PaymentOrders extends core_Master
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
     		$myCompany = crm_Companies::fetchOwnCompany();
+    		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
     		
     		if($class == 'bank_IncomeDocument') {
     			
@@ -197,8 +175,7 @@ class bank_PaymentOrders extends core_Master
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     			$form->setDefault('beneficiaryIban', $ownAcc->iban);
     			$form->setDefault('orderer', $rec->contragentName);
-    			$orderIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
-    			$form->setSuggestions('ordererIban', $orderIbans);
+    			$form->setSuggestions('ordererIban', $contragentIbans);
     		
     		} elseif($class == 'bank_CostDocument') {
     			
@@ -207,21 +184,18 @@ class bank_PaymentOrders extends core_Master
     			$form->setDefault('orderer', $myCompany->company);
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     			$form->setDefault('ordererIban', $ownAcc->iban);
-    			$beneficiaryIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
-    			$form->setSuggestions('beneficiaryIban', $beneficiaryIbans);
+    			$form->setSuggestions('beneficiaryIban', $contragentIbans);
     			$form->setDefault('beneficiaryName', $rec->contragentName);
     		}
-    		
-    	} else {
-    		
-    		// Поставяме стойности по подразбиране
-	    	$today = dt::verbal2mysql();
-	    	$form->setDefault('valior', $today);
-	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		
-	    	// Използваме помощната функция за намиране името на контрагента
-	    	bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
     	}
+    		
+    	// Поставяме стойности по подразбиране
+	    $today = dt::verbal2mysql();
+	    $form->setDefault('valior', $today);
+	    $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
+    		
+	    // Използваме помощната функция за намиране името на контрагента
+	    bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
     }
     
     
