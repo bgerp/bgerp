@@ -33,7 +33,7 @@ class bank_DepositSlips extends core_Master
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
      	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank';
+     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_DefaultValues';
     
     
     /**
@@ -132,14 +132,14 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory');
-    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em');
-        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em');
-    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
-    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
-    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory,defaultStrategy=1');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory,defaultStrategy=1');
+    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em,defaultStrategy=1');
+        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em,defaultStrategy=1');
+    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em,defaultStrategy=1');
+    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory,defaultStrategy=1');
     }
     
     
@@ -151,59 +151,34 @@ class bank_DepositSlips extends core_Master
     	$form = &$data->form;
     	$originId = $form->rec->originId;
     	
-    	//Извличаме дефолт информацията от последния запис в папката
-    	$query = static::getQuery();
-    	$query->where("#folderId = {$form->rec->folderId}");
-    	if($form->rec->threadId) {
-    		$query->where("#threadId = {$form->rec->threadId}");
-    	}
-    	$query->orderBy('createdOn', 'DESC');
-    	$query->limit(1);
-    	if($lastRec = $query->fetch()) {
-    		$form->setDefault('beneficiaryIban', $lastRec->beneficiaryIban);
-    		$form->setDefault('execBank', $lastRec->execBank);
-    		$form->setDefault('execBankBranch', $lastRec->execBankBranch);
-    		$form->setDefault('currencyId', $lastRec->currencyId);
-    		$form->setDefault('execBankAdress', $lastRec->execBankAdress);
-    		$form->setDefault('beneficiaryBank', $lastRec->beneficiaryBank);
-    		$form->setDefault('depositor', $lastRec->depositor);
-    	} 
-    	
     	if($originId) {
     		
     		// Ако основанието е по банков документ намираме кой е той
     		$doc = doc_Containers::getDocument($originId);
-    		$class = $doc->className;
-    		$dId = $doc->that;
-    		$rec = $class::fetch($dId);
+    		$originRec = $doc->fetch();
     		
     		// Извличаме каквато информация можем от оригиналния документ
-    		$form->setDefault('currencyId', $rec->currencyId);
-    		$form->setDefault('amount', $rec->amount);
-    		$form->setDefault('reason', $rec->reason);
-    		$form->setDefault('valior', $rec->valior);
+    		$form->setDefault('currencyId', $originRec->currencyId);
+    		$form->setDefault('amount', $originRec->amount);
+    		$form->setDefault('reason', $originRec->reason);
+    		$form->setDefault('valior', $originRec->valior);
 
     		$myCompany = crm_Companies::fetchOwnCompany();
 	    	$form->setDefault('beneficiaryName', $myCompany->company);
-	    	$ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+	    	$ownAccount = bank_OwnAccounts::getOwnAccountInfo($originRec->ownAccount);
 	    	$form->setDefault('beneficiaryIban', $ownAccount->iban);
 	    	$form->setDefault('beneficiaryBank', $ownAccount->bank);
 	    		
 	    	// Ако контрагента е лице, слагаме името му за получател
-	    	if($rec->contragentClassId != crm_Companies::getClassId()){
-	    		$form->setDefault('depositor', $rec->contragentName);
+	    	if($originRec->contragentClassId != crm_Companies::getClassId()){
+	    		$form->setDefault('depositor', $originRec->contragentName);
 	    	}
-    		
-    		
-    	} else {
-    	
-	    	// Поставяме стойности по подразбиране
-	    	$today = dt::verbal2mysql();
-	    	$form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-	    	$form->setDefault('valior', $today);
 	    	
-	    	static::getContragentInfo($form);
+	    	$options = bank_Accounts::getContragentIbans($originRec->contragentId, $originRec->contragentClassId);
+	    	$form->setSuggestions('beneficiaryIban', $options);
     	}
+	    
+    	static::getContragentInfo($form);
     }
     
     
@@ -212,6 +187,7 @@ class bank_DepositSlips extends core_Master
      */
     static function getContragentInfo(core_Form $form)
     {
+    	if(isset($form->rec->beneficiaryName)) return;
     	$folderId = $form->rec->folderId;
     	$contragentId = doc_Folders::fetchCoverId($folderId);
     	$contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
@@ -230,9 +206,6 @@ class bank_DepositSlips extends core_Master
     		}
     		$form->setReadOnly('beneficiaryName');
     	}
-    	
-    	$options = bank_Accounts::getContragentIbans($contragentId, $contragentClassId);
-	    $form->setSuggestions('beneficiaryIban', $options);
     }
     
     
