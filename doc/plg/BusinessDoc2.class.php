@@ -157,7 +157,9 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
 	    		
 	    		$options = $mvc->getCoverOptions($Class);
-	    		$optionList = implode(", ", array_keys($options)); 
+	    		$optionList = implode(", ", array_keys($options));
+	    		 
+	    		if (!$optionList) continue;
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$query = $Class::getQuery();
