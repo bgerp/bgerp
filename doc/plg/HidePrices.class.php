@@ -18,11 +18,6 @@
  */
 class doc_plg_HidePrices extends core_Plugin
 {
-	/**
-	 * Кои роли немогат да виждат чувствителни цени
-	 */
-	static $noPrice = 'executive,contractor';
-	
 	
 	/**
      * След инициализирането на модела
