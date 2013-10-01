@@ -49,7 +49,7 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -182,7 +182,7 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	$rec = &$form->rec;
+	    	$rec = &$form->rec;bp($rec);
 	    	$Policy = cls::get($rec->policyId);
 	    	$productMan = $Policy->getProductMan();
 	    	if(!$rec->vatPercent){ 

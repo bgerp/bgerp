@@ -41,7 +41,7 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search, doc_plg_HidePrices,
                     doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_plg_DefaultValues';
        
     
@@ -133,8 +133,8 @@ class sales_Quotations extends core_Master
      * Групиране на документите
      */ 
    var $newBtnGroup = "3.7|Търговия";
-   
-   
+    
+    
    /**
      * Описание на модела (таблицата)
      */

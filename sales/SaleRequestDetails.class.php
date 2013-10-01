@@ -43,7 +43,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals, plg_RowNumbering, sales_Wrapper';
+    public $loadList = 'plg_RowTools, plg_AlignDecimals, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
     
     
     /**
@@ -56,6 +56,12 @@ class sales_SaleRequestDetails extends core_Detail {
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'productId, quantity, uomId=Мярка, price, discount, amount=Сума';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,discount,amount';
     
     
   	/**

@@ -41,7 +41,7 @@ class sales_SalesDetails extends core_Detail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals';
+                        plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -50,6 +50,7 @@ class sales_SalesDetails extends core_Detail
      * @var string
      */
     public $menuPage = 'Търговия:Продажби';
+    
     
     /**
      * Кой има право да чете?
@@ -111,6 +112,12 @@ class sales_SalesDetails extends core_Detail
     var $rowToolsField = 'RowNumb';
 
 
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,amount,discount,packPrice';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

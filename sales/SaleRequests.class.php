@@ -41,7 +41,8 @@ class sales_SaleRequests extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
+    					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, plg_Sorting, doc_plg_HidePrices';
        
     
     /**
@@ -116,6 +117,12 @@ class sales_SaleRequests extends core_Master
     var $singleLayoutFile = 'sales/tpl/SingleSaleRequest.shtml';
     
    
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'amount,discount';
+    
+    
     /**
      * Описание на модела (таблицата)
      */

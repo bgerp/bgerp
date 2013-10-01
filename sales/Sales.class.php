@@ -43,7 +43,7 @@ class sales_Sales extends core_Master
      * var string|array
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv,
+                    doc_DocumentPlg, plg_ExportCsv, doc_plg_HidePrices,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
@@ -152,13 +152,20 @@ class sales_Sales extends core_Master
     /**
      * 
      */
-   var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
+    var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
+    
     /**
      * Групиране на документите
      */ 
-   var $newBtnGroup = "3.1|Търговия";
+    var $newBtnGroup = "3.1|Търговия";
    
+    
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
+    
     
     /**
      * Описание на модела (таблицата)
