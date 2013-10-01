@@ -145,9 +145,9 @@ class trz_Trips extends core_Master
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
-    	$this->FLD('amountRoad', 'double', 'caption=Начисления->Пътни');
-    	$this->FLD('amountDaily', 'double', 'caption=Начисления->Дневни');
-    	$this->FLD('amountHouse', 'double', 'caption=Начисления->Квартирни');
+    	$this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни');
+    	$this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни');
+    	$this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни');
     }
     
     
@@ -264,6 +264,26 @@ class trz_Trips extends core_Master
     }
     
     
+    /**
+     * Подготовка за рендиране на единичния изглед
+     * 
+     *  
+     * @param cal_Reminders $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+    	$currencyId = "<span class='cCode'>" . acc_Periods::getBaseCurrencyCode($rec->startDate) . "</span>";
+    	if(isset($data->rec->amountRoad)){
+    		$data->row->roadCurrencyId = $currencyId;
+    	}
+    	if(isset($data->rec->amountDaily)){
+    		$data->row->dailyCurrencyId = $currencyId;
+    	}
+    	if(isset($data->rec->amountHouse)){
+    		$data->row->houseCurrencyId = $currencyId;
+    	}
+    }
     
 
     /**

@@ -21,9 +21,9 @@
 			<p><b>|Период|*:</b> от <b>[#startDate#]</b> до <b>[#toDate#]</b></p>
 	    	<!--ET_BEGIN place--><div class='richtext-holder'><b>|Място|*:</b> [#place#]</div><!--ET_END place-->
 	    	<!--ET_BEGIN purpose--><div class='richtext-holder'><b>|Цел|*:</b> [#purpose#]</div><!--ET_END purpose-->
-	    	<!--ET_BEGIN amountRoad--><p><b>|Пътни|*:</b> [#amountRoad#]</p><!--ET_END amountRoad-->
-	    	<!--ET_BEGIN amountDaily--><p><b>|Дневни|*:</b> [#amountDaily#]</p><!--ET_END amountDaily-->
-	    	<!--ET_BEGIN amountHouse--><p><b>|Квартирни|*:</b> [#amountHouse#]</p><!--ET_END amountHouse-->
+	    	<!--ET_BEGIN amountRoad--><p><b>|Пътни|*:</b> [#amountRoad#] [#roadCurrencyId#]</p><!--ET_END amountRoad-->
+	    	<!--ET_BEGIN amountDaily--><p><b>|Дневни|*:</b> [#amountDaily#] [#dailyCurrencyId#]</p><!--ET_END amountDaily-->
+	    	<!--ET_BEGIN amountHouse--><p><b>|Квартирни|*:</b> [#amountHouse#] [#houseCurrencyId#]</p><!--ET_END amountHouse-->
             </div>
 
         <div style='clear: both;'></div>
