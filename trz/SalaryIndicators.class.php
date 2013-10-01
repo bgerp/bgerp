@@ -297,6 +297,8 @@ class trz_SalaryIndicators extends core_Manager
     	$query = $this->getQuery();
     	$query->groupBy('indicator');
     	
+    	$indicatorsName = array();
+    	
     	while($rec = $query->fetch()){
     		$indicatorsName[$rec->indicator] = $rec->indicator;
     	}
