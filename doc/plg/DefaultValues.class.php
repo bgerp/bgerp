@@ -97,9 +97,19 @@ class doc_plg_DefaultValues extends core_Plugin
     		return $mvc->$name($rec);
     	}
     	
-    	$cId = doc_Folders::fetchCoverId($rec->folderId);
-    	$Class = cls::get(doc_Folders::fetchCoverClassId($rec->folderId));
-    	if(cls::haveInterface('doc_ContragentDataIntf', $Class) && cls::existsMethod($Class, $name)){
+    	return static::getCoverMethod($rec->folderId, $name);
+    }
+    
+    
+    /**
+     * 
+     * Enter description here ...
+     */
+    private static function getCoverMethod($folderId, $name)
+    {
+    	$cId = doc_Folders::fetchCoverId($folderId);
+    	$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
+    	if(cls::existsMethod($Class, $name)){
 	    	return $Class::$name($cId);
 	    }
 	    
@@ -191,16 +201,13 @@ class doc_plg_DefaultValues extends core_Plugin
 	    	$query->where("#folderId = {$folderId}");
 	    	$query->orderBy('createdOn', 'DESC');
 	    	$query->show('id');
-	    	$lastRec = $query->fetch();
-	    	if($lastRec && cls::existsMethod($mvc, 'getContragentData')){
+	    	if($lastRec = $query->fetch()){
 	    		$data = $mvc::getContragentData($lastRec->id);
 	    	}
     	}
     	
     	if(!$data) {
-    		$contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
-    		$contragentId = doc_Folders::fetchCoverId($rec->folderId);
-    		$data = $contragentClass::getContragentData($contragentId);
+    		$data = static::getCoverMethod($folderId, 'getContragentData');
     	}
     	
     	if($name == 'country'){
