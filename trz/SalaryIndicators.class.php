@@ -301,7 +301,9 @@ class trz_SalaryIndicators extends core_Manager
     		$indicatorsName[$rec->indicator] = $rec->indicator;
     	}
     	
-    	return array(""=>"") + $indicatorsName;
+    	$arrayIndicator = array(""=>"") + $indicatorsName;
+    	
+    	return $arrayIndicator;
     }
 
     
