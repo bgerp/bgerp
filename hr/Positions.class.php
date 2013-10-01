@@ -99,10 +99,12 @@ class hr_Positions extends core_Master
         $this->setDbUnique('name');
     }
     
+    
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	//bp($data->rec, $data->singleFields, $data);
     }
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.

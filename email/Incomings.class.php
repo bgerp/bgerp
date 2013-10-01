@@ -91,8 +91,10 @@ class email_Incomings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, email_incoming_Wrapper, doc_DocumentPlg, plg_RowTools, 
-         plg_Printing, email_plg_Document, doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank';
+    var $loadList = 'email_Wrapper, email_incoming_Wrapper, doc_DocumentPlg, 
+    				plg_RowTools, plg_Printing, email_plg_Document, 
+    				doc_EmailCreatePlg, plg_Sorting, bgerp_plg_Blank,
+    				plg_AutoFilter';
     
     
     /**
@@ -148,7 +150,7 @@ class email_Incomings extends core_Master
      */
     function description()
     {
-        $this->FLD('accId', 'key(mvc=email_Accounts,select=email)', 'caption=Акаунт');
+        $this->FLD('accId', 'key(mvc=email_Accounts,select=email)', 'caption=Акаунт, autoFilter');
         $this->FLD("subject", "varchar", "caption=Тема");
         $this->FLD("fromEml", "email", 'caption=От->Имейл');
         $this->FLD("fromName", "varchar", 'caption=От->Име');
@@ -166,7 +168,7 @@ class email_Incomings extends core_Master
         $this->FLD("lg", "varchar", 'caption=Език');
         $this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');
         $this->FLD('hash', 'varchar(32)', 'caption=Keш');
-        $this->FLD('country', 'key(mvc=drdata_countries,select=letterCode2)', 'caption=Държава');
+        $this->FLD('country', 'key(mvc=drdata_countries,select=letterCode2)', 'caption=Държава, autoFilter');
         $this->FLD('fromIp', 'ip', 'caption=IP');
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
@@ -596,6 +598,35 @@ class email_Incomings extends core_Master
         $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum]);
 
         return $isDown[$accId][$msgNum];
+    }
+    
+    
+ 	/**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'country, accId';
+        
+        $form->input('country, accId', 'silent');
+
+        if($form->rec->country){
+			$data->query->where(array("#country = '[#1#]'", $form->rec->country));
+        }
+        
+    	if($form->rec->accId){
+			$data->query->where(array("#accId = '[#1#]'", $form->rec->accId));
+        }
     }
 
 

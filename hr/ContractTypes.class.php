@@ -38,7 +38,7 @@ class hr_ContractTypes extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
-                       plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
+                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, plg_Modified';
     
     
     /**
@@ -76,15 +76,21 @@ class hr_ContractTypes extends core_Master
      */
     var $canEditsysdata = 'ceo,hr';
 
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id, name,createdBy,modifiedOn';
 
+    
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=90%');
         $this->FLD('script', 'text', "caption=Текст,column=none");
-        $this->FLD('employersCnt', 'int', "caption=Служители,input=none");
+        $this->FLD('sysId', 'varchar', "caption=Служебно ид,input=none");
         
         $this->setDbUnique('name');
     }
@@ -93,26 +99,132 @@ class hr_ContractTypes extends core_Master
     /**
      * Създава начални шаблони за трудови договори, ако такива няма
      */
-    function loadSetupData()
+    function on_AfterSetUpMvc($mvc, &$res)
     {
         if(!self::count()) {
             // Безсрочен трудов договор
             $rec = new stdClass();
             $rec->name = 'Безсрочен трудов договор';
             $rec->script = getFileContent('hr/tpl/PermanentContract.ls.shtml');
+            $rec->sysId = $rec->name;
             self::save($rec);
 
             // Срочен трудов договор
             $rec = new stdClass();
             $rec->name = 'Срочен трудов договор';
             $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+            $rec->sysId = $rec->name;
             self::save($rec);
             
             // Срочен трудов договор
             $rec = new stdClass();
             $rec->name = 'Трудов договор за заместване';
             $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
+            $rec->sysId = $rec->name;
             self::save($rec);
+            
+            // Ако имаме вече създадени шаблони 
+        } else {
+        	
+        	$query = self::getQuery();
+        	
+        	// Намираме тези, които са създадени от системата
+	        $query->where("#createdBy = -1");
+	        while ($recPrev = $query->fetch()){
+	        	$sysContracts[] = $recPrev;
+	        }
+	        
+	        // и ги ъпдейтваме с последните промени в шаблоните
+	        foreach($sysContracts as $sysContract){
+		        switch ($sysContract->name) {
+	                case 'Безсрочен трудов договор' :
+	                	$rec = new stdClass();
+	                	$rec->id = $sysContract->id;
+	                    $rec->script = getFileContent('hr/tpl/PermanentContract.ls.shtml');
+	                    
+				        self::save($rec,'script');
+	                    break;
+	                    
+	                case 'Срочен трудов договор' :
+	                	$rec = new stdClass();
+	                	$rec->id = $sysContract->id;
+	                    $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+			            
+	                    self::save($rec,'script');
+	                    break;
+	                    
+	                case 'Трудов договор за заместване' :
+	                	$rec = new stdClass();
+	                	$rec->id = $sysContract->id;
+	                    $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
+			            self::save($rec,'script');
+	                    break;
+	            }
+	        }
         }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	// Ако записът е създаден от системата
+    	if($data->rec->sysId){
+    		
+    		// Добавяме бутон за клонирането му
+    		$data->toolbar->addBtn('Клонирай', array('hr_ContractTypes', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png');
+    	}
+    }
+    
+    
+    /**
+     * След потготовка на формата за добавяне / редактиране.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	// Вземаме ид-то на оригиналния запис
+    	if($originId = Request::get('originId', 'int')){
+    		
+    		// Намираме оригиналния запис
+    		$originRec = $this->fetch($originId);
+
+    		// слагаме стойностите във формата
+    		$form->setDefault('name', $originRec->name . "1");
+    		$form->setDefault('script', $originRec->script);
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	// Ако методът е редакция и вече имаме rec
+    	if($action == 'edit' && $rec){
+    		
+    		// и записът е създаден от системата
+    		if($rec->createdBy == "-1"){
+    			
+    			// никой не може да го редактирва
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
 }

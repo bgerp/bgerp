@@ -613,6 +613,7 @@ class cal_Calendar extends core_Master
 
         $state->query->where("#time >= '{$from}' AND #time <= '{$to}'");
 
+        $Calendar = cls::get('cal_Calendar');
         $Calendar->prepareListFields($state);
         $Calendar->prepareListFilter($state); 
         $Calendar->prepareListRecs($state); 
