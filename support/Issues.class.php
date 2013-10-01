@@ -617,6 +617,23 @@ class support_Issues extends core_Master
     }
     
     
+    /**
+     * 
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        // Вземаме запитване към системата
+        $query = support_Systems::getQuery();
+        
+        // Ако няма система
+        if (!$query->count()) {
+            
+            // Премахваме бутона за добанвяне на нов запис в листовия изглед
+            $data->toolbar->removeBtn('btnAdd');
+        }
+    }
+    
+    
 	/**
      * В кои корици може да се вкарва документа
      * 
