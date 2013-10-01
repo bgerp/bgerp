@@ -97,7 +97,7 @@ class doc_plg_HidePrices extends core_Plugin
     	}
     	
     	// Флаг да не се подготвя общата сума
-    	$data->noTotal = FALSE;
+    	$data->noTotal = TRUE;
     }
     
     

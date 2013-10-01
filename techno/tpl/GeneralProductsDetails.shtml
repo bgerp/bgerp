@@ -23,7 +23,8 @@
 			<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>
 		</tr>
 		<!--ET_END COMPONENT-->
-		<!--ET_BEGIN totalAmount-->
+		<!--ET_BEGIN TOTAL-->
+		[#TOTAL#]
 		<tr class='components-total'>
 			<td colspan='3' style='border:0px;' class='no-hover'></td>
 			<td align='right' class='has-hover'><b>|Общо|*:</b></td>
@@ -40,7 +41,7 @@
 			<b>[#totalTaxes#]</b>
 			</td>
 		</tr>
-		<!--ET_END totalAmount-->
+		<!--ET_END TOTAL-->
 		<!--ET_END COMPONENTS-->
 	</table>
 </div>

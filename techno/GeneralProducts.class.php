@@ -230,7 +230,6 @@ class techno_GeneralProducts extends core_Master {
 	    
 	    if($res->productRec->meta){
 	    	$meta = explode(',', $res->productRec->meta);
-	    	$newArr = array();
 	    	foreach($meta as $value){
 	    		$res->meta[$value] = TRUE;
 	    	}

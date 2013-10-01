@@ -30,7 +30,8 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'techno_Wrapper, plg_RowTools, plg_Sorting, plg_SaveAndNew, plg_AlignDecimals,plg_RowNumbering';
+    var $loadList = 'techno_Wrapper, plg_RowTools, plg_Sorting, plg_SaveAndNew,
+    				 plg_AlignDecimals, plg_RowNumbering, doc_plg_HidePrices';
     
   
     /**
@@ -85,6 +86,12 @@ class techno_GeneralProductsDetails extends core_Detail {
      * Продуктите от кои групи могат да са компоненти
      */
     static $allowedGroups = 'prefabrications';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'price,amount,bTaxes';
     
     
      /**
@@ -230,7 +237,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     			$cloneTpl->append2master();
     		}
     		
-    		if($data->total){
+    		if($data->total && !isset($data->noTotal)){
 	    		$tpl->placeObject($data->total);
 	    	}
     	}
@@ -243,9 +250,10 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareListRows($mvc, &$data)
+    static function on_AfterPrepareDetail($mvc, $res, &$data)
     {	
-        if(count($data->recs)){
+        if(isset($data->noTotal)) return;
+    	if(count($data->recs)){
         	$total = $taxes = 0;
         	foreach ($data->recs as $rec){
         		$total += $rec->amount;
@@ -254,6 +262,7 @@ class techno_GeneralProductsDetails extends core_Detail {
         	
         	$Double = cls::get('type_Double');
 	    	$Double->params['decimals'] = 2;
+	    	
 	    	$data->total = (object)array('totalAmount' => $Double->toVerbal($total), 'totalTaxes' => ($taxes) ? $Double->toVerbal($taxes) : NULL);
     		$cCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
 	    	$data->total->currencyId = $cCode;
