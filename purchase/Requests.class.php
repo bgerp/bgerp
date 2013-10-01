@@ -317,7 +317,7 @@ class purchase_Requests extends core_Master
         // @see salecond_DeliveryTermsByPlace
         if (empty($deliveryTermId)) {
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = salecond_DeliveryTerms::getDefault($contragent->getContragentData());
+            $deliveryTermId = salecond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'deliveryTerm');
         }
     
         return $deliveryTermId;
