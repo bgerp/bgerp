@@ -167,7 +167,7 @@ class bank_PaymentOrders extends core_Master
     		$myCompany = crm_Companies::fetchOwnCompany();
     		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
     		
-    		if($class == 'bank_IncomeDocument') {
+    		if($doc->className == 'bank_IncomeDocument') {
     			
     			// Ако оригиналния документ е приходен, наредителя е контрагента
     			// а получателя е моята фирма
@@ -177,7 +177,7 @@ class bank_PaymentOrders extends core_Master
     			$form->setDefault('orderer', $rec->contragentName);
     			$form->setSuggestions('ordererIban', $contragentIbans);
     		
-    		} elseif($class == 'bank_CostDocument') {
+    		} elseif($doc->className == 'bank_CostDocument') {
     			
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
     			// а получателя е контрагента
