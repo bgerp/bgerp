@@ -91,8 +91,6 @@ class doc_plg_DefaultValues extends core_Plugin
     	if(cls::existsMethod($mvc, $name)){
     		return $mvc->$name($rec);
     	}
-    	
-    	return static::getCoverMethod($rec->folderId, $name);
     }
     
     
@@ -108,8 +106,6 @@ class doc_plg_DefaultValues extends core_Plugin
     	if(cls::existsMethod($Class, $name)){
 	    	return $Class::$name($cId);
 	    }
-	    
-	    return NULL;
     }
     
     
@@ -241,15 +237,20 @@ class doc_plg_DefaultValues extends core_Plugin
     	
     	// Последния документ от потребителя в същата папка
     	$value = static::getLastDocumentValue($mvc, $rec->folderId, TRUE, $name)->{$name};
-    	$value = NULL;
+    	
     	// Последния документ в същата папка
     	if(!$value){
     		$value = static::getLastDocumentValue($mvc, $rec->folderId, FALSE, $name)->{$name};
     	}
-    	$value = NULL;
+    	
     	// Дефолт метода на мениджъра
     	if(!$value){
     		$value = static::getFromDefaultMethod($mvc, "getDefault{$name}" , $rec);
+    	}
+    	
+    	// Дефолт метод от корицата на документа
+    	if(!$value){
+    		$value = static::getCoverMethod($rec->folderId, "getDefault{$name}");
     	}
     	
     	// Търси за търговско условие 
