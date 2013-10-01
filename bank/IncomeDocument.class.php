@@ -201,16 +201,14 @@ class bank_IncomeDocument extends core_Master
     	
     	// Информацията за контрагента на папката
     	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	
+    	$cClass = doc_Folders::fetchCoverClassName($folderId);
     	if($contragentData) {
-    		if($contragentData->company) {
-    			
-    			$form->setDefault($field, $contragentData->company);
-    		} elseif ($contragentData->person) {
-    			
-    			// Ако папката е на лице, то вносителя по дефолт е лицето
+    		if($cClass == 'crm_Persons'){
     			$form->setDefault($field, $contragentData->person);
+    		} elseif($cClass == 'crm_Companies'){
+    			$form->setDefault($field, $contragentData->company);
     		}
+    		
     		$form->setReadOnly($field);
     	}
     }
