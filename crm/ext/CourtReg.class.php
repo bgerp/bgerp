@@ -141,4 +141,15 @@ class crm_ext_CourtReg extends core_Detail
         $form->setSuggestions('regCourt', $dcSug);
  		$data->form->title = 'Съдебна регистрация на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec)){
+    		$res = $mvc->getRequiredRoles('add', $rec);
+    	}
+    }
 }

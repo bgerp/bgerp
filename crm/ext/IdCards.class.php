@@ -143,4 +143,15 @@ class crm_ext_IdCards extends core_Detail
 
         $data->form->title = 'Лична карта на |*' .  $mvc->Master->getVerbal($data->masterRec, 'name');
     }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec)){
+    		$res = $mvc->getRequiredRoles('add', $rec);
+    	}
+    }
 }
