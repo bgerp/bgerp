@@ -127,7 +127,7 @@ class fileman_webdrv_Generic extends core_Manager
         // Връщаме съдържанието
         return $content;
     }
-
+    
     
 	/**
      * Екшън за показване превю
@@ -164,20 +164,11 @@ class fileman_webdrv_Generic extends core_Manager
         
         if (($jpgArr) && (count($jpgArr))) {
             
-            //Вземема конфигурационните константи
-            $conf = core_Packs::getConfig('fileman');
-            
-            // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
-            if (mode::is('screenMode', 'narrow')) {
-                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
-                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
-            } else {
-                $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
-                $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
-            }
+            // Вземаме височината и широчината
+            $thumbWidthAndHeightArr = static::getPreviewWidthAndHeight();
             
             // Атрибути на thumbnail изображението
-            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'margin: 5px auto; display: block; max-width:100%;height:auto');
+            $attr = array('baseName' => 'Preview', 'isAbsolute' => FALSE, 'qt' => '', 'style' => 'display: block; max-width:100%;height:auto');
             
             // Background' а на preview' то
             $bgImg = sbf('fileman/img/Preview_background.jpg');
@@ -188,10 +179,10 @@ class fileman_webdrv_Generic extends core_Manager
             foreach ($jpgArr as $jpgFh) {
                 
                 //Размера на thumbnail изображението
-                $size = array($thumbWidth, $thumbHeight);
+                $size = array($thumbWidthAndHeightArr['width'], $thumbWidthAndHeightArr['height']);
                 
                 //Създаваме тумбнаил с параметрите
-                $thumbnailImg = thumbnail_Thumbnail::getImg($jpgFh, $size, $attr);    
+                $thumbnailImg = thumbnail_Thumbnail::getImg($jpgFh, $size, $attr);
                 
                 if ($thumbnailImg) {
                 
@@ -1216,5 +1207,32 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Връщаме новото съдържание
         return $newContent;
+    }
+    
+    
+    /**
+     * Връща масив с височината и ширината за прегледа на изображението
+     * 
+     * @return array
+     */
+    static function getPreviewWidthAndHeight()
+    {
+        //Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('fileman');
+        
+        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
+        if (mode::is('screenMode', 'narrow')) {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
+        } else {
+            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
+            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
+        }
+        
+        // Добавяме в масива
+        $arr['width'] = $thumbWidth;
+        $arr['height'] = $thumbHeight;
+        
+        return $arr;
     }
 }

@@ -520,4 +520,31 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
             return TRUE;
         }
     }  
+    
+    
+    /**
+     * Връща масив с височината и ширината за прегледа на изображението
+     * 
+     * @return array
+     */
+    static function getPreviewWidthAndHeight()
+    {
+        //Вземема конфигурационните константи
+        $conf = core_Packs::getConfig('docoffice');
+        
+        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
+        if (mode::is('screenMode', 'narrow')) {
+            $thumbWidth = $conf->OFFICE_PREVIEW_WIDTH_NARROW;
+            $thumbHeight = $conf->OFFICE_PREVIEW_HEIGHT_NARROW;
+        } else {
+            $thumbWidth = $conf->OFFICE_PREVIEW_WIDTH;
+            $thumbHeight = $conf->OFFICE_PREVIEW_HEIGHT;
+        }
+        
+        // Добавяме в масива
+        $arr['width'] = $thumbWidth;
+        $arr['height'] = $thumbHeight;
+        
+        return $arr;
+    }
 }

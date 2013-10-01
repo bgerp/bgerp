@@ -44,6 +44,8 @@ class thumbnail_Thumbnail extends core_Manager {
         }
         
         unset($attr['baseName']);
+        unset($attr['isAbsolute']);
+        unset($attr['qt']);
         
         return ht::createElement('img', $attr);
     }
