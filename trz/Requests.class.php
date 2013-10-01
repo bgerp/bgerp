@@ -155,7 +155,7 @@ class trz_Requests extends core_Master
     	$this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
     	$this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
     	$this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
-    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=Година');
+    	$this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година');
     	$this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
