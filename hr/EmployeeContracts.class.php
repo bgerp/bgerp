@@ -92,6 +92,12 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Кой може да пише?
+     */
+    var $canEdit = 'ceo,hr';
+    
+    
+    /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/report_user.png';
@@ -188,6 +194,7 @@ class hr_EmployeeContracts extends core_Master
         }
         
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -356,6 +363,7 @@ class hr_EmployeeContracts extends core_Master
     	return $schedule;
     }
     
+    
     /**
      * 
      * Изчислява седмичното натоварване според графика в секунди
@@ -431,6 +439,14 @@ class hr_EmployeeContracts extends core_Master
         return keylist::isIn($emplGroupId, $personRec->groupList);*/
         
         return FALSE;
+    }
+    
+    
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit'){
+    		$requiredRoles = 'ceo,hr';
+    	}
     }
     
     
