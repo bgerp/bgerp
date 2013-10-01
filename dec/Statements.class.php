@@ -44,16 +44,26 @@ class dec_Statements extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'ceo, dec';
-    
-    
-    
+            
     
     /**
      * Кой може да пише?
      */
     var $canWrite = 'ceo, dec';
     
+    
+    /**
+     * Кои полета ще виждаме в листовия изглед
+     */
+    var $listFields = 'id, title, createdOn, createdBy';
 
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
+    
+    
     /**
      * Шаблон за единичния изглед
      */

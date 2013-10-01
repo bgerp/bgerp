@@ -1,7 +1,14 @@
 <?php 
 
-
+/**
+ * Шаблон с примерен текст на Декларация за съответствие
+ */
 defIfNot(DEC_DECLARATION_HEADER, 'dec/tpl/DeclarationHeader.shtml');
+
+
+/**
+ * Шаблон с примерен текст на подпис към Декларация за съответствие
+ */
 defIfNot(DEC_DECLARATION_FOOTER, 'dec/tpl/DeclarationFooter.shtml');
 
 
@@ -68,12 +75,21 @@ class dec_Declarations extends core_Master
     var $canWrite = 'ceo,dec';
     
     
+    /**
+     * Кой е детайла на каласа
+     */
     var $details = 'dec_DeclarationDetails';
     
     
-    var $listFields = 'id, title, doc, header, footer';
+    /**
+     * Кои полета ще виждаме в листовия изглед
+     */
+    var $listFields = 'id, title, doc, createdOn, createdBy';
     
     
+    /**
+     * Кой е тетущият таб от менюто
+     */
     var $currentTab = 'Декларации';
      
      
@@ -92,13 +108,14 @@ class dec_Declarations extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'id';
+    var $rowToolsSingleField = 'title';
 
     
     /**
      * Абревиатура
      */
     var $abbr = "Dec";
+    
     
     /**
      * Групиране на документите
@@ -117,29 +134,42 @@ class dec_Declarations extends core_Master
 		$this->FLD('footer', 'richtext', 'caption=Подпис на декларацията->Текст');
 
     }
-  
+
     
+    /**
+     * След потготовка на формата за добавяне / редактиране.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
+    	// Вземаме съдържанието на шаблона,
+    	// който е примерен текст на декларацията
     	$header = getFileContent(DEC_DECLARATION_HEADER);
     	$footer = getFileContent(DEC_DECLARATION_FOOTER);
 
+    	// Зареждаме ги във формата
     	$data->form->setDefault('title', "Декларация за съответствие");
     	$data->form->setDefault('header', $header);
     	$data->form->setDefault('footer', $footer);
     	
+    	// Записваме оригиналното ид, ако имаме такова
     	if($data->form->rec->originId){
     		$data->form->setDefault('doc', $data->form->rec->originId);
     	}    	
     }
+    
     
     /**
      * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)  и данните от фактурата
      */
     public function on_AfterRenderSingle($mvc, core_ET $tpl, $data)
     {
+    	// Зареждаме данните за собствената фирма
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
+        // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
             $address .= '&nbsp;' . $ownCompanyData->address;
@@ -148,6 +178,7 @@ class dec_Declarations extends core_Master
         $tpl->replace($ownCompanyData->country, 'MyCountry');
         $tpl->replace($address, 'MyAddress');
         
+        // Ват номера й
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
     		$tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
@@ -161,6 +192,7 @@ class dec_Declarations extends core_Master
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
     		
+    		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
 	            $addressContragent .= '&nbsp;' . $rec->contragentAddress;
@@ -193,9 +225,18 @@ class dec_Declarations extends core_Master
     	
     }    
     
-  
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	// Правим линк към единичния изглед на оригиналния документ
+    	$row->doc = doc_Containers::getLinkForSingle($rec->doc);
     	$row->header = new ET(tr('|*' . $rec->header));
     	$row->footer = new ET(tr('|*' . $rec->footer));
     }
@@ -219,6 +260,7 @@ class dec_Declarations extends core_Master
                 break;
     	}
     }
+    
     
 	/**
      * Интерфейсен метод на doc_DocumentIntf
@@ -246,6 +288,4 @@ class dec_Declarations extends core_Master
                        
         return $row;
     }
-    
-	
 }
