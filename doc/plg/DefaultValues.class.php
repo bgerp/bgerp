@@ -241,15 +241,15 @@ class doc_plg_DefaultValues extends core_Plugin
     	
     	// Последния документ от потребителя в същата папка
     	$value = static::getLastDocumentValue($mvc, $rec->folderId, TRUE, $name)->{$name};
-    	
+    	$value = NULL;
     	// Последния документ в същата папка
     	if(!$value){
     		$value = static::getLastDocumentValue($mvc, $rec->folderId, FALSE, $name)->{$name};
     	}
-    	
+    	$value = NULL;
     	// Дефолт метода на мениджъра
     	if(!$value){
-    		$value = static::getFromDefaultMethod($mvc, $name, $rec);
+    		$value = static::getFromDefaultMethod($mvc, "getDefault{$name}" , $rec);
     	}
     	
     	// Търси за търговско условие 
