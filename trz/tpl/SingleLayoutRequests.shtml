@@ -8,7 +8,8 @@
 	 <p class="centered">№ [#id#] / [#createdDate#] |година|*</p>
 	 <p class="centered">|От|*: <b>[#personId#]</b></p>
 	 <br>
-	 <p>|Относно|*: |ползване на|* <b>[#paid#]</b> |годишен отпуск|*</p><br>
+	 <p class="indent">|Относно|*: |ползване на|* <b>[#paid#]</b> |годишен отпуск|*</p>
+	 <br>
 	 <p class="indent">|Уважаеми г-н/ г-жо Управител|*,</p>
 	 <br>
 	 <p class="indent">|Моля, да ми бъде разрешен|* <b>[#leaveDays#]</b> |дни|* <b>[#paid#]</b> |отпуск за|* [#useDaysFromYear#] |година|*, |считано от|* <b>[#leaveFrom#]</b> |до|* <b>[#leaveTo#]</b> година включително.</p>
