@@ -1058,7 +1058,7 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
                 $requiredRoles = 'no_one';
-            } elseif ($action == 'reject' || $action == 'edit' || $action == 'restore' || $action == 'add') {
+            } elseif ($action == 'reject'  || $action == 'restore') {
                 if (doc_Threads::haveRightFor('single', $oRec->threadId, $userId)) {
                     if($requiredRoles != 'no_one'){
                     	$requiredRoles = 'powerUser';
