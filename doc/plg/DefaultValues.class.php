@@ -7,11 +7,6 @@
  * Слага се default стойност на всички полета, имащи атрибут 'defaultStrategy'
  * със стойност някоя от предефинираните стратегии в плъгина
  * 
- * Допустими стратегии са:
- * 1 - @TODO
- * 2 - @TODO
- * 3 - @TODO
- * 
  *
  * @category  bgerp
  * @package   doc
@@ -102,8 +97,9 @@ class doc_plg_DefaultValues extends core_Plugin
     
     
     /**
-     * 
-     * Enter description here ...
+     * Извиква метод( ако съществува ) от корицата на папка
+     * @param int $folderId - ид на папка
+     * @param string $name - име на метод
      */
     private static function getCoverMethod($folderId, $name)
     {
@@ -139,10 +135,9 @@ class doc_plg_DefaultValues extends core_Plugin
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param int $folderId
-     * @param core_FieldSet $fld
+     * Намира търговско условие
+     * @param int $folderId - ид на папка
+     * @param string $salecondSysId - Sys Id на условие
      */
     private static function getFromSaleCondition($folderId, $salecondSysId)
     {
@@ -180,11 +175,7 @@ class doc_plg_DefaultValues extends core_Plugin
     
     
     /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $mvc
-     * @param unknown_type $name
-     * @param unknown_type $rec
+     * Връща контрагентски данни
      */
     private static function getContragentData($mvc, $name, $rec)
     {
@@ -196,6 +187,8 @@ class doc_plg_DefaultValues extends core_Plugin
     		}
     	}
     	
+    	// Ако документа поддържа контрагент интерфейса, извличаме данните за
+    	// контрагента от последния документ в тази папка
     	if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
 	    	$query = $mvc->getQuery();
 	    	$query->where("#folderId = {$folderId}");
@@ -207,6 +200,8 @@ class doc_plg_DefaultValues extends core_Plugin
     	}
     	
     	if(!$data) {
+    		
+    		// Ако документа няма такъв метод, се взимат контрагент данните от корицата
     		$data = static::getCoverMethod($folderId, 'getContragentData');
     	}
     	
@@ -257,6 +252,7 @@ class doc_plg_DefaultValues extends core_Plugin
     		$value = static::getFromDefaultMethod($mvc, $name, $rec);
     	}
     	
+    	// Търси за търговско условие 
     	if(!$value && isset($fld->salecondSysId)){
     		$value = static::getFromSaleCondition($rec->folderId, $fld->salecondSysId);
     	}
