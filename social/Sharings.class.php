@@ -195,7 +195,7 @@ class social_Sharings extends core_Master
             if(core_Packs::fetch("#name = 'vislog'") &&
                vislog_History::add("Споделяне в " . $rec->name . " на " .$url) ) {
 
-               	 if (Mode::is('javascript', 'yes')){ bp(Mode::get('javascript'));
+               	 if (Mode::is('javascript', 'yes')){
 	               	 // Увеличаване на брояча на споделянията
 	    			 $rec->sharedCnt++;
 	               	 self::save($rec, 'sharedCnt');             

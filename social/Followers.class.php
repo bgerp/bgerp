@@ -143,18 +143,20 @@ class social_Followers extends core_Master
     	
     	// Намираме нейния запис
     	$rec = self::fetch("#id = '{$id}'"); 
-    	    	    	
-    	// Увеличаване на брояча на споделянията
-    	$rec->followersCnt++;
-    	
-    	
+ 
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
-            if(core_Packs::fetch("#name = 'vislog'")) {
-               vislog_History::add("Последване в " . $rec->title);
+            if(core_Packs::fetch("#name = 'vislog'") && 
+               vislog_History::add("Последване в " . $rec->title)) {
+               
+               if (Mode::is('javascript', 'yes')){
+               	    	    	
+			       // Увеличаване на брояча на споделянията
+			       $rec->followersCnt++;
+			       self::save($rec, 'followersCnt'); 
+               }
             }
         }
-    	self::save($rec, 'followersCnt');
     	
     	// Връщаме URL-то
     	return new Redirect ($rec->url);
