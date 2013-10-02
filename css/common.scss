@@ -1415,14 +1415,27 @@ div.hFormField {
  */
 table.keylist{
 	width:100%;
-	td {
-		padding: 0.4em 0.2em 0 0.2em;
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    outline:none;
+	td{
+		padding:0.3em 0.2em 0 0.2em;
+	}
+	.inner-keylist{
+		width:100%;
+		tr{
+			height:1.6em !important;
+		}
+		td{
+			padding:0.2em 0.2em 0.1em 0.2em;
+		}
 	}
 }
 
 .narrow table.keylist td {
+	font-size:0.9em;
 	padding-top:0.1em;
 	padding-bottom:0 !important;
+	
 }
 
 td.keylist-group{
@@ -1434,7 +1447,14 @@ td.keylist-group > div {
     font-size:0.9em;
     font-weight:bold;
     background-color:#eeeeff;
+    border:1px solid #e0e0f0;
+    margin-top:1px;
     color: #333;
+    cursor:pointer;  
+}
+
+ tr.hiddenElement {
+   display:none;
 }
 /*край на стилове за показване на формите */
  

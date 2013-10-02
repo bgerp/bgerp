@@ -557,6 +557,15 @@ function toggleDisplay(id)
 	}
 }
 
+//Функция за скриване на keylist oпции от форми
+function keylistToggle(el)
+{
+	var trId = $(el).attr("id");
+    var tableHolder = $(el).closest("table.keylist");
+    var trItems = tableHolder.find("tr." + trId);
+    trItems.toggle('slow');
+}
+
 function toggleRichtextGroups(id)
 { 
 	if (typeof jQuery != 'undefined') {

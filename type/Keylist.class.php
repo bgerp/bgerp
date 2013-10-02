@@ -142,12 +142,14 @@ class type_Keylist extends core_Type {
             round(sqrt(max(0, count($this->suggestions) + 1))));
         
         $i = 0; $html = ''; $trOpen = TRUE;
-        
+        $j = 0; //за конструиране на row-1,row-2 и т.н.
         if(count($this->suggestions)) {
             foreach($this->suggestions as $key => $v) {
-                 
+                
                 // Ако имаме група, правим ред и пишем името на групата
                 if(is_object($v) && $v->group) {
+                	$j++;
+                	
                     if($trOpen) {
                         while($i > 0) {
                             $html .= "\n    <td></td>";
@@ -165,7 +167,20 @@ class type_Keylist extends core_Type {
                         $v->title = transliterate($v->title);
                     }
                     
-                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>";
+                    if ($groupOpen){
+                    	$html .= "</table></td>";
+                    	if ($haveChecked){
+                    		$html = str_replace("[#hideTableRow#]", "", $html);
+                    	} else{
+                    		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
+                    	}
+                    }
+                    
+                    $html .= "\n<tr id='row-". $j . "' onclick='keylistToggle(this);'><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>" .
+                    "<tr><td><table class='inner-keylist'>";
+                    
+                    $groupOpen = 1;
+                    $haveChecked = FALSE;
                     $i = 0;
                 } else {
                     $attrCB['id'] = $name . "_" . $key;
@@ -174,6 +189,7 @@ class type_Keylist extends core_Type {
                     
                     if(in_array($key, $values)) {
                         $attrCB['checked'] = 'checked';
+                        $haveChecked = TRUE;
                     } else {
                         unset($attrCB['checked']);
                     }
@@ -191,11 +207,10 @@ class type_Keylist extends core_Type {
                     $cb = ht::createElement('input', $attrCB);
                     $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
-                    if($i == 0) {
-                        $html .= "\n<tr>";
+                    if($i == 0 && $j>0) {
+                        $html .= "\n<tr class='row-" .$j . " [#hideTableRow#]'>";
                         $trOpen = TRUE;
                     }
-                    
                     $html .= "\n    <td>" . $cb->getContent() . "</td>";
                     
                     if($i == $col -1) {
@@ -206,14 +221,24 @@ class type_Keylist extends core_Type {
                     $i++;
                     $i = $i % $col;
                 }
+ 
             }  
+            if ($groupOpen){
+            	$html .= "</table></td>";
+            	
+            	if ($haveChecked){
+            		$html = str_replace("[#hideTableRow#]", "", $html);
+            	} else{
+            		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
+            	}
+            } 
         } else {
             $html = '<tr><td></td></tr>';
         }
         
         $attr['class'] .= ' keylist';
         $tpl = HT::createElement('table', $attr, $html);
-        
+       
         return $tpl;
     }
 
