@@ -39,7 +39,7 @@ class trz_Requests extends core_Master
      */
     var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc2,plg_AutoFilter';
+    				 plg_Printing, doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg';
     
     
     /**
@@ -160,7 +160,10 @@ class trz_Requests extends core_Master
     	$this->FLD('note', 'richtext(rows=5, bucket=Notes)', 'caption=Информация->Бележки');
     	$this->FLD('answerGSM', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
     	$this->FLD('answerSystem', 'enum(yes=да, no=не, partially=частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-    	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
+    	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
+    	// Споделени потребители
+        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
+    	
     	
     	
     }
@@ -325,7 +328,7 @@ class trz_Requests extends core_Master
         }
         
         // Ако нямаме права за писане в треда
-    	if(doc_Threads::haveRightFor('add', $data->сrec->threadId) == FALSE){
+    	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
     		
     		// Премахваме бутона за коментар
 	    	$data->toolbar->removeBtn('Коментар');
