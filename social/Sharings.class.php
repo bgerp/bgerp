@@ -178,11 +178,11 @@ class social_Sharings extends core_Master
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'")) {
-               if(vislog_History::add("Споделяне в " . $rec->name . "на " .$url)){
+               if(vislog_History::add("Споделяне в " . $rec->name . " на " .$url)){
                	
                	 // Увеличаване на брояча на споделянията
     			 $rec->sharedCnt++;
-               	 self::save($rec, 'sharedCnt');bp($rec);
+               	 self::save($rec, 'sharedCnt');
                }
             }
         }
