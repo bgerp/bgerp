@@ -242,4 +242,15 @@ class store_Stores extends core_Master
 			$data->query->where("#chiefId = {$cu}");
 		}
 	}
+
+
+	static function on_AfterPrepareEditForm($mvc, &$res, $data)
+	{
+		// Ако сме в тесен режим
+		if (Mode::is('screenMode', 'narrow')) {
+	
+			// Да има само 2 колони
+			$data->form->setField('workersIds', array('maxColumns' => 2));
+		}
+	}
 }
