@@ -1684,7 +1684,12 @@ fieldset.sharing-history {
 		background: -ms-linear-gradient(top, #ffffff 0%,#d5d5d5 100%); /* IE10+ */
 		background: linear-gradient(to bottom, #ffffff 0%,#d5d5d5 100%); /* W3C */
 		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#d5d5d5',GradientType=0 ); /* IE6-9 */
-		
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
 		&:hover{
 			cursor:pointer;
 			color:#333;
@@ -1713,6 +1718,12 @@ fieldset.sharing-history {
 	padding:7px 2px 7px 7px;
 	height:24px;
 	float:left;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
 /*край на CMS*/
 
