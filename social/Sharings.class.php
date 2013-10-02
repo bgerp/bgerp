@@ -124,10 +124,25 @@ class social_Sharings extends core_Master
 			$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 
 														'socUrl' => 'SOC_URL', 
 														'socTitle' => 'SOC_TITLE', 
-														'socSummary' => 'SOC_SUMMARY');				
-				
+														'socSummary' => 'SOC_SUMMARY');	
+			
+			// Взимаме URL-то на цраницата, която ще споделяме		
+			$cntUrl = toUrl(getCurrentUrl(), 'absolute');
+			
+			// Търсим, дали има запис в модела, който отброява споделянията
+			$socCnt = social_SharingCnts::fetch("#networkId = '{$socialNetwork->id}' AND #url = '{$cntUrl}'");
+			
+			if($socCnt){
+				// Ако е намерен такъв запис, 
+				// взимаме броя на споделянията
+				$socCntP = $socCnt->cnt;
+			} else {
+				// за сега нямаме споделяне
+				$socCntP = 0;
+			}
+			
 			// Създаваме линка на бутона
-			$link = ht::createLink("{$img}  <sup>+</sup>" . $socialNetwork->sharedCnt, 
+			$link = ht::createLink("{$img}  <sup>+</sup>" . $socCntP, 
 									$url, NULL, array("class"=>"soc-sharing", "target"=>"_blank", "title" => tr('Споделете в '). $socialNetwork->name));
 				
 			$link = (string) $link;
@@ -183,7 +198,28 @@ class social_Sharings extends core_Master
                	 // Увеличаване на брояча на споделянията
     			 $rec->sharedCnt++;
                	 self::save($rec, 'sharedCnt');
-               }
+                }
+                
+                 // Взимаме записите от модела, който брои споделянията
+               	 $socCnt = social_SharingCnts::fetch("#networkId = '{$rec->id}' AND #url = '{$url}'");
+               	 
+               	 // Ако нямаме записи, то записваме 
+               	 // ид-то на  мрежата и URL-то на споделената страница
+               	 if(!$socCnt){
+               	 	$socCntRec = new stdClass();
+               	 	$socCntRec->networkId = $rec->id;
+               	 	$socCntRec->url = $url;
+               	 	$socCntRec->cnt++;
+               	 	
+               	 	social_SharingCnts::save($socCntRec);
+               	 	
+               	 } else {
+               	 	
+               	 	// ако вече имаме запис, просто увеличаваме брояча
+               	 	$socCnt->cnt++;
+               	 	social_SharingCnts::save($socCnt, 'cnt');
+               	 }
+              
             }
         }
 

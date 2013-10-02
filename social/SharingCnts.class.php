@@ -70,7 +70,7 @@ class social_SharingCnts extends core_Master
      */
     function description()
     {
-		$this->FLD('networkId', 'key(mvc=social_Sharing)', 'caption=Услуга, input=none');
+		$this->FLD('networkId', 'key(mvc=social_Sharings)', 'caption=Услуга, input=none');
 		$this->FLD('url', 'varchar(128)', 'caption=URL, input=none, hint=URL за споделяне');
 		$this->FLD('cnt', 'int', 'caption=Cподеляния, input=none,notNull');
     }
