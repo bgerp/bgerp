@@ -130,36 +130,38 @@ class hr_ContractTypes extends core_Master
         	
         	// Намираме тези, които са създадени от системата
 	        $query->where("#createdBy = -1");
+	        $sysContracts = array();
 	        while ($recPrev = $query->fetch()){
-	        	$sysContracts[] = $recPrev;
+	        	$sysContracts = $recPrev;
 	        }
-	        
+	        if(is_array($sysContracts)){
 	        // и ги ъпдейтваме с последните промени в шаблоните
-	        foreach($sysContracts as $sysContract){
-		        switch ($sysContract->name) {
-	                case 'Безсрочен трудов договор' :
-	                	$rec = new stdClass();
-	                	$rec->id = $sysContract->id;
-	                    $rec->script = getFileContent('hr/tpl/PermanentContract.ls.shtml');
-	                    
-				        self::save($rec,'script');
-	                    break;
-	                    
-	                case 'Срочен трудов договор' :
-	                	$rec = new stdClass();
-	                	$rec->id = $sysContract->id;
-	                    $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
-			            
-	                    self::save($rec,'script');
-	                    break;
-	                    
-	                case 'Трудов договор за заместване' :
-	                	$rec = new stdClass();
-	                	$rec->id = $sysContract->id;
-	                    $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
-			            self::save($rec,'script');
-	                    break;
-	            }
+		        foreach($sysContracts as $sysContract){
+			        switch ($sysContract->name) {
+		                case 'Безсрочен трудов договор' :
+		                	$rec = new stdClass();
+		                	$rec->id = $sysContract->id;
+		                    $rec->script = getFileContent('hr/tpl/PermanentContract.ls.shtml');
+		                    
+					        self::save($rec,'script');
+		                    break;
+		                    
+		                case 'Срочен трудов договор' :
+		                	$rec = new stdClass();
+		                	$rec->id = $sysContract->id;
+		                    $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+				            
+		                    self::save($rec,'script');
+		                    break;
+		                    
+		                case 'Трудов договор за заместване' :
+		                	$rec = new stdClass();
+		                	$rec->id = $sysContract->id;
+		                    $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
+				            self::save($rec,'script');
+		                    break;
+		            }
+		        }
 	        }
         }
     }
