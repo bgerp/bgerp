@@ -1058,8 +1058,13 @@ class type_Richtext extends type_Blob
         
         $emlType = cls::get('type_Email');
 
-        if($emlType->isValidEmail($email)) { 
-            $email = $emlType->toVerbal($email);
+        if($emlType->isValidEmail($email)) {
+            
+            $place = $this->getPlace();
+            
+            $this->_htmlBoard[$place] = $emlType->toVerbal($email);
+            
+            return "[#{$place}#]";
         }
 
         return $email;
