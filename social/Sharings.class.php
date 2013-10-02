@@ -143,7 +143,7 @@ class social_Sharings extends core_Master
 			
 			// Създаваме линка на бутона
 			$link = ht::createLink("{$img}  <sup>+</sup>" . $socCntP, 
-									$url, NULL, array("class"=>"soc-sharing", "target"=>"_blank", "title" => tr('Споделете в '). $socialNetwork->name));
+									$url, NULL, array("class"=>"soc-sharing", "target"=>"_blank", "rel"=>"nofollow", "title" => tr('Споделете в '). $socialNetwork->name));
 				
 			$link = (string) $link;
 		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
