@@ -153,6 +153,7 @@ class trz_Orders extends core_Master
     	$this->FLD('amount', 'double', 'caption=Начисления');
     }
     
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -260,6 +261,21 @@ class trz_Orders extends core_Master
     }
     
     
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        if(doc_Threads::haveRightFor('add', $data->сrec->threadId) == FALSE){
+	    	$data->toolbar->removeBtn('Коментар');
+	    }
+        
+    }
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка 
@@ -281,6 +297,7 @@ class trz_Orders extends core_Master
         
         return keylist::isIn($emplGroupId, $personRec->groupList);
     }
+    
     
     /**
      * Интерфейсен метод на doc_DocumentIntf

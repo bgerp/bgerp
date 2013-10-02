@@ -220,6 +220,7 @@ class trz_Requests extends core_Master
 
     }
     
+    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -282,34 +283,59 @@ class trz_Requests extends core_Master
     	$rec = $form->rec;
 
     }
+ 
     
-    
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
+    	// Ако се опитваме да направим заповед за отпуска
 	    if($action == 'order'){
 			if ($rec->id) {
-				
+				    // и нямаме нужните права
 					if(!haveRole('ceo') || !haveRole('trz')) {
-				
+				        // то не може да я направим
 						$requiredRoles = 'no_one';
 				}
 		    }
 	    }
-    }
+     }
 
     
-    /**
-     *
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
+    	// Ако имаме права да създадем заповед за отпуск
         if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
             
+        	// Добавяме бутон
             $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png');
         }
         
+        // Ако нямаме права за писане в треда
+    	if(doc_Threads::haveRightFor('add', $data->сrec->threadId) == FALSE){
+    		
+    		// Премахваме бутона за коментар
+	    	$data->toolbar->removeBtn('Коментар');
+	    }
+        
     }
     
+    /**
+     * Тестова функция
+     */
     static public function act_Test()
     {
     	$p = 1;
@@ -318,8 +344,9 @@ class trz_Requests extends core_Master
     	bp(cal_Calendar::calcLeaveDays($a,$b));
     }
     
+    
     /**
-     * Обновява информацията за задачата в календара
+     * Обновява информацията за молбите в календара
      */
     static function updateRequestsToCalendar($id)
     {
@@ -436,6 +463,7 @@ class trz_Requests extends core_Master
         
         return $row;
     }
+    
     
     /**
      * В кои корици може да се вкарва документа
