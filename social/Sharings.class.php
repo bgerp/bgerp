@@ -192,34 +192,34 @@ class social_Sharings extends core_Master
     	    	   	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
-            if(core_Packs::fetch("#name = 'vislog'")) {
-               if(vislog_History::add("Споделяне в " . $rec->name . " на " .$url)){
-               	
-               	 // Увеличаване на брояча на споделянията
-    			 $rec->sharedCnt++;
-               	 self::save($rec, 'sharedCnt');
-                }
+            if(core_Packs::fetch("#name = 'vislog'") &&
+               vislog_History::add("Споделяне в " . $rec->name . " на " .$url) ) {
+
+               	 if (Mode::is('javascript', 'yes')){ bp(Mode::get('javascript'));
+	               	 // Увеличаване на брояча на споделянията
+	    			 $rec->sharedCnt++;
+	               	 self::save($rec, 'sharedCnt');             
                 
-                 // Взимаме записите от модела, който брои споделянията
-               	 $socCnt = social_SharingCnts::fetch("#networkId = '{$rec->id}' AND #url = '{$url}'");
-               	 
-               	 // Ако нямаме записи, то записваме 
-               	 // ид-то на  мрежата и URL-то на споделената страница
-               	 if(!$socCnt){
-               	 	$socCntRec = new stdClass();
-               	 	$socCntRec->networkId = $rec->id;
-               	 	$socCntRec->url = $url;
-               	 	$socCntRec->cnt++;
-               	 	
-               	 	social_SharingCnts::save($socCntRec);
-               	 	
-               	 } else {
-               	 	
-               	 	// ако вече имаме запис, просто увеличаваме брояча
-               	 	$socCnt->cnt++;
-               	 	social_SharingCnts::save($socCnt, 'cnt');
+	                 // Взимаме записите от модела, който брои споделянията
+	               	 $socCnt = social_SharingCnts::fetch("#networkId = '{$rec->id}' AND #url = '{$url}'");
+	               	 
+	               	 // Ако нямаме записи, то записваме 
+	               	 // ид-то на  мрежата и URL-то на споделената страница
+	               	 if(!$socCnt){
+	               	 	$socCntRec = new stdClass();
+	               	 	$socCntRec->networkId = $rec->id;
+	               	 	$socCntRec->url = $url;
+	               	 	$socCntRec->cnt++;
+	               	 	
+	               	 	social_SharingCnts::save($socCntRec);
+	               	 	
+	               	 } else {
+	               	 	
+	               	 	// ако вече имаме запис, просто увеличаваме брояча
+	               	 	$socCnt->cnt++;
+	               	 	social_SharingCnts::save($socCnt, 'cnt');
+	               	 }
                	 }
-              
             }
         }
 
