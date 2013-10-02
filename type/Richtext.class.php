@@ -62,13 +62,13 @@ class type_Richtext extends type_Blob
 	/**
      * Минималната дължина след която ще се добавя знак за хифенация
      */
-    const MIN_LENGTH_HYPHEN = 5;
+    const MIN_LENGTH_HYPHEN = 4;
     
     
     /**
      * Максималната дължина след която ще се добавя знак за хифенация
      */
-    const MAX_LENGTH_HYPHEN = 9;
+    const MAX_LENGTH_HYPHEN = 10;
     
     
 	/**
@@ -273,8 +273,8 @@ class type_Richtext extends type_Blob
         // Регулярен израз за откриване на думите за хифениране
         // Думи без интервал по подълги от зададена в констатнтата
         // Шунтирано е, защото разваля текста, като добавя символи в явните линкове и имейли
-//        $regExpHyphenWord = "/(^|\s){1}[^\[\]\s]{". static::TRANSFER_WORD_MIN_LENGTH . "}(\S){" . static::TRANSFER_WORD_MIN_LENGTH . ",}($|\s)/ui";
-//        $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
+        $regExpHyphenWord = "/(\S{" . static::TRANSFER_WORD_MIN_LENGTH . ",})/ui";
+        $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         
@@ -707,8 +707,11 @@ class type_Richtext extends type_Blob
      */
     function _hyphenWord($match)
     {
-        // Стринга
-        $string = $match[0];
+        // Ако е плейсхолдер
+        if ((strpos($match[0], '[#') === 0) && (strpos($match[0], '#]') === (strlen($match[0]) - 2))) {
+            
+            return $match[0];
+        }
         
         // Брояча за сивмовилите
         $i = 0;
@@ -765,8 +768,8 @@ class type_Richtext extends type_Blob
             
             // Ако флага е вдигнат
             if ($addHyphen) {
-//                $str .= $char . "&#173;"; // Знак за softHyphne
-                $str .= $char . "<wbr>";
+//                $resStr .= $char . "&#173;"; // Знак за softHyphne
+                $resStr .= $char . "<wbr>";
                 
                 // Нулираме брояча
                 $i = 0;
