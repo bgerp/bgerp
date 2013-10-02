@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'doc_plg_DefaultValues'
+ * Клас 'cond_plg_DefaultValues'
  * 
  * Плъгин слагащ на полетата от модела дефолт стойности според
  * определена стратегия
@@ -9,13 +9,13 @@
  * 
  *
  * @category  bgerp
- * @package   doc
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_plg_DefaultValues extends core_Plugin
+class cond_plg_DefaultValues extends core_Plugin
 {
 	
 	/**

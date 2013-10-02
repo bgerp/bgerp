@@ -33,7 +33,7 @@ class bank_DepositSlips extends core_Master
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
      	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_DefaultValues';
+     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues';
     
     
     /**

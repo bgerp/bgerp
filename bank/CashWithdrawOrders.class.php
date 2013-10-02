@@ -32,7 +32,7 @@ class bank_CashWithdrawOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary,
-     	plg_Sorting, doc_DocumentPlg,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_DefaultValues';
+     	plg_Sorting, doc_DocumentPlg,  plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues';
     
     
     /**
