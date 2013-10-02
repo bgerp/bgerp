@@ -146,11 +146,11 @@ class sales_Quotations extends core_Master
         $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,defaultStrategy=1,salecondSysId=paymentMethod');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,defaultStrategy=1,salecondSysId=paymentMethod');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,defaultStrategy=1');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
         $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,defaultStrategy=1');
-        $this->FLD('deliveryTermId', 'key(mvc=salecond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова,defaultStrategy=1');
         
 		$this->FLD('company', 'varchar', 'caption=Адресант->Фирма,defaultStrategy=2, changable');
@@ -325,8 +325,8 @@ class sales_Quotations extends core_Master
 					}
 				}
 				
-				if(salecond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
-					$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('salecond_DeliveryTerms', 'single', $rec->deliveryTermId));
+				if(cond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
+					$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('cond_DeliveryTerms', 'single', $rec->deliveryTermId));
 				}
 			}
 		}

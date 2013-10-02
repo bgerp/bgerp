@@ -16,8 +16,8 @@ class bgerp_iface_DealPayment
     /**
      * Начин на плащане
      *
-     * @var int key(mvc=salecond_PaymentMethods)
-     * @see salecond_PaymentMethods
+     * @var int key(mvc=cond_PaymentMethods)
+     * @see cond_PaymentMethods
      */
     public $method;
 

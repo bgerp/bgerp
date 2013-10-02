@@ -109,7 +109,7 @@ class bgerp_Setup {
         
         // Списък на основните модули на bgERP
         $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumbnail,doc,acc,currency,cms,
-                  email,crm, cat, price, blast,rfid,hr,trz,lab,sales,mp,store,salecond,cash,bank,
+                  email,crm, cat, price, blast,rfid,hr,trz,lab,sales,mp,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,callcenter,social";
         

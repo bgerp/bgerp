@@ -79,7 +79,7 @@ class sales_model_Invoice extends core_Model
     public $changeAmount;
     
     /**
-     * @var int key(mvc=salecond_PaymentMethods)
+     * @var int key(mvc=cond_PaymentMethods)
      */
     public $paymentMethodId;
     
@@ -104,7 +104,7 @@ class sales_model_Invoice extends core_Model
     public $rate;
 
     /**
-     * @var int key(mvc=salecond_DeliveryTerms)
+     * @var int key(mvc=cond_DeliveryTerms)
      */
     public $deliveryId;
     

@@ -140,7 +140,7 @@ class doc_plg_DefaultValues extends core_Plugin
     	$cId = doc_Folders::fetchCoverId($folderId);
     	$Class = doc_Folders::fetchCoverClassId($folderId);
     	
-        return salecond_Parameters::getParameter($Class, $cId, $salecondSysId);
+        return cond_Parameters::getParameter($Class, $cId, $salecondSysId);
     }
     
     

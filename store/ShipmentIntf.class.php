@@ -22,7 +22,7 @@ class store_ShipmentIntf
      *
      *   o contragentClassId  - class, клас на мениджъра на контрагента
      *   o contragentId       - key(mvc=contragentClassId): на кого се доставя
-     *   o termId             - key(mvc=salecond_DeliveryTerms): условие на доставка 
+     *   o termId             - key(mvc=cond_DeliveryTerms): условие на доставка 
      *   o locationId         - key(mvc=crm_Locations): обект, където да бъде доставено
      *   o deliveryTime       - datetime: до кога трябва да бъде доставено 
      *   o storeId            - key(mvc=store_Stores): наш склад, от където се експедира стоката 

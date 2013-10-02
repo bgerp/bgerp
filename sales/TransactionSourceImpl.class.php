@@ -190,7 +190,7 @@ class sales_TransactionSourceImpl
     protected function hasPaymentPart($rec)
     {
         // Плащане в брой?
-        if (salecond_PaymentMethods::fetchField($rec->paymentMethodId, 'name') != 'COD') {
+        if (cond_PaymentMethods::fetchField($rec->paymentMethodId, 'name') != 'COD') {
             // Не е плащане в брой
             return FALSE;
         }

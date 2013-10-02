@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'salecond_ConditionsToCustomers'
+ * Клас 'cond_ConditionsToCustomers'
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @link
  */
 
-class salecond_ConditionsToCustomers extends core_Manager
+class cond_ConditionsToCustomers extends core_Manager
 {
     
     
@@ -21,6 +21,13 @@ class salecond_ConditionsToCustomers extends core_Manager
      * Заглавие
      */
     var $title = 'Други условия';
+    
+    
+    /**
+     * Старо име на класа
+     */
+    var $oldClassName = 'salecond_ConditionsToCustomers';
+    
     
     /**
      * Единично заглавие
@@ -53,7 +60,7 @@ class salecond_ConditionsToCustomers extends core_Manager
     {
         $this->FLD('cClass', 'class(interface=doc_ContragentDataIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
-        $this->FLD('conditionId', 'key(mvc=salecond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent');
+        $this->FLD('conditionId', 'key(mvc=cond_Parameters,select=name,allowEmpty)', 'input,caption=Условие,mandatory,silent');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност, mandatory');
     }
     
@@ -73,14 +80,14 @@ class salecond_ConditionsToCustomers extends core_Manager
     	}
     	
     	if($rec->conditionId){
-    		$condType = salecond_Parameters::fetchField($rec->conditionId, 'type');
+    		$condType = cond_Parameters::fetchField($rec->conditionId, 'type');
     		
     		if($condType == 'delCond'){
-    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'salecond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
+    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_DeliveryTerms', 'select' => 'codeName', 'allowEmpty' => 'allowEmpty')));
     		} elseif($condType == 'payMethod'){
-    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'salecond_paymentMethods', 'select' => 'name', 'allowEmpty' => 'allowEmpty')));
+    			$form->fields['value']->type = cls::get('type_Key',array('params' => array('mvc' => 'cond_paymentMethods', 'select' => 'name', 'allowEmpty' => 'allowEmpty')));
     		} else {
-    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'salecond_Parameters');
+    			$form->fields['value']->type = cat_Params::getParamTypeClass($form->rec->conditionId, 'cond_Parameters');
     		}
     	} else {
     		$form->setField('value', 'input=hidden');
@@ -103,14 +110,14 @@ class salecond_ConditionsToCustomers extends core_Manager
         	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
-            $type = salecond_Parameters::fetchField($rec->conditionId, 'type');
+            $type = cond_Parameters::fetchField($rec->conditionId, 'type');
             if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
             	$Type = cls::get("type_{$type}");
             	$row->value = $Type->toVerbal($rec->value);
             } elseif($type == 'delCond'){
-            	$row->value = salecond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
+            	$row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
             } elseif($type == 'payMethod'){
-            	$row->value = salecond_paymentMethods::getTitleById($rec->value);
+            	$row->value = cond_paymentMethods::getTitleById($rec->value);
             }
             $data->rows[$rec->id] = $row; 
         }
@@ -128,7 +135,7 @@ class salecond_ConditionsToCustomers extends core_Manager
         $tpl->append(tr('Условия на продажба'), 'title');
         
         $img = sbf('img/16/add.png');
-	    $addUrl = array('salecond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
+	    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
 	    $addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
 	    $tpl->append($addBtn, 'title');
         

@@ -203,7 +203,7 @@ class cat_Params extends core_Manager
      * Помощна функция връщаща инстанция на класа от системата
      * отговарящ на типа на параметъра с опции зададените стойности
      * ако е enum или същите като предложения. Използва се и от
-     * salecond_ConditionsToCustomers
+     * cond_ConditionsToCustomers
      * @param int $paramId - ид на параметър
      * @param string $className - в кой мениджър се намрират параметрите
      * @return core_Type $Type - типа от системата

@@ -2,20 +2,20 @@
 
 
 /**
- * class salecond_Setup
+ * class cond_Setup
  *
  * Инсталиране/Деинсталиране на
  * админ. мениджъри с общо предназначение
  *
  *
  * @category  bgerp
- * @package   salecond
+ * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Setup  extends core_ProtoSetup
+class cond_Setup  extends core_ProtoSetup
 {
     
     
@@ -28,7 +28,7 @@ class salecond_Setup  extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'salecond_DeliveryTerms';
+    var $startCtr = 'cond_DeliveryTerms';
     
     
     /**
@@ -53,24 +53,24 @@ class salecond_Setup  extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-        	'salecond_PaymentMethods',
-        	'salecond_DeliveryTerms',
-        	'salecond_Parameters',
-        	'salecond_ConditionsToCustomers',
+        	'cond_PaymentMethods',
+        	'cond_DeliveryTerms',
+        	'cond_Parameters',
+        	'cond_ConditionsToCustomers',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'salecond';
+    var $roles = 'cond';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.9, 'Търговия', 'Терминология', 'salecond_DeliveryTerms', 'default', "salecond, ceo"),
+            array(3.9, 'Търговия', 'Терминология', 'cond_DeliveryTerms', 'default', "salecond, ceo"),
         );
 
         

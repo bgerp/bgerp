@@ -159,12 +159,12 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData');
         $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
-        $this->FLD('paymentMethodId', 'key(mvc=salecond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
-        $this->FLD('deliveryId', 'key(mvc=salecond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
+        $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');

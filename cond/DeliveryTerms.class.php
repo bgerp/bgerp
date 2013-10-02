@@ -3,26 +3,31 @@
 
 
 /**
- * Клас 'salecond_DeliveryTerms' - Условия на доставка
+ * Клас 'cond_DeliveryTerms' - Условия на доставка
  *
  * Набор от стандартните условия на доставка (FOB, DAP, ...)
  *
  *
  * @category  bgerp
- * @package   salecond
+ * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_DeliveryTerms extends core_Master
+class cond_DeliveryTerms extends core_Master
 {
     
-    
+    /**
+     * Старо име на класа
+     */
+	var $oldClassName = 'salecond_DeliveryTerms';
+	
+	
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper';
     
     
     /**
@@ -46,19 +51,19 @@ class salecond_DeliveryTerms extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'ceo,salecond';
+    var $canRead = 'ceo,cond';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,salecond';
+    var $canWrite = 'ceo,cond';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,salecond';
+    var $canAdd = 'ceo,cond';
     
     
     /**
@@ -77,12 +82,6 @@ class salecond_DeliveryTerms extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'user';
-    
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    var $oldClassName = 'trans_DeliveryTerms';
     
     
     /**
@@ -106,7 +105,7 @@ class salecond_DeliveryTerms extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'salecond/tpl/SingleDeliveryTerms.shtml';
+    var $singleLayoutFile = 'cond/tpl/SingleDeliveryTerms.shtml';
     
     
     /**
@@ -129,7 +128,7 @@ class salecond_DeliveryTerms extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "salecond/csv/DeliveryTerms.csv";
+    	$file = "cond/csv/DeliveryTerms.csv";
     	$fields = array( 
 	    	0 => "term", 
 	    	1 => "codeName", 

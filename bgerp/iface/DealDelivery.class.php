@@ -16,8 +16,8 @@ class bgerp_iface_DealDelivery
     /**
      * Условие на доставка
      *
-     * @var int key(mvc=salecond_DeliveryTerms)
-     * @see salecond_DeliveryTerms
+     * @var int key(mvc=cond_DeliveryTerms)
+     * @see cond_DeliveryTerms
      */
     public $term;
 

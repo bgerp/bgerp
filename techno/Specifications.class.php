@@ -258,8 +258,8 @@ class techno_Specifications extends core_Manager {
     			$price->discount = $priceInfo->discount;
     		}
     		
-    		$minCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		$maxCharge = salecond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
     		if(!$quantity){
     			$quantity = 1;
     		}

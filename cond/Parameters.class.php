@@ -3,30 +3,30 @@
 
 
 /**
- * Клас 'salecond_Parameters' - Търговски параметри
+ * Клас 'cond_Parameters' - Търговски параметри
  *
  *
  * @category  bgerp
- * @package   salecond
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Parameters extends core_Master
+class cond_Parameters extends core_Master
 {
     
     
 	/**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'salecond_Others';
+    var $oldClassName = 'salecond_Parameters';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper';
     
     
     /**
@@ -50,25 +50,25 @@ class salecond_Parameters extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'ceo,salecond';
+    var $canRead = 'ceo,cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,salecond';
+	var $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,salecond';
+	var $canSingle = 'ceo,cond';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,salecond';
+    var $canWrite = 'ceo,cond';
     
     
     /**
@@ -86,7 +86,7 @@ class salecond_Parameters extends core_Master
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'ceo,salecond';
+    var $canAdd = 'ceo,cond';
     
     
     /**
@@ -134,7 +134,7 @@ class salecond_Parameters extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "salecond/csv/Parameters.csv";
+    	$file = "cond/csv/Parameters.csv";
     	$fields = array( 
 	    	0 => "name", 
 	    	1 => "type", 
@@ -151,12 +151,12 @@ class salecond_Parameters extends core_Master
 	/**
      * Връща стойността на дадено търговско условие за клиента
      * @param int $id - ид на контрагента
-     * @param string $conditionSysId - sysId на параметър (@see salecond_Others)
+     * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
      * @return string $value - стойността на параметъра
      * Намира се в следния ред:
-     * 	  1. Директен запис в salecond_ConditionsToCustomers
+     * 	  1. Директен запис в cond_ConditionsToCustomers
      * 	  2. Дефолт метод "get{$conditionSysId}" дефиниран в модела
-     *    3. Супер дефолта на параметъра дефиниран в salecond_Others
+     *    3. Супер дефолта на параметъра дефиниран в cond_Parameters
      *    4. NULL ако нищо не е намерено
      */
     public static function getParameter($cClass, $cId, $conditionSysId, $mvc = NULL)
@@ -172,7 +172,7 @@ class salecond_Parameters extends core_Master
     	}
     	
     	//Връщаме стойността ако има директен запис за условието
-    	if($value = salecond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId)){
+    	if($value = cond_ConditionsToCustomers::fetchByCustomer($cClass, $cId, $condId)){
     		return $value;
     	}
     	

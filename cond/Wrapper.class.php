@@ -3,19 +3,19 @@
 
 
 /**
- * Клас 'salecond_Wrapper'
+ * Клас 'cond_Wrapper'
  *
  * Поддържа системното меню на пакета trans
  *
  *
  * @category  bgerp
- * @package   trans
+ * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_Wrapper extends plg_ProtoWrapper
+class cond_Wrapper extends plg_ProtoWrapper
 {
     
     /**
@@ -23,9 +23,9 @@ class salecond_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('salecond_DeliveryTerms', 'Доставки', 'salecond,ceo');
-    	$this->TAB('salecond_PaymentMethods', 'Плащания', 'salecond,ceo');    
-        $this->TAB('salecond_Parameters', 'Параметри', 'salecond,ceo');
+        $this->TAB('cond_DeliveryTerms', 'Доставки', 'salecond,ceo');
+    	$this->TAB('cond_PaymentMethods', 'Плащания', 'salecond,ceo');    
+        $this->TAB('cond_Parameters', 'Параметри', 'salecond,ceo');
    		
         $this->title = 'Терминология';
     }

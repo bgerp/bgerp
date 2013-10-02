@@ -3,24 +3,29 @@
 
 
 /**
- * Клас 'salecond_PaymentMethods' - Начини на плащане
+ * Клас 'cond_PaymentMethods' - Начини на плащане
  *
  *
  * @category  bgerp
- * @package   salecond
+ * @package   cond
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class salecond_PaymentMethods extends core_Master
+class cond_PaymentMethods extends core_Master
 {
     
-    
+    /**
+     * Старо име на класа
+     */
+	var $oldClassName = 'salecond_PaymentMethods';
+	
+	
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, salecond_Wrapper, plg_State';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State';
     
     
     /**
@@ -36,51 +41,45 @@ class salecond_PaymentMethods extends core_Master
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    var $oldClassName = 'bank_PaymentMethods';
-    
-    
-    /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, salecond';
+    var $canRead = 'ceo, cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,salecond';
+	var $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,salecond';
+	var $canSingle = 'ceo,cond';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, salecond';
+    var $canEdit = 'ceo, cond';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, salecond';
+    var $canAdd = 'ceo, cond';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, salecond';
+    var $canDelete = 'ceo, cond';
     
     
     /**
      * Шаблон за единичен изглед
      */
-    var $singleLayoutFile = "salecond/tpl/SinglePaymentMethod.shtml";
+    var $singleLayoutFile = "cond/tpl/SinglePaymentMethod.shtml";
     
     
     /**
@@ -140,7 +139,7 @@ class salecond_PaymentMethods extends core_Master
      * 
      * @see doc_ContragentDataIntf
      * @param stdClass $contragentInfo
-     * @return int key(mvc=salecond_PaymentMethods) 
+     * @return int key(mvc=cond_PaymentMethods) 
      */
     public static function getDefault($contragentInfo)
     {
@@ -163,7 +162,7 @@ class salecond_PaymentMethods extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "salecond/csv/PaymentMethods.csv";
+    	$file = "cond/csv/PaymentMethods.csv";
     	$fields = array( 
 	    	0 => "name", 
 	    	1 => "description");
