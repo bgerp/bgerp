@@ -41,50 +41,77 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         // Папки
         if($ctr == 'doc_threads' && ($act == 'list' || $act == 'default')) {
             
+            // Вземаме място
+            $place = $rt->getPlace();
+            
+            // Добавяме в шаблона
+            $res = "[#{$place}#]";
+            
             // Вземаме вербалния линка към папката
-            $res = doc_Folders::getVerbalLink($params);
+            $boardRes = doc_Folders::getVerbalLink($params);
             
             // Ако функцията не върне FALSE 
-            if ($res === FALSE) {
+            if ($boardRes === FALSE) {
                 
                 // Текста указващ, че нямаме достъп до системата
-                $res = static::getNotAccessMsg();
+                $boardRes = static::getNotAccessMsg();
             }
-
+            
+            // Добавяме в борда
+            $rt->_htmlBoard[$place] = $boardRes;
+            
             // Прекратяваме по нататъшното изпълнени на програмата
             return FALSE;    
         }
         
         // Нишки
         if($ctr == 'doc_containers' && $threadId && ($act == 'list' || $act == 'default')) {
-        
+            
+            // Вземаме място
+            $place = $rt->getPlace();
+            
+            // Добавяме в шаблона
+            $res = "[#{$place}#]";
+            
             // Вземаме вербалния линка към папката
-            $res = doc_Threads::getVerbalLink($params);
+            $boardRes = doc_Threads::getVerbalLink($params);
 
             // Ако функцията не върне FALSE 
-            if ($res === FALSE) {
+            if ($boardRes === FALSE) {
                 
                 // Текста указващ, че нямаме достъп до системата
-                $res = static::getNotAccessMsg();
+                $boardRes = static::getNotAccessMsg();
             }
-
+            
+            // Добавяме в борда
+            $rt->_htmlBoard[$place] = $boardRes;
+            
             // Прекратяваме по нататъшното изпълнени на програмата
             return FALSE;    
         }
 
         // Сингъл
         if ($act == 'single') {
-
+            
+            // Вземаме място
+            $place = $rt->getPlace();
+            
+            // Добавяме в шаблона
+            $res = "[#{$place}#]";
+            
             // Вземаме вербалния линка към папката
-            $res = doc_Containers::getVerbalLink($params);
+            $boardRes = doc_Containers::getVerbalLink($params);
 
             // Ако функцията не върне FALSE 
-            if ($res === FALSE) {
+            if ($boardRes === FALSE) {
                 
                 // Текста указващ, че нямаме достъп до системата
-                $res = static::getNotAccessMsg();
+                $boardRes = static::getNotAccessMsg();
             }
-
+            
+            // Добавяме в борда
+            $rt->_htmlBoard[$place] = $boardRes;
+            
             // Прекратяваме по нататъшното изпълнени на обработката на събитието
             return FALSE;         
         }
