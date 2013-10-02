@@ -219,13 +219,27 @@ class hr_ContractTypes extends core_Master
   	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
     	// Ако методът е редакция и вече имаме rec
-    	if($action == 'edit' && $rec){
+    	if($action == 'edit' && isset($rec)){
     		
     		// и записът е създаден от системата
     		if($rec->createdBy == "-1"){
     			
     			// никой не може да го редактирва
     			$requiredRoles = 'no_one';
+    		}
+    		
+    		if(hr_EmployeeContracts::fetch("#typeId = '{$rec->id}' AND #state = 'active'")){
+    			
+		    	// никой не може да го редактирва
+		    	$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'delete' && isset($rec)){
+    		if(hr_EmployeeContracts::fetch("#typeId = '{$rec->id}' AND #state = 'active'")){
+    			
+	    		// никой не може да го редактирва
+	    		$requiredRoles = 'no_one';
     		}
     	}
     }

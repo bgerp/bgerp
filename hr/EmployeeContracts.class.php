@@ -50,7 +50,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
                      doc_plg_BusinessDoc2,plg_AutoFilter ';
     
@@ -440,15 +440,7 @@ class hr_EmployeeContracts extends core_Master
         
         return FALSE;
     }
-    
-    
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'edit'){
-    		$requiredRoles = 'ceo,hr';
-    	}
-    }
-    
+ 
     
     /**
      * Интерфейсен метод на doc_DocumentInterface
