@@ -143,7 +143,7 @@ class social_Sharings extends core_Master
 		}
 		
 		// Връщаме тулбар за споделяне в социалните мреци
-		return "<div class='soc-sharing-holder'>".$tpl."</div>";
+		return "<div class='soc-sharing-holder noSelect'>".$tpl."</div>";
     }
     
     

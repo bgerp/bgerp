@@ -310,7 +310,7 @@ class cms_Feeds extends core_Manager {
 
         $img = ht::createElement('img', array('src' => $src));
 
-		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following'));
+		$link = ht::createLink($img, $url, NULL, array('class' => 'soc-following noSelect'));
 		
 		// Добавяме линка към шаблона
 		$tpl->append($link);
