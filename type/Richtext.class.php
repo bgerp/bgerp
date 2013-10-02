@@ -1018,13 +1018,20 @@ class type_Richtext extends type_Blob
      */
     public function internalUrl_($url, $title, $rest)
     {
-        $title = type_Varchar::escape($title);
-
+        $link = $url;
+        
         if(!Mode::is('text', 'plain')) {
-            return "<a href=\"{$url}\">{$title}</a>";    
+            
+            $title = type_Varchar::escape($title);
+            
+            $link = "<a href=\"{$url}\">{$title}</a>";    
         }
         
-        return $url;
+        $place = $this->getPlace();
+            
+        $this->_htmlBoard[$place] = $link;
+        
+        return "[#{$place}#]";
     }
     
 
@@ -1037,15 +1044,20 @@ class type_Richtext extends type_Blob
      */
     public function externalUrl_($url, $title)
     {   
-        $title = type_Varchar::escape($title);
-
+        $link = $url;
+        
         if(!Mode::is('text', 'plain')) {
-            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
             
-            return $link;
-        } 
-
-        return $url;
+            $title = type_Varchar::escape($title);
+            
+            $link = "<a href=\"{$url}\" target='_blank' class='out'>{$title}</a>";
+        }
+        
+        $place = $this->getPlace();
+            
+        $this->_htmlBoard[$place] = $link;
+        
+        return "[#{$place}#]";
     }
 
 
