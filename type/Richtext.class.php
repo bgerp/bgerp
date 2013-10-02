@@ -528,7 +528,7 @@ class type_Richtext extends type_Blob
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" alt=\"{$title}\"><br><small>";
         
-        return "[#{$place}#]{$title}</small></div>";
+        return "[#{$place}#]{$title} </small></div>";
     }
     
     
