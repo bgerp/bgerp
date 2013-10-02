@@ -35,9 +35,9 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Инициализиране драйвъра
      */
-    function init($mvc = NULL)
+    function init($params = array())
     {
-    	$this->mvc = $mvc;
+    	$this->mvc = $params['mvc'];
     }
     
     

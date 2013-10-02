@@ -100,7 +100,7 @@ class bgerp_plg_Import extends core_Plugin
         		$firstRow = $exp->getValue("#firstRow");
         		
         		// Намиране на коя колона от csv-то на кое поле съответства
-        		$Driver = cls::get($driverId, $mvc);
+        		$Driver = cls::get($driverId, array('mvc' => $mvc));
         		$fields = $Driver->getFields();
         		foreach($fields as $name => $arr){
         			$fields[$name] = $exp->getValue("#col{$name}");
@@ -223,7 +223,7 @@ class bgerp_plg_Import extends core_Plugin
         
         $driverId = $exp->getValue('#driver');
         if($driverId){
-        	$Driver = cls::get($driverId , $exp->mvc);
+        	$Driver = cls::get($driverId , array('mvc' => $exp->mvc));
 	        $fieldsArr = $Driver->getFields();
 			
 	        // Поставяне на възможност да се направи мачване на 
