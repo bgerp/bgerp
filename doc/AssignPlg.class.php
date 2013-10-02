@@ -78,24 +78,34 @@ class doc_AssignPlg extends core_Plugin
 
         // Вземаме всички записи
         $rec = $mvc->fetch($oldRec->id);
+    
+        // Ако няма промяне, връщаме
+        if (($oldAssigned == $newAssigned)) return ;
+        
+        // URL' то което ще се премахва или показва от нотификациите
+        $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
         // Ако е била възложена на някой друг преди това
-        if ($newAssigned && ($oldAssigned != $newAssigned)) {
-
-            // URL' то което ще се премахва или показва от нотификациите
-            $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);  
-
-            // Премахваме контейнера от достъпните
-            doc_ThreadUsers::removeContainer($rec->containerId);
+        if ($oldAssigned) {
             
             // Премахваме този документ от нотификациите за стария потребител
             bgerp_Notifications::setHidden($keyUrl, 'yes', $oldAssigned);
             
-            // Добавяме документа в нотификациите за новия потреибител
-            bgerp_Notifications::setHidden($keyUrl, 'no', $newAssigned);
-            
             // Премахваме документа от "Последно" за стария потребител
             bgerp_Recently::setHidden('document', $rec->containerId, 'yes', $oldAssigned);
+            
+            // Премахваме контейнера от достъпните
+            doc_ThreadUsers::removeContainer($rec->containerId);
+        }
+        
+        // Ако има нов възложен
+        if ($newAssigned) {
+
+            // Премахваме контейнера от достъпните
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            
+            // Добавяме документа в нотификациите за новия потреибител
+            bgerp_Notifications::setHidden($keyUrl, 'no', $newAssigned);
             
             // Добавяме документа в "Последно" за новия потребител
             bgerp_Recently::setHidden('document', $rec->containerId, 'no', $newAssigned);
@@ -265,6 +275,21 @@ class doc_AssignPlg extends core_Plugin
                 // Никой няма такива права, ако не е активен
                 $requiredRoles = 'no_one';
             }   
+        }
+    }
+    
+    
+    /**
+     * 
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        // Ако няма възложено на
+        if (!$data->row->assign) {
+            
+            // Премахваме от и датата
+            unset($data->row->assignedOn);
+            unset($data->row->assignedBy);
         }
     }
 }
