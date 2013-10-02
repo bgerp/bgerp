@@ -1,0 +1,77 @@
+<?php 
+
+
+/**
+ * Споделяне в социалните мрежи
+ *
+ *
+ * @category  bgerp
+ * @package   social
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class social_SharingCnts extends core_Master
+{
+    
+    
+    /**
+     * Заглавие
+     */
+    var $title = "Броене на споделянията";
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = "Брой споделяния";
+
+    
+    /**
+     * Разглеждане на листов изглед
+     */
+    var $canSingle = 'no_one';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    
+    
+   
+    /**
+     * Полета за листовия изглед
+     */
+    var $listFields = '✍,networkId,url,cnt';
+
+
+    /**
+     * Поле за инструментите на реда
+     */
+    var $rowToolsField = '✍';
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo, social';
+        
+    
+    /**
+     * Кой може да пише?
+     */
+    var $canWrite = 'ceo, social';
+
+    
+    /**
+     * Описание на модела
+     */
+    function description()
+    {
+		$this->FLD('networkId', 'key(mvc=social_Sharing)', 'caption=Услуга, input=none');
+		$this->FLD('url', 'varchar(128)', 'caption=URL, input=none, hint=URL за споделяне');
+		$this->FLD('cnt', 'int', 'caption=Cподеляния, input=none,notNull');
+    }
+}

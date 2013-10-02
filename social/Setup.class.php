@@ -50,6 +50,7 @@ class social_Setup extends core_ProtoSetup
    var $managers = array(
             'social_Sharings',
 			'social_Followers',
+   			'social_SharingCnts',
   
         );
 
