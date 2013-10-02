@@ -273,7 +273,7 @@ class type_Richtext extends type_Blob
         // Регулярен израз за откриване на думите за хифениране
         // Думи без интервал по подълги от зададена в констатнтата
         // Шунтирано е, защото разваля текста, като добавя символи в явните линкове и имейли
-        $regExpHyphenWord = "/(\S{" . static::TRANSFER_WORD_MIN_LENGTH . ",})/ui";
+        $regExpHyphenWord = "/(\S){" . static::TRANSFER_WORD_MIN_LENGTH . ",}/ui";
         $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
@@ -708,11 +708,8 @@ class type_Richtext extends type_Blob
     function _hyphenWord($match)
     {
         // Ако е плейсхолдер
-        if ((strpos($match[0], '[#') === 0) && (strpos($match[0], '#]') === (strlen($match[0]) - 2))) {
+        if ((strpos($match[0], '[#') !== FALSE) && (strpos($match[0], '#]') !== FALSE)) return $match[0];
             
-            return $match[0];
-        }
-        
         // Брояча за сивмовилите
         $i = 0;
         
