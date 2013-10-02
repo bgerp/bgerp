@@ -321,7 +321,7 @@ class trz_Requests extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	// Ако имаме права да създадем заповед за отпуск
-        if($mvc->haveRightFor('orders') && $data->rec->state == 'active') {
+        if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
         	// Добавяме бутон
             $data->toolbar->addBtn('Заповед', array('trz_Orders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon = img/16/btn-order.png');
@@ -334,6 +334,30 @@ class trz_Requests extends core_Master
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
         
+    }
+    
+    
+    /**
+     * Извиква се след изпълняването на екшън
+     */
+    function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+    	if (strtolower($act) == 'single' && haveRole('trz,ceo')) {
+    		
+    		$id = Request::get('id', 'int');
+    		$user =  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+    		
+    		$request = self::fetch("#id = '{$id}'");
+    		$request->sahredUsers = $user;
+    		
+    		$rec = new stdClass();
+    		$rec->id = $id;
+    		$rec->sharedUsers = $request->sahredUsers;
+    		
+    		self::save($rec, 'sharedUsers');
+    		
+    		return new Redirect(array($invoker));
+    	}
     }
     
     /**
