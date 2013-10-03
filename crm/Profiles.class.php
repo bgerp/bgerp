@@ -169,8 +169,8 @@ class crm_Profiles extends core_Master
             // Вземаме вербалните стойности на записите
             $data->User->row = core_Users::recToVerbal($data->User->rec);
             
-            // Ако е текущия потребител или ceo или admin
-            if (haveRole('admin, ceo') || core_Users::getCurrent() == $data->User->rec->id) {
+            // Ако е текущия потребител
+            if (core_Users::getCurrent() == $data->User->rec->id) {
                 
                 // URL за промяна на профила
                 $changePassUrl =  array('crm_Profiles', 'changePassword', 'ret_url'=>TRUE);
