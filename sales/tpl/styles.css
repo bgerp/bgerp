@@ -214,3 +214,10 @@
 	font-style:italic;
 	margin-left:5px;
 }
+.quote-header td{
+		border-color:#ccc;
+}
+
+.quote-header td.gray-bg{
+		background-color:#e0e0e0 !important;
+}

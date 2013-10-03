@@ -1,7 +1,6 @@
-
-      <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
+ <table class="innerTable quote-header"  cellpadding="5" cellspacing="0" width="100%">
           <tbody><tr>
-              <td class="cell" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
+              <td class="cell  gray-bg" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
               <td class="cell" rowspan="2" align="center" width="30%">
                   <div class='invoiceTitle'><span id='invType'>|ОФЕРТА|* / QUOTATION</span></div><br>
                   <div class='invInfo'>|Номер|* / Number</div>
@@ -15,7 +14,7 @@
                   <div class="bigData">[#reff#]</div>
                   <!--ET_END reff-->
        </td>
-       <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
+       <td class="cell gray-bg" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
    </tr>           
    <tr>
        <td class="cell">
@@ -25,8 +24,8 @@
        </td>
 
        <td class="cell">
-           <b>[#MyCompany#]</b><br>
-           <b>[#MyCountry#]</b><br>
+           [#MyCompany#]<br>
+           [#MyCountry#]<br>
        </td>
    </tr>
    <tr>
