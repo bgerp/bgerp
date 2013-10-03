@@ -320,6 +320,7 @@ class trz_Requests extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
+    	
     	// Ако имаме права да създадем заповед за отпуск
         if(haveRole('trz, ceo') && $data->rec->state == 'active') {
             
@@ -343,22 +344,33 @@ class trz_Requests extends core_Master
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
     	if (strtolower($act) == 'single' && haveRole('trz,ceo')) {
-    		
+    		// Взимаме ид-то на молбата
     		$id = Request::get('id', 'int');
-    		$user =  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
     		
+    		// намираме, кой е текущия потребител
+    		$user =  arr::make(core_Users::getCurrent('id'), TRUE);
+    		
+    		// взимаме записа от модела
     		$request = self::fetch("#id = '{$id}'");
-    		$request->sahredUsers = $user;
     		
-    		$rec = new stdClass();
-    		$rec->id = $id;
-    		$rec->sharedUsers = $request->sahredUsers;
+    		// превръщаме кей листа на споделените потребители в масив
+    		$sharedUsers = type_Keylist::toArray($request->sahredUsers);
     		
-    		self::save($rec, 'sharedUsers');
+    		// добавяме текущия потребител
+    		$sharedUsers = $sharedUsers + $user;
     		
-    		return new Redirect(array($invoker));
+    		// връщаме в кей лист масива
+    		$newShare =  keylist::fromArray($sharedUsers);
+    		
+    		$request->id = $id;
+    		$request->sharedUsers = $newShare;
+    		
+    		self::save($request, 'sharedUsers');
+
+    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$request->threadId));
     	}
     }
+    
     
     /**
      * Тестова функция
@@ -486,7 +498,7 @@ class trz_Requests extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        //$row->recTitle = $rec->title;
+        $row->recTitle = $rec->title;
         
         return $row;
     }
