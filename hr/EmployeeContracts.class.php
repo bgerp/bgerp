@@ -25,7 +25,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Трудови Договори";
+    var $title = "Трудови договори";
     
     
     /**
