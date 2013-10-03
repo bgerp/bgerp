@@ -295,6 +295,7 @@ class sales_SaleRequests extends core_Master
     private function getFilterForm($quotationId, $id)
     {
     	$form = cls::get('core_Form');
+    	$form->info = tr('Уточнете точните количества');
     	$filteredProducts = $this->filterProducts($quotationId);
     	
     	foreach ($filteredProducts as $index => $product){
@@ -303,6 +304,7 @@ class sales_SaleRequests extends core_Master
     			$product->options = array('' => '&nbsp;') + $product->options;
     			$mandatory = '';
     		} else {
+    			$product->title = "Оферирани->{$product->title}";
 	    		if(count($product->options) > 1) {
 	    			$product->options = array('' => '&nbsp;') + $product->options;
 	    			$mandatory = 'mandatory';
