@@ -341,30 +341,28 @@ class trz_Requests extends core_Master
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
     	if (strtolower($act) == 'single' && haveRole('trz,ceo')) {
+    		
     		// Взимаме ид-то на молбата
     		$id = Request::get('id', 'int');
     		
     		// намираме, кой е текущия потребител
-    		$user =  arr::make(core_Users::getCurrent('id'), TRUE);
+    		$cu =  core_Users::getCurrent();
     		
     		// взимаме записа от модела
-    		$request = self::fetch("#id = '{$id}'");
+    		$rec = self::fetch($id);
     		
     		// превръщаме кей листа на споделените потребители в масив
-    		$sharedUsers = type_Keylist::toArray($request->sahredUsers);
+    		$sharedUsers = type_Keylist::toArray($rec->sahredUsers);
     		
     		// добавяме текущия потребител
-    		$sharedUsers = $sharedUsers + $user;
+    		$sharedUsers[$cu] = $cu;
     		
     		// връщаме в кей лист масива
-    		$newShare =  keylist::fromArray($sharedUsers);
-    		
-    		$request->id = $id;
-    		$request->sharedUsers = $newShare;
-    		
-    		self::save($request, 'sharedUsers');
+    		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
+    		    		
+    		self::save($rec, 'sharedUsers');
 
-    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$request->threadId));
+    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
     
