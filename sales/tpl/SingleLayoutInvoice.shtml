@@ -29,7 +29,7 @@
 		                        	<div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
 		                        	<span style='font-weight:normal;'>[#POS#]</span>
 		                        	<!--ET_BEGIN origin-->
-		                        	<div id='origin-title'>|към Фактура|* № <b>№[#origin#]</b> |от|* [#invDate#]</div>
+		                        	<div id='origin-title'>|към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
 		                        	<!--ET_END origin-->
 		                        </div>
 		                    </td>
@@ -131,7 +131,7 @@
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|Общо|* / Total :</td>
-		                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></td>
+		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#total#]</b></td>
 		                </tr>
 		                </table>
 		                </td>

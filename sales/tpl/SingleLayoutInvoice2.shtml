@@ -22,8 +22,8 @@
 			            		<div class='title-subInfo'>|Място|* / Place: <span class='subtitle-text'>[#dealPlace#]</span></div>
 			            		<div class='title-subInfo original'>|ОРИГИНАЛ|* / <i>ORIGINAL</i></div>
 			            		<div style='font-weight:normal;'>[#POS#]</div>
-			            		<!--ET_BEGIN origin-->[#origin1#]
-			            		<div id='origin-title'>|Към Фактура|* № <b>[#origin#]</b> |от|* [#invDate#]</div>
+			            		<!--ET_BEGIN origin-->
+			            		<div id='origin-title'>|към Фактура|* <b>[#origin#]</b> |от|* [#invDate#]</div>
 			            		<!--ET_END origin-->
 			                </div>
 			            	<div id='contragent-data'>
@@ -75,7 +75,7 @@
 			                </tr>
 			                <tr>
 			                	<td class='info-right'>|Общо|* / Total :</td>
-			                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#total#]</b></td>
+			                	<td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#total#]</b></td>
 			                </tr>
 			                </table>
 			                </td>

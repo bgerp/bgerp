@@ -2,13 +2,13 @@
 
 
 /**
- * Invoice (Details)
+ * Детайли на фактурите
  *
  *
  * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -35,7 +35,7 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Кое е активното меню
      */
     var $pageMenu = "Фактури";
     
@@ -90,6 +90,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
+        
         $this->setDbUnique('invoiceId, productId, packagingId');
     }
     
@@ -134,14 +135,37 @@ class sales_InvoiceDetails extends core_Detail
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
         (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
-      	$form->title = "{$action} на запис в {$masterTitle}";
+      	$form->title = "{$action} |на запис в|* {$masterTitle}";
       	
    		 if($form->rec->price && $masterRec->rate){
        	 	$form->rec->price = round($form->rec->price / $masterRec->rate, 2);
          }
     }
 
-
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$masterRec = $data->masterData->rec;
+    	if($masterRec->type != 'invoice'){
+    		
+    		// При дебитни и кредитни известия поакзваме основанието
+    		$data->listFields = array();
+    		$data->listFields['reason'] = 'Основание';
+    		$data->listFields['amount'] = 'Сума';
+    		$data->rows = array();
+    		$data->rows[] = (object) array('reason' => $masterRec->reason,
+    									   'amount' => $masterRec->changeAmount);
+    	}
+    }
+    
+    
     /**
      * Извиква се след изпращане на формата
      */
@@ -156,13 +180,8 @@ class sales_InvoiceDetails extends core_Detail
           	   return;
             }
           
-            if($rec->packagingId){
-          	   $rec->quantityInPack = $pInfo->packagingRec->quantity;
-            } else {
-           	   $rec->quantityInPack = 1;
-            }
-          
-            $masterRec = sales_Invoices::fetch($rec->invoiceId);
+            $rec->quantityInPack = ($rec->packagingId) ? $pInfo->packagingRec->quantity : 1;
+            $masterRec = $mvc->Master->fetch($rec->invoiceId);
             
             if(!$form->rec->price){
           	
@@ -214,11 +233,6 @@ class sales_InvoiceDetails extends core_Detail
     	
     	$amount = round($rec->amount / $masterRec->rate, 2);
     	$row->amount = $double->toVerbal($amount);
-    	
-    	if($masterRec->type != 'invoice' && $masterRec->changeAmount){
-    		unset($row->quantity);
-    		unset($row->price);
-    	}
     }
     
     
@@ -236,19 +250,6 @@ class sales_InvoiceDetails extends core_Detail
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Извлича всички продукти от фактура
-     * @param int $invoiceId - ид на фактура
-     * @return array - списък от продукти
-     */
-    public function getInvoiceData($invoiceId)
-    {
-    	$query = $this->getQuery();
-    	$query->where("#invoiceId = {$invoiceId}");
-    	return $query->fetchAll();
     }
     
     
