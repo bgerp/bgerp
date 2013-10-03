@@ -3,10 +3,25 @@
  * Клас 'cond_plg_DefaultValues'
  * 
  * Плъгин слагащ на полетата от модела дефолт стойности според
- * определена стратегия
- * Слага се default стойност на всички полета, имащи атрибут 'defaultStrategy'
- * със стойност някоя от предефинираните стратегии в плъгина
+ * определена стратегия.
  * 
+ * В променлива $defaultStrategies на всеки модел се определя кое поле,
+ * какви стратегии ще ползва. Срещу името на полето се посочват
+ * стратегиите по които ще се намери стойността. Връща се
+ * първата намерена стойност.
+ * 
+ * Възможните стратегии са:
+ * 
+ * -------------------------------------------------------------
+ * 
+ * lastDocUser     - Последния документ в папката от потребителя 
+ * lastDoc 		   - Последния документ в папката				 
+ * defMethod	   - Дефолт метод с име "getDefault{$name}"		 
+ * clientData	   - От контрагент интерфейса					 
+ * clientCondition - От дефолт търговско условие				 
+ * coverMethod	   - Метод от корицата с име "getDefault{$name}"
+ *  
+ * -------------------------------------------------------------
  *
  * @category  bgerp
  * @package   cond
@@ -56,14 +71,88 @@ class cond_plg_DefaultValues extends core_Plugin
     
     
     /**
-     * Намира последния документ в дадена папка 
+     * Преди показване на форма за добавяне/промяна.
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
+    	if(empty($rec->id)){
+    		static::getFolderId($rec);
+    		
+    		// Ако има зададени дефолт стратегии
+    		if(isset($mvc::$defaultStrategies) && count($mvc::$defaultStrategies)){
+    			
+    			// За всяко поле със стратегия, му се намира стойността
+    			foreach ($mvc::$defaultStrategies as $name => $strat){
+    				$value = static::getDefValue($mvc, $rec, $name, $strat);
+    				$form->setDefault($name, $value);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     *  Намира стойност по подразбиране на дадено поле
+     */
+    private static function getDefValue(core_Mvc $mvc, $rec, $name, $strat)
+    {
+    	$strat = keylist::toArray($strat);
+    	if(count($strat)){
+    		
+    		// За всяка от стратегиите
+    		foreach ($strat as $str){
+    			$methodName = "getFrom{$str}";
+    			expect(cls::existsMethod('cond_plg_DefaultValues', $methodName), "Няма метод {$methodName}");
+    			expect(isset($mvc->fields[$name]), "{$name} не е поле от модела");
+    			
+    			if($value = static::$methodName($mvc, $rec, $name)){
+    				
+    				// Първата стратегия върнала стойност се връща
+    				return $value;
+    			}
+    		}
+    	}
+    	
+    	// Ако никоя от стратегиите не намери валидна стойност
+    	return NULL;
+    }
+    
+    
+    /**
+     * Намира последния документ в дадена папка от същия потребител
      * @param core_Mvc $mvc - мениджъра
      * @param int $folderId - ид на папката
      * @param boolean $fromUser - дали документа да е от текущия
      * потребител или не
      * @return mixed $rec - последния запис
      */
-    private static function getLastDocumentValue(core_Mvc $mvc, $folderId, $fromUser = TRUE, $name)
+    private static function getFromLastDocUser(core_Mvc $mvc, $rec, $name)
+    {
+    	return static::getFromLastDocument($mvc, $rec->folderId, $name);
+    }
+    
+    
+	/**
+     * Намира последния документ в дадена папка
+     * @param core_Mvc $mvc - мениджъра
+     * @param int $folderId - ид на папката
+     * @param boolean $fromUser - дали документа да е от текущия
+     * потребител или не
+     * @return mixed $rec - последния запис
+     */
+    private static function getFromLastDoc(core_Mvc $mvc, $rec, $name)
+    {
+    	return static::getFromLastDocument($mvc, $rec->folderId, $name, FALSE);
+    }
+    
+    
+    /**
+     * Намира последния документ в дадена папка
+     */
+    private static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
     {
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
@@ -74,190 +163,113 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$query->orderBy('createdOn', 'DESC');
     	$query->show($name);
-    	return $query->fetch();
+    	$query->limit(1);
+    	
+    	return $query->fetch()->$name;
     }
     
     
-    /**
-     * Връща стойността според дефолт метода в мениджъра или мениджъра на
-     * контрагента на папката
-     * @param core_Mvc $mvc - мениджър
-     * @param string $name - име на поле
-     * @param stdClass $rec - запис от модела
-     * @return mixed - дефолт стойноста върната от съответния метод
+	/**
+     * Връща стойността според дефолт метода в мениджъра
      */
-    private static function getFromDefaultMethod(core_Mvc $mvc, $name, $rec)
+    private static function getFromDefMethod(core_Mvc $mvc, $rec, $name)
     {
+    	$name = "getDefault{$name}";
     	if(cls::existsMethod($mvc, $name)){
+    		
     		return $mvc->$name($rec);
     	}
     }
     
     
+	/**
+     * Връща стойност от на търговско условие
+     * @param string $salecondSysId - Sys Id на условие
+     */
+    private static function getFromClientCondition(core_Mvc $mvc, $rec, $name)
+    {	
+    	$fld = $mvc->fields[$name];
+    	if(isset($fld->salecondSysId)){
+    		$cId = doc_Folders::fetchCoverId($rec->folderId);
+    		$Class = doc_Folders::fetchCoverClassId($rec->folderId);
+    		return cond_Parameters::getParameter($Class, $cId, $fld->salecondSysId);
+    	}
+    }
+    
+    
+	/**
+     * Връща данни за контрагента
+     */
+    private static function getFromClientData(core_Mvc $mvc, $rec, $name)
+    {
+    	if(!isset($mvc->_cashedContragentData)){
+	    	
+    		// Ако документа няма такъв метод, се взимат контрагент данните от корицата
+	    	$data = static::getCoverMethod($rec->folderId, 'getContragentData');
+	    	
+	    	$conf = core_Packs::getConfig('crm');
+	    	if(!$data->country){
+		    	$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
+	    	}
+	    	if(!$data->countryId){
+	    		$data->countryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
+	    	}
+	    	
+    		$mvc->_cashedContragentData = $data;
+    	}
+    	
+    	if($dataField = $mvc->fields[$name]->contragentDataField){
+    		$name = $dataField;
+    	}
+    	
+    	$Cover = doc_Folders::fetchCoverClassName($rec->folderId);
+    	if(isset($mvc->_cashedContragentData->{$name})){
+    		return $mvc->_cashedContragentData->{$name};
+    	}
+    	
+    	if($Cover == 'crm_Persons'){
+    		return $mvc->_cashedContragentData->{"p".ucfirst($name)};
+    	}
+    }
+    
+    
     /**
+     * Връща стойност от дефолт метод от корицата на документа,
+     * с име getDefault{method_name}
+     */
+    private static function getFromCoverMethod(core_Mvc $mvc, $rec, $name)
+    {
+    	$name = "getDefault{$name}";
+    	return static::getCoverMethod($rec->folderId, $name);
+    }
+    
+    
+	/**
      * Извиква метод( ако съществува ) от корицата на папка
-     * @param int $folderId - ид на папка
-     * @param string $name - име на метод
      */
     private static function getCoverMethod($folderId, $name)
     {
     	$cId = doc_Folders::fetchCoverId($folderId);
     	$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
     	if(cls::existsMethod($Class, $name)){
-	    	return $Class::$name($cId);
+	    	
+    		return $Class::$name($cId);
 	    }
     }
     
     
 	/**
-     * Преди показване на форма за добавяне/промяна.
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	$form = &$data->form;
-    	if(empty($form->rec->id)){
-    		
-	    	// Намират се всички полета със зададено 'defaultStrategy'
-	    	$strategyFields = $mvc->selectFields("#defaultStrategy");
-	    	if(count($strategyFields)){
-		    	foreach($strategyFields as $name => $fld){
-		    		
-		    		// Намира се дефолт стойността на полето спрямо стратегията
-		    		$form->rec->{$name} = static::getDefault($mvc, $name, $data->form->rec, $fld);
-		    	}
-	    	}
-    	}
-    }
-    
-    
-    /**
-     * Намира търговско условие
-     * @param int $folderId - ид на папка
-     * @param string $salecondSysId - Sys Id на условие
-     */
-    private static function getFromSaleCondition($folderId, $salecondSysId)
-    {
-    	$cId = doc_Folders::fetchCoverId($folderId);
-    	$Class = doc_Folders::fetchCoverClassId($folderId);
-    	
-        return cond_Parameters::getParameter($Class, $cId, $salecondSysId);
-    }
-    
-    
-    /**
-     * Намира дефолт стойносртта на дадено поле според неговата стратегия
-     * @param core_Mvc $mvc - мениджър
-     * @param string $name - име на поле
+     * Връща ид-то на папката на река
      * @param stdClass $rec - запис от модела
-     * @param int $strategy - стратегия
-     * @return mixed $value - дефолт стойността
+     * @return int $folderId - ид на папката
      */
-    private static function getDefault(core_Mvc $mvc, $name, $rec, $fld)
+    private static function getFolderId(&$rec)
     {
-    	switch($fld->defaultStrategy){
-    		case '1':
-				$value = static::getStrategyOne($mvc, $name, $rec, $fld);
-    			break;
-    		case '2':
-    			$value = static::getContragentData($mvc, $name, $rec);
-    			break;
-    		case '3':
-    			//$value = static::getStrategyThree($mvc, $name, $rec->folderId, $cu);
-    			break;
+    	if(isset($rec->folderId)) return;
+    	if($rec->originId){
+    		$rec->folderId = doc_Containers::fetchField($rec->originId, 'folderId');
+    	} elseif($rec->threadId){
+    		$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
     	}
-    	
-    	return $value;
-    }
-    
-    
-    /**
-     * Връща контрагентски данни
-     */
-    private static function getContragentData($mvc, $name, $rec)
-    {
-    	if(!$folderId = $rec->folderId){
-    		if($rec->originId){
-    			$folderId = doc_Containers::fetchField($rec->originId, 'folderId');
-    		} elseif($rec->threadId){
-    			$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
-    		}
-    	}
-    	
-    	// Ако документа поддържа контрагент интерфейса, извличаме данните за
-    	// контрагента от последния документ в тази папка
-    	if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
-	    	$query = $mvc->getQuery();
-	    	$query->where("#folderId = {$folderId}");
-	    	$query->orderBy('createdOn', 'DESC');
-	    	$query->show('id');
-	    	if($lastRec = $query->fetch()){
-	    		$data = $mvc::getContragentData($lastRec->id);
-	    	}
-    	}
-    	
-    	if(!$data) {
-    		
-    		// Ако документа няма такъв метод, се взимат контрагент данните от корицата
-    		$data = static::getCoverMethod($folderId, 'getContragentData');
-    	}
-    	
-    	if($name == 'country'){
-    		if(!$data->country){
-	    		$conf = core_Packs::getConfig('crm');
-	    		$data->country = $conf->BGERP_OWN_COMPANY_COUNTRY;
-    		}
-    	}
-    	
-	    if(isset($data->{$name})){
-	    	return $data->{$name};
-	    } elseif(isset($data->{"p".ucfirst($name).""})){
-	    	return $data->{"p".ucfirst($name).""};
-	    }
-    }
-    
-    
-    /**
-     * Намира дефолт стойност по стратегия 1
-     * @param core_Mvc $mvc - мениджър
-     * @param string $name - име на поле
-     * @param stdClass $rec - запис от модела
-     * @return mixed $value - дефолт стойността
-     */
-    private static function getStrategyOne(core_Mvc $mvc, $name, $rec, $fld)
-    {
-    	if(!$folderId = $rec->folderId){
-    		if($rec->originId){
-    			$rec->folderId = doc_Containers::fetchField($rec->originId, 'folderId');
-    		} elseif($rec->threadId){
-    			$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
-    		} else {
-    			return NULL;
-    		}
-    	}
-    	
-    	// Последния документ от потребителя в същата папка
-    	$value = static::getLastDocumentValue($mvc, $rec->folderId, TRUE, $name)->{$name};
-    	
-    	// Последния документ в същата папка
-    	if(!$value){
-    		$value = static::getLastDocumentValue($mvc, $rec->folderId, FALSE, $name)->{$name};
-    	}
-    	
-    	// Дефолт метода на мениджъра
-    	if(!$value){
-    		$value = static::getFromDefaultMethod($mvc, "getDefault{$name}" , $rec);
-    	}
-    	
-    	// Дефолт метод от корицата на документа
-    	if(!$value){
-    		$value = static::getCoverMethod($rec->folderId, "getDefault{$name}");
-    	}
-    	
-    	// Търси за търговско условие 
-    	if(!$value && isset($fld->salecondSysId)){
-    		$value = static::getFromSaleCondition($rec->folderId, $fld->salecondSysId);
-    	}
-    	
-    	return $value;
     }
 }
