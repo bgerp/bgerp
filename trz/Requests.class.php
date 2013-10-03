@@ -163,9 +163,6 @@ class trz_Requests extends core_Master
     	$this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
     	// Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
-    	
-    	
-    	
     }
     
     
@@ -498,7 +495,7 @@ class trz_Requests extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        $row->recTitle = $rec->title;
+        $row->recTitle = $row->title;
         
         return $row;
     }
