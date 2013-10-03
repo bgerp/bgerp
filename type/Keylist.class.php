@@ -170,7 +170,7 @@ class type_Keylist extends core_Type {
                     
                     if ($groupOpen){
                     	$html .= "</table></td>";
-                    	if ($haveChecked){
+                    	if ($haveChecked || Mode::is('javascript', 'no')){
                     		$html = str_replace("[#hideTableRow#]", "", $html);
                     	} else{
                     		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
@@ -227,7 +227,7 @@ class type_Keylist extends core_Type {
             if ($groupOpen){
             	$html .= "</table></td>";
             	
-            	if ($haveChecked){
+            	if ($haveChecked || Mode::is('javascript', 'no') ){
             		$html = str_replace("[#hideTableRow#]", "", $html);
             	} else{
             		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
