@@ -143,6 +143,7 @@ class type_Keylist extends core_Type {
         
         $i = 0; $html = ''; $trOpen = TRUE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
+        
         if(count($this->suggestions)) {
             foreach($this->suggestions as $key => $v) {
                 
@@ -238,7 +239,7 @@ class type_Keylist extends core_Type {
         
         $attr['class'] .= ' keylist';
         $tpl = HT::createElement('table', $attr, $html);
-       
+        jquery_Jquery::enable($tpl);
         return $tpl;
     }
 
