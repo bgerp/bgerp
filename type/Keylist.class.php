@@ -170,14 +170,9 @@ class type_Keylist extends core_Type {
                     
                     if ($groupOpen){
                     	$html .= "</table></td>";
-                    	if ($haveChecked || Mode::is('javascript', 'no')){
-                    		$html = str_replace("[#hideTableRow#]", "", $html);
-                    	} else{
-                    		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
-                    	}
                     }
                     
-                    $html .= "\n<tr id='row-". $j . "' onclick='keylistToggle(this);'><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>" .
+                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>" .
                     "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;
@@ -209,7 +204,7 @@ class type_Keylist extends core_Type {
                     $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
-                        $html .= "\n<tr class='row-" .$j . " [#hideTableRow#]'>";
+                        $html .= "\n<tr class='row-" .$j . "'>";
                         $trOpen = TRUE;
                     }
                     $html .= "\n    <td>" . $cb->getContent() . "</td>";
@@ -226,12 +221,6 @@ class type_Keylist extends core_Type {
             }  
             if ($groupOpen){
             	$html .= "</table></td>";
-            	
-            	if ($haveChecked || Mode::is('javascript', 'no') ){
-            		$html = str_replace("[#hideTableRow#]", "", $html);
-            	} else{
-            		$html = str_replace("[#hideTableRow#]", "hiddenElement", $html);
-            	}
             } 
         } else {
             $html = '<tr><td></td></tr>';
@@ -240,6 +229,7 @@ class type_Keylist extends core_Type {
         $attr['class'] .= ' keylist';
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::enable($tpl);
+        $tpl->push('js/keylist.js', 'JS');
         return $tpl;
     }
 
