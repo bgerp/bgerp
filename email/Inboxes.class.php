@@ -172,6 +172,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
+         $form->FLD('inChargeF' , 'key(mvc=core_Users, select=nick, allowEmpty=TRUE)', 'caption=Отговорник', array('attr' => array('onchange' => 'this.form.submit();')));
         // В хоризонтален вид
         $form->view = 'horizontal';
         
@@ -180,11 +181,20 @@ class email_Inboxes extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'accountId';
+        $form->showFields = 'accountId, inChargeF';
         
-        $form->input('accountId', 'silent');
-
-        $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
+        $form->input('accountId, inChargeF', 'silent');
+        $form->fields['accountId']->type->params['allowEmpty'] = TRUE;
+        
+        if($form->rec->accountId){
+        	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
+        }
+        
+    	if($form->rec->inChargeF){
+        	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->inChargeF));
+        }
+        
+        
     }
     
     
