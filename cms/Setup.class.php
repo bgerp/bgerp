@@ -9,7 +9,7 @@ defIfNot('CMS_THEME', 'cms_DefaultTheme');
 /**
  * Основен език на публичната част
  */
-defIfNot('CMS_BASE_LANG', 'bg');
+defIfNot('CMS_BASE_LANG', EF_DEFAULT_LANGUAGE);
 
 
 /**
