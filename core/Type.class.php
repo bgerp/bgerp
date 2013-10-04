@@ -302,8 +302,8 @@ class core_Type extends core_BaseClass
             }
             ksort($opt);
             $this->suggestions = array('' => '');
-            foreach($opt as $о => $s) {
-                $v = $this->toVerbal_($о);
+            foreach($opt as $o => $s) {
+                $v = $this->toVerbal_($o);
                 $this->suggestions[$v] = $v;
             }
             Mode::pop('text');
