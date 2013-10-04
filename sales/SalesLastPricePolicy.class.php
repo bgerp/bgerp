@@ -67,7 +67,7 @@ class sales_SalesLastPricePolicy extends core_Manager
      */
     function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
-        if(!$date){
+       if(!$date){
        	  $date = dt::now();
         }
        
@@ -82,6 +82,7 @@ class sales_SalesLastPricePolicy extends core_Manager
         $detailQuery->where("#contragentId = {$customerId}");
         $detailQuery->where("#valior <= '{$date}'");
         $detailQuery->where("#state = 'active'");
+        $detailQuery->where("#productId = '{$productId}'");
         $detailQuery->orderBy('#valior', 'DESC');
         
         $lastRec = $detailQuery->fetch();
