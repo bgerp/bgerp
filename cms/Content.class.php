@@ -111,6 +111,9 @@ class cms_Content extends core_Manager
             $langsArr = array($conf->CMS_BASE_LANG => $conf->CMS_BASE_LANG);
             foreach(keylist::toArray($conf->CMS_LANGS) as $langId) {
                 $lg = drdata_Languages::fetchField($langId, 'code');
+                
+                if (!$lg) continue;
+                
                 $langsArr[$lg] = $lg;
             }
         }
@@ -131,6 +134,9 @@ class cms_Content extends core_Manager
             $query = self::getQuery();
             $query->groupBy('lang');
             while($rec = $query->fetch()) {
+                
+                if (!$rec->lang) continue;
+                
                 $langsArr[$rec->lang] = $rec->lang;
             }
         }
