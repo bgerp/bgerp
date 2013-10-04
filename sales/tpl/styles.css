@@ -220,5 +220,13 @@
 }
 
 .quote-header td.gray-bg{
-		background-color:#e0e0e0 !important;
+	background-color:#e0e0e0 !important;
+}
+
+.quote-header .cell{
+	border: 1px solid #ccc !important;
+}
+
+.quote-header td b{
+	background:transparent !important;
 }
