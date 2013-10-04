@@ -83,7 +83,7 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
+        $this->FLD('productManId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double', 'caption=Ед. цена, input,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
@@ -125,6 +125,7 @@ class sales_QuotationsDetails extends core_Detail {
 		    		$disc = ($rec->amount * $rec->discount);
     				$rec->discAmountVat = $rec->amount - $disc;
 		    	}
+		    	
 	    	}
     	}
     }
@@ -141,19 +142,14 @@ class sales_QuotationsDetails extends core_Detail {
         $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " " . "на артикул в" . " |*" . $masterLink;
        
         $masterRec = $mvc->Master->fetch($form->rec->quotationId);
-        $Policy = cls::get($rec->policyId);
-        $productMan = $Policy->getProductMan();
-        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        $productMan = cls::get($rec->productManId);
+        $products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
     	
         if($rec->productId){
         	// При редакция единствения възможен продукт е редактируемия
 	   		$productName = $products[$rec->productId];
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
-	    }
-       
-       if(!count($products)) {
-		   return Redirect(array($mvc->Master, 'single', $rec->quotationId), NULL, 'Няма достъпни продукти');
 	   }
 	   
        $form->setDefault('optional', 'no');
@@ -184,10 +180,9 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
-	    	$Policy = cls::get($rec->policyId);
-	    	$productMan = $Policy->getProductMan();
+	    	$ProductMan = cls::get($rec->productManId);
 	    	if(!$rec->vatPercent){ 
-	    		$rec->vatPercent = $productMan::getVat($rec->productId, $masterRec->date);
+	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
 	    	}
 	    	
 	    	$masterRec = $mvc->Master->fetch($rec->quotationId);
@@ -197,7 +192,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    		
 	    	if(!$rec->price){
-	    		$price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
+	    		
+	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
@@ -226,14 +222,13 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
+            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
            
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            foreach ($pricePolicies as $policyId => $Policy) {
-                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
-                
-                $data->toolbar->addBtn($Policy->getPolicyTitle($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
+            foreach ($productManagers as $manId => $manName) {
+            	$productMan = cls::get($manId);
+                $data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('productManId' => $manId),
+                    "id=btnAdd-{$manId}", 'ef_icon = img/16/shopping.png');
             }
             
             unset($data->toolbar->buttons['btnAdd']);
@@ -278,7 +273,7 @@ class sales_QuotationsDetails extends core_Detail {
     	if(!$data->rows) return;
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
-    		$polId = $data->recs[$i]->policyId;
+    		$polId = $data->recs[$i]->productManId;
     		$optional = $data->recs[$i]->optional;
     		
     		if($optional == 'no'){
@@ -328,7 +323,7 @@ class sales_QuotationsDetails extends core_Detail {
     		if($rec->optional == 'no'){
     			if($i != 0){
     				$prevRec = $resArr[$i-1];
-    				if($rec->productId == $prevRec->productId && $rec->policyId == $prevRec->policyId) return;
+    				if($rec->productId == $prevRec->productId && $rec->productManId == $prevRec->productManId) return;
     			}
     			
     			// Ако няма количество, цената неможе да се изчисли
@@ -448,18 +443,17 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$Policy = cls::get($rec->policyId);
-        $productMan = $Policy->getProductMan();
-        $pInfo = $productMan->getProductInfo($rec->productId);
+    	$ProductMan = cls::get($rec->productManId);
+        $pInfo = $ProductMan->getProductInfo($rec->productId);
     	
         $double = cls::get('type_Double');
         $double->params['decimals'] = 2;
-    	$row->productId = $productMan->getTitleById($rec->productId, TRUE, TRUE);
+    	$row->productId = $ProductMan->getTitleById($rec->productId, TRUE, TRUE);
     	
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
-    		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId), NULL, 'title=Към продукта');
+    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $ProductMan->haveRightFor('read', $rec->productId)){
+    		$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId), NULL, 'title=Към продукта');
     	}
-    	//bp($rec,$row);
+    	
     	if($rec->quantity){
     		$uomId = $pInfo->productRec->measureId;
     		$row->uomShort = cat_UoM::getShortName($uomId);
@@ -519,11 +513,11 @@ class sales_QuotationsDetails extends core_Detail {
     		$specRec = techno_Specifications::fetch($specId);
     	}
     	
-    	$policyId = techno_Specifications::getClassId();
-    	$Policy = cls::get($policyId);
+    	$productManId = techno_Specifications::getClassId();
+    	$ProductMan = cls::get($productManId);
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #policyId = {$policyId}");
+    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #policyId = {$productManId}");
     	
     	foreach ($quantities as $q) {
     		if(empty($q)) continue;
@@ -533,13 +527,13 @@ class sales_QuotationsDetails extends core_Detail {
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $specRec->id;
     		$dRec->quantity = $q;
-    		$dRec->policyId = $policyId;
-    		$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
+    		$dRec->policyId = $productManId;
+    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
     		
     		$dRec->price = $price->price;
     		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
-    		$dRec->vatPercent = $Policy->getVat($dRec->productId, $rec->date);
+    		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
     		
     		$this->save($dRec);
     	}
@@ -552,8 +546,8 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterSave($mvc, &$id, $rec)
     {
     	// Нотифицираме продуктовия мениджър че продукта вече е използван
-    	$productMan = cls::get($rec->policyId)->getProductMan();
-    	$productRec = $productMan::fetch($rec->productId);
+    	$productMan = cls::get($rec->productManId);
+    	$productRec = $productMan->fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
     	$productMan->save_($productRec);
     }
