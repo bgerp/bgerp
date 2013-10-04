@@ -19,7 +19,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf';
     
     
     /**
@@ -52,7 +52,7 @@ class hr_EmployeeContracts extends core_Master
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
-                     doc_plg_BusinessDoc2,plg_AutoFilter ';
+                     doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg';
     
     
     /**
@@ -161,9 +161,29 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
         $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
+        // Споделени потребители
+        $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
     
+    
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        // Ако нямаме права за писане в треда
+    	if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
+    		
+    		// Премахваме бутона за коментар
+	    	$data->toolbar->removeBtn('Коментар');
+	    }
+        
+    }
 
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -193,6 +213,38 @@ class hr_EmployeeContracts extends core_Master
         	}
         }
         
+    }
+    
+    
+	/**
+     * Извиква се след изпълняването на екшън
+     */
+    function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+    	if (strtolower($act) == 'single' && haveRole('hr,ceo')) {
+    		
+    		// Взимаме ид-то на молбата
+    		$id = Request::get('id', 'int');
+    		
+    		// намираме, кой е текущия потребител
+    		$cu =  core_Users::getCurrent();
+    		
+    		// взимаме записа от модела
+    		$rec = self::fetch($id);
+    		
+    		// превръщаме кей листа на споделените потребители в масив
+    		$sharedUsers = type_Keylist::toArray($rec->sahredUsers);
+    		
+    		// добавяме текущия потребител
+    		$sharedUsers[$cu] = $cu;
+    		
+    		// връщаме в кей лист масива
+    		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
+    		    		
+    		self::save($rec, 'sharedUsers');
+
+    		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
+    	}
     }
     
     
