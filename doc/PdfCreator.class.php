@@ -101,13 +101,32 @@ class doc_PdfCreator extends core_Manager
         
         //Ако не съществува
         if (!$fileHnd) {
-
+            
             //Вземаме всичките css стилове
-                  
             $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
                 "\n" . file_get_contents(sbf('css/Application.css', "", TRUE)) . 
                 "\n" . getFileContent('css/email.css') . 
                 "\n" . getFileContent('css/pdf.css');
+            
+            // Ако е инстанция на core_ET
+            if ($html instanceof core_ET) {
+                
+                // Вземаме масива с всички чакащи CSS файлове
+                $cssArr = $html->getArray('CSS');
+                
+                // Обхождаме масива
+                foreach ((array)$cssArr as $cssPath) {
+                    try {
+                        
+                        // Опитваме се да вземаме съдържанието на CSS
+                        $css .= file_get_contents(sbf($cssPath, "", TRUE));
+                    } catch (Exception $e) {
+                        
+                        // Ако възникне грешка, добавяме в лога
+                        static::log('Не може да се взема CSS файла: ' . $cssPath);
+                    }
+                }
+            }
             
             $html = self::removeFormAttr($html);
             
