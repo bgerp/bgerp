@@ -163,8 +163,8 @@ class sales_Invoices extends core_Master
     	'caseId'              => 'lastDocUser|lastDoc',
         'currencyId'          => 'lastDocUser|lastDoc',
         'deliveryPlaceId'     => 'lastDocUser|lastDoc',
-        'deliveryId'          => 'lastDocUser|lastDoc|clientCondition|',
-    	'paymentMethodId' 	  => 'lastDocUser|lastDoc|clientCondition|',
+        'deliveryId'          => 'lastDocUser|lastDoc|clientCondition',
+    	'paymentMethodId' 	  => 'lastDocUser|lastDoc|clientCondition',
     	'vatRate' 			  => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -194,7 +194,7 @@ class sales_Invoices extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
-        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,defaultStrategy=1');
+        $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 

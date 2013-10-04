@@ -111,60 +111,95 @@ class sales_Quotations extends core_Master
     public $singleTitle = 'Оферта';
     
     
-   /**
+    /**
      * Шаблон за еденичен изглед
      */
-   var $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
+    var $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
    
    
-   /**
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-   var $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
+    var $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
    
-   /**
-    * Брой оферти на страница
-    */
-   var $listItemsPerPage = '20';
+    /**
+     * Брой оферти на страница
+     */
+    var $listItemsPerPage = '20';
     
     
-   /**
-     * Групиране на документите
-     */ 
-   var $newBtnGroup = "3.7|Търговия";
+    /**
+      * Групиране на документите
+      */ 
+    var $newBtnGroup = "3.7|Търговия";
     
     
-   /**
+     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'validFor' => 'lastDocUser|lastDoc|',
+    	'paymentMethodId' => 'lastDocUser|lastDoc|clientCondition',
+        'paymentCurrencyId' => 'lastDocUser|lastDoc',
+        'vat' => 'lastDocUser|lastDoc|defMethod',
+    	'others' => 'lastDocUser|lastDoc',
+        'deliveryTermId' => 'lastDocUser|lastDoc|clientCondition',
+        'deliveryPlaceId' => 'lastDocUser|lastDoc|',
+        'company' => 'lastDocUser|lastDoc|clientData',
+        'person' => 'lastDocUser|lastDoc|clientData',
+        'email' => 'lastDocUser|lastDoc|clientData',
+    	'tel' => 'lastDocUser|lastDoc|clientData',
+        'fax' => 'lastDocUser|lastDoc|clientData',
+        'country' => 'lastDocUser|lastDoc|clientData',
+        'pCode' => 'lastDocUser|lastDoc|clientData',
+    	'place' => 'lastDocUser|lastDoc|clientData',
+    	'address' => 'lastDocUser|lastDoc|clientData',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
-        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em,defaultStrategy=1');
+        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em');
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,defaultStrategy=1,salecondSysId=paymentMethod');
-        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,defaultStrategy=1');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,salecondSysId=paymentMethod');
+        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
-        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,defaultStrategy=1');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,defaultStrategy=1,salecondSysId=deliveryTerm');
-        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова,defaultStrategy=1');
+        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         
-		$this->FLD('company', 'varchar', 'caption=Адресант->Фирма,defaultStrategy=2, changable');
-        $this->FLD('person', 'varchar', 'caption=Адресант->Лице,defaultStrategy=2, changable');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,defaultStrategy=2, changable');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,defaultStrategy=2, changable');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,defaultStrategy=2, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,defaultStrategy=2, changable');
-        $this->FLD('pCode', 'varchar', 'caption=Адресант->П. код,defaultStrategy=2, changable,oldFieldName=pcode');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,defaultStrategy=2, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,defaultStrategy=2, changable');
+		$this->FLD('company', 'varchar', 'caption=Адресант->Фирма, changable');
+        $this->FLD('person', 'varchar', 'caption=Адресант->Лице, changable');
+        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл, changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел., changable');
+        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, changable');
+        $this->FLD('pCode', 'varchar', 'caption=Адресант->П. код, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, changable');
     	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
     	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
     	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
+    }
+    
+    
+	/**
+     * Дали да се начислява ДДС
+     */
+    public function getDefaultVat($rec)
+    {
+        $coverId = doc_Folders::fetchCoverId($rec->folderId);
+    	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
+    	
+    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'export';
     }
     
     
