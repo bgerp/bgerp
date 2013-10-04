@@ -330,8 +330,10 @@ class sales_Quotations extends core_Master
 				$row->expired = tr("офертата е изтекла");
 			}
 			
-			if(!Mode::is('printing')){
+			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+	    	} else {
+	    		unset($row->STATE_CLASS);
 	    	}
 	    
 	    	$row->number = $mvc->getHandle($rec->id);
@@ -419,6 +421,10 @@ class sales_Quotations extends core_Master
 	        $header->replace($ownCompanyData->country, 'MyCountry');
 	    }
     	
+	   	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+	    	unset($data->row->iconStyle);
+	  	}
+	  	
     	$tpl->replace($header, 'QUOTE_HEADER');
     	$tpl->push('sales/tpl/styles.css', 'CSS');
     }
