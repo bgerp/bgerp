@@ -68,25 +68,25 @@ class crm_Groups extends core_Master
     /**
      * Права
      */
-    var $canWrite = 'user';
+    var $canWrite = 'powerUser';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'user';
+	var $canSingle = 'powerUser';
     
     
     /**

@@ -49,19 +49,19 @@ class crm_Locations extends core_Master {
     /**
      * 
      */
-    var $canWrite = 'user';
+    var $canWrite = 'powerUser';
     
     
     /**
      * 
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
     
 	
     /**
