@@ -178,8 +178,9 @@ class type_Keylist extends core_Type {
                     $plusUrl = sbf("img/16/toggle1.png", "");
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
-                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . $col . "'><div>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
-                    "<tr><td><table class='inner-keylist'>";
+                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . 
+                        $col . "'><div>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
+                        "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;
                     $haveChecked = FALSE;
