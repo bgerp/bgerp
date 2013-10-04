@@ -2898,6 +2898,12 @@ div.location.public{
 		margin-bottom:10px;
 		display:block;
 	}
+	.quote-header .cell{
+		border: 1px solid #ccc !important;
+	}
+	.quote-header td b{
+		background:transparent !important;
+	}
 }
 
 /* Стилове за callcenter*/

@@ -70,11 +70,11 @@
 }
 
 #details-holder, #optional-holder{
-	padding-top:15px;
+	margin-top:15px;
 }
 
 #optional-holder{
-	padding-top:25px;
+	margin-top:25px;
 }
 
 .narrow .products-table{
@@ -214,8 +214,9 @@
 	font-style:italic;
 	margin-left:5px;
 }
-.quote-header td{
-		border-color:#ccc;
+
+.printing .quote-header{
+	border-bottom:1px solid #ccc !important;
 }
 
 .quote-header td.gray-bg{
