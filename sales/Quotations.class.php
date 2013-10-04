@@ -173,7 +173,7 @@ class sales_Quotations extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,salecondSysId=paymentMethod');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
-        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
+        $this->FLD('vat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         

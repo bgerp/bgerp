@@ -102,23 +102,22 @@ class sales_QuotationsDetails extends core_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	($masterRec->vat == 'yes') ? $applyVat = TRUE : $applyVat = FALSE;
+    	$hasVat = $masterRec->vat;
     	
     	if($recs){
 	    	foreach($recs as $id => $rec){
 	    		
 	    		// Цената с добавено ДДС и конвертирана
-	    		if(!$applyVat) {
+	    		if($hasVat != 'yes' && $hasVat != 'no') {
 	    			$rec->vatPercent = 0;
 	    		}
 	    		
-		    	$price = $rec->price + ($rec->price * $rec->vatPercent);
-		    	$price = $price / $masterRec->rate;
-	    		$rec->vatPrice = $price;
+	    		$rec->price *= 1 + $rec->vatPercent;
+	    		$rec->price = $rec->price / $masterRec->rate;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
 	    		if($rec->quantity){
-	    			$rec->amount = $rec->quantity * $price;
+	    			$rec->amount = $rec->quantity * $rec->price;
 			    }
 	    		
 	    		// Отстъпката с добавено ДДС и конвертирана
@@ -160,7 +159,9 @@ class sales_QuotationsDetails extends core_Detail {
        $form->setDefault('optional', 'no');
 	   $form->setOptions('productId', $products);
        
-       if($form->rec->price && $masterRec->rate){
+	   $form->fields['price']->unit = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';
+	   
+	   if($form->rec->price && $masterRec->rate){
        	 	if($masterRec->vat == 'yes'){
        	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
@@ -464,7 +465,7 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->uomShort = cat_UoM::getShortName($uomId);
     	}
     	
-    	$row->price = $double->toVerbal($rec->vatPrice);
+    	$row->price = $double->toVerbal($rec->price);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
     	}
