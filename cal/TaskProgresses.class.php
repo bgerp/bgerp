@@ -52,7 +52,7 @@ class cal_TaskProgresses extends core_Detail
      */
     var $singleIcon = 'img/16/task.png';
 
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
 
     
     

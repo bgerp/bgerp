@@ -25,7 +25,7 @@ class cal_Holidays extends core_Master
     /**
      * @todo Чака за документация...
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
@@ -49,7 +49,7 @@ class cal_Holidays extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
     
     
     /**

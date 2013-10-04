@@ -64,25 +64,25 @@ class cal_Calendar extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'user';
+	var $canSingle = 'powerUser';
     
 	
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     // Масив с цветове за събитията
