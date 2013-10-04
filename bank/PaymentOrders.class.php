@@ -124,6 +124,22 @@ class bank_PaymentOrders extends core_Master
      */
     var $newBtnGroup = "4.9|Финанси";
     
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    
+    	'ordererIban' 		=> 'lastDocUser|lastDoc',
+    	'execBank' 			=> 'lastDocUser|lastDoc',
+        'execBankBic' 		=> 'lastDocUser|lastDoc',
+        'execBranch' 		=> 'lastDocUser|lastDoc',
+        'execBranchAddress' => 'lastDocUser|lastDoc',
+        'beneficiaryName' 	=> 'lastDocUser|lastDoc',
+        'beneficiaryIban' 	=> 'lastDocUser|lastDoc',
+    );
+    
+    
     /**
      * Описание на модела
      */
@@ -136,13 +152,13 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
     	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
-    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em,defaultStrategy=1');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em,defaultStrategy=1');
-    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em,defaultStrategy=1');
-    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em,defaultStrategy=1');
-        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em,defaultStrategy=1');
-        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em,defaultStrategy=1');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em,defaultStrategy=1');
+    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
+    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em');
+    	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
+        $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
+        $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
      	$this->FLD('originClassId', 'key(mvc=core_Classes,select=name)', 'input=none');
     }
     

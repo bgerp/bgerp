@@ -139,22 +139,23 @@ class sales_Quotations extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'validFor' => 'lastDocUser|lastDoc|',
-    	'paymentMethodId' => 'lastDocUser|lastDoc|clientCondition',
+    
+    	'validFor'          => 'lastDocUser|lastDoc|',
+    	'paymentMethodId'   => 'lastDocUser|lastDoc|clientCondition',
         'paymentCurrencyId' => 'lastDocUser|lastDoc',
-        'vat' => 'lastDocUser|lastDoc|defMethod',
-    	'others' => 'lastDocUser|lastDoc',
-        'deliveryTermId' => 'lastDocUser|lastDoc|clientCondition',
-        'deliveryPlaceId' => 'lastDocUser|lastDoc|',
-        'company' => 'lastDocUser|lastDoc|clientData',
-        'person' => 'lastDocUser|lastDoc|clientData',
-        'email' => 'lastDocUser|lastDoc|clientData',
-    	'tel' => 'lastDocUser|lastDoc|clientData',
-        'fax' => 'lastDocUser|lastDoc|clientData',
-        'country' => 'lastDocUser|lastDoc|clientData',
-        'pCode' => 'lastDocUser|lastDoc|clientData',
-    	'place' => 'lastDocUser|lastDoc|clientData',
-    	'address' => 'lastDocUser|lastDoc|clientData',
+        'vat'               => 'lastDocUser|lastDoc|defMethod',
+    	'others'            => 'lastDocUser|lastDoc',
+        'deliveryTermId'    => 'lastDocUser|lastDoc|clientCondition',
+        'deliveryPlaceId'   => 'lastDocUser|lastDoc|',
+        'company'           => 'lastDocUser|lastDoc|clientData',
+        'person' 			=> 'lastDocUser|lastDoc|clientData',
+        'email' 			=> 'lastDocUser|lastDoc|clientData',
+    	'tel' 				=> 'lastDocUser|lastDoc|clientData',
+        'fax' 				=> 'lastDocUser|lastDoc|clientData',
+        'country'			=> 'lastDocUser|lastDoc|clientData',
+        'pCode' 			=> 'lastDocUser|lastDoc|clientData',
+    	'place' 			=> 'lastDocUser|lastDoc|clientData',
+    	'address' 			=> 'lastDocUser|lastDoc|clientData',
     );
     
     

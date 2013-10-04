@@ -118,11 +118,28 @@ class bank_DepositSlips extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior, reason, beneficiaryName, beneficiaryIban, execBank';
+
     
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.91|Финанси";
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    
+    	'execBank' 		  => 'lastDocUser|lastDoc',
+    	'execBankBranch'  => 'lastDocUser|lastDoc',
+    	'execBankAdress'  => 'lastDocUser|lastDoc',
+    	'beneficiaryName' => 'lastDocUser|lastDoc',
+    	'beneficiaryIban' => 'lastDocUser|lastDoc',
+    	'beneficiaryBank' => 'lastDocUser|lastDoc',
+    	'depositor' 	  => 'lastDocUser|lastDoc',
+    );
+    
     
     /**
      * Описание на модела
@@ -132,14 +149,14 @@ class bank_DepositSlips extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory,defaultStrategy=1');
-    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory,defaultStrategy=1');
-    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em,defaultStrategy=1');
-        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em,defaultStrategy=1');
-    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em,defaultStrategy=1');
-    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em,defaultStrategy=1');
-    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em,defaultStrategy=1');
-    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory,defaultStrategy=1');
+    	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
+    	$this->FLD('execBank', 'varchar(255)', 'caption=До->Банка,width=16em,mandatory');
+    	$this->FLD('execBankBranch', 'varchar(255)', 'caption=До->Клон,width=16em');
+        $this->FLD('execBankAdress', 'varchar(255)', 'caption=До->Адрес,width=16em');
+    	$this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
+    	$this->FLD('beneficiaryIban', 'iban_Type', 'caption=Получател->IBAN,mandatory,width=16em');
+    	$this->FLD('beneficiaryBank', 'varchar(255)', 'caption=Получател->Банка,width=16em');
+    	$this->FLD('depositor', 'varchar(255)', 'caption=Вносител->Име,mandatory');
     }
     
     
