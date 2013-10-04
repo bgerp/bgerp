@@ -85,7 +85,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
-    	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена, input,width=8em');
+    	$this->FLD('price', 'double', 'caption=Ед. цена, input,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
@@ -113,7 +113,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		}
 	    		
 		    	$price = $rec->price + ($rec->price * $rec->vatPercent);
-		    	$price = round($price / $masterRec->rate, 2);
+		    	$price = $price / $masterRec->rate;
 	    		$rec->vatPrice = $price;
 		    	
 		    	// Сумата с добавено ддс и конвертирана
@@ -123,7 +123,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    		// Отстъпката с добавено ДДС и конвертирана
 		    	if($rec->discount && $rec->quantity){
-		    		$disc = round(($rec->amount * $rec->discount), 2);
+		    		$disc = ($rec->amount * $rec->discount);
     				$rec->discAmountVat = $rec->amount - $disc;
 		    	}
 	    	}
@@ -458,7 +458,7 @@ class sales_QuotationsDetails extends core_Detail {
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && is_string($row->productId) && $productMan->haveRightFor('read', $rec->productId)){
     		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId), NULL, 'title=Към продукта');
     	}
-    	
+    	//bp($rec,$row);
     	if($rec->quantity){
     		$uomId = $pInfo->productRec->measureId;
     		$row->uomShort = cat_UoM::getShortName($uomId);
