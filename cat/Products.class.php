@@ -34,6 +34,7 @@ class cat_Products extends core_Master {
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
                      cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search, bgerp_plg_Import';
     
+    
     /**
      * Име на полето за групите на продуктите.
      * Използва се за целите на bgerp_plg_Groups
@@ -146,7 +147,7 @@ class cat_Products extends core_Master {
     
     
     /**
-     * 
+     * Кой има достъп до единичния изглед
      */
     var $canSingle = 'user';
     
@@ -754,5 +755,48 @@ class cat_Products extends core_Master {
     	$res .= $cntObj->html;
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща продуктие, които могат да се продават на посочения клиент, 
+     * съгласно имплементиращата този интерфейс ценова политика
+     *
+     * @return array() - масив с опции, подходящ за setOptions на форма
+     */
+    public function getProducts($customerClass, $customerId, $datetime = NULL)
+    {
+    	return static::getByProperty('canSell');
+    }
+    
+    
+    /**
+     * По кои политики се намира цената на продукта
+     */
+    public function getPolicies()
+    {
+    	return array('price_ListToCustomers', 'sales_SalesLastPricePolicy');
+    }
+    
+    
+    
+    /**
+     * Връща цената за посочения продукт към посочения клиент на посочената дата
+     * спрямо посочените ценови политики
+     * @return object
+     * $rec->price  - цена
+     * $rec->discount - отстъпка
+     */
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    {
+    	$policies = $this->getPolicies();
+    	foreach($policies as $name){
+    		$Policy = cls::get($name);
+    		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime);
+    		if($price->price){
+    			
+    			return $price;
+    		}
+    	}
     }
 }
