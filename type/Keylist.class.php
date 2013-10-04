@@ -171,8 +171,14 @@ class type_Keylist extends core_Type {
                     if ($groupOpen){
                     	$html .= "</table></td>";
                     }
+                   
+                    $minusUrl = sbf("img/16/toggle2.png", "");
+                    $minusImg =  ht::createElement("img", array('src' => $minusUrl,  'class' => 'btns-icon minus'));
                     
-                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . $col . "'><div>" . $v->title . "</div></td></tr>" .
+                    $plusUrl = sbf("img/16/toggle1.png", "");
+                    $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
+                    
+                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . $col . "'><div>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
                     "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;

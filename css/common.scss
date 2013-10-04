@@ -1418,7 +1418,7 @@ table.keylist{
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     outline:none;
 	td{
-		padding:0.3em 0.2em 0 0.2em;
+		padding:0.3em 0.1em 0 0.1em;
 	}
 	.inner-keylist{
 		width:100%;
@@ -1426,7 +1426,7 @@ table.keylist{
 			height:1.6em !important;
 		}
 		td{
-			padding:0.2em 0.2em 0.1em 0.2em;
+			padding:0.2em 0.1em 0.1em 0.1em;
 		}
 	}
 }
@@ -1444,13 +1444,37 @@ td.keylist-group{
 
 td.keylist-group > div {
     padding: 4px !important;
-    font-size:0.9em;
+    font-size:0.95em;
     font-weight:bold;
     background-color:#eeeeff;
     border:1px solid #e0e0f0;
     margin-top:1px;
     color: #333;
-    cursor:pointer;  
+    cursor:pointer; 
+    img{
+    	display:none;
+    	margin-right:5px;
+    	top:2px;
+    	position:relative;
+    } 
+}
+
+.opened td.keylist-group > div {
+	.plus{
+		display:none;
+	}
+	.minus{
+		display:inline-block;
+	}
+}
+
+.closed td.keylist-group > div{
+	.minus{
+		display:none;
+	}
+	.plus{
+		display:inline-block;
+	}
 }
 
 .inner-keylist .hiddenElement {
