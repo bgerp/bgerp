@@ -43,13 +43,13 @@ class doc_Folders extends core_Master
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'user';
+    var $canWrite = 'powerUser';
     
     
     /**
@@ -61,25 +61,25 @@ class doc_Folders extends core_Master
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'user';
+    var $canReject = 'powerUser';
     
     
     /**
      * 
      */
-    var $canNewdoc = 'user';
+    var $canNewdoc = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'user';
+	var $canSingle = 'powerUser';
     
     
     /**

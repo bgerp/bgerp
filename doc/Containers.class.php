@@ -56,7 +56,7 @@ class doc_Containers extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**

@@ -30,7 +30,7 @@ class doc_Files extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**
