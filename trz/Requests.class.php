@@ -514,13 +514,27 @@ class trz_Requests extends core_Master
      */
     function getCoverOptions($coverClass)
     {
+    	$groups = array();
     	
     	if($coverClass instanceof crm_Persons){
     		
     		// Искаме да филтрираме само групата "Служители"
-    		$sysId = crm_Groups::getIdFromSysId('employees');
+    		$sysIdEmployees = crm_Groups::getIdFromSysId('employees');
+    		$sysIdManagers  = crm_Groups::getIdFromSysId('managers');
+    		$sysIdUsers = crm_Groups::getIdFromSysId('users');
+    		
+    		$groups = array($sysIdEmployees=>$sysIdEmployees, $sysIdManagers=>$sysIdManagers, $sysIdUsers=>$sysIdUsers);
+    		$groupList = keylist::fromArray($groups);
+    		
+    		$query = $coverClass->getQuery();
+    		$query->where("#state != 'rejected'");
+    		$query->likeKeylist('groupList', $groupList);
+    		
+    		while($rec = $query->fetch()){
+    			$options[$rec->id] = $coverClass::getTitleById($rec->id);
+    		}
     	
-    		return $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #groupList LIKE '%|{$sysId}|%'");
+    		return $options;
     	}
     }
 }
