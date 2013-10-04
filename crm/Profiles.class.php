@@ -64,13 +64,13 @@ class crm_Profiles extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
@@ -88,7 +88,7 @@ class crm_Profiles extends core_Master
     /**
      * 
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
