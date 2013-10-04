@@ -60,6 +60,7 @@ class thumbnail_Thumbnail extends core_Manager {
         $ext = mb_substr($fileName, mb_strrpos($fileName, '.') + 1);
         
         if($attr['baseName']) {
+            $attr['baseName'] = str::utf2ascii($attr['baseName']);
             $baseName = $attr['baseName'];
         } else {
             $baseName = baseName($fileName, "." . $ext);
