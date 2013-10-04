@@ -551,10 +551,23 @@ function toggleDisplay(id)
  
 	} else {
 	
-		var el = document.getElementById(id);  
+		var el = document.getElementById(id);
+		
 		if (el.style.display == 'none' || el.style.display == '') el.style.display='block';
 			else el.style.display='none';
+		
+		var child = el.parentNode.children[0].children[0];
+		
+		if(hasClass(child, 'show-btn')){
+			child.className= child.className.replace(/\bshow-btn\b/,'');
+		} else {
+			child.className += ' show-btn';
+		}
 	}
+}
+
+function hasClass(element, className) {
+    return element.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(element.className);
 }
 
 function toggleRichtextGroups(id)
