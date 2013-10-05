@@ -2,43 +2,38 @@
 
 
 /**
- * Длъжности
- *
+ * Позиции
+ * Детайли, които определят в един отдел, какви длъжности 
+ * и на какви условия могат да бъдат назначавани
  *
  * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class hr_Positions extends core_Master
+class hr_Positions extends core_Detail
 {
     
     
     /**
      * Заглавие
      */
-    var $title = "Длъжности";
+    var $title = "Позиции";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Длъжност";
+    var $singleTitle = "Позиция";
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $pageMenu = "Персонал";
-    
-    
+        
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
-                        plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
+   
+    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing, plg_Created';
     
     
     /**
@@ -57,75 +52,83 @@ class hr_Positions extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'ceo,hr';
-    
+	
     
     /**
      * Кой може да пише?
      */
     var $canWrite = 'ceo,hr';
     
+    var $masterKey = 'departmentId';
     
-    /**
-     * Шаблон за единичния изглед
-     */
-    var $singleLayoutFile = 'hr/tpl/SingleLayoutPosition.shtml';
-    
-    
-    /**
-     * Единична икона
-     */
-    var $singleIcon = 'img/16/construction-work-icon.png';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'name';
+    var $currentTab = 'Структура';
 
+    var $rowToolsField = '✍';
     
+    var $listFields = '✍,professionId,employmentTotal,employmentOccupied';
+
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
+        $this->FNC('name', 'varchar', 'caption=Наименование');
+
+        // Към кое звено на организацията е тази позиция
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Отдел, column=none, mandatory');
         
-        $this->FLD('nkpd', 'key(mvc=bglocal_NKPD, select=title)', 'caption=НКПД, hint=Номер по НКПД');
-               
-        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=@Характеристика, ');
+        // Каква е професията за тази длъжност
+        $this->FLD('professionId', 'key(mvc=hr_Professions,select=name)', 'caption=Професия, mandatory');
         
-        $this->FLD('employersCnt', 'datetime', "caption=Служители,input=none");
-        
-        $this->setDbUnique('name');
+        // Щат
+        $this->FLD('employmentTotal', 'double','caption=Служители->Щат');
+        $this->FLD('employmentOccupied', 'double','caption=Служители->Запълване');
+
+        // Възнаграждения
+        $this->FLD('salaryBase', 'double','caption=Възнаграждение->Основно');
+        $this->FLD('forYearsOfService', 'percent','caption=Възнаграждение->За стаж');
+        $this->FLD('compensations', 'double','caption=Възнаграждение->За вредности');
+        $this->FLD('frequensity', 'enum(mountly=Ежемесечно, weekly=Ежеседмично, daily=Ежедневно)','caption=Възнаграждение->Периодичност');
+        $this->FLD('downpayment', 'enum(yes=Да,no=Не)','caption=Възнаграждение->Аванс');
+
+        // Срокове
+        $this->FLD('probation', 'int', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
+        $this->FLD('annualLeave', 'int', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
+        $this->FLD('notice', 'int', "caption=Срокове->Предизвестие,unit=дни,width=6em");
+
+        // Други условия
+        $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
+
     }
-    
-    
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+
+    function on_CalcName($mvc, $rec)
     {
-    	//bp($data->rec, $data->singleFields, $data);
+        if($rec->departmentId) {
+            $dRec = hr_Departments::fetch($rec->departmentId);
+            hr_Departments::expandRec($dRec);
+        }
+
+        if($rec->professionId) {
+            $jRec = hr_Professions::fetch($rec->professionId);
+        }
+
+        $rec->name = $dRec->name . ' - ' . $jRec->name;
+
     }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+
+    function preparePositions($data)
     {
-    	if($action == 'delete'){
-	    	if ($rec->id) {
-	        	
-	    		$inUse = hr_EmployeeContracts::fetch("#positionId = '{$rec->id}'");
-	    		
-	    		if($inUse){
-	    			$requiredRoles = 'no_one';
-	    		}
-    	     }
-         }
+        $data->TabCaption = tr('Позиции');
+        self::prepareDetail($data);
     }
+    
+    
+    function renderPositions($data)
+    {
+        $tpl = getTplFromFile('hr/tpl/SingleLayoutPositions.shtml');
+        
+        return self::renderDetail($data);
+    }
+
+    
 }
