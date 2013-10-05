@@ -27,14 +27,11 @@ class hr_Wrapper extends plg_ProtoWrapper
     {
                 
         $this->TAB('hr_EmployeeContracts', 'Назначения', 'ceo,hr');
-        $this->TAB('hr_Positions', 'Длъжности', 'ceo,hr');
         $this->TAB('hr_Departments', 'Структура', 'ceo,hr');
-        //$this->TAB('hr_Shifts', 'График','admin,hr');
+        $this->TAB('hr_Professions', 'Професии','admin,hr');
         $this->TAB('hr_WorkingCycles', 'График', 'ceo,dma,hr');
         $this->TAB('hr_ContractTypes', 'Данни', 'ceo,hr');
         
         $this->title = 'Персонал';
-        //$this->title = 'HR « Персонал';
-        //Mode::set('menuPage', 'Персонал:ТРЗ');
     }
 }

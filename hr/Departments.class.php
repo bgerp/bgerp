@@ -25,7 +25,7 @@ class hr_Departments extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Структурно звено";
+    var $singleTitle = "Звено";
     
     
     /**
@@ -87,28 +87,39 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, type, nkid, staff, dependent, locationId, employersCntAll, employersCnt, schedule';
+    var $listFields = 'id, name, type, nkid, staff, locationId, employersCntAll, employersCnt, schedule';
     
+
+    /**
+     * Детайли на този мастер
+     */
+    var $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
     
-    var $details = 'grafic=hr_WorkingCycles';
-    
+
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
-        $this->FLD('type', 'enum(department=отдел, link=звено, brigade=бригада)', 'caption=Тип, mandatory,width=100%');
+        $this->FLD('type', 'enum(section=Поделение, 
+                                 division=Девизия,
+                                 direction=Дирекция,
+                                 department=Oтдел,
+                                 plant=Завод,
+                                 workshop=Цех, 
+                                 unit=Звено,
+                                 brigade=Бригада,
+                                 shift=Смяна)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
-        $this->FLD('dependent', 'keylist(mvc=hr_Departments, select=name)', "caption=Подчинен на,width=100%");
+
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employersCntAll', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employersCnt', 'int', "caption=Служители->Назначени, input=none");
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name)', "caption=Работно време->График");
         $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
-        
-        $this->setDbUnique('name');
+        $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
     }
     
     
@@ -118,8 +129,76 @@ class hr_Departments extends core_Master
     static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('locationId', array('' => '&nbsp;') + crm_Locations::getOwnLocations());
+
+        // Да не може да се слага в звена, които са в неговия състав
+        if($id = $data->form->rec->id) {
+            $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'staff')) . ")";
+
+
+        }  
+        
+        $query = self::getQuery();
+        $query->orderBy('#orderStr');
+        while($r = $query->fetch($notAllowedCond)) {
+                self::expandRec($r);
+                $opt[$r->id] = $r->name;
+        }
+
+        $data->form->setOptions('staff', $opt);
     }
-    
+
+
+    /**
+     * Връща наследниците на даден запис
+     */
+    static function getInheritors($id, $field, &$arr = array())
+    {
+        $arr[$id] = $id;
+        $query = self::getQuery();
+        while($rec = $query->fetch("#{$field} = $id")) {
+ 
+            self::getInheritors($rec->id, $field, $arr);
+        }
+
+        return $arr;
+    }
+
+
+    /**
+     * Добавя данните за записа, които зависят от неговите предшественици и от неговите детайли
+     */
+    static function expandRec($rec)
+    {
+        $parent = $rec->staff;
+
+        while($parent && ($pRec = self::fetch($parent))) {
+            $rec->name = $pRec->name . ' » ' . $rec->name;
+            setIfNot($rec->nkid, $pRec->nkid);
+            setIfNot($rec->locationId, $pRec->locationId);
+            $parent = $pRec->staff;
+        }
+    }
+
+
+    /**
+     * Определя заглавието на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        self::expandRec($rec);
+        
+        return parent::getRecTitle($rec, $escaped);
+    }
+
+
+    /**
+     * Изпънява се преди превръщането във вербални стойности на записа
+     */
+    function on_BeforeRecToVerbal($mvc, &$row, &$rec)
+    {
+        self::expandRec($rec);
+    }
+
     
     /**
      * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
@@ -146,13 +225,13 @@ class hr_Departments extends core_Master
          }
     }
     
+
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        
-      //  $data->query->orderBy("#orderSum");
+        $data->query->orderBy("#orderStr");
     }
     
     
@@ -161,21 +240,13 @@ class hr_Departments extends core_Master
      */
     static function on_BeforeSave($mvc, $id, $rec)
     {
-        if($rec->parentId) {
-            $parentRec = $mvc->fetch($rec->parentId);
-            
-            if($parentRec) {
-                $rec->orderId = ($parentRec->orderId + $parentRec->id) * 1000;
-            }
+        $rec->orderStr = '';
+        if($rec->staff) {
+            $rec->orderStr = self::fetchField($rec->staff, 'orderStr');
         }
+        $rec->orderStr .= str_pad(mb_substr($rec->name, 0, 10), 10, ' ', STR_PAD_RIGHT);
     }
     
-    
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	
-    	//bp($data);
-    }
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -188,45 +259,18 @@ class hr_Departments extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	
     	if($action == 'delete'){
 	    	if ($rec->id) {
 	        	
-	    		$inUse = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
+	    		$haveContracts = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
 	    		
-	    		if($inUse){
+                $haveSubDeparments = self::fetch("#staff = '{$rec->id}'");
+
+	    		if($haveContracts || $haveSubDeparments){
 	    			$requiredRoles = 'no_one';
 	    		}
     	     }
          }
     }
-    
-    static public function expand($departments, &$current = array())
-    {
-    	if (!is_array($departments)) {
-            $departments = keylist::toArray($departments, TRUE);
-        }
-        
-        foreach ($departments as $department) {
-            if (is_object($department)) {
-                $rec = $department;
-            } elseif (is_numeric($department)) {
-                $rec = static::fetch($department);
-            } else {
-                $rec = static::fetch("#dependent = '{$department}'");
-            }
-            
-            // Прескачаме насъсществуващите роли
-            if(!$rec) continue;
-            
-            if ($rec && !isset($current[$rec->id])) {
-                $current[$rec->id] = $rec->id;
-                $current += static::expand($rec->dependent, $current);
-            }
-        }
-        
-        return $current;
-    }
 
-    
 }

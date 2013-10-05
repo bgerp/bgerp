@@ -121,7 +121,7 @@ class hr_EmployeeContracts extends core_Master
     var $newBtnGroup = "5.1|Човешки ресурси";
     
     
-    var $listFields = 'id,typeId,personId=Имена,departmentId,positionId,startFrom,endOn';
+    var $listFields = 'id,typeId,personId=Имена,positionId=Позиция,startFrom,endOn';
     
     
     /**
@@ -147,20 +147,31 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от,width=100%');
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
         
-        // Работа
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name, allowEmpty=true)', 'caption=Работа->Отдел, mandatory,autoFilter');
-        //$this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name, allowEmpty=true)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId,autoFilter');
+        // Отдел - външно поле от модела hr_Positions
+        $this->EXT('departmentId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
         
-        // УСЛОВИЯ
-        $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Условия->Начало,mandatory");
-        $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Условия->Край");
-        $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
-        $this->FLD('salary', 'double(decimals=2)', "caption=Условия->Основна заплата");
-        $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
-        $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
-        $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
+        // Отдел - външно поле от модела hr_Positions
+        $this->EXT('professionId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
+        
+        // Позиция
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name, allowEmpty)', 'caption=Работа->Позиция, mandatory,oldField=possitionId,autoFilter');
+        
+        // Възнаграждения
+        $this->FLD('baseSalary', 'double(decimals=2)', "caption=Възнагражение->Основно");
+        $this->FLD('longService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
+        $this->FLD('hazardPay', 'double(decimals=2)', "caption=Възнагражение->За вредности");
+        $this->FLD('degreePay', 'double(decimals=2)', "caption=Възнагражение->За научна степен");
+
+        // Срокове
+        $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Време->Начало,mandatory");
+        $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Време->Край");
+        $this->FLD('term', 'int', "caption=Време->Продължителност,unit=месеца");
+        $this->FLD('annualLeave', 'int', "caption=Време->Годишен отпуск,unit=дни");
+        $this->FLD('notice', 'int', "caption=Време->Предизвестие,unit=дни");
+        $this->FLD('probation', 'int', "caption=Време->Изпитателен срок,unit=месеца");
+
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
+        
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
@@ -194,12 +205,12 @@ class hr_EmployeeContracts extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->fields['departmentId']->caption = 'Отдел'; 
-    	$data->listFilter->fields['positionId']->caption = 'Длъжност'; 
+    	$data->listFilter->fields['professionId']->caption = 'Професия'; 
     	$data->listFilter->fields['departmentId']->mandatory = NULL; 
     	$data->listFilter->fields['positionId']->mandatory = NULL;    	
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields .= ' ,departmentId, positionId';
+        $data->listFilter->showFields .= ' ,departmentId, professionId';
         
         $data->listFilter->input();
 
@@ -253,16 +264,6 @@ class hr_EmployeeContracts extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        /*$pQuery = crm_Persons::getQuery();
-        
-        cls::load('crm_Companies');
-        
-        while($pRec = $pQuery->fetch("#buzCompanyId = " . crm_Setup::BGERP_OWN_COMPANY_ID)) {
-            $options[$pRec->id] = crm_Persons::getVerbal($pRec, 'name');
-        }
-        
-        $data->form->setOptions('managerId', $options);*/
-        
     	$rec = $data->form->rec;
         
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
@@ -281,11 +282,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $row->personId = ht::createLink($row->personId, array('crm_Persons', 'Single', $rec->personId));
         
-        $row->positionId = ht::createLink($row->positionId, array('hr_Positions', 'Single', $rec->positionId));
-        
-        $row->departmentId = ht::createLink($row->departmentId, array('hr_Departments', 'Single', $rec->departmentId));
-        
-        //$row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
+        $row->positionId = ht::createLink($row->positionId, array('hr_Departments', 'Single', $rec->departmentId, 'Tab' => 'Positions'));
     }
     
     

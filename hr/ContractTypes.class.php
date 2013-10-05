@@ -88,8 +88,8 @@ class hr_ContractTypes extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=90%');
-        $this->FLD('script', 'text', "caption=Текст,column=none");
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=100%');
+        $this->FLD('script', 'text', "caption=Текст,column=none, width=100%");
         $this->FLD('sysId', 'varchar', "caption=Служебно ид,input=none");
         
         $this->setDbUnique('name');
