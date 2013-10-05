@@ -130,7 +130,7 @@ class social_Sharings extends core_Master
 			$cntUrl = toUrl(getCurrentUrl(), 'absolute');
 			
 			// Търсим, дали има запис в модела, който отброява споделянията
-			$socCnt = social_SharingCnts::fetch("#networkId = '{$socialNetwork->id}' AND #url = '{$cntUrl}'");
+			$socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND #url = '[#1#]'", $cntUrl));
 			
 			if($socCnt){
 				// Ако е намерен такъв запис, 
@@ -143,7 +143,14 @@ class social_Sharings extends core_Master
 			
 			// Създаваме линка на бутона
 			$link = ht::createLink("{$img}  <sup>+</sup>" . $socCntP, 
-									$url, NULL, array("class"=>"soc-sharing", "target"=>"_blank", "rel"=>"nofollow", "title" => tr('Споделете в '). $socialNetwork->name));
+									$url, 
+                                    NULL, 
+                                    array(
+                                        "class"=>"soc-sharing", 
+                                        "target"=>"_blank", 
+                                        "rel"=>"nofollow", 
+                                        "title" => tr('Споделете в '). $socialNetwork->name,
+                                        ));
 				
 			$link = (string) $link;
 		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
@@ -184,42 +191,35 @@ class social_Sharings extends core_Master
     	
     	// Заместваме данните в URL за редиректване
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
-    	if(strpos($rec->url, "[#TITLE#]") || strpos($rec->url, "[#SUMMARY#]"))
-    	{
+
 	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
 	    	$redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
-    	}
     	    	   	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'") &&
-               vislog_History::add("Споделяне в " . $rec->name . " на " .$url) ) {
+                vislog_History::add("Споделяне в " . $rec->name . " на " .$url)) {
 
-               	 if (Mode::is('javascript', 'yes')){
-	               	 // Увеличаване на брояча на споделянията
-	    			 $rec->sharedCnt++;
-	               	 self::save($rec, 'sharedCnt');             
+                if (Mode::is('javascript', 'yes')){
+	                // Увеличаване на брояча на споделянията
+	    	        $rec->sharedCnt++;
+	                self::save($rec, 'sharedCnt');             
                 
-	                 // Взимаме записите от модела, който брои споделянията
-	               	 $socCnt = social_SharingCnts::fetch("#networkId = '{$rec->id}' AND #url = '{$url}'");
+	                // Взимаме записите от модела, който брои споделянията
+	                $recCnt = social_SharingCnts::fetch(array("#networkId = '{$rec->id}' AND #url = '[#1#]'", $url));
 	               	 
-	               	 // Ако нямаме записи, то записваме 
-	               	 // ид-то на  мрежата и URL-то на споделената страница
-	               	 if(!$socCnt){
-	               	 	$socCntRec = new stdClass();
-	               	 	$socCntRec->networkId = $rec->id;
-	               	 	$socCntRec->url = $url;
-	               	 	$socCntRec->cnt++;
+	                // Ако нямаме записи, създаваме записа
+	                if(!$recCnt){
+	               	 	$recCnt = new stdClass();
+	               	 	$recCnt->networkId = $rec->id;
+	               	 	$recCnt->url = $url;
+	                }
 	               	 	
-	               	 	social_SharingCnts::save($socCntRec);
-	               	 	
-	               	 } else {
-	               	 	
-	               	 	// ако вече имаме запис, просто увеличаваме брояча
-	               	 	$socCnt->cnt++;
-	               	 	social_SharingCnts::save($socCnt, 'cnt');
-	               	 }
-               	 }
+                    // Уваеличаваме брояча и записваме
+	                $recCnt->cnt++;
+
+	                social_SharingCnts::save($recCnt, 'cnt');
+                }
             }
         }
 
@@ -227,15 +227,6 @@ class social_Sharings extends core_Master
     	return new Redirect ($redUrl);
     }
     
-    
-    /**
-     * Тестова функция
-     */
-    function act_Test()
-    {
-    	$url = "https://plus.google.com/101118968403881827448/posts";
-    	bp(self::getButtons());
-    }
     
     
     /**
