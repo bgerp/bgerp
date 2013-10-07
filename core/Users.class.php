@@ -1339,7 +1339,8 @@ class core_Users extends core_Manager
      */
     static function isActiveUser($nick)
     {
-        $user = static::fetch("#nick = '{$nick}' AND #state = 'active'");
+    	
+        $user = static::fetch(array("LOWER(#nick) = LOWER('[#1#]') AND #state = 'active'", $nick));
         
         return $user;
     }
