@@ -130,7 +130,7 @@ class price_GroupOfProducts extends core_Detail
 		
         $query = self::getQuery();
 
-        $query->where("#validFrom < '{$datetime}'");
+        $query->where("#validFrom <= '{$datetime}'");
 
         $query->orderBy("#validFrom", "DESC");
         
