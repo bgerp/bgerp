@@ -61,7 +61,7 @@ class hr_Professions extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'hr/tpl/SingleLayoutPosition.shtml';
+    var $singleLayoutFile = 'hr/tpl/SingleLayoutProfessions.shtml';
     
     
     /**
