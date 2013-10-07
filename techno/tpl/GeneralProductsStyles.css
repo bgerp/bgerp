@@ -101,11 +101,6 @@ table.styled-table tr.components-total td.has-hover:hover{
 	display:inline-block;
 }
 
-.expandable{
-	width:1%;
-	white-space:nowrap;
-}
-
 .specification-img {
 	float:left;
 	margin-left:50px;

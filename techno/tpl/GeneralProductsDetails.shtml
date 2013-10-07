@@ -18,9 +18,9 @@
 			<td><div class="rowtools"><div class='l nw'>[#RowNumb#]</div><div class="r">[#num#]</div> </td>
 			<td>[#componentId#]</td>
 			<td width='12%' align='right'>[#cQuantity#] [#cMeasureId#]</td>
-			<td width='12%' align='right' class='expandable'>[#price#]</td>
-			<td width='12%' align='right' class='expandable'>[#amount#]</td>
-			<td width='12%' align='right' class='expandable'>[#bTaxes#]</td>
+			<td width='12%' align='right' class='nowrap'>[#price#]</td>
+			<td width='12%' align='right' class='nowrap'>[#amount#]</td>
+			<td width='12%' align='right' class='nowrap'>[#bTaxes#]</td>
 		</tr>
 		<!--ET_END COMPONENT-->
 		<!--ET_BEGIN TOTAL-->
@@ -28,13 +28,13 @@
 		<tr class='components-total'>
 			<td colspan='3' style='border:0px;' class='no-hover'></td>
 			<td align='right' class='has-hover'><b>|Общо|*:</b></td>
-			<td align='right' class='has-hover expandable'>
+			<td align='right' class='has-hover nowrap'>
 			<!--ET_BEGIN currencyId-->
 			<span class='cCode'>[#currencyId#]</span>
 			<!--ET_END currencyId-->
 			<b>[#totalAmount#]</b>
 			</td>
-			<td align='right' class='has-hover expandable'>
+			<td align='right' class='has-hover nowrap'>
 			<!--ET_BEGIN taxCurrencyId-->
 			<span class='cCode'>[#taxCurrencyId#]</span>
 			<!--ET_END taxCurrencyId-->

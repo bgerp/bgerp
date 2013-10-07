@@ -18,7 +18,7 @@
 			<td id='[#rowspanpId#]' rowspan = '[#rowspan#]' valign='top' class='product-id[#OPTP#]'>[#productId#]</td>
 			<!--ET_END productId-->
 			
-			<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>
+			<td class='misc-info quote-col[#OPT#] nowrap' align='right' valign='top'>
 			<b>[#quantity#]</b> [#uomShort#]
 			<!--ET_BEGIN tolerance-->
 			<div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
@@ -28,7 +28,7 @@
 			<!--ET_END term-->
 			</td>
 			
-			<td class='misc-info expandable' align='right' valign='top'>
+			<td class='misc-info nowrap' align='right' valign='top'>
 			<b>[#price#] </b>
 			
 			<!--ET_BEGIN discount-->
@@ -36,7 +36,7 @@
 			</div>
 			<!--ET_END discount-->
 			</td>
-			<td class='misc-info quote-col[#OPT#] expandable' align='right' valign='top'>
+			<td class='misc-info quote-col[#OPT#] nowrap' align='right' valign='top'>
 			[#amount#]
 			
 			<!--ET_BEGIN discAmount-->
@@ -59,7 +59,7 @@
 		<!--ET_END currencyTotalId-->
 		</div>
 		</td>
-		<td colspan='2' align='right' class='expandable total-quote-td'>
+		<td colspan='2' align='right' class='nowrap total-quote-td'>
 		<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
 		<!--ET_BEGIN totalDisc-->
 		<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'><b>[#totalDisc#]</b></span></div>

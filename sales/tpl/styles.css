@@ -144,11 +144,6 @@
     margin-left:5px;
 }
 
-.expandable{
-	
-	white-space:nowrap;
-}
-
 .oldAmount {
 	text-decoration:line-through;
 	font-size:0.9em;
