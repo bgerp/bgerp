@@ -88,6 +88,15 @@ class doc_PdfCreator extends core_Manager
      */
     static function convert($html, &$name)
     {
+        // Шаблона
+        $htmlET = $html;
+        
+        // Класа в зависимост от режима
+        $class = Mode::is('screenMode', 'narrow') ? $class='narrow' : 'wide';
+        
+        // Добавяме класа
+        $html = "<div class='{$class}'>" . $html . "</div>";
+        
         $md5 = md5($html);
         
         //Проверяваме дали файла със същото име съществува в кофата
@@ -109,10 +118,10 @@ class doc_PdfCreator extends core_Manager
                 "\n" . getFileContent('css/pdf.css');
             
             // Ако е инстанция на core_ET
-            if ($html instanceof core_ET) {
+            if ($htmlET instanceof core_ET) {
                 
                 // Вземаме масива с всички чакащи CSS файлове
-                $cssArr = $html->getArray('CSS');
+                $cssArr = $htmlET->getArray('CSS');
                 
                 // Обхождаме масива
                 foreach ((array)$cssArr as $cssPath) {
