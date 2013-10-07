@@ -116,7 +116,7 @@ class hr_WorkingCycles extends core_Master
             $night = 0;
             for($j = 0; $j < 7; $j++) {
                 $day = (($i + $j) % $rec->cycleDuration) + 1;
-                $dRec = hr_WorkingCycleDetails::fetch("#cycleId = {$rec->id} AND #day = {$day}"); 
+                $dRec = hr_WorkingCycleDetails::fetch(array("#cycleId = [#1#] AND #day = [#2#]", $rec->id, $day)); 
                 $night += hr_WorkingCycleDetails::getSection($dRec->start, $dRec->duration, 22*60*60, 7*60*60);
             } 
             
@@ -146,7 +146,7 @@ class hr_WorkingCycles extends core_Master
     	if($action == 'delete'){
 	    	if ($rec->id) {
 	        	
-	    		$inUse = hr_Departments::fetch("#schedule = '{$rec->id}'");
+	    		$inUse = hr_Departments::fetch(array("#schedule = [#1#]", $rec->id));
 	    		
 	    		if($inUse){
 	    			$requiredRoles = 'no_one';

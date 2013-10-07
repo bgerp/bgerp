@@ -129,7 +129,7 @@ class cms_Articles extends core_Manager
         
         $options = array();
 
-        while($cRec = $cQuery->fetch("#source = " . self::getClassId())) {
+        while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
             $options[$cRec->id] = $cRec->menu;
         }
 
