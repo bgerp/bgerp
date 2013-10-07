@@ -123,14 +123,14 @@
 	margin-top:5px
 }
 
-.rowtools{
-	display:table-cell !important;
-	vertical-align:top;
-	padding-right:3px;
+.offer-rowtools-id .rowtools{
+	display:inline-block;
+	width:auto;
 }
 
-.tc{
-	display:table-cell;
+.offer-rowtools-id span{
+	display:inline-block;
+	vertical-align:top;
 }
 
 .quiantity-misc{
@@ -145,7 +145,7 @@
 }
 
 .expandable{
-	width:1%;
+	
 	white-space:nowrap;
 }
 

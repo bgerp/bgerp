@@ -13,7 +13,7 @@
 	<!--ET_BEGIN ROW-->
 	[#ROW#]
 	<tr class='[#TR_CLASS#]'>
-		<td class = '[#rowspanId#]'>[#tools#]<div class='tc'>[#index#]</div></td>
+		<td class = '[#rowspanId#]'><div class='offer-rowtools-id nowrap'>[#tools#]<span>[#index#]</span></div></td>
 			<!--ET_BEGIN productId-->
 			<td id='[#rowspanpId#]' rowspan = '[#rowspan#]' valign='top' class='product-id[#OPTP#]'>[#productId#]</td>
 			<!--ET_END productId-->
