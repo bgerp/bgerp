@@ -53,7 +53,7 @@ class hr_Positions extends core_Detail
 	 */
 	var $canSingle = 'ceo,hr';
 	
-    
+	    
     /**
      * Кой може да пише?
      */
@@ -67,6 +67,7 @@ class hr_Positions extends core_Detail
     
     var $listFields = '✍,professionId,employmentTotal,employmentOccupied';
 
+    
     /**
      * Описание на модела
      */
@@ -100,6 +101,7 @@ class hr_Positions extends core_Detail
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
 
     }
+    
 
     function on_CalcName($mvc, $rec)
     {
@@ -116,6 +118,7 @@ class hr_Positions extends core_Detail
 
     }
 
+    
     function preparePositions($data)
     {
         $data->TabCaption = tr('Позиции');
@@ -124,7 +127,7 @@ class hr_Positions extends core_Detail
     
     
     function renderPositions($data)
-    {
+    { 
         $tpl = getTplFromFile('hr/tpl/SingleLayoutPositions.shtml');
         
         return self::renderDetail($data);

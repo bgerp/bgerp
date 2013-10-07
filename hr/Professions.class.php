@@ -93,7 +93,7 @@ class hr_Professions extends core_Master
                
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=@Характеристика, ');
         
-        $this->FLD('employersCnt', 'datetime', "caption=Назначения,input=none");
+        $this->FLD('employmentOccupied', 'datetime', "caption=Назначения,input=none");
         
         $this->setDbUnique('name');
     }

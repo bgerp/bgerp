@@ -157,9 +157,9 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name, allowEmpty)', 'caption=Работа->Позиция, mandatory,oldField=possitionId,autoFilter');
         
         // Възнаграждения
-        $this->FLD('baseSalary', 'double(decimals=2)', "caption=Възнагражение->Основно");
-        $this->FLD('longService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
-        $this->FLD('hazardPay', 'double(decimals=2)', "caption=Възнагражение->За вредности");
+        $this->FLD('salaryBase', 'double(decimals=2)', "caption=Възнагражение->Основно");
+        $this->FLD('forYearsOfService', 'percent(decimals=2)', "caption=Възнагражение->За стаж");
+        $this->FLD('compersations', 'double(decimals=2)', "caption=Възнагражение->За вредности");
         $this->FLD('degreePay', 'double(decimals=2)', "caption=Възнагражение->За научна степен");
 
         // Срокове
@@ -191,7 +191,6 @@ class hr_EmployeeContracts extends core_Master
     		// Премахваме бутона за коментар
 	    	$data->toolbar->removeBtn('Коментар');
 	    }
-        
     }
 
     
@@ -223,7 +222,6 @@ class hr_EmployeeContracts extends core_Master
         		$data->query->where(array("#positionId = '[#1#]'", $filterRec->positionId));
         	}
         }
-        
     }
     
     
@@ -306,8 +304,6 @@ class hr_EmployeeContracts extends core_Master
             unset($row->employeeRec->egn);
         }
 
-
-        
         $row->employerRec = crm_Companies::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);

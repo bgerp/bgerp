@@ -94,7 +94,7 @@ class hr_Departments extends core_Master
      * Детайли на този мастер
      */
     var $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
-    
+
 
     /**
      * Описание на модела
@@ -115,8 +115,8 @@ class hr_Departments extends core_Master
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
 
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
-        $this->FLD('employersCntAll', 'int', "caption=Служители->Щат, input=none");
-        $this->FLD('employersCnt', 'int', "caption=Служители->Назначени, input=none");
+        $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
+        $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name)', "caption=Работно време->График");
         $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
