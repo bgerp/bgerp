@@ -145,7 +145,7 @@ class doc_FolderPlg extends core_Plugin
             // Ако модела е достъпен за всички потребители по подразбиране, 
             // но конкретния потребител няма права за конкретния обект
             // забраняваме достъпа
-            if (!doc_Folders::haveRightToObject($rec, $userId) && $requiredRoles == 'user') {
+            if (!doc_Folders::haveRightToObject($rec, $userId) && $requiredRoles == 'powerUser') {
                 // Използвана сметка - забранено изтриване
                 $requiredRoles = 'no_one';    
             }
