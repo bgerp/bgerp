@@ -75,7 +75,11 @@ class recently_Values extends core_Manager
         
         $cu = core_Users::getCurrent();
         
-        while ($rec = $query->fetch("#name = '{$name}' AND #createdBy = {$cu}")) {
+         while ($rec = $query->fetch(array(
+        					"#name = '[#1#]' AND #createdBy = [#2#]", 
+        					$name, 
+        					$cu
+        				))) {
             
             $value = $rec->value;
             
