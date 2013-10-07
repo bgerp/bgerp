@@ -77,7 +77,7 @@ class bglocal_NKPD extends core_Master
     {
  		$file = "bglocal/data/nkpd.csv";
     	$fields = array(0 => "csv_key", 1 => "csv_title", 2 => "csv_position");
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnceFromZero($mvc, $file, $fields);
     	$res .= $cntObj->html;
     }
 }
