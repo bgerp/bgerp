@@ -74,4 +74,22 @@ class social_SharingCnts extends core_Master
 		$this->FLD('url', 'varchar(128)', 'caption=URL, input=none, hint=URL за споделяне');
 		$this->FLD('cnt', 'int', 'caption=Cподеляния, input=none,notNull');
     }
+
+    static function addHit($networkId, $url)
+    { 
+        // Взимаме записите от модела, който брои споделянията
+	    $rec = self::fetch(array("#networkId = '{$networkId}' AND #url = '[#1#]'", $url));
+	               	 
+	    // Ако нямаме записи, създаваме записа
+	    if(!$rec){
+	        $rec = new stdClass();
+	        $rec->networkId = $networkId;
+	        $rec->url = $url;
+	    }
+	               	 	
+        // Уваеличаваме брояча и записваме
+        $rec->cnt++;
+        self::save($rec);
+
+    }
 }

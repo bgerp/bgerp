@@ -89,6 +89,12 @@ class social_Sharings extends core_Master
     	// Правим заявка към базата
     	$query = static::getQuery();
 		$socialNetworks = $query->fetchAll("#state = 'active'");
+        
+        $selfUrl     = substr(rawurlencode(toUrl(getCurrentUrl(), 'absolute')), 4);
+
+        //bp($selfUrl);
+        $selfTitle   = rawurlencode(Mode::get('SOC_TITLE'));
+        $selfSummary = toUrl(str::truncate(rawurlencode(Mode::get('SOC_SUMMARY')), 200), 'absolute');
 
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
@@ -119,13 +125,17 @@ class social_Sharings extends core_Master
 				
 			// Създаваме иконата за бутона
 			$img = ht::createElement('img', array('src' => $icon));
-				
+ 
 			// Генерираме URL-то на бутона
-			$url = array('social_Sharings', 'Redirect', $socialNetwork->id, 
-														'socUrl' => 'SOC_URL', 
-														'socTitle' => 'SOC_TITLE', 
-														'socSummary' => 'SOC_SUMMARY');	
-			
+			$url =  substr(toUrl(array(  'social_Sharings',
+                                        'Redirect', 
+                                        $socialNetwork->id, 
+									    'socUrl' => $selfUrl, 
+									    'socTitle' => $selfTitle, 
+									    'socSummary' => $selfSummary
+                                     ), 'absolute'
+                ), 4) ;	
+
 			// Взимаме URL-то на цраницата, която ще споделяме		
 			$cntUrl = toUrl(getCurrentUrl(), 'absolute');
 			
@@ -143,22 +153,15 @@ class social_Sharings extends core_Master
 			
 			// Създаваме линка на бутона
 			$link = ht::createLink("{$img}  <sup>+</sup>" . $socCntP, 
-									$url, 
+									'#', 
                                     NULL, 
                                     array(
                                         "class"=>"soc-sharing", 
-                                        "target"=>"_blank", 
-                                        "rel"=>"nofollow", 
                                         "title" => tr('Споделете в '). $socialNetwork->name,
-                                        ));
+                                        "onclick" => "window.open('http' + '{$url}')"));
 				
 			$link = (string) $link;
-		    $from = array('SOC_URL', 'SOC_TITLE', 'SOC_SUMMARY');
-		    $to = array (rawurlencode(toUrl(getCurrentUrl(), 'absolute')), 
-		    			 rawurlencode(Mode::get('SOC_TITLE')), 
-		    			 core_String::truncate(rawurlencode((Mode::get('SOC_SUMMARY'))), 200));
-					
-		 	$link = str_replace($from, $to, $link);
+
 				
 			// Добавяме го към шаблона
 			$tpl->append($link);
@@ -181,8 +184,10 @@ class social_Sharings extends core_Master
     	$rec = self::fetch("#id = '{$id}'"); 
     	    	
     	// URL към обекта който ще споделяме
-    	$url = Request::get('socUrl');
-    	
+    	expect($url = Request::get('socUrl'));
+    	$url = 'http' . $url;
+        $urlDecoded = urldecode($url);
+        
     	// Заглавието на обекта
     	$title = Request::get('socTitle');
     	
@@ -191,34 +196,21 @@ class social_Sharings extends core_Master
     	
     	// Заместваме данните в URL за редиректване
     	$redUrl = str_replace("[#URL#]", $url, $rec->url);
-
-	    	$redUrl = str_replace("[#TITLE#]", $title, $redUrl);
-	    	$redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
+        $redUrl = str_replace("[#TITLE#]", $title, $redUrl);
+        $redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
     	    	   	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'") &&
-                vislog_History::add("Споделяне в " . $rec->name . " на " .$url)) {
+                vislog_History::add("Споделяне в " . $rec->name . " на " . $urlDecoded)) {
 
                 if (Mode::is('javascript', 'yes')){
 	                // Увеличаване на брояча на споделянията
 	    	        $rec->sharedCnt++;
 	                self::save($rec, 'sharedCnt');             
-                
-	                // Взимаме записите от модела, който брои споделянията
-	                $recCnt = social_SharingCnts::fetch(array("#networkId = '{$rec->id}' AND #url = '[#1#]'", $url));
-	               	 
-	                // Ако нямаме записи, създаваме записа
-	                if(!$recCnt){
-	               	 	$recCnt = new stdClass();
-	               	 	$recCnt->networkId = $rec->id;
-	               	 	$recCnt->url = $url;
-	                }
-	               	 	
-                    // Уваеличаваме брояча и записваме
-	                $recCnt->cnt++;
-
-	                social_SharingCnts::save($recCnt, 'cnt');
+                    
+                    // Увеличаваме брояча на споделянията за конкретната страница
+                    social_SharingCnts::addHit($rec->id, $urlDecoded);
                 }
             }
         }
