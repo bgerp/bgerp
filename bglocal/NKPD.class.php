@@ -61,7 +61,7 @@ class bglocal_NKPD extends core_Master
     /**
      * Изпълнява се преид импортирването на запис
      */
-    static function on_BeforeImportRec($mvc, $rec)
+    static function on_BeforeSave($mvc, $res, $rec)
     {
     	if(isset($rec->csv_key)){
     		$rec->key = $rec->csv_key.$rec->csv_title;
