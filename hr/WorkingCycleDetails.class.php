@@ -189,7 +189,7 @@ class hr_WorkingCycleDetails extends core_Detail
         }
         
         $query = self::getQuery();
-        while($rec = $query->fetch("#cycleId = $mRec->id")) {
+        while($rec = $query->fetch(array("#cycleId = [#1#]", $mRec->id))) {
             if($day != $rec->day) {
                 unset($opt[$rec->day]);
             }

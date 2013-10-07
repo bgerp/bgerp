@@ -116,7 +116,7 @@ class doc_ThreadUsers extends core_Manager
     {
         $query = self::getQuery();
         $query->show("userId");
-        while($rec = $query->fetch("#threadId = {$threadId} AND #relation = '{$relation}'")) {
+        while($rec = $query->fetch(array("#threadId = [#1#] AND #relation = [#2#]", $threadId, $relation))) {
             $res[$rec->userId] = $rec->userId;
         }
 
