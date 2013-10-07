@@ -104,7 +104,7 @@
 
 .products-table th{
 	border:1px solid #ccc;
-	background-color:#e0e0e0;
+	background-color:#e0e0e0 !important;
 	padding:5px;
 }
 
@@ -164,14 +164,6 @@
 	float:left;
 }
 
-.wide .display-narrow{
-	display:none;
-}
-
-.narrow .display-wide{
-	display:none;
-}
-
 .discount{
 	font-size:0.9em;
 }
@@ -181,11 +173,6 @@
 }
 
 @media print{
-	.document{
-		padding:0px;
-		width:92%;
-	}
-	
 	#quot-table{
 		margin-top:0px;
 	}

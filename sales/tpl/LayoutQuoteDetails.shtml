@@ -5,10 +5,10 @@
 			<th width='4%'>№</th>
 			<th>|Описание|*</th>
 			
-			<th class='quote-col[#OPT#]'>|Количество|*</th>
+			<th class='quote-col[#OPT#] nowrap'>|Количество|*</th>
 			
 			<th>|Цена|*</th>
-			<th class='quote-col[#OPT#]'>|Стойност|*</th>
+			<th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
 		</tr>
 	<!--ET_BEGIN ROW-->
 	[#ROW#]
