@@ -121,7 +121,7 @@ class doc_PdfCreator extends core_Manager
             if ($htmlET instanceof core_ET) {
                 
                 // Вземаме масива с всички чакащи CSS файлове
-                $cssArr = $htmlET->getArray('CSS');
+                $cssArr = $htmlET->getArray('CSS', FALSE);
                 
                 // Обхождаме масива
                 foreach ((array)$cssArr as $cssPath) {
@@ -134,6 +134,16 @@ class doc_PdfCreator extends core_Manager
                         // Ако възникне грешка, добавяме в лога
                         static::log('Не може да се взема CSS файла: ' . $cssPath);
                     }
+                }
+                
+                // Вземаме всички стилове
+                $styleArr = $htmlET->getArray('STYLES', FALSE);
+                
+                // Обхождаме масива със стиловете
+                foreach ((array)$styleArr as $styles) {
+                    
+                    // Добавяме към CSS-а
+                    $css .= "\n" . $styles;
                 }
             }
             
