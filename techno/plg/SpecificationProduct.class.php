@@ -93,15 +93,15 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     private static function copyDetails(core_Mvc $mvc, $id, $newId)
     {
-		if (count ( $mvc->details )) {
-			foreach ( $mvc->details as $name => $class ) {
+		if (count ($mvc->details)) {
+			foreach ($mvc->details as $name => $class) {
 				$Details = $mvc->{$name};
-				$query = $Details->getQuery ();
-				$query->where ( "#{$Details->masterKey} = {$id}" );
-				while ( $dRec = $query->fetch () ) {
+				$query = $Details->getQuery();
+				$query->where ("#{$Details->masterKey} = {$id}");
+				while ($dRec = $query->fetch()) {
 					$dRec->{$Details->masterKey} = $newId;
-					unset ( $dRec->id );
-					$Details->save ( $dRec );
+					unset ($dRec->id);
+					$Details->save($dRec);
 				}
 			}
 		}
@@ -169,10 +169,8 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'activate'){
-    		if(!$rec->id){
-    			$res = 'no_one';
-    		}
+    	if($action == 'activate' && !$rec->id){
+    		$res = 'no_one';
     	}
     }
     

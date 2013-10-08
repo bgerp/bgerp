@@ -72,19 +72,12 @@ class cat_products_Detail extends core_Detail
      */
     public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
-        if ($action == 'add' && isset($rec)) {
+        if (($action == 'add' || $action == 'delete') && isset($rec)) {
         	$productState = $mvc->Master->fetchField($rec->productId, 'state');
             
         	if ($productState == 'rejected') {
                 $requiredRoles = 'no_one';
             } 
-        }
-        
-        if ($action == 'delete' && isset($rec)) {
-        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
-        	if($productState == 'rejected'){
-        		$requiredRoles = 'no_one';
-        	}
         }
     }
 }

@@ -110,6 +110,7 @@ class cond_ConditionsToCustomers extends core_Manager
         	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
+            
             $type = cond_Parameters::fetchField($rec->conditionId, 'type');
             if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
             	$Type = cls::get("type_{$type}");
@@ -120,6 +121,12 @@ class cond_ConditionsToCustomers extends core_Manager
             	$row->value = cond_paymentMethods::getTitleById($rec->value);
             }
             $data->rows[$rec->id] = $row; 
+        }
+        
+    	if($data->masterMvc->haveRightFor('edit', $data->masterId)){
+        	$img = sbf('img/16/add.png');
+		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
+		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
         }
         
         $data->TabCaption = 'Условия';
@@ -134,10 +141,9 @@ class cond_ConditionsToCustomers extends core_Manager
       	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Условия на продажба'), 'title');
         
-        $img = sbf('img/16/add.png');
-	    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
-	    $addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
-	    $tpl->append($addBtn, 'title');
+        if(isset($data->addBtn)){
+        	$tpl->append($addBtn, 'title');
+        }
         
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
@@ -189,6 +195,14 @@ class cond_ConditionsToCustomers extends core_Manager
     {
        if ($action == 'add' && (empty($rec->cClass) || empty($rec->cId))) {
         	$res = 'no_one';
-        }
+       }
+       
+       if(($action == 'edit' || $action == 'delete') && isset($rec)){
+       		
+       		$cState = cls::get($rec->cClass)->fetchField($rec->cId, 'state');
+       		if($cState == 'rejected'){
+       			$res = 'no_one';
+       		}
+       }
     }
 }
