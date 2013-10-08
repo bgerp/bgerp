@@ -1,28 +1,28 @@
 /**
  * 
  */
-$(function() {
+function accordionRenderAndCollapse() {
 	
-// Hide all the content except the first
-$('.accordian li:odd:gt(0)').hide();
-
-// Add the dimension class to all the content
-$('.accordian li:odd').addClass('dimension');
-
-// Set the even links with an 'even' class
-$('.accordian li:even').addClass('btns-title');
-
-// Add class to last title
-$('.btns-title').last().addClass('last-title');
-
-//Add class to last group of buttons
-$('.dimension').last().addClass('last-dimention');
-
-// Show the correct cursor for the links
-$('.accordian li:even').css('cursor', 'pointer');
-
-// Handle the click event
-$('.accordian li:even').click( function() {
+	// Hide all the content except the first
+	$('.accordian li:odd:gt(0)').hide();
+	
+	// Add the dimension class to all the content
+	$('.accordian li:odd').addClass('dimension');
+	
+	// Set the even links with an 'even' class
+	$('.accordian li:even').addClass('btns-title');
+	
+	// Add class to last title
+	$('.btns-title').last().addClass('last-title');
+	
+	//Add class to last group of buttons
+	$('.dimension').last().addClass('last-dimention');
+	
+	// Show the correct cursor for the links
+	$('.accordian li:even').css('cursor', 'pointer');
+	
+	// Handle the click event
+	$('.accordian li:even').click( function() {
 	
 	// Get the content that needs to be shown
 	var cur = $(this).next();
@@ -47,4 +47,4 @@ $('.accordian li:even').click( function() {
 	old.prev().removeClass('active');
 	
 	} );
-});
+};

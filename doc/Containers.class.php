@@ -741,6 +741,7 @@ class doc_Containers extends core_Manager
 
         $tpl->push('doc/tpl/style.css', 'CSS');
     	$tpl->push('doc/js/accordion.js', 'JS');
+    	jquery_Jquery::run($tpl, "accordionRenderAndCollapse();");
 
         return $tpl;
     }

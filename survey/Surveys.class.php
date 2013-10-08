@@ -286,6 +286,7 @@ class survey_Surveys extends core_Master {
     	jquery_Jquery::enable($tpl);
     	$tpl->push('survey/tpl/css/styles.css', 'CSS');
     	$tpl->push(('survey/js/scripts.js'), 'JS');
+    	jquery_Jquery::run($tpl, "surveyActions();");
     }
     
     

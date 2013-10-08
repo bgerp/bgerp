@@ -1,4 +1,4 @@
-$(document).ready(function() {
+function surveyActions() {
 $('ul.answers input[type=radio]').click(function vote() {
     var url = voteUrl;
     
@@ -32,4 +32,4 @@ $('ul.answers input[type=radio]').click(function vote() {
     	     }
     	   });
 });
-});
+}

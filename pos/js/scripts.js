@@ -1,4 +1,4 @@
-$(document).ready(function () {
+function posActions() {
 	
 	if($('tr').is('#last-row')) {
 		$("#last-row").css("background-color", "#FFFF99");
@@ -46,7 +46,7 @@ $(document).ready(function () {
 	$("form input[type=submit]").live("hover", function(){$(this).toggleClass('submit_hover');});
 	
 	$("input[disabled=disabled]").addClass("disabledBtn");
-	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
+	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
 
 	$(".pos-product-category[data-id='']").addClass('active');
 	$('.pos-product-category').click(function() {
@@ -86,7 +86,7 @@ $(document).ready(function () {
    	    	$(".single-receipt-wrapper").replaceWith(result);
    	    	$("#last-row").css("background-color", "#FFFF99");
    	    	$("input[disabled=disabled]").addClass("disabledBtn");
-   	    	$("input.disabledBtn").attr('title', 'Неможе да приключите бележката, докато не е платена');
+   	    	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
    	    	if (typeof(window.WebScan) == "undefined" ) {
 	            $('.webscan').hide();
 	        }
@@ -97,4 +97,4 @@ $(document).ready(function () {
    	     }
    	     });
 	});
-});
+}

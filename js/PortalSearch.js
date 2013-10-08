@@ -1,4 +1,4 @@
-$(document).ready(function () {
+function portalSearch() {
 	
 	// Скриваме формите за търсене ако те са празни, при зареждане на страницата
 	$.each( $(".portal-filter .hFormField"), function(){
@@ -27,4 +27,4 @@ $(document).ready(function () {
 			e.preventDefault(); 
 		}
 	}));
-});
+}

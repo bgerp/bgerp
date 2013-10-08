@@ -241,7 +241,7 @@ class pos_Receipts extends core_Master {
 	    	jquery_Jquery::enable($tpl);
 	    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
 	    	$tpl->push('pos/js/scripts.js', 'JS');
-	    	
+	    	jquery_Jquery::run($tpl, "posActions();");
 	    	$conf = core_Packs::getConfig('pos');
         	$ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
         	$tpl->push($ThemeClass->getStyleFile(), 'CSS');
