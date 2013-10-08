@@ -52,7 +52,7 @@ class bgerp_Portal extends core_Manager
      */
     function act_Show()
     {
-        requireRole('user');
+        requireRole('powerUser');
 
         Mode::set('pageMenuKey', '_none_');
 
