@@ -267,7 +267,7 @@ class crm_Personalization extends core_Detail
         }
         
         // id на потребителя
-        $profileId = crm_Profiles::getProfile($userId)->id;
+        $profileId = crm_Profiles::fetchField("#userId = {$userId}");
 
         // Ако няма потребител
         if (!$profileId) return ;
