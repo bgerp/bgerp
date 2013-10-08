@@ -5,8 +5,8 @@
 /**
  * Клас 'techno_plg_SpecificationProduct'
  *
- * Плъгин даващ възможност на даден документ да бъде спецификация
- * и да поражда оферта
+ * Плъгин даващ възможност на даден документ да бъде
+ * спецификация и да поражда оферта
  *
  *
  * @category  bgerp
@@ -27,6 +27,23 @@ class techno_plg_SpecificationProduct extends core_Plugin
     {
         expect(cls::haveInterface('doc_DocumentIntf', $mvc), 'Спецификациите трябва да са документи', get_class($mvc));
         expect(cls::haveInterface('techno_ProductsIntf', $mvc), 'Спецификациите трябва имат интерфейс за технолози', get_class($mvc));
+    	if(!$mvc->fields['meta']){
+    		$mvc->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
+        						canStore=Складируем,canConvert=Вложим,
+        						fixedAsset=Дма,canManifacture=Производим)', 'before=sharedUsers,caption=Свойства->Списък,columns=2');
+    	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	// По подразбиране всички спецификации, са продаваеми
+    	$form->setDefault('meta', 'canSell');
     }
     
     
@@ -76,19 +93,19 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     private static function copyDetails(core_Mvc $mvc, $id, $newId)
     {
-    	if(count($mvc->details)){
-    		foreach ($mvc->details as $name => $class){
-    			$Details = $mvc->{$name};
-    			$query = $Details->getQuery();
-    			$query->where("#{$Details->masterKey} = {$id}");
-    			while($dRec = $query->fetch()){
-    				$dRec->{$Details->masterKey} = $newId;
-    				unset($dRec->id);
-    				$Details->save($dRec);
-    			}
-    		}
-    	}
-     }
+		if (count ( $mvc->details )) {
+			foreach ( $mvc->details as $name => $class ) {
+				$Details = $mvc->{$name};
+				$query = $Details->getQuery ();
+				$query->where ( "#{$Details->masterKey} = {$id}" );
+				while ( $dRec = $query->fetch () ) {
+					$dRec->{$Details->masterKey} = $newId;
+					unset ( $dRec->id );
+					$Details->save ( $dRec );
+				}
+			}
+		}
+	}
     
     
     /**
@@ -97,10 +114,12 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if($rec->state != 'draft'){
-    		
-    		// Промяна на спецификацията при възстановяване/оттегляне/активиране
     		$rec = $mvc->fetch(($rec->id) ? $rec->id : $rec);
-    		techno_Specifications::forceRec($mvc, $rec);
+    		if(strpos($rec->meta, 'canSell') !== false){
+    			
+    			// Промяна на спецификацията при възстановяване/оттегляне/активиране
+    			techno_Specifications::forceRec($mvc, $rec);
+    		}
     	}
     }
     
@@ -110,20 +129,25 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('add') && $data->rec->state == 'active'){
-    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $data->rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
+    	$rec = &$data->rec;
+    	
+    	// Само активиран документ може да се копира
+    	if($mvc->haveRightFor('add') && $rec->state == 'active'){
+    		$data->toolbar->addBtn("Копие", array($mvc, 'copy', $rec->id), 'ef_icon=img/16/page_2_copy.png,title=Копиране на спецификацията,warning=Сигурнили сте че искате да копирате документа ?');
     	}
     	
-    	if(sales_Quotations::haveRightFor('add') && $data->rec->state != 'rejected'){
-    		$coverClass = doc_Folders::fetchCoverClassName($data->rec->folderId);
+    	// Само не оттеглените спецификации, които имат цена и са продаваеми
+    	// могат да пораждат оферта директно
+    	if(sales_Quotations::haveRightFor('add') && $rec->state != 'rejected' && strpos($rec->meta, 'canSell') !== false){
+    		$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
     		
     		// Ако офертата е в папка на контрагент и може да се изчисли цена
-    		if(cls::haveInterface('doc_ContragentDataIntf', $coverClass) && $mvc->getPriceInfo($data->rec->id)->price){
-    			$qId = sales_Quotations::fetchField(("#originId = {$data->rec->containerId} AND #state='draft'"), 'id');
+    		if(cls::haveInterface('doc_ContragentDataIntf', $coverClass) && $mvc->getPriceInfo($rec->id)->price){
+    			$qId = sales_Quotations::fetchField(("#originId = {$rec->containerId} AND #state='draft'"), 'id');
 	    		if($qId){
 	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
 	    		} else {
-	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията');
+	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията');
 	    		}
     		}
     	}
@@ -178,7 +202,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     function on_AfterGetPacks($mvc, &$res, $productId)
     {
     	if(empty($res)){
-    		return array();
+    		return array('' => '');
     	}
     }
     
