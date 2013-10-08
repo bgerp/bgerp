@@ -206,26 +206,46 @@ class cat_products_Params extends cat_products_Detail
     /**
      * Подготвя данните за екстеншъна с параметрите на продукта
      */
-    public static function prepareParams($data)
+    public function prepareParams($data)
     {
-        static::prepareDetail($data);
+        $this->prepareDetail($data);
         
-        if(count(self::getRemainingOptions($data->masterId))) {
-            $data->addUrl = array('cat_products_Params', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        if($this->haveRightFor('add', (object)array('productId' => $data->masterId)) && count(self::getRemainingOptions($data->masterId))) {
+            $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
         }
-
     }
     
-
+	/**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    {
+        if ($action == 'add') {
+        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
+            
+        	if ($productState == 'rejected'  || !count($mvc::getRemainingOptions($rec->productId))) {
+                $requiredRoles = 'no_one';
+            } 
+        }
+        
+        if ($action == 'delete') {
+        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
+        	if($productState == 'rejected'){
+        		$requiredRoles = 'no_one';
+        	}
+        }
+    }
+    
+    
     /**
      * Рендира екстеншъна с параметри на продукт
      */
-    public static function renderParams($data)
+    public function renderParams($data)
     {
         if($data->addUrl) {
             $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
         }
 
-        return static::renderDetail($data);
+        return  $this->renderDetail($data);
     }
 }

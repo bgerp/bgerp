@@ -356,8 +356,8 @@ class price_GroupOfProducts extends core_Detail
 
         $data->toolbar->removeBtn('*');
 
-        if($this->Master->haveRightFor('edit', $data->masterId)){
-        	 $pInfo = $this->Master->getProductInfo($data->masterId);
+        if(cat_Products::haveRightFor('edit', $data->masterId)){
+        	 $pInfo = cat_Products::getProductInfo($data->masterId);
         	 if(isset($pInfo->meta['canSell'])){
         	 	$data->addUrl = array('price_GroupOfProducts', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
         	 }

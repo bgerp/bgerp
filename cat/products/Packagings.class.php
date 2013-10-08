@@ -121,6 +121,13 @@ class cat_products_Packagings extends cat_products_Detail
                 $requiredRoles = 'no_one';
             } 
         }
+        
+        if ($action == 'delete') {
+        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
+        	if($productState == 'rejected'){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
     
     
@@ -131,12 +138,12 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $data->toolbar->removeBtn('*');
         
-        if ($mvc->haveRightFor('add', (object)array('productId'=>$data->masterId)) && count($mvc::getRemainingOptions($data->masterId) > 0)) {
+        if ($mvc->haveRightFor('add', (object)array('productId' => $data->masterId)) && count($mvc::getRemainingOptions($data->masterId) > 0)) {
         	$data->addUrl = array(
                 $mvc,
                 'add',
-                'productId'=>$data->masterId,
-                'ret_url'=>getCurrentUrl() + array('#'=>get_class($mvc))
+                'productId' => $data->masterId,
+                'ret_url' => getCurrentUrl() + array('#'=>get_class($mvc))
             );
         }
     }
