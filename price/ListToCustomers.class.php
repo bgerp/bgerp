@@ -325,31 +325,6 @@ class price_ListToCustomers extends core_Detail
      *                                                                                                  *
      ***************************************************************************************************/
     
-    /**
-     * Връща продуктие, които могат да се продават на посочения клиент, 
-     * съгласно имплементиращата този интерфейс ценова политика
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
-     */
-    public function getProducts($customerClass, $customerId, $datetime = NULL)
-    {
-        $products = price_GroupOfProducts::getAllProducts($datetime);
-
-        if(count($products)) {
-            foreach($products as $productId => $groupId) {
-                 $price = self::getPriceInfo($customerClass, $customerId, $productId, NULL, NULL, $datetime);
-                 if(!$price) {
-                     unset($products[$productId]);
-                 }
-            }
-            
-            if(!count($products)){
-            	return followRetUrl(NULL, 'Няма продукти за тази политика');
-            } 
-            return $products;
-        }
-    }
-
 
     /**
      * Връща валидните ценови правила за посочения клиент
@@ -427,15 +402,5 @@ class price_ListToCustomers extends core_Detail
 
             return $title;
         }
-    }
-    
-    
-	/**
-     * Връща мениджъра на продуктите (@see cat_Products)
-     * @return core_Classes $class - инстанция на мениджъра
-     */
-    public function getProductMan()
-    {
-        return cls::get('cat_Products');
     }
 }

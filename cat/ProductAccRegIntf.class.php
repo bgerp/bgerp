@@ -59,4 +59,26 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return TRUE;
     }
+    
+    
+    /**
+     * Връща масив с опаковките на, в които може да се слага даден продукт,
+     * във вид подходящ за опции на key
+     */
+    function getPacks($productId)
+    {
+    	return $this->class->getPacks($productId);
+    }
+    
+    
+
+    /**
+     * Връща продуктие, които могат да се продават на посочения клиент
+     *
+     * @return array() - масив с опции, подходящ за setOptions на форма
+     */
+    function getProducts($customerClass, $customerId, $date = NULL)
+    {
+        return $this->class->getProducts($customerClass, $customerId, $date = NULL);
+    }
 }

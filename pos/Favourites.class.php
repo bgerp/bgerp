@@ -97,8 +97,8 @@ class pos_Favourites extends core_Manager {
     {
     	// намираме дефолт контрагента на текущата точка на продажба
     	$contragentId = pos_Points::defaultContragent();
-    	$Policy = cls::get('price_ListToCustomers');
-    	$data->form->setOptions('productId', $Policy->getProducts(crm_Persons::getClassId(), $contragentId));
+    	$ProductMan = cls::get('cat_Products');
+    	$data->form->setOptions('productId', $ProductMan->getProducts(crm_Persons::getClassId(), $contragentId));
     }
     
     

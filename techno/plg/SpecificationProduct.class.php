@@ -65,7 +65,6 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	static::copyDetails($mvc, $parentId, $rec->id);
     	
     	return Redirect(array($mvc, 'single', $rec->id), FALSE, 'Спецификацията е успешно копирана');
-    	
     }
     
     
@@ -170,6 +169,17 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	}
     	
     	return $res = FALSE;
+    }
+    
+    
+    /**
+     * Връща в кои опаковки може да се добавя един продукт
+     */
+    function on_AfterGetPacks($mvc, &$res, $productId)
+    {
+    	if(empty($res)){
+    		return array();
+    	}
     }
     
     

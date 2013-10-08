@@ -17,17 +17,6 @@
 class price_PolicyIntf
 {
     
-    /**
-     * Връща продуктие, които могат да се продават на посочения клиент, 
-     * съгласно имплементиращата този интерфейс ценова политика
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
-     */
-    function getProducts($customerClass, $customerId, $date = NULL)
-    {
-        return $this->class->getProducts($customerClass, $customerId, $date = NULL);
-    }
-    
     
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата

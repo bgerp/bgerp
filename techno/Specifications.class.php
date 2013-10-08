@@ -212,16 +212,6 @@ class techno_Specifications extends core_Manager {
     }
     
     
-	/**
-     * Връща мениджъра на продуктите
-     * @return core_Classes $class - инстанция на мениджъра
-     */
-    public function getProductMan()
-    {
-        return cls::get(get_called_class());
-    }
-    
-    
     /**
      * Връща ДДС-то на продукта
      * @param int $id - ид на спецификацията
@@ -310,6 +300,17 @@ class techno_Specifications extends core_Manager {
     	$rec = static::fetch($id);
     	$TechnoClass = cls::get($rec->docClassId);
     	return $TechnoClass->getProductInfo($rec->docId, $packagingId);
+    }
+    
+    
+    /**
+     * Връща опаковките в които се предлага даден продукт
+     */
+	public static function getPacks($productId)
+    {
+    	$rec = static::fetch($productId);
+    	$TechnoClass = cls::get($rec->docClassId);
+    	return $TechnoClass->getPacks($rec->docId);
     }
     
     
