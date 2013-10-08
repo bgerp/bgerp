@@ -185,14 +185,21 @@ class price_ListToCustomers extends core_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('*');
             $masterClassId = core_Classes::getId($data->masterMvc);
-            $data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
+            $masterRec = $data->masterMvc->fetch($data->masterId);
+            
+            if($data->masterMvc->haveRightFor('edit', $masterRec)){
+            	$data->addUrl = array($mvc, 'add', 'cClass' => $masterClassId, 'cId' => $data->masterId, 'ret_url' => TRUE);
+            }
         }
     }
 
-
+	
+    /**
+     * След рендиране на детайла
+     */
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
-        $wrapTpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $wrapTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $wrapTpl->append($mvc->title, 'title');
         $wrapTpl->append($tpl, 'content');
         $wrapTpl->replace(get_class($mvc), 'DetailName');
@@ -291,6 +298,10 @@ class price_ListToCustomers extends core_Detail
             if($rec->validFrom <= dt::verbal2mysql()) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if($action == 'add' && isset($rec->cClass)){
+        	//bp($rec);
         }
     }
 
