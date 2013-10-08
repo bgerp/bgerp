@@ -14,6 +14,12 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
 /**
+ * ID на нашата фирма
+ */
+defIfNot('BGERP_OWN_COMPANY_ID', 1);
+
+
+/**
  * Клас 'crm_Setup' -
  *
  *
@@ -32,7 +38,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * ID на нашата фирма
      */
-    const BGERP_OWN_COMPANY_ID = 1;
+    const BGERP_OWN_COMPANY_ID = BGERP_OWN_COMPANY_ID;
     
     
     /**
