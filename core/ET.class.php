@@ -433,11 +433,11 @@ class core_ET extends core_BaseClass
     /**
      * @todo Чака за документация...
      */
-    function getArray($place)
+    function getArray($place, $mode='push')
     {
         if (count($this->pending)) {
             foreach ($this->pending as $sub) {
-                if ($sub->place == $place && $sub->mode == 'push') {
+                if ($sub->place == $place && (!$mode || $sub->mode == $mode)) {
                     if ($sub->once) {
                         $md5 = md5($sub->str);
                         
