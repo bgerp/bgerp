@@ -60,7 +60,7 @@ class support_Components extends core_Detail
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**

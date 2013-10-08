@@ -89,7 +89,7 @@ class cat_Products extends core_Master {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
@@ -107,13 +107,13 @@ class cat_Products extends core_Master {
     /**
      * Кой може да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**
@@ -149,7 +149,7 @@ class cat_Products extends core_Master {
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
 	
     /** 

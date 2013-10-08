@@ -41,7 +41,7 @@ class doc_Search extends core_Manager
     /**
      * 
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**

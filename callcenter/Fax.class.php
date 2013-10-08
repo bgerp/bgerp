@@ -24,7 +24,7 @@ class callcenter_Fax extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
@@ -42,13 +42,13 @@ class callcenter_Fax extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**

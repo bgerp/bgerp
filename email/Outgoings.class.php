@@ -55,37 +55,37 @@ class email_Outgoings extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**
      * Кой може да изпраща имейли?
      */
-    var $canSend = 'user';
+    var $canSend = 'powerUser';
     
     
     /**
@@ -97,7 +97,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой има права за
      */
-    var $canEmail = 'user';
+    var $canEmail = 'powerUser';
     
     
     /**

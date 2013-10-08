@@ -57,7 +57,7 @@ class email_Inboxes extends core_Master
     /**
      * 
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
@@ -69,7 +69,7 @@ class email_Inboxes extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**

@@ -82,7 +82,7 @@ class currency_Currencies extends core_Master {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
 
 
 	/**

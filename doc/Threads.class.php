@@ -32,7 +32,7 @@ class doc_Threads extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**
@@ -59,7 +59,7 @@ class doc_Threads extends core_Manager
     var $listFields = 'title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи,createdOn=Създаване';
     
     
-    var $canNewdoc = 'user';
+    var $canNewdoc = 'powerUser';
     
     /**
      * Какви действия са допустими с избраните редове?

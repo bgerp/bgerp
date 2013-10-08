@@ -30,7 +30,7 @@ class callcenter_SMS extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
@@ -42,25 +42,25 @@ class callcenter_SMS extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'user';
+    var $canList = 'powerUser';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'user';
+	var $canSingle = 'powerUser';
 	
     
     /**

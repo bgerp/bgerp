@@ -108,13 +108,13 @@ class cat_Groups extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'user';
+	var $canSingle = 'powerUser';
 	
     
     /**
@@ -126,7 +126,7 @@ class cat_Groups extends core_Master
     /**
      * Кой може да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**
