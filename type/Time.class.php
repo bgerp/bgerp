@@ -33,7 +33,12 @@ class type_Time extends type_Varchar {
      */
     var $defaultValue = 0;
     
-    
+
+    /**
+     * Колко секунди има средно в един месец
+     */
+    const SECONDS_IN_MONTH = 2629746;
+
     /**
      * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
@@ -82,31 +87,41 @@ class type_Time extends type_Varchar {
             }
         }
         
-        //Извличаме секундите от текста
+        // Извличаме секундите от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(s|secundes|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
             $secundes = $matches[1];
         }
         
-        //Извличаме минутите от текста
+        // Извличаме минутите от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(m|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
             $minutes = $matches[1];
         }
         
-        //Извличаме часовете от текста
+        // Извличаме часовете от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(h|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
             $hours = $matches[1];
         }
         
-        //Извличаме дните от текста
+        // Извличаме дните от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/'), $val, $matches)) {
             $days = $matches[1];
         }
         
-        //Извличаме седмиците от текста
+        // Извличаме седмиците от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/'), $val, $matches)) {
             $weeks = $matches[1];
         }
         
+        // Извличаме месеците от текста
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(mon|month|months|мес|месец|месеца|месеци)\b/'), $val, $matches)) {
+            $months = $matches[1];
+        }
+        
+        // Извличаме годините от текста
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(y|year|years|г|год|година|години)\b/'), $val, $matches)) {
+            $years = $matches[1];
+        }
+
         if(preg_match('/([\d]{1,2}):([\d]{1,2}):([\d]{1,2})\b/', $val, $matches)) {
             $hours = $matches[1];
             $minutes = $matches[2];
@@ -117,9 +132,18 @@ class type_Time extends type_Varchar {
             $minutes = $matches[2];
         }
         
-        if(strlen($secundes) || strlen($minutes) || strlen($hours) || strlen($days) || strlen($weeks)) {
+        // На колко е равна една година и един месец?
+        if($secundes || $minutes || $hours || $days || $weeks) {
+            $monthDuration = 30 * 24 * 60 * 60;
+            $yearDuration  = 365 * 24 * 60 * 60;
+        } else {
+            $monthDuration = self::SECONDS_IN_MONTH;
+            $yearDuration  = $monthDuration * 12;
+        }
+
+        if(strlen($secundes) || strlen($minutes) || strlen($hours) || strlen($days) || strlen($weeks) || strlen($months) || strlen($years)) {
             
-            $duration = $secundes + 60 * $minutes + 60 * 60 * $hours + 24 * 60 * 60 * $days + 7 * 24 * 60 * 60 * $weeks;
+            $duration = $secundes + 60 * $minutes + 60 * 60 * $hours + 24 * 60 * 60 * $days + 7 * 24 * 60 * 60 * $weeks + $months * $monthDuration + $years * $yearDuration;
             
             return $duration;
         } else {
@@ -184,14 +208,21 @@ class type_Time extends type_Varchar {
         
         $v = abs($value);
         
-        $weeks    = floor($v / (7 * 24 * 60 * 60));
-        $days     = floor(($v - $weeks * (7 * 24 * 60 * 60)) / (24 * 60 * 60));
-        $hours    = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60)) / (60 * 60));
-        $minutes  = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60) / 60);
-        $secundes = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60 - $minutes * 60));
+        if(($v % self::SECONDS_IN_MONTH) == 0) {
+            $months =  $v / self::SECONDS_IN_MONTH;
+            $years  = floor($months / 12);
+            $months = $months - $years * 12;
+        } else {
+            $weeks    = floor($v / (7 * 24 * 60 * 60));
+            $days     = floor(($v - $weeks * (7 * 24 * 60 * 60)) / (24 * 60 * 60));
+            $hours    = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60)) / (60 * 60));
+            $minutes  = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60) / 60);
+            $secundes = floor(($v - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60 - $minutes * 60));
+        }
         
         if($format = $this->params['format']) {
-
+            $repl['y'] = "$years";
+            $repl['n'] = "$months";
             $repl['w'] = "$weeks";
             $repl['d'] = "$days";
             $repl['h'] = "$hours";
@@ -218,9 +249,20 @@ class type_Time extends type_Varchar {
             }
         }
 
+        if($years > 0) {
+            $res .=  "{$years} " . tr('год.');
+        }
+        
+        if($months > 0) {
+            if($years > 0) {
+                $res .= ' ' . tr('и') . ' ';
+            }
+            $res .=  "{$months} " . tr('мес.');
+        }
+
         if($weeks > 0) {
             if($days == 0) {
-                $res .=  "{$weeks} сед.";
+                $res .=  "{$weeks} " . tr('сед.');
             } else {
                 $days += $weeks * 7;
             }
