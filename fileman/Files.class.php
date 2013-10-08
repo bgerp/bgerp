@@ -136,10 +136,11 @@ class fileman_Files extends core_Master
                 if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
-            } while($mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd)));
-        } elseif(!$rec->id) {
+            } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
+         } elseif(!$rec->id) {
             
-            $existingRec = $mvc->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
+              $existingRec = $mvc->fetch("#fileHnd = '{$rec->fileHnd}'");
+
             
             $rec->id = $existingRec->id;
         }
@@ -370,7 +371,7 @@ class fileman_Files extends core_Master
      */
     function setData($fileHnd, $newDataId)
     {
-        $rec = $this->fetch(array("#fileHnd = '[#1#]'", $rec->fileHnd));
+        $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
         
         // Ако новите данни са същите, като старите 
         // нямаме смяна
@@ -440,7 +441,7 @@ class fileman_Files extends core_Master
      */
     function copyContent($sHnd, $dHnd)
     {
-        $sRec = $this->fetch(array("#fileHnd = '[#1#]'", $sHnd));
+        $sRec = $this->fetch("#fileHnd = '{$sHnd}'");
         
         if($sRec->state != 'active') return FALSE;
         
