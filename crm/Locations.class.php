@@ -37,7 +37,7 @@ class crm_Locations extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, contragent=Контрагент, type";
+    var $listFields = "tools=Пулт, title, contragent=Контрагент, type";
 
 
     /**
@@ -47,13 +47,19 @@ class crm_Locations extends core_Master {
     
     
     /**
-     * 
+     *  Поле за rowTools
+     */
+    var $rowToolsField = 'tools';
+    
+    
+    /**
+     * Кой може да пише
      */
     var $canWrite = 'powerUser';
     
     
     /**
-     * 
+     * Кой има достъп до единичния изглед
      */
     var $canSingle = 'powerUser';
     
@@ -275,7 +281,7 @@ class crm_Locations extends core_Master {
      */
     function renderContragentLocations($data)
     {
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Локации'), 'title');
         
@@ -283,29 +289,7 @@ class crm_Locations extends core_Master {
             
             foreach($data->rows as $id => $row) {
                 $tpl->append("<div>", 'content');
-                
-                $tpl->append("{$row->title}, {$row->type}", 'content');
-                
-                if(!Mode::is('printing')) {
-                    if($this->haveRightFor('edit', $id)) {
-                        // Добавяне на линк за редактиране
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
-                        $url = array($this, 'edit', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
-                        $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на локация')), 'content');
-                        $tpl->append('</span>', 'content');
-                    }
-                    
-                    if($this->haveRightFor('delete', $id)) {
-                        // Добавяне на линк за изтриване
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
-                        $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete.png') . " width='16' height='16'>";
-                        $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете локацията?', 'title=' . tr('Изтриване на локация')), 'content');
-                        $tpl->append('</span>', 'content');
-                    }
-                }
-                
+                $tpl->append("{$row->title}, {$row->type} {$row->tools}", 'content');
                 $tpl->append("</div>", 'content');
             }
         } else {
@@ -313,7 +297,7 @@ class crm_Locations extends core_Master {
         }
         
         if(!Mode::is('printing')) {
-            if ($data->masterMvc->haveRightFor('single', $data->masterId)) {
+            if ($data->masterMvc->haveRightFor('edit', $data->masterId)) {
                 $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
                 $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова локация')), 'title');
@@ -325,7 +309,7 @@ class crm_Locations extends core_Master {
 
 
     /**
-     *
+     * След обработка на ролите
      */
     static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
@@ -334,6 +318,14 @@ class crm_Locations extends core_Master {
     	if($rec->contragentCls) {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
+        }
+        
+    	if (($action == 'edit' || $action == 'delete') && isset($rec)) {
+    		$cState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+            
+        	if ($cState == 'rejected') {
+                $requiredRoles = 'no_one';
+            } 
         }
     }
 
