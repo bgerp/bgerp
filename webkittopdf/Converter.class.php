@@ -36,15 +36,17 @@ class webkittopdf_Converter extends core_Manager
     
     /**
      * Конвертира html към pdf файл
-     *
+     * 
      * @param string $html - HTML стинга, който ще се конвертира
      * @param string $fileName - Името на изходния pdf файл
-     * @param string $bucketName - името на кофата, където ще се записват данните
+     * @param string $bucketName - Името на кофата, където ще се записват данните
+     * @param array $jsArr - Масив с JS и JQUERY_CODE
      *
      * @return string $fh - Файлов манипулатор на новосъздадения pdf файл
      */
-    static function convert($html, $fileName, $bucketName)
-    {
+    static function convert($html, $fileName, $bucketName, $jsArr=array())
+    {   
+        // Вземаме конфигурационните данни
     	$conf = core_Packs::getConfig('webkittopdf');
     	
         //Генерираме унукално име на папка
@@ -62,10 +64,54 @@ class webkittopdf_Converter extends core_Manager
         // Зареждаме опаковката 
         $wrapperTpl = cls::get('page_Print');
         
+        // Ако е зададено да се използва JS
+        if ($conf->WEBKIT_TO_PDF_USE_JS == 'yes') {
+            
+            // Обхождаме масива с JS файловете
+            foreach ((array)$jsArr['JS'] as $js) {
+                
+                // Добавяме в шаблона
+                $wrapperTpl->push($js, 'JS');
+            }
+            
+            // Обхождаме масива с JQUERY кодовете
+            if ($jsArr['JQUERY_CODE'] && count((array)$jsArr['JQUERY_CODE'])) {
+                
+                // Активираме JQUERY
+                jquery_Jquery::enable($wrapperTpl);
+                
+                // Обхождаме JQuery кодовете
+                foreach ((array)$jsArr['JQUERY_CODE'] as $jquery) {
+                    
+                    // Добавяме кодовете
+                    jquery_Jquery::run($wrapperTpl, $jquery);
+                }
+            }
+            
+            // Променлива за стартиране на JS
+            $jsScript = '--enable-javascript';
+            
+            // Добавяме забавянето
+            $jsScript .= " --javascript-delay " . escapeshellarg($conf->WEBKIT_TO_PDF_JS_DELAY);
+            
+            // Ако е No
+            if ($conf->WEBKIT_TO_PDF_JS_STOP_SLOW_SCRIPT == 'no') {
+                
+                // Добавяме към променливите за JS
+                $jsScript .= " --no-stop-slow-scripts";
+            }
+        } elseif ($conf->WEBKIT_TO_PDF_USE_JS == 'no') {
+            
+            // Ако е зададено да не се изпълнява
+            $jsScript = "--disable-javascript";
+        }
+        
         // Изпращаме на изхода опаковано съдържанието
         $wrapperTpl->replace($html, 'PAGE_CONTENT');
         
-        $html = $wrapperTpl->getContent();
+        // Вземаме съдържанието
+        // Трети параметър трябва да е TRUE, за да се вземе и CSS
+        $html = $wrapperTpl->getContent(NULL, "CONTENT", TRUE);
         $html = "\xEF\xBB\xBF" . $html;
         
         //Записваме данните в променливата $html в html файла
@@ -77,7 +123,8 @@ class webkittopdf_Converter extends core_Manager
         $pdfPath = $tempPath . '/' . $fileName;
         
         //Ако ще използва xvfb-run
-        if ($conf->WEBKIT_TO_PDF_XVFB_RUN) {
+        if ($conf->WEBKIT_TO_PDF_XVFB_RUN == 'yes') {
+            
             //Променливата screen
             $screen = '-screen 0 ' . $conf->WEBKIT_TO_PDF_SCREEN_WIDTH . 'x' . $conf->WEBKIT_TO_PDF_SCREEN_HEIGHT . 'x' . $conf->WEBKIT_TO_PDF_SCREEN_BIT;
             
@@ -86,6 +133,10 @@ class webkittopdf_Converter extends core_Manager
             
             //Изпълнение на програмата xvfb-run
             $xvfb = "xvfb-run -a -s {$screen}";
+        } else {
+            
+            // Флаг указващ да се използва XServer в пакета
+            $useXServer = TRUE;
         }
         
         //Ескейпваме всички променливи, които ще използваме
@@ -93,8 +144,49 @@ class webkittopdf_Converter extends core_Manager
         $pdfPathEsc = escapeshellarg($pdfPath);
         $binEsc = escapeshellarg($conf->WEBKIT_TO_PDF_BIN);
         
+        // Скрипта за wkhtmltopdf
+        $wk = $binEsc;
+        
+        // Ако е вдигнат флага
+        if ($useXServer) {
+            
+            // Добавяме в настройките
+            $wk .= " --use-xserver";
+        }
+        
+        // Ако е зададено да се използва медиа тип за принтиране
+        if ($conf->WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE == 'yes') {
+            
+            // Добавяме в настройките
+            $wk .= " --print-media-type";
+        }
+    
+        // Ако е зададено да се използва grayscale
+        if ($conf->WEBKIT_TO_PDF_USE_GRAYSCALE == 'yes') {
+            
+            // Добавяме в настройките
+            $wk .= " --grayscale";
+        }
+        
+    
+        // Ако е зададен енкодинг за текущия фай;
+        if ($conf->WEBKIT_TO_PDF_INPUT_ENCODING) {
+            
+            // Добавяме в настройките
+            $wk .= " --encoding " . escapeshellarg($conf->WEBKIT_TO_PDF_INPUT_ENCODING);
+        }
+        
+        // Ако има променливи за JS
+        if ($jsScript) {
+            
+            // Добавяме към скрипта
+            $wk .= " " . $jsScript;
+        }
+        
+        // Добавяме изходните файлове
+        $wk .= " {$htmlPathEsc} {$pdfPathEsc}";
+        
         //Скрипта, който ще се изпълнява
-        $wk = "{$binEsc} {$htmlPathEsc} {$pdfPathEsc}";
         $exec = ($xvfb) ? "{$xvfb} {$wk}" : $wk;
         
         //Стартираме скрипта за генериране на pdf файл от html файл

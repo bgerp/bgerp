@@ -30,9 +30,16 @@ class dompdf_Converter extends core_Manager
     
     
     /**
-     * Конвертира към PDF използвайки пакета DOMPDF
+     * Конвертира html към pdf файл
+     * 
+     * @param string $html - HTML стинга, който ще се конвертира
+     * @param string $fileName - Името на изходния pdf файл
+     * @param string $bucketName - Името на кофата, където ще се записват данните
+     * @param array $jsArr - Масив с JS и JQUERY_CODE
+     *
+     * @return string $fh - Файлов манипулатор на новосъздадения pdf файл
      */
-    static function convert($html, $fileName, $bucketName)
+    static function convert($html, $fileName, $bucketName, $jsArr=array())
     {
     	$conf = core_Packs::getConfig('dompdf');
     	
