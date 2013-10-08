@@ -109,10 +109,15 @@ class cat_products_Packagings extends cat_products_Detail
     }
     
     
+    /**
+     * След проверка на ролите
+     */
     public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
         if ($action == 'add') {
-            if (isset($rec) && !count($mvc::getRemainingOptions($rec->productId))) {
+        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
+            
+        	if ($productState == 'rejected'  || !count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } 
         }
@@ -156,6 +161,9 @@ class cat_products_Packagings extends cat_products_Detail
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         $data->form->toolbar->addBtn('Отказ', array($mvc->Master, 'single', $data->form->rec->productId),  'ef_icon = img/16/close16.png');
+    	if(!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)){
+    		$data->form->toolbar->removeBtn('Запис и Нов');
+    	}
     }
     
     
