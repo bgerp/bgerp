@@ -1,41 +1,46 @@
-$(document).ready(function () {
+function checkForHiddenGroups() {
 	//Взимаме всички inner-keylist таблици
     var groupTables = $(".inner-keylist");
  
     groupTables.each(function() {
     	//за всяка ще проверяваме дали има чекнати инпути
     	var checkGroup = $(this);
-    	var checked = 0;
-		var currentInput = checkGroup.find("input");
-		
-		//за всеки инпут проверяваме дали е чекнат
-		currentInput.each(function() {
-			var checkInput = $(this);
-    		if(checkInput.attr('checked')=='checked'){
-    			checked = 1;
-    		}
-    	});
-		
-		var className = checkGroup.find('tr').attr('class');
-		
-		//ако нямаме чекнат инпут скриваме цялата група и слагаме състояние затворено
-    	if(checked == 0){
-    		$("#" + className).addClass('closed');
-    		checkGroup.find('tr').addClass('hiddenElement');   
+    	var className = checkGroup.find('tr').attr('class');
+    	var groupTitle = $("#" + className);
+    	
+    	if(groupTitle.hasClass('group-autoOpen')){
+    		groupTitle.addClass('opened');
     		
-        } else{
-        	//в проривен случай е отворено
-        	$("#" + className).addClass('opened');
-        }
+    	} else{
+    		var checked = 0;
+    		var currentInput = checkGroup.find("input");
+    		
+    		//за всеки инпут проверяваме дали е чекнат
+    		currentInput.each(function() {
+    			var checkInput = $(this);
+        		if(checkInput.attr('checked')=='checked'){
+        			checked = 1;
+        		}
+        	});
+    		
+    		//ако нямаме чекнат инпут скриваме цялата група и слагаме състояние затворено
+        	if(checked == 0){
+        		$("#" + className).addClass('closed');
+        		checkGroup.find('tr').addClass('hiddenElement');   
+        		
+            } else{
+            	//в проривен случай е отворено
+            	$("#" + className).addClass('opened');
+            }
+    	}
     	
     });
-});
+}
 
 
-$(function() {
-    $("tr.keylistCategory").click(function(event) {
+function toggleKeylistGroups(el) {
     	//намираме id-то на елемента, на който е кликнато
-    	var element = $(event.target).closest( "tr.keylistCategory");
+    	var element = $(el).closest( "tr.keylistCategory");
     	var trId = element.attr("id");
     	
     	//намираме keylist таблицата, в която се намира
@@ -50,6 +55,5 @@ $(function() {
         //и сменяме състоянието на елемента, на който е кликнато
         element.toggleClass('closed');
         element.toggleClass('opened');
-    });
-});
+}
 

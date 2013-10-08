@@ -179,7 +179,7 @@ class type_Keylist extends core_Type {
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
                     $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . 
-                        $col . "'><div>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
+                        $col . "'><div onclick='toggleKeylistGroups(this)'>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
                     
                     $groupOpen = 1;
@@ -237,6 +237,7 @@ class type_Keylist extends core_Type {
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::enable($tpl);
         $tpl->push('js/keylist.js', 'JS');
+        jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
         return $tpl;
     }
 
