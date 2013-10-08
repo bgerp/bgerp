@@ -122,8 +122,7 @@ class store_ShipmentOrderDetails extends core_Detail
     public function description()
     {
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'caption=Политика,silent,input=none');
-        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
+        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -286,18 +285,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
-     * Извиква се преди изпълняването на екшън
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -317,23 +304,6 @@ class store_ShipmentOrderDetails extends core_Detail
         // Прехвърляме правата за достъп до ЕН (мастъра) върху всеки ред от детайлите му. 
         $requiredRoles = store_ShipmentOrders::getRequiredRoles($action, 
             (object)array('id'=>$rec->shipmentId), $userId);
-    }
-    
-    
-    /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    }
-    
-    
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
     }
 
 

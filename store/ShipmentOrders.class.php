@@ -233,8 +233,7 @@ class store_ShipmentOrders extends core_Master
             $VAT = 1;
     
             if ($rec->chargeVat == 'yes') {
-                $Policy         = cls::get($detailRec->policyId);
-                $ProductManager = $Policy->getProductMan();
+                $ProductManager = cls::get($detailRec->classId);
     
                 $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
@@ -769,7 +768,7 @@ class store_ShipmentOrders extends core_Master
         
         while ($rec = $query->fetch()) {
             $products[] = (object)array(
-                'policyId'  => $rec->policyId,
+                'classId'  => $rec->classId,
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
@@ -796,7 +795,7 @@ class store_ShipmentOrders extends core_Master
     	$dQuery = $this->store_ShipmentOrderDetails->getQuery();
     	$dQuery->EXT('state', 'store_ShipmentOrders', 'externalKey=shipmentId');
     	$dQuery->where("#shipmentId = '{$id}'");
-    	$dQuery->groupBy('productId,policyId');
+    	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
