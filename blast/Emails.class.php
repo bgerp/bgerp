@@ -1030,7 +1030,7 @@ class blast_Emails extends core_Master
         $email = $rec->data->to;
         
         // Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
-        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#email='{$email}'")))) {
+        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch(array("#email='[#1#]'", $email))))) {
             
             //Какво действие ще правим след натискане на бутона
             $act = 'add';
