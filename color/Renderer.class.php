@@ -46,6 +46,6 @@ class color_Renderer extends core_Manager
     public static function getResourceUrl($width = 1, $height = 1, $r, $g, $b)
     {
     	Request::setProtected('w,h,r,g,b');
-    	return toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b));
+    	return toUrl(array('color_Renderer', 'render', 'w' => $width, 'h' => $height, 'r' => $r, 'g' => $g, 'b' => $b), 'absolute');
     }
 }
