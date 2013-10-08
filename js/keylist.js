@@ -5,8 +5,11 @@ function checkForHiddenGroups() {
     groupTables.each(function() {
     	//за всяка ще проверяваме дали има чекнати инпути
     	var checkGroup = $(this);
+    	
+    	var currentKeylistTable = $(checkGroup).closest("table.keylist");
     	var className = checkGroup.find('tr').attr('class');
-    	var groupTitle = $("#" + className);
+    	
+    	var groupTitle = $(currentKeylistTable).find("#" + className);
     	
     	if(groupTitle.hasClass('group-autoOpen')){
     		groupTitle.addClass('opened');
@@ -25,12 +28,12 @@ function checkForHiddenGroups() {
     		
     		//ако нямаме чекнат инпут скриваме цялата група и слагаме състояние затворено
         	if(checked == 0){
-        		$("#" + className).addClass('closed');
+        		groupTitle.addClass('closed');
         		checkGroup.find('tr').addClass('hiddenElement');   
         		
             } else{
             	//в проривен случай е отворено
-            	$("#" + className).addClass('opened');
+            	groupTitle.addClass('opened');
             }
     	}
     	
