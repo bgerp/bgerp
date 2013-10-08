@@ -722,7 +722,7 @@ class crm_Profiles extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако редактираме или добавяме
-        if (($action == 'edit' || $action == 'add')) {
+        if ($action == 'edit' || $action == 'add') {
             
             // Ако текущия потребител не е userId
             if ($rec->userId != core_Users::getCurrent()) {
