@@ -57,12 +57,15 @@ class page_Html extends core_ET {
      */
     static function on_Output(&$invoker)
     {
+        // Дали линковете да са абсолютни
+        $absolute = (boolean)(Mode::is('text', 'xhtml'));
+        
         $css = $invoker->getArray('CSS');
         
         if(count($css)) {
             foreach($css as $file) {
                 if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '');
+                    $file = sbf($file, '', $absolute);
                 }
                 
                 $invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE);
@@ -74,7 +77,7 @@ class page_Html extends core_ET {
         if(count($js)) {
             foreach($js as $file) {
                 if(!preg_match('#^[^/]*//#', $file)) {
-                    $file = sbf($file, '');
+                    $file = sbf($file, '', $absolute);
                 }
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
