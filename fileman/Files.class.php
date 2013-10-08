@@ -44,7 +44,7 @@ class fileman_Files extends core_Master
     /**
      * Всички потребители могат да разглеждат файлове
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
