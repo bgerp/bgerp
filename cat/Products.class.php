@@ -709,6 +709,7 @@ class cat_Products extends core_Master {
         }
     }
     
+    
     /**
      * Подготовка за рендиране на единичния изглед
      */
@@ -779,7 +780,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
      * спрямо посочените ценови политики
@@ -798,5 +798,23 @@ class cat_Products extends core_Master {
     			return $price;
     		}
     	}
+    }
+    
+    
+	/**
+     * Връща масив със всички опаковки, в които може да участва един продукт
+     */
+    public static function getPacks($productId)
+    {
+    	$options = array('' => '');
+    	
+    	$query = cat_products_Packagings::getQuery();
+    	$query->where("#productId = {$productId}");
+    	$query->show("packagingId");
+    	while($rec = $query->fetch()){
+    		$options[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    	}
+    	
+    	return $options;
     }
 }
