@@ -173,7 +173,20 @@ class doc_PdfCreator extends core_Manager
 
             $PdfCreatorInst = cls::get($confDoc->BGERP_PDF_GENERATOR);
             
-            $fileHnd = $PdfCreatorInst->convert($html, $name, self::PDF_BUCKET);
+            // Емулираме xhtml режим
+            Mode::push('text', 'xhtml');
+            
+            // Вземаме всички javascript файлове, които ще се добавят
+            $jsArr['JS'] = $htmlET->getArray('JS', FALSE);
+            
+            // Вземаме всеки JQUERY код, който ще се добави
+            $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', FALSE);
+            
+            // Стартираме конвертирането
+            $fileHnd = $PdfCreatorInst->convert($html, $name, self::PDF_BUCKET, $jsArr);
+            
+            // Връщаме предишната стойност
+            Mode::pop('text');
             
             //Записваме данните за текущия файл
             $rec = new stdClass();
@@ -232,7 +245,7 @@ class doc_PdfCreator extends core_Manager
     	    $confWebkit = core_Packs::getConfig('webkittopdf');
     	    
     	    // Изпълянваме процеса
-    	    exec($confWebkit->WEBKIT_TO_PDF_BIN, $dummy, $erroCode);
+    	    exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN), $dummy, $erroCode);
     	    
     	    // Ако я има инсталирана
             if ($erroCode == 1 || $erroCode == 0) {
