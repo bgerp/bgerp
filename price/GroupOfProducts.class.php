@@ -347,7 +347,7 @@ class price_GroupOfProducts extends core_Detail
     /**
      * Подготовка на данните за детайла
      */
-    public static function preparePriceGroup($data)
+    public function preparePriceGroup($data)
     { 
         $data->TabCaption = 'Ценова група';
         $data->Order = 5;
@@ -356,7 +356,12 @@ class price_GroupOfProducts extends core_Detail
 
         $data->toolbar->removeBtn('*');
 
-        $data->addUrl = array('price_GroupOfProducts', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        if($this->Master->haveRightFor('edit', $data->masterId)){
+        	 $pInfo = $this->Master->getProductInfo($data->masterId);
+        	 if(isset($pInfo->meta['canSell'])){
+        	 	$data->addUrl = array('price_GroupOfProducts', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        	 }
+        }
     }
     
     
