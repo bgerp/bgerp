@@ -89,16 +89,19 @@ class crm_ext_IdCards extends core_Detail
                 $idCardTpl->placeObject($data->IdCard->row);
             } else {
                 $idCardTpl = new ET(tr('Няма данни'));
-                $url = array(get_called_class(), 'add', 'personId'=>$data->masterId, 'ret_url' => TRUE);
+                $url = array(get_called_class(), 'add', 'personId' => $data->masterId, 'ret_url' => TRUE);
             }
-            $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
-            $tpl->append(
-                ht::createLink(
-                    $img, $url, FALSE,
-                    'title=' . tr('Промяна ЛК')
-                ),
-                'title'
-            );
+            
+            if($data->masterMvc->haveRightFor('edit', $data->masterId)){
+            	$img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+	            $tpl->append(
+	                ht::createLink(
+	                    $img, $url, FALSE,
+	                    'title=' . tr('Промяна ЛК')
+	                ),
+	                'title'
+	            );
+            }
         }
         
         $tpl->append($idCardTpl, 'content');
