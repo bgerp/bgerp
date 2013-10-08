@@ -57,7 +57,7 @@ class fileman_Files extends core_Master
 	 * Кой може да го разглежда?
 	 * @todo След като се направи да се показват само файловете на потребителя
 	 */
-	var $canList = 'user';
+	var $canList = 'powerUser';
     
 	
     /**
