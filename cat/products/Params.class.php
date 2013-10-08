@@ -220,19 +220,12 @@ class cat_products_Params extends cat_products_Detail
      */
     public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
     {
+        if($requiredRoles == 'no_one') return;
+    	
         if ($action == 'add') {
-        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
-            
-        	if ($productState == 'rejected'  || !count($mvc::getRemainingOptions($rec->productId))) {
+        	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } 
-        }
-        
-        if ($action == 'delete') {
-        	$productState = $mvc->Master->fetchField($rec->productId, 'state');
-        	if($productState == 'rejected'){
-        		$requiredRoles = 'no_one';
-        	}
         }
     }
     
