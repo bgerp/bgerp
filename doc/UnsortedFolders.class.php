@@ -79,25 +79,25 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой може да го види?
      */
-    var $canSingle = 'user';
+    var $canSingle = 'powerUser';
     
     
     /**
@@ -115,19 +115,19 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кой може да го оттегли?
      */
-    var $canReject = 'user';
+    var $canReject = 'powerUser';
     
     
     /**
      * Кой може да го възстанови?
      */
-    var $canRestore = 'user';
+    var $canRestore = 'powerUser';
     
     
     /**
      * Кой има права Rip
      */
-    var $canWrite = 'user';
+    var $canWrite = 'powerUser';
     
     
     /**

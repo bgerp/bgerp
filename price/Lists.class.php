@@ -51,7 +51,7 @@ class price_Lists extends core_Master
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
@@ -69,7 +69,7 @@ class price_Lists extends core_Master
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**

@@ -84,7 +84,7 @@ class cat_Groups extends core_Master
     /**
      * Права
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**

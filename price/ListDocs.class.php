@@ -64,7 +64,7 @@ class price_ListDocs extends core_Master
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**

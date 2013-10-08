@@ -48,25 +48,25 @@ class doc_Notes extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'user';
+    var $canAdd = 'powerUser';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**

@@ -53,7 +53,7 @@ class cat_Packagings extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**
@@ -83,7 +83,7 @@ class cat_Packagings extends core_Manager
     /**
      * Кой може да го види?
      */
-    var $canView = 'user';
+    var $canView = 'powerUser';
     
     
     /**

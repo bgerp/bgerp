@@ -45,7 +45,7 @@ class price_Groups extends core_Master
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**

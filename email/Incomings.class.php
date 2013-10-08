@@ -55,7 +55,7 @@ class email_Incomings extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'powerUser';
     
     
     /**

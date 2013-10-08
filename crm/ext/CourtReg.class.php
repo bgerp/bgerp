@@ -28,7 +28,7 @@ class crm_ext_CourtReg extends core_Detail
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'user';
+    var $canEdit = 'powerUser';
     
     
     /**
