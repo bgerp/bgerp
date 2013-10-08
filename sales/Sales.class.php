@@ -176,7 +176,7 @@ class sales_Sales extends core_Master
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
             'caption=Фактуриране,maxRadio=3,columns=3');
-        $this->FLD('chargeVat', 'enum(yes=с ДДС,no=без ДДС)', 'caption=ДДС');
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
         /*
          * Стойности
@@ -276,10 +276,6 @@ class sales_Sales extends core_Master
         }
         
         $mvc->save($rec);
-    }
-    
-    public static function on_BeforeSave($mvc, $res, $rec)
-    {
     }
     
     
@@ -512,6 +508,16 @@ class sales_Sales extends core_Master
                     redirect(array($mvc, 'single', $data->form->rec->id));
                 }
             }
+        }
+        
+        if ($data->form->rec->id){
+        	
+        	// Неможе да се сменя ДДС-то ако има вече детайли
+        	$dQuery = $mvc->sales_SalesDetails->getQuery();
+        	$dQuery->where("#saleId = {$data->form->rec->id}");
+        	if($dQuery->count()){
+        		$data->form->setReadOnly('chargeVat');
+        	}
         }
     }
     
@@ -924,6 +930,10 @@ class sales_Sales extends core_Master
         }
         
         $amountType = $mvc->getField('amountDeal')->type;
+        if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
+        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
+        	$row->vat = $amountType->toVerbal($vat * 100);
+        }
         
         $row->amountToPay = '<span class="cCode">' . $row->currencyId . '</span> ' 
             . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
@@ -1130,7 +1140,7 @@ class sales_Sales extends core_Master
                 $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
-                'policyId'  => $rec->policyId,
+                'classId'  => $rec->classId,
                 'productId'  => $rec->productId,
                 'uomId'  => $rec->uomId,
                 'packagingId'  => $rec->packagingId,
@@ -1189,7 +1199,7 @@ class sales_Sales extends core_Master
     	$dQuery = $this->sales_SalesDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Sales', 'externalKey=saleId');
     	$dQuery->where("#saleId = '{$id}'");
-    	$dQuery->groupBy('productId,policyId');
+    	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
@@ -1226,7 +1236,6 @@ class sales_Sales extends core_Master
         $result->agreed->payment->method        = $rec->paymentMethodId;
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
-        
         
         if ($rec->isInstantPayment == 'yes') {
             $result->paid->amount   = $rec->amountDeal;

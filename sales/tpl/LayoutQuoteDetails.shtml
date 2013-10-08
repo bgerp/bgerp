@@ -1,4 +1,4 @@
-<p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#MISC#] |ДДС|*</p>
+<p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#MISC#]</p>
 <div class='scrolling-holder'>
 	<table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px' width="100%">
 		<tr>

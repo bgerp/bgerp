@@ -84,38 +84,40 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
         $this->FLD('quantity', 'double', 'caption=К-во,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('quantityInPack', 'double', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        
-        $this->setDbUnique('invoiceId, productId, packagingId');
-    }
-    
-    
-    /**
-     * Подготовка на бутоните за добавяне на нови редове на фактурата 
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
-           
-            $customerClass = $data->masterData->rec->contragentClassId;
-            $customerId    = $data->masterData->rec->contragentId;
-            
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            foreach ($pricePolicies as $policyId=>$Policy) {
-                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
-                
-                $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
-            }
-            
-            unset($data->toolbar->buttons['btnAdd']);
-        }
+		$this->FLD ( 'amount', 'double(decimals=2)', 'caption=Сума,input=none' );
+		
+		$this->setDbUnique ( 'invoiceId, productId, packagingId' );
+	}
+	
+	
+	/**
+	 * Подготовка на бутоните за добавяне на нови редове на фактурата 
+	 */
+	public static function on_AfterPrepareListToolbar($mvc, $data) 
+	{
+		if (! empty ( $data->toolbar->buttons ['btnAdd'] )) {
+			$productManagers = core_Classes::getOptionsByInterface ( 'cat_ProductAccRegIntf' );
+			$masterRec = $data->masterData->rec;
+			$addUrl = $data->toolbar->buttons ['btnAdd']->url;
+			
+			foreach ( $productManagers as $manId => $manName ) {
+				$productMan = cls::get ( $manId );
+				$products = $productMan->getProducts ( $masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date );
+				if (! count ( $products )) {
+					$error = "error=Няма артикули по политика {$productMan->title}";
+				}
+				
+				$data->toolbar->addBtn ( $productMan->singleTitle, $addUrl + array ('classId' => $manId ), "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+	            	unset($error);
+	        }
+	            
+	        unset($data->toolbar->buttons['btnAdd']);
+	   }
     }
     
     
@@ -125,13 +127,17 @@ class sales_InvoiceDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
       	$form = $data->form;
-        $Policy = cls::get($form->rec->policyId);
+        $ProductMan = cls::get($form->rec->classId);
         
         // Поакзваме само продуктите спрямо ценовата политиказа контрагента
         $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
+        $products = $ProductMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
        
-        $products = $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
-        $form->setOptions('productId', $products);
+        if($form->rec->id){
+        	$form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
+        } else {
+        	$form->setOptions('productId', $products);
+        }
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
         (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
@@ -173,8 +179,7 @@ class sales_InvoiceDetails extends core_Detail
     {
         if($form->isSubmitted()) {
             $rec = &$form->rec;
-            $Policy = cls::get($rec->policyId);
-            $productMan = $Policy->getProductMan();
+            $productMan = cls::get($rec->classId);
             if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
           	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
           	   return;
@@ -186,16 +191,16 @@ class sales_InvoiceDetails extends core_Detail
             if(!$form->rec->price){
           	
 	            // Ако не е зададена цена, извличаме я от избраната политика
-	          	$rec->price = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
+	          	$rec->price = $productMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
 	          	if(!$rec->price){
 		            $form->setError('price', 'Неможе да се определи цена');
 		        }
           	} else {
-          		$rec->price = round($rec->price * $masterRec->rate, 2);
+          		$rec->price = $rec->price * $masterRec->rate;
           	}
           
            // Изчисляваме цената
-           $form->rec->amount = round($form->rec->price * $form->rec->quantity, 2);
+           $form->rec->amount = $form->rec->price * $form->rec->quantity;
         }
     }
 
@@ -205,9 +210,8 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$Policy = cls::get($rec->policyId);
-        $productMan = $Policy->getProductMan();
-        $row->productId = $productMan::getTitleById($rec->productId);
+    	$ProductMan = cls::get($rec->classId);
+        $row->productId = $ProductMan::getTitleById($rec->productId);
         
     	if($rec->note){
     		$varchar = cls::get('type_Varchar');
@@ -215,7 +219,7 @@ class sales_InvoiceDetails extends core_Detail
 	    	$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
     	}
     	
-    	$pInfo = $productMan->getProductInfo($rec->productId);
+    	$pInfo = $ProductMan->getProductInfo($rec->productId);
     	
     	if($rec->packagingId){
     		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);

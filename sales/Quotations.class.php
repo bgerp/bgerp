@@ -222,6 +222,14 @@ class sales_Quotations extends core_Master
        $rec = &$data->form->rec;
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
+       } else {
+       	
+       		// Неможе да се сменя ДДС-то ако има вече детайли
+        	$dQuery = $mvc->sales_QuotationsDetails->getQuery();
+        	$dQuery->where("#quotationId = {$data->form->rec->id}");
+        	if($dQuery->count()){
+        		$data->form->setReadOnly('vat');
+        	}
        }
       
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
@@ -547,9 +555,9 @@ class sales_Quotations extends core_Master
     	$dQuery = $this->sales_QuotationsDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Quotations', 'externalKey=quotationId');
     	$dQuery->where("#quotationId = '{$id}'");
-    	$dQuery->groupBy('productId,policyId');
+    	$dQuery->groupBy('productId,productManId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		$productMan = cls::get($dRec->productManId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}

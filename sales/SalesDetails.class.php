@@ -124,8 +124,7 @@ class sales_SalesDetails extends core_Detail
     public function description()
     {
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
-        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=none');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
@@ -140,19 +139,19 @@ class sales_SalesDetails extends core_Detail
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
-        $this->FLD('quantityInPack', 'float', 'input=none');
+        $this->FLD('quantityInPack', 'double', 'input=none');
         
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');
         
-        $this->FNC('amount', 'float(decimals=2)', 'caption=Сума');
+        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $this->FNC('packQuantity', 'float', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
         // packagingId)
-        $this->FNC('packPrice', 'float(minDecimals=2,maxDecimals=100)', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
@@ -232,18 +231,6 @@ class sales_SalesDetails extends core_Detail
         $mvc->setField('createdOn', 'column=none');
         $mvc->setField('createdBy', 'column=none');
     }
-
-    
-    /**
-     * Извиква се преди изпълняването на екшън
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    }
     
     
     /**
@@ -262,17 +249,8 @@ class sales_SalesDetails extends core_Detail
     
     
     /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
+     * След извличане на записите от базата данни
      */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    }
-    
-    
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs     = $data->recs;
@@ -288,7 +266,7 @@ class sales_SalesDetails extends core_Detail
         
         foreach ($recs as $rec) {
             // Начисляваме ДДС, при нужда
-            if ($salesRec->chargeVat == 'yes') {
+            if ($salesRec->chargeVat == 'yes' || $salesRec->chargeVat == 'no') {
                 $ProductManager = cls::get($rec->classId);
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
@@ -304,6 +282,9 @@ class sales_SalesDetails extends core_Detail
     }
     
     
+    /**
+     * След подготовка на записите от базата данни
+     */
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
@@ -355,24 +336,20 @@ class sales_SalesDetails extends core_Detail
     {
         $rec       = $data->form->rec;
         $masterRec = $data->masterRec;
+       
+        $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
-        if (!empty($rec->policyId)) {
-            /* @var $Policy price_PolicyIntf */
-            $Policy = cls::get($rec->policyId);
+        if (empty($rec->id)) {
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
             
-            $ProductManager = $Policy->getProductMan();
-            
+        	$ProductManager = cls::get($rec->classId);
             $data->form->setOptions('productId', 
-                $Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
+            	$ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
+        	
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
             // и полето цена да стане задължително
-            expect($rec->classId);
-            expect($rec->productId);
-            
-            $data->form->setField('packPrice', 'mandatory');
-            $data->form->setField('classId', 'input=hidden,mandatory');
 
             $ProductManager = cls::get($rec->classId);
             $data->form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
@@ -400,28 +377,19 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
-        if ($form->isSubmitted() && !$form->gotErrors()) {
+        $rec = &$form->rec;
+        
+        /* @var $ProductMan core_Manager */
+        expect($ProductMan = cls::get($rec->classId));
+    	if($form->rec->productId){
+    		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
+        }
+    	
+    	if ($form->isSubmitted() && !$form->gotErrors()) {
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
-            
-            $rec        = $form->rec;
-
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
-            
-            if (!empty($rec->policyId)) {
-                $Policy = cls::get($rec->policyId);
-                $ProductMan = $Policy->getProductMan();
-                
-                $rec->classId = $ProductMan->getClassId();
-            } else {
-                expect($rec->classId);
-                
-                /* @var $ProductMan core_Manager */
-                $ProductMan = cls::get($rec->classId);
-            }
-            
-            expect($ProductMan);
             
             /* @var $productRef cat_ProductAccRegIntf */
             $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
@@ -454,9 +422,7 @@ class sales_SalesDetails extends core_Detail
                 // да сигнализираме на потребителя, че полето за цена е задължително и да не 
                 // допускаме записи без цени.
                 
-                expect($Policy);
-                
-                $policyInfo = $Policy->getPriceInfo(
+                $policyInfo = $ProductMan->getPriceInfo(
                     $masterRec->contragentClassId, 
                     $masterRec->contragentId, 
                     $rec->productId,
@@ -510,20 +476,26 @@ class sales_SalesDetails extends core_Detail
     }
     
     
+    /**
+     * След подготовка на лист тулбара
+     */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $pricePolicies = core_Classes::getOptionsByInterface('price_PolicyIntf');
-            
-            $customerClass = $data->masterData->rec->contragentClassId;
-            $customerId    = $data->masterData->rec->contragentId;
-        
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
+            $masterRec = $data->masterData->rec;
             $addUrl = $data->toolbar->buttons['btnAdd']->url;
             
-            foreach ($pricePolicies as $policyId=>$Policy) {
-                $Policy = cls::getInterface('price_PolicyIntf', $Policy);
-                $data->toolbar->addBtn($Policy->getPolicyTitle($customerClass, $customerId), $addUrl + array('policyId' => $policyId,),
-                    "id=btnAdd-{$policyId}", 'ef_icon = img/16/shopping.png');
+            foreach ($productManagers as $manId => $manName) {
+            	$productMan = cls::get($manId);
+            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
+                if(!count($products)){
+                	$error = "error=Няма артикули по политика {$productMan->title}";
+                }
+                
+            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
+                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+            	unset($error);
             }
             
             unset($data->toolbar->buttons['btnAdd']);

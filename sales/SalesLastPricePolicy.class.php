@@ -26,15 +26,6 @@ class sales_SalesLastPricePolicy extends core_Manager
      * Интерфейс за ценова политика
      */
     var $interfaces = 'price_PolicyIntf';
-
-	
-    /**
-     * sysId-та на  групи, от които можем да задаваме продукти
-     */
-    public static $productGroups = array('goods', 
-    									 'productsStandard', 
-    									 'productsNonStand', 
-    									 'services');
     
     
     /**
@@ -47,19 +38,6 @@ class sales_SalesLastPricePolicy extends core_Manager
     
     
     /**
-     * 
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
-     */
-    function getProducts($customerClass, $customerId, $date = NULL)
-    {
-        $products = cat_Products::getByGroup(static::$productGroups);
-        
-        return $products;
-    }
-    
-    
-    /**
      * Връща последната цена за посочения продукт направена в
      * продажба към контрагента
      * @return object $rec->price  - цена
@@ -68,9 +46,9 @@ class sales_SalesLastPricePolicy extends core_Manager
     function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
        if(!$date){
-       	  $date = dt::now();
+       	   $date = dt::now();
         }
-       
+        
         // Намира последната цена на която продукта е бил 
         // продаден на този контрагент
         $detailQuery = sales_SalesDetails::getQuery();
@@ -84,9 +62,9 @@ class sales_SalesLastPricePolicy extends core_Manager
         $detailQuery->where("#state = 'active'");
         $detailQuery->where("#productId = '{$productId}'");
         $detailQuery->orderBy('#valior', 'DESC');
-        
         $lastRec = $detailQuery->fetch();
         if(!$lastRec){
+        	
         	return NULL;
         }
         
@@ -104,15 +82,5 @@ class sales_SalesLastPricePolicy extends core_Manager
     public function getPolicyTitle($customerClass, $customerId)
     {
         return $this->title;
-    }
-    
-    
-	/**
-     * Връща мениджъра на продуктите (@see cat_Products)
-     * @return core_Classes $class - инстанция на мениджъра
-     */
-    public function getProductMan()
-    {
-        return cls::get('cat_Products');
     }
 }

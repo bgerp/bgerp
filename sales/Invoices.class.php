@@ -893,9 +893,9 @@ class sales_Invoices extends core_Master
     	$dQuery = $this->sales_InvoiceDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
     	$dQuery->where("#invoiceId = '{$id}'");
-    	$dQuery->groupBy('productId,policyId');
+    	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->policyId)->getProductMan();
+    		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}
@@ -926,7 +926,7 @@ class sales_Invoices extends core_Master
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId     = cls::get($dRec->policyId)->getProductMan();
+            $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->isOptional  = FALSE;
