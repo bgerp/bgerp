@@ -111,13 +111,13 @@ class hr_Departments extends core_Master
                                  unit=Звено,
                                  brigade=Бригада,
                                  shift=Смяна)', 'caption=Тип, mandatory,width=100%');
-        $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title)', 'caption=НКИД, hint=Номер по НКИД');
+        $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
         $this->FLD('staff', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=В състава на,width=100%');
 
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('employmentTotal', 'int', "caption=Служители->Щат, input=none");
         $this->FLD('employmentOccupied', 'int', "caption=Служители->Назначени, input=none");
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name)', "caption=Работно време->График");
+        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', "caption=Работно време->График");
         $this->FLD('startingOn', 'datetime', "caption=Работно време->Начало");
         $this->FLD('orderStr', 'varchar', "caption=Подредба,input=none,column=none");
     }
