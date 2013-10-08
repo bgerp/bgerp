@@ -129,9 +129,10 @@ class price_GroupOfProducts extends core_Detail
         $datetime = price_History::canonizeTime($datetime);
 		
         $query = self::getQuery();
-
-        $query->where("#validFrom <= '{$datetime}'");
-
+		$query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $query->where("state != 'rejected'");
+		$query->where("#validFrom <= '{$datetime}'");
+		
         $query->orderBy("#validFrom", "DESC");
         
         $res = array();
