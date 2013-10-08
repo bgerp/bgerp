@@ -490,7 +490,7 @@ class sales_SalesDetails extends core_Detail
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
                 if(!count($products)){
-                	$error = "error=Няма артикули по политика {$productMan->title}";
+                	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
             	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
