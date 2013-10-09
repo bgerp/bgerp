@@ -332,18 +332,16 @@ class pos_Receipts extends core_Master {
     			$rec->total = $this->countTotal($rec->id);
     			$rec->productCount = pos_Receipts::getProducts($rec->id, TRUE);
     			$change = $rec->paid - $rec->total;
-    			if($change > 0) {
-    				$rec->change = $change;
-    			}
+    			$rec->change = ($change > 0) ? $change : 0;
+    			
     			break;
     		case 'payment':
     			
     			// "Плащане" : преизчисляваме платеното до сега и рестото
     			$rec->paid = $this->countPaidAmount($rec->id);
     			$change = $rec->paid - $rec->total;
-    			if($change > 0) {
-    				$rec->change = $change;
-    			}
+    			$rec->change = ($change > 0) ? $change : 0;
+    			
     			break;
     		case 'client':
     			
