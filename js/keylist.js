@@ -47,7 +47,7 @@ function toggleKeylistGroups(el) {
     	var trId = element.attr("id");
     	
     	//намираме keylist таблицата, в която се намира
-        var tableHolder = $(event.target).closest("table.keylist");
+        var tableHolder = $(element).closest("table.keylist");
         
         //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
         var trItems = tableHolder.find("tr." + trId);
