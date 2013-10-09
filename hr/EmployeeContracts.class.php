@@ -50,7 +50,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, plg_Printing, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools, hr_Wrapper, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing, acc_plg_DocumentSummary,
                      acc_plg_Registry, doc_DocumentPlg, plg_Search,
                      doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg';
     
@@ -145,7 +145,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност,width=100%');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №,width=100%');
         $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от,width=100%');
-        $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
+        $this->FLD('lengthOfService', 'time(suggestions=1 мес|2 мес|3 мес|4 мес|5 мес|6 мес|7 мес|8 мес|9 мес|10 мес|11 мес|12 мес|2 год|3 год|5 год,uom=months)', 'caption=Служител->Трудов стаж, unit=мес');
         
         // Отдел - външно поле от модела hr_Positions
         $this->EXT('departmentId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
@@ -165,10 +165,10 @@ class hr_EmployeeContracts extends core_Master
         // Срокове
         $this->FLD('startFrom', 'date(format=d.m.Y)', "caption=Време->Начало,mandatory");
         $this->FLD('endOn', 'date(format=d.m.Y)', "caption=Време->Край");
-        $this->FLD('term', 'int', "caption=Време->Продължителност,unit=месеца");
-        $this->FLD('annualLeave', 'int', "caption=Време->Годишен отпуск,unit=дни");
-        $this->FLD('notice', 'int', "caption=Време->Предизвестие,unit=дни");
-        $this->FLD('probation', 'int', "caption=Време->Изпитателен срок,unit=месеца");
+        $this->FLD('term', 'time(suggestions=3 мес|6 мес|9 мес|12 мес|24 мес,uom=months)', "caption=Време->Продължителност, unit=мес");
+        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Време->Годишен отпуск,unit=дни");
+        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Време->Предизвестие,unit=дни");
+        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Време->Изпитателен срок, unit=мес");
 
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
         
@@ -230,7 +230,7 @@ class hr_EmployeeContracts extends core_Master
      */
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
-    	if (strtolower($act) == 'single' && haveRole('hr,ceo')) {
+    	if (strtolower($act) == 'single' && haveRole('hr,ceo') && !Mode::is('printing')) {
     		
     		// Взимаме ид-то на молбата
     		$id = Request::get('id', 'int');
@@ -292,7 +292,7 @@ class hr_EmployeeContracts extends core_Master
         $row = $data->row;
         
         $rec = $data->rec;
-        
+       
         $row->script = hr_ContractTypes::fetchField($rec->typeId, 'script');
         
         $row->num = $data->rec->id;
@@ -315,10 +315,53 @@ class hr_EmployeeContracts extends core_Master
         }
 
         // Взимаме данните за Длъжността
-        $row->positionRec = hr_Positions::fetch($rec->positionId);
+        $position = hr_Positions::recToVerbal(hr_Positions::fetch($rec->positionId, 'name, salaryBase, forYearsOfService, compensations,
+												    annualLeave, notice, probation'));
+        // Вземаме данните за Структурата
+        $department = hr_Departments::recToVerbal(hr_Departments::fetch($rec->departmentId, 'nkid, type'));
+       
+        if(isset($rec->salaryBase) && isset($rec->forYearsOfService) && isset($rec->compensations) &&
+           isset($rec->annualLeave) && isset($rec->notice) && isset($rec->probation)) { 
+        	
+        	// Професията
+        	$row->positionsId = $positions->professionId;
+        	
+        	// Заплатата
+        	$row->salaryBase = $positions->salaryBase;
+        	
+        	// Процент прослужено време
+        	$row->forYearsOfService = $positions->forYearsOfService;
+        	
+        	// Заплащане за вредност
+        	$row->compensations = $positions->compensations;
+        	
+        	// Годишен отпуск
+            $row->annualLeave = $positions->annualLeave;
+            
+            // Предизвестие
+            $row->notice = $positions->notice;
+            
+            // Изпитателен срок
+            $row->probation = $positions->probation;
+        }
+        
+        // Професията
+        $row->positionsId = $position->professionId;
+        
+        // Период на изплащане на възнаграждението
+        $row->frequensity =  $position->frequensity;
+        
+        // Извличане на данните за професията
+        $nkpd = hr_Professions::fetchField($rec->professionId, 'nkpd');
 
-        // Извличане на данните за Структурата
-        $row->departmentRec = hr_Departments::fetch($rec->departmentId);
+        // Национална класификация на професиите и длъжностите
+        $row->professionsRec->nkpd = bglocal_NKPD::getTitleById($nkpd);
+                
+        // Национална класификация на икономическите дейности 
+        $row->departmentRec->nkid = $department->nkid;
+        
+        // Вид на структурата
+        $row->departmentRec->type = $department->type;
      
         // Изчисляваме работното време
         $houresInSec = self::houresForAWeek($rec->id);
@@ -395,7 +438,7 @@ class hr_EmployeeContracts extends core_Master
     static function act_Test()
     {
     	$id = 2;
-    	bp(self::houresForAWeek($id));
+    	//bp(Mode::is('Printing'));
     }
     
     

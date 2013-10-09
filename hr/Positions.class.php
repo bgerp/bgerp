@@ -86,9 +86,9 @@ class hr_Positions extends core_Detail
         $this->FLD('employmentOccupied', 'double','caption=Служители->Запълване');
 
         // Възнаграждения
-        $this->FLD('salaryBase', 'double','caption=Възнаграждение->Основно');
-        $this->FLD('forYearsOfService', 'percent','caption=Възнаграждение->За стаж');
-        $this->FLD('compensations', 'double','caption=Възнаграждение->За вредности');
+        $this->FLD('salaryBase', 'double(decimals=2)','caption=Възнаграждение->Основно');
+        $this->FLD('forYearsOfService', 'percent(decimals=2)','caption=Възнаграждение->За стаж');
+        $this->FLD('compensations', 'double(decimals=2)','caption=Възнаграждение->За вредности');
         $this->FLD('frequensity', 'enum(mountly=Ежемесечно, weekly=Ежеседмично, daily=Ежедневно)','caption=Възнаграждение->Периодичност');
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)','caption=Възнаграждение->Аванс');
 

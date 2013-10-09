@@ -124,15 +124,15 @@ class hr_ContractTypes extends core_Master
             self::save($rec);
             
             // Ако имаме вече създадени шаблони 
-        } else {
+        } else { 
         	
         	$query = self::getQuery();
         	
         	// Намираме тези, които са създадени от системата
-	        $query->where("#createdBy = -1");
+	        $query->where("#createdBy = -1"); 
 	        $sysContracts = array();
 	        while ($recPrev = $query->fetch()){
-	        	$sysContracts = $recPrev;
+	        	$sysContracts[] = $recPrev;
 	        }
 	        if(is_array($sysContracts)){
 	        // и ги ъпдейтваме с последните промени в шаблоните
