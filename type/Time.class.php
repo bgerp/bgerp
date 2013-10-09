@@ -60,6 +60,12 @@ class type_Time extends type_Varchar {
         
         if(is_numeric($val)) {
             switch($this->params['uom']) {
+            	case 'years':
+                    $val = $val * 12 * self::SECONDS_IN_MONTH;
+                    break;
+               case 'months':
+                    $val = $val * self::SECONDS_IN_MONTH;
+                    break;
                 case 'weeks': 
                     $val = $val * 7 * 24 * 60 * 60;
                     break;
