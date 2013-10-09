@@ -208,4 +208,41 @@ class webkittopdf_Converter extends core_Manager
         //Връщаме манипулатора на файла
         return $fh;
     }
+    
+    
+    /**
+     * След началното установяване на този мениджър, ако е зададено -
+     * той сетъпва външния пакет, чрез който ще се генерират pdf-те
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Вземаме конфига
+        $confWebkit = core_Packs::getConfig('webkittopdf');
+        
+        // Опитваме се да вземем версията на webkit
+        exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN) . " -V", $resArr, $erroCode);
+        
+        // Вземаме масива с версията
+        $versionArr = explode(" ", trim($resArr[1]));
+        
+        // Вземаме версията и подверсията
+        list($version, $subVersion) = explode(".", trim($versionArr[1]));
+        
+        // Ако версията е над нулеват и подверсията е над 11-та
+        if (($version > 0) || ($subVersion >= 11)) {
+            
+            // Ако не е избрана нищо
+            if (!core_Packs::getConfigKey($confWebkit, 'WEBKIT_TO_PDF_USE_JS')) {
+                
+                // Избиране по подразбиране
+                $data['WEBKIT_TO_PDF_USE_JS'] = 'yes';
+                
+                // Добавяме в конфигурацията
+                core_Packs::setConfig('webkittopdf', $data);
+                
+                // Добавяме съобщение
+                $res .= "<li style='color: green;'>" . 'Активирано е използване на JS при генериране на PDF' . "</li>";
+            }
+        }
+    }
 }
