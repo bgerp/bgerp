@@ -3,12 +3,23 @@ $(document).ready(function () {
 		 var id = $(this).attr('id');
 		 id = id.replace('product-row', '');
 		 //взимаме височината на клетката + падинг-а 
-		 var h = $(this).outerHeight(); 
-		 var eH = h/$('td[class^=product-row'+id+']').length;
+		 var heightAndPadding = $(this).outerHeight(); 
+		 
+		 var paddingTop = $(this).css("paddingTop");
+		 paddingTop = parseInt(paddingTop);
+		 
+		 var paddingBottom = $(this).css("paddingBottom");
+		 paddingBottom = parseInt(paddingBottom);
+		
+		 
+		 var eH = heightAndPadding/$('td[class^=product-row'+id+']').length;
+		 
 		 //от получената височина вадим падинг-а на клетката
-		 eH = eH - 10;
+		 eH = eH - paddingTop - paddingBottom;
+		 
 		 $('td[class^=product-row'+id+']').each(function(){
 		        $(this).height(eH);
+		        
 		 });
 	});
 });
