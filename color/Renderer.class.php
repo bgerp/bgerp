@@ -36,6 +36,7 @@ class color_Renderer extends core_Manager
 		$backgroundColor = imagecolorallocate($im, $r, $g, $b);
 		imagepng($im);
 		imagedestroy($im);
+		header('Content-Type: image/png');
 		shutdown();
     }
     
