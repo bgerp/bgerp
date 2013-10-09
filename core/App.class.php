@@ -887,7 +887,7 @@ class core_App
                         } 
     
                         // Записваме файла
-                        if (@file_put_contents($newPath, $css)) {
+                        if (@file_put_contents($newPath, $css) !== FALSE) {
                             
                             // Задаваме пътя
                             $rPath = $newFile;
