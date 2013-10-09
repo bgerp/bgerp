@@ -627,10 +627,24 @@ class core_Packs extends core_Manager
 
         return $conf;
     }
-
-
-
-
+    
+    
+    /**
+     * Връща дадения код от конфигурационните данни
+     * 
+     * @param mixed $packConfig - Инстанция на пакета или името на пакета
+     * @param string $key - Името на полето
+     */
+    static function getConfigKey($packConfig, $key)
+    {
+        if (!is_object($packConfig)) {
+            $packConfig = static::getConfig($packConfig);
+        }
+        
+        return $packConfig->_data[$key];
+    }
+    
+    
     /**
      * Конфирурира даден пакет
      */
