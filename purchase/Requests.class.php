@@ -137,7 +137,7 @@ class purchase_Requests extends core_Master
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
             'caption=Фактуриране,maxRadio=3,columns=3');
-        $this->FLD('chargeVat', 'enum(yes=с ДДС,no=без ДДС)', 'caption=ДДС');
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
         /*
          * Стойности
@@ -228,7 +228,7 @@ class purchase_Requests extends core_Master
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
-        
+        	
         /*
          * Условия за доставка по подразбиране
          */
@@ -271,7 +271,7 @@ class purchase_Requests extends core_Master
          */
         $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
-                'yes' : 'no'
+                'yes' : 'export'
         );
         
         /*
@@ -297,7 +297,20 @@ class purchase_Requests extends core_Master
         }
     }
 
-
+    
+	/**
+     * Извиква се след въвеждането на данните от Request във формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    { 
+    	if($form->isSubmitted()){
+	    	if(!$form->rec->currencyRate){
+				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
+			}
+    	}
+    }
+    
+    
     /**
      * Условия за доставка по подразбиране
      *
@@ -619,7 +632,7 @@ class purchase_Requests extends core_Master
         $row->amountToPay = $row->currencyId . ' '
         . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
     
-        if ($rec->chargeVat == 'no') {
+        if ($rec->chargeVat == 'freed' || $rec->chargeVat == 'export') {
             $row->chargeVat = '';
         }
     
