@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -313,8 +313,6 @@ class acc_Items extends core_Manager
             $listId = $mvc->getCurrentListId();
             Mode::setPermanent('lastEnterItemNumIn' . $listId, $rec->num);
         }
-        
-//         bp($form->rec);
     }
     
     
@@ -391,6 +389,18 @@ class acc_Items extends core_Manager
     
     
     /**
+     * След подготовка на ролите
+     */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
+    		$Class = cls::get($rec->classId);
+    		$res = $Class->getRequiredRoles('edit', (object)array( 'id' => $rec->objectId));
+    	}
+    }
+    
+    
+    /**
      * Тази функция връща текущата номенклатура, като я открива по първия възможен начин:
      *
      * 1. От Заявката (Request)
@@ -442,7 +452,8 @@ class acc_Items extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function getItemsKeys($objectKeys, $listId) {
+    function getItemsKeys($objectKeys, $listId)
+    {
         $query = $this->getQuery();
         $query->where("#lists LIKE '%|{$listId}|%'");
         $query->where("#objectId IN (" . implode(',', $objectKeys) . ')');
@@ -457,6 +468,9 @@ class acc_Items extends core_Manager
     }
     
     
+    /**
+     * 
+     */
     public static function prepareObjectLists($data)
     {   
         $data->TabCaption = 'Номенклатури';
@@ -467,11 +481,13 @@ class acc_Items extends core_Manager
         $classId  = $masterMvc::getClassId();
         $objectId = $data->masterId;
         
-        $data->itemRec = static::fetchItem($classId, $objectId);
-        $data->canChange = static::haveRightFor('edit', $data->itemRec);
+        $data->canChange = static::haveRightFor('edit', (object)(array('classId' => $classId, 'objectId' => $objectId)));
     }
     
     
+    /**
+     * 
+     */
     public static function renderObjectLists($data)
     {
         $masterMvc = $data->masterMvc;
