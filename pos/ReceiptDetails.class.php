@@ -269,6 +269,11 @@ class pos_ReceiptDetails extends core_Detail {
 	    				return;
 	    			}
 	    			
+	    			if(!$rec->price) {
+	    				$form->setError('ean', 'Продукта няма цена в системата');
+	    				return;
+	    			}
+	    			
 				    // Намираме дали този проект го има въведен 
 				    $sameProduct = $mvc->findSale($rec->productId, $rec->receiptId, $rec->value);
 					if((string)$sameProduct->price == (string)$rec->price) {
@@ -418,6 +423,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$policyId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
     	$price = new stdClass();
     	$price->price = price_ListRules::getPrice($policyId, $product->productId, $product->packagingId, $receiptRec->createdOn);
+    	
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
     	if($price->discount != 0.00) {
