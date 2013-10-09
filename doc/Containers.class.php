@@ -711,17 +711,17 @@ class doc_Containers extends core_Manager
         }
         
         $tpl->append("\n<div class='listTitle'>" . $text . ":</div>");
-        $tpl->append("<div class='accordian'><ul>");
+        $tpl->append("<div class='accordian noSelect'><ul>");
         
-        $active = ' class="active"';
+        $active = 'active';
         
         foreach($btns as $group => $bArr) {
             
             // Превеждаме групата
        	    $group = tr($group);
        	    
-        	$tpl->append("<li{$active}><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
-        	$tpl->append("<li>");
+        	$tpl->append("<li class='btns-title {$active} '><img class='btns-icon plus' src=". sbf('img/16/toggle1.png') ."><img class='btns-icon minus' src=". sbf('img/16/toggle2.png') .">&nbsp;{$group}</li>");
+        	$tpl->append("<li class='dimension'>");
         	foreach($bArr as $btn => $class) {
         		$mvc = cls::get($class);
         		
