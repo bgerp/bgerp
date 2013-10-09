@@ -238,8 +238,11 @@ class doc_PdfCreator extends core_Manager
     	// Пакета, който ще се инсталира
     	$setupPack = 'dompdf';
     	
+    	// id на класа webkittopdf
+    	$wkClassId = core_Classes::getId('webkittopdf_Converter');
+    	
     	// Ако няма запис в модела
-    	if (!$conf->_data['BGERP_PDF_GENERATOR']) {
+    	if (!$pdfGenerator = core_Packs::getConfigKey($conf, 'BGERP_PDF_GENERATOR')) {
     	    
     	    // Вземаме конфига
     	    $confWebkit = core_Packs::getConfig('webkittopdf');
@@ -251,14 +254,25 @@ class doc_PdfCreator extends core_Manager
             if ($erroCode == 1 || $erroCode == 0) {
                 
                 // Да използваме webkittopdf
-    	        $data['BGERP_PDF_GENERATOR'] = core_Classes::getId('webkittopdf_Converter');
+    	        $data['BGERP_PDF_GENERATOR'] = $wkClassId;
     	        
     	        // Добавяме в записите
                 core_Packs::setConfig('doc', $data);
                 
                 // Пакета, който ще се инсталира да е webkittopdf
                 $setupPack = 'webkittopdf';
+                
+                // Добавяме съобщение
+                $res .= "<li style='color: green;'>" . "По подразбиране ще се използва 'webkittopdf' за конвертиране в PDF" . "</li>";
             }
+    	} else {
+    	    
+    	    // Ако е избран webkittopdf
+    	    if ($pdfGenerator == $wkClassId) {
+    	        
+    	        // Да се инсталира webkittopdf
+    	        $setupPack = 'webkittopdf';
+    	    }
     	}
     	
     	// Инсталираме пакета
