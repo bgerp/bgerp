@@ -146,6 +146,10 @@ class legalscript_Engine extends core_BaseClass
         $tpl = new ET("<div class='legalscript'>{$html}</div>");
         
         $tpl->appendOnce("
+           .legalscript p {
+               font-size:1.05em;
+               line-height:1.4em;
+            }
            .legalscript .level-1 {
                font-weight:bold;
             }
