@@ -133,7 +133,7 @@ class sales_SaleRequests extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,fromOffer');
         $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer');
-        $this->FLD('vat', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,fromOffer');
+        $this->FLD('vat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,fromOffer');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
     	$this->FLD('amount', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount');
@@ -232,14 +232,14 @@ class sales_SaleRequests extends core_Master
     	$items = array();
     	$products = (array)$products;
     	foreach ($products as $index => $quantity){
-    		list($productId, $policyId, $optional) = explode("|", $index);
+    		list($productId, $productManId, $optional) = explode("|", $index);
     		
     		// При опционален продукт без к-во се продължава
     		if($optional == 'yes' && empty($quantity)) continue;
     		
     		// Намира се кой детайл отговаря на този продукт
-    		$obj = (object)$this->findDetail($productId, $policyId, $quantity, $optional);
-            $items[] = (object)array('policyId'  => $obj->policyId,
+    		$obj = (object)$this->findDetail($productId, $productManId, $quantity, $optional);
+            $items[] = (object)array('classId'  => $obj->productManId,
         					         'productId' => $obj->productId,
         					 		 'discount'  => $obj->discount,
         					 		 'quantity'  => $obj->quantity,
@@ -253,17 +253,17 @@ class sales_SaleRequests extends core_Master
     /**
      * Помощна ф-я за намиране на записа съответстващ на избраното к-во
      * @param int $productId - ид на продукт
-     * @param int $policyId - политика
+     * @param int $productManId - продуктов мениджър
      * @param int $quantity - к-во
      * @param enum(yes/no) $optional - дали продукта е опционален
      * @return stdClass $val - обект съответсващ на детайл
      */
-    private function findDetail($productId, $policyId, $quantity, $optional)
+    private function findDetail($productId, $productManId, $quantity, $optional)
     {
     	// Първо се проверява имали запис за този продукт с това к-во
     	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $policyId, $quantity, $optional) {
-           				if($val->optional == $optional && $val->productId == $productId && $val->policyId == $policyId && ($val->quantity == $quantity && $quantity)){
+    		function ($val) use ($productId, $productManId, $quantity, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->productManId == $productManId && ($val->quantity == $quantity && $quantity)){
             				return $val;
             			}}));
             			
@@ -271,8 +271,8 @@ class sales_SaleRequests extends core_Master
         // съответстващ на първото срещане на продукта
         if(!$val){
         	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $policyId, $optional) {
-           				if($val->optional == $optional && $val->productId == $productId && $val->policyId == $policyId){
+    		function ($val) use ($productId, $productManId, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->productManId == $productManId){
             				return $val;
             			}}));
             			
@@ -350,9 +350,9 @@ class sales_SaleRequests extends core_Master
     	$query->orderBy('optional', 'ASC');
     	static::$cache = $query->fetchAll();
     	while ($rec = $query->fetch()){
-    		$index = "{$rec->productId}|{$rec->policyId}|{$rec->optional}";
+    		$index = "{$rec->productId}|{$rec->productManId}|{$rec->optional}";
     		if(!array_key_exists($index, $products)){
-    			$title = cls::get($rec->policyId)->getProductMan()->getTitleById($rec->productId);
+    			$title = cls::get($rec->productManId)->getTitleById($rec->productId);
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}
     		if($rec->optional == 'yes'){
@@ -521,7 +521,7 @@ class sales_SaleRequests extends core_Master
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}
 	    	
-	    	$row->chargeVat = ($rec->vat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+	    	$row->chargeVat = ($rec->vat == 'yes' || $rec->vat == 'no') ? tr('с ДДС') : tr('без ДДС');
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
@@ -541,8 +541,8 @@ class sales_SaleRequests extends core_Master
     	
     	$discount = $total = 0;
     	while ($d = $detailQuery->fetch()){
-    		if($vat == 'yes'){
-    			$productMan = ($d->classId) ? cls::get($d->productManId) : cls::get($d->policyId)->getProductMan();
+    		if($vat == 'yes' || $vat = 'no'){
+    			$productMan = cls::get($d->classId);
     			$d->price *= 1 + $productMan->getVat($d->productId);
     		}
     		

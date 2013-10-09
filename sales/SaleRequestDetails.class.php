@@ -71,8 +71,7 @@ class sales_SaleRequestDetails extends core_Detail {
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('classId', 'class(select=title)', 'oldFieldName=productManId,input=hidden,caption=Продуктов мениджър, silent');
-    	$this->FLD('policyId', 'class(interface=price_PolicyIntf, select=title)', 'input=hidden,caption=Политика, silent');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
@@ -112,7 +111,7 @@ class sales_SaleRequestDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$productMan = ($rec->classId) ? cls::get($rec->classId) : cls::get($rec->policyId)->getProductMan();
+    	$productMan = cls::get($rec->classId);
     	
     	$row->productId = $productMan->getTitleById($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
@@ -120,7 +119,7 @@ class sales_SaleRequestDetails extends core_Detail {
     	}
 
     	$applyVat = $mvc->Master->fetchField($rec->requestId, 'vat');
-    	if($applyVat == 'yes'){
+    	if($applyVat == 'yes' || $applyVat == 'no'){
     		$vat = $productMan->getVat($rec->productId);
     		$rec->price = $rec->price * (1 + $vat);
     	}
