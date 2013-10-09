@@ -1,4 +1,4 @@
-$(document).ready(function () {
+function resizeQuoteTable() {
 	$('td[id^=product-row]').each(function(){
 		 var id = $(this).attr('id');
 		 id = id.replace('product-row', '');
@@ -22,4 +22,4 @@ $(document).ready(function () {
 		        
 		 });
 	});
-});
+}
