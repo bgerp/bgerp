@@ -37,7 +37,13 @@ class bank_Accounts extends core_Master {
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, iban, contragent=Контрагент, currencyId';
+    var $listFields = 'tools=Пулт, iban, contragent=Контрагент, currencyId';
+    
+    
+    /**
+     * Поле за показване на пулта за редакция
+     */
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -145,6 +151,21 @@ class bank_Accounts extends core_Master {
     }
     
     
+	/**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles(core_Mvc $mvc, &$requiredRoles, $action, $rec)
+    {
+        if (($action == 'edit' || $action == 'delete') && isset($rec->contragentCls)) {
+        	$productState = cls::get($rec->contragentCls)->fetchField($rec->contragentId, 'state');
+            
+        	if ($productState == 'rejected') {
+                $requiredRoles = 'no_one';
+            } 
+        }
+    }
+    
+    
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
      */
@@ -221,6 +242,7 @@ class bank_Accounts extends core_Master {
         
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
+            
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
 
@@ -240,7 +262,7 @@ class bank_Accounts extends core_Master {
         if(count($data->rows)) {
 
             foreach($data->rows as $id => $row) {
-
+				
                 $rec = $data->recs[$id];
 
                 $cCodeRec = currency_Currencies::fetch($rec->currencyId);
@@ -257,29 +279,7 @@ class bank_Accounts extends core_Master {
 
                 $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 
-                $tpl->append("{$row->title}", 'content');
-                
-                if(!Mode::is('printing')) {
-                    if($this->haveRightFor('edit', $id)) {
-                        
-                    	// Добавяне на линк за редактиране
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
-                        $url = array($this, 'edit', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
-                        $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на банкова сметка')), 'content');
-                        $tpl->append('</span>', 'content');
-                    }
-                    
-                    if($this->haveRightFor('delete', $id)) {
-                        
-                    	// Добавяне на линк за изтриване
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
-                        $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete.png') . " width='16'  height='16'>";
-                        $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете сметката?', 'title=' . tr('Изтриване на банкова сметка')), 'content');
-                        $tpl->append('</span>', 'content');
-                    }
-                }
+                $tpl->append("{$row->title} {$row->tools}", 'content');
                 
                 $tpl->append("</div>", 'content');
             }
@@ -288,7 +288,7 @@ class bank_Accounts extends core_Master {
         }
         
         if(!Mode::is('printing')) {
-        	if($this->haveRightFor('add', $id)) {
+        	if($data->masterMvc->haveRightFor('edit', $data->masterId)) {
 	            $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
 	            $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
 	            $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'title');
