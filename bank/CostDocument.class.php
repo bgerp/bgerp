@@ -19,7 +19,7 @@ class bank_CostDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf';
    
     
     /**
@@ -297,12 +297,18 @@ class bank_CostDocument extends core_Master
      * @return stdClass
      * @see acc_TransactionSourceIntf::getTransaction
      */
-    public static function finalizeTransaction($id)
+    public function finalizeTransaction($id)
     {
         $rec = self::fetchRec($id);
         $rec->state = 'closed';
         
-        return self::save($rec);
+    	if ($this->save($rec)) {
+            // Нотифицираме origin-документа, че някой от веригата му се е променил
+            if ($origin = $this->getOrigin($rec)) {
+                $ref = new core_ObjectReference($this, $rec);
+                $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
+            }
+        }
     }
     
     
@@ -390,5 +396,47 @@ class bank_CostDocument extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	/**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = self::fetchRec($id);
+    
+        /* @var $result bgerp_iface_DealResponse */
+        $result = new bgerp_iface_DealResponse();
+    
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+    
+        $result->paid->amount = -$rec->amount;
+        $result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
+        $result->paid->payment->bankAccountId = $rec->ownAccount;
+    	
+        return $result;
+    }
+    
+    
+	/**
+     * Информация за платежен документ
+     * 
+     * @param int|stdClass $id ключ (int) или запис (stdClass) на модел 
+     * @return stdClass Обект със следните полета:
+     *
+     *   o amount       - обща сума на платежния документ във валутата, зададена от `currencyCode`
+     *   o currencyCode - key(mvc=currency_Currencies, key=code): ISO код на валутата
+     *   o valior       - date - вальор на документа
+     */
+    public static function getPaymentInfo($id)
+    {
+        $rec = self::fetchRec($id);
+        
+        return (object)array(
+            'amount'       => -$rec->amount,
+            'currencyCode' => currency_Currencies::getCodeById($rec->currencyId),
+            'valior'       => $rec->valior,
+        );
     }
 }
