@@ -211,7 +211,8 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
+    	$percent = cls::get('type_Percent');
+    	$percent->params['decimals'] = $double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	
@@ -227,13 +228,13 @@ class pos_ReceiptDetails extends core_Detail {
     	if($rec->value) {
     		$row->packagingId = cat_Packagings::getTitleById($rec->value);
     	} else {
-    		$row->packagingId = $uomId;
+    		$row->packagingId = $row->uomId;
     		unset($row->uomId);
     	}
     	
     	if($rec->discountPercent){
     		$rec->discountPercent = $rec->discountPercent * -1;
-    		$row->discountPercent = $double->toVerbal($rec->discountPercent);
+    		$row->discountPercent = $percent->toVerbal($rec->discountPercent);
     		if($rec->discountPercent > 0) {
     			$row->discountPercent = "+" . $row->discountPercent;
     		}
