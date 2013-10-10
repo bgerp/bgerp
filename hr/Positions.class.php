@@ -93,9 +93,9 @@ class hr_Positions extends core_Detail
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)','caption=Възнаграждение->Аванс');
 
         // Срокове
-        $this->FLD('probation', 'int', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
-        $this->FLD('annualLeave', 'int', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
-        $this->FLD('notice', 'int', "caption=Срокове->Предизвестие,unit=дни,width=6em");
+        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
+        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
+        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Срокове->Предизвестие,unit=дни,width=6em");
 
         // Други условия
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
