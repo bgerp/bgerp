@@ -239,7 +239,7 @@ class sales_SaleRequests extends core_Master
     		
     		// Намира се кой детайл отговаря на този продукт
     		$obj = (object)$this->findDetail($productId, $productManId, $quantity, $optional);
-            $items[] = (object)array('classId'  => $obj->productManId,
+            $items[] = (object)array('productManId'  => $obj->productManId,
         					         'productId' => $obj->productId,
         					 		 'discount'  => $obj->discount,
         					 		 'quantity'  => $obj->quantity,
@@ -542,7 +542,7 @@ class sales_SaleRequests extends core_Master
     	$discount = $total = 0;
     	while ($d = $detailQuery->fetch()){
     		if($vat == 'yes' || $vat = 'no'){
-    			$productMan = cls::get($d->classId);
+    			$productMan = cls::get($d->productManId);
     			$d->price *= 1 + $productMan->getVat($d->productId);
     		}
     		

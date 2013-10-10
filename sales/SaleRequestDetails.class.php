@@ -71,7 +71,7 @@ class sales_SaleRequestDetails extends core_Detail {
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
+        $this->FLD('productManId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=classId');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
@@ -111,7 +111,7 @@ class sales_SaleRequestDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$productMan = cls::get($rec->classId);
+    	$productMan = cls::get($rec->productManId);
     	
     	$row->productId = $productMan->getTitleById($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
