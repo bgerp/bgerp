@@ -328,7 +328,7 @@ class drdata_Address extends core_MVC
 
                 if($wordsCnt < 3) {
                     $regardsCnt *= 1.3;
-                } elseif($wordCnt < 4) {
+                } elseif($wordsCnt < 4) {
                     $regardsCnt *= 1.1;
                 }
                 
