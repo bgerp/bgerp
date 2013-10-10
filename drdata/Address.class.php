@@ -371,7 +371,7 @@ class drdata_Address extends core_MVC
                 }
 
 
-                if($expected['country'] && $wordCount < 5) {
+                if($expected['country'] && $wordsCnt < 5) {
                     
                     $country = self::extractCountry($l);
                         
