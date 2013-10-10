@@ -154,7 +154,7 @@ class hr_EmployeeContracts extends core_Master
         $this->EXT('professionId', 'hr_Positions', 'externalKey=positionId,caption=Отдел');
         
         // Позиция
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name, allowEmpty)', 'caption=Работа->Позиция, mandatory,oldField=possitionId,autoFilter');
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Позиция, mandatory,oldField=possitionId,autoFilter');
         
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', "caption=Възнагражение->Основно");
@@ -255,7 +255,7 @@ class hr_EmployeeContracts extends core_Master
     		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
-    
+
     
     /**
      * @todo Чака за документация...
@@ -270,6 +270,7 @@ class hr_EmployeeContracts extends core_Master
         	$data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
 	        $data->form->setReadonly('personId');
         }
+ 
     }
     
     
@@ -319,30 +320,30 @@ class hr_EmployeeContracts extends core_Master
 												    annualLeave, notice, probation'));
         // Вземаме данните за Структурата
         $department = hr_Departments::recToVerbal(hr_Departments::fetch($rec->departmentId, 'nkid, type'));
-       
-        if(isset($rec->salaryBase) && isset($rec->forYearsOfService) && isset($rec->compensations) &&
-           isset($rec->annualLeave) && isset($rec->notice) && isset($rec->probation)) { 
+      
+        if((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
+           (!$rec->annualLeave || !$rec->notice || !$rec->probation)) { ;
         	
         	// Професията
-        	$row->positionsId = $positions->professionId;
+        	$row->positionsId = $position->professionId;
         	
         	// Заплатата
-        	$row->salaryBase = $positions->salaryBase;
+        	$row->salaryBase = $position->salaryBase;
         	
         	// Процент прослужено време
-        	$row->forYearsOfService = $positions->forYearsOfService;
+        	$row->forYearsOfService = $position->forYearsOfService;
         	
         	// Заплащане за вредност
-        	$row->compensations = $positions->compensations;
+        	$row->compensations = $position->compensations;
         	
         	// Годишен отпуск
-            $row->annualLeave = $positions->annualLeave;
+            $row->annualLeave = $position->annualLeave;
             
             // Предизвестие
-            $row->notice = $positions->notice;
+            $row->notice = $position->notice;
             
             // Изпитателен срок
-            $row->probation = $positions->probation;
+            $row->probation = $position->probation;
         }
         
         // Професията

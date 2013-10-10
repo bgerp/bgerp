@@ -3,26 +3,27 @@
 <p class="centered">№ [#num#] / [#createdDate#] г.</p>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Днес, [#createdDate#] г. в гр./с [#employerRec_place#], [#employerRec_address#], между: <b>[#employerRec_name#]</b>
-със седалище и адрес на управление [#employerRec_address#],
+със седалище и адрес на управление [#employerRec_address#],<!--ET_BEGIN employersRec_regCompanyFileNumber-->
 регистрирано по фирмено дело № [#employersRec_regCompanyFileNumber#]/[#employersRec_regCompanyFileYear#]г.,
-в [#employersRec_regCourt#] с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
-ЕИК: <b>[#employerRec_vatId#]</b>, 
-представлявано от <b>[#managerRec_name#]</b> – с ЕГН: <b>[#managerRec_egn#]</b>
+<!--ET_END employersRec_regCompanyFileNumber--><!--ET_BEGIN employersRec_regCourt-->в [#employersRec_regCourt#] <!--ET_END employersRec_regCourt--><!--ET_BEGIN employersRec_regDecisionNumber-->
+с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
+<!--ET_END employersRec_regDecisionNumber-->ЕИК: <b>[#employerRec_vatId#]</b>, 
+представлявано от <b>[#managerRec_name#]</b> – с ЕГН: <b>[#managerRec_egn#]</b><!--ET_END employersRec_regDecisionNumber-->
 от една страна, наричан/а/ за краткост в договора <b>РАБОТОДАТЕЛ</b> и<br><br>
 
 <h3 class="centered"><b>[#employeeRec_name#]</b></h3><br>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;от друга страна, наричан/а/ <b>РАБОТНИК /СЛУЖИТЕЛ/</b></p>
 
-<p> с ЕГН: <b>[#employeeRec_egn#]</b>, 
+<!--ET_BEGIN employeeRec_egn--><p> с ЕГН: <b>[#employeeRec_egn#]</b>, <!--ET_END employeeRec_egn-->
 местоживеене: 
 [#employeeRec_pCode#]
  [#employeeRec_place#], [#employeeRec_address#], 
-лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
-образование: [#education#], 
-специалност: [#specialty#], 
+<!--ET_BEGIN employeeRec_idCard_idCardNumber--> лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], <!--ET_END employeeRec_idCard_idCardNumber-->
+образование: [#education#],
+специалност: [#specialty#],
 диплома №: [#diplomId#], издадена от [#diplomIssuer#], 
-трудов стаж: [#lengthOfService#],
+<!--ET_BEGIN lengthOfService--> трудов стаж: [#lengthOfService#], <!--ET_END lengthOfService-->
 на основание чл. 67, ал. 1, във връзка с чл. 70, ал. 1 от Кодекса на труда, се сключи настоящият <b>ТРУДОВ ДОГОВОР</b>:
 <br><br><br>
 # <b>РАБОТОДАТЕЛЯТ</b> възлага, а <b>РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/</b> приема: 
@@ -33,8 +34,8 @@
 в [#departmentRec_type#] <b>[#departmentId#]</b> ,  със задължения, утвърдени от РАБОТОДАТЕЛЯ в длъжностна характеристика, представляващa неразделна част към настоящия трудов договор;
 
 ## При условията на <b>[#shiftRec_weekhours#]</b> на седмица работно време с основно месечно трудово възнаграждение в размер на <b>[#salaryBase#] лв.</b>,
-с периодичност на изплащане [#frequensity#] 
-и с допълнително възнаграждение <b>[#forYearsOfService#]</b> за всяка година трудов стаж.
+с периодичност на изплащане [#frequensity#] <!--ET_BEGIN forYearsOfService--> 
+и с допълнително възнаграждение <b>[#forYearsOfService#]</b> за всяка година трудов стаж. <!--ET_END forYearsOfService-->
 <br><br>
 # РАБОТОДАТЕЛЯТ е длъжен:
 
@@ -57,19 +58,18 @@
 ## Да пази доброто име на фирмата, както и да не разпространява информация, считана от РАБОТОДАТЕЛЯ за поверителна.
 <br><br>
 # Права на РАБОТНИКA /СЛУЖИТЕЛЯ/
-
+<!--ET_BEGIN annualLeave--> 
 ## РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/ има право на <b>[#annualLeave#] работни дни платен годишен отпуск</b> съгласно чл. 155 от Кодекса на труда;
-
+<!--ET_END annualLeave-->
 ## РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/ има право да получава трудово възнаграждение, за извършената работа;
 <br><br>
 # Други условия
-
-## Срокът на настоящия трудов договор е <b>[#term#] месеца</b>;
-
+<!--ET_BEGIN probation--> 
 ## Изпитателният срок на настоящия трудов договор е <b>[#probation#]</b>;
-
+<!--ET_END probation-->
+<!--ET_BEGIN notice-->
 ## Срокът за предизвестие за прекратяване на трудовия договор <b>[#notice#]</b> - еднакъв за двете страни;
-
+<!--ET_END notice-->
 ## РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/ се задължава да постъпи на работа на <b>[#startFrom#] г.</b>;
 
 ## За неуредени в настоящия трудов договор условия се прилагат разпоредбите на Кодекса на труда и нормативните актове на българското законодателство.
