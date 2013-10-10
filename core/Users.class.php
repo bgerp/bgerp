@@ -1138,10 +1138,8 @@ class core_Users extends core_Manager
      */
     static function getRealIpAddr()
     {
- 
-        $ip = $_SERVER['REMOTE_ADDR'];
-        
-        return $ip;
+         
+        return $_SERVER['REMOTE_ADDR'];
     }
     
     
