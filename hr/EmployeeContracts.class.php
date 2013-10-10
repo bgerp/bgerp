@@ -19,7 +19,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf';
+    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf, doc_DocumentIntf, bgerp_plg_Blank';
     
     
     /**
@@ -404,9 +404,13 @@ class hr_EmployeeContracts extends core_Master
         $contract = $lsTpl->render($row);
 
         $res = new ET("[#toolbar#]
-        <div class='document'>[#contract#]</div> <div style='clear:both;'></div>
+        <div class='document'>
+		[#blank#]<br>
+		[#contract#]</div> <div style='clear:both;'></div>
         
         ");
+        
+        $res->replace($mvc->renderSingleLayout($data), 'blank');
         
         $res->replace($contract, 'contract');
         
