@@ -20,7 +20,7 @@ class cash_Rko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -34,7 +34,7 @@ class cash_Rko extends core_Master
      */
      var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank';
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg';
     
     
     /**
@@ -556,5 +556,18 @@ class cash_Rko extends core_Master
             'currencyCode' => currency_Currencies::getCodeById($rec->currencyId),
             'valior'       => $rec->valior,
         );
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашият разходен касов ордер") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
