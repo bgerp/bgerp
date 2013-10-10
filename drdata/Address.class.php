@@ -390,8 +390,7 @@ class drdata_Address extends core_MVC
                     $expected['country'] = 12;
                 }
 
-
-                if(($r = ($companyCnt + 0.03 * $titleCaseCnt + 0.1 * $upperCaseCnt)/$i + ($expected['company'] ? 0.2 : 0)) > 0.65) {
+                if(($r = ($companyCnt + 0.03 * $titleCaseCnt + 0.1 * $upperCaseCnt)/(($i == $wordsCnt) ? ($i*($i/10)) : $i) + ($expected['company'] ? 0.2 : 0)) > 0.65) {
                     $res[$id]->add('company', array(trim($l)), round($r, 2));
                     $expected['address'] = 5;
                     $expected['country'] = 10;
