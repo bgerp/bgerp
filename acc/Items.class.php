@@ -496,13 +496,14 @@ class acc_Items extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
-    		$listId = Request::get('listId', 'int');
-    		expect($listRec = acc_Lists::fetch($listId));
-    		
-    		if($listRec->regInterfaceId){
-    			$data->toolbar->removeBtn('btnAdd');
-    		} else {
-    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
+    		if($listId = Request::get('listId', 'int')){
+    			expect($listRec = acc_Lists::fetch($listId));
+    			
+	    		if($listRec->regInterfaceId){
+	    			$data->toolbar->removeBtn('btnAdd');
+	    		} else {
+	    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
+	    		}
     		}
     	}
     }
