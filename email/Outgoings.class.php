@@ -738,11 +738,19 @@ class email_Outgoings extends core_Master
             static::_send($rec, (object)$options, $lg);
         }
         
-        // Ако активираме имейла
-        if ($rec->__activation) {
+        // Ако активираме или директно изпращаме имейла
+        if ($rec->__activation || $mvc->flagSendIt) {
             
-            // Вземаме целия запис
-            $nRec = $mvc->fetch($rec->id);
+            // Ако има id
+            if ($rec->id) {
+                
+                // Вземаме целия запис
+                $nRec = $mvc->fetch($rec->id);
+            } else {
+                
+                // Клонираме
+                $nRec = clone($rec);
+            }
             
             // Записваме обръщението в модела
             email_Salutations::create($nRec);
