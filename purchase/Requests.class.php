@@ -734,6 +734,9 @@ class purchase_Requests extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if($rec->state != 'draft'){
+    		$state = $rec->state;
+    		$rec = $mvc->fetch($id);
+    		$rec->state = $state;
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
