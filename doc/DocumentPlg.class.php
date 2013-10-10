@@ -126,7 +126,7 @@ class doc_DocumentPlg extends core_Plugin
                     $data->rec->id,
                     'ret_url' => TRUE
                 ),
-                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
+                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32,title=Оттегляне на документа');
         }
         
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state == 'rejected')) {
@@ -154,7 +154,7 @@ class doc_DocumentPlg extends core_Plugin
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl
                     ),
-                    'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png');
+                    'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
             }
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
@@ -181,7 +181,7 @@ class doc_DocumentPlg extends core_Plugin
                             'clone' => 'clone',
                             'ret_url'=>$retUrl
                         ),
-                        'order=14, row=2', 'ef_icon = img/16/page_copy.png');    
+                        'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');    
                 }
             }
         }

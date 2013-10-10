@@ -70,10 +70,14 @@ class acc_plg_Contable extends core_Plugin
             
             $res = new core_Redirect($redirUrl, $notifMsg, $notifType);
             
-            return FALSE; // Прекатяваме изпълнението на екшъна до тук
+            return FALSE; // Прекратяваме изпълнението на екшъна до тук
         }
     }
     
+    
+    /**
+     * След създаване на коригиращ документ
+     */
     public static function on_AfterCreateCorrectionDocument(core_Manager $mvc, &$corrRec, $rec)
     {
         $corrRec = clone $rec;
@@ -177,7 +181,7 @@ class acc_plg_Contable extends core_Plugin
 	           'ret_url' => TRUE
             	);
         	
-            $data->toolbar->addBtn("Контиране", $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png');
+            $data->toolbar->addBtn("Контиране", $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $data->rec)) {
@@ -188,7 +192,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
         }
         
         if ($mvc->haveRightFor('correction', $data->rec)) {
@@ -198,13 +202,13 @@ class acc_plg_Contable extends core_Plugin
                 $data->rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$data->rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?");
+            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$data->rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на документ корекция");
         }
         
         $journalRec = acc_Journal::fetch("#docId={$data->rec->id} && #docType='{$mvc::getClassId()}'");
 		if(($data->rec->state == 'active' || $data->rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
     		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
-    		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png');
+    		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на транзакцията в журнала');
     	}
     }
     
