@@ -47,6 +47,10 @@ class type_Varchar extends core_Type {
             $attr['type'] = $this->inputType;
         }
         
+        if($this->params['readonly']) {
+            $attr['readonly'] = 'readonly';
+        }
+        
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
