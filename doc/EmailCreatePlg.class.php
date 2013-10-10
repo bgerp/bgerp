@@ -42,7 +42,7 @@ class doc_EmailCreatePlg extends core_Plugin
                     'originId' => $data->rec->containerId,
                     'ret_url'=>$retUrl
                 ),
-                'ef_icon = img/16/email_edit.png', 'onmouseup=saveSelectedTextToSession();');
+                'ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл', 'onmouseup=saveSelectedTextToSession();');
         }
     }
 }
