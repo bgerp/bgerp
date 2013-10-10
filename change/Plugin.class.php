@@ -73,9 +73,6 @@ class change_Plugin extends core_Plugin
         // Ако екшъна не е changefields, да не се изпълнява
         if (strtolower($action) != 'changefields') return ;
         
-        // Ако има права за едитване
-        $mvc->requireRightFor('edit');
-        
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
         
@@ -83,7 +80,7 @@ class change_Plugin extends core_Plugin
         $form = $mvc->getForm();
         
         // Вземаме всички позволени полета
-        $allowedFieldsArr = static::getAllowedFields($form);
+        $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
         
         // Очакваме да има зададени полета, които ще се променят
         expect(count($allowedFieldsArr));
@@ -243,11 +240,17 @@ class change_Plugin extends core_Plugin
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
         
-        // Титлата на документа
-        $title = $mvc->getDocumentRow($form->rec->id)->title;
+        $form->title = 'Промяна';
         
-        // Титлата на формата
-        $form->title = "Промяна на|*: <i>{$title}</i>";
+        try {
+            // Титлата на документа
+            $title = $mvc->getDocumentRow($form->rec->id)->title;
+            
+            if ($title) {
+                // Титлата на формата
+                $form->title .= " на|*: <i>{$title}</i>";
+            }
+        } catch (Exception $e) {}
         
         // Ако има стринг за версията
         if ($versionStr) {
@@ -288,7 +291,7 @@ class change_Plugin extends core_Plugin
         $form = $mvc->getForm();
         
         // Вземаме всички полета, които могат да се променят
-        $allowedFieldsArr = (array)static::getAllowedFields($form);
+        $allowedFieldsArr = (array)static::getAllowedFields($form, $mvc->changableFields);
         
         // Ако има избрана версия
         if ($selVerArr['first']) {
@@ -382,7 +385,7 @@ class change_Plugin extends core_Plugin
      * 
      * return array $allowedFieldsArr
      */
-    static function getAllowedFields($form)
+    static function getAllowedFields($form, $changableFields=array())
     {
         // Масива, който ще връщаме
         $allowedFieldsArr = array();
@@ -397,6 +400,12 @@ class change_Plugin extends core_Plugin
                 $allowedFieldsArr[$field] = $field;
             }
         }
+        
+        // Преобразуваме в масив
+        $changableFieldsArr = arr::make($changableFields, TRUE);
+        
+        // Събираме двата масива
+        $allowedFieldsArr += $changableFieldsArr;
         
         return $allowedFieldsArr;
         
@@ -424,7 +433,7 @@ class change_Plugin extends core_Plugin
                 if ($rec->state != 'draft') {
                     
                     // Вземаме всички, полета които могат да се променят
-                    $allowedFieldsArr = static::getAllowedFields($form);
+                    $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
                     
                     // Масив с полетата, които не са се променили
                     $noChangeArr = array();
