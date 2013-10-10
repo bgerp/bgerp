@@ -78,7 +78,7 @@ class plg_RowTools extends core_Plugin
             $editUrl = $mvc->getEditUrl($rec);
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " alt=\"" . tr('Редакция') . "\">";
 
-            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
+            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id},title=Редактиране на " . mb_strtolower($mvc->singleTitle));
         }
         
          if ($mvc->haveRightFor('delete', $rec)) {
@@ -91,7 +91,7 @@ class plg_RowTools extends core_Plugin
         	);
         	
         	$deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id}");
+                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id},title=Изтриване на " . mb_strtolower($mvc->singleTitle));
         } else {
         	$loadList = arr::make($mvc->loadList);
         	if(in_array('plg_Rejected', $loadList)){
@@ -103,7 +103,7 @@ class plg_RowTools extends core_Plugin
 			            'id' => $rec->id,
 			            'ret_url' => TRUE);
 			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id}");
+                		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=Оттегляне на " . mb_strtolower($mvc->singleTitle));
         			
         		} elseif($rec->state == 'rejected' && $mvc->haveRightFor('restore', $rec->id)){
         			$restoreImg = "<img src=" . sbf('img/16/restore.png') . " alt=\"" . tr('Възстановяване') . "\">";
@@ -115,7 +115,7 @@ class plg_RowTools extends core_Plugin
 			            'ret_url' => TRUE);
 			            
 			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
-                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id}");
+                		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=Възстановяване на " . mb_strtolower($mvc->singleTitle));
         		}
         	}
         }
