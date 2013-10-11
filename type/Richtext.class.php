@@ -369,7 +369,7 @@ class type_Richtext extends type_Blob
         
         // Ако сме в тесен режим
         // TODO За тестове
-        if(Mode::is('screenMode', 'narrow') || isDebug()){
+        if(!Mode::is('text', 'plain') && (Mode::is('screenMode', 'narrow') || isDebug())) {
             
             // Хифинираме
             $html = $this->hyphenWords($html);
