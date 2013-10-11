@@ -64,11 +64,16 @@ class google_Translate1
             float: right;
             margin: 0.1em 0.5em;
         }
+        
         @media print {
-        .goog-trans-control, .goog-te-sectional-gadget-checkbox-text, .goog-te-sectional-gadget-link-text {
-            display:none !important;
+            .goog-trans-control, .goog-te-sectional-gadget-checkbox-text, .goog-te-sectional-gadget-link-text {
+                display:none !important;
+            }
         }
-        }
+        
+        #goog-gt-tt {
+        	display: none !important;
+		}
         ';
     
     
