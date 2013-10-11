@@ -16,14 +16,14 @@ class hljs_RichTextPlg extends core_Plugin
     
     
     /**
-     * Прихваща извикването на AfterCatchRichElements в fileman_Files
+     * Прихваща извикването на AfterHighLightCode в type_Richtext
      */
-    function on_AfterCatchRichElements(&$mvc, &$html)
+    function on_AfterHighLightCode(&$mvc, $style='github')
     {
-        // Вземаме място
-        $place = $mvc->getPlace();
+        // Ако има въведено, да не се въвежда
+        if ($mvc->_htmlBoard['hljs']) return ;
         
         // Добавяме шаблона
-        $mvc->_htmlBoard[$place] = hljs_Adapter::enable('github');
+        $mvc->_htmlBoard['hljs'] = hljs_Adapter::enable($style);
     }
 }
