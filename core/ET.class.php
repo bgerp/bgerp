@@ -135,8 +135,9 @@ class core_ET extends core_BaseClass
      * Добава обграждащите символи към даден стринг,
      * за да се получи означение на плейсхолдър
      */
-    function toPlace($name)
+    static function toPlace($name)
     {
+        
         return "[#{$name}#]";
     }
     
