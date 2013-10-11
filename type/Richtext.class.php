@@ -686,6 +686,25 @@ class type_Richtext extends type_Blob
      */
     function _catchOneLineCode($match)
     {
+        // Ако има част от плейсхолдер
+        // За да не се вкарва в инлайн блоковите елементи
+        if (strpos($match['text'], '#')) {
+            
+            // Обхождаме масива с дъските
+            foreach ((array)$this->_htmlBoard as $htmlBoard => $dummy) {
+                
+                // Вземаме плейсхолдера
+                $placeBoard = core_ET::toPlace($htmlBoard);
+                
+                // Ако се съдржа в текста
+                if (strpos($match['text'], $placeBoard) !== FALSE) {
+                    
+                    // Връщаме текст
+                    return $match[0];
+                }
+            }
+        }
+        
         // Мястото
         $place = $this->getPlace();
         
