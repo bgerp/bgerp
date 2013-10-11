@@ -263,12 +263,8 @@ class bank_DepositSlips extends core_Master
     	if($fields['-single']) {
     		$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-	        
-	    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-    		if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
-    	}
+	        $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    }
     }
     
     
@@ -284,7 +280,18 @@ class bank_DepositSlips extends core_Master
 		}
 	}
 
-	 
+
+    /**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    }
+    
+    
 	/**
      * Вкарваме css файл за единичния изглед
      */

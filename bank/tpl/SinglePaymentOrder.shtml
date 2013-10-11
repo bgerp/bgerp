@@ -1,9 +1,9 @@
 [#SingleToolbar#]
 <div class='document'>
-<!--ET_BEGIN header-->
 	<!--ET_BEGIN blank-->
 			[#blank#]
 	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]' style='width:99%'>
 		<div class='docBgIcon' style='[#iconStyle#]'>[#header#]</div>
 	</div>

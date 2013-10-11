@@ -223,11 +223,18 @@ class bank_CashWithdrawOrders extends core_Master
 			
 			$myCompany = crm_Companies::fetchOwnCompany();
 			$row->ordererName = $myCompany->company;
-	    	
-			// При принтирането на 'Чернова' скриваме заглавието
-	    	if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
+	    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    }
+    }
+
+    
+    /**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
     	}
     }
     

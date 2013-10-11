@@ -135,7 +135,7 @@ class sales_Quotations extends core_Master
     var $newBtnGroup = "3.7|Търговия";
     
     
-     /**
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -338,12 +338,7 @@ class sales_Quotations extends core_Master
 				$row->expired = tr("офертата е изтекла");
 			}
 			
-			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-	    	} else {
-	    		unset($row->STATE_CLASS);
-	    	}
-	    
+			$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	$row->number = $mvc->getHandle($rec->id);
 			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			
@@ -428,11 +423,11 @@ class sales_Quotations extends core_Master
     		$header->replace($ownCompanyData->company, 'MyCompany');
 	        $header->replace($ownCompanyData->country, 'MyCountry');
 	    }
-    	
-	   	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-	    	unset($data->row->iconStyle);
-	  	}
 	  	
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    	
     	$tpl->replace($header, 'QUOTE_HEADER');
     	$tpl->push('sales/tpl/styles.css', 'CSS');
     }
@@ -452,7 +447,7 @@ class sales_Quotations extends core_Master
     		} else {
     			
     			// Ако няма задължителни продукти/услуги неможе да се активира
-    			$detailQuery = sales_QuotationsDetails::getQuery();
+    			$detailQuery = $mvc->sales_QuotationsDetails->getQuery();
     			$detailQuery->where("#quotationId = {$rec->id}");
     			$detailQuery->where("#optional = 'no'");
     			if(!$detailQuery->count()){

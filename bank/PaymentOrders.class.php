@@ -248,9 +248,9 @@ class bank_PaymentOrders extends core_Master
 	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
-	    	if(!Mode::is('printing')){
+	    	//if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
+	    	//}
 	    }
     }
     
@@ -366,5 +366,16 @@ class bank_PaymentOrders extends core_Master
         $tpl = new ET(tr("Моля запознайте се с нашето платежно нареждане") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+    /**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
     }
 }
