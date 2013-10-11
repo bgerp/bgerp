@@ -1240,7 +1240,7 @@ class email_Outgoings extends core_Master
         $className = $document->className;
         
         //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
-        if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+        if (cls::haveInterface('email_DocumentIntf', $className)) {
             $body = $className::getDefaultEmailBody($document->that, $forward);
         }
         

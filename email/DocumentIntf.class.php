@@ -16,5 +16,11 @@
  */
 class email_DocumentIntf extends doc_DocumentIntf
 {
-    
+	/**
+     * Връща тялото по подразбиране на имейл-а
+     */
+    function getDefaultEmailBody($originId)
+    {
+        return $this->class->getDefaultEmailBody($originId);
+    }
 }
