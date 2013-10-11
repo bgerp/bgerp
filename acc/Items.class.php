@@ -513,7 +513,6 @@ class acc_Items extends core_Manager
 	    		}
     		}
     	}
-    	//bp($data->toolbar);
     }
     
     

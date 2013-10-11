@@ -60,6 +60,12 @@ class acc_Periods extends core_Manager
     
     
     /**
+     * Кой може да пише?
+     */
+    var $canClose = 'ceo,acc';
+    
+    
+    /**
      * Кой може да редактира системните данни
      */
     var $canEditsysdata = 'ceo,acc';
