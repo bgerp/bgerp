@@ -43,7 +43,7 @@ class plg_Printing extends core_Plugin
         //self::addCmdParams($url);
         
         $data->toolbar->addBtn('Печат', $url,
-            'id=btnPrint,target=_blank','ef_icon = img/16/printer.png');
+            'id=btnPrint,target=_blank','ef_icon = img/16/printer.png,title=Печат на страницата');
     }
     
     
@@ -86,7 +86,7 @@ class plg_Printing extends core_Plugin
         self::addCmdParams($url);
 
         // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png');
+        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
     }
     
     
