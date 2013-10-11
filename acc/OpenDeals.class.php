@@ -219,9 +219,7 @@ class acc_OpenDeals extends core_Manager {
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-    	if(!Request::get('Rejected', 'int')){
-    		$data->toolbar->buttons['binBtn']->url['show'] = Request::get('show');
-    	} else {
+    	if(Request::get('Rejected', 'int')){
     		$data->toolbar->buttons['listBtn']->url = array($mvc, 'list', 'show' => Request::get('show'));
     	}
     }
