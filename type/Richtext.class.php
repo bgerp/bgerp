@@ -580,6 +580,9 @@ class type_Richtext extends type_Blob
         
         $this->_htmlBoard[$place] = $code1;
         
+        // Инвокваме кода за highlight
+        $this->invoke('AfterHighLightCode');
+        
         return "[#{$place}#]";
     }
     
