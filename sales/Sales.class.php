@@ -948,6 +948,8 @@ class sales_Sales extends core_Master
         if ($rec->isInstantShipment == 'yes') {
             $row->shipmentStoreId .= ' (на момента)';
         }
+        
+        $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     }
     
     
@@ -1387,5 +1389,16 @@ class sales_Sales extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
     }
 }
