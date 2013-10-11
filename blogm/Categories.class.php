@@ -36,31 +36,31 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Кой може да добавя 
 	 */
-	var $canAdd='cms, ceo, admin';
+	var $canAdd='cms, ceo, admin, blog';
 	
 	
 	/**
 	 * Кой може да редактира
 	 */
-	var $canEdit='cms, ceo, admin';
+	var $canEdit='cms, ceo, admin, blog';
 	
 	
 	/**
 	 * Кой може да изтрива
 	 */
-	var $canDelete='cms, ceo, admin';
+	var $canDelete='cms, ceo, admin, blog';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	var $canList = 'ceo, admin, cms, blog';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	var $canSingle = 'ceo, admin, cms, blog';
 	
 	
 	/**

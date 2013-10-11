@@ -73,25 +73,25 @@ class blogm_Articles extends core_Master {
 	/**
 	 * Кой може да листва статии и да чете  статия
 	 */
-	var $canRead = 'cms, ceo, admin';
+	var $canRead = 'cms, ceo, admin, blog';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	var $canList = 'ceo, admin, cms, blog';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	var $canSingle = 'ceo, admin, cms, blog';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива статия
 	 */
-	var $canWrite = 'cms, ceo, admin';
+	var $canWrite = 'cms, ceo, admin, blog';
 	
 	/**
 	 * Кой може да вижда публичните статии
