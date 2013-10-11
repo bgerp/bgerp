@@ -218,6 +218,21 @@ class core_ET extends core_BaseClass
     
     
     /**
+     * Премахва блок от шаболона
+     * @param string $blockName - име на шаблона
+     */
+    public function removeBlock($blockName)
+    {
+    	expect($mp = $this->getMarkerPos($blockName));
+    	
+    	$contentBeforeBlock = substr($this->content, 0, $mp->beginStart);
+        $contentAfterBlock = substr($this->content, $mp->endStop);
+    	
+    	$this->content = $contentBeforeBlock . $contentAfterBlock;
+    }
+    
+    
+    /**
      * ,
      * removeBlocks()
      * ,
