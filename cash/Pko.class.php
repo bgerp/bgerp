@@ -21,7 +21,7 @@ class cash_Pko extends core_Master
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, 
-                        bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+                        bgerp_DealIntf, email_DocumentIntf';
    
     
     /**
