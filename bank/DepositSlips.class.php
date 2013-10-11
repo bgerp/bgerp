@@ -32,8 +32,8 @@ class bank_DepositSlips extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues';
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
+     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**
@@ -329,5 +329,18 @@ class bank_DepositSlips extends core_Master
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	 $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата вносна бележка") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
