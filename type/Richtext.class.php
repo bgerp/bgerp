@@ -270,12 +270,6 @@ class type_Richtext extends type_Blob
             $html = preg_replace_callback($patternBold, array($this, '_catchBold'), $html);   
         }
         
-        // Регулярен израз за откриване на думите за хифениране
-        // Думи без интервал по подълги от зададена в констатнтата
-        // Шунтирано е, защото разваля текста, като добавя символи в явните линкове и имейли
-//        $regExpHyphenWord = "/(\S){" . static::TRANSFER_WORD_MIN_LENGTH . ",}/ui";
-//        $html = preg_replace_callback($regExpHyphenWord, array($this, '_hyphenWord'), $html);
-        
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
@@ -371,6 +365,14 @@ class type_Richtext extends type_Blob
             $html = $st1;
             
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
+        }
+        
+        // Ако сме в тесен режим
+        // TODO За тестове
+        if(Mode::is('screenMode', 'narrow') || isDebug()){
+            
+            // Хифинираме
+            $html = $this->hyphenWords($html);
         }
         
         if(!Mode::is('text', 'plain')) {
@@ -724,14 +726,43 @@ class type_Richtext extends type_Blob
     }
 	
     
+    /**
+     * Добавя хифинация на думи с определена дължина, които не са в шаблон или HTML
+     * 
+     * @param string $html
+     * 
+     * @return string $html
+     */
+    static function hyphenWords_($html)
+    {
+        // Шаблона, за намиране, на думите, които ще хифинираме
+        $pattern = "/(\[#[^\#\]]*\#\])|(\<[^\>]*\>)|([\s]+)|(?'words'[^\s\<\[\#\]]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
+        
+        // Намираме думите
+        preg_match_all($pattern, $html, $matches);
+        
+        // Обхождаме масива
+        foreach ((array)$matches['words'] as $match) {
+            
+            // Ако има текст
+            if (!trim($match)) continue;
+            
+            // Хифенираме думата
+            $hyphenedStr = static::getHyphenWord($match);
+            
+            // Заместваме
+            $html = str_replace($match, $hyphenedStr, $html);
+        }
+        
+        return $html;
+    }
+    
+    
 	/**
      * Хифенира стринговете
      */
-    function _hyphenWord($match)
+    static function getHyphenWord($string)
     {
-        // Ако е плейсхолдер
-        if ((strpos($match[0], '[#') !== FALSE) && (strpos($match[0], '#]') !== FALSE)) return $match[0];
-            
         // Брояча за сивмовилите
         $i = 0;
         
@@ -742,7 +773,7 @@ class type_Richtext extends type_Blob
         $resStr = '';
         
         // Обхождаме всички символи
-        while('' != ($char = core_String::nextChar($match[0], $p))) {
+        while('' != ($char = core_String::nextChar($string, $p))) {
 
             // Флаг, дали да се добавя знак за хифенация
             $addHyphen = FALSE;
@@ -763,7 +794,7 @@ class type_Richtext extends type_Blob
             $pNext += strlen($char);
             
             // Взмема следващия символ
-            $nextChar = core_String::nextChar($match[0], $pNext);
+            $nextChar = core_String::nextChar($string, $pNext);
             
             // Ако има следващ
             if ($nextChar != '') {
