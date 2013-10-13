@@ -149,4 +149,47 @@ class core_Browser extends core_Manager
             return TRUE;
         }
     }
+
+
+    /**
+     * Намира името на бота, ако той е клиента
+     */
+    static function detectBot($userAgent = NULL)
+    {
+        setIfNot($userAgent, $_SERVER['HTTP_USER_AGENT']);
+
+        $bots = array(
+            'Google' => 'Google',
+            'msnbot' => 'MSN',
+            'Rambler' => 'Rambler',
+            'Yahoo' => 'Yahoo',
+            'AbachoBOT' => 'AbachoBOT',
+            'accoona' => 'Accoona',
+            'AcoiRobot' => 'AcoiRobot',
+            'ASPSeek' => 'ASPSeek',
+            'CrocCrawler' => 'CrocCrawler',
+            'Dumbot' => 'Dumbot',
+            'FAST-WebCrawler' => 'FAST-WebCrawler',
+            'GeonaBot' => 'GeonaBot',
+            'Gigabot' => 'Gigabot',
+            'Lycos' => 'Lycos spider',
+            'MSRBOT' => 'MSRBOT',
+            'Scooter' => 'Altavista robot',
+            'AltaVista' => 'Altavista robot',
+            'IDBot' => 'ID-Search Bot',
+            'eStyle' => 'eStyle Bot',
+            'Scrubby' => 'Scrubby robot',
+        );
+     
+        foreach ($bots as $str => $botName)
+        {
+            if (stristr($userAgent, $str) !== FALSE) {
+            
+                return $botName;
+            }
+        }
+     
+        return FALSE;
+    }
+
 }
