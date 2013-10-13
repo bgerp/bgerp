@@ -1064,12 +1064,18 @@ class core_App
         $errHtml .= static::renderStack($stack);
 
         $errHtml .= core_Debug::getLog();
+
         if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
-		} 
+		}
+
         file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml ."<br>" . date("Y-m-d H:i:s"));
         
+        // Сигнал за външния свят, че нещо не е наред
+        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', TRUE, 500);
+
         header('Content-Type: text/html; charset=UTF-8');
+
         echo($errHtml);
         
        exit(-1);
