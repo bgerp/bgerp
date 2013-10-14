@@ -192,23 +192,10 @@ class acc_Balances extends core_Master
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
-        $form = $data->listFilter;
-        
-        // В хоризонтален вид
-        $form->view = 'horizontal';
-        
-        // Добавяме бутон
-        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $form->showFields = 'periodId';
-        
-        $form->input('periodId', 'silent');
-              
-        $data->query->where(array("#periodId = '[#1#]'", $form->rec->periodId));
+        $data->query->orderBy('#toDate', 'DESC');
     }
     
+
     /**
      * @todo Чака за документация...
      */
