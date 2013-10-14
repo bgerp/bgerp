@@ -6,7 +6,7 @@ class acc_journal_Account
      *
      * @var stdClass
      */
-    protected $rec;
+    var $rec;
     
 
     /**
