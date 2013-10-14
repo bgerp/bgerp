@@ -40,9 +40,18 @@ class cms_Articles extends core_Manager
      */
     var $listFields = 'level,title,state,modifiedOn,modifiedBy';
     
+
+    /**
+     * В коя колонка да са инструментите за реда
+     */
     var $rowToolsField = 'level';
-     
+    
+
+    /**
+     * По кои полета да се прави пълнотекстово търсене
+     */
     var $searchFields = 'title,body';
+
 
     /**
      * Кой може да пише?
@@ -289,7 +298,7 @@ class cms_Articles extends core_Manager
                 $navTpl->append('&nbsp;');
                 $navTpl->append(
                     ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
-                                    array('A', 'Edit', $rec1->id, 'ret_url' => array('A', 'a', $rec1->id) ))); 
+                                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('A', 'a', $rec1->id) ))); 
             }
 
             $navTpl->append("</div>");
