@@ -421,6 +421,22 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	// Проверяваме дали имаме въведени позиции
+    	$query = hr_Positions::getQuery();
+       
+    	if($query->fetchAll() == FALSE){
+        	
+    		// Ако няма, изискваме от потребителя да въведе
+    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
+    	}
+    }
+    
+    
+    /**
      * Връща заглавието и мярката на перото за продукта
      *
      * Част от интерфейса: intf_Register
