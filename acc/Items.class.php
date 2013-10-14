@@ -450,25 +450,6 @@ class acc_Items extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
-     */
-    function getItemsKeys($objectKeys, $listId)
-    {
-        $query = $this->getQuery();
-        $query->where("#lists LIKE '%|{$listId}|%'");
-        $query->where("#objectId IN (" . implode(',', $objectKeys) . ')');
-        
-        $result = array();
-        
-        while ($rec = $query->fetch()) {
-            $result[$rec->objectId] = $rec->id;
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
      * 
      */
     public static function prepareObjectLists($data)
@@ -681,7 +662,7 @@ class acc_Items extends core_Manager
     public static function on_Shutdown($mvc)
     {
         foreach ($mvc->touched as $rec) {
-            $mvc->save($rec);
+            $mvc->save($rec, 'state, lastUseOn');
         }
     }
 }
