@@ -46,7 +46,17 @@ class acc_plg_Contable extends core_Plugin
      * @param string $action
      */
     public static function on_BeforeAction(core_Manager $mvc, &$res, $action)
-    {
+    {   
+        if( strtolower($action) == strtolower('getTransaction')) {
+
+            $id = Request::get('id', 'int');
+            $rec = $mvc->fetch($id);
+            $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+            $transaction       = $transactionSource->getTransaction($rec);
+            
+            bp($transaction);
+        }
+
         if ($action == 'correction') {
             $mvc->requireRightFor('correction');
 
@@ -148,14 +158,19 @@ class acc_plg_Contable extends core_Plugin
         }
     }
     
-    
+
     /**
      * Добавя бутони за контиране или сторниране към единичния изглед на документа
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
+    {   
+        if(haveRight('debug')) {
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $data->rec->id));
+        }
+
         if ($mvc->haveRightFor('conto', $data->rec)) {
-        	
+            
+
         	// Ако документа е в бъдещ/затворен или несъществуващ период,
         	// бутона става не-активен
         	$docPeriod = acc_Periods::fetchByDate($data->rec->valior);
@@ -168,6 +183,11 @@ class acc_plg_Contable extends core_Plugin
         	} else {
         		$error = ",error=Неможе да се контира в несъществуващ сч. период";
         	}
+
+            if (!$this->hasContableTransaction($mvc, $data->rec, $res)) {
+                $error = ",error=Документа не генерира валидна транзакция.\\n" . $res;
+            }
+
             
             $contoUrl = array(
 	           'acc_Journal',
@@ -206,6 +226,8 @@ class acc_plg_Contable extends core_Plugin
     		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
     		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png');
     	}
+
+
     }
     
     
@@ -236,10 +258,6 @@ class acc_plg_Contable extends core_Plugin
     {
         if ($action == 'conto') {
             if ($rec->id && $rec->state != 'draft') {
-                $requiredRoles = 'no_one';
-            }
-            
-            if (!$this->hasContableTransaction($mvc, $rec)) {
                 $requiredRoles = 'no_one';
             }
         } elseif ($action == 'revert') {
@@ -289,13 +307,14 @@ class acc_plg_Contable extends core_Plugin
      * @param stdClass $rec
      * @return boolean
      */
-    protected static function hasContableTransaction(core_Manager $mvc, $rec)
+    protected static function hasContableTransaction(core_Manager $mvc, $rec, &$res = NULL)
     {
-        return $rec->isContable == 'yes';
+        //return $rec->isContable == 'yes';
         
         try {
             $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
         } catch (acc_journal_Exception $ex) {
+            $res = $ex->getMessage();
             $result = FALSE;
         }
         
@@ -311,7 +330,7 @@ class acc_plg_Contable extends core_Plugin
      * @param int|object $id първичен ключ или запис на $mvc
      */
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
-    {
+    { 
         $rec = $mvc->fetchRec($id);
         
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
@@ -390,34 +409,21 @@ class acc_plg_Contable extends core_Plugin
             $transaction = FALSE;
             return;
         }
-        
+   
         $rec = $mvc->fetchRec($rec);
         
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec);
         
+        static $d;
+        $d++;
+
+
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         
         // Проверяваме валидността на транзакцията
         $transaction = new acc_journal_Transaction($transaction);
 
-        if ($rec->isCorrection == 'yes') {
-            // Документ-корекция. Намираме транзакцията на оригинала, обръщаме знаците
-            // на количествата и сумите на всички нейни записи и добавяме тези записи към 
-            // вече генерираната от текущия документ транзакция
-            
-            expect($origRef = doc_Containers::getDocument($rec->originId));
-            
-            // Генерираме транзакцията на коригирания (т.е. оригиналния) документ
-            $origTransaction = $transactionSource->getTransaction($origRef->id());
-            $origTransaction = new acc_journal_Transaction($origTransaction);
-
-            // Обръщаме оригиналната транзакция
-            $origTransaction->invert();
-            
-            // Добавяме записите на обратната транзакция към записите на текущата
-            $transaction->join($origTransaction);
-        }
         
         $transaction->check();
     }
