@@ -102,7 +102,31 @@ class hr_Positions extends core_Detail
 
     }
     
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	// Ако методък е "изтриване"   	
+    	if($action == 'delete' && isset($rec)){
 
+    		// и имаме активиран договор с тази позиция
+    		if(hr_EmployeeContracts::fetch(array("#positionId = '[#1#]' AND #state = 'active'", $rec->id))){
+    			
+	    		// никой не може да изтрие позицията
+	    		$requiredRoles = 'no_one';
+    		}
+    	}
+    }
+    
+    
     function on_CalcName($mvc, $rec)
     {
         if($rec->departmentId) {
