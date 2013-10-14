@@ -242,6 +242,11 @@ if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
  */
 defIfNot('EF_APP_CODE_NAME', EF_APP_NAME);
 
+/**
+ * Времето в секунди за изчакване при рефреш на портала
+ */
+defIfNot('BGERP_DOCUMENT_SLEEP_TIME', 0);
+
 // Разрешаваме грешките, ако инсталацията е Debug
 ini_set("display_errors", isDebug());
 ini_set("display_startup_errors", isDebug());
