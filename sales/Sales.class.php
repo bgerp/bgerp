@@ -948,6 +948,8 @@ class sales_Sales extends core_Master
         if ($rec->isInstantShipment == 'yes') {
             $row->shipmentStoreId .= ' (на момента)';
         }
+        
+        $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     }
     
     
@@ -1372,6 +1374,9 @@ class sales_Sales extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if($rec->state != 'draft'){
+    		$state = $rec->state;
+    		$rec = $mvc->fetch($id);
+    		$rec->state = $state;
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
@@ -1384,5 +1389,16 @@ class sales_Sales extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
     }
 }

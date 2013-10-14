@@ -32,8 +32,8 @@ class bank_DepositSlips extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues';
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
+     	plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**
@@ -263,12 +263,8 @@ class bank_DepositSlips extends core_Master
     	if($fields['-single']) {
     		$spellNumber = cls::get('core_SpellNumber');
 			$row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', FALSE);
-	        
-	    	// При принтирането на 'Чернова' скриваме системите полета и заглавието
-    		if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
-    	}
+	        $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
+	    }
     }
     
     
@@ -284,7 +280,18 @@ class bank_DepositSlips extends core_Master
 		}
 	}
 
-	 
+
+    /**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    }
+    
+    
 	/**
      * Вкарваме css файл за единичния изглед
      */
@@ -329,5 +336,18 @@ class bank_DepositSlips extends core_Master
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	 $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата вносна бележка") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

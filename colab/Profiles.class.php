@@ -164,6 +164,10 @@ class colab_Profiles extends core_Master
         }
         
         $tpl = $form->renderHtml();
+        
+        unset($this->Profile->loadList);
+        $this->Profile->load('colab_Wrapper');
+        
         $tpl = $this->Profile->renderWrapping($tpl);
         
         return $tpl;

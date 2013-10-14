@@ -446,10 +446,10 @@ class doc_Containers extends core_Manager
             
             // Ако няма id на документ, изчакваме една-две секунди, 
             // защото може този документ да се създава точно в този момент
-            if(!$rec->docId) sleep(1);
+            if(!$rec->docId) sleep((int)'BGERP_DOCUMENT_SLEEP_TIME');
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
-            if(!$rec->docId) sleep(1);
+            if(!$rec->docId) sleep((int)'BGERP_DOCUMENT_SLEEP_TIME');
             $rec = doc_Containers::fetch($id, 'docId, docClass');
         } else {
             $rec = $id;

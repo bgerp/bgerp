@@ -32,7 +32,7 @@ class bank_PaymentOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary, plg_Search,
-     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues';
+     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -248,9 +248,9 @@ class bank_PaymentOrders extends core_Master
 	    	
 	    	
 	    	// При принтирането на 'Чернова' скриваме системните полета и заглавието
-	    	if(!Mode::is('printing')){
+	    	//if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
+	    	//}
 	    }
     }
     
@@ -353,5 +353,29 @@ class bank_PaymentOrders extends core_Master
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	 $data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашето платежно нареждане") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
+    }
+    
+    
+    /**
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
     }
 }

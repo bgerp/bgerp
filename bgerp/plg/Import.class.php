@@ -73,7 +73,7 @@ class bgerp_plg_Import extends core_Plugin
     	// Добавяне на бутон за импортиране, ако има инсталирани драйвъри
     	if($mvc->haveRightFor('import')){
     		$url = array($mvc, 'import', 'retUrl' => TRUE);
-    		$data->toolbar->addBtn('Импорт', $url, NULL, 'ef_icon=img/16/import16.png');
+    		$data->toolbar->addBtn('Импорт', $url, NULL, 'ef_icon=img/16/import16.png,title=Импортиране на ' . mb_strtolower($mvc->title));
     	}
     }
     

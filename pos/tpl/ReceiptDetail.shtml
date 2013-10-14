@@ -6,7 +6,7 @@
 	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#packagingId#]<!--ET_END packagingId--></td>
 	<td class='receipt-price'>[#price#] <small>[#currency#]</small> 
 	<!--ET_BEGIN discountPercent-->
-	 (<span class='receipt-discount-td'> [#discountPercent#] %</span>)
+	 (<span class='receipt-discount-td'> [#discountPercent#] </span>)
 	<!--ET_END discountPercent-->
 	</td>
 	<td class='receipt-amount'><span class='sale-amount'>[#amount#] <small>[#currency#]</small></span></td>

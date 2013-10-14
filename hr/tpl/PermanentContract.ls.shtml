@@ -5,7 +5,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Днес, [#createdDate#] г. в гр./с [#employerRec_place#], [#employerRec_address#], между: <b>[#employerRec_name#]</b>
 със седалище и адрес на управление [#employerRec_address#],
 регистрирано по фирмено дело № [#employersRec_regCompanyFileNumber#]/[#employersRec_regCompanyFileYear#]г.,
-в [#employersRec_regCourt#] с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
+в [#employersRec_regCourt#] 
+с решение [#employersRec_regDecisionNumber#]/[#employersRec_regDecisionDate#]г.,
 ЕИК: <b>[#employerRec_vatId#]</b>, 
 представлявано от <b>[#managerRec_name#]</b> – с ЕГН: <b>[#managerRec_egn#]</b>
 от една страна, наричан/а/ за краткост в договора <b>РАБОТОДАТЕЛ</b> и<br><br>
@@ -19,8 +20,8 @@
 [#employeeRec_pCode#]
  [#employeeRec_place#], [#employeeRec_address#], 
 лична карта №:[#employeeRec_idCard_idCardNumber#], изд. на [#employeeRec_idCard_idCardIssuedOn#] г., от [#employeeRec_idCard_idCardIssuedBy#], 
-образование: [#education#], 
-специалност: [#specialty#], 
+образование: [#education#],
+специалност: [#specialty#],
 диплома №: [#diplomId#], издадена от [#diplomIssuer#], 
 трудов стаж: [#lengthOfService#],
 на основание чл. 67, ал. 1, във връзка с чл. 70, ал. 1 от Кодекса на труда, се сключи настоящият <b>ТРУДОВ ДОГОВОР</b>:
@@ -34,7 +35,7 @@
 
 ## При условията на <b>[#shiftRec_weekhours#]</b> на седмица работно време с основно месечно трудово възнаграждение в размер на <b>[#salaryBase#] лв.</b>,
 с периодичност на изплащане [#frequensity#] 
-и с допълнително възнаграждение <b>[#forYearsOfService#]</b> за всяка година трудов стаж.
+и с допълнително възнаграждение <b>[#forYearsOfService#]</b> за всяка година трудов стаж. 
 <br><br>
 # РАБОТОДАТЕЛЯТ е длъжен:
 
@@ -57,14 +58,12 @@
 ## Да пази доброто име на фирмата, както и да не разпространява информация, считана от РАБОТОДАТЕЛЯ за поверителна.
 <br><br>
 # Права на РАБОТНИКA /СЛУЖИТЕЛЯ/
-
+ 
 ## РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/ има право на <b>[#annualLeave#] работни дни платен годишен отпуск</b> съгласно чл. 155 от Кодекса на труда;
 
 ## РАБОТНИКЪТ /СЛУЖИТЕЛЯТ/ има право да получава трудово възнаграждение, за извършената работа;
 <br><br>
 # Други условия
-
-## Срокът на настоящия трудов договор е <b>[#term#] месеца</b>;
 
 ## Изпитателният срок на настоящия трудов договор е <b>[#probation#]</b>;
 

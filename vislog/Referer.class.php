@@ -39,19 +39,19 @@ class vislog_Referer extends core_Manager {
     /**
      * Кой може да чете?
      */
-    var $canRead = 'cms,ceo,admin';
+    var $canRead = 'cms, ceo, admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	var $canList = 'ceo, admin, cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	var $canSingle = 'ceo, admin, cms';
 
 
     /**

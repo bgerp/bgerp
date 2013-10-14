@@ -36,6 +36,13 @@ class acc_Items extends core_Manager
      * Активен таб на менюто
      */
     var $menuPage = 'Счетоводство:Настройки';
+
+     
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Перо';
+
     
     /**
      * Кой има право да променя?
@@ -88,13 +95,13 @@ class acc_Items extends core_Manager
     function description()
     {
         // Разпознаваем от човек код на перото.
-        $this->FLD('num', 'varchar(64)', "caption=Код,mandatory,remember=info,notNull,input=none");
+        $this->FLD('num', 'varchar(64)', "caption=Код,mandatory,remember=info,notNull");
         
         // Заглавие
-        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info,input=none');
+        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input,mandatory');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
@@ -259,8 +266,7 @@ class acc_Items extends core_Manager
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        /* @var $form core_Form */
-        $form = $data->form;
+        $form = &$data->form;
         $rec  = &$form->rec;
         
         if (!$rec->id && $rec->classId && $rec->objectId) {
@@ -292,8 +298,13 @@ class acc_Items extends core_Manager
             $form->info = $rec->numTitleLink;
         }
         
-        $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists($rec->classId);
+        $form->setSuggestions('lists', acc_Lists::getPossibleLists($rec->classId));
         $form->setDefault('ret_url', Request::get('ret_url'));
+        
+        if($listId = Request::get('listId', 'int')){
+        	$form->setDefault('lists', array($listId => $listId));
+        	$form->title = "|Добавяне на перо в|* " . acc_Lists::fetchField($listId, 'name');
+        }
         
         if ($rec->id) {
             $form->title = 'Редактиране на перо';
@@ -462,7 +473,27 @@ class acc_Items extends core_Manager
         $classId  = $masterMvc::getClassId();
         $objectId = $data->masterId;
         
+        $data->itemRec = static::fetchItem($classId, $objectId);
         $data->canChange = static::haveRightFor('edit', (object)(array('classId' => $classId, 'objectId' => $objectId)));
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+    		if($listId = $mvc->getCurrentListId()){
+    			expect($listRec = acc_Lists::fetch($listId));
+    			
+	    		if($listRec->regInterfaceId){
+	    			$data->toolbar->removeBtn('btnAdd');
+	    		} else {
+	    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
+	    		}
+    		}
+    	}
     }
     
     

@@ -110,7 +110,7 @@ class doc_FolderPlg extends core_Plugin
             $title = $mvc->getFolderTitle($data->rec->id);
             $data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
                     'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
-                    ),'ef_icon = img/16/folder_new.png');
+                    ),"ef_icon = img/16/folder_new.png,title=Създаване на папка за документи към {$title}");
         }
     }
     

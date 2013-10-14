@@ -93,16 +93,40 @@ class hr_Positions extends core_Detail
         $this->FLD('downpayment', 'enum(yes=Да,no=Не)','caption=Възнаграждение->Аванс');
 
         // Срокове
-        $this->FLD('probation', 'int', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
-        $this->FLD('annualLeave', 'int', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
-        $this->FLD('notice', 'int', "caption=Срокове->Предизвестие,unit=дни,width=6em");
+        $this->FLD('probation', 'time(suggestions=1 мес|2 мес|3 мес|6 мес|9 мес|12 мес,uom=month)', "caption=Срокове->Изпитателен срок,unit=месеца,width=6em");
+        $this->FLD('annualLeave', 'time(suggestions=10 дни|15 дни|20 дни|22 дни|25 дни,uom=days)', "caption=Срокове->Годишен отпуск,unit=дни,width=6em");
+        $this->FLD('notice', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', "caption=Срокове->Предизвестие,unit=дни,width=6em");
 
         // Други условия
         $this->FLD('descriptions', 'richtext(bucket=humanResources)', 'caption=Условия->Допълнителни');
 
     }
     
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
+    {
+    	// Ако методък е "изтриване"   	
+    	if($action == 'delete' && isset($rec)){
 
+    		// и имаме активиран договор с тази позиция
+    		if(hr_EmployeeContracts::fetch(array("#positionId = '[#1#]' AND #state = 'active'", $rec->id))){
+    			
+	    		// никой не може да изтрие позицията
+	    		$requiredRoles = 'no_one';
+    		}
+    	}
+    }
+    
+    
     function on_CalcName($mvc, $rec)
     {
         if($rec->departmentId) {

@@ -49,7 +49,7 @@ class bank_Accounts extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Банкова с-ка";
+    var $singleTitle = "Банкова сметка";
     
     
     /**
@@ -126,7 +126,7 @@ class bank_Accounts extends core_Master {
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
-            $data->form->title = 'Редактиране на банкова с-ка на |*' . $contragentTitle;
+            $data->form->title = 'Редактиране на банкова сметка на |*' . $contragentTitle;
         } else {
             
         	// По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
@@ -142,7 +142,7 @@ class bank_Accounts extends core_Master {
             	$data->form->setDefault('currencyId', $defaultCurrencyId);
             }
                     
-            $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
+            $data->form->title = 'Нова банкова сметка на |*' . $contragentTitle;
         }
         
         if($iban = Request::get('iban')) {

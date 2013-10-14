@@ -53,19 +53,19 @@ class forum_Boards extends core_Master {
 	/**
 	 * Кой може да листва дъските
 	 */
-	var $canRead = 'forum, cms, admin,ceo';
+	var $canRead = 'forum, cms, admin, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'forum,ceo,admin,cms';
+	var $canList = 'forum, ceo, admin, cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'forum,ceo,admin,cms';
+	var $canSingle = 'forum, ceo, admin, cms';
 	
 	
 	/**

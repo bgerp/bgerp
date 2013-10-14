@@ -50,15 +50,6 @@ class doc_ContragentDataIntf
     }
     
     
-    /**
-     * Връща тялото по подразбиране на имейл-а
-     */
-    function getDefaultEmailBody($originId)
-    {
-        return $this->class->getDefaultEmailBody($originId);
-    }
-    
-    
 	/**
      * Връща дали на контрагента се начислява ДДС
      */

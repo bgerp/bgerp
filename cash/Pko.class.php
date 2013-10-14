@@ -21,7 +21,7 @@ class cash_Pko extends core_Master
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, 
-                        bgerp_DealIntf';
+                        bgerp_DealIntf, email_DocumentIntf';
    
     
     /**
@@ -36,7 +36,7 @@ class cash_Pko extends core_Master
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable,
-                     bgerp_DealIntf';
+                     bgerp_DealIntf, doc_EmailCreatePlg';
     
     
     /**
@@ -562,5 +562,18 @@ class cash_Pko extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашият приходен касов ордер") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

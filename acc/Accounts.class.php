@@ -33,11 +33,18 @@ class acc_Accounts extends core_Manager
      * Активен таб на менюто
      */
     var $menuPage = 'Счетоводство:Настройки';
+
+     
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Сметкоплан';
+
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,acc,cat';
+    var $canRead = 'ceo,acc';
     
     
     /**
@@ -49,7 +56,7 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,acc,cat';
+    var $canAdd = 'ceo,acc';
     
     
     
@@ -62,7 +69,7 @@ class acc_Accounts extends core_Manager
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,acc,cat';
+    var $canView = 'ceo,acc';
     
     
     /**
@@ -75,6 +82,12 @@ class acc_Accounts extends core_Manager
      * Кой има право да променя системните данни?  
      */  
     var $canEditsysdata = 'acc';
+    
+    
+    /**
+     * Кой може да променя състоянието и ...;
+     */
+    var $canAdmin = 'ceo,acc';
 
     
     /**

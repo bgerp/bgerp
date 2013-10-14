@@ -49,13 +49,13 @@ class social_Followers extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, social';
+    var $canRead = 'cms, social, admin, ceo';
             
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'ceo, social';
+    var $canWrite = 'cms, social, admin, ceo';
 
     /**
      * Кои може да гледа сингъла

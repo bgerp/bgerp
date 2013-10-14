@@ -35,13 +35,13 @@ class forum_Postings extends core_Detail {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'forum,ceo,admin,cms';
+	var $canList = 'forum, ceo, admin, cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'forum,ceo,admin,cms';
+	var $canSingle = 'forum, ceo, admin, cms';
 	
 	
 	/**
@@ -77,7 +77,7 @@ class forum_Postings extends core_Detail {
 	/**
 	 * Кой може да добявя,редактира или изтрива дъска
 	 */
-	var $canWrite = 'forum, admin, cms, user,ceo';
+	var $canWrite = 'forum, admin, cms, user, ceo';
 	
 	
 	/**

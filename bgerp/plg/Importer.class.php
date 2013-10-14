@@ -151,21 +151,6 @@ class bgerp_plg_Importer extends core_Plugin
         $data->form->toolbar = new core_Toolbar();
         $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png');
     }
-
-
-    /**
-     * Подготовка на бутоните на импорт-формата
-     *
-     * Необходимо е да има такъв метод, дори и да е празен, защото няма изискване / гаранции,
-     * че мениджъра-домакин го е имплементирал.
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param stdClass $data
-     */
-    function on_AfterPrepareImportToolbar($mvc, &$res, $data)
-    {
-    }
     
 	
 	/**
@@ -177,7 +162,7 @@ class bgerp_plg_Importer extends core_Plugin
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png', array('order' => 19));
+        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png,title=Импортиране на ' . mb_strtolower($mvc->title), array('order' => 19));
     }
 
 }

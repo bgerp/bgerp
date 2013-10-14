@@ -36,25 +36,25 @@ class blogm_Links extends core_Manager {
 	/**
 	 * Кой може да листва линковете
 	 */
-	var $canRead = 'cms, ceo, admin';
+	var $canRead = 'cms, ceo, admin, blog';
 	
 	
 	/**
 	 * Кой може да добявя,редактира или изтрива линк
 	 */
-	var $canWrite = 'cms, ceo, admin';
+	var $canWrite = 'cms, ceo, admin, blog';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	var $canList = 'ceo,admin,cms, blog';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	var $canSingle = 'ceo,admin,cms, blog';
 	
 	
 	/**

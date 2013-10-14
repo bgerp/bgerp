@@ -41,7 +41,7 @@ class store_plg_Shippable extends core_Plugin
         $toolbar = $data->toolbar;
 
         if ($mvc->haveRightFor('ship', $data->rec)) {
-            $toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'originId'=>$data->rec->containerId, 'ret_url'=>true), 'ef_icon = img/16/star_2.png');
+            $toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'originId'=>$data->rec->containerId, 'ret_url'=>true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите');
         }
     }
     
