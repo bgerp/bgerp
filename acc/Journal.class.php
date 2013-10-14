@@ -107,17 +107,22 @@ class acc_Journal extends core_Master
      */
     function description()
     {
+        // Ефективна дата
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
+
+        // Пораждащ документ
         $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
-        
-        //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
+
+        // Обща сума
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
+
+        // Основание за транзакцията
         $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
+        
+        // Състояние
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
-        
-        //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
-        
+                
         $this->setDbUnique('docType,docId,state');
     }
     
@@ -257,7 +262,7 @@ class acc_Journal extends core_Master
             // Нотифицира мениджъра на документа за успешно приключилата транзакция
             $docClass->finalizeTransaction($docRec);
         }
-
+ 
         return $success;
     }
     
