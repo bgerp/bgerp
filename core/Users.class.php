@@ -513,7 +513,7 @@ class core_Users extends core_Manager
      */
     function logLogin_($inputs, $msg)
     {
-        $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
+        $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . '] from IP: ' . $this->getRealIpAddr());
     }
     
 
@@ -1138,10 +1138,8 @@ class core_Users extends core_Manager
      */
     static function getRealIpAddr()
     {
- 
-        $ip = $_SERVER['REMOTE_ADDR'];
-        
-        return $ip;
+         
+        return $_SERVER['REMOTE_ADDR'];
     }
     
     

@@ -394,7 +394,7 @@ class core_Manager extends core_Mvc
                     $this,
                     'add'
                 ),
-                'id=btnAdd', 'ef_icon = img/16/star_2.png');
+                'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
         }
         
         return $data;

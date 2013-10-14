@@ -210,7 +210,7 @@ class core_App
 
             $hosts = core_Array::make(EF_DEBUG_HOSTS);
 
-            if(in_array($_SERVER['HTTP_HOST'], $hosts)){
+            if(in_array(core_Users::getRealIpAddr(), $hosts)){
 
 
                 /**

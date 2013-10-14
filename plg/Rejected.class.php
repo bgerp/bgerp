@@ -80,7 +80,7 @@ class plg_Rejected extends core_Plugin
         if(Request::get('Rejected')) {
             $ws = $data->toolbar->buttons['with_selected'];
             $data->toolbar->removeBtn('*');
-            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
+            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', "ef_icon = img/16/application_view_list.png,title=Всички " . mb_strtolower($mvc->title));
             if(isset($ws)){
             	$data->toolbar->buttons['with_selected'] = $ws;
             }
@@ -88,7 +88,7 @@ class plg_Rejected extends core_Plugin
             $rejCnt = $data->rejQuery->count();
 
             if($rejCnt) {
-                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+                $data->toolbar->addBtn("Кош|* ({$rejCnt})", array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50,title=Преглед на оттеглените ' . mb_strtolower($mvc->title));
             }
         }
         if(Request::get('Rejected')) {

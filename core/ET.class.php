@@ -135,8 +135,9 @@ class core_ET extends core_BaseClass
      * Добава обграждащите символи към даден стринг,
      * за да се получи означение на плейсхолдър
      */
-    function toPlace($name)
+    static function toPlace($name)
     {
+        
         return "[#{$name}#]";
     }
     
@@ -214,6 +215,21 @@ class core_ET extends core_BaseClass
         $newTemplate->backup();
         
         return $newTemplate;
+    }
+    
+    
+    /**
+     * Премахва блок от шаболона
+     * @param string $blockName - име на шаблона
+     */
+    public function removeBlock($blockName)
+    {
+    	expect($mp = $this->getMarkerPos($blockName));
+    	
+    	$contentBeforeBlock = substr($this->content, 0, $mp->beginStart);
+        $contentAfterBlock = substr($this->content, $mp->endStop);
+    	
+    	$this->content = $contentBeforeBlock . $contentAfterBlock;
     }
     
     

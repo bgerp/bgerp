@@ -218,7 +218,7 @@ class core_Master extends core_Manager
                     'ret_url' => TRUE
                 ),
                 'id=btnEdit',
-            	'ef_icon = img/16/edit-icon.png');
+            	'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
         }
         
         if (isset($data->rec->id) && $this->haveRightFor('delete', $data->rec)) {
@@ -228,7 +228,7 @@ class core_Master extends core_Manager
                     $data->rec->id,
                     'ret_url' => toUrl(array($this), 'local')
                 ),
-                'id=btnDelete,warning=Наистина ли желаете да изтриете документа?,order=31', 'ef_icon = img/16/delete.png');
+                'id=btnDelete,warning=Наистина ли желаете да изтриете документа?,order=31,title=Изтриване на записа', 'ef_icon = img/16/delete.png');
         }
         
         return $data;
