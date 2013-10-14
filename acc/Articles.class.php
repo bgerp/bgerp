@@ -284,7 +284,7 @@ class acc_Articles extends core_Master
                     'amount' => $entry->amount,
                 
                     'debit' => array(
-                        acc_journal_Account::byId($entry->debitAccId),
+                        acc_Accounts::fetchField($entry->debitAccId, 'num'),
                         $entry->debitEnt1, // Перо 1
                         $entry->debitEnt2, // Перо 2
                         $entry->debitEnt3, // Перо 3
@@ -292,7 +292,7 @@ class acc_Articles extends core_Master
                     ),
                 
                     'credit' => array(
-                        acc_journal_Account::byId($entry->creditAccId),
+                        acc_Accounts::fetchField($entry->creditAccId, 'num'),
                         $entry->creditEnt1, // Перо 1
                         $entry->creditEnt2, // Перо 2
                         $entry->creditEnt3, // Перо 3
@@ -335,16 +335,21 @@ class acc_Articles extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = $rec->reason;
+        
+        $row->title = tr("Мемориален ордер");
+
+        if($rec->state == 'draft') {
+            $row->title .= ' (' . tr("чернова") . ')';
+        } else {
+            $row->title .= ' (' . $this->getVerbal($rec, 'totalAmount') . ' BGN' . ')';
+        }
+
+        $row->subTitle = type_Varchar::escape($rec->reason);
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         $row->state = $rec->state;
-        
-        $row->status = $this->getVerbal($rec, 'totalAmount');
-        
-        $row->recTitle = $rec->reason;
         
         return $row;
     }
