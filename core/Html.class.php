@@ -504,9 +504,6 @@ class core_Html
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) return false; ";
         }
 
-        if ($attr['error']) {
-        	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
-        }
         
         // Вкарваме JavaScript-a
         if ($newWindow) {
@@ -517,6 +514,12 @@ class core_Html
             }
         } else {
             $attr['onclick'] .= " document.location='{$url}'";
+        }
+        
+        // Ако имаме грешка - показваме я и не продължаваме
+        if ($attr['error']) {
+        	$attr['onclick'] = " alert('{$attr['error']}'); return false; ";
+            unset($attr['error']);
         }
 
         $attr['type'] = 'button';
