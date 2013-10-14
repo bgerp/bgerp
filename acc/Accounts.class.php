@@ -84,6 +84,12 @@ class acc_Accounts extends core_Manager
     var $canEditsysdata = 'acc';
 
     
+    /**  
+     * Кой има право да променя състоянието?  
+     */  
+    var $canChangeState = 'acc, ceo';
+
+    
     /**
      * Брой записи на страница
      */
