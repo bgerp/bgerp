@@ -2,12 +2,15 @@
 class bgerp_AppException extends Exception
 {
     public $options;
+    
+    public $message;
 
     public function __construct($message, $options = array())
     {
         parent::__construct($message);
 
         $this->options = $options;
+        $this->message = $message;
     }
     
     
