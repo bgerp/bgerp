@@ -82,6 +82,12 @@ class acc_Accounts extends core_Manager
      * Кой има право да променя системните данни?  
      */  
     var $canEditsysdata = 'acc';
+    
+    
+    /**
+     * Кой може да променя състоянието и ...;
+     */
+    var $canAdmin = 'ceo,acc';
 
     
     /**
