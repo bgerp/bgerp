@@ -71,25 +71,25 @@ class acc_Operations extends core_Manager
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'acc, ceo';
+    var $canWrite = 'accMaster, ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'acc, ceo';
+    var $canDelete = 'accMaster, ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'acc, ceo';
+    var $canReject = 'accMaster, ceo';
 
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'acc, admin';
+    var $canEditsysdata = 'accMaster, admin';
     
     
     /**

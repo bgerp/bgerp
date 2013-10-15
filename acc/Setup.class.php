@@ -125,7 +125,9 @@ class acc_Setup extends core_ProtoSetup
         } else {
             $html .= "<li>Отпреди Cron е бил нагласен да преизчислява баланси</li>";
         }
-
+		
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
         
         $html .= $this->loadSetupData();
 

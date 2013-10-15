@@ -34,6 +34,7 @@ class acc_Lists extends core_Manager {
      */
     var $menuPage = 'Счетоводство:Настройки';
 
+    
     /**
      * Заглавие
      */
@@ -49,7 +50,7 @@ class acc_Lists extends core_Manager {
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'acc';
+    var $canEditsysdata = 'accMaster';
 
 
     /**

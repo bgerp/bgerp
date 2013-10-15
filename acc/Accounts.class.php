@@ -50,13 +50,13 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,acc';
+    var $canEdit = 'ceo,accMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,acc';
+    var $canAdd = 'ceo,accMaster';
     
     
     
@@ -75,19 +75,19 @@ class acc_Accounts extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,acc';
+    var $canDelete = 'ceo,accMaster';
 
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'acc';
+    var $canEditsysdata = 'accMaster';
     
     
     /**
      * Кой може да променя състоянието и ...;
      */
-    var $canAdmin = 'ceo,acc';
+    var $canAdmin = 'ceo,accMaster';
 
     
     /**
