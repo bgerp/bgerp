@@ -441,11 +441,10 @@ class cat_Products extends core_Master {
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * @param mixed $properties - комбинация на горе посочените мета 
      * 							  данни или като масив или като стринг
-     * @param boolean $cache - дали данните да се кешират
      * @return array $products - продукти отговарящи на условието, ако не са
      * 							 зададени мета данни връща всички продукти
      */
-    public static function getByProperty($properties, $cache = FALSE)
+    public static function getByProperty($properties)
     {
     	$products = array();
     	$metaArr = arr::make($properties);
@@ -761,7 +760,7 @@ class cat_Products extends core_Master {
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL)
     {
-    	return static::getByProperty('canSell', TRUE);
+    	return static::getByProperty('canSell');
     }
     
     
