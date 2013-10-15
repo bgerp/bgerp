@@ -235,7 +235,7 @@ class sales_Sales extends core_Master
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
     	
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
         );
     	
