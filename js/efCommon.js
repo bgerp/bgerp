@@ -570,8 +570,24 @@ function hasClass(element, className) {
     return element.className && new RegExp("(^|\\s)" + className + "(\\s|$)").test(element.className);
 }
 
+function hideRichtextEditGroups()
+{
+	if (typeof jQuery != 'undefined') {	
+		$('body').live('click',function() {
+			$('.richtext-holder-group').css("display", "none" );
+		});
+	}else{
+		window.onclick = function() {
+			document.getElementsByClassName('richtext-holder-group')[0].style.display='none';
+			document.getElementsByClassName('richtext-holder-group')[1].style.display='none';
+			document.getElementsByClassName('richtext-holder-group')[2].style.display='none';
+		};
+	}
+}
+
 function toggleRichtextGroups(id)
 { 
+	event.stopPropagation();
 	if (typeof jQuery != 'undefined') {
 		var hidden = $("#" + id).css("display");
 		
@@ -579,8 +595,6 @@ function toggleRichtextGroups(id)
 	    if (hidden == 'none') {
 	    	$("#" + id).fadeToggle("slow");
 	    }
-		
- 
 	} else {
 	
 		var el = document.getElementById(id);  
