@@ -82,7 +82,7 @@ class cat_Groups extends core_Master
 
     
     /**
-     * Права
+     * Кой може да чете
      */
     var $canRead = 'powerUser';
     
@@ -249,7 +249,7 @@ class cat_Groups extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {   
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
-        if(($rec->sysId || $rec->productCnt) && $action == 'delete') {
+        if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
             $requiredRoles = 'no_one';
         }
     }
@@ -301,9 +301,34 @@ class cat_Groups extends core_Master
     
     
     /**
+     * Преди запис в модела
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if($rec->id){
+    		// Старите мета данни
+    		$rec->oldMeta = $mvc->fetchField($rec->id, 'meta');
+    	}
+    }
+    
+    
+	/**
+     * След запис в модела
+     */
+    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
+    {
+        if($rec->oldMeta != $rec->meta) {
+        	
+            // Ако има промяна на групите, Инвалидира се кеша
+            core_Cache::remove('cat_Products', "productsMeta");
+        }
+    }
+    
+    
+    /**
      * Връща групите които отговарят на посочени мета данни
      * @param mixed $meta - списък от мета данни
-     * #return array $res - масив с опции
+     * @return array $res - масив с опции
      */
     public static function getByMeta($meta)
     {

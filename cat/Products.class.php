@@ -177,13 +177,7 @@ class cat_Products extends core_Master {
 		$this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, translate)', 'caption=Групи,maxColumns=2');
-        $this->FLD('meta', 'set(canSell=Продаваем,
-        						canBuy=Купуваем,
-        						canStore=Складируем,
-        						canConvert=Вложим,
-        						fixedAsset=Дма,
-        						canManifacture=Производим)', 'caption=Свойства->Списък,input=hidden');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
+       	$this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         $this->setDbUnique('code');
     }
@@ -252,22 +246,37 @@ class cat_Products extends core_Master {
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
     	}
     	
-    	if($rec->groups){
-    		
-    		// Ако има групи се обновяват, мета данните му
-	    	$meta = array();
-	    	$groups = keylist::toArray($rec->groups);
-	    	foreach($groups as $grId){
-	    		$grRec = cat_Groups::fetch($grId);
-	    		if($grRec->meta){
-	    			$arr = explode(",", $grRec->meta);
-	    			$meta = array_merge($meta, array_combine($arr, $arr));
-	    		}
-	    	}
-	    	$rec->meta = implode(',', $meta);
-    	} else {
-    		$rec->meta = '';
+    	if($rec->id){
+    		// Старите мета данни
+    		$rec->oldGroups = $mvc->fetchField($rec->id, 'groups');
     	}
+    }
+    
+    
+    /**
+     * Извлича мета данните на продукт според групите
+     * в които участва
+     * @param mixed $groups - групи в които участва
+     */
+    private function getMetaData($groups)
+    {
+    	if($groups){
+    		$meta = array();
+    		if(!is_array($groups)){
+    			 $groups = keylist::toArray($groups);
+    		}
+		    foreach($groups as $grId){
+		    	$grRec = cat_Groups::fetch($grId);
+		    	if($grRec->meta){
+		    		$arr = explode(",", $grRec->meta);
+		    		$meta = array_merge($meta, array_combine($arr, $arr));
+		    	}
+		    }
+		    
+		    return implode(',', $meta);
+    	}
+    	
+    	return '';
     }
     
     
@@ -281,6 +290,13 @@ class cat_Products extends core_Master {
     static function on_AfterRecToVerbal ($mvc, $row, $rec, $fields = array())
     {
         if($fields['-single']) {
+        	
+        	// извличане на мета данните според групите
+    		if($meta = $mvc->getMetaData($rec->groups)){
+    			$Groups = cls::get(cat_Groups);
+        		$row->meta = $Groups->fields['meta']->type->toVerbal($meta);
+    		}
+    		
             // fancybox ефект за картинките
             $Fancybox = cls::get('fancybox_Fancybox');
           
@@ -425,28 +441,30 @@ class cat_Products extends core_Master {
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * @param mixed $properties - комбинация на горе посочените мета 
      * 							  данни или като масив или като стринг
+     * @param boolean $cache - дали данните да се кешират
      * @return array $products - продукти отговарящи на условието, ако не са
      * 							 зададени мета данни връща всички продукти
      */
-    public static function getByProperty($properties)
+    public static function getByProperty($properties, $cache = FALSE)
     {
-    	$where = "";
-    	$arr = arr::make($properties, TRUE);
-    	foreach ($arr as $meta){
-    		if(strlen($where)) {
-    			$where .= " AND #meta LIKE";
-    		}
-    		$where .= "'%{$meta}%'";
-    	}
-    	
-    	$query = static::getQuery();
-    	if($where){
-    		$query->where("#meta LIKE {$where}");
-    	}
-    	
     	$products = array();
-    	while($rec = $query->fetch()){
-    		$products[$rec->id] = static::getTitleById($rec->id);
+    	$metaArr = arr::make($properties);
+    	
+    	$allProducts = core_Cache::get('pos_Favourites', "products{$posRec->id}");
+    	if(!$allProducts){
+    		$allProducts = static::cacheMetaData();
+    	}
+    	
+    	if(count($metaArr)){
+    		foreach ($metaArr as $meta){
+    			$products = $products + $allProducts[$meta];
+    		}
+    	}
+    	
+    	if(count($products)){
+    		foreach ($products as $id => &$name){
+    			$name = static::getTitleById($id);
+    		}
     	}
     	
     	return $products;
@@ -516,36 +534,6 @@ class cat_Products extends core_Master {
     	
     	// Връщаме информацията за продукта
     	return $res;
-    }
-    
-    
-    /**
-     * Помощен метод връщаш обединение на мета данните на масив от
-     * продукти
-     * @param array $products - маисив от продукти.
-     * @return array $union - обединение на мета данните на тези продукти
-     */
-    public static function getProductsMetaData($products)
-    {
-    	$union = array();
-    	expect(is_array($products), 'Не е подаден масив');
-    	foreach($products as $rec){
-    		if(count($union) == 6) break;
-    		
-    		if(isset($rec->policyId)){
-    			$productMan = cls::get($rec->policyId)->getProductMan();
-    		} else {
-    			$productMan = get_called_class();
-    		}
-    		
-    		$id = (isset($rec->productId)) ? $rec->productId : $rec->id;
-    		$pInfo = $productMan::getProductInfo($id);
-    		if($pInfo->meta){
-    			$union = array_merge($union, $pInfo->meta);
-    		}
-    	}
-    	
-    	return $union;
     }
     
     
@@ -661,6 +649,7 @@ class cat_Products extends core_Master {
     	
     	// Връщаме ДДС-то от периода
     	$period = acc_Periods::fetchByDate($date);
+    	
     	return $period->vatRate;
     }
     
@@ -672,6 +661,12 @@ class cat_Products extends core_Master {
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
+        }
+        
+    	if($rec->oldGroups != $rec->groups) {
+        	
+        	// Ако има промяна на групите, Инвалидира се кеша
+            core_Cache::remove('cat_Products', "productsMeta");
         }
     }
     
@@ -766,7 +761,7 @@ class cat_Products extends core_Master {
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL)
     {
-    	return static::getByProperty('canSell');
+    	return static::getByProperty('canSell', TRUE);
     }
     
     
@@ -815,5 +810,50 @@ class cat_Products extends core_Master {
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Ъпдейтва мета данните на всички продукти
+     * участващи в дадена група
+     * @param int $groupId - ид на променената група
+     */
+    public static function updateMetaData($groupId)
+    {
+     	// За всички продукти участващи в групата
+    	$query = static::getQuery();
+     	$query->like('groups', "|{$groupId}|");
+     	while($rec = $query->fetch()){
+     		
+     		// Презаписване на продукта, което ще преизчисли мета данните му
+     		static::save($rec);
+     	}
+    }
+    
+    
+    /**
+     * Записва в кеша продуктите групирани по техните мета данни
+     */
+    public static function cacheMetaData()
+    {
+    	$cache = array();
+    	$metas = array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture');
+    	foreach($metas as $meta){
+    		$catGroups = cat_Groups::getByMeta($meta);
+    		$keylist = keylist::fromArray($catGroups);
+    		
+    		$products = array();
+    		$query = static::getQuery();
+	    	$query->likeKeylist('groups', $keylist, TRUE);
+	    	while($rec = $query->fetch()){
+	    		$products[$rec->id] = $rec->id;
+	    	}
+	    	
+	    	$cache[$meta] = $products;
+    	}
+    	
+    	core_Cache::set('cat_Products', "productsMeta", $cache, 2880, array('cat_Products'));
+    	
+    	return $cache;
     }
 }
