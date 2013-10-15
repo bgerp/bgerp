@@ -2146,6 +2146,17 @@ div.richtext ol ol {
 	margin-right:0;
 	font-size:0.9em;
 }
+
+.richtext-question a, .richtext-info a, .richtext-error a,.richtext-success a,
+.richtext-warning a,.richtext-tip a,.richtext-text a{
+		text-decoration:underline;
+		font-weight:bold;
+		color:inherit;
+		&:hover{
+			text-decoration: none;
+		}
+		
+	}
 /*край на richtext message-box*/
 
 
