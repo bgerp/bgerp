@@ -168,7 +168,7 @@ class acc_plg_Contable extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {   
-        if(haveRight('debug')) {
+        if(haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $data->rec->id));
         }
 
