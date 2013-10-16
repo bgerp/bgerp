@@ -210,7 +210,7 @@ class sales_Sales extends core_Master
          * Плащане
          */
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)',
-            'caption=Плащане->Начин,mandatory');
+            'caption=Плащане->Начин');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)',
             'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
@@ -346,18 +346,6 @@ class sales_Sales extends core_Master
         }
     }
     
-
-    /**
-     * Извиква се преди изпълняването на екшън
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    }
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -472,17 +460,6 @@ class sales_Sales extends core_Master
         return $rec;
     }
     
-    /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    }
-    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -519,6 +496,14 @@ class sales_Sales extends core_Master
         		$data->form->setReadOnly('chargeVat');
         	}
         }
+        
+        $conf = core_Packs::getConfig('sales');
+        $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
+		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
+        
+        $priceAtDateFld = &$data->form->fields['pricesAtDate']->type;
+        $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
+        $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
     }
     
     
@@ -909,6 +894,10 @@ class sales_Sales extends core_Master
                 $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
         }
+        
+        if($form->rec->pricesAtDate){
+        	
+        }
     }
     
     
@@ -922,10 +911,8 @@ class sales_Sales extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
-            if ($rec->{"amount{$amnt}"} != 0) {
-                $row->{"amount{$amnt}"} = (($row->currencyId) ? ("<span class='cCode'>{$row->currencyId}</span> ") : "") .  $row->{"amount{$amnt}"};
-            } else {
-                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            if ($rec->{"amount{$amnt}"} == 0) {
+                $row->{"amount{$amnt}"} = $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             }
         }
         
@@ -933,10 +920,11 @@ class sales_Sales extends core_Master
         if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
         	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
         	$row->vat = $amountType->toVerbal($vat * 100);
+        } else {
+        	unset($row->chargeVat);
         }
         
-        $row->amountToPay = '<span class="cCode">' . $row->currencyId . '</span> ' 
-            . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
+        $row->amountToPay = $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
             $row->chargeVat = '';
@@ -1400,5 +1388,18 @@ class sales_Sales extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата продажба") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

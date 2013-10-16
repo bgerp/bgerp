@@ -17,7 +17,7 @@
 			           <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 			                <tbody>
 			                <tr>
-			                    <td class="cell" valign="top" width="35%"><b>|Получател|*</b>
+			                    <td class="cell" valign="top"><b>|Получател|*</b>
 			                    <!--ET_BEGIN contragent-->
 			                    <div>
 			                        <b>[#contragentName#]</b><br>
@@ -31,7 +31,7 @@
 								</div>
 								<!--ET_END contragent-->
 			                    </td>
-			                    <td class="cell" align="center" width="30%">
+			                    <td class="cell" align="center">
 			                        <font style="font-size:16pt;"><b> |ПРОДАЖБА|*</b> </font><br>
 			                        <div style="padding-top:5px;">
 			                        	№ <span class="bigData">[#id#]</span> / 
@@ -50,7 +50,7 @@
 			                        <div class="[#STATE_CLASS#]">[#stateText#]</div>
 			                        <!--ET_END stateText-->
 			                    </td>
-			                    <td class="cell" width="35%" valign="top"><b>|Доставчик|*</b>
+			                    <td class="cell" valign="top"><b>|Доставчик|*</b>
 			                    <!--ET_BEGIN supplier-->
 			                    <div>
 			                        <b>[#MyCompany#]</b><br>
@@ -67,9 +67,9 @@
 			           	</div>
 			           	
 			           	<div class="lines"></div>		
-			            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+			            <table class="innerTable footer-notes" cellpadding="5" cellspacing="0" width="100%">
 			                <tbody><tr>
-			                    <td class="topCell first" valign="top" width="30%">
+			                    <td class="topCell first" valign="top">
 			                        <!--ET_BEGIN deliveryTermId-->
 			                    	<div>
 			                            |Условие|*: <b>[#deliveryTermId#]</b>
@@ -100,7 +100,7 @@
 				                        <div class="richtext">[#note#]</div> 
 			                        <!--ET_END note-->     
 			                    </td>
-			                    <td class="topCell" valign="top" width="40%">
+			                    <td class="topCell" valign="top">
 			                        <!--ET_BEGIN paymentMethodId-->
 			                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
 			                        <!--ET_END paymentMethodId-->
@@ -120,31 +120,34 @@
 			                        <!--ET_END caseId-->
 			                    </td>
 			       
-			                    <td class="topCell" align="right" valign="top" width="30%">
+			                    <td class="topCell" align="right" valign="top">
 			                        <table>
 			                            <tbody>
 			                            <tr>
 			                                <td>
 			                                    <table>
 			                                        <tr>
-			                                            <td style="text-align: right;">|Обща сума|* [#chargeVat#]:</td>
-			                                            <td><b>[#amountDeal#]</b></td>
+			                                            <td style="text-align:right;" class = 'nowrap'>|Обща сума|*:</td>
+			                                            <td><span class='cCode'>[#currencyId#]</span></td>
+			                                        	<td class = 'nowrap' style='text-align:right'><b>[#amountDeal#]</b></td>
 			                                        </tr>
 			                                        <!--ET_BEGIN vat-->
 			                                        <tr>
-			                                            <td style="text-align: right;">|ДДС|*:</td>
-			                                            <td><b>[#vat#]</b> %</td>
+			                                            <td style="text-align:right;" class = 'nowrap'>[#chargeVat#] |ДДС|*:</td>
+			                                            <td style="text-align:right;" class = 'nowrap' colspan='2'><b>[#vat#]</b> %</td>
 			                                        </tr>
 			                                        <!--ET_END vat-->
 			                                        <!--ET_BEGIN amountPaid-->
 			                                        <tr>
-			                                            <td style="text-align: right;">|Платени|*:</td>
-			                                            <td><b>[#amountPaid#]</b></td>
+			                                            <td style="text-align:right;" class = 'nowrap'>|Платени|*:</td>
+			                                            <td><span class='cCode'>[#currencyId#]</span></td>
+			                                        	<td class = 'nowrap' style='text-align:right'><b>[#amountPaid#]</b></td>
 			                                        </tr>
 			                                        <!--ET_END amountPaid-->
 			                                        <tr>
-			                                            <td style="text-align: right;">|Остатък|*:</td>
-			                                            <td><b>[#amountToPay#]</b></td>
+			                                            <td style="text-align:right;" class = 'nowrap'>|Остатък|*:</td>
+			                                            <td><span class='cCode'>[#currencyId#]</span></td>
+			                                        	<td class = 'nowrap' style='text-align:right'><b>[#amountToPay#]</b></td>
 			                                        </tr>
 			                                    </table>
 			                                </td>
@@ -166,32 +169,32 @@
 		
 			<div class="sale-summary">
 				<table cellspacing="5">
-				    <colgroup span="5" width="20%" />
+				    <colgroup span="5"/>
 				    <thead>
 				    <tr>
 				        <th>
-				            |Поръчано|*
+				            |Поръчано|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Платено|*
+				            |Платено|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Доставено|*
+				            |Доставено|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Фактурирано|*
+				            |Фактурирано|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Остатък|*
+				            |Остатък|*, [#currencyId#]
 				        </th>
 				    </tr>
 				    </thead>
 				    <tr>
-				        <td>[#amountDeal#]</td>
-				        <td>[#amountPaid#]</td>
-				        <td>[#amountDelivered#]</td>
-				        <td>[#amountInvoiced#]</td>
-				        <td>[#amountToPay#]</td>
+				        <td class = 'nowrap'>[#amountDeal#]</td>
+				        <td class = 'nowrap'>[#amountPaid#]</td>
+				        <td class = 'nowrap'>[#amountDelivered#]</td>
+				        <td class = 'nowrap'>[#amountInvoiced#]</td>
+				        <td class = 'nowrap'>[#amountToPay#]</td>
 				    </tr>
 				</table>
 			</div>

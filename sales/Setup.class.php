@@ -11,6 +11,18 @@ defIfNot('QUOTE_LAYOUT', 'Letter');
 
 
 /**
+ * Максимален срок за бъдещи цени с които да работи офертата
+ */
+defIfNot('SALE_MAX_FUTURE_PRICE', type_Time::SECONDS_IN_MONTH);
+
+
+/**
+ * Максимален срок за минали цени с които да работи офертата
+ */
+defIfNot('SALE_MAX_PAST_PRICE', type_Time::SECONDS_IN_MONTH * 2);
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -55,6 +67,8 @@ class sales_Setup extends core_ProtoSetup
 	var $configDescription = array(
 			'INV_LAYOUT' => array ("enum(sales/tpl/SingleLayoutInvoice=Основен изглед,sales/tpl/SingleLayoutInvoice2=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
 			'QUOTE_LAYOUT' => array ("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
+			'SALE_MAX_FUTURE_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
+			'SALE_MAX_PAST_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
 	);
 	
 	
@@ -72,6 +86,7 @@ class sales_Setup extends core_ProtoSetup
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
     		'sales_SaleRequestDetails',
+    		//'sales_ClosedDeals',
         );
 
         
