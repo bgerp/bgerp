@@ -609,12 +609,8 @@ class cat_Products extends core_Master {
     	
     	$result = array();
     	$query = static::getQuery();
-    	foreach($group as $sysId){
-    		$groupId = cat_Groups::fetchField(array("#sysId = '[#1#]'", $sysId), 'id');
-    		$query->orWhere("#groups LIKE '%|{$groupId}|%'");
-    	}
-    	
-    	if(!$query->count()) return Redirect(array('cat_Products', 'list'), FALSE, 'Няма артикули в посочените групи');
+    	$groupIds = cat_Groups::getKeylistBySysIds($group);
+    	$query->likeKeylist('groups', $groupIds, TRUE);
     	
     	while($rec = $query->fetch()){
 	    	$result[$rec->id] = static::getTitleById($rec->id);
