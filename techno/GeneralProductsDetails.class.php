@@ -240,6 +240,8 @@ class techno_GeneralProductsDetails extends core_Detail {
     		if($data->total && !isset($data->noTotal)){
 	    		$tpl->placeObject($data->total);
 	    	}
+    	} elseif($data->masterData->rec->state != 'draft') {
+    		//$tpl->replace("");
     	}
     	
     	$tpl->replace($this->renderListToolbar($data), 'ListToolbar');

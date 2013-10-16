@@ -161,8 +161,12 @@ class techno_GeneralProductsParameters extends core_Manager
     	}
     	
     	if($data->addParamUrl){
-    		$img = sbf('img/16/add.png', '');
-    		$tpl->replace(ht::createLink(' ', $data->addParamUrl, NULL, array('style' => "background-image:url({$img});", 'class' => 'spec-add-btn', 'title' => 'Добавяне на нов параметър')), 'ADD');
+    		if(cat_Params::count()){
+    			$btn = ht::createBtn('Нов параметър', $data->addParamUrl, NULL, NULL, 'ef_icon = img/16/star_2.png,title=Добавяне на нов параметър');
+    		} else {
+    			$btn = ht::createErrBtn('Нов параметър', 'Няма продуктови параметри');
+    		}
+    		$tpl->replace($btn, 'ADD');
     	}
     	
     	return $tpl;

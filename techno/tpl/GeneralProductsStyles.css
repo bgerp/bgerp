@@ -90,6 +90,11 @@ table.styled-table tr.components-total td.has-hover:hover{
 	margin-bottom:0;
 }
 
+.general-products-detail-header {
+	padding-bottom:5px;
+	font-weight:bold
+}
+
 #components-table th.component-header{
 	border: 1px solid rgb(204, 204, 204);
 	background-color: rgb(238, 238, 238);
