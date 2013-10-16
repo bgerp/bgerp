@@ -1,0 +1,57 @@
+.tooltip-button{
+	margin-left:10px;
+	position:relative;
+	z-index:1000;
+	top:3px;
+	height:20px;
+	display:inline-block;
+	1background-image: url('../img/info_button.png');
+	background-position:center center;
+	background-repeat:no-repeat;
+	cursor:pointer;
+}
+
+.tooltip-text{
+	
+    color: #fff;
+    position: relative;
+    padding: 15px;
+    border-radius: 5px; 
+	border: 1px solid #777;
+	background: #FFFFCD;
+	color: #333;
+	display:none;
+	max-width:600px;
+	margin-bottom:10px;
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	line-height: 18px;
+	padding: 8px 10px;
+	top:-4px;
+}
+ 
+.tooltip-text a{
+	color:#0000aa;
+}
+.tooltip-texta:hover{
+	text-decoration:underline;
+}
+
+.narrow .tooltip-text {
+	font-size: 14px;
+	line-height: 16px;
+	padding: 6px 6px;
+
+}
+
+/* These next classes handle the styles for the little arrow attached to the tooltip. By default, the arrow will inherit the same colors and border as what is set on the main tooltip itself. */
+.tooltip-arrow {
+	display: block;
+	width: 16px;
+	height: 9px;
+	position: absolute;
+	background-image:url('../img/arrow-hint-top.png');
+	top: -9px;
+	left: 10px;
+	z-index: 10000000;
+}
