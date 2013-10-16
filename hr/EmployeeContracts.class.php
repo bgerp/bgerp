@@ -384,6 +384,55 @@ class hr_EmployeeContracts extends core_Master
         
 		$res = $data;
     }
+    
+    
+ 	/**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = $form->rec;
+    	
+    	// След като се записали/активирали формата
+    	if($rec){
+    		
+    		// Вземаме шаблона на труговия договор
+    		$tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
+    		
+    		// и намираме всички плейсхолдери в него
+    		preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
+    	}
+    	
+    	// помощен масив, тези полете от формата на модела не са от значение за шаблона
+    	$sysArray = array("id", "ret_url", "typeId", "managerId", "personId", 
+    					  "descriptions", "sharedUsers", "sharedViews", "searchKeywords",
+    					  "folderId", "threadId", "containerId", "originId", "state", "brState",
+    					  "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
+    	
+    	// От всички полета на модела
+    	foreach($rec as $name=>$value){
+       		$formField[$name] = $name;
+       		
+       		for($i = 0; $i <= count($sysArray); $i++){
+       			// махаме тези от помощния масив
+       			unset($formField[$sysArray[$i]]);
+       		}
+    	}
+    	
+    	// намираме сечението на останалите полета и полетата от шаблона
+    	$mandatoryFields = array_intersect($formField, $matches[1]);
+    	
+		foreach($mandatoryFields as $field){
+			// Ако имаме непопълнено поле от гореполучения масив
+			if(isset($field)){ 
+				// Предупреждамае потребителя
+				$form->setWarning($field, "Непопълнено поле". "\n" . "<b>" . $form->fields[$field]->caption . "!" . "</b>");
+			}
+		}
+    }
   
     
     /**
