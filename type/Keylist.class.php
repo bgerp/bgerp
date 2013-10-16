@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Броя на всички записи, над които групите ще са отворени по подразбиране
+ */
+defIfNot(CORE_MAX_OPT_FOR_OPEN_GROUPS, 10);
+
 
 /**
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
@@ -21,6 +26,18 @@ class type_Keylist extends core_Type {
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
+    
+    
+	/**
+     * Конструктор. Дава възможност за инициализация
+     */
+    function init($params = array())
+    {
+        parent::init($params);
+        
+        // Ако не е зададен параметъра
+        setIfNot($this->params['maxOptForOpenGroups'], CORE_MAX_OPT_FOR_OPEN_GROUPS);
+    }
     
     
     /**
@@ -178,7 +195,17 @@ class type_Keylist extends core_Type {
                     $plusUrl = sbf("img/16/toggle1.png", "");
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
-                    $html .= "\n<tr id='row-". $j . "' class='keylistCategory' ><td class='keylist-group' colspan='" . 
+                    // Класа за групите
+                    $class = 'keylistCategory';
+                    
+                    // Ако е вдигнат флага, за отваряне на група
+                    if ($v->autoOpen) {
+                    
+                        // Добавяме класа за отворена група
+                        $class .= ' group-autoOpen';
+                    }
+                    
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group' colspan='" . 
                         $col . "'><div onclick='toggleKeylistGroups(this)'>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
                     
@@ -284,15 +311,73 @@ class type_Keylist extends core_Type {
             if($where = $this->params['where']) {
                 $query->where($where);
             }
-             
-            while($rec = $query->fetch()) {
+            
+            // Ако е зададено да се групира
+            if ($groupBy) {
+                
+                // Броя на групите
+                $cnt = $query->count();
+                
+                // Ако броя е под максимално допустимите
+                if ($cnt < $this->params['maxOptForOpenGroups']) {
                     
+                    // Отваряме всички групи
+                    $openAllGroups = TRUE;
+                } else {
+                    
+                    // Ако е зададена, коя група да се отвори
+                    if ($this->params['autoOpenGroups']) {
+                        
+                        // Ако е зададено да се отворят всичките
+                        if (trim($this->params['autoOpenGroups']) == '*') {
+                            
+                            // Вдигаме флага
+                            $openAllGroups = TRUE;
+                        } else {
+                            
+                            // Вземаме всички групи, които са зададени да се отворят
+                            $autoOpenGroupsArr = type_Keylist::toArray($this->params['autoOpenGroups']);
+                        }
+                    }
+                }
+            }
+            
+            while($rec = $query->fetch()) {
+                
+                // Ако е групирано
                 if($groupBy) {
+                    
+                    // Флаг, указващ дали да се отвори групата
+                    $openGroup = FALSE;
+                    
                     if($group != $rec->{$groupBy}) {
                         $key = $rec->id . '_group';
                         $this->suggestions[$key] = new stdClass();
                         $this->suggestions[$key]->title = $mvc->getVerbal($rec, $groupBy);
                         $this->suggestions[$key]->group = TRUE;
+                        
+                        // Ако е зададено да се отворят всички групи
+                        if ($openAllGroups) {
+                            
+                            // Да се отвори групата
+                            $openGroup = TRUE;
+                        } else {
+                            
+                            // Ако е зададено да се отвори текущата група
+                            if ($autoOpenGroupsArr[$rec->$groupBy]) {
+                                
+                                // Вдигаме флага
+                                $openGroup = TRUE;
+                            }
+                        }
+                        
+                        // Ако е вдигнат флага
+                        if ($openGroup) {
+                            
+                            // Вдигаме флага
+                            $this->suggestions[$key]->autoOpen = TRUE;
+                        }
+                        
                         $group = $rec->{$groupBy};
                     }
                 }
