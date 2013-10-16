@@ -131,6 +131,16 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     * 
+     * @see acc_plg_Registry
+     * @var string
+     */
+    var $autoList = 'workContracts';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -445,11 +455,7 @@ class hr_EmployeeContracts extends core_Master
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	if($rec->state == 'active'){
-    		
-    		// Ако трудовия договор е активен, добавя се като перо
-    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'workContracts'), 'id'));
-    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-    		
+    		    		    		
     		// Взимаме запълването до сега
     		$employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
     		
@@ -524,27 +530,7 @@ class hr_EmployeeContracts extends core_Master
     		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
     	}
     }
-    
-    
-    /**
-     * Връща заглавието и мярката на перото за продукта
-     *
-     * Част от интерфейса: intf_Register
-     */
-    function getItemRec($objectId)
-    {
-        $result = NULL;
-        
-        if ($rec = self::fetch($objectId)) {
-            $result = (object)array(
-                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => $rec->id,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
+
     
     static function act_Test()
     {
@@ -599,7 +585,52 @@ class hr_EmployeeContracts extends core_Master
 		return $hoursWeekSec;
     }
 
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
     
+    
+    /**
+     * Връща заглавието и мярката на перото за продукта
+     *
+     * Част от интерфейса: intf_Register
+     */
+    function getItemRec($objectId)
+    {
+        $result = NULL;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
+                'num' => $rec->id,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
+    }
+
+	
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -608,6 +639,22 @@ class hr_EmployeeContracts extends core_Master
     {
         // @todo!
     }
+        
+    
+	/**
+     * Имат ли обектите на регистъра размерност?
+     *
+     * @return boolean
+     */
+    static function isDimensional()
+    {
+        return false;
+    }
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */
+    
     
     /****************************************************************************************
      *                                                                                      *
