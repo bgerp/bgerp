@@ -264,6 +264,9 @@ class hr_EmployeeContracts extends core_Master
     {
     	$rec = $data->form->rec;
         
+    	// Скриваме опцията за номеклатурата
+    	$data->form->fields['lists']->input = "none";
+    	
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         if ('crm_Persons' == $coverClass) {
@@ -395,66 +398,58 @@ class hr_EmployeeContracts extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = $form->rec;
-    	
+
     	// След като се записали/активирали формата
-    	if($rec){
+    	if($rec->typeId){ 
     		
     		// Вземаме шаблона на труговия договор
     		$tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
     		
     		// и намираме всички плейсхолдери в него
     		preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
-    	}
     	
-    	// помощен масив, тези полете от формата на модела не са от значение за шаблона
-    	$sysArray = array("id", "ret_url", "typeId", "managerId", "personId", 
-    					  "descriptions", "sharedUsers", "sharedViews", "searchKeywords",
-    					  "folderId", "threadId", "containerId", "originId", "state", "brState",
-    					  "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
     	
-    	// От всички полета на модела
-    	foreach($rec as $name=>$value){
-       		$formField[$name] = $name;
-       		
-       		for($i = 0; $i <= count($sysArray); $i++){
-       			// махаме тези от помощния масив
-       			unset($formField[$sysArray[$i]]);
-       		}
-    	}
+	    	// помощен масив, тези полете от формата на модела не са от значение за шаблона
+	    	$sysArray = array("id", "ret_url", "typeId", "managerId", "personId", "departmentId",
+	    					  "descriptions", "sharedUsers", "sharedViews", "searchKeywords","professionId",
+	    					  "folderId", "threadId", "containerId", "originId", "state", "brState",
+	    					  "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
     	
-    	// намираме сечението на останалите полета и полетата от шаблона
-    	$mandatoryFields = array_intersect($formField, $matches[1]);
+	    	// От всички полета на модела
+	    	foreach($rec as $name=>$value){
+	       		$formField[$name] = $name;
+	       		
+	       		for($i = 0; $i <= count($sysArray); $i++){
+	       			// махаме тези от помощния масив
+	       			unset($formField[$sysArray[$i]]);
+	       		}
+	    	}
     	
-		foreach($mandatoryFields as $field){
-			// Ако имаме непопълнено поле от гореполучения масив
-			if(isset($field)){ 
-				// Предупреждамае потребителя
-				$form->setWarning($field, "Непопълнено поле". "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
+	    	// намираме сечението на останалите полета и полетата от шаблона
+	    	$mandatoryFields = array_intersect($formField, $matches[1]);
+	    	
+			foreach($mandatoryFields as $field){
+				// Ако имаме непопълнено поле от гореполучения масив
+				if($rec->$field == NULL){ 
+					// Предупреждамае потребителя
+					$form->setWarning($field, "Непопълнено поле". "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
+				}
 			}
-		}
+    	}
     }
     
     
-    /**
-     * Добавяме договорите автоматично към номенклатура
-     *
-     * @param core_Manager $mvc
-     * @param int $id
-     * @param stdClass $rec
+	/**
+     * След промяна на обект от регистър
      */
     function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-       
-        if (!empty($mvc->autoList)) {
-            // Автоматично добавяне към номенклатурата $autoList
-            expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
-            $rec->lists = keylist::addKey($rec->lists, $autoListId);
-        }
-        $fieldListArr = arr::make($fieldList, TRUE);
-    
-        if(empty($fieldList) || $fieldListArr['lists']) {
-            acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
+    	if($rec->state == 'active'){
+    		
+    		// Ако трудовия договор е активен, добавя се като перо
+    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'workContracts'), 'id'));
+    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+    	}
     }
   
     
