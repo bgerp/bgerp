@@ -839,6 +839,7 @@ class cat_Products extends core_Master {
     		
     		$products = array();
     		$query = static::getQuery();
+    		$query->where("#state != 'rejected'");
 	    	$query->likeKeylist('groups', $keylist, TRUE);
 	    	while($rec = $query->fetch()){
 	    		$products[$rec->id] = $rec->id;
