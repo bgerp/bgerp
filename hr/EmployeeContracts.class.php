@@ -449,6 +449,29 @@ class hr_EmployeeContracts extends core_Master
     		// Ако трудовия договор е активен, добавя се като перо
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'workContracts'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+    		
+    		// Взимаме запълването до сега
+    		$employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
+    		
+    		// Изчисляваме работното време
+	        $houresInSec = self::houresForAWeek($rec->id);
+	        $houres = $houresInSec / 60 / 60;
+        
+    		$recPosition = new stdClass();
+		    $recPosition->id = $rec->positionId;
+		    
+		    // Ако работната седмица е над 35ч е един щат
+		    if($houres >= 35){
+		    	$recPosition->employmentOccupied = $employmentOccupied + 1;
+		    } else {
+		    	
+		    	// в противен случай е половин щат
+		    	$recPosition->employmentOccupied = $employmentOccupied + 0.5;
+		    }
+
+		    // записваме новата стойност
+			hr_Positions::save($recPosition,'employmentOccupied');
+    		
     	}
     }
   
