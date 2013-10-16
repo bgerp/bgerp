@@ -894,10 +894,6 @@ class sales_Sales extends core_Master
                 $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
         }
-        
-        if($form->rec->pricesAtDate){
-        	
-        }
     }
     
     
