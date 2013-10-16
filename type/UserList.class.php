@@ -67,6 +67,25 @@ class type_UserList extends type_Keylist
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
         
+        // Всички екипи в keylist
+        $teamsKeylist = type_Keylist::fromArray($teams);
+        
+        // Заявка за да вземем всички запсии
+        $uQueryAll = core_Users::getQuery();
+        $uQueryAll->where("#state != 'rejected'");
+        $uQueryAll->likeKeylist('roles', "{$teamsKeylist}");
+        $uQueryAll->likeKeylist('roles', $roles);
+        
+        // Броя на групите
+        $cnt = $uQueryAll->count();
+        
+        // Ако броя е под максимално допустимите или са избрани всичките
+        if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
+            
+            // Отваряме всички групи
+            $openAllGroups = TRUE;
+        }
+        
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -88,7 +107,7 @@ class type_UserList extends type_Keylist
             while($uRec = $uQuery->fetch()) {
                 
                 // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
-                if (($this->params['autoOpenGroups'] == '*') || ($uRec->id == $currUserId)) {
+                if ($openAllGroups || ($uRec->id == $currUserId)) {
                     
                     // Вдигам флага да се отвори групата
                     $group->autoOpen = TRUE;
