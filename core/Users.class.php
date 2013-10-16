@@ -164,7 +164,7 @@ class core_Users extends core_Manager
         
         $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=15em');
         
-        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли');
+        $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,rejected=Заличен)',
