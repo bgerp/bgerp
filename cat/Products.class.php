@@ -449,20 +449,13 @@ class cat_Products extends core_Master {
     	$products = array();
     	$metaArr = arr::make($properties);
     	
-    	$allProducts = core_Cache::get('pos_Favourites', "products{$posRec->id}");
-    	if(!$allProducts){
+    	if(!$allProducts = core_Cache::get('cat_Products', "productsMeta")){
     		$allProducts = static::cacheMetaData();
     	}
     	
     	if(count($metaArr)){
     		foreach ($metaArr as $meta){
     			$products = $products + $allProducts[$meta];
-    		}
-    	}
-    	
-    	if(count($products)){
-    		foreach ($products as $id => &$name){
-    			$name = static::getTitleById($id);
     		}
     	}
     	
@@ -832,6 +825,7 @@ class cat_Products extends core_Master {
     public static function cacheMetaData()
     {
     	$cache = array();
+    	$tmp = array();
     	$metas = array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture');
     	foreach($metas as $meta){
     		$catGroups = cat_Groups::getByMeta($meta);
@@ -842,7 +836,11 @@ class cat_Products extends core_Master {
     		$query->where("#state != 'rejected'");
 	    	$query->likeKeylist('groups', $keylist, TRUE);
 	    	while($rec = $query->fetch()){
-	    		$products[$rec->id] = $rec->id;
+	    		if(!array_key_exists($rec->id, $tmp)){
+	    			$tmp[$rec->id] = static::getTitleById($rec->id);
+	    		}
+	    		
+	    		$products[$rec->id] = $tmp[$rec->id];
 	    	}
 	    	
 	    	$cache[$meta] = $products;
