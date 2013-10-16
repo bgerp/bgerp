@@ -357,11 +357,18 @@ class cat_Products extends core_Master {
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
             'placeholder=Всички групи,caption=Група,input,silent,remember');
-
+		
+        $data->listFilter->FNC('meta', 'enum(all=Свойства,canSell=Продаваеми,
+        						canBuy=Купуваеми,
+        						canStore=Складируеми,
+        						canConvert=Вложими,
+        						fixedAsset=ДМА,
+        						canManifacture=Производими)', 'input');
+		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'search,order,groupId';
-        $data->listFilter->input('order,groupId,search', 'silent');
+        $data->listFilter->showFields = 'search,order,meta,groupId';
+        $data->listFilter->input('order,groupId,search,meta', 'silent');
     }
     
     
@@ -385,6 +392,11 @@ class cat_Products extends core_Master {
         
         if ($data->listFilter->rec->groupId) {
             $data->query->where("#groups LIKE '|{$data->listFilter->rec->groupId}|'");
+        }
+        
+        if ($data->listFilter->rec->meta && $data->listFilter->rec->meta != 'all') {
+        	$groupIds = cat_Groups::getByMeta($data->listFilter->rec->meta);
+        	$data->query->likeKeylist('groups', keylist::fromArray($groupIds));
         }
     }
 
@@ -833,8 +845,9 @@ class cat_Products extends core_Master {
     		
     		$products = array();
     		$query = static::getQuery();
-	    	$query->likeKeylist('groups', $keylist, TRUE);
+	    	$query->likeKeylist('groups', $keylist);
 	    	$query->where("#state != 'rejected'");
+	    	
 	    	while($rec = $query->fetch()){
 	    		if(!array_key_exists($rec->id, $tmp)){
 	    			$tmp[$rec->id] = static::getTitleById($rec->id);
