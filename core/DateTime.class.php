@@ -711,11 +711,12 @@ class core_DateTime
      */
     static function addMonths($num, $date = NULL)
     {
-    	expect(is_int($num));
+    	expect(is_numeric($num));
     	if(!$date){
     		$date = dt::now();
     	}
     	
+    	$num = (int)$num;
     	$newDateStamp = strtotime("+{$num} months", dt::mysql2timestamp($date));
     	return dt::timestamp2Mysql($newDateStamp);
     }
