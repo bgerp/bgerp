@@ -703,4 +703,20 @@ class core_DateTime
         return strtotime("{$year}-03-21 +".easter_days($year)." days");
     }
 
+    
+    /**
+     * Ф-я добавяща/изваждаща месеци към дадена дата
+     * @param int $num - брой месеци, които ще се вадят/добавят
+     * @param mixed $date - дата или NULL ако е текущата
+     */
+    static function addMonths($num, $date = NULL)
+    {
+    	expect(is_int($num));
+    	if(!$date){
+    		$date = dt::now();
+    	}
+    	
+    	$newDateStamp = strtotime("+{$num} months", dt::mysql2timestamp($date));
+    	return dt::timestamp2Mysql($newDateStamp);
+    }
 }
