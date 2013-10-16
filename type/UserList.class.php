@@ -63,7 +63,10 @@ class type_UserList extends type_Keylist
         $teams = self::toArray($teams);
 
         $roles = core_Roles::getRolesAsKeylist($this->params['roles']);
-
+        
+        // id на текущия потребител
+        $currUserId = core_Users::getCurrent();
+        
         foreach($teams as $t) {  
             if(count($ownRoles) && !$ownRoles[$t]) continue;
             $group = new stdClass();
@@ -83,6 +86,17 @@ class type_UserList extends type_Keylist
             $teamMembers = 0;
             
             while($uRec = $uQuery->fetch()) {
+                
+                // Ако е сетнат параметъра да са отворени всички или е групата на текущия потребител
+                if (($this->params['autoOpenGroups'] == '*') || ($uRec->id == $currUserId)) {
+                    
+                    // Вдигам флага да се отвори групата
+                    $group->autoOpen = TRUE;
+                    
+                    // Отбелязваме, че поне една група е отворена
+                    $haveOpenedGroup=TRUE;
+                }
+                
                 $key = $uRec->id;
                 if(!isset($this->suggestions[$key])) {
                     $teamMembers++;
@@ -101,6 +115,20 @@ class type_UserList extends type_Keylist
             $group->attr = array('class' => 'team');
             $group->group = TRUE;
             $this->suggestions[] = $group; 
+        }
+        
+        // Ако не е отворена нито една група
+        if (!$haveOpenedGroup) {
+            
+            // Вземаме първата група
+            $firstGroup = key($this->suggestions);
+            
+            // Ако е обект
+            if ($firstGroup && is_object($this->suggestions[$firstGroup])) {
+                
+                // Вдигама флаг да се отвори
+                $this->suggestions[$firstGroup]->autoOpen = TRUE;
+            }
         }
      }
     
