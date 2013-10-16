@@ -51,24 +51,6 @@ class type_Richtext extends type_Blob
      * Шаблон за намиране на линкове в текст
      */
     // static $urlPattern = "#((www\.|http://|https://|ftp://|ftps://|nntp://)[^\s<>()]+)#i";
-	
-    
-	/**
-     * Минималната дължина на стринга, над която ще се хифенира стринга
-     */
-    const TRANSFER_WORD_MIN_LENGTH = 15;
-    
-    
-	/**
-     * Минималната дължина след която ще се добавя знак за хифенация
-     */
-    const MIN_LENGTH_HYPHEN = 4;
-    
-    
-    /**
-     * Максималната дължина след която ще се добавя знак за хифенация
-     */
-    const MAX_LENGTH_HYPHEN = 10;
     
     
 	/**
@@ -368,13 +350,8 @@ class type_Richtext extends type_Blob
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
         
-        // Ако сме в тесен режим
-        // TODO За тестове
-        if(!Mode::is('text', 'plain') && (Mode::is('screenMode', 'narrow') || isDebug())) {
-            
-            // Хифинираме
-            $html = $this->hyphenWords($html);
-        }
+        // Хифенира текста
+        $this->invoke('hyphenText', array(&$html));
         
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
@@ -724,114 +701,6 @@ class type_Richtext extends type_Blob
         $this->_htmlBoard[$place] = $code1;
         
         return "[#{$place}#]";
-    }
-	
-    
-    /**
-     * Добавя хифинация на думи с определена дължина, които не са в шаблон или HTML
-     * 
-     * @param string $html
-     * 
-     * @return string $html
-     */
-    static function hyphenWords_($html)
-    {
-        // Шаблона, за намиране, на думите, които ще хифинираме
-        $pattern = "/(\[#[^\#\]]*\#\])|(\<[^\>]*\>)|([\s]+)|(?'words'[^\s\<\[\#\]]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
-        
-        // Намираме думите
-        preg_match_all($pattern, $html, $matches);
-        
-        // Обхождаме масива
-        foreach ((array)$matches['words'] as $match) {
-            
-            // Ако има текст
-            if (!trim($match)) continue;
-            
-            // Хифенираме думата
-            $hyphenedStr = static::getHyphenWord($match);
-            
-            // Заместваме
-            $html = str_replace($match, $hyphenedStr, $html);
-        }
-        
-        return $html;
-    }
-    
-    
-	/**
-     * Хифенира стринговете
-     */
-    static function getHyphenWord($string)
-    {
-        // Брояча за сивмовилите
-        $i = 0;
-        
-        // За циклене по стринга
-        $p = 0;
-        
-        // Резултатния стринг
-        $resStr = '';
-        
-        // Обхождаме всички символи
-        while('' != ($char = core_String::nextChar($string, $p))) {
-
-            // Флаг, дали да се добавя знак за хифенация
-            $addHyphen = FALSE;
-            
-            // Увеличаваме брояча
-            $i++;
-            
-            // Ако брояча е под първия минимум
-            if ($i <= static::MIN_LENGTH_HYPHEN) {
-                
-                // Добавяме символа
-                $resStr .= $char;
-                
-                continue;
-            }
-            
-            // Pointer за следващия символ
-            $pNext += strlen($char);
-            
-            // Взмема следващия символ
-            $nextChar = core_String::nextChar($string, $pNext);
-            
-            // Ако има следващ
-            if ($nextChar != '') {
-                
-                // Ако сегашния символ не е съгласна, а следващия е съгласна
-                if (!core_String::isConsonent($char) && core_String::isConsonent($nextChar)) {
-                    
-                    // Вдигаме влага за добавяне на хифенация
-                    $addHyphen = TRUE;
-                    
-                } else {
-                    
-                    // Ако брояча е над втория допустим праг
-                    if ($i > static::MAX_LENGTH_HYPHEN) {
-                        
-                        // Вдигаме влага за добавяне на хифенация
-                        $addHyphen = TRUE;
-                    }
-                }
-            }
-            
-            // Ако флага е вдигнат
-            if ($addHyphen) {
-//                $resStr .= $char . "&#173;"; // Знак за softHyphne
-                $resStr .= $char . "<wbr>";
-                
-                // Нулираме брояча
-                $i = 0;
-            } else {
-                
-                // Добавяме символа
-                $resStr .= $char;
-            }
-        }
-        
-        return $resStr;
     }
     
     
