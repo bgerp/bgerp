@@ -429,9 +429,32 @@ class hr_EmployeeContracts extends core_Master
 			// Ако имаме непопълнено поле от гореполучения масив
 			if(isset($field)){ 
 				// Предупреждамае потребителя
-				$form->setWarning($field, "Непопълнено поле". "\n" . "<b>" . $form->fields[$field]->caption . "!" . "</b>");
+				$form->setWarning($field, "Непопълнено поле". "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
 			}
 		}
+    }
+    
+    
+    /**
+     * Добавяме договорите автоматично към номенклатура
+     *
+     * @param core_Manager $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    {
+       
+        if (!empty($mvc->autoList)) {
+            // Автоматично добавяне към номенклатурата $autoList
+            expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
+            $rec->lists = keylist::addKey($rec->lists, $autoListId);
+        }
+        $fieldListArr = arr::make($fieldList, TRUE);
+    
+        if(empty($fieldList) || $fieldListArr['lists']) {
+            acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+        }
     }
   
     
