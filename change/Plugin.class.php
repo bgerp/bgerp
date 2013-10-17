@@ -472,4 +472,40 @@ class change_Plugin extends core_Plugin
             }
         }
     }
+    
+    
+    /**
+     * Прихваща извикването на GetChangeLink.
+     * Създава линк, който води до промяната на записа
+     * 
+     * @param object $mvc
+     * @param string $res
+     * @param integer $id
+     * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
+     */
+    function on_AfterGetChangeLink($mvc, $res, $id, $title=FALSE)
+    {
+        // Ако нямаме права да редактираме, да не се показва линка
+        if (!$mvc->haveRightFor('changerec', $id)) return ;
+        
+        // URL' то за промяна
+        $changeUrl = array($mvc, 'changefields', $id, 'ret_url' => TRUE);
+        
+        // Иконата за промяна
+        $editSbf = sbf("img/16/edit.png");
+        
+        // Ако е подаде заглавието
+        if ($title) {
+            
+            // Създаваме линк с загллавието
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . $editSbf . ');';
+            
+            $res = ht::createLink($title, $changeUrl, NULL, $attr); 
+        } else {
+            
+            // Ако не е подадено заглавиет, създаваме линк с иконата
+            $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+        }
+    }
 }
