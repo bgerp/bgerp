@@ -152,10 +152,11 @@ class fileman_Files2 extends core_Master
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
+     * @param string $path - Пътя, където да се абсорбира файла
      * 
      * @return string $copyPath - Пътя до файла
      */
-    public static function extract($fh)
+    public static function extract($fh, $path=NULL)
     {
         // Вземаме записите за файла
         expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
@@ -163,8 +164,21 @@ class fileman_Files2 extends core_Master
         // Вземаме пътя до данните на файла
         $originalPath = fileman_Files::fetchByFh($fh, 'path');
         
+        // Ако е подаден пътя до файла
+        if ($path) {
+            
+            // Очакваме да е валидна директория
+            expect(is_dir($path));
+        } else {
+            
+            // Ако не е подадена директорията
+            
+            // Вземамем временна
+            $path = static::getTempPath();
+        }
+        
         // Пътя до файла
-        $copyPath = static::getTempPath() . "/" . $rec->name;
+        $copyPath = $path . "/" . $rec->name;
         
         // Копираме файла
         $copied = copy($originalPath, $copyPath);
