@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Публични статии
  *
@@ -13,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cms_Articles extends core_Manager
+class cms_Articles extends core_Master
 {
     
     
@@ -26,13 +25,49 @@ class cms_Articles extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_AutoFilter';
+    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_AutoFilter, change_Plugin';
     
-
+    
+    /**
+     * 
+     */
+    var $vidFieldName = 'vid';
+    
+    
     /**
      * Поддържани интерфейси
      */
     var $interfaces = 'cms_SourceIntf';
+    
+    
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    var $changableFields = 'level, title, body, menuId, vid';
+
+    
+    /**
+     * Кой може да променя записа
+     */
+    var $canChangerec = 'cms,admin,ceo';
+    
+    
+    /**
+     * 
+     */
+    var $canEdit = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    var $canDelete = 'no_one';
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'cms/tpl/SingleLayoutArticles.shtml';
 
 
     /**
@@ -40,19 +75,19 @@ class cms_Articles extends core_Manager
      */
     var $listFields = 'level,title,state,modifiedOn,modifiedBy';
     
-
+    
     /**
      * В коя колонка да са инструментите за реда
      */
     var $rowToolsField = 'level';
     
-
+    
     /**
      * По кои полета да се прави пълнотекстово търсене
      */
     var $searchFields = 'title,body';
-
-
+    
+    
     /**
      * Кой може да пише?
      */
@@ -76,7 +111,7 @@ class cms_Articles extends core_Manager
      */
     var $canRead = 'cms,admin,ceo';
     
- 
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -129,7 +164,7 @@ class cms_Articles extends core_Manager
         if(!$lang) {
             $lang = cms_Content::getLang();
         }
-
+        
         $cQuery = cms_Content::getQuery();
  
         $cQuery->where("#lang = '{$lang}'");
@@ -137,7 +172,7 @@ class cms_Articles extends core_Manager
         $cQuery->orderBy('#menu');
         
         $options = array();
-
+        
         while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
             $options[$cRec->id] = $cRec->menu;
         }
@@ -171,9 +206,25 @@ class cms_Articles extends core_Manager
     /**
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     { 
         $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
+        
+        // Ако се намираме в режим "печат", не показваме инструментите на реда
+        if(Mode::is('printing')) return;
+        
+        // Ако листваме
+        if(!arr::haveSection($fields, '-list')) return;
+        
+        // Определяме в кое поле ще показваме инструментите
+        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        
+        // Ако полето е обект
+        if (is_object($row->$field)) {
+            
+            // Добавяме линк, който води до промяна на записа
+            $row->$field->append($mvc->getChangeLink($rec->id), 'TOOLS');
+        }
     }
 
 
@@ -294,11 +345,14 @@ class cms_Articles extends core_Manager
                $navTpl->append($title);
             }
             
-            if(self::haveRightFor('edit', $rec1)) {
+            // Вземаме линка за промяна на записа
+            if($changeLink = $this->getChangeLink($rec1->id)) {
+                
+                // Добавяме интервал
                 $navTpl->append('&nbsp;');
-                $navTpl->append(
-                    ht::createLink( '<img src=' . sbf("img/16/edit.png") . ' width="12" height="12">', 
-                                    array('cms_Articles', 'Edit', $rec1->id, 'ret_url' => array('A', 'a', $rec1->id) ))); 
+                
+                // Добавяме линка
+                $navTpl->append($changeLink);
             }
 
             $navTpl->append("</div>");
@@ -340,6 +394,48 @@ class cms_Articles extends core_Manager
         }
 
         return $content; 
+    }
+    
+    
+    /**
+     * Прихваща извикването на GetChangeLink.
+     * Създава линк, който води до промяната на записа
+     * 
+     * @param object $mvc
+     * @param string $res
+     * @param integer $id
+     * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
+     */
+    function on_BeforeGetChangeLink(&$mvc, $res, $id, $title=FALSE)
+    {
+        // Инстанция на този клас
+        $mvc = cls::get('cms_Articles');
+        
+        // Ако нямаме права да редактираме, да не се показва линка
+        if (!$mvc->haveRightFor('changerec', $id)) return ;
+        
+        // URL' то за промяна
+        $changeUrl = array($mvc, 'changefields', $id, 'ret_url' => TRUE);
+        
+        // Иконата за промяна
+        $editSbf = sbf("img/16/edit.png");
+        
+        // Ако е подаде заглавието
+        if ($title) {
+            
+            // Създаваме линк с загллавието
+            $attr['class'] = 'linkWithIcon';
+            $attr['style'] = 'background-image:url(' . $editSbf . ');';
+            
+            $res = ht::createLink($title, $changeUrl, NULL, $attr); 
+        } else {
+            
+            // Ако не е подадено заглавиет, създаваме линк с иконата
+            $res = ht::createLink('<img src=' . $editSbf . ' width="12" height="12">', $changeUrl);
+        }
+        
+        // Връщаме FALSE, за да спрем по нататъчното извикване
+        return FALSE;
     }
     
     
@@ -434,5 +530,16 @@ class cms_Articles extends core_Manager
         return $url;
     }
 
-
+    
+    /**
+     * След подготвяне на сингъла, добавяме и лога с промените
+     */
+    function on_AfterPrepareSingle($mvc, $res, $data)
+    {
+        // Инстанция на класа
+        $inst = cls::get('core_TableView');
+        
+        // Вземаме таблицата с попълнени данни
+        $data->row->CHANGE_LOG = $inst->get(change_Log::prepareLogRow($mvc->className, $data->rec->id), 'createdOn=Дата, createdBy=От, Version=Версия');
+    }
 }
