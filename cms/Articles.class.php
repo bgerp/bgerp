@@ -295,7 +295,10 @@ class cms_Articles extends core_Master
         $cnt = 0;
 
         while($rec1 = $query->fetch()) {
-
+            
+            // Ако статуса е затворе, да не се показва
+            if ($rec1->state == 'closed') continue;
+            
             $cnt++;
             
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
