@@ -395,8 +395,10 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        // Ре-контираме документа след възстановяването му
-        self::on_AfterConto($mvc, $res, $id);
+        if($rec->state == 'active' || $rec->state == 'closed'){
+        	// Ре-контираме документа след възстановяването му
+        	self::on_AfterConto($mvc, $res, $id);
+        }
     }
     
     
