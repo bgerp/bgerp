@@ -43,7 +43,7 @@ class sales_Sales extends core_Master
      * var string|array
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv, doc_plg_HidePrices,
+                    doc_DocumentPlg, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
@@ -168,6 +168,22 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'deliveryTermId' => 'lastDocUser|lastDoc|clientCondition',
+    	'paymentMethodId' => 'lastDocUser|lastDoc|clientCondition',
+    	'currencyId' => 'lastDocUser|lastDoc|defMethod',
+    	'bankAccountId' => 'lastDocUser|lastDoc|defMethod',
+    	'makeInvoice' => 'lastDocUser|lastDoc|defMethod',
+    	'dealerId' => 'lastDocUser|lastDoc|defMethod',
+    	'deliveryLocationId' => 'lastDocUser|lastDoc',
+    	'isInstantShipment' => 'lastDocUser|lastDoc',
+    	'initiatorId' => 'lastDocUser|lastDoc',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -196,7 +212,7 @@ class sales_Sales extends core_Master
          * Доставка
          */
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 
-            'caption=Доставка->Условие');
+            'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 
@@ -210,7 +226,7 @@ class sales_Sales extends core_Master
          * Плащане
          */
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)',
-            'caption=Плащане->Начин');
+            'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)',
             'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
@@ -546,48 +562,12 @@ class sales_Sales extends core_Master
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
         $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         
-        if (empty($form->rec->dealerId)) {
-            $form->setDefault('dealerId', $mvc::getDefaultDealer($form->rec));
-        }
-        
         if (empty($form->rec->folderId)) {
             expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
         }
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
-        
-        /*
-         * Условия за доставка по подразбиране
-         */
-        if (empty($form->rec->deliveryTermId)) {
-            $form->rec->deliveryTermId = $mvc::getDefaultDeliveryTermId($form->rec);
-        }
-        
-        /*
-         * Начин на плащане по подразбиране
-         */
-        if (empty($form->rec->paymentMethodId)) {
-            $form->rec->paymentMethodId = $mvc::getDefaultPaymentMethodId($form->rec);
-        }
-        
-        /*
-         * Валута на продажбата по подразбиране
-         */
-        if (empty($form->rec->currencyId)) {
-            $form->setDefault('currencyId', $mvc::getDefaultCurrencyCode($form->rec));
-        }
-        
-        /*
-         * Банкова сметка по подразбиране
-         */
-        if (empty($form->rec->bankAccountId)) {
-            $form->setDefault('bankAccountId', $mvc::getDefaultBankAccountId($form->rec));
-        }
-        
-        if (empty($form->rec->makeInvoice)) {
-            $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($form->rec));
-        }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 
@@ -624,33 +604,6 @@ class sales_Sales extends core_Master
                 $isInstantPayment ? 'yes' : 'no');
         }
     }
-    
-
-    /**
-     * Условия за доставка по подразбиране
-     * 
-     * @param stdClass $rec
-     * @return int key(mvc=cond_DeliveryTerms)
-     */
-    public static function getDefaultDeliveryTermId($rec)
-    {
-        $deliveryTermId = NULL;
-        
-        // 1. Условията на последната продажба на същия клиент
-        if ($recentRec = self::getRecentSale($rec)) {
-            $deliveryTermId = $recentRec->deliveryTermId;
-        }
-        
-        // 2. Условията определени от локацията на клиента (държава, населено място)
-        // @see cond_DeliveryTermsByPlace
-        if (empty($deliveryTermId)) {
-            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'deliveryTerm');
-        }
-        
-        return $deliveryTermId;
-    }
-    
 
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
@@ -665,56 +618,14 @@ class sales_Sales extends core_Master
 
 
     /**
-     * Условия за доставка по подразбиране
-     * 
-     * @param stdClass $rec
-     * @return int key(mvc=cond_DeliveryTerms)
-     */
-    public static function getDefaultPaymentMethodId($rec)
-    {
-        $paymentMethodId = NULL;    
-        
-        // 1. Според последната продажба на същия клиент от тек. потребител
-        if ($recentRec = self::getRecentSale($rec, 'user')) {
-            $paymentMethodId = $recentRec->paymentMethodId;
-        }
-
-        // 2. Ако има фиксирана каса - плащането (по подразбиране) е в брой (кеш, COD)
-        if (!$paymentMethodId && $rec->caseId) {
-            $paymentMethodId = cond_PaymentMethods::fetchField("#name = 'COD'", 'id');
-        }
-        
-        // 3. Според последната продажба към този клиент
-        if (!$paymentMethodId && $recentRec = self::getRecentSale($rec, 'any')) {
-            $paymentMethodId = $recentRec->paymentMethodId;
-        }
-        
-        // 4. Според данните на клиента
-        if (!$paymentMethodId) {
-            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $paymentMethodId = cond_PaymentMethods::getDefault($contragent->getContragentData()); 
-        }
-        
-        return $paymentMethodId;
-    }
-
-
-    /**
      * Определяне на валутата по подразбиране при нова продажба.
      *
      * @param stdClass $rec
      * @param string 3-буквен ISO код на валута (ISO 4217)
      */
-    public static function getDefaultCurrencyCode($rec)
+    public static function getDefaultCurrencyId($rec)
     {
-        if ($recentRec = self::getRecentSale($rec)) {
-            $currencyBaseCode = $recentRec->currencyId;
-        } else {
-            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $currencyBaseCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-        }
-         
-        return $currencyBaseCode;
+    	return acc_Periods::getBaseCurrencyCode($rec->valior);
     }
 
 
@@ -727,10 +638,6 @@ class sales_Sales extends core_Master
     public static function getDefaultBankAccountId($rec)
     {
         $bankAccountId = NULL;
-        
-        if ($recentRec = self::getRecentSale($rec)) {
-            $bankAccountId = $recentRec->bankAccountId;
-        }
         
         if ($bankAccountId && !empty($rec->currencyId)) {
             // Ако валутата на продажбата не съвпада с валутата на банк. с/ка - игнорираме
@@ -746,8 +653,8 @@ class sales_Sales extends core_Master
         }
         
         if (!$bankAccountId) {
-            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $bankAccountId = bank_OwnAccounts::getDefault($contragent->getContragentData()); 
+            //$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+            //$bankAccountId = bank_OwnAccounts::getDefault($contragent->getContragentData()); 
         }
          
         return $bankAccountId;
@@ -756,22 +663,11 @@ class sales_Sales extends core_Master
     
     /**
      * Определяне ст-ст по подразбиране на полето makeInvoice
-     * 
-     * @param stdClass $rec
-     * @return string ('yes' | 'no' | 'monthend') 
      *  
      */
     public static function getDefaultMakeInvoice($rec)
     {
-        $makeInvoice = NULL;
-        
-        if ($recentRec = self::getRecentSale($rec)) {
-            $makeInvoice = $recentRec->makeInvoice;
-        } else {
-            $makeInvoice = 'yes';
-        }
-         
-        return $makeInvoice;
+       return 'yes';
     }
     
     
@@ -788,7 +684,7 @@ class sales_Sales extends core_Master
      * @param stdClass $rec запис на модела sales_Sales
      * @return int|NULL user(roles=sales)
      */
-    public static function getDefaultDealer($rec)
+    public static function getDefaultDealerId($rec)
     {
         expect($rec->folderId);
 
@@ -807,53 +703,6 @@ class sales_Sales extends core_Master
         }
         
         return NULL;
-    }
-    
-    
-    /**
-     * Най-новата контирана продажба към същия клиент, създадена от текущия потребител, тима му или всеки
-     * 
-     * @param stdClass $rec запис на модела sales_Sales
-     * @param string $scope 'user' | 'team' | 'any'
-     * @return stdClass
-     */
-    protected static function getRecentSale($rec, $scope = NULL)
-    {
-        if (!isset($scope)) {
-            foreach (array('user', 'team', 'any') as $scope) {
-                expect(!is_null($scope));
-                if ($recentRec = self::getRecentSale($rec, $scope)) {
-                    return $recentRec;
-                }
-            }
-            
-            return NULL;
-        }
-        
-        /* @var $query core_Query */
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->where("#contragentClassId = '{$rec->contragentClassId}'");
-        $query->where("#contragentId = '{$rec->contragentId}'");
-        $query->orderBy("createdOn", 'DESC');
-        $query->limit(1);
-        
-        switch ($scope) {
-            case 'user':
-                $query->where('#createdBy = ' . core_Users::getCurrent('id'));
-                break;
-            case 'team':
-                $teamMates = core_Users::getTeammates(core_Users::getCurrent('id'));
-                $teamMates = keylist::toArray($teamMates);
-                if (!empty($teamMates)) {
-                    $query->where('#createdBy IN (' . implode(', ', $teamMates) . ')');
-                }
-                break;
-        }
-        
-        $recentRec = $query->fetch();
-        
-        return $recentRec ? $recentRec : NULL;
     }
     
     
