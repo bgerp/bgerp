@@ -140,6 +140,12 @@ class cat_Products extends core_Master {
     var $cssClass = 'folder-cover';
     
     
+    /**  
+     * Кой има право да променя системните данни?  
+     */  
+    var $canEditsysdata = 'ceo, cat';
+    
+    
     /**
      * Нов темплейт за показване
      */
