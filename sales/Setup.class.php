@@ -81,12 +81,13 @@ class sales_Setup extends core_ProtoSetup
             'sales_Sales',
             'sales_SalesDetails',
         	'sales_Routes',
-        	'sales_SalesLastPricePolicy',
         	'sales_Quotations',
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
     		'sales_SaleRequestDetails',
     		//'sales_ClosedDeals',
+    		//'sales_ClosedDealsDebit',
+    		//'sales_ClosedDealsCredit',
         );
 
         
@@ -103,7 +104,21 @@ class sales_Setup extends core_ProtoSetup
             array(3.1, 'Търговия', 'Продажби', 'sales_Sales', 'default', "sales, ceo"),
         );
 
+    
+	/**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+    	$html = parent::install();
         
+        // Добавяме политиката "По последна цена"
+        core_Classes::add('sales_SalesLastPricePolicy');
+        
+        return $html;
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */
