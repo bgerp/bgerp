@@ -142,7 +142,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $tpl->append(tr('Условия на продажба'), 'title');
         
         if(isset($data->addBtn)){
-        	$tpl->append($addBtn, 'title');
+        	$tpl->append($data->addBtn, 'title');
         }
         
 	    if(count($data->rows)) {
