@@ -438,7 +438,7 @@ class cat_Products extends core_Master {
         if ($rec = self::fetch($objectId)) {
             $result = ht::createLink(static::getVerbal($rec, 'name'), array(__CLASS__, 'Single', $objectId));
         } else {
-            $result = '<i>неизвестно</i>';
+            $result = '<i>' .tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -508,14 +508,11 @@ class cat_Products extends core_Master {
     	$res->productRec = $productRec;
     	
     	// Добавяне на мета данните за продукта
-    	if($productRec->groups){
-    		$meta = explode(',', static::getMetaData($productRec->groups));
+    	if($meta = explode(',', static::getMetaData($productRec->groups))){
 	    	foreach($meta as $value){
 	    		$res->meta[$value] = TRUE;
 	    	}
-    	}
-    	
-    	if(empty($res->meta)){
+    	} else {
     		$res->meta = FALSE;
     	}
     	
