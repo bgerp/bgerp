@@ -55,6 +55,7 @@ class sales_Sales extends core_Master
      */
     public $menuPage = 'Търговия:Продажби';
     
+    
     /**
      * Кой има право да чете?
      * 
@@ -116,7 +117,6 @@ class sales_Sales extends core_Master
     var $onlyFirstInThread = TRUE;
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -150,7 +150,7 @@ class sales_Sales extends core_Master
     
     
     /**
-     * 
+     * Шаблон за единичен изглед
      */
     var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
@@ -171,15 +171,17 @@ class sales_Sales extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'deliveryTermId' => 'lastDocUser|lastDoc|clientCondition',
-    	'paymentMethodId' => 'lastDocUser|lastDoc|clientCondition',
-    	'currencyId' => 'lastDocUser|lastDoc|defMethod',
-    	'bankAccountId' => 'lastDocUser|lastDoc|defMethod',
-    	'makeInvoice' => 'lastDocUser|lastDoc|defMethod',
-    	'dealerId' => 'lastDocUser|lastDoc|defMethod',
+    
+    	'deliveryTermId'     => 'lastDocUser|lastDoc|clientCondition',
+    	'paymentMethodId'    => 'lastDocUser|lastDoc|clientCondition',
+    	'currencyId'         => 'lastDocUser|lastDoc|defMethod',
+    	'bankAccountId'      => 'lastDocUser|lastDoc',
+    	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
+    	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'isInstantShipment' => 'lastDocUser|lastDoc',
-    	'initiatorId' => 'lastDocUser|lastDoc',
+    	'isInstantShipment'  => 'lastDocUser|lastDoc',
+    	'initiatorId'        => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
@@ -280,15 +282,15 @@ class sales_Sales extends core_Master
         $rec->amountDeal = 0;
         
         while ($detailRec = $query->fetch()) {
-            $VAT = 1;
+            $vat = 1;
             
             if ($rec->chargeVat == 'yes') {
                 $ProductManager = cls::get($detailRec->classId);
                 
-                $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
+                $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
             
-            $rec->amountDeal += $detailRec->amount * $VAT;
+            $rec->amountDeal += $detailRec->amount * $vat;
         }
         
         $mvc->save($rec);
@@ -394,6 +396,9 @@ class sales_Sales extends core_Master
     }
 
     
+    /**
+     * След рендиране на единичния изглед
+     */
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
         // Данните на "Моята фирма"
@@ -610,60 +615,21 @@ class sales_Sales extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $title = tr("Продажба| №" . $rec->id);
-        
-         
-        return $title;
+        return tr("|Продажба| №") . $rec->id;
     }
 
 
     /**
-     * Определяне на валутата по подразбиране при нова продажба.
-     *
-     * @param stdClass $rec
-     * @param string 3-буквен ISO код на валута (ISO 4217)
+     * Определяне на валутата по подразбиране при нова продажба
      */
     public static function getDefaultCurrencyId($rec)
     {
     	return acc_Periods::getBaseCurrencyCode($rec->valior);
     }
-
-
-    /**
-     * Определяне на банковата с/ка по подразбиране при нова продажба.
-     *
-     * @param stdClass $rec
-     * @param string 3-буквен ISO код на валута (ISO 4217)
-     */
-    public static function getDefaultBankAccountId($rec)
-    {
-        $bankAccountId = NULL;
-        
-        if ($bankAccountId && !empty($rec->currencyId)) {
-            // Ако валутата на продажбата не съвпада с валутата на банк. с/ка - игнорираме
-            // сметката.
-            $baCurrencyId = bank_Accounts::fetchField($bankAccountId, 'currencyId');
-            
-            if ($baCurrencyId) {
-                $baCurrencyId = currency_Currencies::getCodeById($baCurrencyId);
-            }
-            if ($baCurrencyId && $baCurrencyId != $rec->currencyId) {
-                $bankAccountId = NULL;
-            }
-        }
-        
-        if (!$bankAccountId) {
-            //$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            //$bankAccountId = bank_OwnAccounts::getDefault($contragent->getContragentData()); 
-        }
-         
-        return $bankAccountId;
-    }
     
     
     /**
      * Определяне ст-ст по подразбиране на полето makeInvoice
-     *  
      */
     public static function getDefaultMakeInvoice($rec)
     {
@@ -718,9 +684,7 @@ class sales_Sales extends core_Master
             return;
         }
         
-        /*
-         * Ако не е въведен валутен курс, използва се курса към датата на документа 
-         */
+        // Ако не е въведен валутен курс, използва се курса към датата на документа 
         if (empty($form->rec->currencyRate)) {
             $form->rec->currencyRate = 
                 currency_CurrencyRates::getRate($form->rec->valior, $form->rec->currencyId, NULL);
@@ -786,6 +750,9 @@ class sales_Sales extends core_Master
     }
     
     
+    /**
+     * След извличане на записите от базата данни
+     */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if (!count($data->recs)) {
@@ -808,6 +775,9 @@ class sales_Sales extends core_Master
     }
     
     
+    /**
+     * След обработка на записите
+     */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
@@ -883,6 +853,9 @@ class sales_Sales extends core_Master
     }
     
     
+    /**
+     * След подготовка на заглавието на списъчния изглед
+     */
     public static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Използваме заглавието на списъка за заглавие на филтър-формата
@@ -908,7 +881,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * 
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
      */
@@ -945,11 +917,11 @@ class sales_Sales extends core_Master
         
         return (object)array(
              'contragentClassId' => $rec->contragentClassId,
-             'contragentId' => $rec->contragentId,
-             'termId' => $rec->deliveryTermId,
-             'locationId' => $rec->deliveryLocationId,
-             'deliveryTime' => $rec->deliveryTime,
-             'storeId' => $rec->shipmentStoreId,
+             'contragentId'      => $rec->contragentId,
+             'termId' 			 => $rec->deliveryTermId,
+             'locationId' 		 => $rec->deliveryLocationId,
+             'deliveryTime' 	 => $rec->deliveryTime,
+             'storeId' 			 => $rec->shipmentStoreId,
         );
     }
     
@@ -975,32 +947,19 @@ class sales_Sales extends core_Master
                 $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
             } 
             $products[] = (object)array(
-                'classId'  => $rec->classId,
-                'productId'  => $rec->productId,
-                'uomId'  => $rec->uomId,
-                'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity,
-                'quantityDelivered'  => $rec->quantityDelivered,
-                'quantityInPack'  => $rec->quantityInPack,
-                'price'  => $rec->price,
-                'discount'  => $rec->discount,
+                'classId'  			=> $rec->classId,
+                'productId'  		=> $rec->productId,
+                'uomId'  			=> $rec->uomId,
+                'packagingId'  		=> $rec->packagingId,
+                'quantity'  		=> $rec->quantity,
+                'quantityDelivered' => $rec->quantityDelivered,
+                'quantityInPack'  	=> $rec->quantityInPack,
+                'price'  			=> $rec->price,
+                'discount'  		=> $rec->discount,
             );
         }
         
         return $products;
-    }
-    
-    
-    public static function roundPrice($price)
-    {
-        $precision = 2 + 
-            ($price <= 10) +
-            ($price <= 1) +
-            ($price <= 0.1);
-        
-        $price = round($price, $precision);
-        
-        return $price;
     }
     
     
@@ -1083,9 +1042,9 @@ class sales_Sales extends core_Master
         if ($rec->isInstantShipment == 'yes') {
             $result->shipped->amount   = $rec->amountDeal;
             $result->shipped->currency = $rec->currencyId;
-            $result->shipped->delivery->location     = $rec->deliveryLocationId;
-            $result->shipped->delivery->term         = $rec->deliveryTermId;
-            $result->shipped->delivery->time         = $rec->deliveryTime;
+            $result->shipped->delivery->location = $rec->deliveryLocationId;
+            $result->shipped->delivery->term     = $rec->deliveryTermId;
+            $result->shipped->delivery->time     = $rec->deliveryTime;
         }
         
         /* @var $dRec sales_model_SaleProduct */
@@ -1147,9 +1106,9 @@ class sales_Sales extends core_Master
 
         $result->shipped->amount   = $rec->amountDelivered;
         $result->shipped->currency = $rec->currencyId;
-        $result->shipped->delivery->location     = $rec->deliveryLocationId;
-        $result->shipped->delivery->term         = $rec->deliveryTermId;
-        $result->shipped->delivery->time         = $rec->deliveryTime;
+        $result->shipped->delivery->location = $rec->deliveryLocationId;
+        $result->shipped->delivery->term     = $rec->deliveryTermId;
+        $result->shipped->delivery->time     = $rec->deliveryTime;
         
         /* @var $dRec sales_model_SaleProduct */
         foreach ($detailRecs as $dRec) {
