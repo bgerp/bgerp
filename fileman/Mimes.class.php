@@ -139,4 +139,34 @@ class fileman_Mimes extends core_BaseClass {
 
         return $fileName;
     }
+    
+    
+    /**
+     * Проверява, дали разширението на файла е в допустимите за миме типа
+     * 
+     * @param string $mimeType - Миме типа на файла
+     * @param string $ext - Разширението на файла
+     * 
+     * @return boolean
+     */
+    static function isCorrectExt($mimeType, $ext)
+    {
+        // Ако един от параметрите липсва
+        if (!trim($mimeType) || !trim($ext)) return ;
+        
+        // Параметрите в долен регистър
+        $ext = strtolower($ext);
+        $mimeType = strtolower($mimeType);
+        
+        // Вземаме масива с всички позволените разширения, за съответния миме тип
+        $extArr = static::getExtByMime($mimeType);
+        
+        // Ако е в масива с позволени разширения
+        if (in_array($ext, $extArr)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
 }
