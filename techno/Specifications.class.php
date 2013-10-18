@@ -261,8 +261,11 @@ class techno_Specifications extends core_Manager {
     		return $price;
     	}
     	
-    	return FALSE;
-    }
+    	// Ако продукта няма цена, връщаме цената от последно
+    	// продадената спецификация на този клиент (ако има)
+    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
+	}
     
     
     /**
