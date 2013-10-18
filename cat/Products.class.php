@@ -480,16 +480,16 @@ class cat_Products extends core_Master {
      * @param int $productId - ид на продукта
      * @param int $packagingId - ид на опаковката, по дефолт NULL
      * @return stdClass $res
-     * 		-> productRec - записа на продукта
-     * 		-> meta - мета данни за продукта ако има
-	 * 			 meta['canSell'] - дали може да се продава
-	 * 			 meta['canBuy'] - дали може да се купува
-	 * 			 meta['canConvert'] -дали може да се влага
-	 * 			 meta['canStore'] - дали може да се съхранява
-	 * 			 meta['canManifacture'] - дали може да се прозивежда
-	 * 		     meta['fixedAsset'] - дали е ДМА
-     * 		-> packagingRec - записа на опаковката, ако е зададена
-     * 		-> packagings - всички опаковки на продукта, ако не е зададена
+     * 	-> productRec - записа на продукта
+     * 	-> meta - мета данни за продукта ако има
+	 * 	     meta['canSell'] 		- дали може да се продава
+	 * 	     meta['canBuy']         - дали може да се купува
+	 * 	     meta['canConvert']     - дали може да се влага
+	 * 	     meta['canStore']       - дали може да се съхранява
+	 * 	     meta['canManifacture'] - дали може да се прозивежда
+	 * 	     meta['fixedAsset']     - дали е ДМА
+     * 	-> packagingRec - записа на опаковката, ако е зададена
+     * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */					
     public static function getProductInfo($productId, $packagingId = NULL)
     {
@@ -502,19 +502,19 @@ class cat_Products extends core_Master {
     	$res->productRec = $productRec;
     	
     	// Добавяне на мета данните за продукта
-    	if($productRec->meta){
-	    	$meta = explode(',', $productRec->meta);
+    	if($productRec->groups){
+    		$meta = explode(',', static::getMetaData($productRec->groups));
 	    	foreach($meta as $value){
 	    		$res->meta[$value] = TRUE;
 	    	}
-    	} else {
+    	}
+    	
+    	if(empty($res->meta)){
     		$res->meta = FALSE;
     	}
     	
     	$Packagings = cls::get('cat_products_Packagings');
-    	
     	if(!$packagingId) {
-    		
     		$res->packagings = array();
     		
     	    // Ако не е зададена опаковка намираме всички опаковки
@@ -528,7 +528,6 @@ class cat_Products extends core_Master {
     		
     		// Ако е зададена опаковка, извличаме само нейния запис
     		$res->packagingRec = $Packagings->fetchPackaging($productId, $packagingId);
-    		
     		if(!$res->packagingRec) {
     			
     			// Ако я няма зададената опаковка за този продукт
