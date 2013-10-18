@@ -638,4 +638,185 @@ class fileman_Files2 extends core_Master
         
         return FALSE;
     }
+    
+    
+    /**
+     * Проверява дали пътя е коректен файл
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return boolean
+     */
+    static function isCorrectPath($path)
+    {
+        static $isCorrect;
+        
+        // Ако не е проверяван
+        if (!isset($isCorrect[$path])) {
+            
+            // Ако е коректен път
+            if (is_file($path)) {
+                
+                // Добавяме в масива
+                $isCorrect[$path] = TRUE;
+            } else {
+                
+                $isCorrect[$path] = FALSE;
+            }
+        }
+        
+        return $isCorrect[$path];
+    }
+    
+    
+    /**
+     * Връща mimе типа за съответния файл
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return string - Миме типа на файла
+     */
+    static function getMimeTypeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        // Вземаме конфигурацията
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Изпълняваме командата
+        $fileType = exec("{$conf->FILEMAN_FILE_COMMAND} --mime-type \"{$path}\"");
+        
+        // Вземаме позицията на интервала
+        $spacePos = mb_strrpos($fileType, ': ') + 2;
+        
+        // Връщаме mime типа
+        return mb_substr($fileType, $spacePos);
+    }
+    
+    
+    /**
+     * Връща времето на последната модификация на файла
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return timeStamp - Времето на последна промяна на файла
+     */
+    static function getModificationTimeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        return filemtime($path);
+    }
+    
+    
+    /**
+     * Връща времето на създаване на файла
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return timeStamp - Времето на създаване на файла
+     */
+    static function getCreationTimeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        return filectime($path);
+    }
+    
+    
+    /**
+     * Връща времето на последен достъп до файла
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return timeStamp - Времето на последен достъп до файла
+     */
+    static function getAccessTimeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        return fileatime($path);
+    }
+    
+    
+    /**
+     * Връща размера на файла
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return integer - Размера на файла в байтове
+     */
+    static function getFileSizeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        return filesize($path);
+    }
+    
+    
+    /**
+     * Връща типа на файла. Позволените са: fifo, char, dir, block, link, file, socket and unknown
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return string - Типа на файла
+     */
+    static function getFileTypeFromFilePath($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        return filetype($path);
+    }
+    
+    
+    /**
+     * Връща масив с всички данни за файла
+     * 
+     * @param string $filePath - Пътя до файла
+     * 
+     * @return array $res - Масив с резултатите
+     * 
+     * $res['modificationTime'] - Време на последна модификация
+     * $res['creationTime'] - Време на създаване
+     * $res['accessTime'] - Време на последен достъп до файла
+     * $res['fileSize'] - Размера на файла
+     * $res['fileType'] - Типа на файла
+     * $res['mimeType'] - Миме типа на файла
+     * $res['extension'] - Разширението на файла
+     * $res['isCorrectExt'] - Дали разширението на файла е в допусмите за миме типа
+     */
+    static function getInfoFromFilePath($filePath)
+    {
+        // Време на последна модификация
+        $res['modificationTime'] = static::getModificationTimeFromFilePath($filePath);
+        
+        // Време на създаване
+        $res['creationTime'] = static::getCreationTimeFromFilePath($filePath);
+        
+        // Време на последен достъп до файла
+        $res['accessTime'] = static::getAccessTimeFromFilePath($filePath);
+        
+        // Размера на файла
+        $res['fileSize'] = static::getFileSizeFromFilePath($filePath);
+        
+        // Типа на файла
+        $res['fileType'] = static::getFileTypeFromFilePath($filePath);
+        
+        // Миме типа на файла
+        $res['mimeType'] = static::getMimeTypeFromFilePath($filePath);
+        
+        // Разширението на файла
+        $res['extension'] = fileman_Files::getExt($filePath);
+        
+        // Дали разширението на файла е в допусмите за миме типа
+        $res['isCorrectExt'] = fileman_Mimes::isCorrectExt($res['mimeType'], $res['extension']);
+        
+        return $res;
+    }
 }
