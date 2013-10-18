@@ -172,7 +172,10 @@ class fileman_Setup extends core_ProtoSetup
 		    'fileman_Download',
     
 		    // Установяваме индексите на файловете
-		    'fileman_Indexes'
+		    'fileman_Indexes',
+    
+            // Установяваме модела за хранилища
+            'fileman_Repositories'
         );
     /**
      * Инсталиране на пакета
