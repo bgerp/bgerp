@@ -33,8 +33,6 @@ class fileman_SetExtensionPlg extends core_Plugin
             return ;
         }
         
-        $conf = core_Packs::getConfig('fileman');
-        
         if (!empty($rec->dataId)) {
             $dataId = $rec->dataId;
         } else {
@@ -47,13 +45,8 @@ class fileman_SetExtensionPlg extends core_Plugin
         expect($dataId);
         
         $dataRec = fileman_Data::fetch(array("#id = '[#1#]'", $dataId));
-        $filePath = $dataRec->path;
         
-        $fileType = exec("{$conf->FILEMAN_FILE_COMMAND} --mime-type \"{$filePath}\"");
-
-        $spacePos = mb_strrpos($fileType, ' ') + 1;
-        
-        $fileMimeType = mb_substr($fileType, $spacePos);
+        $fileMimeType = fileman::getMimeTypeFromFilePath($dataRec->path);
         
         $newName = fileman_mimes::addCorrectFileExt($name, $fileMimeType);
         
