@@ -45,23 +45,22 @@
 					</tr>
 					<!--ET_END meta-->
 				</table>
-			
-		
-			
 	<!--ET_BEGIN Params-->
 		[#Params#]
 	<!--ET_END Params-->
 		</li>
 	<!-- ET_BEGIN image-->
-			<li class='specification-img'>[#image#]</li>
-			<!-- ET_END image-->
-			<li class='clearfix21'></li>
+		<li class='specification-img'>[#image#]</li>
+		<!-- ET_END image-->
+		<li class='clearfix21'></li>
+	<li>
 	<!--ET_BEGIN DETAILS-->
 	[#DETAILS#]
 	<!--ET_BEGIN DETAILS-->
-	<li>|Създаване|* [#createdOn#] |от|* [#createdBy#]</li>
+	</li>
 </ul>
-	
+<br />
+|Създаване|* [#createdOn#] |от|* [#createdBy#]
 </div>
 	<!--ET_BEGIN shareLog-->
     	<div class='sharing-history clearfix21'>
