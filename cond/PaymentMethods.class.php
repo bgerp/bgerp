@@ -135,20 +135,6 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Начин на плащане по подразбиране според клиента
-     * 
-     * @see doc_ContragentDataIntf
-     * @param stdClass $contragentInfo
-     * @return int key(mvc=cond_PaymentMethods) 
-     */
-    public static function getDefault($contragentInfo)
-    {
-        // @TODO
-        return static::fetchField("#name = 'COD'", 'id'); // за тест
-    }
-    
-    
-    /**
      * Сортиране по name
      */
     static function on_BeforePrepareListFilter($mvc, &$res, $data)
