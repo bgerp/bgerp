@@ -426,6 +426,7 @@ class sales_SalesDetails extends core_Detail
                     $masterRec->contragentClassId, 
                     $masterRec->contragentId, 
                     $rec->productId,
+                    $rec->classId,
                     $rec->packagingId,
                     $rec->packQuantity,
                     ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->date

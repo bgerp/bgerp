@@ -100,19 +100,19 @@ class sales_InvoiceDetails extends core_Detail
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, $data) 
 	{
-		if (! empty ( $data->toolbar->buttons ['btnAdd'] )) {
-			$productManagers = core_Classes::getOptionsByInterface ( 'cat_ProductAccRegIntf' );
+		if (!empty ($data->toolbar->buttons ['btnAdd'])) {
+			$productManagers = core_Classes::getOptionsByInterface ('cat_ProductAccRegIntf');
 			$masterRec = $data->masterData->rec;
 			$addUrl = $data->toolbar->buttons ['btnAdd']->url;
 			
-			foreach ( $productManagers as $manId => $manName ) {
-				$productMan = cls::get ( $manId );
-				$products = $productMan->getProducts ( $masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date );
-				if (! count ( $products )) {
+			foreach ($productManagers as $manId => $manName) {
+				$productMan = cls::get ($manId);
+				$products = $productMan->getProducts ($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
+				if (!count ($products)) {
 					$error = "error=Няма продаваеми {$productMan->title}";
 				}
 				
-				$data->toolbar->addBtn ( $productMan->singleTitle, $addUrl + array ('classId' => $manId ), "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+				$data->toolbar->addBtn ($productMan->singleTitle, $addUrl + array ('classId' => $manId), "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
 	            	unset($error);
 	        }
 	            
@@ -191,7 +191,7 @@ class sales_InvoiceDetails extends core_Detail
             if(!$form->rec->price){
           	
 	            // Ако не е зададена цена, извличаме я от избраната политика
-	          	$rec->price = $productMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity)->price;
+	          	$rec->price = $productMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity)->price;
 	          	if(!$rec->price){
 		            $form->setError('price', 'Неможе да се определи цена');
 		        }

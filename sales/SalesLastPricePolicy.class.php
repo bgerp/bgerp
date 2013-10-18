@@ -43,7 +43,7 @@ class sales_SalesLastPricePolicy extends core_Manager
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
        if(!$date){
        	   $date = dt::now();
