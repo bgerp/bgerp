@@ -168,7 +168,7 @@ class acc_plg_Contable extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {   
-        if(haveRight('debug')) {
+        if(haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $data->rec->id));
         }
 
@@ -395,8 +395,10 @@ class acc_plg_Contable extends core_Plugin
     {
         $rec = $mvc->fetchRec($id);
         
-        // Ре-контираме документа след възстановяването му
-        self::on_AfterConto($mvc, $res, $id);
+        if($rec->state == 'active' || $rec->state == 'closed'){
+        	// Ре-контираме документа след възстановяването му
+        	self::on_AfterConto($mvc, $res, $id);
+        }
     }
     
     

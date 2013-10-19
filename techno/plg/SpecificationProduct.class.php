@@ -213,7 +213,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
     {
     	if($coverClass instanceof cat_Products){
-    		$res = $coverClass::makeArray4Select(NULL, "#state != 'rejected' AND #meta LIKE '%canManifacture%'");
+    		$res = cat_Products::getByProperty('canManifacture');
     	}
     }
 }    

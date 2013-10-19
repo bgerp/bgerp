@@ -236,7 +236,7 @@ class techno_Specifications extends core_Manager {
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $id, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
     	$rec = $this->fetch($id);
     	$TechnoClass = cls::get($rec->docClassId);
@@ -261,8 +261,11 @@ class techno_Specifications extends core_Manager {
     		return $price;
     	}
     	
-    	return FALSE;
-    }
+    	// Ако продукта няма цена, връщаме цената от последно
+    	// продадената спецификация на този клиент (ако има)
+    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
+	}
     
     
     /**

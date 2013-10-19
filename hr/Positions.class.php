@@ -82,8 +82,8 @@ class hr_Positions extends core_Detail
         $this->FLD('professionId', 'key(mvc=hr_Professions,select=name)', 'caption=Професия, mandatory');
         
         // Щат
-        $this->FLD('employmentTotal', 'double','caption=Служители->Щат');
-        $this->FLD('employmentOccupied', 'double','caption=Служители->Запълване');
+        $this->FLD('employmentTotal', 'double(decimals=2)','caption=Служители->Щат, notNull');
+        $this->FLD('employmentOccupied', 'double(decimals=2)','caption=Служители->Запълване, input=none, notNull');
 
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)','caption=Възнаграждение->Основно');

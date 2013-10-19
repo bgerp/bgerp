@@ -362,7 +362,7 @@ class price_ListToCustomers extends core_Detail
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
 		

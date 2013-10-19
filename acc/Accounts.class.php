@@ -50,13 +50,13 @@ class acc_Accounts extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,acc';
+    var $canEdit = 'ceo,accMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,acc';
+    var $canAdd = 'ceo,accMaster';
     
     
     
@@ -75,19 +75,19 @@ class acc_Accounts extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,acc';
+    var $canDelete = 'ceo,accMaster';
 
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'acc';
+    var $canEditsysdata = 'accMaster';
     
     
     /**
      * Кой може да променя състоянието и ...;
      */
-    var $canAdmin = 'ceo,acc';
+    var $canAdmin = 'ceo,accMaster';
 
     
     /**
@@ -125,7 +125,7 @@ class acc_Accounts extends core_Manager
         $this->FLD('num', 'varchar(5)', "caption=Номер,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
-            'caption=Тип,remember,mandatory, export');
+            'caption=Тип,remember, export');
         $this->FLD('strategy', 'enum(,FIFO,LIFO,MAP)',
             'caption=Стратегия, export');
         $this->FLD('groupId1', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
@@ -265,6 +265,35 @@ class acc_Accounts extends core_Manager
             $form->setError('num', 'Съществува сметка с този номер');
         }
         
+
+	// Валидация: "синтетичните" (1 и 2 разрядни) сметки
+	// (т.е. разделите и групите на Сметкоплана) НЕ допускат избор на "Тип";
+
+	if ($form->rec->isSynthetic) {
+
+	// ако сметката е "Синтетична"
+
+		if (!empty($form->rec->type))
+
+		// и полето "Тип" НЕ е празно
+
+		$form->setError('type', "Разделите и Групите на Сметкоплана нямат|* <b>|Тип|*</b> | !");
+	}
+
+	// Валидация: всички останали (>=3 разряздните - "аналитични") сметки
+	// изискват задаване на "Тип"
+	else {
+
+	// ако сметката НЕ е "Синтетична"
+
+		if (empty($form->rec->type))
+
+		// и полето "Тип" е празно
+
+		$form->setError('type', "Изберете|* <b>|Тип|*</b> |на сметката!");
+	}
+
+
         // Определяне на избраните номенклатури.
         $groupFields = array();
         

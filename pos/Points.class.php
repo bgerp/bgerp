@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -62,7 +62,7 @@ class pos_Points extends core_Master {
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'ceo, pos';
+    var $canWrite = 'ceo, posMaster';
     
     
     /**
@@ -93,6 +93,18 @@ class pos_Points extends core_Master {
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'pos/tpl/SinglePointLayout.shtml';
+	
+	
+    /**
+	* Кой може да селектира?
+	*/
+	var $canSelect = 'ceo, pos';
+	
+	
+    /**
+	 * Кой може да селектира всички записи
+	 */
+	var $canSelectAll = 'ceo, posMaster';
 	
 	
     /**
@@ -170,25 +182,11 @@ class pos_Points extends core_Master {
     
     
 	/**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'select' && isset($rec)){
-    		$cashier = cash_Cases::fetchField($rec->caseId, 'cashier');
-    		if($cashier == $userId){
-    			$res = 'ceo, pos';
-    		}
-    	}
-    }
-    
-    
-	/**
 	 * Преди подготовка на резултатите
 	 */
 	function on_BeforePrepareListRecs($mvc, $res, $data)
 	{
-		if(!haveRole('ceo')){
+		if(!haveRole('ceo, posMaster')){
 			
 			// Показват се само точките на която каса
 			// е касиер потребителя

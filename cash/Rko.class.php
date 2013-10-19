@@ -494,7 +494,17 @@ class cash_Rko extends core_Master
     	$threadRec = doc_Threads::fetch($threadId);
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$docState = $firstDoc->fetchField('state');
+    	
+    	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	if($res){
+    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    			$res = FALSE;
+    		}
+    	}
+		
+    	return $res;
     }
     
     

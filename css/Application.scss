@@ -412,6 +412,9 @@ div.folder-cover{
 	max-width: 750px;
 	font-size:0.9em;
 	padding:10px 10px 12px 10px;
+	.block_title img{
+		vertical-align:baseline;
+	}
 	.detail-info{
 		padding:3px 7px 7px 7px;
 	}
@@ -2919,3 +2922,4 @@ div.location.public{
 }
 
 @import "partials/sales";
+

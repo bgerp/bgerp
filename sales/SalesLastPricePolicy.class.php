@@ -4,7 +4,9 @@
 
 /**
 * Имплементация на ценова политика "По последна цена"
-*
+* Връща последната цена на която е продаден даден артикул
+* на този клиент (от последната контирана продажба в папката на
+* клиента)
 *
 * @category  bgerp
 * @package   sales
@@ -29,21 +31,12 @@ class sales_SalesLastPricePolicy extends core_Manager
     
     
     /**
-     * Описание на модела (таблицата)
-     */
-    function description()
-    {
-        return FALSE;
-    }
-    
-    
-    /**
      * Връща последната цена за посочения продукт направена в
      * продажба към контрагента
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
        if(!$date){
        	   $date = dt::now();
@@ -59,10 +52,12 @@ class sales_SalesLastPricePolicy extends core_Manager
         $detailQuery->where("#contragentClassId = {$customerClass}");
         $detailQuery->where("#contragentId = {$customerId}");
         $detailQuery->where("#valior <= '{$date}'");
-        $detailQuery->where("#state = 'active'");
         $detailQuery->where("#productId = '{$productId}'");
+        $detailQuery->where("#classId = {$productManId}");
+        $detailQuery->where("#state = 'active'");
         $detailQuery->orderBy('#valior', 'DESC');
         $lastRec = $detailQuery->fetch();
+        
         if(!$lastRec){
         	
         	return NULL;

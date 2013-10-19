@@ -192,8 +192,7 @@ class price_GroupOfProducts extends core_Detail
         }
         
         // За опции се слагат само продаваемите продукти
-        $products = cat_Products::makeArray4Select(NULL, "#meta LIKE '%canSell%'");
-        $data->form->setOptions('productId', $products);
+        $data->form->setOptions('productId', cat_Products::getByProperty('canSell'));
 
         if($data->masterMvc instanceof cat_Products) {
             $data->form->title = "Добавяне в ценова група";

@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    	if(!$rec->price){
 	    		
-	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, NULL, $rec->quantity, $masterRec->date);
+	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->productManId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
@@ -548,7 +548,7 @@ class sales_QuotationsDetails extends core_Detail {
     		$dRec->productId = $specRec->id;
     		$dRec->quantity = $q;
     		$dRec->productManId = $productManId;
-    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, NULL, $q, $rec->date);
+    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->productManId, NULL, $q, $rec->date);
     		
     		$dRec->price = $price->price;
     		$dRec->optional = 'no';

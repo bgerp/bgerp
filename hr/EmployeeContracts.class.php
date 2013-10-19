@@ -131,6 +131,16 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
+     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
+     * $autoList.
+     * 
+     * @see acc_plg_Registry
+     * @var string
+     */
+    var $autoList = 'workContracts';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -264,6 +274,9 @@ class hr_EmployeeContracts extends core_Master
     {
     	$rec = $data->form->rec;
         
+    	// Скриваме опцията за номеклатурата
+    	$data->form->fields['lists']->input = "none";
+    	
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         if ('crm_Persons' == $coverClass) {
@@ -384,6 +397,89 @@ class hr_EmployeeContracts extends core_Master
         
 		$res = $data;
     }
+    
+    
+ 	/**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = $form->rec;
+
+    	// След като се записали/активирали формата
+    	if($rec->typeId){ 
+    		
+    		// Вземаме шаблона на труговия договор
+    		$tpl = hr_ContractTypes::fetchField($rec->typeId, 'script');
+    		
+    		// и намираме всички плейсхолдери в него
+    		preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
+    	
+    	
+	    	// помощен масив, тези полете от формата на модела не са от значение за шаблона
+	    	$sysArray = array("id", "ret_url", "typeId", "managerId", "personId", "departmentId",
+	    					  "descriptions", "sharedUsers", "sharedViews", "searchKeywords","professionId",
+	    					  "folderId", "threadId", "containerId", "originId", "state", "brState",
+	    					  "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
+    	
+	    	// От всички полета на модела
+	    	foreach($rec as $name=>$value){
+	       		$formField[$name] = $name;
+	       		
+	       		for($i = 0; $i <= count($sysArray); $i++){
+	       			// махаме тези от помощния масив
+	       			unset($formField[$sysArray[$i]]);
+	       		}
+	    	}
+    	
+	    	// намираме сечението на останалите полета и полетата от шаблона
+	    	$mandatoryFields = array_intersect($formField, $matches[1]);
+	    	
+			foreach($mandatoryFields as $field){
+				// Ако имаме непопълнено поле от гореполучения масив
+				if($rec->$field == NULL){ 
+					// Предупреждамае потребителя
+					$form->setWarning($field, "Непопълнено поле". "\n" . "|* <b>|" . $form->fields[$field]->caption . "!" . "|*</b> |");
+				}
+			}
+    	}
+    }
+    
+    
+	/**
+     * След промяна на обект от регистър
+     */
+    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    {
+    	if($rec->state == 'active'){
+    		    		    		
+    		// Взимаме запълването до сега
+    		$employmentOccupied = hr_Positions::fetchField($rec->positionId, 'employmentOccupied');
+    		
+    		// Изчисляваме работното време
+	        $houresInSec = self::houresForAWeek($rec->id);
+	        $houres = $houresInSec / 60 / 60;
+        
+    		$recPosition = new stdClass();
+		    $recPosition->id = $rec->positionId;
+		    
+		    // Ако работната седмица е над 35ч е един щат
+		    if($houres >= 35){
+		    	$recPosition->employmentOccupied = $employmentOccupied + 1;
+		    } else {
+		    	
+		    	// в противен случай е половин щат
+		    	$recPosition->employmentOccupied = $employmentOccupied + 0.5;
+		    }
+
+		    // записваме новата стойност
+			hr_Positions::save($recPosition,'employmentOccupied');
+    		
+    	}
+    }
   
     
     /**
@@ -434,27 +530,7 @@ class hr_EmployeeContracts extends core_Master
     		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
     	}
     }
-    
-    
-    /**
-     * Връща заглавието и мярката на перото за продукта
-     *
-     * Част от интерфейса: intf_Register
-     */
-    function getItemRec($objectId)
-    {
-        $result = NULL;
-        
-        if ($rec = self::fetch($objectId)) {
-            $result = (object)array(
-                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => $rec->id,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
+
     
     static function act_Test()
     {
@@ -509,7 +585,52 @@ class hr_EmployeeContracts extends core_Master
 		return $hoursWeekSec;
     }
 
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
     
+    
+    /**
+     * Връща заглавието и мярката на перото за продукта
+     *
+     * Част от интерфейса: intf_Register
+     */
+    function getItemRec($objectId)
+    {
+        $result = NULL;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
+                'num' => $rec->id,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
+    }
+
+	
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -518,6 +639,22 @@ class hr_EmployeeContracts extends core_Master
     {
         // @todo!
     }
+        
+    
+	/**
+     * Имат ли обектите на регистъра размерност?
+     *
+     * @return boolean
+     */
+    static function isDimensional()
+    {
+        return false;
+    }
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */
+    
     
     /****************************************************************************************
      *                                                                                      *

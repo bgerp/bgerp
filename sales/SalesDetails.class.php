@@ -426,9 +426,10 @@ class sales_SalesDetails extends core_Detail
                     $masterRec->contragentClassId, 
                     $masterRec->contragentId, 
                     $rec->productId,
+                    $rec->classId,
                     $rec->packagingId,
                     $rec->packQuantity,
-                    $masterRec->date
+                    ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->date
                 );
             
                 if (empty($policyInfo->price)) {
