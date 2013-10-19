@@ -264,7 +264,7 @@ class cat_Products extends core_Master {
      * в които участва
      * @param mixed $groups - групи в които участва
      */
-    private function getMetaData($groups)
+    private static function getMetaData($groups)
     {
     	if($groups){
     		$meta = array();
