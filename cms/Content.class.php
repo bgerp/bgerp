@@ -409,7 +409,32 @@ class cms_Content extends core_Manager
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = self::getUsedLangsArr();
-        if(count($usedLangsArr) > 1) {
+        
+        if(count($usedLangsArr) == 2) {
+
+            // Премахваме текущия език
+            $lang = self::getLang();
+
+            foreach($usedLangsArr as $lg) {
+                
+                $attr = array('title' => drdata_Languages::fetchField("#code = '{$lg}'", 'nativeName'));
+
+                if($lg == $lang) continue;
+                
+                $filePath = getFullPath("img/flags/" . $lg . ".png");
+                $img = " ";
+
+                if($filePath){
+                    $imageUrl = sbf("img/flags/" . $lg . ".png", "");
+                    $img = ht::createElement("img", array('src' => $imageUrl, 'width' => 16));
+                }
+                
+                $url = array($this, 'SelectLang', 'lang' => $lg);
+
+
+                $tpl->append(ht::createLink($img, $url, NULL, $attr));
+            }
+        } elseif(count($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang';
             $attr['title'] = tr('Смяна на езика');
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/16/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
