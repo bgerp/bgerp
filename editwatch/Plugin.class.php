@@ -48,7 +48,7 @@ class editwatch_Plugin extends core_Plugin {
         
         $url = toUrl(array($mvc, 'ajaxGetEditwatchStatus', $recId, 'ajax_mode' => 1));
         
-        $info->appendOnce("setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'editStatus');}, {$time});", 'ON_LOAD');
+        $info->appendOnce("\n runOnLoad(function(){setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'editStatus');}, {$time});});", 'JQRUN');
         
         $data->form->info = new core_ET($data->form->info);
         $data->form->info->append($info);
