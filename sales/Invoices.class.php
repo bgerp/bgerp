@@ -302,14 +302,12 @@ class sales_Invoices extends core_Master
         	$Vats = cls::get('drdata_Vats');
         	$form->rec->contragentVatNo = $Vats->canonize($form->rec->contragentVatNo);
         	
-        	return;
+	        foreach ($mvc->fields as $fName => $field) {
+	            $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
+	        }
         }
 
         acc_Periods::checkDocumentDate($form);
-
-        foreach ($mvc->fields as $fName=>$field) {
-            $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
-        }
 	}
 	
 	
@@ -416,7 +414,7 @@ class sales_Invoices extends core_Master
         
         // Датата на ДС не може да бъде след датата на фактурата, нито на повече от 5 дни преди нея.
         if ($rec->vatDate > $rec->date || dt::addDays(5, $rec->vatDate) < $rec->date) {
-            $form->setError('vatDate', 'Данъчното събитие трябва да е до 5 дни <b>преди</b> датата на фактурата');
+            $form->setError('vatDate', '|Данъчното събитие трябва да е до 5 дни|* <b>|преди|*</b> |датата на фактурата|*');
         }
     }
     
