@@ -1530,20 +1530,18 @@ class email_Outgoings extends core_Master
         $contrData->address = $posting->address;
         $contrData->email = $posting->email;
         $contrData->emailCc = $posting->emailCc;
-        $contrData->groupEmails = $posting->email;
         
-        // Ако има копие
-        if ($posting->emailCc) {
+        // Ако има папка
+        if ($posting->folderId) {
             
-            // Ако има имейл и копие
-            if ($posting->email) {
+            // Вземаме корицата на папката
+            $cover = doc_Folders::getCover($posting->folderId);
+            
+            // Ако корицата има съответния интерфейс
+            if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
                 
-                // Добавяме към груповите
-                $contrData->groupEmails .= ', ' . $posting->emailCc;
-            } else {
-                
-                // Копието да е групово
-                $contrData->groupEmails = $posting->emailCc;
+                // Вземаме груповите имейли
+                $contrData->groupEmails = $cover->getContragentData($rec->docId)->groupEmails;
             }
         }
         
