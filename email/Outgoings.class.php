@@ -662,6 +662,77 @@ class email_Outgoings extends core_Master
                         $form->fields['encoding']->type->toVerbal($rec->encoding));
                 }
             }
+            
+            // Вземаме записа
+            $eRec = static::fetch($form->rec->id);
+            
+            // Ако има originId
+            if ($eRec->originId) {
+                
+                // Вземаме документа от originId
+                $oRec = doc_Containers::getDocument($eRec->originId);
+                
+                // Ако е входящ имейл
+                if ($oRec->instance instanceof email_Incomings){
+                    
+                    // Вземаме записа
+                    $iRec = email_Incomings::fetch($oRec->that);
+                    
+                    // Вземаме no-reply хедърите
+                    $noReplayEmails = email_Mime::getHeadersFromArr($iRec->headers, 'no-reply', '*');
+                    
+                    // Вземаме само имейлите
+                    $noReplayEmails = email_Mime::getAllEmailsFromStr($noReplayEmails, TRUE);
+                    
+                    // Превръщаме в масив
+                    $noReplayEmailsArr = arr::make($noReplayEmails);
+                    
+                    // Ако има масив
+                    if (count($noReplayEmailsArr)) {
+                        
+                        // Вземаме имейлите ДО
+                        $emailsToArr = arr::make($form->rec->emailsTo, TRUE);
+                        
+                        // Вземаме имейлите CC
+                        $emailsCcArr = arr::make($form->rec->emailsCc, TRUE);
+                        
+                        // Обхождаме масива с no-reply имейлите
+                        foreach ($noReplayEmailsArr as $noReplayEmail) {
+                            
+                            // Ако имейла е в До
+                            if ($emailsToArr[$noReplayEmail]) {
+                                
+                                // Добавяме в масива 
+                                $toWarningArr[$noReplayEmail] = $noReplayEmail;
+                            }
+                            
+                             // Ако имейла е в CC
+                            if ($emailsCcArr[$noReplayEmail]) {
+                                
+                                // Добавяме в масива
+                                $ccWarningArr[$noReplayEmail] = $noReplayEmail;
+                            }
+                        }
+                        
+                        // Съобщението
+                        $msg = "Адреси, които не очакват отговор (no-reply)|*: ";
+                        
+                        // Ако има предупреждение До
+                        if ($toWarningArr) {
+                            
+                            // Сетваме предупреждение
+                            $form->setWarning('emailsTo', $msg . type_Emails::escape(implode(', ', $toWarningArr)));
+                        }
+                        
+                        // Ако има предупреждение Cc
+                        if ($ccWarningArr) {
+                            
+                            // Сетваме предупреждение
+                            $form->setWarning('emailsCc', $msg . type_Emails::escape(implode(', ', $ccWarningArr)));
+                        }
+                    }
+                }
+            }
         }
     }
     
