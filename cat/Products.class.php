@@ -783,12 +783,12 @@ class cat_Products extends core_Master {
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
     	$policies = $this->getPolicies();
     	foreach($policies as $name){
     		$Policy = cls::get($name);
-    		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime);
+    		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime);
     		if($price->price){
     			
     			return $price;
