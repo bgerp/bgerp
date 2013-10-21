@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -21,6 +21,7 @@ class doc_Search extends core_Manager
      * Заглавие
      */
     var $title = "Търсене на документи";
+    
     
     /**
      * @todo Чака за документация...
@@ -58,6 +59,7 @@ class doc_Search extends core_Manager
      * съотв. документ (@see doc_Containers::update_())
      */
     var $searchFields = NULL;
+    
     
     /**
      * @todo Чака за документация...
@@ -242,22 +244,28 @@ class doc_Search extends core_Manager
 
     
     /**
-     * @todo Чака за документация...
+     * След извличане на записите от базата данни
      */
     function on_AfterPrepareListRecs($mvc, $data)
     {
         if (count($data->recs) == 0) {
             return;
         }
-
-        foreach ($data->recs as &$rec) {
-            $rec->state = doc_Threads::fetchField($rec->threadId, 'state');
+		
+        foreach ($data->recs as $id => &$rec) {
+        	$DocClass = cls::get($rec->docClass);
+        	if($DocClass->haveRightFor('single', $rec->docId)){
+        		$rec->state = doc_Threads::fetchField($rec->threadId, 'state');
+        	} else {
+        		// Ако потребителя няма достъп до документа, несе показва
+        		unset($data->recs[$id]);
+        	}
         }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * След подготовка на записите
      */
     function on_AfterPrepareListRows($mvc, $data)
     {
@@ -269,26 +277,21 @@ class doc_Search extends core_Manager
             $row = $data->rows[$i];
             $folderRec = doc_Folders::fetch($rec->folderId);
             $folderRow = doc_Folders::recToVerbal($folderRec);
-            //$row->folderType = $folderRow->type;
             $row->folderId   = $folderRow->title;
-            
-            //$threadRec = doc_Threads::fetch($rec->threadId);
-            //$threadRow = doc_Threads::recToVerbal($threadRec);
-            //$row->threadHnd = $threadRow->hnd;
-            //$row->threadId  = $threadRow->title;
             
             try {
                 $doc = doc_Containers::getDocument($rec->id);
                 $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search));
                 
             } catch (core_exception_Expect $exp) {
-                $row->docLink = $row->title = "<b style='color:red;'>Грешка</b>";
+                $row->docLink = $row->title = "<b style='color:red;'>" . tr('Грешка') . "</b>";
             }
         }
     }
     
+    
     /**
-     * @todo Чака за документация...
+     * Преди рендиране на лист таблицата
      */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
@@ -299,7 +302,7 @@ class doc_Search extends core_Manager
     }
     
     /**
-     * @todo Чака за документация...
+     * След подготовка на заглавието
      */
     static function on_AfterPrepareListTitle($mvc, $data)
     {
@@ -397,6 +400,10 @@ class doc_Search extends core_Manager
         return $numUpdated;
     }
     
+    
+    /**
+     * След сетъп на модела
+     */
     static function on_AfterSetupMVC($mvc, &$res)
     {
         if (Request::get('updateKeywords')) {
