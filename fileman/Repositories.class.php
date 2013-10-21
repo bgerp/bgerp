@@ -470,19 +470,49 @@ class fileman_Repositories extends core_Manager
         // FilesystemIterator::SKIP_DOTS - Прескача . и ..
         $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         
+        // Ако има файлове за игнориране
+        if (trim($rec->ignore)) {
+            
+            // Масив с файловете, които да се игнорират
+            $ignoreArr = arr::make($rec->ignore, TRUE);
+        }
+        
         // Обхождаме итератора
         while($iterator->valid()) {
             
-            // TODO да игнорира файловете в $rec->ignore
+            //Флаг, за игнориране на файла
+            $ignore = FALSE;
             
             // Вземаме името на файла
             $fileName = $iterator->key();
             
-            // Вземаме пътя до файла
-            $path = $iterator->current()->getPath();
+            // Ако е сетнат масива за игнорирани файлове
+            if ($ignoreArr) {
+                
+                // Обхождаме масива
+                foreach ((array)$ignoreArr as $ignoreStr) {
+                    
+                    // Ако в името на файла се съдържа стринга за игнориране
+                    if (stripos($fileName, $ignoreStr) !== FALSE) {
+                        
+                        // Вдигаме флага
+                        $ignore = TRUE;
+                        
+                        // Прекъсваме цикъла
+                        break;
+                    }
+                }
+            }
             
-            // Добавяме в резултатите пътя и името на файла
-            $res[$path][$fileName] = TRUE;
+            // Ако няма да се игнорира файла
+            if (!$ignore) {
+                
+                // Вземаме пътя до файла
+                $path = $iterator->current()->getPath();
+                
+                // Добавяме в резултатите пътя и името на файла
+                $res[$path][$fileName] = TRUE;
+            }
             
             // Прескачаме на следващия
             $iterator->next();
