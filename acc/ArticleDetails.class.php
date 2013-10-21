@@ -21,8 +21,14 @@ class acc_ArticleDetails extends core_Detail
      * Заглавие
      */
     var $title = "Мемориален ордер";
-    
-    
+
+     
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Счетоводна статия';
+
+
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -51,7 +57,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    var $currentTab = 'acc_Articles';
+    var $currentTab = 'Мемориални Ордери';
     
     
     /**
