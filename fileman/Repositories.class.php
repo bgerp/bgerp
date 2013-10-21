@@ -70,6 +70,12 @@ class fileman_Repositories extends core_Manager
     
     
     /**
+     * Кой има право да обхожда папките
+     */
+    var $canRetrive = 'user';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
@@ -88,7 +94,7 @@ class fileman_Repositories extends core_Manager
     {
         $this->FLD('basePath', 'varchar(readonly)', 'caption=Хранилище, mandatory, width=100%');
         $this->FLD('subPath', 'varchar', 'caption=Подпапка, width=100%');
-        $this->FLD('rolesForAccess', 'key(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роля за достъп, width=100%,placeholder=Всички');
+        $this->FLD('rolesForAccess', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роля за достъп, width=100%,placeholder=Всички');
         $this->FLD('ignore', 'text', 'caption=Служебни файлове, width=100%');
         
 //        $this->setDbUnique('basePath, subPath, rolesForAccess');
@@ -454,6 +460,9 @@ class fileman_Repositories extends core_Manager
         // Вземаме записа
         $rec = static::fetch($repositoryId);
         
+        // Проверяваме дали има права за папката
+        static::requireRightFor('retrive', $rec);
+        
         // Вземаме пътя до поддиректорията на съответното репозитори
         $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
         
@@ -519,5 +528,26 @@ class fileman_Repositories extends core_Manager
         }
         
         return $res;
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако екшъна е retrive и сме дефинира роли за достъп до хранилището
+        // И текущия потребител няма такава
+        if ($action == 'retrive' && trim($rec->rolesForAccess) && !haveRole($rec->rolesForAccess)) {
+            
+            // Да не може да пипа
+            $requiredRoles = 'no_one';
+        }
     }
 }
