@@ -1,18 +1,19 @@
 <div class="singleView email-class">
 	
 	[#SingleToolbar#]
+	<h2 class="[#DialStatusClass#]">[#title#]</h2>
+	<h3> |Статия|* <b style="color:green;">№ [#level#]</b> - |вер|*. <b>[#LastVersion#]</b>
+			<!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]
+				<!--ET_BEGIN LastSelectedVersion-->
+					<b style='color: red;'>[#LastSelectedVersion#]</b> / 
+				<!--ET_END LastSelectedVersion-->
+				<!--ET_BEGIN FirstSelectedVersion-->
+					<b style='color: red;'>[#FirstSelectedVersion#]</b>
+				<!--ET_BEGIN FirstSelectedVersion-->
+			<!--ET_END VERSION_REMOVE-->
+	</h3>
 	
-	<h2><div style="padding:5px;" class=" [#DialStatusClass#] ">
-			|Статия|* <b style="color:green;">№ [#level#]</b> - |вер|*. <b>[#LastVersion#]</b>
-			<!--ET_BEGIN VERSION_REMOVE-->[#VERSION_REMOVE#]<!--ET_BEGIN LastSelectedVersion--><b style='color: red;'>[#LastSelectedVersion#]</b> / <!--ET_END LastSelectedVersion--><!--ET_BEGIN FirstSelectedVersion--><b style='color: red;'>[#FirstSelectedVersion#]</b><!--ET_BEGIN FirstSelectedVersion--><!--ET_END VERSION_REMOVE-->
-		</div>
-	</h2>
-
-	<div class="cms-title" style="padding-left:15px;">
-		[#title#]
-	</div>
-	
-	<div class="cms-body" style="padding-left:25px;">
+	<div class="cms-body">
 		[#body#]
 	</div>
 	
