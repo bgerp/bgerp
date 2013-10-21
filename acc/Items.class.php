@@ -23,7 +23,7 @@ class acc_Items extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, 
-                     plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_State2,plg_Sorting';
+                     plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_Sorting';
     
     
     /**
@@ -101,7 +101,7 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input,mandatory');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
