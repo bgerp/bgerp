@@ -483,7 +483,7 @@ class change_Plugin extends core_Plugin
      * @param integer $id
      * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
-    function on_AfterGetChangeLink($mvc, $res, $id, $title=FALSE)
+    function on_AfterGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
         // Ако нямаме права да редактираме, да не се показва линка
         if (!$mvc->haveRightFor('changerec', $id)) return ;
