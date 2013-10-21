@@ -46,7 +46,7 @@ class hyphen_Plugin extends core_Plugin
         if (Mode::is('screenMode', 'wide') && !isDebug()) return ;
         
         // Шаблона, за намиране, на думите, които ще хифинираме
-        $pattern = "/(?'place'\[#[^\#\]]*\#\])|(?'html'\<[^\>]*\>)|(?'space'[\s]+)|(?'entity'\&[^\;]*\;)|(?'words'[^\s\<\[\#\]\&]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
+        $pattern = "/(?'html'\<[^\>]*\>)|(?'space'[\s]+)|(?'entity'\&[^\;]*\;)|(?'words'[^\s\<\&]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
         
         // Намираме думите
         preg_match_all($pattern, $html, $matches);
