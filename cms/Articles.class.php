@@ -409,7 +409,7 @@ class cms_Articles extends core_Master
      * @param integer $id
      * @param string $title - Ако е подаден, връща линк с иконата и титлата. Ако липсва, връща само линк с иконата.
      */
-    function on_BeforeGetChangeLink(&$mvc, $res, $id, $title=FALSE)
+    static function on_BeforeGetChangeLink(&$mvc, &$res, $id, $title=FALSE)
     {
         // Инстанция на този клас
         $mvc = cls::get('cms_Articles');
