@@ -58,7 +58,43 @@ class acc_ArticleDetails extends core_Detail
      * @var acc_Accounts
      */
     var $Accounts;
+
+        
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,acc';
     
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,accMaster';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,acc';
+    
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,accMaster';
+
 
     /**
      * Описание на модела
