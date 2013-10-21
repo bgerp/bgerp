@@ -457,7 +457,7 @@ class change_Plugin extends core_Plugin
                     if (!$haveChange) {
                         
                         // Сетваме грешка
-                        $form->setError($noChangeArr, 'Нямате промена');
+                        $form->setError($noChangeArr, 'Нямате промяна');
                     }
                 }
             }
