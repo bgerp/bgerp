@@ -138,7 +138,7 @@ class bgerp_Portal extends core_Manager
      */
     public static function prepareSearchForm(core_Mvc $mvc, core_Form &$form)
     {
-    	$form->layout = new ET(getFileContent("bgerp/tpl/PortalSearch.shtml"));
+    	$form->layout = getTplFromFile("bgerp/tpl/PortalSearch.shtml");
     	$form->layout->replace($mvc->searchInputField, 'FLD_NAME');
     	if($search = Request::get($mvc->searchInputField)){
     		$form->layout->replace($search, 'VALUE');

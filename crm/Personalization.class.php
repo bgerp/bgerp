@@ -111,7 +111,7 @@ class crm_Personalization extends core_Detail
         if (!$data->canChange) return NULL;
         
         // Шаблона за детейлите
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         // Титлата
         $tpl->append(tr('Персонализация'), 'title');        

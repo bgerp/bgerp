@@ -520,7 +520,7 @@ class acc_Items extends core_Manager
         try {
             $tpl = $masterMvc::getDetailWrapper();
         } catch (core_exception_Expect $e) {
-            $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+            $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         }
         
         $tpl->append(tr('Номенклатури'), 'title');
