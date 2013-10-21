@@ -60,7 +60,7 @@ class plg_RefreshRows extends core_Plugin
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
             $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
             
-            $tpl->appendOnce("setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'rowsContainer');}, {$time});", 'ON_LOAD');
+            $tpl->appendOnce("\n runOnLoad(function(){setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'rowsContainer');}, {$time});});", 'JQRUN');
             $tpl->prepend("<div id='rowsContainer'>");
             $tpl->append("</div>");
         }
