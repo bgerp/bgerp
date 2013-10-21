@@ -1529,6 +1529,23 @@ class email_Outgoings extends core_Master
         $contrData->place = $posting->place;
         $contrData->address = $posting->address;
         $contrData->email = $posting->email;
+        $contrData->emailCc = $posting->emailCc;
+        $contrData->groupEmails = $posting->email;
+        
+        // Ако има копие
+        if ($posting->emailCc) {
+            
+            // Ако има имейл и копие
+            if ($posting->email) {
+                
+                // Добавяме към груповите
+                $contrData->groupEmails .= ', ' . $posting->emailCc;
+            } else {
+                
+                // Копието да е групово
+                $contrData->groupEmails = $posting->emailCc;
+            }
+        }
         
         // Ако има originId
         if ($posting->originId) {
