@@ -1069,7 +1069,7 @@ class core_App
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		}
 
-        file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml ."<br>" . date("Y-m-d H:i:s"));
+        file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml ."<br>" . date("Y-m-d H:i:s"), FILE_APPEND);
         
         // Сигнал за външния свят, че нещо не е наред
         header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', TRUE, 500);
