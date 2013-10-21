@@ -24,23 +24,19 @@ class doc_Search extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Зареждане на плъгини
      */
     var $loadList = 'doc_Wrapper, plg_Search, plg_State';
     
     
     /**
-     * Роли с права за добавяне.
-     *
-     * 'no_one', за да не се показва бутона "Нов запис"
-     *
-     * @var string
+     * Кой може да добавя
      */
     var $canAdd = 'no_one';
     
     
     /**
-     * 
+     * Кой има достъп до списъчния изглед
      */
     var $canList = 'powerUser';
     
@@ -62,7 +58,7 @@ class doc_Search extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Описание на модела
      */
     function description()
     {
@@ -277,7 +273,7 @@ class doc_Search extends core_Manager
             $row = $data->rows[$i];
             $folderRec = doc_Folders::fetch($rec->folderId);
             $folderRow = doc_Folders::recToVerbal($folderRec);
-            $row->folderId   = $folderRow->title;
+            $row->folderId = $folderRow->title;
             
             try {
                 $doc = doc_Containers::getDocument($rec->id);
