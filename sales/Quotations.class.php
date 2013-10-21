@@ -96,7 +96,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, folderId, paymentCurrencyId, state, createdOn,createdBy';
+    public $listFields = 'id, date, folderId, state, createdOn,createdBy';
     
 
     /**
