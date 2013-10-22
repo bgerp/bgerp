@@ -1,9 +1,9 @@
 <!--ET_BEGIN LONG-->
 <li>
 <div class='scrolling-holder'>
-	<div class = 'general-products-detail-header' style='margin-top:20px'>|Компоненти|*</div>
-	<table class = 'styled-table' id='components-table'>
 		<!--ET_BEGIN COMPONENTS-->
+		<div class = 'general-products-detail-header' style='margin-top:20px'>|Компоненти|*</div>
+		<table class = 'styled-table' id='components-table'>
 		[#COMPONENTS#]
 		<tr>
 			<th class='component-header' width=1%>№</th>
@@ -43,8 +43,9 @@
 			</td>
 		</tr>
 		<!--ET_END TOTAL-->
+		</table>
 		<!--ET_END COMPONENTS-->
-	</table>
+	
 </div>
 		[#ListToolbar#]
 </li>

@@ -1,5 +1,6 @@
 <!--ET_BEGIN LONG-->
-
+	<!--ET_BEGIN PARAMETERS-->
+	[#PARAMETERS#]
 	<div class = 'general-products-detail-header'>|Параметри|*</div>
 	<table class = 'styled-table' style='margin-bottom:5px'>
 	<!--ET_BEGIN PARAMS-->
@@ -14,7 +15,7 @@
 	<!--ET_END PARAMS-->
 	</table>
 	<div style=''>[#ADD#]</div>
-
+	<!--ET_END PARAMETERS-->
 <!--ET_END LONG-->
 
 <!--ET_BEGIN SHORT-->

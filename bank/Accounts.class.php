@@ -255,7 +255,7 @@ class bank_Accounts extends core_Master {
      */
     function renderContragentBankAccounts($data)
     {
-        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
+        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Банкови сметки'), 'title');
         

@@ -174,7 +174,7 @@ class doc_Containers extends core_Manager
         $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
         bgerp_Notifications::clear($url);
         
-        $tpl->appendOnce("flashHashDoc(flashDocInterpolation);", 'ON_LOAD');
+        $tpl->appendOnce("\n runOnLoad(function(){flashHashDoc(flashDocInterpolation);});", 'JQRUN');
     }
     
     

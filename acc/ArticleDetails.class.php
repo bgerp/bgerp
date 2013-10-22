@@ -21,8 +21,14 @@ class acc_ArticleDetails extends core_Detail
      * Заглавие
      */
     var $title = "Мемориален ордер";
-    
-    
+
+     
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = 'Счетоводна статия';
+
+
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -51,14 +57,50 @@ class acc_ArticleDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    var $currentTab = 'acc_Articles';
+    var $currentTab = 'Мемориални Ордери';
     
     
     /**
      * @var acc_Accounts
      */
     var $Accounts;
+
+        
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'ceo,acc';
     
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'ceo,accMaster';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'ceo,acc';
+    
+
+    /**
+     * Кой може да го разглежда?
+     */
+    var $canList = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'ceo,acc';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'ceo,accMaster';
+
 
     /**
      * Описание на модела

@@ -276,7 +276,7 @@ class cash_Rko extends core_Master
 		    }
     	}
     	
-    	acc_Periods::checkDocumentDate($form);
+    	acc_Periods::checkDocumentDate($form, 'valior');
     }
     
     

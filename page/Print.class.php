@@ -30,8 +30,7 @@ class page_Print extends page_Html {
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
         
-        $this->append("window.print();", 'ON_LOAD');
-        
+        $this->append("\n runOnLoad(function(){window.print();});", 'JQRUN');
         $this->append("
          * {
              background-color: white !important;

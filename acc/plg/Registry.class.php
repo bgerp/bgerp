@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -27,19 +27,6 @@ class acc_plg_Registry extends core_Plugin
         // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
         $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
-        
-     /*   if (static::supportExtenders($mvc)) {
-            // Динамично прикачане на екстендера acc_Items към регистровия мениджър.
-            $mvc->addExtender('lists', 
-                array(
-                    'className' => 'acc_Items',
-                    'prefix'    => 'ObjectLists',
-                    'title'     => 'Номенклатура',
-                )                
-            );
-        } elseif ($mvc instanceof core_Master) {
-            $mvc->attachDetails('ObjectLists=acc_Items');
-        } */
     }
 
 
@@ -85,7 +72,12 @@ class acc_plg_Registry extends core_Plugin
             $rec->lists = keylist::addKey($rec->lists, $autoListId);
         }
         $fieldListArr = arr::make($fieldList, TRUE);
-    
+        
+        // Обединяваме номенклатурите в които се записва обекта, с тези
+        // в които вече е участва или неучаства
+    	$objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
+        $rec->lists = keylist::merge($rec->lists, $objectList);
+    	
         if(empty($fieldList) || $fieldListArr['lists']) {
             acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         }
@@ -93,7 +85,7 @@ class acc_plg_Registry extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * Преди изтриване се обновяват перата
      */
     function on_AfterDelete($mvc, &$res, $query)
     {
@@ -125,12 +117,18 @@ class acc_plg_Registry extends core_Plugin
     }
     
     
+    /**
+     * Дали поддържа екстендъри
+     */
     protected static function supportExtenders($mvc)
     {
         return isset($mvc->_plugins['groups_Extendable']);
     }
     
     
+    /**
+     * Дали има детайл
+     */
     protected static function hasDetail($mvc, $detailAlias, $detailName = NULL)
     {
         return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);

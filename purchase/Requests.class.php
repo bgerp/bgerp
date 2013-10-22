@@ -123,6 +123,12 @@ class purchase_Requests extends core_Master
     
     
     /**
+     * Документа покупка може да бъде само начало на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.2|Логистика";

@@ -196,11 +196,7 @@ class acc_Periods extends core_Manager
      */
     static function checkDocumentDate($form, $field = 'date')
     {
-        if(!$form->isSubmitted()) {
-            return;
-        }
-
-        $date = $form->rec->{$field};
+		$date = $form->rec->{$field};
         
         if(!$date) {
 

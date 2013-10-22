@@ -167,6 +167,9 @@ class doc_Setup
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
         
+        // Плъгин за работа с файлове в документите
+        $html .= $Plugins->installPlugin('Форматиране на комуникацията', 'bgerp_plg_CommunicationFormat', 'type_Richtext', 'private');
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
         

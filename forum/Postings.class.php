@@ -572,8 +572,8 @@ class forum_Postings extends core_Detail {
 	 */
 	function renderTopic($data)
 	{
-		$tpl = new ET(tr('|*' . getFileContent('forum/tpl/SingleTopic.shtml')));
-		$detailsTpl = new ET(getFileContent('forum/tpl/Comments.shtml'));
+		$tpl = getTplFromFile('forum/tpl/SingleTopic.shtml');
+		$detailsTpl = getTplFromFile('forum/tpl/Comments.shtml');
 		$tpl->placeObject($data->row);
 		
 		// Ако има коментари ние ги рендираме

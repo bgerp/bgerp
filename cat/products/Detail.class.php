@@ -10,7 +10,7 @@ class cat_products_Detail extends core_Detail
     
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
-        $wrapTpl = new ET(getFileContent('cat/tpl/ProductDetail.shtml'));
+        $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
         $wrapTpl->append($mvc->title, 'TITLE');
         $wrapTpl->append($tpl, 'CONTENT');
         $wrapTpl->replace(get_class($mvc), 'DetailName');
