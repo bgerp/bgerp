@@ -509,13 +509,43 @@ class doc_Threads extends core_Manager
 
             $exp->message = tr($message);
             
-            // Ако имаме достъп да отидем в изходящата папка
-            if ($haveAccess && $folderId){
-            	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderId)));
-            } elseif (!$exp->getValue('ret_url')) {
+            // Ако преместваме само една нишка
+            if (count($selArr) == 1) {
+            
+                // Ако имаме права за нишката, в преместената папка
+                if ($this->haveRightFor('single', $threadId)) {
+                    
+                    // Вземаме първия документ в нишката
+                    $firstContainerId = $threadRec->firstContainerId;
+                    
+                    // Ако има такъв
+                    if ($firstContainerId) {
+                        
+                        // Вземаме документа
+                        $doc = doc_Containers::getDocument($firstContainerId);
+                        
+                        // Редиректваме към сингъла на документа
+                        $exp->setValue('ret_url', toUrl(array($doc, 'single', $doc->that)));
+                        
+                        // Сетваме флага
+                        $haveRightForSingle = TRUE;
+                    }
+                }
+            } 
+            
+            // Ако е вдигнат флага
+            if (!$haveRightForSingle) {
                 
-                // Ако няма ret_url, да редиректне в папката, от която се мести    
-                $exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $threadRec->folderId)));
+                // Ако имаме достъп 
+                if ($haveAccess){
+                    
+                    // да отидем в изходящата папка
+                	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderToRec->id)));
+                } elseif (!$exp->getValue('ret_url')) {
+                    
+                    // Ако няма ret_url, да редиректне в папката, от която се мести    
+                    $exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderFromRec->id)));
+                }
             }
         }
         
