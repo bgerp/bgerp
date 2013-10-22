@@ -158,32 +158,15 @@ class core_Browser extends core_Manager
     {
         setIfNot($userAgent, $_SERVER['HTTP_USER_AGENT']);
 
-        $bots = array(
-            'Google' => 'Google',
-            'msnbot' => 'MSN',
-            'Rambler' => 'Rambler',
-            'Yahoo' => 'Yahoo',
-            'AbachoBOT' => 'AbachoBOT',
-            'accoona' => 'Accoona',
-            'AcoiRobot' => 'AcoiRobot',
-            'ASPSeek' => 'ASPSeek',
-            'CrocCrawler' => 'CrocCrawler',
-            'Dumbot' => 'Dumbot',
-            'FAST-WebCrawler' => 'FAST-WebCrawler',
-            'GeonaBot' => 'GeonaBot',
-            'Gigabot' => 'Gigabot',
-            'Lycos' => 'Lycos spider',
-            'MSRBOT' => 'MSRBOT',
-            'Scooter' => 'Altavista robot',
-            'AltaVista' => 'Altavista robot',
-            'IDBot' => 'ID-Search Bot',
-            'eStyle' => 'eStyle Bot',
-            'Scrubby' => 'Scrubby robot',
-        );
-     
-        foreach ($bots as $str => $botName)
+        $bots = 'Google|GoogleBot|Googlebot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
+            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
+            'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby';
+
+        $crawlers = explode("|", $bots);
+ 
+        foreach ($crawlers as $botName)
         {
-            if (stristr($userAgent, $str) !== FALSE) {
+            if (stristr($userAgent, $botName) !== FALSE) {
             
                 return $botName;
             }
