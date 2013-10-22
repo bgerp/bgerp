@@ -182,7 +182,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * След като е готово вербалното представяне
      */
     static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
@@ -474,7 +474,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * 
+     * Подготовка на номенклатурите, в които участва обекта
      */
     public static function prepareObjectLists($data)
     {   
@@ -511,7 +511,20 @@ class acc_Items extends core_Manager
     
     
     /**
-     * 
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+    	if (!empty($data->form->toolbar->buttons['Запис и Нов'])) {
+    		if($data->form->rec->classId && $data->form->rec->objectId){
+    			$data->form->toolbar->removeBtn('Запис и Нов');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на номенклатурите на обекта
      */
     public static function renderObjectLists($data)
     {
