@@ -1,0 +1,26 @@
+[#SingleToolbar#]
+<div class='document'>
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
+	
+	 [#text#]
+	<!--ET_BEGIN currencyId-->
+	: &nbsp;<span class = 'cCode'>[#currencyId#]</span>
+	<!--ET_END currencyId-->
+	
+	<!--ET_BEGIN amount-->
+	<b>[#amount#]</b>
+	<!--ET_END amount-->
+	
+	<br />
+	<!--ET_BEGIN modifiedOn-->
+	|Дата|*: [#modifiedOn#]
+	<!--ET_END modifiedOn-->
+		
+	<!--ET_BEGIN notes-->
+		[#notes#]
+	<!--ET_END notes-->
+</div>
