@@ -1006,7 +1006,8 @@ class core_Users extends core_Manager
         }
         
         $query = static::getQuery();
-        $query->where("#roles = {$roleId} AND #state = 'active'");
+        $query->where("#state = 'active'");
+        $query->like('roles', "|{$roleId}|");
         
         while ($rec = $query->fetch()) {
             $users[$rec->id] = $rec->id;
