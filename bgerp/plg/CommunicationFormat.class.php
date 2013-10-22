@@ -29,7 +29,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 	/**
      * 
      */
-    function on_AfterCatchRichElements($mvc, &$html)
+    function on_AfterCatchRichElements1($mvc, &$html)
     {
      
        $this->mvc = $mvc;
