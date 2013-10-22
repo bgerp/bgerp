@@ -28,8 +28,8 @@ class sales_Wrapper extends plg_ProtoWrapper
         $this->TAB('sales_SaleRequests', 'Заявки', 'ceo,sales');
         $this->TAB('sales_Routes', 'Маршрути', 'ceo,sales');
         $this->TAB('dec_Declarations', 'Декларации', 'ceo,dec');
+        $this->TAB('sales_ClosedDealsDebit', 'Приключени сделки', 'ceo,sales');
         
-        //$this->title = 'Покупки';
         $this->title = 'Продажби « Търговия';
         Mode::set('menuPage', 'Търговия:Продажби');
         

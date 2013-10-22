@@ -65,10 +65,10 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'INV_LAYOUT' => array ("enum(sales/tpl/SingleLayoutInvoice=Основен изглед,sales/tpl/SingleLayoutInvoice2=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
-			'QUOTE_LAYOUT' => array ("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
+			'INV_LAYOUT'            => array("enum(sales/tpl/SingleLayoutInvoice=Основен изглед,sales/tpl/SingleLayoutInvoice2=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
+			'QUOTE_LAYOUT'          => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 			'SALE_MAX_FUTURE_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
-			'SALE_MAX_PAST_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
+			'SALE_MAX_PAST_PRICE'   => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
 	);
 	
 	
@@ -85,9 +85,8 @@ class sales_Setup extends core_ProtoSetup
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
     		'sales_SaleRequestDetails',
-    		//'sales_ClosedDeals',
-    		//'sales_ClosedDealsDebit',
-    		//'sales_ClosedDealsCredit',
+    		'sales_ClosedDealsDebit',
+    		'sales_ClosedDealsCredit',
         );
 
         
