@@ -28,7 +28,7 @@ class doc_Search extends core_Manager
      */
     var $loadList = 'doc_Wrapper, plg_Search, plg_State';
     
-    var $listItemsPerPage = 50;
+    
     /**
      * Кой може да добавя
      */
@@ -156,9 +156,9 @@ class doc_Search extends core_Manager
                     
                     if ($firstTime) {
                         // Добавяме в запитването
-                        //$data->query->where("#createdBy = '{$author}'");      
+                        $data->query->where("#createdBy = '{$author}'");      
                     } else {
-                        //$data->query->orWhere("#createdBy = '{$author}'");      
+                        $data->query->orWhere("#createdBy = '{$author}'");      
                     }
                     
                     $firstTime = FALSE;
