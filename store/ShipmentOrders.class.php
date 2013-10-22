@@ -699,10 +699,14 @@ class store_ShipmentOrders extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-        $firstDoc      = doc_Threads::getFirstDocument($threadId);
-        $firstDocClass = $firstDoc->className;
-        
-        return 'sales_Sales' == $firstDocClass;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$docState = $firstDoc->fetchField('state');
+    	
+    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    		return FALSE;
+    	}
+    	
+        return $firstDoc->instance() instanceof sales_Sales;
     }
         
     
