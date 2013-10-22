@@ -37,7 +37,7 @@ class hyphen_Plugin extends core_Plugin
      * Прихваща извикването на hyphenText
      * Хифенира подадения текст, като добавя <wbr>
      */
-    function on_HyphenText($mvc, &$html)
+    function on_AfterToHtml($mvc, &$html)
     {
         // Ако сме в текстов режим, връщаме
         if (Mode::is('text', 'plain')) return ;
@@ -48,21 +48,27 @@ class hyphen_Plugin extends core_Plugin
         // Шаблона, за намиране, на думите, които ще хифинираме
         $pattern = "/(?'html'\<[^\>]*\>)|(?'space'[\s]+)|(?'entity'\&[^\;]*\;)|(?'words'[^\s\<\&]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
         
-        // Намираме думите
-        preg_match_all($pattern, $html, $matches);
-        
-        // Обхождаме масива
-        foreach ((array)$matches['words'] as $match) {
+        // Хифенираме
+        $html = preg_replace_callback($pattern, array($this, '_catchHyphen'), $html);
+    }
+    
+    
+    /**
+     * Прихваща извикването на _catchHyphen
+     * 
+     * @param array $match
+     */
+    static function _catchHyphen($match)
+    {
+        // Ако хваната чиста дума за хифениране
+        if ($match['words']) {
             
-            // Ако има текст
-            if (!trim($match)) continue;
-            
-            // Хифенираме думата
-            $hyphenedStr = static::getHyphenWord($match);
-            
-            // Заместваме
-            $html = str_replace($match, $hyphenedStr, $html);
+            // Хифенираме
+            return static::getHyphenWord($match['words']);
         }
+        
+        // Връщаме целия текст, без обработка
+        return $match[0];
     }
     
     
