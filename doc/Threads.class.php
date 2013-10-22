@@ -509,9 +509,9 @@ class doc_Threads extends core_Manager
 
             $exp->message = tr($message);
             
-            // Ако няма достъп до входящата папка, се остава в изходящата след местене
-            if(!$haveAccess){
-            	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $threadRec->folderId)));
+            // Ако имаме достъп да отидем в изходящата папка
+            if ($haveAccess && $folderId){
+            	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderId)));
             }
         }
         
