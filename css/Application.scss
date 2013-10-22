@@ -603,13 +603,14 @@ div.mobile {
 	background-position: 5px center;
 }
 
-.telephone a, .fax a, .email a, .mobile a {
+.telephone a, .fax a, .email a, .mobile a, .communication a {
 	color:#031;
 }
 
-.telephone a:hover, .fax a:hover, .email a:hover, .mobile a:hover {
+.telephone a:hover, .fax a:hover, .email a:hover, .mobile a:hover, .communication a:hover {
 	color: #093;
 }
+
 /*край на стилове за CRM*/
 
 option.team {
