@@ -512,6 +512,10 @@ class doc_Threads extends core_Manager
             // Ако имаме достъп да отидем в изходящата папка
             if ($haveAccess && $folderId){
             	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderId)));
+            } elseif (!$exp->getValue('ret_url')) {
+                
+                // Ако няма ret_url, да редиректне в папката, от която се мести    
+                $exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $threadRec->folderId)));
             }
         }
         
