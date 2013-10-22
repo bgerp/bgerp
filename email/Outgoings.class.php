@@ -733,6 +733,48 @@ class email_Outgoings extends core_Master
                     }
                 }
             }
+            
+            // Ако ще прикачваме файлове
+            if (trim($rec->attachmentsSet)) {
+                
+                // Масив с прикачените файлове
+                $attachmentsArr = type_Set::toArray($rec->attachmentsSet);
+                
+                // Вземаме размерите, които ще влияят за изпращането на файлове
+                $uploadMaxFilesize = ini_get('upload_max_filesize');
+                $postMaxSize = ini_get('post_max_size');
+                $memoryLimit = ini_get('memory_limit');
+                
+                // Инстанция на класа за определяне на размера
+                $FileSize = cls::get('fileman_FileSize');
+                
+                // Вземаме вербалното им представяне
+                $uploadMaxFilesize = $FileSize->fromVerbal($uploadMaxFilesize);
+                $postMaxSize = $FileSize->fromVerbal($postMaxSize);
+                $memoryLimit = $FileSize->fromVerbal($memoryLimit);
+                
+                // Вземаме мининалния размер
+                $min = min($uploadMaxFilesize, $postMaxSize, $memoryLimit);
+                
+                // Обхождаме масива
+                foreach ($attachmentsArr as $attacmentFh) {
+                    
+                    // Вземаме метаданните за файла
+                    $meta = fileman::getMeta($attacmentFh);
+                    
+                    // Добавяме към размера
+                    $size += $meta['size'];
+                    
+                    // Ако общия размер на файловете е над допустимия минимум
+                    if ($size > $min) {
+                        
+                        // Вдигаме флага за грешка
+                        $form->setError('attachmentsSet', 'Максималният допустим размер за прикачени файлове е|*: ' . $FileSize->toVerbal($min));
+                        
+                        break;
+                    }
+                }
+            }
         }
     }
     
