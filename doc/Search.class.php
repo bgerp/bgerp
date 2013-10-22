@@ -28,7 +28,7 @@ class doc_Search extends core_Manager
      */
     var $loadList = 'doc_Wrapper, plg_Search, plg_State';
     
-    
+    var $listItemsPerPage = 50;
     /**
      * Кой може да добавя
      */
@@ -156,12 +156,12 @@ class doc_Search extends core_Manager
                     
                     if ($firstTime) {
                         // Добавяме в запитването
-                        $data->query->where("#createdBy = '{$author}'");      
+                        //$data->query->where("#createdBy = '{$author}'");      
                     } else {
-                        $data->query->orWhere("#createdBy = '{$author}'");      
+                        //$data->query->orWhere("#createdBy = '{$author}'");      
                     }
                     
-                    $firstTime=FALSE;
+                    $firstTime = FALSE;
                 }
             }
 
@@ -184,7 +184,7 @@ class doc_Search extends core_Manager
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
-            $data->query->orderBy('#createdOn=DESC');
+            $data->query->orderBy('#modifiedOn=DESC');
 
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
@@ -250,12 +250,7 @@ class doc_Search extends core_Manager
 		
         foreach ($data->recs as $id => &$rec) {
         	$DocClass = cls::get($rec->docClass);
-        	if($DocClass->haveRightFor('single', $rec->docId)){
-        		$rec->state = doc_Threads::fetchField($rec->threadId, 'state');
-        	} else {
-        		// Ако потребителя няма достъп до документа, несе показва
-        		unset($data->recs[$id]);
-        	}
+        	$rec->state = doc_Threads::fetchField($rec->threadId, 'state');
         }
     }
     

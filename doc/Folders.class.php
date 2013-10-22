@@ -542,11 +542,10 @@ class doc_Folders extends core_Master
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
-        $ceos      = core_Users::getByRole('ceo');
         $managers  = core_Users::getByRole('manager');
         
         // Подчинените в екипа (използва се само за мениджъри)
-        $subordinates = array_diff($teammates, $ceos, $managers);
+        $subordinates = array_diff($teammates, $managers);
         
         foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
             if (${$v}) {
