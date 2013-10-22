@@ -352,9 +352,6 @@ class type_Richtext extends type_Blob
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $html);
         }
         
-        // Хифенира текста
-        $this->invoke('hyphenText', array(&$html));
-        
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
@@ -370,6 +367,9 @@ class type_Richtext extends type_Blob
            $html->placeArray($this->_htmlBoard);
            $html->placeArray($this->_htmlBoard);
         }
+        
+        // Хифенира текста
+        $this->invoke('hyphenText', array(&$html));
 
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         

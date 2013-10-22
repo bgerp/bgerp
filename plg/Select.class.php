@@ -248,7 +248,7 @@ class plg_Select extends core_Plugin
         
         $js .= 'SetWithCheckedButton();';
         
-        $tpl->appendOnce($js, 'ON_LOAD');
+        $tpl->appendOnce("\n runOnLoad(function(){{$js};});", 'JQRUN');
     }
     
     

@@ -205,7 +205,7 @@ function expect($expr)
     	if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		} 
-    	file_put_contents(EF_TEMP_PATH . '/err.log', 'Неочакван аргумент: ' . print_r(func_get_args(), TRUE) ."\n" . date("Y-m-d H:i:s"));
+    	file_put_contents(EF_TEMP_PATH . '/err.log', 'Неочакван аргумент: ' . print_r(func_get_args(), TRUE) . date("Y-m-d H:i:s") . "\n\n", FILE_APPEND);
         throw new core_exception_Expect('Неочакван аргумент', func_get_args());
     }
 
