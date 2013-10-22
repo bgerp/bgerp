@@ -1012,6 +1012,7 @@ table.listTable {
 .listTitle {
 	margin-bottom:12px;
 	font-size:1.2em;
+	max-width: 950px;
 }
 /* край на стилове за елемента 'list Table' */
 
@@ -1402,7 +1403,7 @@ div.hFormField {
 .wide .path-title{
 	font-size:0.9em;
 	margin-top:2px;
-	display:inline-block;
+	display:inline;
 }
 
 .narrow .path-title{

@@ -1,6 +1,7 @@
-function tooltipCustom(initState){
+function tooltipCustom(){
 	
-	if(initState == 'opened'){
+	var checkVisibility = $('.tooltip-text');
+	if(checkVisibility.hasClass('show-tooltip')){
 		$('.tooltip-text').css("display","block");
 	}
 	//изчислява на позицията на стрелката
@@ -30,18 +31,22 @@ function tooltipCustom(initState){
 }
 
 function setTooltipMaxWidth(){
-	var mwidth = $('.tooltip-button').closest('.switching-display').find('.listTable').css('width');
-	var padding = $('.tooltip-text').css("paddingLeft");
-	
-	mwidth = parseInt(mwidth) -2 * parseInt(padding);
-	$('.tooltip-text').css('maxWidth',mwidth );
+	var listTable = $('.tooltip-button').closest('.switching-display').find('.listTable');
+	if(listTable.length){
+		var mwidth = listTable.css('width');
+		var padding = $('.tooltip-text').css("paddingLeft");
+		mwidth = parseInt(mwidth) - 2 * parseInt(padding);
+		if(mwidth > 450 && mwidth < 950){
+			$('.tooltip-text').css('maxWidth', mwidth);
+		}
+	}
 }
 
 function setArrowPosition(){
 	if($('.tooltip-button').length){
 		var leftOffet = $('.tooltip-button').offset().left;
 		var leftOffetBlock = $('.tooltip-text').offset().left;
-		leftOffet =parseInt(leftOffet) -parseInt(leftOffetBlock);
+		leftOffet = parseInt(leftOffet) - parseInt(leftOffetBlock);
 		$('.tooltip-arrow').css("left",leftOffet ) ;
 	}
 }

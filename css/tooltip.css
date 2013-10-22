@@ -1,11 +1,9 @@
 .tooltip-button{
-	margin-left:10px;
+	margin-left:5px;
 	position:relative;
-	z-index:1000;
 	top:3px;
 	height:20px;
 	display:inline-block;
-	1background-image: url('../img/info_button.png');
 	background-position:center center;
 	background-repeat:no-repeat;
 	cursor:pointer;
@@ -14,13 +12,12 @@
 .tooltip-text{
     color: #fff;
     position: relative;
-    padding: 15px;
     border-radius: 5px; 
 	border: 1px solid #777;
 	background: #FFFFCD;
 	color: #333;
 	display:none;
-	max-width:600px;
+	max-width:650px;
 	margin-bottom:10px;
 	font-family: Arial, sans-serif;
 	font-size: 16px;
@@ -51,5 +48,4 @@
 	background-image:url('../img/arrow-hint-top.png');
 	top: -9px;
 	left: 10px;
-	z-index: 10000000;
 }
