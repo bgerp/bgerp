@@ -22,9 +22,11 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
     {
 
        $this->mvc = $mvc;
-       
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob)\.?\:? *)([0-9\-\\\\\/\+\(\)]{5,15})/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype|ICQ)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
        //Ако намери съвпадение на регулярния израз изпълнява функцията
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype|ICQ)\.?\:? *)([a-zA-Z0-9_\-\@\.\+]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
+       //$html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype|ICQ)\.?\:? *)([a-zA-Z0-9_\-\@\.\+]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
+    
     }
     
     
@@ -54,7 +56,13 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	case 'phone' :
         	case 'mobile' :
         	case 'mob' :
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a href='tel:{$match[3]}' title='phone'>{$match[3]}</a>";
+        		
+        		$PhonesVerbal = cls::get('drdata_PhoneType');
+        		
+        		if($PhonesVerbal->toVerbal($match[3])){
+        			
+        			$this->mvc->_htmlBoard[$place] = $PhonesVerbal->toVerbal($match[3]);
+        		}
         	    break;
         	    
         	case 'msnim' :
@@ -67,10 +75,10 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         		 $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[3]}</a>";
         		 break;
         		 
-	        case 'skype' :
+	        case 'skype' : 
 		        $skypeUser = trim($match[3]);
         	
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a>";
+        		$this->mvc->_htmlBoard[$place] = "<span class='linkWithIcon'><a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a>";
 		        break;
 		        
 	        case 'aim' : 
@@ -83,7 +91,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 		 		        
 		    case 'icq' :
 		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
-		         																			href='http://www.icq.com/people/cmd.php?uin=[{$match[3]}]&action=message'>{$match[3]}</a>";
+		         																			href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a>";
 		        break;
         }
         
