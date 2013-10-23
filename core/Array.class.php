@@ -171,13 +171,22 @@ class core_Array
     /**
      * Сортира масив от обекти по тяхното поле 'order'
      */
-    static function order(&$array, $field = 'order')
+    static function order(&$array, $field = 'order', $mode = 'ASC')
     {
-        usort($array, function($a, $b) use ($field) {
-                if($a->{$field} == $b->{$field})  return 0;
+        if($mode == 'ASC') {
+            usort($array, function($a, $b) use ($field) {
+                    if($a->{$field} == $b->{$field})  return 0;
 
-                return $a->{$field} > $b->{$field} ? 1 : -1;
-            });
+                    return $a->{$field} > $b->{$field} ? 1 : -1;
+                });
+        } else {
+            usort($array, function($a, $b) use ($field) {
+                    if($a->{$field} == $b->{$field})  return 0;
+
+                    return $a->{$field} > $b->{$field} ? -1 : 1;
+                });
+
+        }
     }
     
     
