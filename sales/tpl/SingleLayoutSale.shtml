@@ -176,10 +176,10 @@
 				            |Поръчано|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Платено|*, [#currencyId#]
+				            |Доставено|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Доставено|*, [#currencyId#]
+				            |Платено|*, [#currencyId#]
 				        </th>
 				        <th>
 				            |Фактурирано|*, [#currencyId#]
@@ -191,8 +191,8 @@
 				    </thead>
 				    <tr>
 				        <td class = 'nowrap'>[#amountDeal#]</td>
-				        <td class = 'nowrap'>[#amountPaid#]</td>
 				        <td class = 'nowrap'>[#amountDelivered#]</td>
+				        <td class = 'nowrap'>[#amountPaid#]</td>
 				        <td class = 'nowrap'>[#amountInvoiced#]</td>
 				        <td class = 'nowrap'>[#amountToPay#]</td>
 				    </tr>
