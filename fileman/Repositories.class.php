@@ -1,5 +1,5 @@
 <?php
-defIfNot('EF_REPOSITORIES_PATHS',  EF_UPLOADS_PATH . '/repositories/s/b, /home/developer/aaa,' . EF_UPLOADS_PATH . '/repositories2, /../../, ../var/');
+
 
 /**
  * Списък, разделен със запетайки от пътища, които могат да бъдат начало на хранилище
