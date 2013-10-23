@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -55,15 +55,9 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Активен таб
      */
     var $currentTab = 'Мемориални Ордери';
-    
-    
-    /**
-     * @var acc_Accounts
-     */
-    var $Accounts;
 
         
     /**
@@ -124,19 +118,13 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditEnt3', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 3');
         $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
-        
-        //        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-        //        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
+       
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
      */
     static function on_AfterPrepareListRows($mvc, &$res)
     {
@@ -232,8 +220,7 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * @param acc_ArticleDetails $mvc
-     * @param stdClass $data
+     * След подготовка на формата за добавяне/редакция
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -245,9 +232,7 @@ class acc_ArticleDetails extends core_Detail
             Redirect(array('acc_Articles', 'single', $rec->articleId), FALSE, "Не са избрани сметки за дебит и кредит.");
         }
         
-        $dimensional = FALSE;
-        $quantityOnly = FALSE;
-        
+        $quantityOnly = $dimensional = FALSE;
         $form->setReadOnly('debitAccId');
         $form->setReadOnly('creditAccId');
         
@@ -302,8 +287,7 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * @param core_Mvc $mvc
-     * @param core_Form $form
+     * След изпращане на формата
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
@@ -377,7 +361,6 @@ class acc_ArticleDetails extends core_Detail
              * Проверка дали debitAmount == debitAmount
              */
             if ($rec->debitAmount != $rec->creditAmount) {
-                bp($rec);
                 $form->setError('debitQuantity, debitPrice, creditQuantity, creditPrice, amount', 'Дебит и кредит страните са различни');
             }
         }
@@ -385,7 +368,7 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Връща информация за сметката
      */
     private function getAccountInfo($accountId)
     {
@@ -394,8 +377,6 @@ class acc_ArticleDetails extends core_Detail
             'groups' => array(),
             'isDimensional' => false
         );
-        
-        // $acc->quantityOnly = ($acc->rec->type && $acc->rec->strategy);
         
         foreach (range(1, 3) as $i) {
             $listPart = "groupId{$i}";
@@ -438,12 +419,26 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * След изтриване на запис
      */
     static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
-        foreach ($query->notifyMasterIds as $masterId=>$_) {
+        foreach ($query->notifyMasterIds as $masterId => $_) {
             $mvc->Master->detailsChanged($masterId, $mvc);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'edit' || $action == 'delete') && isset($rec)){
+    		$articleState = acc_Articles::fetchField($rec->articleId, 'state');
+    		if($articleState != 'draft'){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
