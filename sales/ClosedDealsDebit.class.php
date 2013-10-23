@@ -36,8 +36,8 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, sales_ClosedDealsWrapper, acc_plg_Contable, plg_RowTools,
-                    doc_DocumentPlg, doc_plg_HidePrices, doc_ActivatePlg, acc_plg_Registry';
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools,
+                    doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry';
     
     
     /**
@@ -68,12 +68,6 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
      * Кой може да го види?
      */
     public $canView = 'ceo,sales';
-    
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'id,saleId=Продажба,createdBy,createdOn';
     
 	
     /**
@@ -109,6 +103,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     		if($res){
 	    		$amount = static::getClosedDealAmount($firstDoc);
 	    		if($amount <= 0){
+	    			
 	    			return FALSE;
 	    		}
     		}
@@ -150,5 +145,20 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
         	'credit' => array('7911', 'quantity' => abs($result->totalAmount)));
        
         return $result;
+    }
+    
+    
+	/**
+     * Имплементиране на интерфейсен метод
+     * @see acc_ClosedDeals::getDocumentRow()
+     */
+    public function getDocumentRow($id)
+    {
+    	$row = parent::getDocumentRow($id);
+    	$title = "Приключване на продажба {$row->saleId} с остатък";
+    	$row->title = $title;
+    	$row->recTitle = $title;
+    	
+    	return $row;
     }
 }

@@ -24,7 +24,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     /**
      * Абревиатура
      */
-    var $abbr = 'Cd';
+    public $abbr = 'Cd';
     
     
     /**
@@ -36,8 +36,8 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, sales_ClosedDealsWrapper, acc_plg_Contable, plg_RowTools,
-                    doc_DocumentPlg, doc_plg_HidePrices, doc_ActivatePlg, acc_plg_Registry';
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools,
+                    doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry';
     
     
     /**
@@ -57,17 +57,17 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      */
     public $canAdd = 'ceo,sales';
     
-    
+  
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales';
     
     
     /**
@@ -75,29 +75,23 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      */
     public $canView = 'ceo,sales';
     
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'id,saleId=Продажба,createdBy,createdOn';
-    
 	
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Приключване на продажба  с остатък';
+    public $singleTitle = 'Приключване на продажба с остатък';
    
     
     /**
      * Групиране на документите
      */ 
-    var $newBtnGroup = "3.8|Търговия";
+    public $newBtnGroup = "3.8|Търговия";
    
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'amount';
+    public $priceFields = 'amount';
     
     
     /**
@@ -115,6 +109,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     		if($res){
 	    		$amount = static::getClosedDealAmount($firstDoc);
 	    		if($amount >= 0){
+	    			
 	    			return FALSE;
 	    		}
     		}
@@ -129,7 +124,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->text = tr("Сделката е приключена");
+    	$row->text = tr("Сделката е приключена с остатък");
     }
     
     
@@ -157,5 +152,20 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
         );
        
         return $result;
+    }
+    
+    
+    /**
+     * Имплементиране на интерфейсен метод
+     * @see acc_ClosedDeals::getDocumentRow()
+     */
+    public function getDocumentRow($id)
+    {
+    	$row = parent::getDocumentRow($id);
+    	$title = "Приключване на продажба {$row->saleId} с остатък";
+    	$row->title = $title;
+    	$row->recTitle = $title;
+    	
+    	return $row;
     }
 }
