@@ -202,7 +202,7 @@ class acc_OpenDeals extends core_Manager {
     			'valior' => $rec->valior,
     			'amountDeal' => $rec->amountDeal,
     			'amountPaid' => $rec->amountPaid, 
-    			'state' => static::getDealState($rec),
+    			'state' => ($rec->state == 'draft') ? 'active' : $rec->state,
     			'docClass' => $classId,
     			'docId' => $rec->id,
     			'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
@@ -230,10 +230,10 @@ class acc_OpenDeals extends core_Manager {
      * @TODO по правилно да се определя кога сделката е приключила
      * @param stdClass $rec - запис от sales_Sales или purchase_Requests
      */
-    private static function getDealState($rec)
+    private static function getDealState6($rec)
     {
-    	if($rec->state == 'rejected') return 'rejected';
-    	return ($rec->amountDeal > $rec->amountPaid) ? 'active' : 'closed';
+    	
+    	return ($rec->state == 'draft') ? 'draft' : $rec->state;
     }
     
     
