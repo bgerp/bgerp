@@ -991,6 +991,18 @@ pre.document{
 .nowrap{
 	white-space:nowrap;
 }
+
+.narrow .document .half_block{
+	width:100% !important;
+	clear:both;
+	float:none;
+}
+.document .listTable .acc-article-entries{
+	font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;
+	td{
+		border:none !important;
+	}
+}
 /*край на стилове за документи*/
 
 

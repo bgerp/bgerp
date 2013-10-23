@@ -7,31 +7,28 @@
 		<div class='header [#STATE_CLASS#]'>
 		   <div class='docBgIcon' style='[#iconStyle#]'>|Мемориален ордер|* [#id#]/[#valior#] ([#state#])</div>
 		</div>
-		<div class='scrolling-holder'>
-			<table>
-				<tr>
-					<td valign="top" style="padding-right: 5em;">
+		
+			<div>
+			<div class='fleft half_block'>
 						<table>
-							<tr><td class="quiet" align="right">|Номер|*:</td><td>[#id#]</td></tr>
 							<tr><td class="quiet" align="right">|Вальор|*:</td><td>[#valior#]</td></tr>
-							<tr><td class="quiet" align="right">|Основание|*:</td><td>[#reason#]</td></tr>
-							<!--ET_BEGIN createdBy--><tr><td class="quiet" align="right">|Създаден|*:</td><td>[#createdDate#] <span class="quiet">|от|*</span> [#createdBy#] </td></tr><!--ET_END createdBy-->	
+							<tr><td class="quiet" align="right">|Номер|*:</td><td>[#id#]</td></tr>
+							<tr><td class="amounts quiet"  align="right">|Оборот|*:</td><td>[#totalAmount#]</td></tr>
+							
 						</table>
-					</td>
+					</div>
 					
-					<td valign="top">
-						<div class="amounts">
-							|Оборот|*: [#totalAmount#]
-						</div>
-					</td>
-				</tr>
-			</table>
-			
+					<div class='fright half_block' style='width:60%'>
+						<span class="quiet">|Основание|*:</span> [#reason#]
+					</div>
+					<div class='clearfix21'></div>
+			</div>
+					
+			<div class='scrolling-holder'>
 			<!--ET_BEGIN DETAILS-->
-				<div class='details'>
+				<div class='details' style="margin-top:10px">
 					[#DETAILS#]
 				</div>
 			<!--ET_END DETAILS-->
-			
+			</div>
 		</div>
-</div>
