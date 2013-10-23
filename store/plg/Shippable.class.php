@@ -59,6 +59,15 @@ class store_plg_Shippable extends core_Plugin
         if ($action == 'ship') {
             if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
+            } else {
+            	if(cls::haveInterface('bgerp_DealAggregatorIntf', $mvc)){
+            		$dealInfo = $mvc->getAggregateDealInfo($rec);
+            		
+            		// Ако няма повече продукти за експедиране, неможе да се експедира
+            		if($dealInfo->agreed->products <= $dealInfo->shipped->products){
+            			$requiredRoles = 'no_one';
+            		}
+            	}
             }
         }
     }
