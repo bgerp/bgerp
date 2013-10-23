@@ -83,7 +83,7 @@ class change_Log extends core_Manager
         $this->FLD('docClass' , 'class', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('field', 'varchar', 'caption=Поле');
-        $this->FLD('value', 'blob(1000000,compress)', 'caption=Стойности');
+        $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
         
         $this->FLD('version', 'varchar', 'caption=Версия,input=none');
         $this->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
@@ -962,5 +962,132 @@ class change_Log extends core_Manager
         if (!count($recArr)) return FALSE;
         
         return $recArr;
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     * 
+     * Само за оправяне на старите полета, където всяка промяна се записваше в отделен ред
+     * 
+     * Нужно е да се стартира само веднъж. Не би трябвало да сработи при другите стартирания.
+     * 
+     * @todo Да се премахне
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Дали е зададено да се сераилизира
+        $serailize = $mvc->fields['value']->type->params['serialize'];
+        
+        // Премахваме
+        unset($mvc->fields['value']->type->params['serialize']);
+        
+        // Вземаме записите
+        $query = static::getQuery();
+        $query->orderBy('createdOn', 'ASC');
+        
+        // Обхождаме записите
+        while ($rec = $query->fetch()) {
+            
+            // Ако няма клас и id прескачаме
+            if (!$rec->docClass && !$rec->docId) continue;
+            
+            // Генерирам ключ
+            $dKey = $rec->docClass . "|" . $rec->docId . "|" . $rec->field;
+            
+            // Ако е зададено да се сериализира и има стойност
+            if ($serailize && $rec->value) {
+                
+                // Опитваме се да десериализираме
+                $rValue = unserialize($rec->value);
+                
+                // Ако не е FALSE
+                if ($rValue !== FALSE) {
+                    
+                    // Използваме сериализираната стойност
+                    $rec->value = $rValue;
+                }
+            }
+            
+            // Ако е масив
+            if (is_array($rec->value)) {
+                
+                // Вземаме стойността
+                $valueCurr = $rec->value;
+            } else {
+                
+                // Създавамем масива
+                $valueCurr = array('version' => $rec->version, 'subVersion' => $rec->subVersion, 'value' => $rec->value);
+                
+                // Вдигаме флага
+                $haveForSave = TRUE;
+            }
+            
+            // Ако ключа го има в масива
+            if ($arrKeys[$dKey]) {
+                
+                // Вдигаме флага
+                $haveForSave = TRUE;
+                
+                // Стойността
+                $value = $arrKeys[$dKey];
+                
+                // Ако масива не е обработен преди
+                if (!$valueCurr[0]) {
+                    
+                    // Добавяме в масива
+                    $arrKeys[$dKey][] =  $valueCurr;
+                }
+            } else {
+                
+                // Добавяме в масива
+                $arrKeys[$dKey] = array($valueCurr);
+            }
+        }
+        
+        // Ако е зададено да се сериализира
+        if ($serailize) {
+            
+            // Добавяме в класа
+            $mvc->fields['value']->type->params['serialize'] = $serailize;
+        }
+        
+        // Ако има нещо за записване
+        if ($haveForSave) {
+            
+            // Обхождаме масива
+            foreach ($arrKeys as $key => $val) {
+                
+                // Вземаме необходимите данни от ключа
+                list($docClass, $docId, $field) = explode('|', $key);
+                
+                // Записа, който ще запишем
+                $ssRec = new stdClass();
+                $ssRec->docClass = $docClass;
+                $ssRec->docId = $docId;
+                $ssRec->field = $field;
+                $ssRec->value = $val;
+                
+                // Броя на изтритите
+                $cntDel +=$mvc->delete(array("#docClass = '[#1#]' AND #docId = '[#2#]' AND #field = '[#3#]'", $docClass, $docId, $field));
+                
+                // Ако се създаде
+                if ($mvc->save($ssRec)) {
+                    
+                    // Увеличаваме броя на заетите
+                    $cntSave++;
+                }
+            }
+            
+            // Ако има създадени
+            if ($cntSave) {
+                $res .= "<li>Добавени {$cntSave} записа";
+            }
+            
+            // Ако има изтрити
+            if ($cntDel) {
+                $res .= "<li>Изтрити {$cntDel} записа";
+            }
+        }
     }
 }
