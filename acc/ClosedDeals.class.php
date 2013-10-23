@@ -43,10 +43,16 @@ abstract class acc_ClosedDeals extends core_Master
 	protected $canList = 'no_one';
     
     
+	/**
+     * Икона за фактура
+     */
+    public $singleIcon = 'img/16/closeDeal.png';
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id,saleId=Продажба,createdBy,createdOn';
+    protected $listFields = 'id, saleId=Продажба, amount, createdBy, createdOn';
 	
 	
 	/**
@@ -66,14 +72,14 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public function description()
     {
-    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка,width=100%');
+    	$this->FLD('notes', 'richtext(rows=2)', 'caption=Забележка,width=100%,mandatory');
     	
     	// Класа на документа, който се затваря
     	$this->FLD('docClassId', 'class(interface=doc_DocumentIntf)', 'input=none');
     	
     	// Ид-то на документа, който се затваря
     	$this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
-    	$this->FLD('amount', 'double(decimals=2)', 'input=none');
+    	$this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
     	
     	// От кой клас наследник на acc_ClosedDeals идва записа
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
@@ -123,14 +129,14 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Преди запис на документ
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, &$rec)
     {
     	if($rec->state == 'active'){
     		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
     	}
     }
     
-    
+	
 	/**
      * Може ли документ-продажба да се добави в посочената папка?
      */
@@ -153,7 +159,9 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	// може да се добавя само ако документа има 'bgerp_DealAggregatorIntf',
     	// няма друг затварящ документ и няма продукти
-    	return $res && count($res->agreed->products) && $closedDoc === FALSE;
+    	$result = $res && count($res->agreed->products) && $closedDoc === FALSE;
+    	
+    	return $result;
     }
     
     
@@ -178,7 +186,7 @@ abstract class acc_ClosedDeals extends core_Master
     	// Извличаме мастър-записа
         expect($rec = self::fetchRec($id));
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-		$amount = static::getClosedDealAmount($firstDoc);
+		$amount = abs(static::getClosedDealAmount($firstDoc));
         
         $result = (object)array(
             'reason'      => "Приключване на продажба " . $firstDoc->getHandle(),
@@ -282,15 +290,13 @@ abstract class acc_ClosedDeals extends core_Master
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
-    	$recVerb = $this->recToVerbal($rec);
+    	$row = new stdClass();
     	
-        $row = new stdClass();
-        $row->title = $recVerb->title;
         $row->authorId = $rec->createdBy;
-        $row->author = $recVerb->createdBy;
+        $row->author = $this->recToVerbal($rec)->createdBy;
         $row->state = $rec->state;
-		$row->recTitle = $rec->reason;
-		
+		$row->saleId = cls::get($rec->docClassId)->getHandle($rec->docId);
+        
         return $row;
     }
     
@@ -302,12 +308,6 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	if($action == 'conto' && isset($rec)){
     		if(!static::getClosedDealAmount($rec->threadId)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
-    	if($action == 'activate' && isset($rec)){
-    		if($mvc->getRequiredRoles('conto', $rec) != 'no_one'){
     			$res = 'no_one';
     		}
     	}
@@ -333,7 +333,15 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	$classId = $mvc->getClassId();
-    	$data->query->where("#classId = {$classId}");
+    	$plugins = $mvc->getPlugins();
+    	if(isset($plugins['sales_Wrapper'])){
+    		$docClassId = sales_Sales::getClassId();
+    	} elseif(isset($plugins['purchase_Wrapper'])){
+    		$docClassId = purchase_Requests::getClassId();
+    	}
+    	
+    	if($docClassId){
+    		$data->query->where("#docClassId = {$docClassId}");
+    	}
     }
 }
