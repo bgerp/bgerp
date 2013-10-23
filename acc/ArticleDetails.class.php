@@ -111,17 +111,17 @@ class acc_ArticleDetails extends core_Detail
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 1');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 2');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 3');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 1');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 2');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleLink)', 'caption=Дебит->перо 3');
         $this->FLD('debitQuantity', 'double', 'width=120px,caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
             'silent,caption=Кредит->Сметка и пера,mandatory,input');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 1');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 2');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 1');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 2');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleLink)', 'caption=Кредит->перо 3');
         $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
@@ -142,6 +142,7 @@ class acc_ArticleDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
+        $Varchar = cls::get('type_Varchar');
         
         if (count($recs)) {
             foreach ($recs as $id=>$rec) {
@@ -153,12 +154,12 @@ class acc_ArticleDetails extends core_Detail
                     
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
-                        
                         if ($rec->{$ent}) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
+                            $num = $Varchar->toVerbal(acc_Items::fetchField($rec->{$ent}, 'num'));
                             $listGroupTitle = acc_Lists::fetchField($accRec->{"groupId{$i}"}, 'name');
                             
-                            $ents .= '<li>' . $row->{$ent} . '</li>';
+                            $ents .= "<tr><td>{$num}</td><td>{$row->{$ent}}</td</tr>";
                         }
                     }
                     
@@ -166,9 +167,9 @@ class acc_ArticleDetails extends core_Detail
                     
                     if (!empty($ents)) {
                         $row->{"{$type}AccId"} .=
-                        '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
+                        "<table class='acc-article-entries'>" .
                         $ents .
-                        '</ul>';
+                        "</table>";
                     }
                 }
             }
