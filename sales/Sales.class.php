@@ -864,6 +864,34 @@ class sales_Sales extends core_Master
     }
     
     
+	/**
+     * След подготовка на тулбара на единичен изглед
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = $data->rec;
+    	$amount = $rec->amountPaid - $rec->amountDelivered;
+    	if($rec->state == 'draft' && $amount == 0){
+    		$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    	}
+    }
+    
+    
+    /**
+     * Екшън за приключване на продажба
+     */
+    function act_Close()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft' && ($rec->amountPaid - $rec->amountDelivered) == 0);
+    	
+    	$rec->state = 'closed';
+    	$this->save($rec);
+    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
+    }
+    
+    
     /**
      * Може ли документ-продажба да се добави в посочената папка?
      * 
