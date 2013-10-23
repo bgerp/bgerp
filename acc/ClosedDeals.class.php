@@ -324,7 +324,7 @@ abstract class acc_ClosedDeals extends core_Master
         $rec = self::fetchRec($id);
         $rec->state = 'active';
         
-        return self::save($rec, 'state');
+        return self::save($rec);
     }
     
     
