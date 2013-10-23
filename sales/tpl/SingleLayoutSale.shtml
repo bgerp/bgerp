@@ -14,24 +14,12 @@
 			    <tbody>
 			    <tr>
 			        <td>
-			           <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
+			           <table border = '1px' class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 			                <tbody>
 			                <tr>
-			                    <td class="cell" valign="top"><b>|Получател|*</b>
-			                    <!--ET_BEGIN contragent-->
-			                    <div>
-			                        <b>[#contragentName#]</b><br>
-			                        <!--ET_BEGIN contragentCountry-->
-			                            <b>[#contragentCountry#]</b><br>
-			                        <!--ET_END contragentCountry-->
-			                        <!--ET_BEGIN contragentAddress-->
-			                            [#contragentAddress#]<br>
-			                        <!--ET_END contragentAddress-->
-			                        [#deliveryLocationId#]
-								</div>
-								<!--ET_END contragent-->
-			                    </td>
-			                    <td class="cell" align="center">
+			                    <td width='33%' style = 'background-color:#e0e0e0'><b>|Получател|*</b></td>
+			                    
+			                    <td class="cell" align="center" width='34%' rowspan = '2'>
 			                        <font style="font-size:16pt;"><b> |ПРОДАЖБА|*</b> </font><br>
 			                        <div style="padding-top:5px;">
 			                        	№ <span class="bigData">[#id#]</span> / 
@@ -50,7 +38,26 @@
 			                        <div class="[#STATE_CLASS#]">[#stateText#]</div>
 			                        <!--ET_END stateText-->
 			                    </td>
-			                    <td class="cell" valign="top"><b>|Доставчик|*</b>
+			                    
+			                    <td style = 'background-color:#e0e0e0' width='33%'><b>|Доставчик|*</b></td>
+			              </tr>
+			              <tr>
+			                    <td>
+			                    <!--ET_BEGIN contragent-->
+			                    <div>
+			                        <b>[#contragentName#]</b><br>
+			                        <!--ET_BEGIN contragentCountry-->
+			                            <b>[#contragentCountry#]</b><br>
+			                        <!--ET_END contragentCountry-->
+			                        <!--ET_BEGIN contragentAddress-->
+			                            [#contragentAddress#]<br>
+			                        <!--ET_END contragentAddress-->
+			                        [#deliveryLocationId#]
+								</div>
+								<!--ET_END contragent-->
+			                    </td>
+			                    
+			                    <td>
 			                    <!--ET_BEGIN supplier-->
 			                    <div>
 			                        <b>[#MyCompany#]</b><br>
@@ -58,6 +65,7 @@
 			                        [#MyAddress#] <br>
 			                    </div>
 			                    <!--ET_END supplier-->
+			                    </td>
 			                </tr>
 			                </tbody>
 			            </table>
