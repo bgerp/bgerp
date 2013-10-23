@@ -369,7 +369,7 @@ class type_Richtext extends type_Blob
         }
         
         // Хифенира текста
-        $this->invoke('hyphenText', array(&$html));
+        $this->invoke('AfterToHtml', array(&$html));
 
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
