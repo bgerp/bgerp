@@ -973,6 +973,7 @@ class change_Log extends core_Manager
      * Нужно е да се стартира само веднъж. Не би трябвало да сработи при другите стартирания.
      * 
      * @todo Да се премахне
+     * След премахването value може да се преименува на values
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
@@ -991,6 +992,20 @@ class change_Log extends core_Manager
             
             // Ако няма клас и id прескачаме
             if (!$rec->docClass && !$rec->docId) continue;
+            
+            // Ако няма версия
+            if (!$rec->version) {
+                
+                // Да е 0
+                $rec->version = 0;
+            }
+            
+            // Ако няма подверсия
+            if (!$rec->subVersion) {
+                
+                // Да е 1
+                $rec->subVersion = 1;
+            }
             
             // Генерирам ключ
             $dKey = $rec->docClass . "|" . $rec->docId . "|" . $rec->field;
