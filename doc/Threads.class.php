@@ -689,7 +689,14 @@ class doc_Threads extends core_Manager
     public static function getFirstDocument($id)
     {
         $containerId = static::getFirstContainerId($id);
-        $firstDoc    = doc_Containers::getDocument($containerId);
+        
+        try{
+        	$firstDoc = doc_Containers::getDocument($containerId);
+        } catch(Exception $e){
+        	
+        	// Ако няма първи документ, връща NULL
+        	return NULL;
+        }
         
         return $firstDoc;
     }
