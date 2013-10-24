@@ -518,7 +518,7 @@ class change_Log extends core_Manager
         if (!count($dataArr) && $lastVer) {
             
             // Иконата да е избрана
-            $icon = 'img/16/checkbox_yes.png';
+            $icon = 'img/16/stock_data_next.png';
             
             // Да няма линк
             $noLink = TRUE;
