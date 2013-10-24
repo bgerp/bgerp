@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -30,7 +30,7 @@ class acc_plg_Contable extends core_Plugin
         
         // Добавяне на полета, свързани с фунционалността "Коригиращи документи"
         $mvc->FLD('isCorrection', 'enum(no,yes)', 'input=none,notNull,default=no');
-        $mvc->FLD('correctionDocId', 'key(mvc='.get_class($mvc).')', 'input=none');
+        $mvc->FLD('correctionDocId', 'key(mvc=' . get_class($mvc) . ')', 'input=none');
         
         // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
         // запис. Използва се при определяне на правата за контиране.
@@ -142,7 +142,7 @@ class acc_plg_Contable extends core_Plugin
         
         expect($origin = doc_Containers::getDocument($rec->originId));
         
-        $originalId   = $origin->id();
+        $originalId = $origin->id();
         $correctionId = $rec->id;
 
         $details = arr::make($mvc->details);
@@ -173,7 +173,6 @@ class acc_plg_Contable extends core_Plugin
         }
 
         if ($mvc->haveRightFor('conto', $data->rec)) {
-            
 
         	// Ако документа е в бъдещ/затворен или несъществуващ период,
         	// бутона става не-активен
@@ -191,7 +190,6 @@ class acc_plg_Contable extends core_Plugin
             if (!$this->hasContableTransaction($mvc, $data->rec, $res)) {
                 $error = ",error=Документа не генерира валидна транзакция.\\n" . $res;
             }
-
             
             $contoUrl = array(
 	           'acc_Journal',
@@ -230,8 +228,6 @@ class acc_plg_Contable extends core_Plugin
     		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
     		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на транзакцията в журнала');
     	}
-
-
     }
     
     
@@ -263,7 +259,12 @@ class acc_plg_Contable extends core_Plugin
         if ($action == 'conto') {
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
+            } 
+            
+            if (!$this->hasContableTransaction($mvc, $rec)){
+            	$requiredRoles = 'no_one';
             }
+            
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -313,8 +314,6 @@ class acc_plg_Contable extends core_Plugin
      */
     protected static function hasContableTransaction(core_Manager $mvc, $rec, &$res = NULL)
     {
-        //return $rec->isContable == 'yes';
-        
         try {
             $result = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
         } catch (acc_journal_Exception $ex) {
@@ -421,20 +420,18 @@ class acc_plg_Contable extends core_Plugin
         $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $transaction       = $transactionSource->getTransaction($rec);
         
-        static $d;
-        $d++;
-
-
         expect(!empty($transaction), 'Класът ' . get_class($mvc) . ' не върна транзакция!');
         
         // Проверяваме валидността на транзакцията
         $transaction = new acc_journal_Transaction($transaction);
 
-        
         $transaction->check();
     }
     
     
+    /**
+     * След подготовка на единичния изглед
+     */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
         $rec = $data->rec;
