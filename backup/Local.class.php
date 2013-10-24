@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   backup
- * @author    Dimitar Minekow <mitko@extrapack.com>
+ * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -30,6 +30,26 @@ class backup_Local extends core_Master
     var $title = 'Архивиране в локалната файлова система';
     
     
+    /**
+     * Връща файл
+     *
+     * Част от интерфейса: backup_StorageIntf
+     */
+    static function getFile($fileName)
+    {
     
-
+        return $result;
+    }    
+    
+    /**
+     * Записва файл
+     *
+     * Част от интерфейса: backup_StorageIntf
+     */
+    static function putFile($fileName)
+    {
+    
+        return $result;
+    }
+    
 }
