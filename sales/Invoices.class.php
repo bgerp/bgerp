@@ -210,7 +210,7 @@ class sales_Invoices extends core_Master
             'caption=Вид, input=hidden,silent'
         );
         
-        $this->FLD('docType', 'class(interface=store_ShipmentIntf)', 'input=hidden,silent');
+        $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
         $this->FLD('docId', 'int', 'input=hidden,silent');
         
         $this->setDbUnique('number');
@@ -271,7 +271,7 @@ class sales_Invoices extends core_Master
         	}
         	
 	        if(empty($flag)){
-	        	$rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
+	        	$form->rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
 				if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 					$form->setDefault('accountId', $ownAcc);
 				} 
@@ -320,17 +320,29 @@ class sales_Invoices extends core_Master
 	public static function on_AfterCreate($mvc, $rec)
     {
     	$origin = static::getOrigin($rec);
-    	if ($origin->haveInterface('store_ShipmentIntf')) {
-    		$products = $origin->getShipmentProducts();
+    	
+    	if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
+    		$info = $origin->getAggregateDealInfo();
+    		$products = $info->shipped->products;
+    		
     		if(count($products) != 0){
-	    		
+	    		$productMans = array();
+    			
 	    		// Записваме информацията за продуктите в детайла
 		    	foreach ($products as $product){
+		    		if(!$productMans[$product->classId]){
+		    			$productMans[$product->classId] = cls::get($product->classId);
+		    		}
+		    		$pInfo = $productMans[$product->classId]->getProductInfo($product->productId, $product->packagingId);
+		    		$packQuantity = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+		    		
 		    		$dRec = clone $product;
 		    		$dRec->invoiceId = $rec->id;
 		    		$dRec->classId = $product->classId;
-		    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
+		    		$dRec->packQuantity = $product->quantity * $packQuantity;
 		    		$dRec->amount = $dRec->packQuantity * $product->price;
+		    		$dRec->quantityInPack = $dRec->packQuantity;
+		    		
 		    		$mvc->sales_InvoiceDetails->save($dRec);
 		    	}
     		}
@@ -350,11 +362,14 @@ class sales_Invoices extends core_Master
     	}
     	
     	if($rec->originId) {
-    		
     		return doc_Containers::getDocument($rec->originId);
     	} elseif($rec->threadId){
-    		
-    		return doc_Threads::getFirstDocument($rec->threadId);
+	    	try{
+	    		return doc_Threads::getFirstDocument($rec->threadId);
+	    	} catch (Exception $e){
+	    		return FALSE;
+	    	}
+    		return FALSE;
     	}
     	
     	return FALSE;
@@ -482,7 +497,6 @@ class sales_Invoices extends core_Master
     {
     	// Номера се форматира в десеторазряден вид
     	$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-    	//bp($rec->number);
     	if($fields['-single']){
     		$mvc::prepareAdditionalInfo($rec);
     	}
@@ -530,8 +544,6 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	
-    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}

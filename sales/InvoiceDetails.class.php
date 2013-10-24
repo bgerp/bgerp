@@ -89,9 +89,9 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('quantityInPack', 'double', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
-		$this->FLD ( 'amount', 'double(decimals=2)', 'caption=Сума,input=none' );
+		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
 		
-		$this->setDbUnique ( 'invoiceId, productId, packagingId' );
+		$this->setDbUnique('invoiceId, productId, packagingId');
 	}
 	
 	

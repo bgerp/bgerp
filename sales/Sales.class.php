@@ -871,7 +871,7 @@ class sales_Sales extends core_Master
     {
     	$rec = $data->rec;
     	$amount = $rec->amountPaid - $rec->amountDelivered;
-    	if($rec->state == 'draft' && $amount == 0){
+    	if($rec->state == 'active' && $rec->amountDeal && $amount == 0){
     		$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     	}
     }
@@ -884,7 +884,7 @@ class sales_Sales extends core_Master
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft' && ($rec->amountPaid - $rec->amountDelivered) == 0);
+    	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
     	
     	$rec->state = 'closed';
     	$this->save($rec);
@@ -908,6 +908,20 @@ class sales_Sales extends core_Master
     }
     
     
+	/**
+     * Можели фактурата да се добави в нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$docState = $firstDoc->fetchField('state');
+    	
+    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'draft')){
+    		return FALSE;
+    	}
+    }
+    
+    
     /**
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
@@ -925,69 +939,6 @@ class sales_Sales extends core_Master
         );
         
         return $row;
-    }
-    
-    
-    /*
-     * РЕАЛИЗАЦИЯ НА store_ShipmentIntf
-     */
-    
-    
-    /**
-     * Данни за експедиция, записани в документа продажба
-     * 
-     * @param int $id key(mvc=sales_Sales)
-     * @return object
-     */
-    public function getShipmentInfo($id)
-    {
-        $rec = $this->fetch($id);
-        
-        return (object)array(
-             'contragentClassId' => $rec->contragentClassId,
-             'contragentId'      => $rec->contragentId,
-             'termId' 			 => $rec->deliveryTermId,
-             'locationId' 		 => $rec->deliveryLocationId,
-             'deliveryTime' 	 => $rec->deliveryTime,
-             'storeId' 			 => $rec->shipmentStoreId,
-        );
-    }
-    
-    
-    /**
-     * Детайли (продукти), записани в документа продажба
-     * 
-     * @param int $id key(mvc=sales_Sales)
-     * @return array
-     */
-    public function getShipmentProducts($id)
-    {
-        $products = array();
-        $saleRec  = $this->fetchRec($id);
-        $query    = sales_SalesDetails::getQuery();
-        
-        $query->where("#saleId = {$saleRec->id}");
-        
-        while ($rec = $query->fetch()) {
-            if ($saleRec->chargeVat == 'yes') {
-                // Начисляваме ДДС
-                $ProductManager = cls::get($rec->classId);
-                $rec->price *= 1 + $ProductManager->getVat($rec->productId, $saleRec->valior);
-            } 
-            $products[] = (object)array(
-                'classId'  			=> $rec->classId,
-                'productId'  		=> $rec->productId,
-                'uomId'  			=> $rec->uomId,
-                'packagingId'  		=> $rec->packagingId,
-                'quantity'  		=> $rec->quantity,
-                'quantityDelivered' => $rec->quantityDelivered,
-                'quantityInPack'  	=> $rec->quantityInPack,
-                'price'  			=> $rec->price,
-                'discount'  		=> $rec->discount,
-            );
-        }
-        
-        return $products;
     }
     
     
