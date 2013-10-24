@@ -115,11 +115,23 @@ class pos_ReceiptDetails extends core_Detail {
 	    	$contoUrl = $data->masterData->toolbar->buttons['btnConto']->url;
 	        $contoUrl = array('ret_url' => array($this->Master, 'new')) + $contoUrl;
 	        
+	        if($client = $this->hasClient($data->masterData->rec->id)){
+	        	$confInvUrl = $contoUrl;
+	        	$contragentClass = $client->class;
+    			$contragentRec = $contragentClass::fetch($client->id);
+	        	$invArray = array('sales_Invoices', 'add',
+    					 'folderId' => $contragentRec->folderId, 
+    					 'docType' => pos_Receipts::getClassId(), 
+    					 'docId' => $data->masterData->rec->id);
+	        	$confInvUrl = array('ret_url' => $invArray) + $confInvUrl;
+	        }
+	        
 	        // Скриваме бутона "Контиране"
 	        unset($data->masterData->toolbar->buttons['btnConto']);
 	    }
 	    
-	    $tpl->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => 'actionBtn btnEnd')), 'FIRST_ROW');
+	    $tpl->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => 'приключи продажбата')), 'FIRST_ROW');
+	    $tpl->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => 'приключи и издай фактура')), 'SECOND_ROW');
 	   
 		return $tpl;
     }

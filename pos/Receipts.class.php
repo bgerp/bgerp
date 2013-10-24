@@ -71,7 +71,7 @@ class pos_Receipts extends core_Master {
 	 */
 	var $canList = 'ceo,pos';
 
-
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -299,12 +299,12 @@ class pos_Receipts extends core_Master {
 	    	
 	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
-	    		'policyId' => $policyId,
+	    		'classId' => cat_Products::getClassId(),
 	    		'productId' => $rec->productId,
 		    	'price' => $rec->price,
-	    		'vatPrice' => $rec->price * $rec->param,
 	    	    'packagingId' => $packagingId,
 	    	    'quantityInPack' => $quantityInPack,
+	    		'vatPrice' => $rec->price * $rec->param,
 	    	    'uomId' => $info->productRec->measureId,
 		    	'quantity' => $rec->quantity);
 	    }
