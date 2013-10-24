@@ -461,8 +461,9 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $ProductManager = cls::get($rec->classId);
+    	$ProductManager = cls::get($rec->classId);
         
         $row->productId = $ProductManager->getTitleById($rec->productId);
+        
     }
 }

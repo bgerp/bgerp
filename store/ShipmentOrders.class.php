@@ -33,8 +33,7 @@ class store_ShipmentOrders extends core_Master
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
                           acc_RegisterIntf=sales_RegisterImpl,
-                          acc_TransactionSourceIntf=store_shipmentorders_Transaction,
-                          store_ShipmentIntf, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_shipmentorders_Transaction, bgerp_DealIntf';
     
     
     /**
@@ -146,7 +145,7 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * 
+     * Файл за единичния изглед
      */
     var $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
 
@@ -230,15 +229,15 @@ class store_ShipmentOrders extends core_Master
         $rec->amountDelivered = 0;
     
         while ($detailRec = $query->fetch()) {
-            $VAT = 1;
+            $vat = 1;
     
             if ($rec->chargeVat == 'yes') {
                 $ProductManager = cls::get($detailRec->classId);
     
-                $VAT += $ProductManager->getVat($detailRec->productId, $rec->valior);
+                $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
     
-            $rec->amountDelivered += $detailRec->amount * $VAT;
+            $rec->amountDelivered += $detailRec->amount * $vat;
         }
     
         $mvc->save($rec);
@@ -305,19 +304,10 @@ class store_ShipmentOrders extends core_Master
         }
     }
     
-
+    
     /**
-     * Извиква се преди изпълняването на екшън
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $action
+     * След рендиране
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    }
-    
-    
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
         // Данните на "Моята фирма"
@@ -348,6 +338,9 @@ class store_ShipmentOrders extends core_Master
     }
     
     
+    /**
+     * Нормализиране на контрагент данните
+     */
     public static function normalizeContragentData($contragentData)
     {
         /*
@@ -394,17 +387,6 @@ class store_ShipmentOrders extends core_Master
         }
 
         return $rec;
-    }
-    
-    /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
     }
     
     
@@ -456,14 +438,19 @@ class store_ShipmentOrders extends core_Master
             crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id) && !empty($form->rec->originId)) {
+        if (empty($form->rec->id) && ($form->rec->originId || $form->rec->threadId)) {
+        	
             // ... проверяваме предхождащия за bgerp_DealIntf
-            $origin = doc_Containers::getDocument($form->rec->originId);
+            $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
+            expect($origin);
             
             if ($origin->haveInterface('bgerp_DealIntf')) {
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $origin->getDealInfo();
-                $form->setDefault('currencyId', $dealInfo->agreed->currency);
+                $form->rec->currencyId = $dealInfo->agreed->currency;
+                $form->rec->termId = $dealInfo->agreed->delivery->term;
+                $form->rec->locationId = $dealInfo->agreed->delivery->location;
+                $form->rec->time = $dealInfo->agreed->delivery->time;
             }
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
@@ -477,32 +464,6 @@ class store_ShipmentOrders extends core_Master
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Данни за ЕН по подразбиране на базата на документа-източик (origin)
-     * 
-     * Ако има origin, използва метода store_ShipmentIntf::getShipmentInfo() за да определи
-     * данните на ЕН по подразбиране.
-     * 
-     * @param stdClass $rec
-     * @return stdClass
-     */
-    public function getDefaultsByOrigin($rec)
-    {
-        expect($origin = static::getOrigin($rec));
-        
-        if ($origin->rec('state') != 'active') {
-            redirect(array('sales_Sales', 'single', $origin->rec('id')), FALSE, "Продажбата не е активна");
-        }
-        
-        if ($origin->haveInterface('store_ShipmentIntf')) {
-            $defaults = $origin->getShipmentInfo();
-            $rec      = (array)$rec + (array)$defaults;
-        }
-        
-        return (object)$rec;
     }
     
 
@@ -592,28 +553,8 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
+     * След извличане на записите от базата данни
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-    }
-    
-    
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if (!count($data->recs)) {
@@ -633,6 +574,9 @@ class store_ShipmentOrders extends core_Master
     }
     
     
+    /**
+     * След вербалното преобразуване на записите
+     */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
@@ -702,7 +646,7 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	
-    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'draft')){
     		return FALSE;
     	}
     	
@@ -711,7 +655,6 @@ class store_ShipmentOrders extends core_Master
         
     
     /**
-     * 
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
      */
@@ -730,61 +673,6 @@ class store_ShipmentOrders extends core_Master
         return $row;
     }
     
-    
-    /*
-     * РЕАЛИЗАЦИЯ НА store_ShipmentIntf
-     */
-    
-    
-    /**
-     * Данни за експедиция, записани в ЕН
-     * 
-     * @param int $id key(mvc=sales_Sales)
-     * @return object
-     */
-    public function getShipmentInfo($id)
-    {
-        $rec = $this->fetchRec($id);
-        
-        return (object)array(
-             'contragentClassId' => $rec->contragentClassId,
-             'contragentId' => $rec->contragentId,
-             'termId' => $rec->termId,
-             'locationId' => $rec->locationId,
-             'deliveryTime' => $rec->deliveryTime,
-             'storeId' => $rec->storeId,
-        );
-    }
-    
-    
-    /**
-     * Детайли (продукти), записани в документа продажба
-     * 
-     * @param int $id key(mvc=sales_Sales)
-     * @return array
-     */
-    public function getShipmentProducts($id)
-    {
-        $products = array();
-        $query    = store_ShipmentOrderDetails::getQuery();
-        
-        $query->where("#shipmentId = {$id}");
-        
-        while ($rec = $query->fetch()) {
-            $products[] = (object)array(
-                'classId'  => $rec->classId,
-                'productId'  => $rec->productId,
-                'uomId'  => $rec->uomId,
-                'packagingId'  => $rec->packagingId,
-                'quantity'  => $rec->quantity,
-                'quantityInPack'  => $rec->quantityInPack,
-                'price'  => $rec->price,
-                'discount'  => $rec->discount,
-            );
-        }
-        
-        return $products;
-    }
     
 	/**
      * Връща масив от използваните нестандартни артикули в ЕН-то
