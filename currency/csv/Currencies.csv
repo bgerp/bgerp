@@ -1,34 +1,34 @@
-"Български лев","BGN",active
-"Евро","EUR",active
-"Щатски долар","USD",active
-"Австралийски долар","AUD",closed
-"Бразилски реал","BRL",closed
-"Канадски долар","CAD",closed
-"Швейцарски франк","CHF",closed
-"Китайски ренминби юан","CNY",closed
-"Чешка крона","CZK",closed
-"Датска крона","DKK",closed
-"Британска лира","GBP",closed
-"Хонгконгски долар","HKD",closed
-"Хърватска куна","HRK",closed
-"Унгарски форинт","HUF",closed
-"Индонезийска рупия","IDR",closed
-"Израелски шекел","ILS",closed
-"Индийска рупия","INR",closed
-"Японска йена","JPY",closed
-"Южнокорейски вон","KRW",closed
-"Литовски литас","LTL",closed
-"Латвийски лат","LVL",closed
-"Мексиканско песо","MXN",closed
-"Малайзийски рингит","MYR",closed
-"Норвежка крона","NOK",closed
-"Новозеландски долар","NZD",closed
-"Филипинско песо","PHP",closed
-"Полска злота","PLN",closed
-"Нова румънска лея","RON",closed
-"Руска рубла","RUB",closed
-"Шведска крона","SEK",closed
-"Сингапурски долар","SGD",closed
-"Тайландски бат","THB",closed
-"Турска лира","TRY",closed
-"Южноафрикански ранд","ZAR",closed
+"БЪЛГАРСКИ ЛЕВ","BGN",active
+"ЕВРО","EUR",active
+"ЩАТСКИ ДОЛАР","USD",active
+"АВСТРАЛИЙСКИ ДОЛАР","AUD",closed
+"БРАЗИЛСКИ РЕАЛ","BRL",closed
+"КАНАДСКИ ДОЛАР","CAD",closed
+"ШВЕЙЦАРСКИ ФРАНК","CHF",closed
+"КИТАЙСКИ РЕНМИНБИ ЮАН","CNY",closed
+"ЧЕШКА КРОНА","CZK",closed
+"ДАТСКА КРОНА","DKK",closed
+"БРИТАНСКА ЛИРА","GBP",closed
+"ХОНГКОНГСКИ ДОЛАР","HKD",closed
+"ХЪРВАТСКА КУНА","HRK",closed
+"УНГАРСКИ ФОРИНТ","HUF",closed
+"ИНДОНЕЗИЙСКА РУПИЯ","IDR",closed
+"ИЗРАЕЛСКИ ШЕКЕЛ","ILS",closed
+"ИНДИЙСКА РУПИЯ","INR",closed
+"ЯПОНСКА ЙЕНА","JPY",closed
+"ЮЖНОКОРЕЙСКИ ВОН","KRW",closed
+"ЛИТОВСКИ ЛИТАС","LTL",closed
+"ЛАТВИЙСКИ ЛАТ","LVL",closed
+"МЕКСИКАНСКО ПЕСО","MXN",closed
+"МАЛАЙЗИЙСКИ РИНГИТ","MYR",closed
+"НОРВЕЖКА КРОНА","NOK",closed
+"НОВОЗЕЛАНДСКИ ДОЛАР","NZD",closed
+"ФИЛИПИНСКО ПЕСО","PHP",closed
+"ПОЛСКА ЗЛОТА","PLN",closed
+"НОВА РУМЪНСКА ЛЕЯ","RON",closed
+"РУСКА РУБЛА","RUB",closed
+"ШВЕДСКА КРОНА","SEK",closed
+"СИНГАПУРСКИ ДОЛАР","SGD",closed
+"ТАЙЛАНДСКИ БАТ","THB",closed
+"ТУРСКА ЛИРА","TRY",closed
+"ЮЖНОАФРИКАНСКИ РАНД","ZAR",closed
