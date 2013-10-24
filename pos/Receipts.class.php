@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf, store_ShipmentIntf';
+    var $interfaces = 'acc_TransactionSourceIntf, bgerp_DealAggregatorIntf';
     
     
     /**
@@ -250,17 +250,6 @@ class pos_Receipts extends core_Master {
 	    		$tpl->replace(pos_Favourites::renderPosProducts($data->products), 'PRODUCTS');
 	    	}
     	}
-    }
-    
-    
-    /**
-     * Интерфейсен метод за вземане на продуктите (@see store_ShipmentIntf)
-     * @param int $id - ид на бележка
-     * @return array $products - Масив от продукти
-     */
-    public function getShipmentProducts($id)
-    {
-    	return static::getProducts($id);
     }
     
     
@@ -615,5 +604,59 @@ class pos_Receipts extends core_Master {
         foreach($query->getDeletedRecs() as $rec) {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
+    }
+    
+    
+	function act_Test(){
+    	$i = $this->getAggregateDealInfo('39');
+    	bp($i);
+    }
+    
+    
+	/**
+     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     */
+    public function getAggregateDealInfo($id)
+    {
+        $rec = self::fetchRec($id);
+        $products = static::getProducts($id);
+        $currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+        
+        $result = new bgerp_iface_DealResponse();
+        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        
+        $result->agreed->amount                 = $rec->total;
+        $result->agreed->currency               = $currencyId;
+        $result->agreed->payment->currencyId    = $currencyId;
+        $result->agreed->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
+       
+        $result->shipped->amount                 = $rec->total;
+        $result->shipped->currency               = $currencyId;
+        $result->shipped->payment->currencyId    = $currencyId;
+        $result->shipped->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
+        
+        $productManId = cat_Products::getClassId();
+        
+        foreach ($products as $pr) {
+            $p = new bgerp_iface_DealProduct();
+            
+            $p->classId     = $productManId;
+            $p->productId   = $pr->productId;
+            $p->packagingId = $pr->packagingId;
+            //$p->discount    = $dRec->discount;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $pr->quantity;
+            $p->price       = $pr->price;
+            $p->uomId       = $pr->uomId;
+            
+            $result->agreed->products[] = $p;
+            $result->shipped->products[] = clone $p;
+        }
+        
+        return $result;
     }
 }
