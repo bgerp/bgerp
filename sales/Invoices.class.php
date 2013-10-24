@@ -319,34 +319,45 @@ class sales_Invoices extends core_Master
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
+    	$origin = static::getOrigin($rec);
+    	if ($origin->haveInterface('store_ShipmentIntf')) {
+    		$products = $origin->getShipmentProducts();
+    		if(count($products) != 0){
+	    		
+	    		// Записваме информацията за продуктите в детайла
+		    	foreach ($products as $product){
+		    		$dRec = clone $product;
+		    		$dRec->invoiceId = $rec->id;
+		    		$dRec->classId = $product->classId;
+		    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
+		    		$dRec->amount = $dRec->packQuantity * $product->price;
+		    		$mvc->sales_InvoiceDetails->save($dRec);
+		    	}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Намира ориджина на фактурата (ако има)
+     */
+    public static function getOrigin($rec)
+    {
     	if($rec->docType && $rec->docId) {
     		
     		// Ако се генерира от пос продажба
-    		$origin = cls::get($rec->docType);
-    		$products = $origin->getShipmentProducts($rec->docId);
-    	} else {
-    		try{
-    			$origin = static::getOrigin($rec, 'store_ShipmentIntf');
-    		} catch(Exception $e){
-    			//Ако фактурата е начало на нишка то getOrigin  ще даде грешка
-    			return;
-    		}
-    		if(cls::haveInterface('store_ShipmentIntf', $origin->className)){
-    			$products = $origin->getShipmentProducts();
-    		}
+    		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
-    	if(count($products) != 0){
-	    	
-    		// Записваме информацията за продуктите в детайла
-	    	foreach ($products as $product){
-	    		$dRec = clone $product;
-	    		$dRec->invoiceId = $rec->id;
-	    		$dRec->packQuantity = $product->quantity * $product->quantityInPack;
-	    		$dRec->amount = $dRec->packQuantity * $product->price;
-	    		$mvc->sales_InvoiceDetails->save($dRec);
-	    	}
+    	if($rec->originId) {
+    		
+    		return doc_Containers::getDocument($rec->originId);
+    	} elseif($rec->threadId){
+    		
+    		return doc_Threads::getFirstDocument($rec->threadId);
     	}
+    	
+    	return FALSE;
     }
     
     
