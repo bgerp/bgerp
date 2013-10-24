@@ -355,24 +355,19 @@ class sales_Invoices extends core_Master
      */
     public static function getOrigin($rec)
     {
+    	$origin = NULL;
     	if($rec->docType && $rec->docId) {
-    		
     		// Ако се генерира от пос продажба
-    		return new core_ObjectReference($rec->docType, $rec->docId);
+    		$origin = new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
     	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
+    		$origin = doc_Containers::getDocument($rec->originId);
     	} elseif($rec->threadId){
-	    	try{
-	    		return doc_Threads::getFirstDocument($rec->threadId);
-	    	} catch (Exception $e){
-	    		return FALSE;
-	    	}
-    		return FALSE;
-    	}
+    		$origin = doc_Threads::getFirstDocument($rec->threadId);
+	    }
     	
-    	return FALSE;
+    	return $origin;
     }
     
     
