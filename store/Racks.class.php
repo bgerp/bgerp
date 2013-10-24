@@ -845,7 +845,7 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $fResult
      */
-    function ppRackNum2rackId($stringForExplode)
+    static function ppRackNum2rackId($stringForExplode)
     {
         $stringForExplode = str::utf2ascii($stringForExplode);
         $positionArr = explode("-", $stringForExplode);
