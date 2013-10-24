@@ -206,7 +206,7 @@ class change_Plugin extends core_Plugin
             }
             
             // Вземаме записитеи за съответния ред
-            $gRecArr = change_Log::getRec($classId, $rec->id, $versionStr, $fieldsArrLogSave);
+            $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionStr, $fieldsArrLogSave);
             
             // Ако има записи
             if ($gRec !== FALSE) {

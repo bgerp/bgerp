@@ -34,12 +34,6 @@ class change_Log extends core_Manager
     
     
     /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_Created';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'docClass, docId, field, value';
@@ -76,6 +70,13 @@ class change_Log extends core_Manager
     
     
     /**
+     * Плъгини за зареждане
+     * @todo Да се премахне
+     */
+    var $loadList = 'plg_Created';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -85,8 +86,12 @@ class change_Log extends core_Manager
         $this->FLD('field', 'varchar', 'caption=Поле');
         $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
         
-        $this->FLD('version', 'varchar', 'caption=Версия,input=none');
-        $this->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
+        // @todo Да се добавя след премахване на plg_Created
+//        $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none'); 
+//        $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');
+        
+        $this->FLD('version', 'varchar', 'caption=Версия,input=none'); // @todo Да се премахне
+        $this->FLD('subVersion', 'int', 'caption=Подверсия,input=none'); // @todo Да се премахне
         
     }
     
@@ -118,35 +123,66 @@ class change_Log extends core_Manager
         // Обхождаме масива с полетата
         foreach ((array)$fieldsArr as $field) {
             
-            // Обекта, който ще записваме
-            $rec = new stdClass();
-            $rec->docClass = $docClassId;
-            $rec->docId = $oldRec->id;
-            $rec->field = $field;
-            $rec->value = $oldRec->$field;
-            $rec->version = $oldRec->version;
-            $rec->subVersion = $oldRec->subVersion;
-            
             // Ако modifiedOn
             if ($oldRec->modifiedOn) {
                 
                 // Използваме него
-                $rec->createdOn = $oldRec->modifiedOn;
+                $createdOn = $oldRec->modifiedOn;
             } else {
                 
                 // Използваме текущия
-                $rec->createdOn = dt::verbal2Mysql();
+                $createdOn = dt::verbal2Mysql();
             }
             
             // Ако modifiedBy
             if ($oldRec->modifiedBy) {
                 
                 // Използваме него
-                $rec->createdBy = $oldRec->modifiedBy;
+                $createdBy = $oldRec->modifiedBy;
             } else {
                 
                 // Използваме текущото време
-                $rec->createdBy = Users::getCurrent();
+                $createdBy = Users::getCurrent();
+            }
+            
+            // Ако няма версия
+            if (!$oldRec->version) {
+                
+                // Да е нула по подразбиране
+                $oldRec->version = 0;
+            }
+            
+            // Ако няма подверсия
+            if (!$oldRec->subVersion) {
+                
+                // Да е едно по поразбиране
+                $oldRec->subVersion = 1;
+            }
+            
+            // Обекта за value, който ще запишем
+            $valueObj = (object)array('version' => $oldRec->version, 'subVersion' => $oldRec->subVersion, 'value' => $oldRec->$field, 'createdOn' => $createdOn, 'createdBy' => $createdBy);
+            
+            // Вземаме записа
+            $sRec = static::getRec($docClassId, $oldRec->id, $field);
+            
+            // Ако има запис за съответното поле
+            if ($sRec) {
+                
+                // Добавяме стойностите
+                $rec->id = $sRec->id;
+                $rec->docClass = $sRec->docClass;
+                $rec->docId = $sRec->docId;
+                $rec->field = $field;
+                $rec->value = $sRec->value;
+                $rec->value[] = $valueObj;
+            } else {
+                
+                // Обекта, който ще записваме
+                $rec = new stdClass();
+                $rec->docClass = $docClassId;
+                $rec->docId = $oldRec->id;
+                $rec->field = $field;
+                $rec->value = array($valueObj);
             }
             
             // Записваме
@@ -187,17 +223,45 @@ class change_Log extends core_Manager
         // Инстанция на класа
         $class = cls::get($docClassId);
         
+        
+        // Вземаме записа
+        $rec = static::getRec($docClassId, $docId);
+        
+        // Ако е масив
+        if (is_array($rec->value)) {
+            
+            // Обхождаме масива
+            foreach ((array)$rec->value as $value) {
+                
+                // Данните, които ще се визуализрат
+                $row = (object)array(
+                    'createdOn' => $value->createdOn,
+                    'createdBy' => $value->createdBy,
+                );
+                
+                // Записите във вербален вид
+                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+                
+                // Стринга на версията
+                $versionStr = static::getVersionStr($value->version, $value->subVersion);
+                
+                // Линк към версията
+                $row->Version = static::getVersionLink($rec, $versionStr);
+                
+                // Добавяме в масива
+                $res[] = $row;
+            }
+        }
+        
         // Опитваме се да вземем информация за документа
-        
-        // Последната версия на записа
-        $docRec = $class->fetch($docId);
-        
         // Вземаме последната версия
-        
         $row = new stdClass();
         
         // Версията
-        $row->Version = static::getVersionLink((object)array('docId' => $docId, 'docClass' => $docClassId), TRUE);
+        $row->Version = static::getVersionLink((object)array('docId' => $docId, 'docClass' => $docClassId), FALSE, TRUE);
+        
+        // Последната версия на записа
+        $docRec = $class->fetch($docId);
         
         // Ако има дата и потребтел
         if (isset($docRec->modifiedBy) && isset($docRec->modifiedOn)) {
@@ -211,28 +275,8 @@ class change_Log extends core_Manager
         // Добавяме към резултатите
         $res[] = $row;
         
-        // Вземаме всички записи от класа и документи групиране по версия и подверсия, и подредени по дата
-        $query = static::getQuery();
-        $query->where("#docClass = '{$docClassId}'");
-        $query->where("#docId = '{$docId}'");
-        $query->orderBy("createdOn", 'DESC');
-        $query->groupBy('version, subVersion');
-        
-        // Обхождаме масива
-        while ($rec = $query->fetch()) {
-            
-            // Вербалнате стойности
-            $row = static::recToVerbal($rec, 'createdBy, createdOn');
-            
-            // Линк към версията
-            $row->Version = static::getVersionLink($rec);
-            
-            // Инстанция на класа
-//            $row->docClass = cls::get($rec->docClass);
-            
-            // Добавяме в масива
-            $res[] = $row;
-        }
+        // Подреждаме в обратен ред
+        $res = array_reverse($res);
         
         return $res;
     }
@@ -246,8 +290,11 @@ class change_Log extends core_Manager
         // Изискваме да има права
         requireRole('user');
         
-        // id
-        $id = Request::get('id', 'int');
+        // id на класа
+        $classId = Request::get('docClass', 'int');
+        
+        // id документа
+        $docId = Request::get('docId', 'int');
         
         // Името на таба
         $tab = Request::get('tab');
@@ -255,37 +302,8 @@ class change_Log extends core_Manager
         // Съответния екшън
         $action = Request::get('action');
         
-        // Ако има id
-        if ($id) {
-            
-            // Вземаме записа
-            $rec = static::fetch($id);
-            
-            // Очакваме да има такъв запис
-            expect($rec);
-            
-            // id на класа
-            $classId = $rec->docClass;
-            
-            // id на документа
-            $docId = $rec->docId;
-            
-            // Версията
-            $version = $rec->version;
-            
-            // Подверсията
-            $subVersion = $rec->subVersion;
-        } else {
-            
-            // id на класа
-            $classId = Request::get('docClass', 'int');
-            
-            // id документа
-            $docId = Request::get('docId', 'int');
-            
-            // Последна версия
-            $lastVer = TRUE;
-        }
+        // Версията от стринга
+        $versionStr = Request::get('versionStr', 'varchar');
         
         // Инстанция на класа
         $class = cls::get($classId);
@@ -298,17 +316,6 @@ class change_Log extends core_Manager
         
         // Масив с всички избрани версии за съответния документ
         $dataArr = static::getSelectedVersionsArr($classId, $docId);
-        
-        // Ако е последна версия
-        if ($lastVer) {
-            
-            // Стринга на версията
-            $versionStr = static::getLastVersionFromDoc($classId, $docId);
-        } else {
-            
-            // Вземаме стринга за версията и подверсията
-            $versionStr = static::getVersionStr($version, $subVersion);
-        }
         
         // Ако екшъна е отказване
         if ($action == 'unselect') {
@@ -370,7 +377,7 @@ class change_Log extends core_Manager
     static function getVerbalValue($docClass, $docId, $versionStr, $fieldsArr)
     {
         // Вземаме записа
-        $recArr = static::getRec($docClass, $docId, $versionStr, $fieldsArr);
+        $recArr = static::getRecForVersion($docClass, $docId, $versionStr, $fieldsArr);
 
         // Ако няма запис връщаме FALSE
         if (!$recArr) return FALSE;
@@ -405,14 +412,15 @@ class change_Log extends core_Manager
      */
     static function getCountOfChange($docClassId, $docId)
     {
-        // Вземаме всички записи за документа групирани по версии и подверсии
-        $query = static::getQuery();
-        $query->where("#docClass = '{$docClassId}'");
-        $query->where("#docId = '{$docId}'");
-        $query->groupBy('version, subVersion');
+        // Вземаме записа
+        $rec = static::getRec($docClassId, $docId);
         
-        // Връщаме броя
-        return $query->count();
+        // Ако има стойност
+        if ($rec->value) {
+            
+            // Връщаме броя
+            return count($rec->value);
+        }
     }
     
     
@@ -437,19 +445,17 @@ class change_Log extends core_Manager
             $docClassId = $docClass;
         }
         
-        // Вземаме всички записи за съответния клас
-        $query = static::getQuery();
-        $query->where(array("#docClass = '[#1#]'", $docClassId));
-        $query->where(array("#docId = '[#1#]'", $docId));
+        // Вземаме записа
+        $rec = static::getRec($docClassId, $docId);
         
         // Обхождаме резултатите
-        while ($rec = $query->fetch()) {
+        foreach ((array)$rec->value as $value) {
             
             // Ако подверсията е по - голяма от записаната в масива
-            if ($rec->subVersion > $arr[$rec->version]) {
+            if ($value->subVersion > $arr[$value->version]) {
                 
                 // Добавяме нея
-                $arr[$rec->version] = $rec->subVersion;
+                $arr[$value->version] = $value->subVersion;
             }
         }
         
@@ -461,11 +467,12 @@ class change_Log extends core_Manager
      * Връща линк към с версията 
      * 
      * @param object $rec
+     * @param string $versionStr
      * @param boolean $lastVer
      * 
      * @return string
      */
-    static function getVersionLink($rec, $lastVer=FALSE)
+    static function getVersionLink($rec, $versionStr=FALSE, $lastVer=FALSE)
     {
         // Ако няма клас или документ, връщаме
         if (!$rec->docClass && !$rec->docId) return ;
@@ -491,10 +498,6 @@ class change_Log extends core_Manager
             
             // Вземаме последната версия
             $versionStr = static::getLastVersionFromDoc($rec->docClass, $rec->docId);            
-        } else {
-            
-            // Вземаме стринга за версията
-            $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
         }
         
         // Ако има такъв масив
@@ -537,7 +540,7 @@ class change_Log extends core_Manager
         } else {
            
             // Задаваме линка
-            $link = array('change_Log', 'logVersion', $rec->id, 'tab' => Request::get('Tab'), 'action' => $action);
+            $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'tab' => Request::get('Tab'), 'action' => $action);
             
             // Ако е за последната версия
             if ($lastVer) {
@@ -729,10 +732,10 @@ class change_Log extends core_Manager
             foreach ($versionArr as $keyVer => $dummy) {
                 
                 // Ако е последна версия, прескачаме
-                if ($keyVer == $lastVer) continue;
+                if ((string)$keyVer === (string)$lastVer) continue;
                 
                 // Вземаме записа
-                $recArr = static::getRec($docClass, $docId, $keyVer);
+                $recArr = static::getRecForVersion($docClass, $docId, $keyVer);
                 
                 // Ако няма записи
                 if ($recArr === FALSE) continue;
@@ -838,7 +841,7 @@ class change_Log extends core_Manager
         if ($firstAndLastVerArr['first']) {
             
             // Вземаме масива със записа
-            $firstRecArr = static::getRec($docClass, $docId, $firstAndLastVerArr['first']);
+            $firstRecArr = static::getRecForVersion($docClass, $docId, $firstAndLastVerArr['first']);
             
             // Вземаме първия запис
             $firstRec = $firstRecArr[0];
@@ -847,11 +850,14 @@ class change_Log extends core_Manager
             $arr[$firstAndLastVerArr['first']] = $firstAndLastVerArr['first'];
         }
         
+        // Стойността по подразбиране
+        $lastRecArr = FALSE;
+        
         // Ако име последна версия
         if ($firstAndLastVerArr['last']) {
             
             // Вземаме масива със записа
-            $lastRecArr = static::getRec($docClass, $docId, $firstAndLastVerArr['last']);
+            $lastRecArr = static::getRecForVersion($docClass, $docId, $firstAndLastVerArr['last']);
             
             // Вземаме първия запис
             $lastRec = $lastRecArr[0];
@@ -860,49 +866,118 @@ class change_Log extends core_Manager
             $arr[$firstAndLastVerArr['last']] = $firstAndLastVerArr['last'];
         }
         
-        // Ако има избрана версия
-        if (($lastRecArr !== NULL) && $firstRec && ($firstCreatedOn = $firstRec->createdOn)) {
+        // Ако има избрана версия и има израбрана последна версия
+        if (($lastRecArr !== FALSE) && $firstRec && ($firstCreatedOn = $firstRec->createdOn)) {
             
-            // Запитване за да вземем записите
-            $query = static::getQuery();
-            $query->where(array("#docClass = '[#1#]'", $docClass));
-            $query->where(array("#docId = '[#1#]'", $docId));
-            $query->groupBy('version, subVersion');
+            // Вземаме записа
+            $rec = static::getRec($docClass, $docId);
             
-            // Ако няма последна версия
-            if (!$lastRecArr) {
+            // Обхождаме стойностите
+            foreach ((array)$rec->value as $value) {
                 
-                // Ако не може да се вземе последния запис
-                if ($lastRecArr === FALSE) {
+                // Флаг, дали да се запише версията
+                $getVersion = FALSE;
+                
+                // Ако е избрана последната версия
+                if ($lastRecArr === NULL) {
                     
-                    // Добавяме време
-                    $query->where(array("#createdOn >= '[#1#]'", $firstCreatedOn));
-                }
-            } else {
-                
-                // Ако има избрана последна версия
-                
-                // Вземаме времето
-                if (($lastCreatedOn = $lastRec->createdOn)) {
+                    // Ако е създадена след първия избран
+                    if ($value->createdOn >= $firstCreatedOn) {
+                        
+                        // Вдигаме флага
+                        $getVersion = TRUE;
+                    }
+                } else {
                     
-                    // Добавяме условието
-                    $query->where(array("#createdOn <= '[#1#]'", $lastCreatedOn));
-                    $query->where(array("#createdOn >= '[#1#]'", $firstCreatedOn));
+                    // Ако има дата на последно избраната версия
+                    if ($lastCreatedOn = $lastRec->createdOn) {
+                        
+                        // Вземаме между първата и последната
+                        if (($value->createdOn <= $lastCreatedOn) && ($value->createdOn >= $firstCreatedOn)) {
+                            
+                            // Вдигаме флага
+                            $getVersion = TRUE;
+                        }
+                    }
                 }
-            }
-            
-            // Обхождаме резултата
-            while ($rec = $query->fetch()) {
                 
-                // Вземаме стринга за версиите
-                $versionStr = static::getVersionStr($rec->version, $rec->subVersion);
-                
-                // Добавяме в масива
-                $arr[$versionStr] = $versionStr;
+                // Ако флага е вдигнат
+                if ($getVersion) {
+                    
+                    // Вземаме стринга
+                    $versionStr = static::getVersionStr($value->version, $value->subVersion);
+                    
+                    // Добавяме в масива
+                    $arr[$versionStr] = $versionStr;
+                }
             }
         }
         
         return $arr;
+    }
+    
+    
+    /**
+     * Връща за дадено поле
+     * 
+     * @param integer $docClass
+     * @param intege $docId
+     * @param mixed $field
+     */
+    static function getRec($docClass, $docId, $field=FALSE)
+    {
+        // Масива със записите
+        static $recsArr=array();
+        
+        // Ако не е сетнат
+        if (is_array($recsArr) && !$recsArr) {
+            
+            // Вземаме всички записи за съответния клас и документ
+            $query = static::getQuery();
+            $query->where(array("#docClass = '[#1#]'", $docClass));
+            $query->where(array("#docId = '[#1#]'", $docId));
+            
+            // Обхождаме резултата
+            while ($rec = $query->fetch()) {
+                
+                // Добавяме в масива
+                $recsArr[$rec->field] = $rec;
+            }
+        } 
+        
+        // Ако няма резултат връщаме FALSE
+        if (!$recsArr) return FALSE;
+        
+        // Ако е зададено съответно поле
+        if ($field) {
+            
+            // Ако са зададени всички полета
+            if ($field == '*') {
+                
+                // Връщаме всички
+                $resRecArr =  $recsArr;
+            } elseif (is_array($field)) {
+                
+                // Ако полетата са в масив
+                
+                // Обхождаме полетата
+                foreach ($field as $f) {
+                    
+                    // Добавяме в резултата
+                    $resRecArr[$f] = $recsArr[$f];
+                }
+            } else {
+                
+                // Ако е стринг, връщаме съответното поле
+                $resRecArr = $recsArr[$field];
+            }
+        } else {
+            
+            // Вземаме първия запис
+            $resRecArr = $recsArr[key($recsArr)];
+        }
+        
+        return $resRecArr;
     }
     
     
@@ -916,50 +991,45 @@ class change_Log extends core_Manager
      * 
      * return array $recArr - Масив с откритите записи
      */
-    static function getRec($docClass, $docId, $versionStr, $field=FALSE)
+    static function getRecForVersion($docClass, $docId, $versionStr, $field=FALSE)
     {
         // Вземаме версията и подверсията от стринга
         $versionArr = static::getVersionFromString($versionStr);
         
-        // Добаваме условията
-        $query = static::getQuery();
-        $query->where(array("#version = '[#1#]'", $versionArr[0]));
-        $query->where(array("#subVersion = '[#1#]'", $versionArr[1]));
-        $query->where(array("#docClass = '[#1#]'", $docClass));
-        $query->where(array("#docId = '[#1#]'", $docId));
+        // Вземаме записа за всички полета
+        $rec = static::getRec($docClass, $docId, '*');
         
-        // Ако има подадено поле
-        if ($field !== FALSE) {
+        // Ако няма, връщаме FALSE
+        if (!$rec) return FALSE;
+        
+        // Обхождаме масива
+        foreach ((array)$rec as $f => $r) {
             
-            // Ако е масив
-            if (is_array($field)) {
+            // Обхождаме стойността
+            foreach ((array)$r->value as $val) {
                 
-                // Добавяме условие за полетата
-                $query->orWhereArr('field', $field);
-            } else {
+                // Ако версията и подверсията съвпадат
+                if (((string)$val->version !== (string)$versionArr[0]) || ((string)$val->subVersion !== (string)$versionArr[1])) continue;
                 
-                // Добавяме условие за полето
-                $query->where(array("#field = '[#1#]'", $field));
+                // Ако не е подадено поле
+                if ($field === FALSE) {
+                    
+                    // Добавяме в масива
+                    $recArr[] = $val;
+                } else {
+                    
+                    // Ако подадено поле съществува
+                    if ($field[$f]) {
+                        
+                        // Добавяме в масива
+                        $recArr[$f] = $val;
+                    }
+                }
+                
+                // Прекъсваме, вътрешния цикъл, защото за това поле няма повеце версии и подверсии, които да отговарят
+                break;
             }
         }
-        
-        // Вземаме един запис
-        while ($rec = $query->fetch()) {
-            
-            // Ако няма подададено поле
-            if ($field === FALSE) {
-                
-                // Добавямв към масива
-                $recArr[] = $rec;
-            } else {
-                
-                // Добавяме към масива с ключ името на полето
-                $recArr[$rec->field] = $rec;
-            }
-        }
-        
-        // Ако няма запис връщаме FALSE
-        if (!count($recArr)) return FALSE;
         
         return $recArr;
     }
@@ -1032,7 +1102,7 @@ class change_Log extends core_Manager
             } else {
                 
                 // Създавамем масива
-                $valueCurr = array('version' => $rec->version, 'subVersion' => $rec->subVersion, 'value' => $rec->value);
+                $valueCurr = (object)array('version' => $rec->version, 'subVersion' => $rec->subVersion, 'value' => $rec->value, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy);
                 
                 // Вдигаме флага
                 $haveForSave = TRUE;
@@ -1048,7 +1118,7 @@ class change_Log extends core_Manager
                 $value = $arrKeys[$dKey];
                 
                 // Ако масива не е обработен преди
-                if (!$valueCurr[0]) {
+                if (is_object($valueCurr)) {
                     
                     // Добавяме в масива
                     $arrKeys[$dKey][] =  $valueCurr;
