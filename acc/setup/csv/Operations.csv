@@ -15,3 +15,7 @@
 "Плащане към Подотчетно лице","cash_Rko","422","501","case2accPerson"
 "Плащане от Клиент","cash_Pko","501","411","customer2case"
 "Плащане от Клиент","bank_IncomeDocument","503","411","customer2bank"
+"Връщане от Доставчик","bank_IncomeDocument","503","401","supplier2bank"
+"Връщане от Доставчик","cash_Pko","501","401","supplier2case"
+"Връщане към Клиент","cash_Rko","411","501","case2customer"
+"Връщане към Клиент","bank_CostDocument","411","503","bank2customer"
