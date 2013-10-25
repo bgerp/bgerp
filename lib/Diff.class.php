@@ -52,7 +52,7 @@ class lib_Diff
         if ($arrDiff === FALSE) {
             
             // Връщаме предупреждение и най - новата версия
-            return "<div style='color: red;'>" . tr("Внимание! Има много разлик и не може да се изчислят.") . "</div>" . $new;
+            return "<div class='formError' style='color:red;'>" . tr("Внимание! Има много разлики и не може да се изчислят.") . "</div>" . $new;
         }
         
         $out = $mode = $buf = '';
