@@ -181,7 +181,7 @@ class sales_Sales extends core_Master
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'isInstantShipment'  => 'lastDocUser|lastDoc',
     	'initiatorId'        => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	//'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
