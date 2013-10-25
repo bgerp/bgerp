@@ -121,6 +121,12 @@ class change_Plugin extends core_Plugin
         // Ако няма такова URL, връщаме към single' а
         $retUrl = ($retUrl) ? ($retUrl) : array($mvc, 'single', $form->rec->id);
         
+        // id на класа
+        $classId = core_Classes::getId($mvc);
+        
+        // Масива с първата и последната версия
+        $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
+        
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
@@ -174,6 +180,13 @@ class change_Plugin extends core_Plugin
             // Извикваме фунцкия, след като запишем
             $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
             
+            // Ако има избрана версия
+            if ($versionArr['first']) {
+                
+                // Добавяме последната версия в избраните
+                change_Log::addVersion($classId, $rec->id, $form->rec->version, $form->rec->subVersion);
+            }
+            
             // Редиректваме
             return redirect($retUrl);
         }
@@ -183,12 +196,6 @@ class change_Plugin extends core_Plugin
             
             // Вземаме данните
             $vRec = $rec;
-            
-            // id на класа
-            $classId = core_Classes::getId($mvc);
-            
-            // Масива с първата и последната версия
-            $versionArr = change_Log::getFirstAndLastVersion($classId, $rec->id);
             
             // Ако няма последна версия
             if (!$versionArr['last']) {
@@ -294,69 +301,72 @@ class change_Plugin extends core_Plugin
         // Масив с най - новата и най - старата версия
         $selVerArr = change_Log::getFirstAndLastVersion($classId, $data->rec->id);
         
+        // Последна версия
+        $lastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
+        
         // Вземаме формата
         $form = $mvc->getForm();
         
         // Вземаме всички полета, които могат да се променят
         $allowedFieldsArr = (array)static::getAllowedFields($form, $mvc->changableFields);
         
-        // Ако има избрана версия
-        if ($selVerArr['first']) {
+        if ($selVerArr['first'] !== $lastVersion) {
             
-            // Вземаме стойността за съответното поле, за първата версия
-            $firstArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedFieldsArr);
-            
-            // Ако има последна версия
-            if ($selVerArr['last']) {
+            // Ако има избрана версия
+            if ($selVerArr['first']) {
                 
-                // Стринга на последната версия
-                $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $data->rec->id);
+                // Вземаме стойността за съответното поле, за първата версия
+                $firstArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedFieldsArr);
                 
-                // Ако последната версия е последния вариант
-                if ($selVerArr['last'] == $lastVersionStr) {
+                // Ако има последна версия
+                if ($selVerArr['last']) {
                     
-                    // Обхождаме всички позволени полеоте, които ще се променят
-                    foreach ($allowedFieldsArr as $allowedField) {
+                    // Стринга на последната версия
+                    $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $data->rec->id);
+                    
+                    // Ако последната версия е последния вариант
+                    if ($selVerArr['last'] == $lastVersionStr) {
                         
-                        // Добавяме в масива
-                        $lastArr[$allowedField] = $data->row->$allowedField;
+                        // Обхождаме всички позволени полеоте, които ще се променят
+                        foreach ($allowedFieldsArr as $allowedField) {
+                            
+                            // Добавяме в масива
+                            $lastArr[$allowedField] = $data->row->$allowedField;
+                        }
+                    } else {
+                        
+                        // Вземаме стойността за съответното поле, за последната версия
+                        $lastArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['last'], $allowedFieldsArr);
                     }
+                    
                 } else {
                     
-                    // Вземаме стойността за съответното поле, за последната версия
-                    $lastArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['last'], $allowedFieldsArr);
+                    // Флаг, който посочва, че няма последна версия
+                    $noLast = TRUE;
                 }
                 
-            } else {
-                
-                // Флаг, който посочва, че няма последна версия
-                $noLast = TRUE;
-            }
-            
-            // Обхождаме всички позволени версии
-            foreach ($allowedFieldsArr as $allowedField) {
-                
-                // Вземаме първата версия
-                $first = $firstArr[$allowedField];
-                
-                // Ако няма последна версия
-                if ($noLast) {
+                // Обхождаме всички позволени версии
+                foreach ($allowedFieldsArr as $allowedField) {
                     
-                    // Задаваме първата версия
-                    $data->row->$allowedField = $first;
-                } else {
+                    // Вземаме първата версия
+                    $first = $firstArr[$allowedField];
                     
-                    // Вземаме последната версия
-                    $last = $lastArr[$allowedField];
-                    
-                    // Сравняваме двата варианта
-                    $data->row->$allowedField = lib_Diff::getDiff($first, $last);
+                    // Ако няма последна версия
+                    if ($noLast) {
+                        
+                        // Задаваме първата версия
+                        $data->row->$allowedField = $first;
+                    } else {
+                        
+                        // Вземаме последната версия
+                        $last = $lastArr[$allowedField];
+                        
+                        // Сравняваме двата варианта
+                        $data->row->$allowedField = lib_Diff::getDiff($first, $last);
+                    }
                 }
             }
         }
-        
-        // Последна версия
-        $lastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
         
         // Ако има избрана версия
         if ($selVerArr['first']) {

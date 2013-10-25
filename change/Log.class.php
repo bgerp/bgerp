@@ -223,7 +223,6 @@ class change_Log extends core_Manager
         // Инстанция на класа
         $class = cls::get($docClassId);
         
-        
         // Вземаме записа
         $rec = static::getRec($docClassId, $docId);
         
@@ -326,20 +325,6 @@ class change_Log extends core_Manager
                 // Премахваме от масива
                 unset($dataArr[$versionStr]);
             }
-            
-            // Ако остане избрана само последната версия
-            if (count($dataArr) == 1) {
-                
-                // Последната версия
-                $lastVersion = static::getLastVersionFromDoc($classId, $docId);
-                
-                // Ако последната версия е избрана сама
-                if ($dataArr[$lastVersion]) {
-                    
-                    // Премахваме я от масива
-                    unset($dataArr[$lastVersion]);
-                }
-            }
         } else {
             
             // Ако екшъна не е отказване
@@ -349,7 +334,7 @@ class change_Log extends core_Manager
         }
         
         // Обновяваме масива с версиите
-        static::addSelectedVersion($classId, $docId, $dataArr);
+        static::updateSelectedVersion($classId, $docId, $dataArr);
         
         // Линка, към който ще редиректнем
         $link = array(
@@ -378,7 +363,7 @@ class change_Log extends core_Manager
     {
         // Вземаме записа
         $recArr = static::getRecForVersion($docClass, $docId, $versionStr, $fieldsArr);
-
+        
         // Ако няма запис връщаме FALSE
         if (!$recArr) return FALSE;
         
@@ -517,9 +502,6 @@ class change_Log extends core_Manager
         // Ако няма избрана версия и генерираме за последната
         if (!count($dataArr) && $lastVer) {
             
-            // Иконата да е избрана
-            $icon = 'img/16/stock_data_next.png';
-            
             // Да няма линк
             $noLink = TRUE;
         }
@@ -530,32 +512,16 @@ class change_Log extends core_Manager
         
         // Ескейпваме стринга
         $versionStrRaw = static::escape($versionStr);
-            
-        // Ако е зададено да няма линк
-        if ($noLink) {
-            
-            // Празен масив
-            $link = array();
-            
-        } else {
            
-            // Задаваме линка
-            $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'tab' => Request::get('Tab'), 'action' => $action);
-            
-            // Ако е за последната версия
-            if ($lastVer) {
-                
-                // Задаваме docId и docClass
-                $link['docId'] = $rec->docId;
-                $link['docClass'] = $rec->docClass;
-            }
-        }
+        // Задаваме линка
+        $link = array('change_Log', 'logVersion', 'docClass' => $rec->docClass, 'docId' => $rec->docId, 'versionStr' => $versionStr, 'tab' => Request::get('Tab'), 'action' => $action);
+        
         
         // Връщаме линка
         $linkEt = ht::createLink($versionStrRaw, $link, NULL, $attr);
         
         // Ако е избран
-        if (static::isSelected($rec->docClass, $rec->docId, $versionStr)) {
+        if ($noLink || static::isSelected($rec->docClass, $rec->docId, $versionStr)) {
             
             // Добавяме класа
             $linkEt->append("class='change-selected-version'", 'ROW_ATTR');
@@ -614,7 +580,7 @@ class change_Log extends core_Manager
      * @param string $docId - id' на документа
      * @param array $dataArr - Масива, който ще добавим
      */
-    static function addSelectedVersion($classId, $docId, $dataArr)
+    static function updateSelectedVersion($classId, $docId, $dataArr)
     {
         // Вземаме всички избрани версии за документите
         $allVersionArr = static::getSelectedVersionsArr();
@@ -627,6 +593,30 @@ class change_Log extends core_Manager
         
         // Записваме
         Mode::setPermanent(static::PERMANENT_SAVE_NAME, $allVersionArr);
+    }
+    
+    
+    /**
+     * Добавя подадената версия в избраните
+     * 
+     * @param mixed $classId - Името или id на класа
+     * @param string $docId - id' на документа
+     * @param string $version - Версията
+     * @param subVersion $subVersion - Подверсията
+     */
+    static function addVersion($classId, $docId, $version, $subVersion)
+    {
+        // Вземаме масива с избраните версии
+        $dataArr = static::getSelectedVersionsArr($classId, $docId);
+        
+        // Стринга на версията
+        $versionStr = static::getVersionStr($version, $subVersion);
+        
+        // Добавяме в масива
+        $dataArr[$versionStr] = TRUE;
+        
+        // Обновяваме масива с версиите
+        static::updateSelectedVersion($classId, $docId, $dataArr);
     }
     
     
