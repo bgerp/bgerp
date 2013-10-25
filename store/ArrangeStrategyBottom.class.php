@@ -32,7 +32,7 @@ class store_ArrangeStrategyBottom
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
-        $palletPlaceAuto = "6-A-1";
+        $palletPlaceAuto = "1-A-1";
         
         return $palletPlaceAuto;
     }
