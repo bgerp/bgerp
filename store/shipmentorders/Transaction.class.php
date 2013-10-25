@@ -55,8 +55,10 @@ class store_shipmentorders_Transaction
             // Записите от тип 1 (вземане от клиент)
             $entries = $this->getTakingPart($rec);
                 
-            // Записите от тип 2 (експедиция)
-            $entries = array_merge($entries, $this->getDeliveryPart($rec));
+            if($rec->storeId){
+            	// Записите от тип 2 (експедиция)
+            	$entries = array_merge($entries, $this->getDeliveryPart($rec));
+            }
         }
         
         $transaction = (object)array(
@@ -133,7 +135,8 @@ class store_shipmentorders_Transaction
         
         // Изчисляваме курса на валутата на продажбата към базовата валута
         $currencyRate = $this->getCurrencyRate($rec);
-        $currencyId   = currency_Currencies::getIdByCode($rec->currencyId);
+        $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
+        $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
