@@ -179,7 +179,7 @@ class sales_Sales extends core_Master
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'isInstantShipment'  => 'lastDocUser|lastDoc',
+    	//'isInstantShipment'  => 'lastDocUser|lastDoc',
     	'initiatorId'        => 'lastDocUser|lastDoc',
     	//'chargeVat'			 => 'lastDocUser|lastDoc',
     );
@@ -870,8 +870,8 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = $data->rec;
-    	$amount = $rec->amountPaid - $rec->amountDelivered;
-    	if($rec->state == 'active' && $rec->amountDeal && $amount == 0){
+    	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
+    	if($rec->state == 'active' && $rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     		$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     	}
     }
