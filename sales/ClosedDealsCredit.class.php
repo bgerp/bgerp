@@ -143,7 +143,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     	
     	$result->entries[] = array(
     		'amount' => abs($result->totalAmount),
-    		'debit' => array('7911', 'quantity' => abs($result->totalAmount)),
+    		'debit' => array('6911', 'quantity' => abs($result->totalAmount)),
             'credit'  => array('411', 
                         array($docRec->contragentClassId, $docRec->contragentId), 
                         array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
