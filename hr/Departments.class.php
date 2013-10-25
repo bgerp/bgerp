@@ -87,7 +87,7 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, type, nkid, staff, locationId, employersCntAll, employersCnt, schedule';
+    var $listFields = 'id, name, type, nkid, staff, locationId, employmentTotal, employmentOccupied, schedule';
     
 
     /**
