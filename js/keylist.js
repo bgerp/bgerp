@@ -44,6 +44,7 @@ function checkForHiddenGroups() {
 function toggleKeylistGroups(el) {
     	//намираме id-то на елемента, на който е кликнато
     	var element = $(el).closest( "tr.keylistCategory");
+    	
     	var trId = element.attr("id");
     	
     	//намираме keylist таблицата, в която се намира
@@ -51,12 +52,13 @@ function toggleKeylistGroups(el) {
         
         //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
         var trItems = tableHolder.find("tr." + trId);
-        
-        //и ги скриваме
-        trItems.toggle("slow");  
-        
-        //и сменяме състоянието на елемента, на който е кликнато
-        element.toggleClass('closed');
-        element.toggleClass('opened');
+        if(trItems.length){
+        	 //и ги скриваме
+            trItems.toggle("slow");  
+           
+            //и сменяме състоянието на елемента, на който е кликнато
+            element.toggleClass('closed');
+            element.toggleClass('opened');
+        } 
 }
 
