@@ -323,6 +323,7 @@ class sales_Invoices extends core_Master
     	
     	if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
     		$info = $origin->getAggregateDealInfo();
+    		//bp($info);
     		$products = $info->shipped->products;
     		
     		if(count($products) != 0){
@@ -931,12 +932,11 @@ class sales_Invoices extends core_Master
     public function getDealInfo($id)
     {
         $rec = new sales_model_Invoice($id);
+        static::prepareAdditionalInfo($rec);
         
         $result = new bgerp_iface_DealResponse();
-        
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        
-        $result->invoiced->amount = $rec->dealValue;
+        $result->invoiced->amount = $rec->total;
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
