@@ -466,7 +466,9 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->time = $dealInfo->agreed->delivery->time;
                 
                 //@TODO да го взима от интерфейса
-                $form->rec->chargeVat = $origin->fetchField('chargeVat');
+                if($origin->instance() instanceof sales_Sales){
+                	$form->rec->chargeVat = $origin->fetchField('chargeVat');
+                }
             }
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
