@@ -502,8 +502,8 @@ class change_Log extends core_Manager
         // Ако няма избрана версия и генерираме за последната
         if (!count($dataArr) && $lastVer) {
             
-            // Да няма линк
-            $noLink = TRUE;
+            // Флаг, да маркираме последната
+            $markLast = TRUE;
         }
         
         // Аттрибутите на класа
@@ -520,8 +520,8 @@ class change_Log extends core_Manager
         // Връщаме линка
         $linkEt = ht::createLink($versionStrRaw, $link, NULL, $attr);
         
-        // Ако е избран
-        if ($noLink || static::isSelected($rec->docClass, $rec->docId, $versionStr)) {
+        // Ако е избран или е вдигнат флага
+        if ($markLast || static::isSelected($rec->docClass, $rec->docId, $versionStr)) {
             
             // Добавяме класа
             $linkEt->append("class='change-selected-version'", 'ROW_ATTR');
