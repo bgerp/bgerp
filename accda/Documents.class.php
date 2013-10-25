@@ -163,4 +163,13 @@ class accda_Documents extends core_Master
         
         return $row;
     }
+    
+    
+    /**
+     * След подготовката на туулбара на списъчния изглед
+     */
+	static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
 }
