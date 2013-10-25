@@ -46,7 +46,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         $place = $this->mvc->getPlace();
         
         // елемент съдържащ: телефонен номер или потребителско име/номер
-        $matchElement = trim(strtolower($match[2]));
+        $matchElement = trim(mb_strtolower($match[2]));
         
         // Намираме иконата в sbf папката
 	    $icon = sbf("img/16/{$matchElement}.png",'');
