@@ -243,12 +243,19 @@ class change_Plugin extends core_Plugin
         $form->title = 'Промяна';
         
         try {
-            // Титлата на документа
-            $title = $mvc->getDocumentRow($form->rec->id)->title;
             
-            if ($title) {
-                // Титлата на формата
-                $form->title .= " на|*: <i>{$title}</i>";
+            // Ако имплементира doc_DocumentIntf
+            if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
+                
+                // Титлата на документа
+                $title = $mvc->getDocumentRow($form->rec->id)->title;
+                
+                // Ако има открито заглавие
+                if ($title) {
+                    
+                    // Титлата на формата
+                    $form->title .= " на|*: <i>{$title}</i>";
+                }
             }
         } catch (Exception $e) {}
         
