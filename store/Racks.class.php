@@ -768,7 +768,7 @@ class store_Racks extends core_Master
         $rackColumn = $positionArr[2];
         
         // Ако няма стелаж с това id
-        if (!$recRacks = store_Racks::fetch($rackId AND $selectedStoreId)) return FALSE;
+        if (!$recRacks = store_Racks::fetch(array("#id = '[#1#]' AND #storeId = '[#2#]'", $rackId, $selectedStoreId))) return FALSE;
         
         // Ако реда не е сред ключовете на масива $rackRowsArr
         if (!array_key_exists($rackRow, $rackRowsArr)) return FALSE;
