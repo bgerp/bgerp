@@ -175,11 +175,13 @@ class store_ShipmentOrders extends core_Master
                 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
             'caption=От склад, mandatory'); // наш склад, от където се експедира стоката
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
         /*
          * Стойности
          */
         $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountDeliveredVat', 'float(decimals=2)', 'input=none,summary=amount');
         
         /*
          * Контрагент
@@ -231,15 +233,15 @@ class store_ShipmentOrders extends core_Master
         while ($detailRec = $query->fetch()) {
             $vat = 1;
     
-            if ($rec->chargeVat == 'yes') {
+            if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
-    
-                $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
+    			$vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
-    
-            $rec->amountDelivered += $detailRec->amount * $vat;
+    		
+            $rec->amountDelivered += $detailRec->amount;
+            $rec->amountDeliveredVat += $detailRec->amount * $vat;
         }
-    
+    	
         $mvc->save($rec);
     }
     
@@ -335,6 +337,17 @@ class store_ShipmentOrders extends core_Master
         
         // Описателното (вербалното) състояние на документа
         $tpl->replace($data->row->state, 'stateText');
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+    	if($data->rec->chargeVat != 'yes' && $data->rec->chargeVat != 'no'){
+    		unset($data->row->amountDeliveredVat);
+    	}
     }
     
     
@@ -451,6 +464,9 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
                 $form->rec->locationId = $dealInfo->agreed->delivery->location;
                 $form->rec->time = $dealInfo->agreed->delivery->time;
+                
+                //@TODO да го взима от интерфейса
+                $form->rec->chargeVat = $origin->fetchField('chargeVat');
             }
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
@@ -713,7 +729,7 @@ class store_ShipmentOrders extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $result->shipped->amount             = $rec->amountDelivered;
+        $result->shipped->amount             = $rec->amountDeliveredVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;

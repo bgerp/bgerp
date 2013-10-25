@@ -19,7 +19,7 @@ class store_model_ShipmentOrder extends core_Model
     /**
      * @var double
      */
-    public $amountDelivered;
+    public $amountDeliveredVat;
         
     /*
      * Контрагент
@@ -74,4 +74,6 @@ class store_model_ShipmentOrder extends core_Model
      * @var enum(draft, active, rejected)
      */
     public $state;
+    
+    
 }

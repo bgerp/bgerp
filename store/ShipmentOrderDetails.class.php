@@ -310,7 +310,7 @@ class store_ShipmentOrderDetails extends core_Detail
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
-    
+    	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
