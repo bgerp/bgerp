@@ -790,6 +790,23 @@ class sales_Invoices extends core_Master
     }
     
     
+	/**
+     * Дали документа може да се добави към нишката
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+    	$docState = $firstDoc->fetchField('state');
+    	
+    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
+    		
+    		return FALSE;
+    	}
+    }
+    
+    
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
