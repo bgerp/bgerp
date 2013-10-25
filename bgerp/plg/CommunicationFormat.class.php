@@ -48,8 +48,10 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         // елемент съдържащ: телефонен номер или потребителско име/номер
         $matchElement = trim(mb_strtolower($match[2]));
         
+        
         // Намираме иконата в sbf папката
-	    $icon = sbf("img/16/{$matchElement}.png",'');
+        $nameIcon = str::utf2ascii($matchElement);
+	    $icon = sbf("img/16/{$nameIcon}.png",'');
 
         // в зависимост от услугата, правим различни линкове
         switch ($matchElement) {
