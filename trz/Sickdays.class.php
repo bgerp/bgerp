@@ -39,7 +39,7 @@ class trz_Sickdays extends core_Master
      */
     var $loadList = 'plg_RowTools, trz_Wrapper, doc_DocumentPlg,acc_plg_DocumentSummary, 
     				 doc_ActivatePlg, plg_Printing, doc_plg_BusinessDoc2,
-    				 plg_AutoFilter';
+    				 plg_AutoFilter,bgerp_plg_Blank';
     
     
     /**
@@ -247,6 +247,7 @@ class trz_Sickdays extends core_Master
     	$rec = $form->rec;
 
     }
+    
     
 	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {

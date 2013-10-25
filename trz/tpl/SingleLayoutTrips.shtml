@@ -1,6 +1,9 @@
 [#SingleToolbar#]
                  
 	<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 		<div class='header [#STATE_CLASS#]'>
 			<div class='docBgIcon' style='[#iconStyle#]'>|Командировка|* <b>[#ident#]</b> ([#state#])</div>
 		</div>

@@ -39,7 +39,7 @@ class trz_Requests extends core_Master
      */
     var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg';
+    				 plg_Printing, doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     
     
     /**
@@ -206,7 +206,7 @@ class trz_Requests extends core_Master
 	        	$department = $employeeContractDetails->departmentId;
 	        	
 	        	$schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-	        	if($schedule){
+	        	if($schedule == FALSE){
 	        		$days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $rec->leaveFrom, $rec->leaveTo);
 	        	} else {
 	        		$days = cal_Calendar::calcLeaveDays($rec->leaveFrom, $rec->leaveTo);
@@ -340,7 +340,7 @@ class trz_Requests extends core_Master
      */
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
-    	if (strtolower($act) == 'single' && haveRole('trz,ceo')) {
+    	if (strtolower($act) == 'single' && haveRole('trz,ceo') && !Mode::is('printing')) {
     		
     		// Взимаме ид-то на молбата
     		$id = Request::get('id', 'int');
@@ -361,7 +361,10 @@ class trz_Requests extends core_Master
     		$rec->sharedUsers =  keylist::fromArray($sharedUsers);
     		    		
     		self::save($rec, 'sharedUsers');
-
+    		
+            doc_ThreadUsers::removeContainer($rec->containerId);
+            doc_Threads::updateThread($rec->threadId);
+            
     		return  Redirect(array('doc_Containers', 'list', 'threadId'=>$rec->threadId));
     	}
     }
