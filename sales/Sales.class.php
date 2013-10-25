@@ -733,7 +733,7 @@ class sales_Sales extends core_Master
         	unset($row->chargeVat);
         }
         
-        $row->amountToPay = $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
+        $row->amountToPay = $amountType->toVerbal($rec->amountDelivered - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
             $row->chargeVat = '';
