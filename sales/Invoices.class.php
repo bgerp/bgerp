@@ -797,13 +797,20 @@ class sales_Invoices extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	
-    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
-    		
-    		return FALSE;
+    	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	if($res){
+    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
+    			$res = FALSE;
+    		}
     	}
+		
+    	return $res;
     }
     
     
