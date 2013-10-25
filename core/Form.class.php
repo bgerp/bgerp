@@ -649,7 +649,7 @@ class core_Form extends core_FieldSet
         }
         
         if ($idForFocus) {
-          	$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();};)", 'JQRUN');
+          	$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
         }
         
         return $fieldsLayout;
