@@ -662,11 +662,10 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     	
-    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'draft')){
+    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
+    		
     		return FALSE;
     	}
-    	
-        return $firstDoc->instance() instanceof sales_Sales;
     }
         
     
