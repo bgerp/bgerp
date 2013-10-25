@@ -908,20 +908,6 @@ class sales_Sales extends core_Master
     }
     
     
-	/**
-     * Можели фактурата да се добави в нишка
-     */
-    public static function canAddToThread($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
-    	
-    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'draft')){
-    		return FALSE;
-    	}
-    }
-    
-    
     /**
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
