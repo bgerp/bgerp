@@ -87,14 +87,17 @@ class acc_journal_Item
     
     public function force($listId)
     {
-        expect($itemId = acc_Items::force($this->classId, $this->objectId, $listId), "Не може да се форсира перо [{$this->classId}, {$this->objectId}]");
-        
-        if (isset($this->id)) {
-            expect($this->id == $itemId);
+        if($this->classId && $this->objectId){
+        	$itemId = acc_Items::force($this->classId, $this->objectId, $listId);
+        } elseif(isset($this->id)) {
+        	$itemId = $this->id;
         }
         
-        $this->id = $itemId;
+	    if (isset($this->id)) {
+	       expect($this->id == $itemId);
+	    }
         
+        $this->id = $itemId;
         return $this->id;
     }
     

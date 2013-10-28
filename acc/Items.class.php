@@ -570,7 +570,7 @@ class acc_Items extends core_Manager
      */
     protected static function fetchItem($classId, $objectId, $fields = NULL)
     {
-        return static::fetch("#classId = {$classId} AND #objectId = {$objectId}", $fields);
+        return static::fetch("#classId = '{$classId}' AND #objectId = '{$objectId}'", $fields);
     }
     
     
@@ -660,7 +660,7 @@ class acc_Items extends core_Manager
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId
             $rec = new stdClass();
-            expect($register = core_Cls::getInterface('acc_RegisterIntf', $classId));
+            $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
         }
         
