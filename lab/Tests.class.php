@@ -589,12 +589,14 @@ class lab_Tests extends core_Master
         if(!$id) return;
         
         $rec = $this->fetch($id);
+        $title = $this->singleTitle . " " . $rec->title;
         
         $row = new stdClass();
-        $row->title = $rec->title;
+        $row->title = $title;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->authorId = $rec->createdBy;
+        $row->recTitle = $title;
         
         return $row;
     }

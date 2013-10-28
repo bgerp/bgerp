@@ -323,7 +323,7 @@ class trz_Orders extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        //$row->recTitle = $rec->title;
+        $row->recTitle = $rec->title;
         
         return $row;
     }

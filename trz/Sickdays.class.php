@@ -408,7 +408,7 @@ class trz_Sickdays extends core_Master
         //id на създателя
         $row->authorId = $rec->createdBy;
         
-        //$row->recTitle = $rec->title;
+        $row->recTitle = $rec->title;
         
         return $row;
     }

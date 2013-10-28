@@ -214,7 +214,7 @@ class dec_Declarations extends core_Master
     		$query->where("#invoiceId = '{$rec->id}'");
     		
     		while($dRec = $query->fetch()){
-    			$Policy = cls::get($dRec->policyId);
+    			$Policy = cls::get($dRec->classId);
         		$ProductMan = $Policy->getProductMan();
         		$product = $ProductMan::getTitleById($dRec->productId); 
     			$dTpl = $tpl->getBlock("products");
@@ -285,7 +285,8 @@ class dec_Declarations extends core_Master
         
         //id на създателя
         $row->authorId = $rec->createdBy;
-                       
+		$row->recTitle = $row->title;
+        
         return $row;
     }
 }
