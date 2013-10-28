@@ -368,9 +368,25 @@ class type_Richtext extends type_Blob
            $html->placeArray($this->_htmlBoard);
         }
         
+        // Ако инстанция на core_ET
+        if ($html instanceof core_ET) {
+            
+            // Вземаме съдържанието
+            $cHtml = $html->getContent();
+        }
+        
         // Хифенира текста
-        $this->invoke('AfterToHtml', array(&$html));
-
+        $this->invoke('AfterToHtml', array(&$cHtml));
+        
+        // Ако е инстанция на core_ET
+        if ($html instanceof core_ET) {
+            
+            // Променяме съдържанието
+            $html->setContent($cHtml);
+        } else {
+            $html = $cHtml;
+        }
+        
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
