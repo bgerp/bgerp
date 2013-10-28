@@ -205,12 +205,15 @@ class price_ListRules extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $form = $data->form;
-
-        $rec = $form->rec;
+        $form = &$data->form;
+		$rec = &$form->rec;
 
         $type = $rec->type;
 
+    	if(!$rec->id){
+    		$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['packagingId'].value ='';this.form.submit();"));
+    	}
+    	
         $masterRec = price_Lists::fetch($rec->listId);
 		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
 		
@@ -221,7 +224,7 @@ class price_ListRules extends core_Detail
         	$form->fields['productId']->type->options = array('' => '');
         }
         
-    	if($data->masterMvc instanceof cat_Products){
+    	if(Request::get('productId') && $form->cmd != 'refresh'){
 			$form->setReadOnly('productId');
 		}
 		
@@ -257,12 +260,14 @@ class price_ListRules extends core_Detail
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->isSubmitted()) {
-            
-            $rec = $form->rec;
-
+    	$rec = &$form->rec;
+    	if($rec->productId){
+    		$form->setOptions('packagingId', cat_Products::getPacks($rec->productId));
+        }
+    	
+    	if($form->isSubmitted()) {
             $now = dt::verbal2mysql();
-
+            
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
