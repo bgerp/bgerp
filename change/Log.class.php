@@ -162,6 +162,9 @@ class change_Log extends core_Manager
             // Обекта за value, който ще запишем
             $valueObj = (object)array('version' => $oldRec->version, 'subVersion' => $oldRec->subVersion, 'value' => $oldRec->$field, 'createdOn' => $createdOn, 'createdBy' => $createdBy);
             
+            // Обекта, който ще записваме
+            $rec = new stdClass();
+            
             // Вземаме записа
             $sRec = static::getRec($docClassId, $oldRec->id, $field);
             
@@ -177,8 +180,6 @@ class change_Log extends core_Manager
                 $rec->value[] = $valueObj;
             } else {
                 
-                // Обекта, който ще записваме
-                $rec = new stdClass();
                 $rec->docClass = $docClassId;
                 $rec->docId = $oldRec->id;
                 $rec->field = $field;
