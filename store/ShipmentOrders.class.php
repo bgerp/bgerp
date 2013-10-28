@@ -228,7 +228,7 @@ class store_ShipmentOrders extends core_Master
         $query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
     
-        $rec->amountDelivered = 0;
+        $rec->amountDeliveredVat = $rec->amountDelivered = 0;
     
         while ($detailRec = $query->fetch()) {
             $vat = 1;
