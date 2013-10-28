@@ -348,7 +348,7 @@ class acc_Articles extends core_Master
         
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
+        $row->recTitle = $row->title;
         $row->state = $rec->state;
         
         return $row;
