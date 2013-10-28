@@ -910,6 +910,9 @@ a {
     &:visited {
       color: #6600cc;
     }
+    &:hover{
+    	text-decoration:underline;
+    }
   }
 }
 
