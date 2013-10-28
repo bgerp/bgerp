@@ -74,13 +74,13 @@ class backup_Setup extends core_ProtoSetup
             'backup_Local',
     
             // Архивиране по ftp;
-            'backup_Ftp',
+            //'backup_Ftp',
     
             // Архивиране по rsync
-            'backup_Rsync',
+            //'backup_Rsync',
     
     		// Архивиране на Amazon
-            'backup_Amazon',
+            //'backup_Amazon',
         );
 
     /**
