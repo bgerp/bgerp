@@ -214,8 +214,7 @@ class dec_Declarations extends core_Master
     		$query->where("#invoiceId = '{$rec->id}'");
     		
     		while($dRec = $query->fetch()){
-    			$Policy = cls::get($dRec->classId);
-        		$ProductMan = $Policy->getProductMan();
+    			$ProductMan = cls::get($dRec->classId);
         		$product = $ProductMan::getTitleById($dRec->productId); 
     			$dTpl = $tpl->getBlock("products");
     			$dTpl->replace($product, 'products');
