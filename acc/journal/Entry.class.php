@@ -121,7 +121,7 @@ class acc_journal_Entry
         if ($this->credit->account->isDimensional()) {
             // Количеството по кредита е задължително за сметки с размерна аналитичност
             acc_journal_Exception::expect(
-                isset($this->debit->quantity), 
+                isset($this->credit->quantity), 
                 'Липсва количество при кредитиране на сметка с размерна аналитичност'
             );
         }
