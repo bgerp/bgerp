@@ -95,7 +95,6 @@ class pos_FavouritesCategories extends core_Manager {
     {
     	$categories = array();
     	$varchar = cls::get('type_Varchar');
-    	$categories[0] = (object)array('id'=>'', 'name' => tr('Всички'));
     	$query = static::getQuery();
     	while($rec = $query->fetch()) {
     		$rec->name = $varchar->toVerbal($rec->name);
@@ -103,5 +102,16 @@ class pos_FavouritesCategories extends core_Manager {
     	}
     	
     	return $categories;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	if(!$mvc->count()){
+    		$mvc->save((object)array('name' => 'Най-продавани'));
+    	} 
     }
 }

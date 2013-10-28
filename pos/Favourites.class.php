@@ -82,8 +82,8 @@ class pos_Favourites extends core_Manager {
     {
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory');
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
-    	$this->FLD('catId', 'key(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
-    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name)', 'caption=Точка на Продажба');
+    	$this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
+    	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
     	$this->FLD('image', 'fileman_FileType(bucket=pos_ProductsImages)', 'caption=Картинка');
     	
     	$this->setDbUnique('productId, packagingId');
@@ -206,6 +206,15 @@ class pos_Favourites extends core_Manager {
     		($productRec->code) ? $code = $productRec->code : $code = $productRec->eanCode;
     	}
     	$arr['code'] = $code;
+    	
+    	if(empty($rec->image)){
+    		
+    		// Ако няма иконка, я взима от продукта (ако има)
+    		if(!$rec->image = $info->productRec->photo){
+    			$rec->image = cat_products_Files::getImgFh($rec->productId);
+    		}
+    	}
+    	
     	$arr['image'] = $rec->image;
     		
     	return (object)$arr;
@@ -263,10 +272,11 @@ class pos_Favourites extends core_Manager {
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
         $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
-    		if($row->image) {
+    		if($row->image){
     			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
     			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
     		}
+    			
     		$rowTpl = clone($blockTpl);
     		$rowTpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrency');
     		$rowTpl->placeObject($row);

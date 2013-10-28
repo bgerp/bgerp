@@ -9,12 +9,6 @@ function posActions() {
 	
 	$('input[name=ean]').focus();
 	
-	$('input[name=quantity]').live("keyup",function(e) {
-			if(e.keyCode != 173){
-				$('input[name=ean]').focus();
-			}
-		});
-	
 	$('#incBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
 	});
@@ -56,10 +50,12 @@ function posActions() {
 		$(".active").not(this).removeClass('active');
 		
 		if(value) {
-			$("div.pos-product[data-cat != "+value+"]").each(function() {
+			var nValue = "|" + value + "|";
+			
+			$("div.pos-product[data-cat !*= '"+nValue+"']").each(function() {
 				$(this).hide();
 			});
-			$("div.pos-product[data-cat = "+value+"]").each(function() {
+			$("div.pos-product[data-cat *= '"+nValue+"']").each(function() {
 				$(this).show();
 			});
 		} else {
