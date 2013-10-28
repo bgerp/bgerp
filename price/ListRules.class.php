@@ -101,7 +101,7 @@ class price_ListRules extends core_Detail
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис,input=hidden,silent');
         $this->FLD('type', 'enum(value,discount,groupDiscount)', 'caption=Тип,input=hidden,silent');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,mandatory');
@@ -212,8 +212,7 @@ class price_ListRules extends core_Detail
         $type = $rec->type;
 
         $masterRec = price_Lists::fetch($rec->listId);
-
-        $masterTitle = price_Lists::getVerbal($masterRec, 'title');
+		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
@@ -222,7 +221,10 @@ class price_ListRules extends core_Detail
         	$form->fields['productId']->type->options = array('' => '');
         }
         
-        
+    	if($data->masterMvc instanceof cat_Products){
+			$form->setReadOnly('productId');
+		}
+		
         switch($type) {
             case 'groupDiscount' :
                 $form->setField('productId,packagingId,price', 'input=none');
@@ -487,4 +489,52 @@ class price_ListRules extends core_Detail
         
         return $res;
     }
+
+    
+    /**
+     * Подготовка на историята на себестойностите на даден продукт
+     */
+	public function preparePriceList($data)
+	{
+		$data->TabCaption = 'Себестойност';
+		$pRec = $data->masterData->rec;
+		$listId = static::PRICE_LIST_COST;
+		
+		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
+		if(price_GroupOfProducts::getGroup($pRec->id, dt::now())){
+			if(cat_Products::haveRightFor('edit', $pRec)){
+				$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $listId, 'productId' => $pRec->id);
+			}
+		}
+		
+		$query = static::getQuery();
+		$query->where("#listId = {$listId}");
+		$query->where("#productId = {$pRec->id}");
+		$query->orderBy("validFrom", "DESC");
+		while($rec = $query->fetch()){
+			$row = price_ListRules::recToVerbal($rec);
+			$data->priceLists->rows[$rec->id] = $row;
+		}
+	}
+	
+	
+	/**
+	 *  Рендира на историята на себестойностите на даден продукт
+	 */
+	public function renderPriceList($data)
+	{
+		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+		$table = cls::get('core_TableView', array('mvc' => $this));
+		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=В сила->От,validUntil=В сила->До");
+		
+		$title = 'Себестойности';
+		if($data->priceLists->addUrl){
+			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->priceLists->addUrl);
+		}
+		
+        $wrapTpl->append($title, 'TITLE');
+        $wrapTpl->append($tpl, 'CONTENT');
+		
+		return $wrapTpl;
+	}
 }
