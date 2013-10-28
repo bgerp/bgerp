@@ -50,7 +50,7 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * 
+     * Полета за лист изгледа
      */
     var $listFields = "id,name,shortName";
     
@@ -71,8 +71,9 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * @param double amount
-     * @param int $unitId
+     * Конвертира стойност от една мярка към основната и
+     * @param double amount - стойност
+     * @param int $unitId - ид на мярката
      */
     function convertToBaseUnit($amount, $unitId)
     {
@@ -91,8 +92,9 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * @param double amount
-     * @param int $unitId
+     * Конвертира стойност от основната мярка на дадена мярка
+     * @param double amount - стойност
+     * @param int $unitId - ид на мярката
      */
     function convertFromBaseUnit($amount, $unitId)
     {
@@ -126,7 +128,7 @@ class cat_UoM extends core_Manager
     	$query->where("#baseUnitId = {$baseId}");
     	$query->orWhere("#id = {$baseId}");
     	
-    	$options = array();
+    	$options = array("" => "");
     	while($op = $query->fetch()){
     		$options[$op->id] = $op->name;	
     	}
