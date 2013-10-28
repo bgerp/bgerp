@@ -52,6 +52,13 @@ class fileman_Files2 extends core_Master
             $fh = static::createFile($name, $bucketId, $dataId);    
         }
         
+        // Ако има манипулатор
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($fh, 'upload');
+        }
+        
         return $fh;
     }
     
@@ -79,6 +86,13 @@ class fileman_Files2 extends core_Master
             
             // Създаваме запис за файла
             $fh = static::createFile($name, $bucketId, $dataId);    
+        }
+        
+        // Ако има манипулатор 
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($fh, 'upload');
         }
         
         return $fh;
@@ -195,6 +209,13 @@ class fileman_Files2 extends core_Master
         // Записваме информация за екстрактването
         fileman_Files::save($rec, 'extractedOn');
         
+        // Ако има запис
+        if ($rec) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($rec, 'extract');
+        }
+        
         return $copyPath;
     }
 
@@ -208,6 +229,13 @@ class fileman_Files2 extends core_Master
      */
     public static function extractStr($fh)
     {
+        // Ако има манипулатор
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($fh, 'extract');
+        }
+        
         // Екстрактваме файла във временена директория
         $tempFile = static::extract($fh);
         

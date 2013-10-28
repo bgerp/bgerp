@@ -167,6 +167,9 @@ class fileman_Files extends core_Master
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         
+        // Обновяваме лога за използване на файла
+        fileman_Log::updateLogInfo($fRec, 'preview');
+        
         // Задаваме id' то на файла да е самото id, а не манупулатора на файла
         Request::push(array('id' => $fRec->id));
         
@@ -217,14 +220,21 @@ class fileman_Files extends core_Master
             
             // Проверяваме името на файла
             $fh = $this->checkFileName($dataId, $bucketId, $fname);
-            
-            // Ако има съвпадения с друг файл в системата връщаме манипулатора му
-            if ($fh) return $fh;
         }        
         
-        $fh = $this->createDraftFile($fname, $bucketId);
+        // Ако няма манипулатор
+        if (!$fh) {
+            $fh = $this->createDraftFile($fname, $bucketId);
         
-        $this->setContent($fh, $path);
+            $this->setContent($fh, $path);
+        }
+        
+        // Ако има манипулатор
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла 
+            fileman_Log::updateLogInfo($fh, 'upload');
+        }
         
         return $fh;
     }
@@ -247,14 +257,21 @@ class fileman_Files extends core_Master
 
             // Проверяваме името на файла
             $fh = $this->checkFileName($dataId, $bucketId, $fname);
-            
-            // Ако има съвпадения с друг файл в системата връщаме манипулатора му
-            if ($fh) return $fh;
         }        
-
-        $fh = $me->createDraftFile($fname, $bucketId);
         
-        $me->setContentFromString($fh, $string);
+        // Ако няма манипулатор
+        if (!$fh) {
+            $fh = $me->createDraftFile($fname, $bucketId);
+        
+            $me->setContentFromString($fh, $string);
+        }
+        
+        // Ако има манипулатор на файла
+        if ($fh) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($fh, 'upload');
+        }
         
         return $fh;
     }
@@ -394,6 +411,13 @@ class fileman_Files extends core_Master
         $rec->state = 'active';
         
         $this->save($rec);
+        
+        // Ако има запис
+        if ($rec) {
+            
+            // Обновяваме лога за използване на файла
+            fileman_Log::updateLogInfo($rec, 'upload');
+        }
         
         // Увеличаваме с 1 броя на линковете към новите данни
         $this->Data->increaseLinks($newDataId);

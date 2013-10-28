@@ -175,7 +175,10 @@ class fileman_Setup extends core_ProtoSetup
 		    'fileman_Indexes',
     
             // Установяваме модела за хранилища
-            'fileman_Repositories'
+            'fileman_Repositories',
+    
+            // установяваме модела за последни файлове
+            'fileman_Log',
         );
     /**
      * Инсталиране на пакета
