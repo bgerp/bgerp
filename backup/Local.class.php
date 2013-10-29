@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Път до масива за съхранение на файлове
+ */
+defIfNot('STORAGE_FOLDER',  '/storage');
 
 
 /**
@@ -12,7 +16,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Локален файлов обмен
+ * @title     Локален файлов архив
  */
 class backup_Local extends core_Master
 {
@@ -31,24 +35,35 @@ class backup_Local extends core_Master
     
     
     /**
-     * Връща файл
+     * Копира файл съхраняван в сторидж на локалната файлова система в 
+     * посоченото в $fileName място
      *
      * Част от интерфейса: backup_StorageIntf
+     * 
+     * @param string $fileName
+     * 
+     * @return boolean
      */
     static function getFile($fileName)
     {
-    
+        $result = @copy(STORAGE_FOLDER . '/' . $fileName, $fileName);
+        
         return $result;
     }    
     
     /**
-     * Записва файл
+     * Записва файл в локалния архив
      *
      * Част от интерфейса: backup_StorageIntf
+     *
+     * @param string $fileName
+     * 
+     * @return boolean
      */
     static function putFile($fileName)
     {
-    
+        $result = @copy($fileName, STORAGE_FOLDER . '/' . $fileName);
+        
         return $result;
     }
     
