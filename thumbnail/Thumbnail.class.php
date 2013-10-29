@@ -173,21 +173,29 @@ class thumbnail_Thumbnail extends core_Manager {
         $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
        
-        if($wRatio == 1 && $hRatio == 1) { 
+        if($wRatio == 1 && $hRatio == 1) {
+
         	return 'TheSame';
         }
     	// Ако е FALSE взимаме по малкото отношение да стане с размери максимум
     	// подадените, иначе взимаме по-голямото отношение и изображението става
     	// до минимум подадените размери
        
-        if($size['max'] !== TRUE)
-        {$ratio = min($wRatio, $hRatio, 1);}
-	    else 
-	    {$ratio = max($wRatio, $hRatio, 1);}
+        if($size['max'] !== TRUE) {
+            $ratio = min($wRatio, $hRatio, 1);
+        } else {
+            $ratio = max($wRatio, $hRatio, 1);
+        }
         
         $tHeight = ceil($ratio * $height);
         $tWidth = ceil($ratio * $width);
         
+        // Ако изображението е PNG, ресайзваме го и запазваме прозрачността
+        if($type & IMG_PNG) {
+
+            return self::resizePng($sourceImage, $tWidth, $tHeight);
+        }
+
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
         
         // Copy resampled makes a smooth thumbnail
@@ -195,6 +203,22 @@ class thumbnail_Thumbnail extends core_Manager {
         imagedestroy($sourceImage);
         
         return $thumb;
+    }
+
+    static function resizePng($im, $dst_width, $dst_height)
+    {
+        $width = imagesx($im);
+        $height = imagesy($im);
+
+        $newImg = imagecreatetruecolor($dst_width, $dst_height);
+
+        imagealphablending($newImg, false);
+        imagesavealpha($newImg, true);
+        $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+        imagefilledrectangle($newImg, 0, 0, $width, $height, $transparent);
+        imagecopyresampled($newImg, $im, 0, 0, 0, 0, $dst_width, $dst_height, $width, $height);
+
+        return $newImg;
     }
     
     
@@ -314,7 +338,9 @@ class thumbnail_Thumbnail extends core_Manager {
         // 4 = Up to 25 times faster.  Almost identical to imagecopyresampled for most images.
         // 5 = No speedup. Just uses imagecopyresampled, no advantage over imagecopyresampled.
         
-        if (empty($src_image) || empty($dst_image) || $quality <= 0) { return false;
+        if (empty($src_image) || empty($dst_image) || $quality <= 0) {
+
+            return FALSE;
         }
         
         if ($quality < 5 && (($dst_w * $quality) < $src_w || ($dst_h * $quality) < $src_h)) {
@@ -322,7 +348,9 @@ class thumbnail_Thumbnail extends core_Manager {
             imagecopyresized ($temp, $src_image, 0, 0, $src_x, $src_y, $dst_w * $quality + 1, $dst_h * $quality + 1, $src_w, $src_h);
             imagecopyresampled ($dst_image, $temp, $dst_x, $dst_y, 0, 0, $dst_w, $dst_h, $dst_w * $quality, $dst_h * $quality);
             imagedestroy ($temp);
-        } else imagecopyresampled ($dst_image, $src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+        } else {
+            imagecopyresampled ($dst_image, $src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+        }
         
         return true;
     }
