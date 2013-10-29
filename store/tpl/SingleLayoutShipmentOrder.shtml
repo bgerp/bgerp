@@ -100,11 +100,11 @@
                         <table>
                             <tbody>
                             <tr>
-                                <td style="text-align: right;">|Обща сума|*: <b>[#amountDelivered#]</b></td>
+                                <td style="text-align: right;">|Данъчна основа|*: <b>[#amountDelivered#]</b></td>
                             </tr>
                             <!--ET_BEGIN amountDeliveredVat-->
                             <tr>
-                                <td style="text-align: right;">|Общо с ДДС|*: <b>[#amountDeliveredVat#]</b></td>
+                                <td style="text-align: right;">|Общо|*[#VAT#]: <b>[#amountDeliveredVat#]</b></td>
                             </tr>
                             <!--ET_END amountDeliveredVat-->
                             <tr>

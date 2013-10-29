@@ -180,8 +180,8 @@ class store_ShipmentOrders extends core_Master
         /*
          * Стойности
          */
-        $this->FLD('amountDelivered', 'float(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $this->FLD('amountDeliveredVat', 'float(decimals=2)', 'input=none,summary=amount');
+        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'input=none,summary=amount');
         
         /*
          * Контрагент
@@ -345,8 +345,8 @@ class store_ShipmentOrders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-    	if($data->rec->chargeVat != 'yes' && $data->rec->chargeVat != 'no'){
-    		unset($data->row->amountDeliveredVat);
+    	if($data->rec->chargeVat == 'yes' || $data->rec->chargeVat == 'no'){
+    		$data->row->VAT = " " . tr('с ДДС');
     	}
     }
     

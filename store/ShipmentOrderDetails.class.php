@@ -132,19 +132,19 @@ class store_ShipmentOrderDetails extends core_Detail
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
-        $this->FLD('quantityInPack', 'float', 'input=none,column=none');
+        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'float', 'caption=Цена,input=none');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         
-        $this->FNC('amount', 'float(decimals=2)', 'caption=Сума,input=none');
+        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $this->FNC('packQuantity', 'float', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма 
         // packagingId)
-        $this->FNC('packPrice', 'float', 'caption=Цена,input=none');
+        $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=none');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
@@ -307,9 +307,13 @@ class store_ShipmentOrderDetails extends core_Detail
     }
 
 
+    /**
+     * След обработка на записите от базата данни
+     */
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
+    	$showVat = $data->masterData->rec->chargeVat == 'yes' || $data->masterData->rec->chargeVat == 'no';
     	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
@@ -323,9 +327,15 @@ class store_ShipmentOrderDetails extends core_Detail
         $haveDiscount = FALSE;
     
         if(count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
-    
+    			if($showVat){
+    				$ProductManager = cls::get($rec->classId);
+    				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
+    				$row->price = $mvc->fields['amount']->type->toVerbal($price);
+    				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);
+    			}
+                
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
     
                 if (empty($rec->packagingId)) {
@@ -462,8 +472,8 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$ProductManager = cls::get($rec->classId);
-        
         $row->productId = $ProductManager->getTitleById($rec->productId);
-        
+
+        //$ProductManager = cls::get($detailRec->classId);
     }
 }
