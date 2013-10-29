@@ -504,6 +504,7 @@ class price_ListRules extends core_Detail
 		$data->TabCaption = 'Себестойност';
 		$pRec = $data->masterData->rec;
 		$listId = static::PRICE_LIST_COST;
+		$data->priceLists = new stdClass();
 		
 		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
 		if(price_GroupOfProducts::getGroup($pRec->id, dt::now())){
