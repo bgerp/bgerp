@@ -139,6 +139,7 @@ class currency_Currencies extends core_Master {
         $this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('name');
+        $this->setDbUnique('code');
     }
 
 
