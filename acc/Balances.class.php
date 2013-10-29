@@ -149,17 +149,17 @@ class acc_Balances extends core_Master
         if ($mvc->accountRec) {
             $data->row->accountId = acc_Accounts::getRecTitle($mvc->accountRec);
         } else {
-            $data->row->accountId = 'Обобщен';
+            $data->row->accountId = 'Обобщена';
         }
 
-        $data->title = new ET('<span class="quiet">Баланс</span> ' . $data->row->periodId);
+        $data->title = new ET('<span class="quiet">Оборотна ведомост</span> ' . $data->row->periodId);
     }
     
     
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (!empty($mvc->accountRec)) {
-            $data->toolbar->addBtn('Обобщен ' . $data->row->periodId, array($mvc, 'single', $data->rec->id));
+            $data->toolbar->addBtn('Обобщена ' . $data->row->periodId, array($mvc, 'single', $data->rec->id));
         }
     }
     
