@@ -1,14 +1,37 @@
 .tooltip-button{
 	margin-left:5px;
 	position:relative;
-	top:3px;
-	height:20px;
+	top:2px;
+	height:15px;
+	width:15px;
 	display:inline-block;
-	background-position:center center;
-	background-repeat:no-repeat;
 	cursor:pointer;
 }
 
+.tooltip-button img{
+	width:15px;
+	height:15px;
+}
+
+.narrow .tooltip-button{
+	margin-right:3px;
+	top:-1px;
+}
+
+.narrow .tooltip-button img{
+	height:18px;
+	width:18px;
+}
+
+.tab-row > .tooltip-button{
+	margin-left: 20px;
+	top: 11px;
+}
+
+.tab-row > .tooltip-button img{
+	height:20px;
+	width:20px;
+}
 .tooltip-text{
     color: #fff;
     position: relative;
@@ -17,15 +40,15 @@
 	background: #FFFFCD;
 	color: #333;
 	display:none;
-	max-width:650px;
-	margin-bottom:10px;
+	max-width:700px;
+	margin-bottom:8px;
 	font-family: Arial, sans-serif;
 	font-size: 16px;
 	line-height: 18px;
 	padding: 8px 10px;
-	top:-4px;
+	top:-2px;
 }
- 
+
 .tooltip-text a{
 	color:#0000aa;
 }
@@ -38,6 +61,7 @@
 	font-size: 14px;
 	line-height: 16px;
 	padding: 6px 6px;
+	top:0;
 }
 
 .tooltip-arrow {
