@@ -40,13 +40,13 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Контролер на връзката от менюто core_Packs
      */
-    var $startCtr = 'backup';
+    //var $startCtr = 'starter';
     
     
     /**
      * Екшън на връзката от менюто core_Packs
      */
-    var $startAct = 'default';
+    //var $startAct = 'default';
     
     
     /**
@@ -62,7 +62,7 @@ class backup_Setup extends core_ProtoSetup
                
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
            
-       'STORAGE_TYPE'   => array ('enum("local", "ftp", "rsync", "amazon")', 'caption=Тип на мястото за архивиране'), 
+       'STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
     );
     
     
@@ -90,8 +90,25 @@ class backup_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
-        // Инсталираме
-        
+       // Инсталираме
+    	//Залагаме в cron
+    	$rec = new stdClass();
+    	$rec->systemId = 'BackupStart';
+    	$rec->description = 'Архивиране данни, файлове, конфигурация';
+    	$rec->controller = 'backup_Start';
+    	$rec->action = 'default';
+    	$rec->period = 60;
+    	$rec->offset = 17;
+    	$rec->delay = 0;
+    	$rec->timeLimit = 50;
+    	
+    	$Cron = cls::get('core_Cron');
+    	
+    	if ($Cron->addOnce($rec)) {
+    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп-а.</font></li>";
+    	} else {
+    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп-а.</li>";
+    	}
         
         return $html;
     }
