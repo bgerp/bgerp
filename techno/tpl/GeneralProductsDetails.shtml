@@ -1,10 +1,13 @@
 <!--ET_BEGIN LONG-->
 <li>
 <div class='scrolling-holder'>
+		<!--ET_BEGIN TITLE-->
+		<div class = 'general-products-detail-header' style='margin-top:20px'>[#TITLE#]</div>
+		<!--ET_END TITLE-->
+		
 		<!--ET_BEGIN COMPONENTS-->
-		<div class = 'general-products-detail-header' style='margin-top:20px'>|Компоненти|*</div>
-		<table class = 'styled-table' id='components-table'>
 		[#COMPONENTS#]
+		<table class = 'styled-table' id='components-table'>
 		<tr>
 			<th class='component-header' width=1%>№</th>
 			<th class='component-header'>|Компонент|*</th>

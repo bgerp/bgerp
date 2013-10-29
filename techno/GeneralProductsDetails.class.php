@@ -229,6 +229,10 @@ class techno_GeneralProductsDetails extends core_Detail {
     {
     	$cTpl = getTplFromFile('techno/tpl/GeneralProductsDetails.shtml');
     	$tpl = $cTpl->getBlock('LONG');
+    	if($data->masterData->rec->state == 'draft' || isset($data->rows)){
+    		$tpl->replace(tr('Компоненти'), 'TITLE');
+    	}
+    	
     	if($data->rows){
     		foreach ($data->rows as $row){
     			$cloneTpl = clone $tpl->getBlock('COMPONENT');
@@ -240,8 +244,6 @@ class techno_GeneralProductsDetails extends core_Detail {
     		if($data->total && !isset($data->noTotal)){
 	    		$tpl->placeObject($data->total);
 	    	}
-    	} elseif($data->masterData->rec->state != 'draft') {
-    		//$tpl->replace("");
     	}
     	
     	$tpl->replace($this->renderListToolbar($data), 'ListToolbar');
