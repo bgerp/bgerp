@@ -4,29 +4,11 @@
 		[#blank#]
 	<!--ET_END blank-->
 	<div class='header [#STATE_CLASS#]'>
-			<div class='docBgIcon' style='[#iconStyle#]'>[#title#] <b>[#ident#]</b> ([#state#])</div>
+			<div class='docBgIcon' style='[#iconStyle#]'>[#typeId#] <b>[#ident#]</b> ([#state#])</div>
 	</div>
 	<!--ET_END header-->
-	<h3 class="centered"><b>[#title#]</b></h3>
-	 <p class="centered">№ [#id#] / [#createdDate#]|г|*.</p>	 
-	 <p >[#header#]</p>
-	 	
-	 <!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	 <p class="indent">[#footer#]</p>
-	 <br>
-    <table width=100%>
-	<tr>
-	<td>Декларатор: .........................................................</td>
-	<td> </td>
-	</tr>
-	<tr>
-	<td style='padding-left:85px'>/име и фамилия, длъжност и подпис/ </td>
-	<td></td>
-	</tr>
-	</table>
-
+	<h3 class="centered"><b>[#typeId#]</b></h3>
+	 <p class="centered">№ [#id#] / [#date#]|г|*.</p>	 
+	 <p >[#content#]</p>
+	
 </div>

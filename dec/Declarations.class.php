@@ -1,18 +1,6 @@
 <?php 
 
 /**
- * Шаблон с примерен текст на Декларация за съответствие
- */
-defIfNot(DEC_DECLARATION_HEADER, 'dec/tpl/DeclarationHeader.shtml');
-
-
-/**
- * Шаблон с примерен текст на подпис към Декларация за съответствие
- */
-defIfNot(DEC_DECLARATION_FOOTER, 'dec/tpl/DeclarationFooter.shtml');
-
-
-/**
  * Декларации за съответствия
  *
  *
@@ -25,6 +13,11 @@ defIfNot(DEC_DECLARATION_FOOTER, 'dec/tpl/DeclarationFooter.shtml');
  */
 class dec_Declarations extends core_Master
 {
+    
+    /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    var $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -48,7 +41,8 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_DocumentIntf, doc_DocumentPlg, sales_Wrapper, dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools';
+    var $loadList = 'plg_SaveAndNew, sales_Wrapper, bgerp_plg_Blank,
+    				 dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools, doc_DocumentIntf, doc_DocumentPlg';
     
     
     /**
@@ -84,7 +78,7 @@ class dec_Declarations extends core_Master
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    var $listFields = 'id, title, doc, createdOn, createdBy';
+    var $listFields = 'id, typeId, doc, createdOn, createdBy';
     
     
     /**
@@ -108,7 +102,7 @@ class dec_Declarations extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    var $rowToolsSingleField = 'typeId';
 
     
     /**
@@ -122,21 +116,33 @@ class dec_Declarations extends core_Master
      */ 
    	var $newBtnGroup = "3.8|Търговия";
     
+   	
+    /**
+     * Работен кеш
+     */
+    protected static $cache;
+    
     
     /**
      * Описание на модела
      */
     function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
+    	$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+    	    	
 		$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
-		$this->FLD('header', 'richtext', 'caption=Текст на декларацията->Текст');
-		$this->FLD('footer', 'richtext', 'caption=Подпис на декларацията->Текст');
-
+		
+		$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Декларатор');
+		
+		$this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Произведени в");
+		
+		$this->FLD('materialId', 'keylist(mvc=cat_Products, select=name, translate)', 'caption=Материали,maxColumns=2');
+		
+		$this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
     }
 
     
-    /**
+     /**
      * След потготовка на формата за добавяне / редактиране.
      * 
      * @param core_Mvc $mvc
@@ -144,28 +150,39 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	// Вземаме съдържанието на шаблона,
-    	// който е примерен текст на декларацията
-    	$header = getFileContent(DEC_DECLARATION_HEADER);
-    	$footer = getFileContent(DEC_DECLARATION_FOOTER);
-
-    	// Зареждаме ги във формата
-    	$data->form->setDefault('title', "Декларация за съответствие");
-    	$data->form->setDefault('header', $header);
-    	$data->form->setDefault('footer', $footer);
     	
+        $data->form->setSuggestions('materialId', cat_Products::getByGroup('materials'));
+        
     	// Записваме оригиналното ид, ако имаме такова
     	if($data->form->rec->originId){
     		$data->form->setDefault('doc', $data->form->rec->originId);
-    	}    	
+    	}
+
     }
     
     
     /**
-     * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)  и данните от фактурата
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    public function on_AfterRenderSingle($mvc, core_ET $tpl, $data)
+    function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $row->doc = doc_Containers::getLinkForSingle($rec->doc);
+    }
+    
+    
+    /**
+     * Подготвя иконата за единичния изглед
+     */
+    static function on_AfterPrepareSingle($mvc, &$tpl, &$data)
+    {
+    
+    	$row = $data->row;
+        
+        $rec = $data->rec;
+       
+        // Зареждаме бланката в шаблона на документа
+        $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
+        
     	// Зареждаме данните за собствената фирма
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
@@ -173,86 +190,121 @@ class dec_Declarations extends core_Master
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
             $address .= '&nbsp;' . $ownCompanyData->address;
-        }  
-        $tpl->replace($ownCompanyData->company, 'MyCompany');
-        $tpl->replace($ownCompanyData->country, 'MyCountry');
-        $tpl->replace($address, 'MyAddress');
+        } 
+        $row->MyCompany = $ownCompanyData->company;
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $address;
+
         
         // Ват номера й
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
-    		$tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
+        	$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+
     	} 
-    	$tpl->replace($uic, 'uicId');
+    	$row->uicId = $uic;
     	
+    	// информация за управителя/декларатора
+    	$managerData = crm_Persons::fetch($rec->managerId);
+    	$row->manager = $managerData->name;
+    	$row->managerEGN = $managerData->egn;
+
+    	// информация за локацията/ мястото на производство
+    	$locationData = crm_Locations::fetch($rec->locationId);
+    	$row->place = $locationData->title;
+
+    	if($rec->date == NULL){
+    		$row->date = $rec->createdOn;
+    	}
+    	
+    	if($data->rec->materialId){
+    		$materials = type_Keylist::toArray($data->rec->materialId);
+    		$row->material = "<ol>";
+    		
+    		foreach($materials as $materialId){
+    			$material = cat_Products::fetchField($materialId, 'name');
+        		$row->material .= "<li>$material</li>";
+			}
+        	
+			$row->material .= "</ol>";
+    	}
+    	
+    	// ако декларацията е към документ
     	if($data->rec->originId){
-			// Ако декларацията е по  документ фактура намираме кой е той
+			// и е по  документ фактура намираме кой е той
     		$doc = doc_Containers::getDocument($data->rec->originId);
     		$class = $doc->className;
     		$dId = $doc->that;
     		$rec = $class::fetch($dId);
+    		
+    		// съдържа обобщена информация за сделките в нишката
+    		$deal = static::getDealInfo($data->rec->threadId);
     		
     		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
 	            $addressContragent .= '&nbsp;' . $rec->contragentAddress;
 	        }  
-	        $tpl->replace($rec->contragentName, 'contragentCompany');
-	        $tpl->replace(drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg'), 'contragentCountry');
-	        $tpl->replace($addressContragent, 'contragentAddress');
+	        $row->contragentCompany = $rec->contragentName;
+	        $row->contragentCountry = drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg');
+	        $row->contragentAddress = $addressContragent;
 	        
 	        $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
 	        if($uic != $rec->contragentVatNo){
-	    		$tpl->replace($rec->contragentVatNo, 'contragentCompanyVatNo');
+	        	$row->contragentCompanyVatNo = $rec->contragentVatNo;
 	    	} 
-    		$tpl->replace($uicContragent, 'contragentUicId');
+	    	$row->contragentUicId = $uicContragent;
     		
-    		$invoiceNo = str_pad($rec->id, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
-    		$tpl->replace($invoiceNo, 'invoiceNo');
-    		
-    		$query = sales_InvoiceDetails::getQuery();
-    		$query->where("#invoiceId = '{$rec->id}'");
-    		
-    		while($dRec = $query->fetch()){
-    			$ProductMan = cls::get($dRec->classId);
-        		$product = $ProductMan::getTitleById($dRec->productId); 
-    			$dTpl = $tpl->getBlock("products");
-    			$dTpl->replace($product, 'products');
-        		$dTpl->append2master();
+       		$invoiceNo = str_pad($rec->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
+       		$row->invoiceNo = $invoiceNo;
+           
+       		// продуктите
+    		foreach($deal->invoiced->products as $iProduct){
+    			$ProductMan = cls::get($iProduct->classId);
+        		
+        		$products[] = $ProductMan::getTitleById($iProduct->productId);
+
     		}
+    		
+    		$row->products = "<ol>";
+    		
+    		foreach($products as $product){
+        		$row->products .= "<li>$product</li>";
+			}
+        	
+			$row->products .= "</ol>";
     	}
-    	
-    }    
-    
+    }
+
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+	 * Рендираме обобщаващата информация на отчетите
+	 */
+	static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-    	// Правим линк към единичния изглед на оригиналния документ
-    	$row->doc = doc_Containers::getLinkForSingle($rec->doc);
-    	$row->header = new ET(tr('|*' . $rec->header));
-    	$row->footer = new ET(tr('|*' . $rec->footer));
+    	$tpl->removePlaces();
     }
+
     
+    static function act_Test()
+    {
+    	$id = 2;
+    	//bp(Mode::is('Printing'));
+    }
+
     
     /**
      * След проверка на ролите
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	switch ($action) {
+    	switch ($action) { 
     		
             case 'activate':
                 if (empty($rec->id)) {
                     // не се допуска активиране на незаписани декларации
                     $requiredRoles = 'no_one';
-                } elseif (dec_DeclarationDetails::count("#declarationId = {$rec->id}") == 0) {
+                } elseif (dec_DeclarationDetails::count("#declarationId = {$rec->id}") == 0) { 
                     // Не се допуска активирането на празни декларации без детайли
                     $requiredRoles = 'no_one';
                 }
@@ -260,32 +312,127 @@ class dec_Declarations extends core_Master
     	}
     }
     
+
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
+    
+    
+    /**
+     * Връща заглавието и мярката на перото за продукта
+     *
+     * Част от интерфейса: intf_Register
+     */
+    function getItemRec($objectId)
+    {
+        $result = NULL;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
+                'num' => $rec->id,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
+    }
+
+	
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+        
     
 	/**
-     * Интерфейсен метод на doc_DocumentIntf
+     * Имат ли обектите на регистъра размерност?
      *
-     * @param int $id
-     * @return stdClass $row
+     * @return boolean
+     */
+    static function isDimensional()
+    {
+        return false;
+    }
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */
+    
+    
+    /****************************************************************************************
+     *                                                                                      *
+     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
+     *                                                                                      *
+     ****************************************************************************************/
+   
+    
+    /**
+     * Интерфейсен метод на doc_DocumentInterface
      */
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-       
-        //Заглавие
-        $row->title = "Декларация за съответствие №{$id}";
-        
-        //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        //Състояние
-        $row->state = $rec->state;
-        
-        //id на създателя
+        $row->title = $this->getVerbal($rec, 'typeId');
         $row->authorId = $rec->createdBy;
-		$row->recTitle = $row->title;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+        $row->recTitle = $row->title;
         
         return $row;
     }
+    
+    
+    /**
+     * Връща информацията 'bgerp_DealAggregatorIntf' от първия документ
+     * в нишката ако го поддържа
+     * @param mixed  $threadId - ид на нишката или core_ObjectReference
+     * 							 към първия документ в нишката
+     * @return stdClass - бизнес информацията от документа
+     */
+    public static function getDealInfo($threadId)
+    {
+    	$firstDoc = (is_numeric($threadId)) ? doc_Threads::getFirstDocument($threadId) : $threadId;
+    	
+    	expect($firstDoc instanceof core_ObjectReference, $firstDoc);
+    	
+    	if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+	    	if(empty(static::$cache)){
+	    		
+	    		// Запис във временния кеш
+	    		expect(static::$cache = $firstDoc->getAggregateDealInfo());
+	    	}
+	    	
+	    	return static::$cache;
+    	}
+    	
+    	return FALSE;
+    }
+
 }

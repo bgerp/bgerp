@@ -1,0 +1,56 @@
+<br><p class='indent'>Долуподписаният, производител/доставчик: <br>[#MyCompany#], с адрес [#MyCountry#], гр. [#MyAddress#], с ЕИН [#MyCompanyVatNo#][#uicId#],</p>
+
+	<p>представляван от [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </p><!--ET_END manager-->
+
+
+<br>
+<p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
+<br>
+<p>на собствена отговорност, че <b>изделията: </b></p>
+
+	
+		<!--ET_BEGIN products-->
+			[#products#]
+		<!--ET_END products-->
+	
+<!--ET_BEGIN place-->
+	<p><b>проиведени в</b> [#place#],</p>
+<!--ET_END place-->
+<p>доставени на фирма: [#contragentCompany#], с адрес [#contragentCountry#], гр. [#contragentAddress#], с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],  </p>
+<p>с фактура <b>№ [#invoiceNo#]</b>,</p>
+<!--ET_BEGIN material-->
+	<p><b>произведени от</b> [#material#]</p>
+<!--ET_END material-->
+<p>за които се отнася тази декларация <b>отговарят на изискванията</b>:</p>
+
+<!--ET_BEGIN DETAILS-->
+	<div class='details'>
+		[#DETAILS#]
+	</div>
+<!--ET_END DETAILS-->
+
+<!--ET_BEGIN certificate-->
+	Декларацията се издава въз основа на (сертификат на продукт или сертификат на система за производствен контрол, или протокол(и) от първоначално изпитване на типа):
+	[#certificate#]</br>
+<!--ET_END certificate-->
+		<!--ET_BEGIN certifyingAuthority-->
+		издаден(и) от: [#certifyingAuthority#] </br>
+		<!--ET_END certifyingAuthority-->
+
+Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.
+
+ <br>
+ <br>
+ <br>
+ <br>
+ <br>
+     <table width=100%>
+        <tr>
+        <td>Декларатор: .........................................................</td>
+        <td> </td>
+        </tr>
+        <tr>
+        <td style='padding-left:85px'>/име и фамилия, длъжност и подпис/ </td>
+        <td></td>
+        </tr>
+     </table>

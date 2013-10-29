@@ -23,15 +23,19 @@ class dec_Wrapper extends sales_Wrapper
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 
-        $tabs->TAB('dec_Declarations', 'Списък');
-        $tabs->TAB('dec_Statements', 'Твърдения');
-       
-      
+        if(Request::get('Act') == 'add' || Request::get('Act') == 'edit'){
+        	 $tabs;
+        } else {
+	        $tabs->TAB('dec_Declarations', 'Списък');
+	        $tabs->TAB('dec_Statements', 'Твърдения');
+	        $tabs->TAB('dec_DeclarationTypes', 'Бланки');
+        }
 
         $tpl = $tabs->renderHtml($tpl, $mvc->className);
         $mvc->currentTab = 'Декларации';
         
         Mode::set('pageMenu', 'Търговия');
 		Mode::set('pageSubMenu', 'Продажби'); 
+
     }
 }
