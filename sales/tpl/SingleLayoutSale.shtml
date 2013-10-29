@@ -145,18 +145,6 @@
 			                                            <td style="text-align:right;" class = 'nowrap' colspan='2'><b>[#vat#]</b> %</td>
 			                                        </tr>
 			                                        <!--ET_END vat-->
-			                                        <!--ET_BEGIN amountPaid-->
-			                                        <tr>
-			                                            <td style="text-align:right;" class = 'nowrap'>|Платени|*:</td>
-			                                            <td><span class='cCode'>[#currencyId#]</span></td>
-			                                        	<td class = 'nowrap' style='text-align:right'><b>[#amountPaid#]</b></td>
-			                                        </tr>
-			                                        <!--ET_END amountPaid-->
-			                                        <tr>
-			                                            <td style="text-align:right;" class = 'nowrap'>|Остатък|*:</td>
-			                                            <td><span class='cCode'>[#currencyId#]</span></td>
-			                                        	<td class = 'nowrap' style='text-align:right'><b>[#amountToPay#]</b></td>
-			                                        </tr>
 			                                    </table>
 			                                </td>
 			                            </tr>
