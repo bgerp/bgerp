@@ -13,7 +13,7 @@
 				</tr>
 				<!--ET_BEGIN lastCalculate-->
 				<tr>
-					<td class="title-style">|Изчислен|*</td>
+					<td class="title-style">|Изчислена|*</td>
 					<td>[#lastCalculate#]</td>
 				</tr>
 				<!--ET_END lastCalculate-->
