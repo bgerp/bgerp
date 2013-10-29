@@ -1182,9 +1182,9 @@ div.hFormField {
 
 /*тулбар*/
 
-.wide .toolbar-first{
+.wide .toolbar > div:first-child{
 	display:block;
-	margin-bottom:9px;
+	margin-bottom:8px;
 }
 
 .narrow .toolbar-first{
@@ -1192,8 +1192,8 @@ div.hFormField {
 }
 
 .wide .toolbarHide{
-	margin-top:-3px;
-	margin-bottom:9px;
+	margin-top:-2px;
+	margin-bottom:8px;
 }
 
 .narrow .toolbarHide{
