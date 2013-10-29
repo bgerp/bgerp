@@ -200,6 +200,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
+        $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -217,21 +218,29 @@ class sales_Invoices extends core_Master
     }
     
     
-    /**
-     * Преизчисляваме сумата на фактурата
-     * @param int $id - ид на фактурата
+     /**
+     * След промяна в детайлите на обект от този клас
      */
-    public function updateInvoice($id)
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-    	$rec = $this->fetch($id);
-    	$rec->dealValue = 0;
-    	$detaiLQuery = $this->sales_InvoiceDetails->getQuery();
-    	$detaiLQuery->where("#invoiceId = {$id}");
-    	while($detail = $detaiLQuery->fetch()){
-    		$rec->dealValue += $detail->amount;
-    	}
-    	
-    	$this->save($rec);
+        $rec = $mvc->fetchRec($id);
+        $query = $detailMvc->getQuery();
+        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    
+        $rec->dealValue = $rec->vatAmount = 0;
+    
+        while ($detailRec = $query->fetch()) {
+        	$vat = 0;
+        	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
+        		$ProductManager = cls::get($detailRec->classId);
+    			$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
+        	}
+        	
+        	$rec->dealValue += $detailRec->amount;
+        	$rec->vatAmount += $detailRec->amount * $vat;
+        }
+        
+        $mvc->save($rec);
     }
     
     
@@ -323,7 +332,6 @@ class sales_Invoices extends core_Master
     	
     	if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
     		$info = $origin->getAggregateDealInfo();
-    		//bp($info);
     		$products = $info->shipped->products;
     		
     		if(count($products) != 0){
@@ -523,13 +531,10 @@ class sales_Invoices extends core_Master
     	if($rec->dealValue  && $rec->rate){
 	    	$rec->baseAmount = $rec->dealValue;
 	    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
-	    	$rec->vatPercent = $rec->vatAmount = 0;
-	    	if($rec->vatRate == 'yes'){
+	    	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
 	    		$period = acc_Periods::fetchByDate($rec->date);
-	    		$rec->vatAmount = $rec->baseAmount * $period->vatRate;
 				$rec->vatPercent = $period->vatRate;
 			}
-			
 			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
     	}
     }
