@@ -822,7 +822,7 @@ class type_Richtext extends type_Blob
             
             $bgPlace = $this->getPlace();
             $this->_htmlBoard[$bgPlace] = ht::createElement('img', array('src' => "//www.google.com/s2/u/0/favicons?domain={$domain}", 'class'=>'outLinkIcon'));
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\">[#{$bgPlace}#][#{$titlePlace}#]</a>";  
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$bgPlace}#][#{$titlePlace}#]</a>";  
               
         } else {
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
