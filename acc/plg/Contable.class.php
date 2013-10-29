@@ -54,7 +54,11 @@ class acc_plg_Contable extends core_Plugin
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
-            bp($transaction);
+            if(!static::hasContableTransaction($mvc, $rec, $transactionRes)){
+            	bp($transactionRes,$transaction);
+            } else {
+            	bp($transaction);
+            }
         }
 
         if ($action == 'correction') {
