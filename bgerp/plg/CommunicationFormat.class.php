@@ -25,7 +25,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob)\.?\:? *)([0-9\-\\\\\/\+\(\)]{5,15})/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype|ICQ)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
