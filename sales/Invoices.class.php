@@ -532,8 +532,7 @@ class sales_Invoices extends core_Master
 	    	$rec->baseAmount = $rec->dealValue;
 	    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
 	    	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
-	    		$period = acc_Periods::fetchByDate($rec->date);
-				$rec->vatPercent = $period->vatRate;
+				$rec->vatPercent = $rec->vatAmount / $rec->baseAmount;
 			}
 			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
     	}
