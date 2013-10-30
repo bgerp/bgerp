@@ -1,4 +1,4 @@
-function tooltipCustom(){
+function tooltipCustom(closeUrl){
 	if($('.tooltip-button').length){
 		var checkVisibility = $('.tooltip-text');
 		if(checkVisibility.hasClass('show-tooltip')){
@@ -25,10 +25,12 @@ function tooltipCustom(){
 		     setArrowPosition();
 		     e.stopPropagation();
 		 });
-		 
+		
 		//при клик на `x` да се скрива тултипа
 		 $('.close-tooltip').click(function() {
+			 			 
 			 $('.tooltip-text').fadeOut("slow");
+			 $.get(closeUrl);
 		 });
 		 
 	}
