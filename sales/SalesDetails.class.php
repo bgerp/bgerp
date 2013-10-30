@@ -358,8 +358,6 @@ class sales_SalesDetails extends core_Detail
         if (!empty($rec->packPrice)) {
             if ($masterRec->chargeVat == 'yes') {
                 
-                expect($ProductManager);
-                
                 // Начисляваме ДДС в/у цената
                 $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
             }
@@ -378,6 +376,7 @@ class sales_SalesDetails extends core_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
         $rec = &$form->rec;
+        $update = FALSE;
         
         /* @var $ProductMan core_Manager */
         expect($ProductMan = cls::get($rec->classId));
@@ -386,6 +385,12 @@ class sales_SalesDetails extends core_Detail
         }
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
+            
+    		if($id = $mvc->fetchField("#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}", 'id')){
+            	$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
+            	$rec->id = $id;
+            	$update = TRUE;
+            }
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
@@ -448,8 +453,11 @@ class sales_SalesDetails extends core_Detail
                 $rec->packPrice *= $masterRec->currencyRate;
                 
                 if ($masterRec->chargeVat == 'yes') {
-                    // Потребителя въвежда цените с ДДС
-                    $rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
+                	if(!$update || ($update && Request::get('Ignore'))){
+                		
+                		// Потребителя въвежда цените с ДДС
+                    	$rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
+                	} 
                 }
                 
                 // Изчисляваме цената за единица продукт в осн. мярка

@@ -25,7 +25,7 @@ class sales_Sales extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Sal';
+    public $abbr = 'Sal';
     
     
     /**
@@ -83,13 +83,13 @@ class sales_Sales extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales';
     
     
     /**
@@ -114,7 +114,7 @@ class sales_Sales extends core_Master
      * Допълнително, папката в която могат да се създават нишки-продажби трябва да бъде с корица
      * контрагент. Това се гарантира с метода @see canAddToFolder()
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
@@ -152,19 +152,19 @@ class sales_Sales extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
     
     /**
      * Групиране на документите
      */ 
-    var $newBtnGroup = "3.1|Търговия";
+    public $newBtnGroup = "3.1|Търговия";
    
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
     
     
     /**
@@ -433,6 +433,9 @@ class sales_Sales extends core_Master
     }
     
     
+    /**
+     * Нормализира контрагент данните
+     */
     public static function normalizeContragentData($contragentData)
     {
         /*
@@ -579,17 +582,13 @@ class sales_Sales extends core_Master
             array(''=>'') +
             crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
         
-        /*
-         * Начисляване на ДДС по подразбиране
-         */
+        // Начисляване на ДДС по подразбиране
         $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
                 'yes' : 'no'
         );
         
-        /*
-         * Моментни експедиция и плащане по подразбиране
-         */
+        // Моментни експедиция и плащане по подразбиране
         if (empty($form->rec->id)) {
             $isInstantShipment = !empty($form->rec->shipmentStoreId);
             $isInstantShipment = $isInstantShipment && 
@@ -610,6 +609,7 @@ class sales_Sales extends core_Master
         }
     }
 
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -1181,7 +1181,9 @@ class sales_Sales extends core_Master
     }
     
     
-    // Приключва всички приключени продажби
+    /**
+     * Приключва всички приключени продажби
+     */
     function cron_CloseOldSales()
     {
     	$conf = core_Packs::getConfig('sales');
