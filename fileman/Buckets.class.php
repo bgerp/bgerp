@@ -210,4 +210,68 @@ class fileman_Buckets extends core_Manager {
     {
         $row->extensions = str_replace(",", ", ", $row->extensions);
     }
+    
+    
+    /**
+     * Връща масив с позволените разширения за съответния подаден стринг
+     * 
+     * @param string $extensions - Разширенията
+     * 
+     * @return array $res - Масив с разширенията
+     */
+    static function getAllowedExtensionArr($extensions)
+    {
+        // Масива, който ще връщаме
+        $resArr = array();
+        
+        // Ако няма текст, връщаме празен масив
+        if (!trim($extensions)) return $resArr;
+        
+        // Разделяме масива
+        $extensionsArr = explode(',', $extensions);
+        
+        // Обхождаме резултатите
+        foreach ((array)$extensionsArr as $extension) {
+            
+            // Тримваме разширението
+            $extension = trim($extension);
+            
+            // Ако няма разширение, прескачаме
+            if (!$extension) continue;
+            
+            // Ако разширението няма наклонена черта
+            if (strpos($extension, '/') === FALSE) {
+                
+                // Вземаме разширението в долен регистър
+                $extension = mb_strtolower($extension);
+                
+                // Добавяме в масива
+                $resArr[$extension] = $extension;
+            } else {
+                
+                // Ако разширението има наклонене черта, следователно е mime
+                
+                // Вземаме масива с раширенията от MIME
+                $mimeExtArr = fileman_Mimes::getExtByMime($extension);
+                
+                // Обхождаме масива
+                foreach ((array)$mimeExtArr as $mimeExt) {
+                    
+                    // Тримваме разширението
+                    $mimeExt = trim($mimeExt);
+                    
+                    // Ако няма прескачаме
+                    if (!$mimeExt) continue;
+                    
+                    // Вземаме разширението в долен регистър
+                    $mimeExt = mb_strtolower($mimeExt);
+                    
+                    // Добавяме в масива
+                    $resArr[$mimeExt] = $mimeExt;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
 }
