@@ -166,10 +166,6 @@ tr.noHover td:hover {
     margin-left:6px; 
 }
 
-body.narrow {
-    background-color:black;
-}
-
 #mainMenu {
 	background-color: $gray3;
 	padding: 5px;
@@ -1499,6 +1495,14 @@ fieldset.sharing-history {
 }
 
 /*край на външни стилове за ширина*/
+.background-holder{
+	padding:10px 0;
+}
+
+.narrow .background-holder{
+	padding:0;
+	background-color:black;
+}
 
 #cmsTop, #headerImg {
 	display: block;
@@ -1560,7 +1564,7 @@ fieldset.sharing-history {
 	border-bottom: solid 1px #000;
 	max-width: 1000px;
 	display: block;
-	margin: 10px auto;
+	margin: 0px auto;
 	text-align: left;
 	@include rounded(top, left, 10px);
 	@include rounded(top, right, 10px);

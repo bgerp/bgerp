@@ -1,27 +1,28 @@
-<div class='clearfix21' id='all'>
-	
-	<div id="cmsTop">
-	    <img src="[#cms_Page::getHeaderImg#]" id='headerImg'/>
-		[#PAGE_HEADER#]
-	</div>
-	
-	<div id="cmsMenu" class='menuRow'>
-		[#CMS_MENU#]
-	</div>
-	
-	<div id="maincontent">
-		<div class='statuses' id='statuses' style='margin: 0 auto;'>
-			[#STATUSES#]
+<div class='background-holder'>
+	<div class='clearfix21' id='all'>
+		<div id="cmsTop">
+		    <img src="[#cms_Page::getHeaderImg#]" id='headerImg'/>
+			[#PAGE_HEADER#]
+		</div>
+		
+		<div id="cmsMenu" class='menuRow'>
+			[#CMS_MENU#]
+		</div>
+		
+		<div id="maincontent">
+			<div class='statuses' id='statuses' style='margin: 0 auto;'>
+				[#STATUSES#]
+				
+			</div>
+			[#CMS_LAYOUT#]
 			
 		</div>
-		[#CMS_LAYOUT#]
 		
-	</div>
-	
-	
-	<div id="cmsBottom">
-		[#cms_Feeds::generateFeedLink#]
-		[#social_Followers::getButtons#]
-		[#cms_Content::getFooter#]
+		
+		<div id="cmsBottom">
+			[#cms_Feeds::generateFeedLink#]
+			[#social_Followers::getButtons#]
+			[#cms_Content::getFooter#]
+		</div>
 	</div>
 </div>
