@@ -26,15 +26,11 @@ function tooltipCustom(){
 		     e.stopPropagation();
 		 });
 		 
-		//при клик на тултипа, да не се скрива
-		 $('.tooltip-text').click(function(e) {
-		     e.stopPropagation();
+		//при клик на `x` да се скрива тултипа
+		 $('.close-tooltip').click(function() {
+			 $('.tooltip-text').fadeOut("slow");
 		 });
 		 
-		 //ако кликнем извън бутона или тултипа да се скрива инфото
-		 $(document).click(function () {
-		     $('.tooltip-text').fadeOut("slow");
-		 });
 	}
 }
 

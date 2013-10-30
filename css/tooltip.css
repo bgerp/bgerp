@@ -44,13 +44,16 @@
 	margin-bottom:8px;
 	font-family: Arial, sans-serif;
 	font-size: 16px;
-	line-height: 18px;
-	padding: 8px 10px;
+	line-height: 18px !important;
+	padding: 9px 11px;
 	top:-2px;
+}
+.tooltip-text .richtext{
+	line-height: 19px !important;
 }
 
 .tooltip-text a{
-	color:#0000aa;
+	color:#0000aa !important;
 }
 
 .tooltip-text a:hover{
@@ -60,7 +63,7 @@
 .narrow .tooltip-text {
 	font-size: 14px;
 	line-height: 16px;
-	padding: 6px 6px;
+	padding: 8px 10px;
 	top:0;
 }
 
@@ -72,4 +75,20 @@
 	background-image:url('../img/arrow-hint-top.png');
 	top: -9px;
 	left: 10px;
+}
+
+.close-tooltip{
+	display:block;
+	position: absolute;
+	right: -4px;
+	top: -3px;
+	width: 16px;
+	height: 16px;
+	opacity: 0.9;
+	background-image:url('../img/16/cancel.png');
+	background-repeat:no-repeat;
+	cursor:pointer;
+}
+.close-tooltip:hover{
+	opacity: 1;
 }
