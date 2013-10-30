@@ -139,12 +139,15 @@ class plg_ProtoWrapper extends core_Plugin
            
             if($rec->haveRight) {
                  $tabs->TAB($name, $name, $rec->url);
+                 if($name == $currentTab) {
+                     $this->invoke('afterSetCurrentTab', array($name, $rec->url, &$hint, &$hintBtn, $tpl));  
+                 }
             } elseif($name == $currentTab) {
                  $tabs->TAB($name, $name, array());
             }
         }
         
-        $tpl = $tabs->renderHtml($tpl, $currentTab);
+        $tpl = $tabs->renderHtml($tpl, $currentTab, $hint, $hintBtn);
 
     }
 }
