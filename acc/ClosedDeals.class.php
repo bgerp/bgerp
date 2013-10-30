@@ -155,7 +155,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$res = static::getDealInfo($threadId);
     	
     	// Дали вече има такъв документ в нишката
-    	$closedDoc = static::fetch("#threadId = {$threadId}");
+    	$closedDoc = static::fetch("#threadId = {$threadId} AND #state != 'rejected'");
     	
     	// може да се добавя само ако документа има 'bgerp_DealAggregatorIntf',
     	// няма друг затварящ документ и няма продукти
@@ -308,6 +308,12 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	if($action == 'conto' && isset($rec)){
     		if(!static::getClosedDealAmount($rec->threadId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'restore' && isset($rec)){
+    		if($mvc->fetch("#threadId = {$rec->threadId} AND #state != 'rejected'")){
     			$res = 'no_one';
     		}
     	}
