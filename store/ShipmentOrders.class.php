@@ -281,6 +281,7 @@ class store_ShipmentOrders extends core_Master
                 $shipProduct->quantity    = $product->quantity;
                 $shipProduct->price       = $product->price;
                 $shipProduct->uomId       = $product->uomId;
+                $shipProduct->discount    = $product->discount;
                 
                 $shipProduct->quantityInPack = $shipProduct->getQuantityInPack();
                 

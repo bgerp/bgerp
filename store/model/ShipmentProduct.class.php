@@ -61,7 +61,16 @@ class store_model_ShipmentProduct extends core_Model
      * @var double
      */
     public $quantityInPack;
-        
+
+    
+    /**
+     * Отстъпка
+     * 
+     * @var double
+     */
+    public $discount;
+    
+    
     /**
      * Количество (в основна мярка)
      * 
