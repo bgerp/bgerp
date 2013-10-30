@@ -129,7 +129,7 @@ class doc_DocumentPlg extends core_Plugin
                 'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32,title=Оттегляне на документа');
         }
         
-        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state == 'rejected')) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('restore', $data->rec) && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
