@@ -120,7 +120,7 @@ class sales_Sales extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, contragentClassId, contragentId, currencyId, amountDeal, amountDelivered, amountPaid, 
+    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,
                              createdOn, createdBy';
     
@@ -717,7 +717,7 @@ class sales_Sales extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
@@ -747,6 +747,10 @@ class sales_Sales extends core_Master
         }
         
         $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+        
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+	    }
     }
     
     
@@ -873,6 +877,10 @@ class sales_Sales extends core_Master
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active' && $rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     		$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    	}
+    	
+    	if(haveRole('debug')){
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
     }
     
@@ -1170,5 +1178,56 @@ class sales_Sales extends core_Master
         $tpl = new ET(tr("Моля запознайте се с нашата продажба") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
+    }
+    
+    
+    // Приключва всички приключени продажби
+    function cron_CloseOldSales()
+    {
+    	$conf = core_Packs::getConfig('sales');
+    	$now = dt::mysql2timestamp(dt::now());
+    	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLD_SALES);
+    	
+    	$query = $this->getQuery();
+    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
+    	$query->where("#state = 'active'");
+    	$query->where("#threadModifiedOn <= '{$oldBefore}'");
+    	$query->where("#amountDelivered != 0 AND #amountPaid != 0");
+    	$query->where("#amountDelivered - #amountPaid BETWEEN 0 AND 1");
+    	
+    	while($rec = $query->fetch()){
+    		$rec->state = 'closed';
+    		$this->save($rec);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$Cron = cls::get('core_Cron');
+        
+        $rec = new stdClass();
+        $rec->systemId = "Close sales";
+        $rec->description = "Затваря приключените продажби";
+        $rec->controller = "sales_Sales";
+        $rec->action = "closeOldSales";
+        $rec->period = 24*60;
+        
+        $Cron->addOnce($rec);
+    }
+    
+    
+    /**
+     * Дебъг екшън показващ агрегираните бизнес данни
+     */
+    function act_AggregateDealInfo()
+    {
+    	requireRole('debug');
+    	expect($id = Request::get('id', 'int'));
+    	$info = $this->getAggregateDealInfo($id);
+    	bp($info);
     }
 }

@@ -23,6 +23,12 @@ defIfNot('SALE_MAX_PAST_PRICE', type_Time::SECONDS_IN_MONTH * 2);
 
 
 /**
+ * Продажби до колко дни назад без да са модифицирани да се затварят автоматично
+ */
+defIfNot('SALE_CLOSE_OLD_SALES', 60*60*24*3);
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -69,6 +75,7 @@ class sales_Setup extends core_ProtoSetup
 			'QUOTE_LAYOUT'          => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 			'SALE_MAX_FUTURE_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'   => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
+			'SALE_CLOSE_OLD_SALES'   => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Автоматично приключване на по стари от'),
 	);
 	
 	
