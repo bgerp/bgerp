@@ -25,7 +25,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'exp';
+    public $abbr = 'exp';
     
     
     /**
@@ -58,13 +58,13 @@ class store_ShipmentOrders extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,store';
+	public $canList = 'ceo,store';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,store';
     
     
     /**
@@ -94,7 +94,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Кой може да го види?
      */
-    var $canViewprices = 'ceo,acc';
+    public $canViewprices = 'ceo,acc';
     
     
     /**
@@ -116,7 +116,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-     public $listFields = 'id, valior, contragentClassId, contragentId, amountDelivered,
+    public $listFields = 'id, valior, contragentClassId, contragentId, amountDelivered,
                              createdOn, createdBy';
     
     
@@ -147,19 +147,19 @@ class store_ShipmentOrders extends core_Master
     /**
      * Файл за единичния изглед
      */
-    var $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
+    public $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
 
    
     /**
      * Групиране на документите
      */ 
-    var $newBtnGroup = "3.2|Търговия";
+    public $newBtnGroup = "3.2|Търговия";
    
     
    /**
      * Полета свързани с цени
      */
-    var $priceFields = 'amountDelivered';
+    public $priceFields = 'amountDelivered';
     
     
     /**
@@ -763,5 +763,16 @@ class store_ShipmentOrders extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
 }
