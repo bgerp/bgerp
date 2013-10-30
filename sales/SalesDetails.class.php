@@ -386,7 +386,7 @@ class sales_SalesDetails extends core_Detail
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
             
-    		if($id = $mvc->fetchField("#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}", 'id')){
+    		if(empty($rec->id) && $id = $mvc->fetchField("#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}", 'id')){
             	$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
             	$rec->id = $id;
             	$update = TRUE;
