@@ -196,7 +196,7 @@ class sales_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=с начисляване,freed=освободено,export=без начисляване)', 'caption=Данъци->ДДС %');
+        $this->FLD('vatRate', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Данъци->ДДС %');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
@@ -307,19 +307,21 @@ class sales_Invoices extends core_Master
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
         if ($form->isSubmitted()) {
-           if(!$form->rec->rate){
-        		$form->rec->rate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
+        	$rec = &$form->rec;
+        	
+           	if(!$rec->rate){
+        		$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
         	}
         
-    		if(!currency_CurrencyRates::hasDeviation($form->rec->rate, $form->rec->date, $form->rec->currencyId, NULL)){
+    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
 		    	$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
 			}
 		    	
         	$Vats = cls::get('drdata_Vats');
-        	$form->rec->contragentVatNo = $Vats->canonize($form->rec->contragentVatNo);
+        	$rec->contragentVatNo = $Vats->canonize($rec->contragentVatNo);
         	
 	        foreach ($mvc->fields as $fName => $field) {
-	            $mvc->invoke('Validate' . ucfirst($fName), array($form->rec, $form));
+	            $mvc->invoke('Validate' . ucfirst($fName), array($rec, $form));
 	        }
         }
 
