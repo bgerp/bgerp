@@ -290,6 +290,13 @@ class sales_Invoices extends core_Master
 				$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
 				$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
 	        }
+	   	} else {
+	   		// Неможе да се сменя ДДС-то ако има вече детайли
+        	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+        	$dQuery->where("#invoiceId = {$data->form->rec->id}");
+        	if($dQuery->count()){
+        		$data->form->setReadOnly('vatRate');
+        	}
 	   	}
     }
     
