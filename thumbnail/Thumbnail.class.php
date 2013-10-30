@@ -27,7 +27,14 @@ defIfNot('THUMBNAIL_URL', '_tb_');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class thumbnail_Thumbnail extends core_Manager {
+class thumbnail_Thumbnail extends core_Manager
+{
+    
+    
+    /**
+     * Масив с позволените разширения за генериране на thumbnail
+     */
+    static $allowedExtArr = array('jpg' => 'jpg', 'jpeg' => 'jpeg', 'png' => 'png', 'gif' => 'gif', 'bmp' => 'bmp', 'ico' => 'ico');
     
     
     /**
@@ -353,5 +360,29 @@ class thumbnail_Thumbnail extends core_Manager {
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Проверява дали от файла може да се генерира thumbnail
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     */
+    static function isAllowedForThumb($fh)
+    {
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fh);
+        
+        // Вземаме името на файла
+        $fileName = $fRec->name;
+        
+        // Вземаме разширението на файла
+        $ext = mb_strtolower(fileman_Files::getExt($fileName));
+        
+        // Вземаме масива с допустимите разширения за генериране на thumbnail
+        $imgArr = static::$allowedExtArr;
+        
+        // Ако е в масива
+        if ($imgArr[$ext]) return TRUE;
     }
 }
