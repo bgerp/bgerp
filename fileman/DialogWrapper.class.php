@@ -84,12 +84,13 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->prepend("<style>
             		
-            .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
-            .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
-            .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
-            .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
-
-            </style>");
+                .fileman_Buckets { background-image:url('" . sbf('img/16/database.png', '') . "');}
+                .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
+                .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
+                .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
+                .fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "'); background-repeat: no-repeat !important;}
+    
+                </style>");
 
             return TRUE;
         }
@@ -102,10 +103,9 @@ class fileman_DialogWrapper extends core_Plugin
     function getTabsArr()
     {
         $tabs = array(
-            'fileman_Upload' => 'caption=Качване,Ctr=fileman_Upload,Act=Dialog,icon=fileman/img/upload.gif',
-            'fileman_Get' => 'caption=От URL,Ctr=fileman_Get,Act=Dialog,icon=fileman/img/url.gif',
-            'fileman_Buckets' => 'caption=Кофи,Ctr=fileman_Buckets,Act=Browse,icon=img/16/database.png',
-            'empty' => 'caption=Нов,Ctr=fileman_Empty,Act=CreateNewFile,icon=fileman/img/new.gif'
+            'fileman_Upload' => 'caption=Качване,Ctr=fileman_Upload,Act=Dialog',
+            'fileman_Get' => 'caption=От URL,Ctr=fileman_Get,Act=Dialog',
+            'fileman_Log' => 'caption=Последни,Ctr=fileman_Log,Act=Dialog',
         );
         
         return $tabs;
