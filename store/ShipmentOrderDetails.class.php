@@ -51,6 +51,7 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public $menuPage = 'Логистика:Складове';
     
+    
     /**
      * Кой има право да чете?
      * 
@@ -102,18 +103,19 @@ class store_ShipmentOrderDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packQuantity, packagingId, uomId, price, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, packQuantity, price, discount, amount';
     
         
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'RowNumb';
+    public $rowToolsField = 'RowNumb';
+    
     
 	/**
      * Полета свързани с цени
      */
-    var $priceFields = 'price,amount,discount,packPrice';
+    public $priceFields = 'price,amount,discount,packPrice';
     
     
     /**
@@ -142,8 +144,7 @@ class store_ShipmentOrderDetails extends core_Detail
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
         
-        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма 
-        // packagingId)
+        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=none');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
@@ -413,8 +414,14 @@ class store_ShipmentOrderDetails extends core_Detail
         if ($form->isSubmitted() && !$form->gotErrors()) {
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
-            
             $rec = $form->rec;
+        	if(empty($rec->id)){
+        		list($classId, $productId) = explode('|', $rec->productId);
+        		if($id = $mvc->fetchField("#shipmentId = {$rec->shipmentId} AND #classId = {$classId} AND #productId = {$productId}", 'id')){
+        			$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
+            		$rec->id = $id;
+        		}
+            }
             
             // Извличаме ид на политиката, кодирано в ид-то на продукта 
             // @see store_ShipmentOrderDetails::on_AfterPrepareEditForm()
@@ -473,7 +480,18 @@ class store_ShipmentOrderDetails extends core_Detail
     {
     	$ProductManager = cls::get($rec->classId);
         $row->productId = $ProductManager->getTitleById($rec->productId);
-
-        //$ProductManager = cls::get($detailRec->classId);
+    }
+    
+    
+	/**
+     * След подготовката на списъчните полета
+     */
+    function on_AfterPrepareListFields($mvc, $data)
+    {
+        if(Mode::is('printing') || Mode::is('text', 'xhtml')) {
+            unset($data->listFields['price'], 
+            	  $data->listFields['amount'], 
+            	  $data->listFields['discount']);
+        }
     }
 }

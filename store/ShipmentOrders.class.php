@@ -223,9 +223,7 @@ class store_ShipmentOrders extends core_Master
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetchRec($id);
-    
-        /* @var $query core_Query */
-        $query = $detailMvc->getQuery();
+    	$query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
     
         $rec->amountDeliveredVat = $rec->amountDelivered = 0;
@@ -413,13 +411,21 @@ class store_ShipmentOrders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Задаване на стойности на полетата на формата по подразбиране
-        
-        /* @var $form core_Form */
-        $form = $data->form;
+        $form = &$data->form;
         $rec  = &$form->rec;
         
         $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
 
+    	if ($rec->id){
+        	
+        	// Неможе да се сменя ДДС-то ако има вече детайли
+        	$dQuery = $mvc->store_ShipmentOrderDetails->getQuery();
+        	$dQuery->where("#shipmentId = {$rec->id}");
+        	if($dQuery->count()){
+        		$form->setReadOnly('chargeVat');
+        	}
+        }
+        
         if (empty($rec->folderId)) {
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
         }
@@ -544,7 +550,6 @@ class store_ShipmentOrders extends core_Master
             return NULL;
         }
         
-        /* @var $query core_Query */
         $query = static::getQuery();
         $query->where("#state = 'active'");
         $query->where("#contragentClassId = '{$rec->contragentClassId}'");
