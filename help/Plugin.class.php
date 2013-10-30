@@ -18,7 +18,7 @@
  */
 class help_Plugin extends core_Plugin
 {
-    function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tpl)
+    function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tabsTpl)
     {
         setIfNot($ctr, $url['Ctr'], $url[0]);
 
@@ -27,13 +27,20 @@ class help_Plugin extends core_Plugin
             // Трябва ли да бъде първоначално отворен хинта?
 
             if(help_Log::haveToSee($rec->id)) {
-                $mustSeeClass = 'mustSee';
+                $mustSeeClass = 'show-tooltip';
             }
 
             $imageUrl = sbf("img/mark.png","");
             $img = ht::createElement("img", array('src' => $imageUrl));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
-            $hint = new ET("<div class='tooltip-text show-tooltip2 {$mustSeeClass}'><div class='tooltip-arrow'></div>{$mustSeeClass}[#1#]</div>", $rec->text);
+            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div>[#1#]</div>", $rec->text);
+
+            jquery_Jquery::enable($tabsTpl);
+         
+            $tabsTpl->push('css/tooltip.css', 'CSS');
+            $tabsTpl->push('js/tooltipCustom.js', 'JS');
+            
+            jquery_Jquery::run($tabsTpl, "tooltipCustom();", TRUE);
         }
     }
 
