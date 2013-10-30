@@ -33,7 +33,9 @@ class help_Plugin extends core_Plugin
             $imageUrl = sbf("img/mark.png","");
             $img = ht::createElement("img", array('src' => $imageUrl));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
-            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div>[#1#]</div>", $rec->text);
+            $convertText = cls::get('type_Richtext');
+            $hintText = $convertText->toVerbal($rec->text);
+            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div>[#1#]</div>", $hintText);
 
             jquery_Jquery::enable($tabsTpl);
          

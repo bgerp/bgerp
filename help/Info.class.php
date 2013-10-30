@@ -67,5 +67,51 @@ class help_Info extends core_Master
 		$this->FLD('class', 'varchar', 'caption=Име на класа');
 		$this->FLD('text', 'richtext', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
     }
+    
+    
+ 	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	
+    	// Подготвяме пътя до файла с данните 
+    	$file = "help/data/HelpInfo.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "class", 
+    		1 => "text",
+    	
+    		
+    	);
+    	
+    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+ 		
+    }
+    
+    
+    /**
+     * След проверка на ролите
+     */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	switch ($action) { 
+    		// ако метода е добавяне 
+            case 'add':
+            	// и нямяме роля debug
+    			if(!haveRole('debug')) {
+				        // никой не може да пише в модела
+						$requiredRoles = 'no_one';
+				}
+                break;
+    	}
+    }
 
 }
