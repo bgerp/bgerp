@@ -44,7 +44,7 @@ class help_Log extends core_Master
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,userId,infoId,seeOn,seeCnt';
+    var $listFields = '✍,userId,infoId,seeOn,seeCnt,closedOn';
 
 
     /**
@@ -74,6 +74,7 @@ class help_Log extends core_Master
 		$this->FLD('infoId', 'key(mvc=help_Info)', 'caption=За кой клас, hint=За кой клас се отнася информацията');
 		$this->FLD('seeOn', 'datetime', 'caption=Видяно->На, hint=Кога за първи път е видяно');
         $this->FLD('seeCnt', 'int', 'caption=Видяно->Брой, hint=Колко пъти е видяно');
+        $this->FLD('closedOn', 'datetime', 'caption=Затворено->На, hint=Кога е затворено');
 
         $this->setDbUnique("userId,infoId");
     }
@@ -98,15 +99,22 @@ class help_Log extends core_Master
             $rec->userId = $userId;
             $rec->seeOn  = $nowDate;
             $rec->seeCnt = 0;
+            $rec->closedOn = NULL;
         }
 
         if($rec->seeCnt < $conf->HELP_MAX_SEE_CNT || $rec->seeCnt == 0) {
             $rec->seeCnt++;
             self::save($rec);
         }
-
+		
+        // ако сме го затворили ръчно, повече няма да го показваме
+    	if($rec->closedOn) {
+    		
+        		return FALSE;
+        }
+        
         $untilDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_SEE_TIME);
-
+        
         if($untilDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_SEE_CNT) {
                 
                 return TRUE;
@@ -115,4 +123,33 @@ class help_Log extends core_Master
         return FALSE;
     }
     
+    
+    /**
+     * Затворил ли е потребителя информацията собственоръчно?
+     */
+    static function act_CloseInfo()
+    {
+    	// За кой клас се отнася
+    	$id = core_Request::get('id', 'int');
+
+    	// днешната дата
+        $nowDate = dt::now();
+        
+        $cu = core_Users::getCurrent();
+    	
+    	// Намираме  запис
+    	$rec = help_Log::fetch("#infoId = {$id} AND #userId = {$cu}"); 
+    	
+    	if($rec){
+    		
+	    	// добавяме дата
+	    	$rec->closedOn = $nowDate;
+	    	
+	    	// и я записваме
+	    	self::save($rec, 'closedOn');
+
+    	}
+    	
+    	shutdown();
+    }
 }

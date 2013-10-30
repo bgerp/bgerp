@@ -35,14 +35,15 @@ class help_Plugin extends core_Plugin
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
             $hintText = $convertText->toVerbal($rec->text);
-            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><span class='close-tooltip'></span>[#1#]</div>", $hintText);
-
+            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
+            $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
+            //$tabsTpl->appendOnce("helpUrl = '{$url}'", 'SCRIPTS');
             jquery_Jquery::enable($tabsTpl);
          
             $tabsTpl->push('css/tooltip.css', 'CSS');
             $tabsTpl->push('js/tooltipCustom.js', 'JS');
             
-            jquery_Jquery::run($tabsTpl, "tooltipCustom();", TRUE);
+            jquery_Jquery::run($tabsTpl, "tooltipCustom('{$url}');", TRUE);
         }
     }
 
