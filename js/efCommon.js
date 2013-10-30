@@ -834,7 +834,13 @@ function flashDocInterpolation(docId)
 
 function getBackgroundColor(el)
 {
-	var bgColor = $(el).css('background-color');
+	if (typeof jQuery != 'undefined') {
+		var bgColor = $(el).css('background-color');
+	} else {
+		
+		bgColor = 'transparent';
+	}
+	
 	if (bgColor == 'transparent'){
 		bgColor = 'rgba(0, 0, 0, 0)';
 	}
