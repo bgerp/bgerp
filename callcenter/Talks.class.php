@@ -172,7 +172,7 @@ class callcenter_Talks extends core_Master
         if ($rec->answerTime && $rec->endTime) {
             
             // Продължителност на разговора
-            $duration = dt::secBetwen($rec->endTime, $rec->answerTime);
+            $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
             
             // Ако има
             if ($duration) {
@@ -424,7 +424,7 @@ class callcenter_Talks extends core_Master
             $now = dt::now();
             
             // Вземаме разликата във времето на сървъра и на подадения стринг
-            $deviationSecs = abs(core_DateTime::secBetwen($now, $startTime));
+            $deviationSecs = abs(dt::secsBetween($now, $startTime));
             
             // Ако разликата е над допустимите
             if (($deviationSecs) && ($deviationSecs > static::DEVIATION_BETWEEN_TIMES)) {
@@ -602,7 +602,7 @@ class callcenter_Talks extends core_Master
                 }
                 
                 // Вземамем разликата във времето между отговор и край
-                $deviationsSecAnswEnd = core_DateTime::secBetwen($endTime, $answerTime);
+                $deviationsSecAnswEnd = dt::secsBetween($endTime, $answerTime);
                 
                 // Ако разликата е над допустимите
                 if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > static::DEVIATION_BETWEEN_TIMES)) {
@@ -637,7 +637,7 @@ class callcenter_Talks extends core_Master
             if ($answerTime) {
                 
                 // Вземаме разликата във времето на сървъра и на подадения стринг
-                $deviationSecsAnsw = abs(core_DateTime::secBetwen($now, $answerTime));
+                $deviationSecsAnsw = abs(dt::secsBetween($now, $answerTime));
             
                 // Ако разликата е над допустимите
                 if (($deviationSecsAnsw) && ($deviationSecsAnsw > static::DEVIATION_BETWEEN_TIMES)) {
@@ -657,7 +657,7 @@ class callcenter_Talks extends core_Master
             if ($endTime) {
                 
                 // Вземаме разликата във времето на сървъра и на подадения стринг
-                $deviationSecsEnd = abs(core_DateTime::secBetwen($now, $endTime));
+                $deviationSecsEnd = abs(dt::secsBetween($now, $endTime));
                 
                 // Ако разликата е над допустимите
                 if (($deviationSecsEnd) && ($deviationSecsEnd > static::DEVIATION_BETWEEN_TIMES)) {

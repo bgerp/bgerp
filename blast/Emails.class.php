@@ -782,7 +782,7 @@ class blast_Emails extends core_Master
                 }
                 
                 // Вземаме разликата в секундите
-                $secB = dt::secBetwen($form->rec->startOn, $date);
+                $secB = dt::secsBetween($form->rec->startOn, $date);
                 
                 // Ако е предишна дата
                 if ($secB < 0) {
@@ -807,7 +807,7 @@ class blast_Emails extends core_Master
             }
             
             // Вземаме секундите между сегашното време и времето на стартиране
-            $sec = dt::secBetwen(dt::now(), $form->rec->startOn);
+            $sec = dt::secsBetween(dt::now(), $form->rec->startOn);
             
             // Ако са по - малко от 60 секунди
             if ($sec < 60) {
