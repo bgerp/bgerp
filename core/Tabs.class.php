@@ -69,7 +69,7 @@ class core_Tabs extends core_BaseClass
     /**
      * Рендира табове-те
      */
-    function renderHtml_($body, $selectedTab = NULL)
+    function renderHtml_($body, $selectedTab = NULL, $hint = NULL, $hintBtn = NULL)
     {
         // Ако няма конфигурирани табове, рендираме само тялото       
         if (!count($this->tabs)) {
@@ -118,6 +118,9 @@ class core_Tabs extends core_BaseClass
                 if ($url) {
                     $head .= "<div onclick='document.location=\"{$url}\"' style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a href='{$url}' class='tab-title {$tabClass}'>{$title}</a>";
+                    if($selected) {
+                        $head .= $hintBtn;
+                    }
                 } else {
                     $head .= "<div class='tab {$selected}'>";
                     $head .= "<span class='tab-title  {$tabClass}'>{$title}</span>";
@@ -128,14 +131,14 @@ class core_Tabs extends core_BaseClass
         }
         
         if ($isOptionList) {
-            $head = new ET("<div class='tab selected'>[#1#]</div>\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
+            $head = new ET("<div class='tab selected'>[#1#]</div>&nbsp;&nbsp;&nbsp;{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
         }
-        
+ 
         $html = "<div class='tab-control {$this->htmlClass}'>\n";
         $html .= "<div class='tab-row'>\n";
         $html .= "[#1#]\n";
         $html .= "</div>\n";
-        $html .= "<div class=\"tab-page clearfix21\" id='{$this->htmlId}'>[#2#]</div>\n";
+        $html .= "<div class=\"tab-page clearfix21\" id='{$this->htmlId}'>{$hint}[#2#]</div>\n";
         $html .= "</div>\n";
         
         $tabsTpl = new ET($html, $head, $body);
