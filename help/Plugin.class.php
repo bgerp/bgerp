@@ -1,0 +1,40 @@
+<?php
+
+
+
+/**
+ * Клас 'help_Plugin'
+ *
+ * Прихваща събитията на plg_ProtoWrapper и добавя, ако е има помощна информация в help_Info, като hint
+ *
+ *
+ * @category  bgerp
+ * @package   help
+ * @author    Milen Georgiev <milen@experta.bg>
+ * @copyright 2006 - 2013 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
+ */
+class help_Plugin extends core_Plugin
+{
+    function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tpl)
+    {
+        setIfNot($ctr, $url['Ctr'], $url[0]);
+
+        if($rec = help_Info::fetch(array("#class = '[#1#]'", $ctr))) {
+
+            // Трябва ли да бъде първоначално отворен хинта?
+
+            if(help_Log::haveToSee($rec->id)) {
+                $mustSeeClass = 'mustSee';
+            }
+
+            $imageUrl = sbf("img/mark.png","");
+            $img = ht::createElement("img", array('src' => $imageUrl));
+            $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
+            $hint = new ET("<div class='tooltip-text show-tooltip2 {$mustSeeClass}'><div class='tooltip-arrow'></div>{$mustSeeClass}[#1#]</div>", $rec->text);
+        }
+    }
+
+}

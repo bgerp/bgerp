@@ -37,14 +37,14 @@ class help_Log extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'help_Wrapper, plg_RowTools';
     
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,userId,infoId,seeOn';
+    var $listFields = '✍,userId,infoId,seeOn,seeCnt';
 
 
     /**
@@ -72,8 +72,47 @@ class help_Log extends core_Master
     {
 		$this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
 		$this->FLD('infoId', 'key(mvc=help_Info)', 'caption=За кой клас, hint=За кой клас се отнася информацията');
-		$this->FLD('seeOn', 'datetime', 'caption=Видяно на, hint=Кога за първи път е видяно');
-		$this->FLD('showCnt', 'int', 'caption=Брой виждания');
+		$this->FLD('seeOn', 'datetime', 'caption=Видяно->На, hint=Кога за първи път е видяно');
+        $this->FLD('seeCnt', 'int', 'caption=Видяно->Брой, hint=Колко пъти е видяно');
+
+        $this->setDbUnique("userId,infoId");
+    }
+
+
+    /**
+     * Трябва ли текущият потребител да види тази помощна информация?
+     */
+    static function haveToSee($infoId, $userId = NULL)
+    {
+        // Ако нямаме потребител, вземаме текущия
+        if(!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        $nowDate = dt::now();
+        $conf = core_Packs::getConfig('help');
+
+        $rec = help_Log::fetch("#infoId = {$infoId} && #userId = {$userId}");
+        if(!$rec) {
+            $rec = new stdClass();
+            $rec->infoId = $infoId;
+            $rec->userId = $userId;
+            $rec->seeOn  = $nowDate;
+            $rec->seeCnt = 0;
+        }
+
+        if($rec->seeCnt < $conf->HELP_MAX_SEE_CNT || $rec->seeCnt == 0) {
+            $rec->seeCnt++;
+            self::save($rec);
+        }
+
+        $untilDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_SEE_TIME);
+
+        if($untilDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_SEE_CNT) {
+                
+                return TRUE;
+        }
+
+        return FALSE;
     }
     
 }

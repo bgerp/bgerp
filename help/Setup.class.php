@@ -1,6 +1,17 @@
 <?php
 
 
+/**
+ * Колко пъти поне да се покаже дадена помощна информация на даден потребител
+ */
+defIfNot('HELP_MAX_SEE_CNT', 3);
+
+/**
+ * Колко време след първото показване, да се показва дадена помощна информация
+ * По подразбиране едно денонощие
+ */
+defIfNot('HELP_MAX_SEE_TIME', 1*24*60*60);
+
 
 /**
  * class help_Setup
@@ -58,6 +69,18 @@ class help_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     var $roles = 'help';
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+           
+       'HELP_MAX_SEE_TIME' => array ('time', 'caption=Показване на помощна информация на потребител->Максимално време'),
+
+       'HELP_MAX_SEE_CNT'   => array ('int', 'caption=Показване на помощна информация на потребител->Максимален брой пъти'),
+    
+    );
 
         
     /**
@@ -66,7 +89,13 @@ class help_Setup extends core_ProtoSetup
     function install()
     {  
     	$html = parent::install(); 
-    	         
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме клавиатурата към password полета
+        $html .= $Plugins->installPlugin('helpHint', 'help_Plugin', 'plg_ProtoWrapper', 'family');
+ 	         
         return $html;
     }
     
