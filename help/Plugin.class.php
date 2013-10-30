@@ -35,7 +35,7 @@ class help_Plugin extends core_Plugin
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
             $hintText = $convertText->toVerbal($rec->text);
-            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div>[#1#]</div>", $hintText);
+            $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><span class='close-tooltip'></span>[#1#]</div>", $hintText);
 
             jquery_Jquery::enable($tabsTpl);
          
