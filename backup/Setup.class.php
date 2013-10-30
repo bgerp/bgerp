@@ -4,16 +4,38 @@
 /**
  * Уникален префикс за имената на архивираните файлове
  */
-defIfNot('BACKUP_PREFIX', '');
+defIfNot('BACKUP_PREFIX', 'bgerp.local-mitko');
 
 
 /**
  * Използван клас за реализиране на архива - локална система, FTP, rsync, Amazon ...
  */
-defIfNot('STORAGE_TYPE', 'local');
+defIfNot('BACKUP_STORAGE_TYPE', 'local');
 
+/**
+ * Дни от седмицата /по ISO-8601/, в които се прави пълен бекъп 1-Понеделник, 2-Вторник ...
+ */
+defIfNot('BACKUP_WEEKDAYS_FULL', '1,2,3,4,5,6,7');
 
+/**
+ * Час в който се прави пълния бекъп
+ */
+defIfNot('BACKUP_HOUR_FULL', '5');
 
+/**
+ * През колко минути се прави копие на binlog-овете
+ */
+defIfNot('BACKUP_BINLOG_PER_MINUTES', '5');
+
+/**
+ * Потребител с права за бекъп на mysql сървъра
+ */
+defIfNot('BACKUP_MYSQL_USER_NAME', 'backup');
+
+/**
+ * Парола на потребителя за бекъп
+ */
+defIfNot('BACKUP_MYSQL_USER_PASS', 'swordfish');
 
 
 /**
@@ -58,11 +80,15 @@ class backup_Setup extends core_ProtoSetup
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
-               
+    var $configDescription = array (
+            
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
-           
-       'STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
+       'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
+       'BACKUP_WEEKDAYS_FULL'   => array ('varchar', 'caption=Дни от седмицата за пълен бекъп'), 
+       'BACKUP_HOUR_FULL'   => array ('int', 'caption=Час за пълен бекъп'),
+       'BACKUP_BINLOG_PER_MINUTES'   => array ('int', 'caption=На колко минути се прави бекъп на бинарния лог'),
+       'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп'),
+       'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола')
     );
     
     
@@ -90,15 +116,14 @@ class backup_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
-       // Инсталираме
-    	//Залагаме в cron
+    	// Залагаме в cron
     	$rec = new stdClass();
     	$rec->systemId = 'BackupStart';
     	$rec->description = 'Архивиране данни, файлове, конфигурация';
     	$rec->controller = 'backup_Start';
-    	$rec->action = 'default';
-    	$rec->period = 60;
-    	$rec->offset = 17;
+    	$rec->action = 'start';
+    	$rec->period = 1;
+    	$rec->offset = 0;
     	$rec->delay = 0;
     	$rec->timeLimit = 50;
     	
