@@ -177,6 +177,10 @@ class acc_ArticleDetails extends core_Detail
             return;
         }
         
+        $query = clone $data->query;
+        $query->orderBy("id", "DESC");
+        $lastRec = $query->fetch();
+        
         expect($data->masterId);
         $form = cls::get('core_Form');
         
@@ -190,6 +194,8 @@ class acc_ArticleDetails extends core_Detail
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
             'silent,caption=Кредит,mandatory,width=300px');
         
+        $form->setDefault('debitAccId', $lastRec->debitAccId);
+        $form->setDefault('creditAccId', $lastRec->creditAccId);
         $form->FLD('articleId', 'int', 'input=hidden');
         $form->setHidden('articleId', $data->masterId);
         
