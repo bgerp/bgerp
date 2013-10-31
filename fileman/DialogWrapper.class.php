@@ -88,7 +88,7 @@ class fileman_DialogWrapper extends core_Plugin
                 .fileman_Upload { background-image:url('" . sbf('img/16/upload.png', '') . "');}
                 .fileman_Get { background-image:url('" . sbf('img/16/world_link.png', '') . "');}
                 .empty { background-image:url('" . sbf('img/16/new.png', '') . "');}
-                .fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "'); background-repeat: no-repeat !important;}
+                .tab-title.fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "');}
     
                 </style>");
 

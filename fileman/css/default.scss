@@ -177,3 +177,28 @@ body{
 .error-filesize {
 	color: red;
 }
+
+.fileman-log-action-date{
+	font-size:0.8em;
+}
+
+.fileman_Log{
+	.listTable{
+		width:100%;
+		th {
+			display: none;
+			border: none;
+			vertical-align: top !important;
+	    }
+		tr>td:first-child{
+			width:48px;
+			height:48px;
+			vertical-align:middle;
+			text-align:center;
+		}
+	}
+}
+
+.narrow .fileman_Log.switching-display{
+	margin-top:5px;
+}
