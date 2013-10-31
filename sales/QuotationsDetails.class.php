@@ -180,6 +180,17 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
+	    	
+	    	if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productManId = {$rec->productManId} AND #productId = {$rec->productId}")){
+	    		if($rec->optional == 'yes' && $sameProduct->optional == 'no'){
+	    			$form->setError('optional', "Неможе да добавите продукта като опционален, защото фигурира вече като задължителен!");
+	    			return;
+	    		} elseif($rec->optional == 'no' && $sameProduct->optional == 'yes'){
+	    			$form->setError('optional', "Неможе да добавите продукта като задължителен, защото фигурира вече като опционален!");
+	    			return;
+	    		}
+	    	}
+	    	
 	    	$ProductMan = cls::get($rec->productManId);
 	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
