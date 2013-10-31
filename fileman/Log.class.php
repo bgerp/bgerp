@@ -410,6 +410,9 @@ class fileman_Log extends core_Manager
                 // Съкращаваме дължината на името
                 $fileNameVerb = str::limitLen($fileNameVerb, 30);
                 
+                // Хифенираме името на файла
+                $fileNameVerb = hyphen_Plugin::getHyphenWord($fileNameVerb);
+                
                 // Масив за вземане на уникалното id
                 $attrId = array();
                 
