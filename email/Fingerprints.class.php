@@ -17,7 +17,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_RowTools, plg_AutoFilter';
+    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_RowTools, plg_Sorting, plg_AutoFilter';
     
     
     /**
@@ -48,6 +48,12 @@ class email_Fingerprints extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,hash,accountId,uid,status';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'accountId,uid,status';
     
 	
     /**
