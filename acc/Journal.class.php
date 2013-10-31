@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -189,11 +189,7 @@ class acc_Journal extends core_Master
         
         $mvc->requireRightFor('conto', $docId);
         
-//         try {
-            $message = $mvc->conto($docId);
-//         } catch (core_exception_Expect $ex) {
-//             redirect(array('acc_Accounts'), FALSE, "Грешка при контиране: " . $ex->args(1));
-//         }
+		$message = $mvc->conto($docId);
         
         return followRetUrl(array($mvc, 'single', $docId), $message /*, $success ? 'success' : 'error'*/);
     }
@@ -384,6 +380,9 @@ class acc_Journal extends core_Master
     }
     
     
+    /**
+     * Изтриване на транзакция
+     */
     public static function deleteTransaction($docClassId, $docId = NULL)
     {
         if (is_object($docClassId)) {
@@ -402,5 +401,14 @@ class acc_Journal extends core_Master
         static::delete($rec->id);
         
         return array($docClassId, $docId);
+    }
+    
+    
+	/**
+     * Преди извличане на записите от БД
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$data->query->orderBy('id', 'DESC');
     }
 }
