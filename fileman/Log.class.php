@@ -86,7 +86,9 @@ class fileman_Log extends core_Manager
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('lastOn', 'dateTime(format=smartTime)', 'caption=Последно');
         
-        $this->setDbUnique('fileId,userId');
+        $this->FLD("dataId", "key(mvc=fileman_Data)", 'caption=Данни');
+        
+        $this->setDbUnique('dataId,userId');
     }
     
     
@@ -126,7 +128,7 @@ class fileman_Log extends core_Manager
         if (!$fRec->fileHnd) return FALSE;
         
         // Вземаме предишния запис
-        $nRec = static::fetch(array("#fileId = '[#1#]' AND #userId=[#2#]", $fRec->id, $userId));
+        $nRec = static::fetch(array("#dataId = '[#1#]' AND #userId=[#2#]", $fRec->dataId, $userId));
         
         // Ако този файл не е бил използван от съответния потребител
         if (!$nRec) {
@@ -155,6 +157,9 @@ class fileman_Log extends core_Manager
         
         // Добавяме името на файла
         $nRec->fileName = $fRec->name;
+        
+        // Добавяме данните за файла
+        $nRec->dataId = $fRec->dataId;
         
         // Упдейтваме записа
         static::save($nRec, NULL, 'UPDATE');
@@ -540,6 +545,64 @@ class fileman_Log extends core_Manager
             
             // Да не се извикат останалите и да не се рендира "опаковката"
             return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     * 
+     * За съвместимост със стари бази
+     * @todo Може да се премахне
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Вземаме всички записи, които няма dataId
+        $query = $mvc->getQuery();
+        $query->where("#dataId IS NULL");
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Флаг, дали да се премахне
+            $delete = FALSE;
+            
+            // Ако има fileId вземаме dataId
+            if (($rec->fileId) && ($dataId = fileman_Files::fetchField($rec->fileId, 'dataId'))) {
+                
+                // Ако няма такъв запис в този модел за съответния потребител
+                if (!static::fetch("#dataId = {$dataId} AND #userId = {$rec->userId}")) {
+                    
+                    // Добавяме dataId
+                    $rec->dataId = $dataId;
+                    static::save($rec);
+                    
+                    // Увеличаваме брояча
+                    $cnt++;
+                } else {
+                    
+                    // Да се изтрие ако записа няма да е уникален
+                    $delete = TRUE;
+                }
+            } else {
+                
+                // Да се изтрие, ако няма да има такива данни
+                $delete = TRUE;
+            }
+            
+            // Ако флага е вдигнат
+            if ($delete) {
+                
+                // Изтриваме
+                static::delete($rec->id);
+            }
+        }
+        
+        // Ако има добавени записи
+        if ($cnt) {
+            
+            // Показваме броя им
+            $res .= "<li>Добавени {$cnt} 'dataId'";
         }
     }
  }
