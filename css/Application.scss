@@ -983,7 +983,7 @@ pre.document{
 	border-left:1px solid #000;
 }
 
-.lines{
+.document .lines{
 	height:5px;
 	background:url('../img/thumb.png');  
 	background-repeat:repeat-x;
@@ -991,6 +991,7 @@ pre.document{
 	border-left:1px solid #000;
 	border-right:1px solid #000;
 }
+
 .nowrap{
 	white-space:nowrap;
 }
