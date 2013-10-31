@@ -142,12 +142,12 @@ class fileman_Log extends core_Manager
             // Създаваме обект
             $nRec = new stdClass();
             
-            // Добавяме id на файла
-            $nRec->fileId = $fRec->id;
-            
             // Добавяме id на потребителя
             $nRec->userId = $userId;
         }
+        
+        // Добавяме id на файла
+        $nRec->fileId = $fRec->id;
         
         // Вземаме meta данните
         $meta = fileman::getMeta($fRec->fileHnd);
