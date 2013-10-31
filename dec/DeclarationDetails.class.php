@@ -36,7 +36,8 @@ class dec_DeclarationDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_RowZebra, Declarations=dec_Declarations';
+    var $loadList = 'plg_RowTools, sales_Wrapper, dec_Wrapper,
+    				 plg_SaveAndNew, plg_RowZebra, Declarations=dec_Declarations';
 
     
     var $listFields = 'id, statementId';
