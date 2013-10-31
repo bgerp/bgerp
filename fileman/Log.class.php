@@ -88,7 +88,7 @@ class fileman_Log extends core_Manager
         $this->FLD('fileId', 'key(mvc=fileman_Files, select=fileHnd)', 'caption=Манипулатор,notNull');
         $this->FLD('fileName', 'varchar', 'caption=Файл');
         $this->FLD('fileSize', "fileman_FileSize", 'caption=Размер');
-        $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане, extract=Екстрактване)', 'caption=Действие');
+        $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане)', 'caption=Действие');
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('lastOn', 'dateTime(format=smartTime)', 'caption=Последно');
         
@@ -102,7 +102,7 @@ class fileman_Log extends core_Manager
      * Обновява информацията за използването на файла
      * 
      * @param mixed $fileHnd - Запис от fileman_Files или манипулатор на файла
-     * @param string $action - Съответнотното действие: upload, preview, extract
+     * @param string $action - Съответнотното действие: upload, preview
      * @param integer $userId - id на потребитля
      */
     static function updateLogInfo($fileHnd, $action, $userId=NULL)
@@ -379,7 +379,7 @@ class fileman_Log extends core_Manager
         if (Mode::get('dialogOpened')) {
             
             // Масива с дейсвията
-            $actionArr = array('upload' => 'Качен', 'preview' => 'Разгледан', 'extract' => 'Екстрактнат');
+            $actionArr = array('upload' => 'Качен', 'preview' => 'Разгледан');
             
             $callback = Mode::get('callback');
             

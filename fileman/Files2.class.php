@@ -213,7 +213,7 @@ class fileman_Files2 extends core_Master
         if ($rec) {
             
             // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($rec, 'extract');
+            fileman_Log::updateLogInfo($rec, 'preview');
         }
         
         return $copyPath;
@@ -233,7 +233,7 @@ class fileman_Files2 extends core_Master
         if ($fh) {
             
             // Обновяваме лога за използване на файла
-            fileman_Log::updateLogInfo($fh, 'extract');
+            fileman_Log::updateLogInfo($fh, 'preview');
         }
         
         // Екстрактваме файла във временена директория
