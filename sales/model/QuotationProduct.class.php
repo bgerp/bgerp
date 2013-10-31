@@ -75,7 +75,7 @@ class sales_model_QuotationProduct
         $this->packagingId = NULL;
         $this->discount    = $rec->discount;
         $this->isOptional  = FALSE;
-        $this->quantity    = $rec->quantity;
+        $this->quantity    = $rec->sumProduct;
         $this->price       = $rec->price;
         $this->uomId = $Class->getProductInfo($rec->productId)->productRec->measureId;
     }

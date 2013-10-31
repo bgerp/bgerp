@@ -300,11 +300,11 @@ class sales_SaleRequests extends core_Master
     	
     	foreach ($filteredProducts as $index => $product){
     		if($product->optional == 'yes') {
-    			$product->title = "Опционални->{$product->title}";
+    			$product->title = "|Опционални|*->{$product->title}";
     			$product->options = array('' => '&nbsp;') + $product->options;
     			$mandatory = '';
     		} else {
-    			$product->title = "Оферирани->{$product->title}";
+    			$product->title = "|Оферирани|*->{$product->title}";
 	    		if(count($product->options) > 1) {
 	    			$product->options = array('' => '&nbsp;') + $product->options;
 	    			$mandatory = 'mandatory';
@@ -325,9 +325,9 @@ class sales_SaleRequests extends core_Master
     		if($fRec = (object)$this->fetchField($id, 'data')){
     			$form->rec = $fRec;
     		}
-    		$form->title = tr("Редактиране на") . " |*&nbsp;" . $this->getLink($id);
+    		$form->title = "|Редактиране на|*&nbsp;" . $this->getLink($id);
     	} else {
-    		$form->title = tr("Заявка към") . " |*&nbsp;" . cls::get('sales_Quotations')->getLink($quotationId);
+    		$form->title = "|Заявка към|*&nbsp;" . cls::get('sales_Quotations')->getLink($quotationId);
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
