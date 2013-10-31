@@ -155,6 +155,6 @@ class core_Statuses extends core_Manager
         echo $json;
         
         //Прекраряваме изпълнението на кода по нататаък
-        die;
+        shutdown();
     }
 }
