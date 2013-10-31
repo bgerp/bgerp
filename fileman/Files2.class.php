@@ -847,4 +847,42 @@ class fileman_Files2 extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Връща линк към сингъла на файла
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * 
+     * @return core_Et - Линк
+     */
+    static function getLinkToSingle($fh)
+    {
+        // Вземаме записа
+        $rec = fileman_Files::fetchByFh($fh);
+        
+        //Разширението на файла
+        $ext = fileman_Files::getExt($rec->name);
+        
+        //Иконата на файла, в зависимост от разширението на файла
+        $icon = "fileman/icons/{$ext}.png";
+        
+        //Ако не можем да намерим икона за съответното разширение
+        if (!is_file(getFullPath($icon))) {
+            
+            // Използваме иконата по подразбиране
+            $icon = "fileman/icons/default.png";
+        }
+        
+        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        // Вербалното име на файла
+        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . fileman_Files::getVerbal($rec,'name') . "</span>";
+        
+        // Вземаме линка
+        $link = ht::createLink($fileName, array('fileman_Files', 'single', $fh));
+        
+        return $link;
+    }
 }
