@@ -379,7 +379,7 @@ class fileman_Log extends core_Manager
      * @param core_Mvc $mvc
      * @param object $data
      */
-    static function on_AfterPrepareListRows($mvc, &$data)
+    static function on_AfterPrepareListRows($mvc, $res, &$data)
     {
         // Ако е отворен в диалоговия прозорец
         if (Mode::get('dialogOpened')) {
