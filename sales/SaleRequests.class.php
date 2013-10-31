@@ -374,7 +374,10 @@ class sales_SaleRequests extends core_Master
     {
     	$rec = self::fetchRec($id);
     	$query = $this->sales_SaleRequestDetails->getQuery();
-    	$details = $query->where("#requestId = {$id}")->fetchAll();
+    	$query->where("#requestId = {$id}");
+    	$query->XPR('sumProduct', 'double', 'SUM(#quantity)');
+    	$query->groupBy('productManId,productId');
+    	$details = $query->fetchAll();
     	
     	$result = new bgerp_iface_DealResponse();
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
