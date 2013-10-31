@@ -205,7 +205,7 @@ class bgerp_Setup {
         
         $html .= $Menu->addItem(1.62, 'Система', 'Админ', 'core_Packs', 'default', 'admin');
 
-        $html .= $Menu->addItem(1.66, 'Система', 'Файлове', 'fileman_Files', 'default', 'powerUser');
+        $html .= $Menu->addItem(1.66, 'Система', 'Файлове', 'fileman_Log', 'default', 'powerUser');
         
         $html .= $Menu->repair();
         
