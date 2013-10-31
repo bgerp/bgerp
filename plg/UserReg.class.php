@@ -218,7 +218,7 @@ class plg_UserReg extends core_Plugin
             
             $form = cls::get('core_Form');
             
-            $form->setAction(array('core_Users', 'activate'));
+            $form->setAction(array('core_Users', 'changePass'));
                         
             //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
             if (EF_USSERS_EMAIL_AS_NICK) {
