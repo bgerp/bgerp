@@ -314,6 +314,7 @@ class sales_SalesDetails extends core_Detail
                 
                 $row->quantity = new core_ET('[#packQuantity#] <!--ET_BEGIN packQuantityDelivered-->(<span style="font-size:0.9em;">[#packQuantityDelivered#] ' . tr('дост.') . '</span>)<!--ET_END packQuantityDelivered-->');
                 $row->quantity->placeObject($row);
+                $row->quantity->removeBlocks(); 
             }
         }
 
