@@ -324,7 +324,7 @@ class fileman_Log extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Ако не е отворен диалоговия прозорец
-        if (!Mode::get('dialogOpened')) {
+        if (!Mode::get('dialogOpened') || Mode::is('screenMode', 'wide')) {
             
             // Вземаме формата за филтриране
             $form = $data->listFilter;
