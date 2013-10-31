@@ -488,7 +488,8 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
-        if(Mode::is('printing') || Mode::is('text', 'xhtml')) {
+        $showPrices = Request::get('showPrices', 'int');
+    	if(Mode::is('printing') && empty($showPrices)) {
             unset($data->listFields['price'], 
             	  $data->listFields['amount'], 
             	  $data->listFields['discount']);

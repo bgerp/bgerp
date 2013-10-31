@@ -312,7 +312,7 @@ class sales_SalesDetails extends core_Detail
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
-                $row->quantity = new core_ET('[#packQuantity#] <!--ET_BEGIN packQuantityDelivered-->(<span style="font-size:0.9em;">[#packQuantityDelivered#] ' . tr('дост.') . '</span>)<!--ET_END packQuantityDelivered-->');
+                $row->quantity = new core_ET('[#packQuantity#] &nbsp;<!--ET_BEGIN packQuantityDelivered-->(<span style="font-size:0.9em;">[#packQuantityDelivered#] ' . tr('дост.') . '</span>)<!--ET_END packQuantityDelivered-->');
                 $row->quantity->placeObject($row);
                 $row->quantity->removeBlocks(); 
             }

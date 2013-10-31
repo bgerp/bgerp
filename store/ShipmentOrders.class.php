@@ -347,6 +347,9 @@ class store_ShipmentOrders extends core_Master
     	if($data->rec->chargeVat == 'yes' || $data->rec->chargeVat == 'no'){
     		$data->row->VAT = " " . tr('с ДДС');
     	}
+    	
+    	// Бутон за отпечатване с цени
+        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
     }
     
     
