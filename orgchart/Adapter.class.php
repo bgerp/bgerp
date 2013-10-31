@@ -38,13 +38,13 @@ class orgchart_Adapter
     	$idChart = 'orgChart' . $orgChartCnt;
     
     	$level = 'NULL';
-    	$r = static::r($orgData, $level);
+    	$nestedLists = static::transformArrayToNestedLists($orgData, $level);
     	
         // Създаваме шаблона
         $tpl = new ET();
         
         // Генерираме необходимия маркъп за плъгина
-        $tpl->append("<div class='organisation'>{$r}</div><div id='{$idChart}'></div>");
+        $tpl->append("<div class='organisation'>{$nestedLists}</div><div id='{$idChart}'></div>");
 
         jquery_Jquery::enable($tpl);
          
@@ -58,15 +58,15 @@ class orgchart_Adapter
     }
 	
     /**
-     * рекурсивна функция, която от дадения масив генерира хтмл за вложени спиъци
+     * рекурсивна функция, която от дадения масив генерира хтмл за вложени списъци
      */
-   	static function r($a, $level) {
-    	$r = '' ;
-    	foreach ( $a as $i ) {
-    		if ($i['parent_id'] == $level ) {
-    			$r = $r . "\n<li>" . $i['title'] . static::r( $a, $i['id'] ) . "</li>\n";
+   	static function transformArrayToNestedLists($array, $level) {
+    	$html = '' ;
+    	foreach ( $array as $currentArr ) {
+    		if ($currentArr['parent_id'] == $level ) {
+    			$html = $html . "\n<li>" . $currentArr['title'] . static::transformArrayToNestedLists( $array, $currentArr['id'] ) . "</li>\n";
     		}
     	}
-    	return ($r==''?'':"\n<ul>". $r . "</ul>\n");
+    	return ($html==''?'':"\n<ul>". $html . "</ul>\n");
     }	
 }
