@@ -17,7 +17,7 @@ class email_Fingerprints extends core_Manager
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_AutoFilter';
+    var $loadList = 'email_Wrapper,  email_incoming_Wrapper, plg_RowTools, plg_AutoFilter';
     
     
     /**
@@ -42,6 +42,12 @@ class email_Fingerprints extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin, email';
+	
+	
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id,hash,accountId,uid,status';
     
 	
     /**
@@ -62,7 +68,7 @@ class email_Fingerprints extends core_Manager
     function description()
     {
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш');
-        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка, autoFilter');
+        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email,allowEmpty)', 'caption=Сметка, autoFilter');
         $this->FLD('uid', 'int', 'caption=Имейл UID');
         $this->FLD('status', 'enum(returned,receipt,spam,incoming,misformatted)', 'caption=Статус,notNull');
 
@@ -89,8 +95,12 @@ class email_Fingerprints extends core_Manager
         $form->showFields = 'accountId';
         
         $form->input('accountId', 'silent');
-
-        $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
+        
+        if($form->rec->accountId){
+        	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
+        } else {
+        	$data->query->fetchAll();
+        }
     }
     
 
