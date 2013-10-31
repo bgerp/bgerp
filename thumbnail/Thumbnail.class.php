@@ -198,7 +198,7 @@ class thumbnail_Thumbnail extends core_Manager
         $tWidth = ceil($ratio * $width);
         
         // Ако изображението е PNG, ресайзваме го и запазваме прозрачността
-        if($type & IMAGETYPE_PNG) {
+        if($type == IMAGETYPE_PNG) {
 
             return self::resizePng($sourceImage, $tWidth, $tHeight);
         }
