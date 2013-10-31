@@ -96,11 +96,17 @@ class core_Request
      */
     static function unprotectId($id, $mvc)
     {
-        if(is_string($mvc)) {
-            $mvc = cls::get($mvc);
+        // Има вероятност да се подаден несъществуващ клас
+        try {
+            if(is_string($mvc)) {
+                $mvc = cls::get($mvc);
+            }
+    
+            return $mvc->unprotectId($id);
+        } catch (Exception $e) {
+            
+            return FALSE;
         }
-
-        return $mvc->unprotectId($id);
     }
     
     
