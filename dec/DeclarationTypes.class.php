@@ -109,15 +109,15 @@ class dec_DeclarationTypes extends core_Master
             $rec->sysId = $rec->name;
             self::save($rec);
 
-            // Срочен трудов договор
-            /*$rec = new stdClass();
-            $rec->name = 'Срочен трудов договор';
-            $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+            // Декларация за сответствие EN
+            $rec = new stdClass();
+            $rec->name = 'Declaration of compliance';
+            $rec->script = getFileContent('dec/tpl/DeclarationOfCompliance.shtml');
             $rec->sysId = $rec->name;
             self::save($rec);
             
             // Срочен трудов договор
-            $rec = new stdClass();
+            /*$rec = new stdClass();
             $rec->name = 'Трудов договор за заместване';
             $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
             $rec->sysId = $rec->name;
@@ -146,15 +146,15 @@ class dec_DeclarationTypes extends core_Master
 					        self::save($rec,'script');
 		                    break;
 		                    
-		               /* case 'Срочен трудов договор' :
+		                case 'Declaration of compliance' :
 		                	$rec = new stdClass();
 		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('hr/tpl/FixedTermContract.ls.shtml');
+		                    $rec->script = getFileContent('dec/tpl/DeclarationOfCompliance.shtml');
 				            
 		                    self::save($rec,'script');
 		                    break;
 		                    
-		                case 'Трудов договор за заместване' :
+		                /*case 'Трудов договор за заместване' :
 		                	$rec = new stdClass();
 		                	$rec->id = $sysContract->id;
 		                    $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
