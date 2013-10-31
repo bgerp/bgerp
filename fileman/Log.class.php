@@ -65,7 +65,7 @@ class fileman_Log extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, fileman_DialogWrapper';
+    var $loadList = 'fileman_Wrapper, fileman_DialogWrapper, plg_Sorting';
     
     
     /**
@@ -75,11 +75,17 @@ class fileman_Log extends core_Manager
     
     
     /**
+     * 
+     */
+    var $listFields = 'fileId=Линк, action, lastOn';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('fileId', 'key(mvc=fileman_Files, select=fileHnd)', 'caption=Файл,notNull');
+        $this->FLD('fileId', 'key(mvc=fileman_Files, select=fileHnd)', 'caption=Манипулатор,notNull');
         $this->FLD('fileName', 'varchar', 'caption=Файл');
         $this->FLD('fileSize', "fileman_FileSize", 'caption=Размер');
         $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане, extract=Екстрактване)', 'caption=Действие');
@@ -183,14 +189,10 @@ class fileman_Log extends core_Manager
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
         
-        // Вземаме id' то на текущия потребител
-        $userId = core_Users::getCurrent();
-        
         // Сетваме нужните променливи
         Mode::set('dialogOpened', TRUE);
         Mode::set('callback', $callback);
         Mode::set('bucketId', $bucketId);
-        Mode::set('userId', $userId);
         
         // Вземаме шаблона
         $tpl = $this->getTpl();
@@ -229,13 +231,47 @@ class fileman_Log extends core_Manager
     
     
     /**
-     * Слев вземане на заявката
+     * Извиква се преди подготовката на колоните ($data->listFields)
      * 
      * @param core_Mvc $mvc
-     * @param core_Query $query
+     * @param object $res
+     * @param object $data
      */
-    function on_AfterGetQuery($mvc, $query)
+    static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
+        // Ако е отворен в диалоговия прозорец
+        if (Mode::get('dialogOpened')) {
+            
+            // Нулираме, ако е имало нещо
+            $data->listFields = array();
+            
+            // Задаваме, кои полета да се показва
+            $data->listFields['FileIcon'] = '-';
+            $data->listFields['Name'] = 'Име';
+            
+            // Да не се извикат останалите
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     * 
+     * @param core_Mvc $mvc
+     * @param object $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $query = $data->query;
+        
+        // Ако е задеден потребител
+        if (($userId = core_Users::getCurrent()) && ($userId > 0)) {
+            
+            // Вземаме записите само за избрания потребител
+            $query->where("#userId = '{$userId}'");
+        }
+        
         // По - новите да са по - напред
         $query->orderBy("#lastOn", 'DESC');
         
@@ -279,50 +315,8 @@ class fileman_Log extends core_Manager
                     }
                 }
             }
-            
-            // Ако е задеден потребител
-            if (($userId = Mode::get('userId')) && ($userId > 0)) {
-                
-                // Вземаме записите само за избрания потребител
-                $query->where("#userId = '{$userId}'");
-            }
         }
-    }
-    
-    
-    /**
-     * Извиква се преди подготовката на колоните ($data->listFields)
-     * 
-     * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
-     */
-    static function on_BeforePrepareListFields($mvc, &$res, $data)
-    {
-        // Ако е отворен в диалоговия прозорец
-        if (Mode::get('dialogOpened')) {
-            
-            // Нулираме, ако е имало нещо
-            $data->listFields = array();
-            
-            // Задаваме, кои полета да се показва
-            $data->listFields['FileIcon'] = '-';
-            $data->listFields['Name'] = 'Име';
-            
-            // Да не се извикат останалите
-            return FALSE;
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на формата за филтриране
-     * 
-     * @param core_Mvc $mvc
-     * @param object $data
-     */
-    function on_AfterPrepareListFilter($mvc, $data)
-    {
+        
         // Ако не е отворен диалоговия прозорец
         if (!Mode::get('dialogOpened') || Mode::is('screenMode', 'wide')) {
             
@@ -446,6 +440,17 @@ class fileman_Log extends core_Manager
             
             // Да не се извикат останалите
             return FALSE;
+        } else {
+            
+            // Обхождаме масива
+            foreach ((array)($data->rows) as $id => $row) {
+                
+                // Вземаме манипулатора на файла
+                $fh = fileman::idToFh($data->recs[$id]->fileId);
+                
+                // Вземаме линка към сингъла на файла
+                $data->rows[$id]->fileId = fileman::getLinkToSingle($fh);
+            }
         }
     }
     
