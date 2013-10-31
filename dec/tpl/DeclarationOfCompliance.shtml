@@ -1,0 +1,56 @@
+<br><p class='indent'>The undersigned, manufacturer/supplier: <br>[#MyCompany#], with address [#MyCountry#], city [#MyAddress#], with VAT ID [#MyCompanyVatNo#][#uicId#],</p>
+
+	<p>represented by [#manager#] <!--ET_BEGIN manager--> – with personal number: <b>[#managerЕGN#]</b> </p><!--ET_END manager-->
+
+
+<br>
+<p class="centered"><b>HEREBY DECLARE:</b> </p>
+<br>
+<p>own responsibility, that<b>products: </b></p>
+
+	
+		<!--ET_BEGIN products-->
+			[#products#]
+		<!--ET_END products-->
+	
+<!--ET_BEGIN place-->
+	<p><b>produced in</b> [#place#],</p>
+<!--ET_END place-->
+<p>delivered to: [#contragentCompany#], with address  [#contragentCountry#], city [#contragentAddress#], with VAT ID [#contragentCompanyVatNo#][#contragentUicId#],  </p>
+<p>evidenced by invoice<b>№ [#invoiceNo#]</b>,</p>
+<!--ET_BEGIN material-->
+	<p><b>are made of:</b> [#material#]</p>
+<!--ET_END material-->
+<p>to which this declaration relates <b>and compliance with</b>:</p>
+
+<!--ET_BEGIN DETAILS-->
+	<div class='details'>
+		[#DETAILS#]
+	</div>
+<!--ET_END DETAILS-->
+
+<!--ET_BEGIN certificate-->
+	Declaration is issued based on (a product certificate or certificate of factory production control system or protocol (s) of the initial type-testing):
+	[#certificate#]</br>
+<!--ET_END certificate-->
+		<!--ET_BEGIN certifyingAuthority-->
+		sertificated by: [#certifyingAuthority#] </br>
+		<!--ET_END certifyingAuthority-->
+
+We guarantee that our company will be responsible and shall accept any claim about verity of statements in this declaration.
+
+ <br>
+ <br>
+ <br>
+ <br>
+ <br>
+     <table width=100%>
+        <tr>
+        <td>Declarer: .........................................................</td>
+        <td> </td>
+        </tr>
+        <tr>
+        <td style='padding-left:85px'>/name and surname, position and signature/ </td>
+        <td></td>
+        </tr>
+     </table>
