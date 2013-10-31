@@ -9,3 +9,4 @@ abstract class arr extends core_Array {}
 abstract class Redirect extends core_Redirect {}
 abstract class str extends core_String {}
 abstract class Debug extends core_Debug {}
+abstract class Fileman extends fileman_Files2 {}
