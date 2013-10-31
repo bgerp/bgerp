@@ -246,7 +246,7 @@ class acc_Journal extends core_Master
         try {
             $transaction = $mvc->getValidatedTransaction($docRec);
         } catch (acc_journal_Exception $ex) {
-            $tr = $mvc->getTransaction($docRec->id);
+            $tr = $docClass->getTransaction($docRec->id);
             core_Html::$dumpMaxDepth = 6;
             bp($ex->getMessage(), $tr);
         }
