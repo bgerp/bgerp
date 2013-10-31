@@ -40,10 +40,8 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$form = &$data->form;
-    	
-    	// По подразбиране всички спецификации, са продаваеми
-    	$form->setDefault('meta', 'canSell');
+    	// По подразбиране всички спецификации, са продаваеми и складируеми
+    	$data->form->setDefault('meta', 'canSell,canStore');
     }
     
     
