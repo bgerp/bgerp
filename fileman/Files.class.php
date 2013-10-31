@@ -82,7 +82,13 @@ class fileman_Files extends core_Master
      * Да не се защитава id' то
      */
     var $protectId = FALSE;
-
+    
+    
+    /**
+     * 
+     */
+    var $listFields = 'name, bucketId, createdOn, createdBy';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -1127,6 +1133,9 @@ class fileman_Files extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+        // По - новите да са по - напред
+        $data->query->orderBy("#modifiedOn", 'DESC');
+        
         // Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
             
