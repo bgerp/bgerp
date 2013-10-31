@@ -103,7 +103,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, quantity, packagingId, uomId, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, quantity, packPrice, discount, amount';
     
         
     /**
@@ -312,10 +312,7 @@ class sales_SalesDetails extends core_Detail
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
-                $row->quantity = new core_ET('
-                    <div style="float: left; width: 50%; text-align: left;">[#packQuantity#]</div>
-                    <div style="float: right; width: 50%; margin-left: -6px;">[#packQuantityDelivered#]</div>
-                ');
+                $row->quantity = new core_ET('[#packQuantity#] <!--ET_BEGIN packQuantityDelivered-->(<span style="font-size:0.9em;">[#packQuantityDelivered#] ' . tr('дост') . '</span>)<!--ET_END packQuantityDelivered-->');
                 $row->quantity->placeObject($row);
             }
         }
@@ -480,7 +477,6 @@ class sales_SalesDetails extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $ProductManager = cls::get($rec->classId);
-        
         $row->productId = $ProductManager->getTitleById($rec->productId);
     }
     
