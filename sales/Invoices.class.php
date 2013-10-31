@@ -261,7 +261,7 @@ class sales_Invoices extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
-        $form->rec->date = dt::now();
+        $form->rec->date = dt::today();
         
         if (!$form->rec->id) {
             $type = Request::get('type');
@@ -337,9 +337,9 @@ class sales_Invoices extends core_Master
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
-    	$origin = static::getOrigin($rec);
+    	expect($origin = static::getOrigin($rec));
     	
-    	if ($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')) {
+    	if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
     		$info = $origin->getAggregateDealInfo();
     		$products = $info->shipped->products;
     		
@@ -374,9 +374,10 @@ class sales_Invoices extends core_Master
     public static function getOrigin($rec)
     {
     	$origin = NULL;
+    	
     	if($rec->docType && $rec->docId) {
     		// Ако се генерира от пос продажба
-    		$origin = new core_ObjectReference($rec->docType, $rec->docId);
+    		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
     	if($rec->originId) {
@@ -506,8 +507,12 @@ class sales_Invoices extends core_Master
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    static function on_BeforeRecToVerbal($mvc, &$row, &$rec, $fields = array())
     {
+    	if(!is_object($rec)){
+    		$rec = new stdClass();
+    	}
+    	
     	// Номера се форматира в десеторазряден вид
     	$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	if($fields['-single']){
@@ -651,7 +656,8 @@ class sales_Invoices extends core_Master
         foreach($invArr as $field => $value){
         	$form->setDefault($field, $value);
         }
-        
+       
+        $form->setDefault('date', dt::today());
         $form->setField('reason', 'input');
 		$form->setField('changeAmount', 'input');
 		$form->setField('reason', 'input,mandatory');
@@ -1000,5 +1006,16 @@ class sales_Invoices extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
 }
