@@ -85,7 +85,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
         $this->FLD('quantity', 'double', 'caption=К-во,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
@@ -133,6 +133,8 @@ class sales_InvoiceDetails extends core_Detail
     		$data->rows = array();
     		$data->rows[] = (object) array('reason' => $masterRec->reason,
     									   'amount' => $masterRec->changeAmount);
+    	} else {
+    		
     	}
     }
     
@@ -186,6 +188,7 @@ class sales_InvoiceDetails extends core_Detail
     	
     	if($rec->packagingId){
     		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$row->quantityInPack = $mvc->fields['price']->type->toVerbal($rec->quantityInPack);
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
     		$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
@@ -196,7 +199,7 @@ class sales_InvoiceDetails extends core_Detail
     	$masterRec = $mvc->Master->fetch($rec->invoiceId);
     	
     	$price = round($rec->price / $masterRec->rate, 2);
-    	$row->price = $double->toVerbal($price);
+    	$row->price = $double->toVerbal($price * $rec->quantityInPack);
     	
     	$amount = round($rec->amount / $masterRec->rate, 2);
     	$row->amount = $double->toVerbal($amount);

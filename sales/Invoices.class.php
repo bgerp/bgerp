@@ -353,9 +353,9 @@ class sales_Invoices extends core_Master
 		    		$dRec = clone $product;
 		    		$dRec->invoiceId = $rec->id;
 		    		$dRec->classId = $product->classId;
-		    		$dRec->packQuantity = $product->quantity * $packQuantity;
-		    		$dRec->amount = $dRec->packQuantity * $product->price;
-		    		$dRec->quantityInPack = $dRec->packQuantity;
+		    		$dRec->amount = $product->quantity * $product->price;
+		    		$dRec->quantityInPack = $packQuantity;
+		    		$dRec->quantity = $product->quantity / $packQuantity;
 		    		
 		    		$mvc->sales_InvoiceDetails->save($dRec);
 		    	}
