@@ -338,7 +338,7 @@ class store_ShipmentOrderDetails extends core_Detail
     			}
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
-    
+    			
                 if (empty($rec->packagingId)) {
                     if ($rec->uomId) {
                         $row->packagingId = $row->uomId;
@@ -347,6 +347,7 @@ class store_ShipmentOrderDetails extends core_Detail
                     }
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
+                    $row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
             }

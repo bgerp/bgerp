@@ -345,6 +345,10 @@ class store_ShipmentOrders extends core_Master
     	
     	// Бутон за отпечатване с цени
         $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+    	
+    	if(haveRole('debug')){
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    	}
     }
     
     
@@ -775,5 +779,17 @@ class store_ShipmentOrders extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
+    }
+    
+    
+ 	/**
+     * Дебъг екшън показващ агрегираните бизнес данни
+     */
+    function act_DealInfo()
+    {
+    	requireRole('debug');
+    	expect($id = Request::get('id', 'int'));
+    	$info = $this->getDealInfo($id);
+    	bp($info->agreed,$info->shipped);
     }
 }

@@ -57,8 +57,6 @@
                     </div>
                     <!--ET_END supplier-->
                 </tr>
-               
-               
                 </tbody>
             </table>
 			<div class="lines"></div>
@@ -83,13 +81,13 @@
     
                         <!--ET_BEGIN storeId-->
                         <div>
-                            |От склад|*: <b>[#storeId#] </b>
+                            |От склад|*: <b>[#storeId#]</b>
                         </div>
                         <!--ET_END storeId-->
                              
         				<!--ET_BEGIN vehicleId-->
         				<div>
-                            |Доставител|*: <b>[#vehicleId#] </b>
+                            |Доставител|*: <b>[#vehicleId#]</b>
                         </div>
         				<!--ET_END vehicleId-->
         				
@@ -135,5 +133,4 @@
     </tr>
     </tbody>
 </table>
-
 </div>
