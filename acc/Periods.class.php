@@ -546,6 +546,12 @@ class acc_Periods extends core_Manager
      */
     public static function getPeriodEnd($date = NULL)
     {
-    	return acc_Periods::fetchByDate($date)->end;
+	if(!$date) {
+		$rec = self::forceActive();
+	} else {
+		$rec = acc_Periods::fetchByDate($date);
+	}
+
+    	return $rec->end;
     }
 }
