@@ -33,8 +33,11 @@ class orgchart_Adapter extends core_BaseClass
     static function render_($orgData)
     {
     	static $orgChartCnt;
+    	
     	if(!$orgChartCnt) $orgChartCnt = 0;
+    	
     	$orgChartCnt++;
+    	
     	$idChart = 'orgChart' . $orgChartCnt;
     
     	$level = 'NULL';
@@ -57,16 +60,21 @@ class orgchart_Adapter extends core_BaseClass
         return $tpl;
     }
 	
+    
     /**
      * рекурсивна функция, която от дадения масив генерира хтмл за вложени списъци
      */
    	static function transformArrayToNestedLists($array, $level) {
+   		
     	$html = '' ;
+    	
     	foreach ( $array as $currentArr ) {
+    		
     		if ($currentArr['parent_id'] == $level ) {
     			$html = $html . "\n<li>" . $currentArr['title'] . static::transformArrayToNestedLists( $array, $currentArr['id'] ) . "</li>\n";
     		}
     	}
-    	return ($html==''?'':"\n<ul>". $html . "</ul>\n");
+    	
+    	return ($html == '' ? '' : "\n<ul>" . $html . "</ul>\n");
     }	
 }
