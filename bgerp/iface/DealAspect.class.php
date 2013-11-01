@@ -153,17 +153,19 @@ class bgerp_iface_DealAspect
 	 * @param array $dealAspectThisProducts - вече вкараните продукти
 	 * @param ibt $productId - ид на продукт
 	 * @param int $classId - класа на продукта
+	 * @param int $classId - ид на опаковката
 	 * 
 	 * @return array едномерен масив с ключове от вида `classId`|`productId`, където `classId` е
      *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
      *                на този продуктов клас.
 	 */
-    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $productId = NULL, $classId = NULL)
+    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $productId = NULL, $classId = NULL, $packagingId = NULL)
     {
         $options = array();
         
         if($productId && $classId){
-        	$options["{$classId}|{$productId}"] = cls::get($classId)->getTitleById($productId);
+        	$options["{$classId}|{$productId}|{$packagingId}"] = cls::get($classId)->getTitleById($productId);
+        	
         	return $options;
         }
         
@@ -171,13 +173,16 @@ class bgerp_iface_DealAspect
         	if($dealAspectThisProducts->findProduct($p->productId, $p->classId, $p->packagingId)) continue;
         	
             $ProductManager = cls::get($p->classId);
-            $classId = $p->getClassId();
-        
+        	$title = $ProductManager->getTitleById($p->productId);
+        	if($p->packagingId){
+        		$title .= " - " . cat_Packagings::getTitleById($p->packagingId);
+        	}
+            
             // Използваме стойността на select box-а за да предадем едновременно две стойности -
             // ид на политика и ид на продукт.
-            $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
+            $options["{$p->classId}|{$p->productId}|{$p->packagingId}"] = $title;
         }
-        
+       
         return (count($options)) ? $options : FALSE;
     }
 }
