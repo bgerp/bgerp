@@ -384,10 +384,14 @@ class sales_SalesDetails extends core_Detail
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
             
-    		if(empty($rec->id) && $id = $mvc->fetchField("#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}", 'id')){
-            	$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
-            	$rec->id = $id;
-            	$update = TRUE;
+    		if(empty($rec->id)){
+    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
+    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+    			if($id = $mvc->fetchField($where)){
+    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка! Искатели да го обновите ?");
+    				$rec->id = $id;
+	            	$update = TRUE;
+    			}
             }
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
