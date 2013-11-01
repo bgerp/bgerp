@@ -386,16 +386,22 @@ class core_Cron extends core_Manager
      */
     function addOnce($rec)
     {
-        $id = $rec->id = $this->fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id');
-        
-        $rec->state = 'free';
-        
+
+        $recCurrent = $this->fetch(array("#systemId = '[#1#]'", $rec->systemId));
+
+        if (!empty($recCurrent)) {
+            $rec = $recCurrent;
+        }
+
+        // Ако няма зададено преди това състояние - то е празно
+        setIfNot($rec->state, 'free');
+
         // По подразбиране 50 секунди времелимит за извършване на операцията
         setIfNot($rec->timeLimit, 50);
         
         $this->save($rec);
         
-        if(!$id) return $rec->id;
+        return $rec->id;
     }
     
     
