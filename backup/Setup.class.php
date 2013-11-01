@@ -13,19 +13,28 @@ defIfNot('BACKUP_PREFIX', 'bgerp.local-mitko');
 defIfNot('BACKUP_STORAGE_TYPE', 'local');
 
 /**
- * Дни от седмицата /по ISO-8601/, в които се прави пълен бекъп 1-Понеделник, 2-Вторник ...
+ * Период на който се прави пълен бекъп
+ * 5/дена/*24/часа/*60/мин/ = 7200 e всеки петък 00 часа
+ * + 4/часа/*60/мин/=240
+ * За да е бекъп-а всеки петък в 4:00 през нощта
+ * 
  */
-defIfNot('BACKUP_WEEKDAYS_FULL', '1,2,3,4,5,6,7');
+defIfNot('BACKUP_FULL_PERIOD', '7440');
+
+/**
+ *  Отместване за пълния бекъп
+ */
+defIfNot('BACKUP_FULL_OFFSET', '50');
 
 /**
  * Час в който се прави пълния бекъп
  */
-defIfNot('BACKUP_HOUR_FULL', '5');
+defIfNot('BACKUP_BINLOG_PERIOD', '5');
 
 /**
- * През колко минути се прави копие на binlog-овете
+ *  Отместване за бинлог бекъп-а
  */
-defIfNot('BACKUP_BINLOG_PER_MINUTES', '5');
+defIfNot('BACKUP_BINLOG_OFFSET', '50');
 
 /**
  * Потребител с права за бекъп на mysql сървъра
@@ -58,19 +67,6 @@ class backup_Setup extends core_ProtoSetup
      */
     var $version = '0.1';
     
-    
-    /**
-     * Контролер на връзката от менюто core_Packs
-     */
-    //var $startCtr = 'starter';
-    
-    
-    /**
-     * Екшън на връзката от менюто core_Packs
-     */
-    //var $startAct = 'default';
-    
-    
     /**
      * Описание на модула
      */
@@ -84,9 +80,6 @@ class backup_Setup extends core_ProtoSetup
             
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
        'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
-       'BACKUP_WEEKDAYS_FULL'   => array ('varchar', 'caption=Дни от седмицата за пълен бекъп'), 
-       'BACKUP_HOUR_FULL'   => array ('int', 'caption=Час за пълен бекъп'),
-       'BACKUP_BINLOG_PER_MINUTES'   => array ('int', 'caption=На колко минути се прави бекъп на бинарния лог'),
        'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп'),
        'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола')
     );
@@ -116,25 +109,43 @@ class backup_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
     	
+    	$conf = core_Packs::getConfig('backup');
+    	
     	// Залагаме в cron
     	$rec = new stdClass();
-    	$rec->systemId = 'BackupStart';
-    	$rec->description = 'Архивиране данни, файлове, конфигурация';
+    	$rec->systemId = 'BackupStartFull';
+    	$rec->description = 'Архивиране пълните данни на MySQL';
     	$rec->controller = 'backup_Start';
-    	$rec->action = 'start';
-    	$rec->period = 1;
-    	$rec->offset = 0;
+    	$rec->action = 'full';
+    	$rec->period = BACKUP_FULL_PERIOD;
+    	$rec->offset = BACKUP_FULL_OFFSET;
     	$rec->delay = 0;
     	$rec->timeLimit = 50;
     	
     	$Cron = cls::get('core_Cron');
     	
     	if ($Cron->addOnce($rec)) {
-    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп-а.</font></li>";
+    	    $html .= "<li><font color='green'>Задаване по крон да стартира пълния бекъп.</font></li>";
     	} else {
-    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп-а.</li>";
+    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира full бекъп.</li>";
     	}
-        
+    	
+    	$rec->systemId = 'BackupStartBinLog';
+    	$rec->description = 'Архивиране binlog на MySQL';
+    	$rec->controller = 'backup_Start';
+    	$rec->action = 'binlog';
+    	$rec->period = BACKUP_BINLOG_PERIOD;
+    	$rec->offset = BACKUP_BINLOG_OFFSET;
+    	$rec->delay = 0;
+    	$rec->timeLimit = 50;
+
+    	if ($Cron->addOnce($rec)) {
+    	    $html .= "<li><font color='green'>Задаване по крон да стартира binlog бекъп.</font></li>";
+    	} else {
+    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
+    	}
+    	 
+    	
         return $html;
     }
     
