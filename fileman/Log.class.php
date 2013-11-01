@@ -414,7 +414,7 @@ class fileman_Log extends core_Manager
                 ht::setUniqId($attrId);
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();");
+                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", "class" => "file-log-link");
                 
                 // Името на файла да е линк с посочените атрибути
                 $fileNameLink = ht::createLink($fileNameVerb, '#', NULL, $attr); 
