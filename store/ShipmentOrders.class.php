@@ -474,11 +474,8 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
                 $form->rec->locationId = $dealInfo->agreed->delivery->location;
                 $form->rec->time = $dealInfo->agreed->delivery->time;
-                
-                //@TODO да го взима от интерфейса
-                if($origin->instance() instanceof sales_Sales){
-                	$form->rec->chargeVat = $origin->fetchField('chargeVat');
-                }
+                $form->rec->chargeVat = $dealInfo->agreed->vatType;
+                $form->setReadOnly('chargeVat');
             }
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
@@ -740,6 +737,7 @@ class store_ShipmentOrders extends core_Master
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         $result->shipped->amount             = $rec->amountDeliveredVat;
+        $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;

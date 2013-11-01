@@ -165,7 +165,6 @@ class sales_Invoices extends core_Master
         'deliveryPlaceId'     => 'lastDocUser|lastDoc',
         'deliveryId'          => 'lastDocUser|lastDoc|clientCondition',
     	'paymentMethodId' 	  => 'lastDocUser|lastDoc|clientCondition',
-    	'vatRate' 			  => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -273,6 +272,8 @@ class sales_Invoices extends core_Master
             // формата с разумни стойности по подразбиране.
         	if($form->rec->originId){
 	        	$origin = doc_Containers::getDocument($form->rec->originId);
+	        	
+	        	$form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
 	        	if($origin->className  == 'sales_Invoices' && Request::get('type')){
 	        		$mvc->populateNoteFromInvoice($form, $origin);
 	        		$flag = TRUE;
@@ -290,14 +291,9 @@ class sales_Invoices extends core_Master
 				$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
 				$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
 	        }
-	   	} else {
-	   		// Неможе да се сменя ДДС-то ако има вече детайли
-        	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
-        	$dQuery->where("#invoiceId = {$data->form->rec->id}");
-        	if($dQuery->count()){
-        		$data->form->setReadOnly('vatRate');
-        	}
 	   	}
+	   	
+	   	$form->setReadOnly('vatRate');
     }
     
     
@@ -687,18 +683,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Дали да се начислява ДДС
-     */
-    public function getDefaultVatRate($rec)
-    {
-        $coverId = doc_Folders::fetchCoverId($rec->folderId);
-    	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-    	
-    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'export';
-    }
-    
-    
-    /**
      * След проверка на ролите
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
@@ -980,6 +964,7 @@ class sales_Invoices extends core_Master
         $result = new bgerp_iface_DealResponse();
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         $result->invoiced->amount = $rec->total;
+        $result->invoiced->vatType = $rec->vatRate;
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {

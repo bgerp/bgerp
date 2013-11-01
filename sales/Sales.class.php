@@ -1079,14 +1079,15 @@ class sales_Sales extends core_Master
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
         
-        $result->paid->amount   = $rec->amountPaid;
-        $result->paid->currency = $rec->currencyId;
+        $result->paid->amount                 = $rec->amountPaid;
+        $result->paid->currency               = $rec->currencyId;
         $result->paid->payment->method        = $rec->paymentMethodId;
         $result->paid->payment->bankAccountId = $rec->bankAccountId;
         $result->paid->payment->caseId        = $rec->caseId;
 
-        $result->shipped->amount   = $rec->amountDelivered;
-        $result->shipped->currency = $rec->currencyId;
+        $result->shipped->amount             = $rec->amountDelivered;
+        $result->shipped->vatType            = $rec->chargeVat;
+        $result->shipped->currency           = $rec->currencyId;
         $result->shipped->delivery->location = $rec->deliveryLocationId;
         $result->shipped->delivery->term     = $rec->deliveryTermId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
