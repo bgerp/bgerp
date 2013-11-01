@@ -213,7 +213,7 @@ class sales_Sales extends core_Master
         /*
          * Доставка
          */
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 
             'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
@@ -227,7 +227,7 @@ class sales_Sales extends core_Master
         /*
          * Плащане
          */
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)',
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)',
             'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)',
             'caption=Плащане->Валута');
@@ -615,7 +615,7 @@ class sales_Sales extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("|Продажба| №") . $rec->id;
+        return tr("|Продажба|* №") . $rec->id;
     }
 
 
@@ -881,6 +881,10 @@ class sales_Sales extends core_Master
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    	}
+    	
+    	if($rec->state == 'active' && sales_Invoices::haveRightFor('add')){
+    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
     	}
     }
     

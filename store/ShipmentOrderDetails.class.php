@@ -371,7 +371,7 @@ class store_ShipmentOrderDetails extends core_Detail
         /* @var $dealInfo bgerp_iface_DealResponse */
         $dealInfo = $origin->getDealInfo();
         
-        $data->form->setOptions('productId', self::buildProductOpions($dealInfo->agreed));
+        $data->form->setOptions('productId', self::buildProductOptions($dealInfo->agreed));
         $data->form->rec->productId = $data->form->rec->classId . '|' . $data->form->rec->productId;
     }
     
@@ -384,7 +384,7 @@ class store_ShipmentOrderDetails extends core_Detail
      *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
      *                на този продуктов клас.
      */
-    public static function buildProductOpions(bgerp_iface_DealAspect $dealAspect)
+    public static function buildProductOptions(bgerp_iface_DealAspect $dealAspect)
     {
         
         $options = array();

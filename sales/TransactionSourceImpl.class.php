@@ -190,7 +190,7 @@ class sales_TransactionSourceImpl
     protected function hasPaymentPart($rec)
     {
         // Плащане в брой?
-        if (cond_PaymentMethods::fetchField($rec->paymentMethodId, 'name') != 'COD') {
+        if ($rec->paymentMethodId && cond_PaymentMethods::fetchField($rec->paymentMethodId, 'name') != 'COD') {
             // Не е плащане в брой
             return FALSE;
         }
@@ -203,7 +203,7 @@ class sales_TransactionSourceImpl
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
+     *    Ct: 7011 или Ct: 703 - Приходи от продажби по Документи  (Стоки и Продукти) / Приходи от продажби на услуги
      *    
      * @param stdClass $rec
      * @return array
@@ -219,6 +219,14 @@ class sales_TransactionSourceImpl
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
+        	
+        	// Ако артикула е складируем кредитира се 7011, иначе 703
+        	if(static::isStorable($detailRec->classId, $detailRec->productId)){
+        		$creditAccId = '7011';
+        	} else {
+        		$creditAccId = '703';
+        	}
+        	
             $entries[] = array(
                 'amount' => $detailRec->amount * $currencyRate, // В основна валута
                 
@@ -230,7 +238,7 @@ class sales_TransactionSourceImpl
                 ),
                 
                 'credit' => array(
-                    '7011', // Сметка "7011. Приходи от продажби по Документи"
+                    $creditAccId, // Сметка "7011. Приходи от продажби по Документи"
                         array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
@@ -305,20 +313,24 @@ class sales_TransactionSourceImpl
         expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
-            $entries[] = array(
-                'debit' => array(
-                    '7011', // Сметка "7011. Приходи от продажби по Документи"
-                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
-                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-                ),
-                
-                'credit' => array(
-                    '321', // Сметка "321. Стоки и Продукти"
-                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
-                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-                ),
-            );
+        	
+        	// Само складируемите продукти се изписват от склада
+        	if(static::isStorable($detailRec->classId, $detailRec->productId)){
+        		$entries[] = array(
+	                'debit' => array(
+	                    '7011', // Сметка "7011. Приходи от продажби по Документи"
+	                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
+	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
+	                ),
+	                
+	                'credit' => array(
+	                    '321', // Сметка "321. Стоки и Продукти"
+	                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
+	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
+	                ),
+	            );
+        	}
         }
         
         return $entries;
@@ -334,5 +346,20 @@ class sales_TransactionSourceImpl
     protected function getCurrencyRate($rec)
     {
         return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+    }
+    
+    
+    /**
+     * Дали един артикул е складируем
+     * @param mixed $classId - продуктовия клас
+     * @param int $productId - ид на продукта
+     * @return boolean - складируем ли е продукта
+     */
+    public static function isStorable($classId, $productId)
+    {
+    	expect($Class = cls::get($classId));
+    	expect($pInfo = $Class->getProductInfo($productId));
+    	
+    	return isset($pInfo->meta['canStore']);
     }
 }

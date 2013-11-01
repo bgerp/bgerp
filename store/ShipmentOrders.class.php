@@ -526,7 +526,7 @@ class store_ShipmentOrders extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $title = tr("Експедиционно нареждане |№" . $rec->id);
+        $title = tr("|Експедиционно нареждане|* №" . $rec->id);
         
          
         return $title;

@@ -204,19 +204,6 @@ class pos_Receipts extends core_Master {
     		$data->toolbar->addBtn('Всички', array($mvc, 'list', 'ret_url' => TRUE),
     							   'ef_icon=img/16/application_view_list.png, order=18');    
     	}
-    	
-    	if($data->rec->state != 'draft' && $data->rec->state != 'closed' && sales_Invoices::haveRightFor('add')){
-    		if($client = $mvc->pos_ReceiptDetails->hasClient($data->rec->id)){
-    		$contragentClass = $client->class;
-    		$contragentRec = $contragentClass::fetch($client->id);
-    		$url = array('sales_Invoices',
-    					 'add',
-    					 'folderId' => $contragentRec->folderId, 
-    					 'docType' => static::getClassId(), 
-    					 'docId' => $data->rec->id);
-    		$data->toolbar->addBtn('Фактура', $url, 'ef_icon=img/16/invoice.png, order=18');
-    		}
-    	}
     }
     
     
@@ -462,6 +449,9 @@ class pos_Receipts extends core_Master {
     		$totalVat += $product->vatPrice;
     		$amount = currency_CurrencyRates::convertAmount($totalAmount, $rec->createdOn, $currencyCode);
 	    	
+    		$storable = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
+    		$creditAccId = ($storable) ? '7012' : '703';
+    		
     		// Първо Отчитаме прихода от продажбата
     		$entries[] = array(
 	        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
@@ -472,24 +462,27 @@ class pos_Receipts extends core_Master {
 	            'quantity' => $amount), // "брой пари" във валутата на продажбата
 	        
 	        'credit' => array(
-	            '7012', // Сметка "7012. Приходи от POS продажби"
+	            $creditAccId, // Сметка "7012. Приходи от POS продажби" или "703. приходи от продажба на услуги"
 	              	array('cat_Products', $product->productId), // Перо 1 - Продукт
 	            'quantity' => $totalQuantity), // Количество продукт в основната му мярка
 	    	);
 	    	
-	    	// После отчитаме експедиране от склада
-    		$entries[] = array(
-		        'debit' => array(
-		            '7012', // Сметка "7012. Приходи от POS продажби"
-		            	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            	'quantity' => $totalQuantity), // Количество продукт в основната му мярка
-		        
-		        'credit' => array(
-		            '321', // Сметка "321. Стандартни продукти"
-		              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
-		              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	                'quantity' => $totalQuantity), // Количество продукт в основната му мярка
-	    	);
+	    	// Само складируемите продукти се изписват от склада
+	    	if($storable){
+	    		// После отчитаме експедиране от склада
+	    		$entries[] = array(
+			        'debit' => array(
+			            '7012', // Сметка "7012. Приходи от POS продажби"
+			            	array('cat_Products', $product->productId), // Перо 1 - Продукт
+		            	'quantity' => $totalQuantity), // Количество продукт в основната му мярка
+			        
+			        'credit' => array(
+			            '321', // Сметка "321. Стандартни продукти"
+			              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
+			              	array('cat_Products', $product->productId), // Перо 1 - Продукт
+		                'quantity' => $totalQuantity), // Количество продукт в основната му мярка
+		    	);
+	    	}
     	}
     	
     	$entries[] = array(
