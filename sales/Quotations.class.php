@@ -580,16 +580,16 @@ class sales_Quotations extends core_Master
         $result = new bgerp_iface_DealResponse();
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $result->agreed->amount                  = $total;
-        $result->agreed->currency                = $rec->paymentCurrencyId;
-        $result->agreed->vatType 				 = $rec->vat;  
+        $result->quoted->amount                  = $total;
+        $result->quoted->currency                = $rec->paymentCurrencyId;
+        $result->quoted->vatType 				 = $rec->vat;  
         if($rec->deliveryPlaceId){
-        	$result->agreed->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+        	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         }
-        $result->agreed->delivery->term          = $rec->deliveryTermId;
-    	$result->agreed->payment->method         = $rec->paymentMethodId;
+        $result->quoted->delivery->term          = $rec->deliveryTermId;
+    	$result->quoted->payment->method         = $rec->paymentMethodId;
     	
-    	$result->agreed->products = $products;
+    	$result->quoted->products = $products;
         
         return $result;
     }

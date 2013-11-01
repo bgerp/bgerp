@@ -379,18 +379,18 @@ class sales_SaleRequests extends core_Master
     	
     	$result = new bgerp_iface_DealResponse();
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        $result->agreed->amount                = $rec->amount;
-        $result->agreed->currency              = $rec->paymentCurrencyId;
-        $result->agreed->vatType			   = $rec->vat;
+        $result->quoted->amount                = $rec->amount;
+        $result->quoted->currency              = $rec->paymentCurrencyId;
+        $result->quoted->vatType			   = $rec->vat;
         if($rec->deliveryPlaceId){
         	$placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
-        	$result->agreed->delivery->location  = $placeId;
+        	$result->quoted->delivery->location  = $placeId;
         }
-        $result->agreed->delivery->term        = $rec->deliveryTermId;
-        $result->agreed->payment->method       = $rec->paymentMethodId;
+        $result->quoted->delivery->term        = $rec->deliveryTermId;
+        $result->quoted->payment->method       = $rec->paymentMethodId;
     	
     	foreach ($details as $dRec) {
-            $result->agreed->products[] = new sales_model_QuotationProduct($dRec);
+            $result->quoted->products[] = new sales_model_QuotationProduct($dRec);
         }
         
         return $result;

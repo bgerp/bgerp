@@ -337,10 +337,10 @@ class sales_Sales extends core_Master
             /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getDealInfo();
             
-            $agreed = $dealInfo->agreed;
+            $quoted = $dealInfo->quoted;
             
             /* @var $product bgerp_iface_DealProduct */
-            foreach ($agreed->products as $product) {
+            foreach ($quoted->products as $product) {
                 $product = (object)$product;
 
                 if ($product->quantity <= 0) {
@@ -546,7 +546,7 @@ class sales_Sales extends core_Master
         
         /* @var $dealInfo bgerp_iface_DealResponse */
         $dealInfo = $origin->getDealInfo();
-        $aspect   = $dealInfo->agreed; // @FIXME: не трябваше ли да е ->quoted ?
+        $aspect   = $dealInfo->quoted;
         
         $form->rec->deliveryTermId = $aspect->delivery->term;
         $form->rec->deliveryLocationId = $aspect->delivery->location;
