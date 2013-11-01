@@ -109,9 +109,9 @@ class bgerp_Setup {
         
         // Списък на основните модули на bgERP
         $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumbnail,doc,acc,currency,cms,
-                  email,crm, cat, price, blast,rfid,hr,trz,lab,sales,mp,store,cond,cash,bank,
+                  email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
-                  vislog,docoffice,incoming,support,survey,pos,change,sass,techno,callcenter,social,hyphen,trans";
+                  vislog,docoffice,incoming,support,survey,pos,change,sass,techno,callcenter,social,hyphen";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if(defined('EF_PRIVATE_PATH')) {
