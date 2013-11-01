@@ -31,11 +31,22 @@ class backup_Start extends core_Manager
     static function Full()
     {
         
+        $conf = core_Packs::getConfig('backup');
+        
+        // проверка дали всичко е наред с mysqldump-a
+        exec("mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -u" . $conf->BACKUP_MYSQL_USER_NAME. " -p" . $conf->BACKUP_MYSQL_USER_PASS. " bgerp 2>&1", $output ,  $returnVar);
+        if ($returnVar !==0) {
+            core_Logs::add("Backup", "", "FULL Backup ERROR!");
+
+            exit(1);
+        }
+        
         exec("mysqldump --lock-tables --delete-master-logs -u"
               . BACKUP_MYSQL_USER_NAME . " -p" . BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME 
               . " | gzip -9 >" . EF_TEMP_PATH ."/" . BACKUP_PREFIX . "_" . EF_DB_NAME
             );
         // Сваляме мета файла с описанията за бекъпите
+        
         // Добавяме нов запис за пълния бекъп
         // Качваме EF_TEMP_PATH ."/" . BACKUP_PREFIX . "_" . EF_DB_NAME.gz
         // като BACKUP_PREFIX . "_" . EF_DB_NAME . "_". date("D_M_Y_H_i") . ".gz"
