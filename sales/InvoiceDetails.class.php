@@ -86,39 +86,13 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('quantity', 'double', 'caption=К-во,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
-        $this->FLD('quantityInPack', 'double', 'input=none,column=none');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input');
+        $this->FLD('quantityInPack', 'double', 'input=none');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
 		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
 		
 		$this->setDbUnique('invoiceId, productId, packagingId');
 	}
-	
-	
-	/**
-	 * Подготовка на бутоните за добавяне на нови редове на фактурата 
-	 */
-	public static function on_AfterPrepareListToolbar($mvc, $data) 
-	{
-		if (!empty ($data->toolbar->buttons ['btnAdd'])) {
-			$productManagers = core_Classes::getOptionsByInterface ('cat_ProductAccRegIntf');
-			$masterRec = $data->masterData->rec;
-			$addUrl = $data->toolbar->buttons ['btnAdd']->url;
-			
-			foreach ($productManagers as $manId => $manName) {
-				$productMan = cls::get ($manId);
-				$products = $productMan->getProducts ($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
-				if (!count ($products)) {
-					$error = "error=Няма продаваеми {$productMan->title}";
-				}
-				
-				$data->toolbar->addBtn ($productMan->singleTitle, $addUrl + array ('classId' => $manId), "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-	            	unset($error);
-	        }
-	            
-	        unset($data->toolbar->buttons['btnAdd']);
-	   }
-    }
     
     
     /**
@@ -126,33 +100,17 @@ class sales_InvoiceDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-      	$form = $data->form;
-        $ProductMan = cls::get($form->rec->classId);
-        
-        // Поакзваме само продуктите спрямо ценовата политиказа контрагента
-        $masterRec = $mvc->Master->fetch($form->rec->invoiceId);
-        $products = $ProductMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
-       
-        $data->form->fields['price']->unit = ($masterRec->vatRate == 'yes') ? 'с ДДС' : 'без ДДС';
-        
-        
-        if($form->rec->id){
-        	$form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
-        } else {
-        	$form->setOptions('productId', $products);
-        }
+      	$form = &$data->form;
+      	
+      	$masterRec = $mvc->Master->fetch($form->rec->invoiceId);
+      	expect($origin = $mvc->Master->getOrigin($masterRec));
+      	$dealAspect = $origin->getAggregateDealInfo()->shipped;
+      	$invProducts = $mvc->Master->getDealInfo($form->rec->invoiceId)->invoiced;
+        $form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId));
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
         (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
       	$form->title = "{$action} |на запис в|* {$masterTitle}";
-      	
-   		if($form->rec->price && $masterRec->rate){
-   		 	if($masterRec->chargeVat == 'yes'){
-   		 		$form->rec->price *= 1 + $ProductMan->getVat($form->rec->productId, $masterRec->valior);
-   		 	}
-   		 	
-       	 	$form->rec->price = round($form->rec->price / $masterRec->rate, 2);
-         }
     }
 
     
@@ -187,42 +145,25 @@ class sales_InvoiceDetails extends core_Detail
         if($form->isSubmitted()) {
             $rec = &$form->rec;
             $update = FALSE;
-            
-        	if(empty($rec->id) && $id = $mvc->fetchField("#invoiceId = {$rec->invoiceId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}", 'id')){
-            	$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
-            	$rec->id = $id;
-            	$update = TRUE;
-            }
+            list($rec->classId, $rec->productId) = explode('|', $rec->productId, 2);
             
             $productMan = cls::get($rec->classId);
             if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
           	   $form->setError('packagingId', 'Продукта не се предлага в посочената опаковка');
           	   return;
             }
-          
-            $rec->quantityInPack = ($rec->packagingId) ? $pInfo->packagingRec->quantity : 1;
-            $masterRec = $mvc->Master->fetch($rec->invoiceId);
             
-            if(!$rec->price){
-          	
-	            // Ако не е зададена цена, извличаме я от избраната политика
-	          	$rec->price = $productMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity)->price;
-	          	if(!$rec->price){
-		            $form->setError('price', 'Неможе да се определи цена');
-		        }
-          	} else {
-          		if ($masterRec->vatRate == 'yes') {
-                	if(!$update || ($update && Request::get('Ignore'))){
-                		
-                		// Потребителя въвежда цените с ДДС
-                    	$rec->price /= 1 + $productMan->getVat($rec->productId, $masterRec->valior);
-                	} 
-                }
-          		$rec->price = $rec->price * $masterRec->rate;
-          	}
-          
-           // Изчисляваме цената
-           $rec->amount = $rec->price * $rec->quantity;
+            $masterRec = $mvc->Master->fetch($rec->invoiceId);
+          	$origin = $mvc->Master->getOrigin($masterRec);
+      		$dealInfo = $origin->getAggregateDealInfo();
+            
+      		$aggreedProduct = $dealInfo->shipped->findProduct($rec->productId, $rec->classId, $rec->packagingId);
+      		$rec->price = $aggreedProduct->price;
+            $rec->uomId = $aggreedProduct->uomId;
+      		$rec->quantityInPack = ($rec->packagingId) ? $pInfo->packagingRec->quantity : 1;
+            
+            // Изчисляваме цената
+            $rec->amount = $rec->price * $rec->quantity;
         }
     }
 
@@ -272,8 +213,22 @@ class sales_InvoiceDetails extends core_Detail
     		// Ако фактурата е генерирана от вече контирана продажба
     		// неможе да се добавят нови продукти
     		$invoiceRec = $mvc->Master->fetch($rec->invoiceId);
-    		if(($invoiceRec->originId && $invoiceRec->type == 'invoice') || ($invoiceRec->docType && $invoiceRec->docId)){
+    		if($invoiceRec->docType && $invoiceRec->docId){
     			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec->invoiceId)){
+    		$invType = $mvc->Master->fetchField($rec->invoiceId, 'type');
+    		
+      		if($invType == 'invoice'){
+      			$masterRec = $mvc->Master->fetch($rec->invoiceId);
+		      	$origin = $mvc->Master->getOrigin($masterRec);
+		      	$dealAspect = $origin->getAggregateDealInfo()->shipped;
+		      	$invProducts = $mvc->Master->getDealInfo($rec->invoiceId)->invoiced;
+    			if(!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }

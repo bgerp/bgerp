@@ -645,10 +645,10 @@ class sales_Invoices extends core_Master
         
     	$invArr = (array)$origin->fetch();
     	$invHandle = $origin->getHandle();
-    	$invDate = $origin->recToVerbal()->date;
-        $invArr['reason'] = "{$caption} към фактура #{$invHandle} от {$invDate}";
+    	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
+    	$invArr['reason'] = tr("|{$caption} към фактура|* #{$invHandle} |издадена на|* {$invDate}");
         
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount') as $key){
         	 unset($invArr[$key]);
         }
         
@@ -706,7 +706,7 @@ class sales_Invoices extends core_Master
     	switch ($action) {
     		case 'edit':
 	    	    // Фактурата неможе се едитва, ако е възоснова на продажба
-	    		if(($rec->originId && $rec->type == 'invoice') || ($rec->docType && $rec->docId)){
+	    		if(($rec->docType && $rec->docId)){
 	    			$requiredRoles = 'no_one';
 	    		}
     			break;

@@ -136,4 +136,40 @@ class bgerp_iface_DealAspect
         
         return NULL;
     }
+    
+    
+	/**
+	 * Помощен метод за строеж на select-списък с продукти, зададени чрез bgerp_iface_DealAspect 
+     * 
+	 * @param array $dealAspectOriginProducts - продуктите които идват от ориджина
+	 * @param array $dealAspectThisProducts - вече вкараните продукти
+	 * @param ibt $productId - ид на продукт
+	 * @param int $classId - класа на продукта
+	 * 
+	 * @return array едномерен масив с ключове от вида `classId`|`productId`, където `classId` е
+     *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
+     *                на този продуктов клас.
+	 */
+    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $productId = NULL, $classId = NULL)
+    {
+        $options = array();
+        
+        if($productId && $classId){
+        	$options["{$classId}|{$productId}"] = cls::get($classId)->getTitleById($productId);
+        	return $options;
+        }
+        
+        foreach ($dealAspectOriginProducts->products as $p) {
+        	if($dealAspectThisProducts->findProduct($p->productId, $p->classId, $p->packagingId)) continue;
+        	
+            $ProductManager = cls::get($p->classId);
+            $classId = $p->getClassId();
+        
+            // Използваме стойността на select box-а за да предадем едновременно две стойности -
+            // ид на политика и ид на продукт.
+            $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
+        }
+        
+        return (count($options)) ? $options : FALSE;
+    }
 }

@@ -296,15 +296,15 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($action == 'delete' || $action == 'add') {
-            // Изтриването на ред от ЕН може да се прави от същите потребители, които имат 
-            // права да го редактират
-            $action = 'edit';
-        }
-        
-        // Прехвърляме правата за достъп до ЕН (мастъра) върху всеки ред от детайлите му. 
-        $requiredRoles = store_ShipmentOrders::getRequiredRoles($action, 
-            (object)array('id'=>$rec->shipmentId), $userId);
+        if($action == 'add' && isset($rec->shipmentId)){
+      		$masterRec = $mvc->Master->fetch($rec->shipmentId);
+		    $origin = $mvc->Master->getOrigin($masterRec);
+		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
+		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
+    		if(!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
 
 
@@ -366,40 +366,16 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
+        $form = &$data->form;
+    	$origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
         
-        /* @var $dealInfo bgerp_iface_DealResponse */
-        $dealInfo = $origin->getDealInfo();
+        $masterRec = $mvc->Master->fetch($form->rec->shipmentId);
+      	expect($origin = $mvc->Master->getOrigin($masterRec));
+      	$dealAspect = $origin->getAggregateDealInfo()->agreed;
+      	$invProducts = $mvc->Master->getDealInfo($form->rec->shipmentId)->shipped;
         
-        $data->form->setOptions('productId', self::buildProductOptions($dealInfo->agreed));
+      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId));
         $data->form->rec->productId = $data->form->rec->classId . '|' . $data->form->rec->productId;
-    }
-    
-    
-    /**
-     * Помощен метод за строеж на select-списък с продукти, зададени чрез bgerp_iface_DealAspect 
-     * 
-     * @param bgerp_iface_DealAspect $dealAspect
-     * @return array едномерен масив с ключове от вида `classId`|`productId`, където `classId` е
-     *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
-     *                на този продуктов клас.
-     */
-    public static function buildProductOptions(bgerp_iface_DealAspect $dealAspect)
-    {
-        
-        $options = array();
-        
-        foreach ($dealAspect->products as $p) {
-            $ProductManager = cls::get($p->classId);
-        
-            $classId = $p->getClassId();
-        
-            // Използваме стойността на select box-а за да предадем едновременно две стойности -
-            // ид на политика и ид на продукт.
-            $options["{$classId}|{$p->productId}"] = $ProductManager->getTitleById($p->productId);
-        }
-        
-        return $options;
     }
     
     
@@ -415,13 +391,6 @@ class store_ShipmentOrderDetails extends core_Detail
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             $rec = $form->rec;
-        	if(empty($rec->id)){
-        		list($classId, $productId) = explode('|', $rec->productId);
-        		if($id = $mvc->fetchField("#shipmentId = {$rec->shipmentId} AND #classId = {$classId} AND #productId = {$productId}", 'id')){
-        			$form->setWarning("productId", "Има вече такъв продукт! Искатели да го обновите ?");
-            		$rec->id = $id;
-        		}
-            }
             
             // Извличаме ид на политиката, кодирано в ид-то на продукта 
             // @see store_ShipmentOrderDetails::on_AfterPrepareEditForm()
