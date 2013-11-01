@@ -106,7 +106,7 @@ class sales_InvoiceDetails extends core_Detail
       	expect($origin = $mvc->Master->getOrigin($masterRec));
       	$dealAspect = $origin->getAggregateDealInfo()->shipped;
       	$invProducts = $mvc->Master->getDealInfo($form->rec->invoiceId)->invoiced;
-        $form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId));
+        $form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
         
         $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
         (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
@@ -145,7 +145,7 @@ class sales_InvoiceDetails extends core_Detail
         if($form->isSubmitted()) {
             $rec = &$form->rec;
             $update = FALSE;
-            list($rec->classId, $rec->productId) = explode('|', $rec->productId, 2);
+            list($rec->classId, $rec->productId, $rec->packagingId) = explode('|', $rec->productId);
             
             $productMan = cls::get($rec->classId);
             if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){

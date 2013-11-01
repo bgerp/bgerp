@@ -790,6 +790,6 @@ class store_ShipmentOrders extends core_Master
     	requireRole('debug');
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
-    	bp($info->agreed,$info->shipped);
+    	bp($info->shipped);
     }
 }

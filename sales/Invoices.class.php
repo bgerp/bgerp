@@ -628,6 +628,10 @@ class sales_Invoices extends core_Master
     		if(dec_Declarations::haveRightFor('add')){
     			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/declarations.png, row=2');
     		}
+    		
+	    	if(haveRole('debug')){
+	    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+	    	}
     	}	 
     }
     
@@ -1002,5 +1006,17 @@ class sales_Invoices extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
+    }
+    
+    
+	/**
+     * Дебъг екшън показващ агрегираните бизнес данни
+     */
+    function act_DealInfo()
+    {
+    	requireRole('debug');
+    	expect($id = Request::get('id', 'int'));
+    	$info = $this->getDealInfo($id);
+    	bp($info->invoiced);
     }
 }
