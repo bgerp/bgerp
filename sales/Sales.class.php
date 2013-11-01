@@ -1003,6 +1003,7 @@ class sales_Sales extends core_Master
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
@@ -1070,6 +1071,7 @@ class sales_Sales extends core_Master
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
