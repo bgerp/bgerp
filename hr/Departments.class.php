@@ -212,7 +212,7 @@ class hr_Departments extends core_Master
             
             if($rec->staff || $rec->dependent) {
                 
-                $expandedDepartment = self::expand($form->rec->dependent);
+                $expandedDepartment = self::expandRec($form->rec->dependent);
                 
                 // Ако има грешки
                 if ($expandedDepartment[$rec->id]) {
@@ -272,5 +272,57 @@ class hr_Departments extends core_Master
     	     }
          }
     }
+    
+    
+    /**
+     * Манипулации със заглавието
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterRenderListTitle($mvc, &$title, $data)
+    {
+    	$title = new ET('[#1#]', $title);
+            
+        $title->append('<div style="margin-top:5px;margin-bottom:5px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
+        
+        $chartType = Request::get('Chart');
+        
+        if($chartType) {
+        	$url = getCurrentUrl();
+        	unset($url['Chart']);
+        }
+        
+        $urlChart = toUrl(array('hr_Departments', 'Display'));
+       
+        $title->append(ht::createLink(tr('Tаблица'), $url) , 'ListSummary');
+        
+        $title->append("&nbsp;|&nbsp;", 'ListSummary');
+        
+        $title->append(ht::createLink(tr('Графика'), $urlChart) , 'ListSummary');
+      
+        $title->append('</div>', 'ListSummary');
+    }
 
+    
+    function act_Display ()
+    {
+
+    	//self::requireRightFor('day');
+    	    		    	
+    	$data = new stdClass();
+    	$data->query = $this->getQuery();
+    	//$data->action = 'day';
+    	
+    	while($rec=$data->query->fetch()){
+    		$res[]=array(
+    				'id' => $rec->id,
+    				'title' => $rec->name,
+    				'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
+    		);
+    	}
+    	           
+		return $this->renderWrapping(orgchart_Adapter::render_($res));
+
+    }
 }
