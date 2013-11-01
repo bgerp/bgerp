@@ -87,7 +87,12 @@
                         </div>
                         <!--ET_END storeId-->
                              
-        
+        				<!--ET_BEGIN vehicleId-->
+        				<div>
+                            |Доставител|*: <b>[#vehicleId#] </b>
+                        </div>
+        				<!--ET_END vehicleId-->
+        				
                         <!--ET_BEGIN note-->
 	                        <hr />
 	                        <div class="richtext">[#note#]</div> 

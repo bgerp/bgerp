@@ -44,13 +44,11 @@ class store_ShipmentOrders extends core_Master
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, acc_plg_Registry';
+                    doc_plg_BusinessDoc2, acc_plg_Registry, plg_LastUsedKeys';
 
     
     /**
      * Кой има право да чете?
-     * 
-     * @var string|array
      */
     public $canRead = 'ceo,store';
     
@@ -69,24 +67,18 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
     public $canEdit = 'ceo,store';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
     public $canAdd = 'ceo,store';
     
     
     /**
      * Кой може да го види?
-     * 
-     * @var string|array
      */
     public $canView = 'ceo,store';
 
@@ -99,18 +91,20 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * Кой може да го изтрие?
-     * 
-     * @var string|array
      */
     public $canDelete = 'ceo,store';
     
     
     /**
      * Кой може да го изтрие?
-     * 
-     * @var string|array
      */
     public $canConto = 'ceo,store';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'vehicleId';
     
     
     /**
@@ -196,6 +190,7 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
             'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
+        $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
         /*
          * Допълнително
