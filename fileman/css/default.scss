@@ -190,11 +190,26 @@ body{
 			border: none;
 			vertical-align: top !important;
 	    }
-		tr>td:first-child{
+		tr > td:first-child{
 			width:48px;
 			height:48px;
-			vertical-align:middle;
-			text-align:center;
+			padding: 3px ;
+			.file-log-link{
+				width:48px;
+				height:48px;
+				position:relative;
+				display:block;
+				img{
+					position:absolute;
+					max-width:48px;
+					max-height:48px;
+					top:0;
+					bottom:0;
+					left:0;
+					right:0;
+					margin:auto;
+				}
+			}
 		}
 	}
 }
