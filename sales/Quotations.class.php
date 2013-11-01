@@ -582,6 +582,7 @@ class sales_Quotations extends core_Master
         
         $result->agreed->amount                  = $total;
         $result->agreed->currency                = $rec->paymentCurrencyId;
+        $result->agreed->vatType 				 = $rec->vat;  
         if($rec->deliveryPlaceId){
         	$result->agreed->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         }

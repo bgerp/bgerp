@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Milen Georgiev <milen@download.bg>
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1

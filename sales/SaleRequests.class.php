@@ -375,14 +375,13 @@ class sales_SaleRequests extends core_Master
     	$rec = self::fetchRec($id);
     	$query = $this->sales_SaleRequestDetails->getQuery();
     	$query->where("#requestId = {$id}");
-    	$query->XPR('sumProduct', 'double', 'SUM(#quantity)');
-    	$query->groupBy('productManId,productId');
     	$details = $query->fetchAll();
     	
     	$result = new bgerp_iface_DealResponse();
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         $result->agreed->amount                = $rec->amount;
         $result->agreed->currency              = $rec->paymentCurrencyId;
+        $result->agreed->vatType			   = $rec->vat;
         if($rec->deliveryPlaceId){
         	$placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         	$result->agreed->delivery->location  = $placeId;

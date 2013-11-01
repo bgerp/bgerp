@@ -181,7 +181,7 @@ class sales_Sales extends core_Master
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	//'isInstantShipment'  => 'lastDocUser|lastDoc',
     	'initiatorId'        => 'lastDocUser|lastDoc',
-    	//'chargeVat'			 => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
@@ -548,11 +548,13 @@ class sales_Sales extends core_Master
         $dealInfo = $origin->getDealInfo();
         $aspect   = $dealInfo->agreed; // @FIXME: не трябваше ли да е ->quoted ?
         
-        $form->setDefault('deliveryTermId', $aspect->delivery->term);
-        $form->setDefault('deliveryLocationId', $aspect->delivery->location);
-        $form->setDefault('paymentMethodId', $aspect->payment->method);
-        $form->setDefault('bankAccountId', $aspect->payment->bankAccountId);
-        $form->setDefault('currencyId', $aspect->currency);
+        $form->rec->deliveryTermId = $aspect->delivery->term;
+        $form->rec->deliveryLocationId = $aspect->delivery->location;
+        $form->rec->paymentMethodId = $aspect->payment->method;
+        $form->rec->bankAccountId = $aspect->payment->bankAccountId;
+        $form->rec->currencyId = $aspect->currency;
+        $form->rec->chargeVat = $aspect->vatType;
+        $form->setReadOnly('chargeVat');
     }
     
     
