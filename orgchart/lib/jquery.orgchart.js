@@ -159,7 +159,11 @@
                 $tbody.append($downLineRow);
 
                 if ($childNodes.length > 0) {
-                    $nodeDiv.addClass("hasChildren");
+                	if($childNodes.length == 1){
+                		 $nodeDiv.addClass("hasChild");
+                	} else{
+                		 $nodeDiv.addClass("hasChildren");
+                	}
                     if (opts.showLevels == -1 || level < opts.showLevels-1) {
                         $nodeDiv.addClass("shownChildren");
                     }
@@ -170,17 +174,34 @@
                         $nodeDiv.hover(function() {$(this).addClass(opts.hoverClass);}, function() {$(this).removeClass(opts.hoverClass)});
                     }
                 }
+                if($childNodes.length > 1){
+	                // Recursively make child nodes...
+	                var $linesRow = $("<tr/>").addClass("lines v");
+	                $childNodes.each(function() {
+	                    var $left = $("<td/>").addClass("line left top");
+	                    var $right = $("<td/>").addClass("line right top");
+	                    $linesRow.append($left).append($right);
+	                });
+	                $linesRow.find("td:first").removeClass("top");
+	                $linesRow.find("td:last").removeClass("top");
+	                $tbody.append($linesRow);
+	                
+            	}else{
+            		 var $downLineRow = $("<tr/>").addClass("lines");
+                     var $downLineCell = $("<td/>").attr("colspan", $childNodes.length*2);
+                     $downLineRow.append($downLineCell);
 
-                // Recursively make child nodes...
-                var $linesRow = $("<tr/>").addClass("lines v");
-                $childNodes.each(function() {
-                    var $left = $("<td/>").addClass("line left top");
-                    var $right = $("<td/>").addClass("line right top");
-                    $linesRow.append($left).append($right);
-                });
-                $linesRow.find("td:first").removeClass("top");
-                $linesRow.find("td:last").removeClass("top");
-                $tbody.append($linesRow);
+                     var $downLineTable = $("<table cellpadding='0' cellspacing='0' border='0'>");
+                     $downLineTable.append("<tbody>");
+                     var $downLineLine = $("<tr/>").addClass("lines x");
+                     var $downLeft = $("<td>").addClass("line left");
+                     var $downRight = $("<td>").addClass("line right");
+                     $downLineLine.append($downLeft).append($downRight);
+                     $downLineTable.children("tbody").append($downLineLine);
+                     $downLineCell.append($downLineTable);
+
+                     $tbody.append($downLineRow);
+            	}
                 var $childNodesRow = $("<tr/>");
                 $childNodes.each(function(index) {
                     var $td = $("<td/>");
@@ -188,6 +209,7 @@
                     buildNode($(this), $td, level+1, index, opts);
                     $childNodesRow.append($td);
                 });
+                
                 $tbody.append($childNodesRow);
             }
             else if (opts.stack) {

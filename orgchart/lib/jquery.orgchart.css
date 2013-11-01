@@ -76,7 +76,7 @@ div.orgChart div.node {
     -webkit-box-shadow    : 4px 4px 6px #888888;
 }
 
-div.orgChart div.hasChildren {
+div.orgChart div.hasChildren, div.orgChart div.hasChild {
     background-color      : #ffff98;
 }
 
