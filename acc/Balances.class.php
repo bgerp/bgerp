@@ -229,19 +229,21 @@ class acc_Balances extends core_Master
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");
+        $lastEntry = '1970-01-01 10:00:00';
         while($pRec = $pQuery->fetch()) {
             
-            if($pRec->lastEntry) {
+            $lastEntry = max($lastEntry, $pRec->lastEntry);
+            
+            if($lastEntry) {
                 $rec = self::fetch("#periodId = $pRec->id");
                 if(!$rec || ($rec->lastCalculate <= $pRec->lastEntry)) {
 
                     if(!$rec) {
                         $rec = new stdClass();
                     }
-                    $lastCalculate = dt::verbal2mysql();
 
                     $rec->periodId      = $pRec->id;
-                    $rec->lastCalculate = $lastCalculate;
+                    $rec->lastCalculate = dt::verbal2mysql();
                     
                     self::save($rec); // Детайлите на баланса се изчисляват в on_AfterSave()
                 }
