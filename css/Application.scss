@@ -1916,6 +1916,16 @@ fieldset.sharing-history {
 .filesContainer .top-table{
 	margin-bottom:15px;
 }
+
+.webdrv-preview{
+	display: block; 
+	max-width:100%;
+	height:auto;
+	margin-top:5px;
+	&:first-child{
+		margin-top:0;
+	}
+}
 /*стилове за fileman*/
 
 
