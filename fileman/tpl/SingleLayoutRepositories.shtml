@@ -34,7 +34,9 @@
 	</table>
 	
 	<!--ET_BEGIN FileTree-->
-		[#FileTree#]
+		<div class="file-tree">
+			[#FileTree#]
+		</div>
 	<!--ET_END FileTree-->
 	
 </div>
