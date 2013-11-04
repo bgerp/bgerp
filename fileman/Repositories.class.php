@@ -17,7 +17,7 @@ defIfNot('EF_REPOSITORIES_PATHS',  EF_UPLOADS_PATH . '/repositories');
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_Repositories extends core_Manager
+class fileman_Repositories extends core_Master
 {
     
     
@@ -25,6 +25,24 @@ class fileman_Repositories extends core_Manager
      * Заглавие на таблицата
      */
     var $title = "Път до хранилище";
+    
+    
+    /**
+     * 
+     */
+    var $singleTitle = "Хранилище";
+    
+    
+    /**
+     * 
+     */
+    var $singleLayoutFile = 'fileman/tpl/SingleLayoutRepositories.shtml';
+    
+    
+    /**
+     * 
+     */
+    var $canSingle = 'admin';
     
     
     /**
@@ -84,6 +102,12 @@ class fileman_Repositories extends core_Manager
     /**
      * 
      */
+    var $listFields = 'id, verbalName, fullPath, access, ignore';
+    
+    
+    /**
+     * Името на кофата за файловете
+     */
     static $bucket = 'repositories';
     
     
@@ -94,10 +118,22 @@ class fileman_Repositories extends core_Manager
     {
         $this->FLD('basePath', 'varchar(readonly)', 'caption=Хранилище, mandatory, width=100%');
         $this->FLD('subPath', 'varchar', 'caption=Подпапка, width=100%');
-        $this->FLD('rolesForAccess', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роля за достъп, width=100%,placeholder=Всички');
-        $this->FLD('ignore', 'text', 'caption=Служебни файлове, width=100%');
-        
-//        $this->setDbUnique('basePath, subPath, rolesForAccess');
+        $this->FLD('verbalName', 'varchar', 'caption=Име, width=100%');
+        $this->FLD('rolesForAccess', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Достъп->Роли, width=100%,placeholder=Всички');
+        $this->FLD('usersForAccess', 'userList', 'allowEmpty, caption=Достъп->Потребители, width=100%');
+        $this->FLD('ignore', 'text', 'caption=Игнориране, width=100%');
+        $this->FNC('fullPath', 'varchar', 'caption=Път, width=100%');
+        $this->FNC('access', 'text', 'caption=Достъп, width=100%');
+    }
+    
+    
+    /**
+     * 
+     */
+    function on_CalcFullPath($mvc, $rec)
+    {
+        // Вземаме целия път
+        $rec->fullPath = static::getFullPath($rec->basePath, $rec->subPath);
     }
     
     
@@ -127,6 +163,7 @@ class fileman_Repositories extends core_Manager
         return $allowedArr;
     }
     
+    
 	/**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -141,8 +178,12 @@ class fileman_Repositories extends core_Manager
         // Добавяме предложение за пътищата
         $data->form->appendSuggestions('basePath', $basePathsArr);
         
-        // Избираме първия, по подразбиране
-        $data->form->setDefault('basePath', key($basePathsArr));
+        // Ако създаваме нов запис
+        if (!$data->form->rec->id) {
+            
+            // Избираме първия, по подразбиране
+            $data->form->setDefault('basePath', key($basePathsArr));
+        }
     }
     
     
@@ -408,6 +449,31 @@ class fileman_Repositories extends core_Manager
     
     
     /**
+     * Абсорбира подадения файл, който се намира в съответното хранилище
+     * 
+     * @param integer $id - id на хранилището
+     * @param string $file - Файла в хранилището
+     * @param string $bucket - Кофата
+     * 
+     * @return array $fh - Манипулатор на файла
+     */
+    static function absorbFileFromId($id, $file, $bucket=NULL)
+    {
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Вземаем пътя до файла
+        $filePath = static::getFullPath($rec->fullPath, $file);
+        
+        // Абсорбираме файла
+        $fh = static::absorbFile($filePath, $bucket);
+        
+        // Връщаме манупулатора му
+        return $fh;
+    }
+    
+    
+    /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
@@ -449,13 +515,17 @@ class fileman_Repositories extends core_Manager
      * 
      * @param integer $repositoryId - id на хранилището
      * @param string $subPath - Подпапка в хранилището
+     * @param boolean $useFullPath - Да се използва целия файл до папката
      * 
      * @return array - Масив с всички папки и файловете в тях
      */
-    static function retriveFiles($repositoryId, $subPath = '')
+    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE)
     {
         // Очакваме да е число
         expect(is_numeric($repositoryId));
+        
+        // Масива, който ще връщаме
+        $res = array();
         
         // Вземаме записа
         $rec = static::fetch($repositoryId);
@@ -470,7 +540,8 @@ class fileman_Repositories extends core_Manager
         $fullPath = static::getFullPath($fullPath, $subPath);
         
         // Вземаме итератор
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath));
+        // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
         
         // Сетваме флаговете
         // NEW_CURRENT_AND_KEY = FilesystemIterator::KEY_AS_FILENAME | FilesystemIterator::CURRENT_AS_FILEINFO
@@ -495,32 +566,55 @@ class fileman_Repositories extends core_Manager
             // Вземаме името на файла
             $fileName = $iterator->key();
             
-            // Ако е сетнат масива за игнорирани файлове
-            if ($ignoreArr) {
+            // Вземаме пътя
+            $path = $iterator->current()->getPath();
+            
+            // Ако не е задедено да се използва целия път до файла
+            if (!$useFullPath) {
                 
-                // Обхождаме масива
-                foreach ((array)$ignoreArr as $ignoreStr) {
-                    
-                    // Ако в името на файла се съдържа стринга за игнориране
-                    if (stripos($fileName, $ignoreStr) !== FALSE) {
-                        
-                        // Вдигаме флага
-                        $ignore = TRUE;
-                        
-                        // Прекъсваме цикъла
-                        break;
-                    }
-                }
+                // Вземаме пътя без целия път
+                $path = str_ireplace($fullPath, '', $path);
+                if (!$path) $path = '/';
             }
             
-            // Ако няма да се игнорира файла
-            if (!$ignore) {
+            // Ако е директория
+            if ($iterator->isDir()) {
                 
-                // Вземаме пътя до файла
-                $path = $iterator->current()->getPath();
+                // Ако няма такъв запис
+                if (!$res[$path]) {
+                    
+                    // Пътя до директорията
+                    $path = static::getFullPath($path, $fileName);
+                    
+                    // Създаваме масив с директрояита
+                    $res[$path] = array();
+                }
+            } else {
                 
-                // Добавяме в резултатите пътя и името на файла
-                $res[$path][$fileName] = TRUE;
+                // Ако е сетнат масива за игнорирани файлове
+                if ($ignoreArr) {
+                    
+                    // Обхождаме масива
+                    foreach ((array)$ignoreArr as $ignoreStr) {
+                        
+                        // Ако в името на файла се съдържа стринга за игнориране
+                        if (stripos($fileName, $ignoreStr) !== FALSE) {
+                            
+                            // Вдигаме флага
+                            $ignore = TRUE;
+                            
+                            // Прекъсваме цикъла
+                            break;
+                        }
+                    }
+                }
+                
+                // Ако няма да се игнорира файла
+                if (!$ignore) {
+                    
+                    // Добавяме в резултатите пътя и името на файла
+                    $res[$path][$fileName] = TRUE;
+                }
             }
             
             // Прескачаме на следващия
@@ -549,5 +643,154 @@ class fileman_Repositories extends core_Manager
             // Да не може да пипа
             $requiredRoles = 'no_one';
         }
+    }
+	
+	
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        // Ако има зададени потребители
+        if ($rec->usersForAccess) {
+            
+            // Добавяме 
+            $row->access = "<div class='users-for-access'>{$row->usersForAccess}</div>";
+        }
+        
+        // Ако има зададени права за достъп
+        if ($rec->rolesForAccess) {
+            
+            // Вземаме вербалната стойност
+            $rolesForAccess = $mvc->getVerbal($rec, 'rolesForAccess');
+            
+            // Добавяме към достъпа
+            $row->access .= "<div class='roles-for-access'>{$rolesForAccess}</div>";
+        }
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     */
+    public static function on_AfterPrepareSingle($mvc, $data)
+    {
+        // Вземаме файловете в дървовидна структура
+        $data->row->FileTree = static::getFileTree($data->rec->id);
+    }
+    
+    
+	/**
+     * Връща в дървовидна структура съдържанието на хранилището
+     * 
+     * @param integer $id - Хранилище
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return core_Et $res
+     */
+    static function getFileTree($id, $subPath='')
+    {
+        try {
+            // Вземаме съдържанието
+            $foldersArr = static::retriveFiles($id, $subPath);
+        } catch (Exception $e) {
+            
+            // Връщаме грешката
+            return tr('Възникна грешка при показване на съдържанието на хранилището');
+        }
+        
+        // Сортираме масива за да може папките да са на първо място
+        asort($foldersArr);
+        
+        // Инстанция на класа
+        $tableInst = cls::get('core_Tree');
+
+        // Обхождаме масива
+        foreach ((array)$foldersArr as $path => $filesArr) {
+            
+            // Заместваме разделителите за поддиректория с разделителя за дърво
+            $pathEntry = str_replace(array('/', '\\'), "->", $path);
+            
+            // Ако e празна директория
+            if (!count($filesArr)) {
+                
+                // Добавяме директорията
+                $tableInst->addNode($pathEntry, FALSE, TRUE);
+            } else {
+                
+                // Обхождаме файловете
+                foreach ((array)$filesArr as $file => $dummy) {
+                    $filePathEntry = rtrim($pathEntry, '->');
+                    
+                    // Вземаме пътя до файла
+                    $filePathEntry = $filePathEntry . '->' . $file;
+                    
+                    // Пътя до файла
+                    $fullPath = static::getFullPath($path, $file);
+                    
+                    // URL за абсорбиране на файла
+                    $urlPath = static::getAbsorbUrl($id, $fullPath);
+                    
+                    // Добавяме в дървото
+                    $tableInst->addNode($filePathEntry, $urlPath, TRUE);
+                }
+            }
+        }
+        
+        // Името
+        $tableInst->name = 'file';
+        
+        // Рендираме изгледа
+        $res = $tableInst->renderHtml(NULL);
+        
+        // Връщаме шаблона
+        return $res;
+    }
+    
+    
+    /**
+     * Екшън за абсорбиране на файла
+     */
+    function act_AbsorbFile()
+    {
+        // id на хранилището
+        $id = Request::get('id', 'int');
+        
+        // Относителен път до файла в хранилището
+        $file = Request::get('file');
+        
+        // Абсорбираме файла и вземаме манипулатора му
+        $fh = static::absorbFileFromId($id, $file);
+        
+        // Линк към сингъла на файла
+        $singleUrl = fileman::getUrlToSingle($fh);
+        
+        // Редиректваме към сингъла
+        return Redirect($singleUrl);
+    }
+    
+    
+    /**
+     * Връща URL към екшъна за абсорбиране на съответния файл
+     * 
+     * @param integer $id
+     * @param string $file
+     * @param boolean $absolute
+     * 
+     * @return string $url
+     */
+    static function getAbsorbUrl($id, $file, $absolute=FALSE)
+    {
+        // Очакваме да има id
+        expect($id);
+        
+        // Вземаме URL' то
+        $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file), $absolute);
+        
+        return $url;
     }
 }
