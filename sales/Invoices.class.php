@@ -270,15 +270,12 @@ class sales_Invoices extends core_Master
 	        
         	// При създаване на нова ф-ра зареждаме полетата на 
             // формата с разумни стойности по подразбиране.
-        	if($form->rec->originId){
-	        	$origin = doc_Containers::getDocument($form->rec->originId);
-	        	
-	        	$form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
-	        	if($origin->className  == 'sales_Invoices' && Request::get('type')){
-	        		$mvc->populateNoteFromInvoice($form, $origin);
-	        		$flag = TRUE;
-	        	}
-        	}
+        	expect($origin = static::getOrigin($form->rec));
+	        $form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
+	        if($origin->className  == 'sales_Invoices' && Request::get('type')){
+	        	$mvc->populateNoteFromInvoice($form, $origin);
+	        	$flag = TRUE;
+	        }
         	
 	        if(empty($flag)){
 	        	$form->rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
