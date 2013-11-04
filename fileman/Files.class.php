@@ -1157,9 +1157,6 @@ class fileman_Files extends core_Master
                     // Масив с потребителите
                     $usersArr = type_Keylist::toArray($filter->usersSearch);
                     
-                    // Масив с номерата на съответните потребители
-                    $numbersArr = callcenter_Numbers::getInternalNumbersForUsers($usersArr);
-                    
                     // Търсим по създатели
                     $data->query->orWhereArr('createdBy', $usersArr);
                 }
