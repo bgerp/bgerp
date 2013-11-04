@@ -788,9 +788,11 @@ class sales_Invoices extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        $folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
-        return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+        if(Request::get('docType', 'int') && Request::get('docId', 'int')){
+        	return TRUE;
+        }
+        
+    	return FALSE;
     }
     
     
