@@ -62,7 +62,7 @@ class backup_Local extends core_Master
      */
     static function putFile($fileName)
     {
-        $result = @copy($fileName, STORAGE_FOLDER . '/' . $fileName);
+        $result = @copy(EF_TEMP_PATH . "/" . $fileName, STORAGE_FOLDER . '/' . $fileName);
         
         return $result;
     }

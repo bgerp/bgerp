@@ -46,6 +46,11 @@ defIfNot('BACKUP_MYSQL_USER_NAME', 'backup');
  */
 defIfNot('BACKUP_MYSQL_USER_PASS', 'swordfish');
 
+/**
+ * MySql host за бекъп
+ */
+defIfNot('BACKUP_MYSQL_HOST', 'localhost');
+
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
@@ -81,7 +86,8 @@ class backup_Setup extends core_ProtoSetup
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
        'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
        'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп'),
-       'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола')
+       'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола'),
+       'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Хост')
     );
     
     
