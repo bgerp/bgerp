@@ -119,6 +119,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->text = tr("Приключване на сделката с надплатено");
+    	
     }
     
     
@@ -160,5 +161,19 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     	$row->recTitle = $title;
     	
     	return $row;
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'conto' && isset($rec)){
+    		$amount = static::getClosedDealAmount($rec->threadId);
+    		if($amount < 0){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
