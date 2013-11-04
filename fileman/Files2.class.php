@@ -853,10 +853,11 @@ class fileman_Files2 extends core_Master
      * Връща линк към сингъла на файла
      * 
      * @param fileHnd $fh - Манипулатор на файла
+     * @param boolean $absolute - Дали линка да е абсолютен
      * 
      * @return core_Et - Линк
      */
-    static function getLinkToSingle($fh)
+    static function getLinkToSingle($fh, $absolute=FALSE)
     {
         // Вземаме записа
         $rec = fileman_Files::fetchByFh($fh);
@@ -880,9 +881,30 @@ class fileman_Files2 extends core_Master
         // Вербалното име на файла
         $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . fileman_Files::getVerbal($rec,'name') . "</span>";
         
+        // Вземаме URL' то
+        $url = static::getUrlToSingle($fh, $absolute);
+        
         // Вземаме линка
-        $link = ht::createLink($fileName, array('fileman_Files', 'single', $fh));
+        $link = ht::createLink($fileName, $url);
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща URL към сингъла на файла
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param boolean $absolute - Дали URL-то да е абсолютен
+     * 
+     * @return string - URL към сингъла
+     */
+    static function getUrlToSingle($fh, $absolute=FALSE)
+    {
+        // Вземаме URL' то
+        $url = toUrl(array('fileman_Files', 'single', $fh), $absolute);
+        
+        // Връщаме URL' то
+        return $url;
     }
 }
