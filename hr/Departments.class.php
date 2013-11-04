@@ -94,7 +94,13 @@ class hr_Departments extends core_Master
      * Детайли на този мастер
      */
     var $details = 'Grafic=hr_WorkingCycles,Positions=hr_Positions';
-
+    
+    
+    // Подготвяме видовете графики 
+    static $chartTypes = array(
+            'List' => 'Tаблица',
+            'StructureChart' => 'Графика',
+        );
 
     /**
      * Описание на модела
@@ -272,57 +278,52 @@ class hr_Departments extends core_Master
     	     }
          }
     }
+
+    
+    /**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$chartType = Request::get('Chart');
+    	
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+        
+        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
+
+        $tabs->TAB('Structure', 'Графика', array($mvc, 'list', 'Chart'=> 'Structure'));
+       
+        if($chartType == 'Structure') {
+        	
+        	$tpl = static::getChart($data);
+        }
+        
+        $tpl = $tabs->renderHtml($tpl, $chartType);
+               
+        $mvc->currentTab = 'Структура';
+    }
     
     
     /**
-     * Манипулации със заглавието
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * Изчертаване на структурата с данни от базата
      */
-    function on_AfterRenderListTitle($mvc, &$title, $data)
-    {
-    	$title = new ET('[#1#]', $title);
-            
-        $title->append('<div style="margin-top:5px;margin-bottom:5px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
-        
-        $chartType = Request::get('Chart');
-        
-        if($chartType) {
-        	$url = getCurrentUrl();
-        	unset($url['Chart']);
-        }
-        
-        $urlChart = toUrl(array('hr_Departments', 'Display'));
-       
-        $title->append(ht::createLink(tr('Tаблица'), $url) , 'ListSummary');
-        
-        $title->append("&nbsp;|&nbsp;", 'ListSummary');
-        
-        $title->append(ht::createLink(tr('Графика'), $urlChart) , 'ListSummary');
-      
-        $title->append('</div>', 'ListSummary');
-    }
-
-    
-    function act_Display ()
+    static function getChart ($data)
     {
 
-    	//self::requireRightFor('day');
-    	    		    	
-    	$data = new stdClass();
-    	$data->query = $this->getQuery();
-    	//$data->action = 'day';
-    	
-    	while($rec=$data->query->fetch()){
+    	foreach($data->recs as $rec){
     		$res[]=array(
     				'id' => $rec->id,
     				'title' => $rec->name,
     				'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
     		);
     	}
-    	           
-		return $this->renderWrapping(orgchart_Adapter::render_($res));
+    	
+        $chart = orgchart_Adapter::render_($res);
 
+    	return $chart;
     }
 }
