@@ -147,7 +147,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	
 	
 	/**
-	 * Рендираме обобщаващата информация на отчетите
+	 * След рендиране на List Summary-то
 	 */
 	static function on_AfterRenderListSummary($mvc, $tpl, $data)
     {

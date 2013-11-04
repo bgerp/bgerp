@@ -370,7 +370,7 @@ class bank_PaymentOrders extends core_Master
     
     
     /**
-	 * Рендираме обобщаващата информация на отчетите
+	 * След рендиране на единичния изглед
 	 */
 	static function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
