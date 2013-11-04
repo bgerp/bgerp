@@ -435,7 +435,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	$policyId = pos_Points::fetchField($receiptRec->pointId, 'policyId');
     	$price = new stdClass();
-    	$price->price = price_ListRules::getPrice($policyId, $product->productId, $product->packagingId, $receiptRec->createdOn);
+    	$price->price = price_ListRules::getPrice($policyId, $product->productId, $product->packagingId, $receiptRec->valior);
     	
     	$price = $this->applyDiscount($price, $rec->receiptId);
     	$rec->price = $price->price;
@@ -443,7 +443,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->discountPercent = $price->discount;
     	}
     	
-    	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->createdOn);
+    	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
     	$rec->amount = $rec->price * $rec->quantity * $perPack;	
     }
     
