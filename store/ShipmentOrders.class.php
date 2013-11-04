@@ -110,7 +110,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, contragentClassId, contragentId, amountDelivered,
+    public $listFields = 'id, valior, folderId, amountDelivered,
                              createdOn, createdBy';
     
     
@@ -349,7 +349,7 @@ class store_ShipmentOrders extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
-    }
+	}
     
     
     /**
@@ -615,6 +615,7 @@ class store_ShipmentOrders extends core_Master
                 
                 // "Изчисляване" на името на клиента
                 $contragentData = NULL;
+                $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
                 
                 if ($rec->contragentClassId && $rec->contragentId) {
     
