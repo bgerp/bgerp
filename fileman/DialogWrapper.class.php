@@ -36,8 +36,7 @@ class fileman_DialogWrapper extends core_Plugin
             $bucketId = Request::get('bucketId', 'int');
             $callback = Request::get('callback', 'identifier');
             
-            // Вземаме инфото на обекта, който ще получи файла
-            $Files = cls::get('fileman_Files');
+            // Вземаме кофата
             $Buckets = cls::get('fileman_Buckets');
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
@@ -91,12 +90,48 @@ class fileman_DialogWrapper extends core_Plugin
                 .tab-title.fileman_Log { background-image:url('" . sbf('img/16/databases.png', '') . "');}
     
                 </style>");
-
+            
+            // Сетвама, таба който сме използвали
+            static::setLastUploadTab($invoker->className);
+            
             return TRUE;
         }
     }
-
-
+    
+    
+    /**
+     * Сетва последно използвания таб
+     * 
+     * @param string $className - Име на класа
+     */
+    static function setLastUploadTab($className)
+    {
+        // Сетваме таба
+        Mode::setPermanent('lastUploadTab', $className);
+    }
+    
+    
+    /**
+     * Връща последно използвания таб
+     * 
+     * @param unknown_type $callback
+     */
+    static function getLastUploadTab()
+    {
+        // Взема последно използвания таб
+        $lastUploadTab = Mode::get('lastUploadTab');
+        
+        // Ако няма
+        if (!$lastUploadTab) {
+            
+            // Качването на файлове да е избран
+            $lastUploadTab = 'fileman_Upload';
+        }
+        
+        return $lastUploadTab;
+    }
+    
+    
     /**
      * @todo Чака за документация...
      */

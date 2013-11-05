@@ -569,7 +569,11 @@ class fileman_Files extends core_Master
     static function getUrLForAddFile($bucketId, $callback)
     {
         Request::setProtected('bucketId,callback');
-        $url = array('fileman_Upload', 'dialog', 'bucketId' => $bucketId, 'callback' => $callback);
+        
+        // Вземаме името на класа
+        $class = fileman_DialogWrapper::getLastUploadTab();
+        
+        $url = array($class, 'Dialog', 'bucketId' => $bucketId, 'callback' => $callback);
         
         return toUrl($url);
     }
