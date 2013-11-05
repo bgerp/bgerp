@@ -4,8 +4,6 @@
 
 
 div.orgChart {
-    border                : 1px solid #cccccc;
-    background-color      : #ffffe8;
     margin                : 10px;
     padding               : 20px 10px;
     max-width			  : 830px;
@@ -65,7 +63,6 @@ div.orgChart div.node {
     border                : 2px solid black;
     display               : inline-block;
     padding               : 2px 4px;
-   	1max-width            : 150px;
     background-color      : #ffffcf;
     line-height           : 1.3em;
     border-radius         : 8px;
@@ -86,4 +83,11 @@ div.orgChart.interactive div.hasChildren {
 
 div.orgChart div.node.hover {
     background-color      : white;
+}
+@media print{
+	div.orgChart div.node{
+		 box-shadow           : 1px 1px 2px #aaa;
+	    -moz-box-shadow       : 1px 1px 2px #aaa;
+	    -webkit-box-shadow    : 1px 1px 2px #aaa;
+	}
 }
