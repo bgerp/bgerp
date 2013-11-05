@@ -501,39 +501,17 @@ class acc_BalanceDetails extends core_Detail
         return !empty($this->Master->accountRec);
     }
     
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function calculateBalance($balanceRec)
-    {
-        // Изтриваме всички предишни записи, свързани с този баланс.
-        // Някой би трябвало вече да се е погрижил до тук да се стига само ако е допустимо
-        $this->delete("#balanceId = {$balanceRec->id}");
-        
-        $this->balance = array();
-        $this->strategies = array();
-        
-        //
-        // Ако има базов баланс, зареждаме го. 
-        //
-        if ($balanceRec->baseBalanceId) {
-            $this->loadBalance($balanceRec->baseBalanceId);
-        }
-        
-        //
-        // Добавяме към баланса транзакциите от зададения период.
-        //
-        $this->calcBalanceForPeriod($balanceRec->fromDate, $balanceRec->toDate);
 
-        //
-        // Записваме готовия баланс
-        //
+    /**
+     * Записва баланса в таблицата
+     */
+    function saveBalance($balanceId)
+    {
         foreach ($this->balance as $accId => $l0) {
             foreach ($l0 as $ent1 => $l1) {
                 foreach ($l1 as $ent2 => $l2) {
                     foreach ($l2 as $ent3 => $rec) {
-                        $rec['balanceId'] = $balanceRec->id;
+                        $rec['balanceId'] = $balanceId;
                         $this->save((object)$rec);
                     }
                 }
@@ -545,15 +523,15 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Зарежда в сингълтона баланса с посоченото id
      */
-    private function loadBalance($balanceId)
-    {
+    function loadBalance($balanceId)
+    {  
         $query = $this->getQuery();
         $query->where("#balanceId = {$balanceId}");
         $query->where('#blQuantity != 0 OR #blAmount != 0');
         
-        while ($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {  
             $accId = $rec->accountId;
             
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
@@ -565,7 +543,7 @@ class acc_BalanceDetails extends core_Detail
                 $strategy->feed($rec->blQuantity, $rec->blAmount);
             }
             
-            $b = $this->balance[$accId][$ent1Id][$ent2Id][$ent3];
+            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = $ent1Id;
@@ -575,7 +553,9 @@ class acc_BalanceDetails extends core_Detail
             $b['baseAmount'] += $rec->blAmount;
             $b['blQuantity'] += $rec->blQuantity;
             $b['blAmount'] += $rec->blAmount;
+
         }
+        
     }
     
     
@@ -585,7 +565,7 @@ class acc_BalanceDetails extends core_Detail
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
      */
-    private function calcBalanceForPeriod($from, $to)
+    function calcBalanceForPeriod($from, $to)
     {
         $JournalDetails = &cls::get('acc_JournalDetails');
         

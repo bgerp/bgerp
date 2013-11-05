@@ -15,7 +15,10 @@
  */
 class acc_Balances extends core_Master
 {
-    
+    /**
+     * Константа за начало на счетоводното време
+     */
+    const TIME_BEGIN = '1970-01-01 02:00:00';
     
     /**
      * Заглавие
@@ -124,6 +127,9 @@ class acc_Balances extends core_Master
             $data->rows[$i]->periodId = ht::createLink(
                 $row->periodId, array($mvc, 'single', $data->recs[$i]->id)
             );
+            $data->rows[$i]->periodId->append('&nbsp;');
+
+            $data->rows[$i]->periodId->append(ht::createBtn('>>>', array('acc_Balances', 'calc', $data->recs[$i]->id)));
         }
     }
     
@@ -183,7 +189,7 @@ class acc_Balances extends core_Master
      */
     static function on_AfterSave($mvc, &$id, $rec)
     {
-        $mvc->acc_BalanceDetails->calculateBalance($rec);
+        $mvc->calc($rec);
     }
     
     
@@ -211,6 +217,37 @@ class acc_Balances extends core_Master
         
         return $balanceId;
     }
+
+
+    /**
+     * Изчисляване на баланс
+     */
+    function calc($rec)
+    {
+        // Вземаме инстанция на детаилите на баланса
+        $bD = cls::get('acc_BalanceDetails');
+
+        // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
+        $query = self::getQuery();
+        $query->orderBy('#toDate', 'DESC');
+        $query->limit(1);
+        $lastRec = $query->fetch("#toDate < '{$rec->fromDate}'");
+        if($lastRec) {
+            $bD->loadBalance($lastRec->id);
+            $firstDay = dt::addDays(1, $lastRec->toDate);
+        } else {
+            $firstDay = self::TIME_BEGIN;
+        }
+        
+        // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+        $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
+
+        // Изтриваме всички детайли за дадения баланс
+        $bD->delete("#balanceId = {$rec->id}");
+
+        // Записваме баланса в таблицата
+        $bD->saveBalance($rec->id);
+    }
   
 
     /**
@@ -229,23 +266,25 @@ class acc_Balances extends core_Master
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");
-        $lastEntry = '1970-01-01 10:00:00';
+        $lastEntry = self::TIME_BEGIN;
         while($pRec = $pQuery->fetch()) {
             
             $lastEntry = max($lastEntry, $pRec->lastEntry);
-            
-            if($lastEntry) {
-                $rec = self::fetch("#periodId = $pRec->id");
-                if(!$rec || ($rec->lastCalculate <= $pRec->lastEntry)) {
+           
+            if($lastEntry > '1970-01-01 10:00:00') {
 
+                $rec = self::fetch("#periodId = {$pRec->id}");
+ 
+                if(!$rec || ($rec->lastCalculate <= $lastEntry)) {
+                    
                     if(!$rec) {
-                        $rec = new stdClass();
+                        $rec = new stdClass(); 
+                        $rec->periodId = $pRec->id;
                     }
-
-                    $rec->periodId      = $pRec->id;
+                   
                     $rec->lastCalculate = dt::verbal2mysql();
                     
-                    self::save($rec); // Детайлите на баланса се изчисляват в on_AfterSave()
+                    self::save($rec);
                 }
             }
         }
