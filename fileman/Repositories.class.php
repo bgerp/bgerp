@@ -184,6 +184,15 @@ class fileman_Repositories extends core_Master
             // Избираме първия, по подразбиране
             $data->form->setDefault('basePath', key($basePathsArr));
         }
+        
+        // Плейсхолдера, който ще показваме
+        $placeText = "Текст, който да се игнорира: ^ начало, * всики, - без, $ край";
+        
+        // Добавяме плейсхолдера
+        $data->form->addAttr('ignore', array('placeholder' => $placeText));
+        
+        // Добавяме помощния текст
+        $data->form->addAttr('ignore', array('title' => 'Игнорира името на файла, който пасва на шаблона'));
     }
     
     
@@ -550,13 +559,6 @@ class fileman_Repositories extends core_Master
         // FilesystemIterator::SKIP_DOTS - Прескача . и ..
         $iterator->setFlags(FilesystemIterator::NEW_CURRENT_AND_KEY | FilesystemIterator::SKIP_DOTS);
         
-        // Ако има файлове за игнориране
-        if (trim($rec->ignore)) {
-            
-            // Масив с файловете, които да се игнорират
-            $ignoreArr = arr::make($rec->ignore, TRUE);
-        }
-        
         // Обхождаме итератора
         while($iterator->valid()) {
             
@@ -591,26 +593,8 @@ class fileman_Repositories extends core_Master
                 }
             } else {
                 
-                // Ако е сетнат масива за игнорирани файлове
-                if ($ignoreArr) {
-                    
-                    // Обхождаме масива
-                    foreach ((array)$ignoreArr as $ignoreStr) {
-                        
-                        // Ако в името на файла се съдържа стринга за игнориране
-                        if (stripos($fileName, $ignoreStr) !== FALSE) {
-                            
-                            // Вдигаме флага
-                            $ignore = TRUE;
-                            
-                            // Прекъсваме цикъла
-                            break;
-                        }
-                    }
-                }
-                
                 // Ако няма да се игнорира файла
-                if (!$ignore) {
+                if (!static::isForIgnore($rec->ignore, $fileName)) {
                     
                     // Добавяме в резултатите пътя и името на файла
                     $res[$path][$fileName] = TRUE;
@@ -622,6 +606,116 @@ class fileman_Repositories extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Дали да се игнорира файла
+     * 
+     * @param string $ignoreStr - Стринг с файловете за игнориране
+     * @param string $fileName - Име на файл
+     */
+    static function isForIgnore($ignoreStr, $fileName)
+    {
+        // Ако няма подаден стринг за игнориране, да не се игнорира файла
+        if (!$ignoreStr) return FALSE;
+        
+        // Масива със стринговете за игнориране
+        // За да не се генерира всеки път
+        static $ignoreStrArr=array();
+        
+        // Хеша на стринга
+        $ignoreStrHash = md5($ignoreStr);
+        
+        // Ако не е генериран регулярен израз за игнориране
+        if (!$ignoreStrArr[$ignoreStrHash]) {
+            
+            // Разделяме стринга
+            $ignoreArr = explode("\n", $ignoreStr);
+            
+            // Случайно число за заместване на *
+            $starRand = str::getRand();
+            
+            // Случайно число за заместване на -
+            $dashRand = str::getRand();
+            
+            // Случайно число за заместване на ^
+            $beginRand = str::getRand();
+            
+            // Случайно число за заместване на $
+            $endRand = str::getRand();
+            
+            // Шаблона
+            $patternText = '';
+            
+            // Обхождаме масива
+            foreach ((array)$ignoreArr as $ignore) {
+                
+                // Тримваме текста
+                $ignore = trim($ignore);
+                
+                // Заместваме символите с генерираните числа
+                $ignoreText = str_replace(array('^', '$', '*', '-'),
+                                          array($beginRand, $endRand, $starRand, $dashRand), $ignore);
+                
+                // Ескейпваме останалите символи
+                $ignoreText = preg_quote($ignoreText, '/');
+                
+                // Заместваме случайния текст за *, с шаблона за всички символи
+                $ignoreText = str_replace($starRand, '(.*?)', $ignoreText);
+                
+                // Ако има '-' в текста
+                if (strpos($ignoreText, $dashRand) !== FALSE) {
+                    
+                    // Заместваме с празен текст '-' и вземаме текста
+                    $text = str_replace($dashRand, "", $ignoreText);
+                    
+                    // Добавяме текста, за отказ
+                    $ignoreText = "^((?!{$text}).)*$";
+                }
+                
+                // Ако е зададено начоло на текст
+                if (strpos($ignoreText, $beginRand) !== FALSE) {
+                    
+                    // Заместваме с празен текст '^' и вземаме текста
+                    $ignoreText = str_replace($beginRand, "", $ignoreText);
+                    
+                    // Добавяме начало за шаблона
+                    $ignoreText = '^' . $ignoreText;
+                }
+                
+                // Ако е зададено край на текст
+                if (strpos($ignoreText, $endRand) !== FALSE) {
+                    
+                    // Заместваме с празен текст '$' и вземаме текста
+                    $ignoreText = str_replace($endRand, "", $ignoreText);
+                    
+                    // Добавяме край за шаблона
+                    $ignoreText = $ignoreText . "$";
+                }
+                
+                // Добавяме в блок
+                $ignoreText = "({$ignoreText})";
+                
+                // Добавяме съответния шаблон, към всички
+                $patternText .= ($patternText) ?  "|" . $ignoreText : $ignoreText;
+            }
+            
+            // Получения шаблон го добавяме в масива
+            $ignoreStrArr[$ignoreStrHash] = "/({$patternText})/iu";
+        }
+        
+        // Ако има шаблона
+        if ($patternText = $ignoreStrArr[$ignoreStrHash]) {
+            
+            // Проверяваме дали се съдържа
+            $match = preg_match($patternText, $fileName);
+            
+            // Връщаме резултата
+            return $match;
+        }
+        
+        return FALSE;
     }
     
     
@@ -692,7 +786,7 @@ class fileman_Repositories extends core_Master
      * 
      * @return core_Et $res
      */
-    static function getFileTree($id, $subPath='')
+    static function getFileTree($id, $subPath='', $useEmptyFolders=FALSE)
     {
         try {
             // Вземаме съдържанието
@@ -718,12 +812,18 @@ class fileman_Repositories extends core_Master
             // Ако e празна директория
             if (!count($filesArr)) {
                 
-                // Добавяме директорията
-                $tableInst->addNode($pathEntry, FALSE, TRUE);
+                // Ако е зададено да се показват ипразните директории
+                if ($useEmptyFolders) {
+                    
+                    // Добавяме директорията
+                    $tableInst->addNode($pathEntry, FALSE, TRUE);
+                }
             } else {
                 
                 // Обхождаме файловете
                 foreach ((array)$filesArr as $file => $dummy) {
+                    
+                    // Тримваме, за да премахнем последния 
                     $filePathEntry = rtrim($pathEntry, '->');
                     
                     // Вземаме пътя до файла
