@@ -262,33 +262,34 @@ class sales_Invoices extends core_Master
         $form = $data->form;
         $form->rec->date = dt::today();
         
-        if (!$form->rec->id) {
-            $type = Request::get('type');
-	        if(!$type){
-	        	$form->setDefault('type', 'invoice');
-	        }
+        $type = ($t = Request::get('type')) ? $t : $form->rec->type;
+	    if(!$type){
+	        $form->setDefault('type', 'invoice');
+	    }
 	        
-        	// При създаване на нова ф-ра зареждаме полетата на 
-            // формата с разумни стойности по подразбиране.
-        	expect($origin = static::getOrigin($form->rec));
-	        $form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
-	        if($origin->className  == 'sales_Invoices' && Request::get('type')){
-	        	$mvc->populateNoteFromInvoice($form, $origin);
-	        	$flag = TRUE;
-	        }
+        // При създаване на нова ф-ра зареждаме полетата на 
+        // формата с разумни стойности по подразбиране.
+        $origin = static::getOrigin($form->rec);
+        if($origin->haveInterface('bgerp_DealAggregatorIntf')){
+        	$form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
+        }
+	        
+	    if($origin->className  == 'sales_Invoices'){
+	        $mvc->populateNoteFromInvoice($form, $origin);
+	        $flag = TRUE;
+	    }
         	
-	        if(empty($flag)){
-	        	$form->rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
-				if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-					$form->setDefault('accountId', $ownAcc);
-				} 
+	    if(empty($flag)){
+	        $form->rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
+			if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
+				$form->setDefault('accountId', $ownAcc);
+			} 
 
-				$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
-        		$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-				$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
-				$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
-	        }
-	   	}
+			$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
+        	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+			$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
+			$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
+	    }
 	   	
 	   	$form->setReadOnly('vatRate');
     }
@@ -368,15 +369,17 @@ class sales_Invoices extends core_Master
     {
     	$origin = NULL;
     	
+    	if($rec->originId) {
+    		return doc_Containers::getDocument($rec->originId);
+    	}
+    	
     	if($rec->docType && $rec->docId) {
     		// Ако се генерира от пос продажба
     		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
-    	if($rec->originId) {
-    		$origin = doc_Containers::getDocument($rec->originId);
-    	} elseif($rec->threadId){
-    		$origin = doc_Threads::getFirstDocument($rec->threadId);
+    	if($rec->threadId){
+    		return doc_Threads::getFirstDocument($rec->threadId);
 	    }
     	
     	return $origin;
@@ -636,7 +639,7 @@ class sales_Invoices extends core_Master
     /**
      * Попълва дефолтите на Дебитното / Кредитното известие
      */
-    private function populateNoteFromInvoice(core_Form $form, core_ObjectReference $origin)
+    private function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
     	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение': 'Намаление';
         
@@ -666,7 +669,7 @@ class sales_Invoices extends core_Master
 		}
 		
 		$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
-    }
+	}
     
     
     /**
@@ -689,13 +692,6 @@ class sales_Invoices extends core_Master
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	switch ($action) {
-    		case 'edit':
-	    	    // Фактурата неможе се едитва, ако е възоснова на продажба
-	    		if(($rec->docType && $rec->docId)){
-	    			$requiredRoles = 'no_one';
-	    		}
-    			break;
-           
             case 'activate':
                 if (empty($rec->id)) {
                     // не се допуска активиране на незаписани фактури
@@ -897,11 +893,13 @@ class sales_Invoices extends core_Master
         $contragentId    = doc_Folders::fetchCoverId($rec->folderId);
         
         $result = (object)array(
-            'reason' => "Фактура №{$rec->number}", // основанието за ордера
-            'valior' => $rec->date,   // датата на ордера
+            'reason'  => "Фактура №{$rec->number}", // основанието за ордера
+            'valior'  => $rec->date,   // датата на ордера
+        	'entries' => array(),
         );
-		
-        $entries = array();
+        
+        if(isset($rec->docType) && isset($rec->docId)) return $result;
+        $entries= array();
         
         if($rec->vatAmount){
         	$entries[] = array(
