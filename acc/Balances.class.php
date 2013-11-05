@@ -127,9 +127,9 @@ class acc_Balances extends core_Master
             $data->rows[$i]->periodId = ht::createLink(
                 $row->periodId, array($mvc, 'single', $data->recs[$i]->id)
             );
-            $data->rows[$i]->periodId->append('&nbsp;');
 
-            $data->rows[$i]->periodId->append(ht::createBtn('>>>', array('acc_Balances', 'calc', $data->recs[$i]->id)));
+            //$data->rows[$i]->periodId->append('&nbsp;');
+            //$data->rows[$i]->periodId->append(ht::createBtn('>>>', array('acc_Balances', 'calc', $data->recs[$i]->id)));
         }
     }
     
