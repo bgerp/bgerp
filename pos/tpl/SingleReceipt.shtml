@@ -1,53 +1,53 @@
 <div class='single-receipt-wrapper'>
-	<div id='single-receipt-holder'>
-		<div id='single-receipt'>
-			[#SingleToolbar#]
-			<table border = '1' id = 'receipt-table' cellpadding='5px' cellspacing='0px'>
-				<tr id='receipt-header'>
-					<td colspan='3'>
-						<div id=''><span id='receipt-title'>|Касова бележка|* <span id='receipt-number'> &nbsp;<b>№[#id#]</b></span></span>
-						
-						 <span id='receipt-date'>|Дата|*: <b>[#valior#]</b></span>
-						  </div> 
-						  <div id = 'cashier'>|Касиер|*: &nbsp;[#createdBy#]</div>
-					</td>
-				</tr>
-				<tr id='receipt-details-th'>
-					<td id='th-quantity'>|К-во|*</td>
-					<td id='th-price'>|Цена|*</td>
-					<td>|Стойност|*</td>
-				</tr>
-			</table>
-			<!--ET_BEGIN DETAILS-->
-			<div class="scrollWrapper">
-				<table class="scrollable" >
-					[#DETAILS#]
+		<div id='single-receipt-holder'>
+			<div id='single-receipt'>
+				[#SingleToolbar#]
+				<table id = 'receipt-table' cellpadding='0px' cellspacing='0px'>
+					<tbody>
+						<tr id='receipt-header'>
+							<td colspan='3'>
+								<div id=''><span id='receipt-title'>|Касова бележка|* <span id='receipt-number'> &nbsp;<b>№[#id#]</b></span></span>
+								
+								 <span id='receipt-date'>|Дата|*: <b>[#valior#]</b></span>
+								  </div> 
+								  <div id = 'cashier'>|Касиер|*: &nbsp;[#createdBy#]</div>
+							</td>
+						</tr>
+						<tr id='receipt-details-th'>
+							<td>|К-во|*</td>
+							<td>|Цена|*</td>
+							<td>|Стойност|*</td>
+						</tr>
+					</tbody>
+						<!--ET_BEGIN DETAILS-->
+					<tbody class='scrollWrapper'>
+						[#DETAILS#]
+					</tbody>
+						<!--ET_END DETAILS-->
+					<tbody id = 'receipt-info'>
+						<tr>
+							<td style='padding-top:6px'>|Клиент|*:</td>
+							<td colspan='2' style='padding-top:6px' class = 'receipt-info-right'>[#contragentName#]</td>
+						</tr>
+						<tr>
+							<td id = 'total-label'>|Общо|*:</td>
+							<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
+						</tr>
+						<tr>
+							<td>|Платено|*:</td>
+							<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
+						</tr>
+						<tr>
+							<td style='padding-bottom:6px'>|Ресто|*:</td>	
+							<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
+						</tr>
+					</tbody>
 				</table>
+				<div class="clearfix21"></div>			
+				[#ADD_FORM#]
+				<a name = 'form'></a>
 			</div>
-			<!--ET_END DETAILS-->
-			<table border='0' cellpadding='0px' cellspacing='0px' id = 'receipt-info'>
-				<tr>
-					<td style='padding-top:6px'>|Клиент|*:</td>
-					<td style='padding-top:6px' class = 'receipt-info-right'>[#contragentName#]</td>
-				</tr>
-				<tr>
-					<td id = 'total-label'>|Общо|*:</td>
-					<td id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
-				</tr>
-				<tr>
-					<td>|Платено|*:</td>
-					<td class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
-				</tr>
-				<tr>
-					<td style='padding-bottom:6px'>|Ресто|*:</td>
-					<td style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
-				</tr>
-			</table>
-			<div class="clearfix21"></div>
-			[#ADD_FORM#]
-			<a name = 'form'></a>
 		</div>
-	</div>
 	<div class="clearfix21"></div>
 </div>
 [#PRODUCTS#]

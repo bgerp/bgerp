@@ -10,26 +10,23 @@
 	min-height:700px;
 }
 
+#single-receipt{
+	display:inline-block;
+}
+
 .narrow .single-receipt-wrapper{
 	 padding:9px;
 	 min-height: auto;
 }
 
 #receipt-table {
-	width:551px;
 	border-collapse:collapse;
 	margin-top:15px;
+	width:100%;
 }
-#receipt-table td,#receipt-table th{
-	border:1px solid #000;
+#receipt-table td, #receipt-table th{
 	padding:5px;
-}
-.narrow #receipt-table{
-	width:100%;
-	text-indent:0;
-} 
-.narrow #single-receipt{
-	width:100%;
+	border:1px solid #000;
 }
 
 #receipt-header {
@@ -39,10 +36,7 @@
 #receipt-title {
 	font-size: 1.5em;
 	font-weight:bold;
-}
-
-.narrow #receipt-title{
-	font-size:23px;
+	padding-right:20px;
 }
 
 #receipt-contragent {
@@ -54,6 +48,7 @@
 	font-style:italic;
 	font-size:18px;
 }
+
 #receipt-date {
 	float:right;
 	margin-top:8px;
@@ -81,55 +76,39 @@
 	margin-right:15px;
 }
 
-.info-right {
-	float:right;
-	font-style:italic;
-}
-
 #total-label, #receipt-total-sum  {
 	font-size:1.5em;
 	font-weight:bold;
-}
-
-.narrow #total-label, .narrow #receipt-total-sum{
-	font-size:22px;
 }
 
 .receipt-info-right {
 	text-align:right;
 	padding-right: 10px;
 }
+
 .narrow .receipt-info-right{
 	padding-right:5px;
 }
 
 #receipt-details-th {
 	background-color: rgb(200, 200, 200);
-	border: 1px solid #000;
 }
+
 .narrow #receipt-details-th td{
 	text-align:center;
 }
+
 .receipt-sale {
 	background-color: #f1f1f1;
 }
 
 #receipt-details-form {
-	width: 550px;
 	margin-top:15px;
 }
 
 .narrow #receipt-details-form{
 	width:100%;
 	padding-bottom:10px;
-}
-
-#single-receipt {
-	width:551px;
-}
-
-#single-receipt .formError{
-	width:531px;
 }
 
 .narrow  #single-receipt .formError{
@@ -181,25 +160,14 @@ input.error {
 
 #receipt-info{
 	padding-top:30px;
-	width:100%;
-	float:left;
 	background-color:rgb(221,221,221);
-	border-left:1px solid black;
-	border-right:1px solid black;
-	border-bottom:1px solid black;
 	border-collapse:collapse;
+	border:1px solid #000;
 }
 
 #receipt-info td{
 	padding:1px 5px;
-}
-
-#th-quantity{
-	width:130px;
-}
-
-#th-price{
-	width:205px;
+	border:none;
 }
 
 .receipt-discount-td {
@@ -210,12 +178,15 @@ input.error {
 #money-info {
 	text-align:center;
 }
+
 .narrow .formFields{
 	margin-bottom:10px;
 }
+
 .narrow .formFields select{
 	margin-bottom:5px;
 }
+
 #error-place {
 	color:darkred;
 	font-style:italic;
@@ -258,76 +229,11 @@ input.error {
 .narrow .ean-text{
 	width:10em;
 }
-	
-/*скролиране на таблица*/
-table.scrollable{
-	width:100%;
-	border:none !important;
-	border-collapse:collapse;
-}
-
-table.scrollable td{
-	border:1px solid #000;
-	border-bottom:none;
-	border-right:none;
-	padding: 2px 5px 0;
-	vertical-align:middle;
-	height:24px;
-}
-
-.narrow table.scrollable td{
-	padding:2px 5px 0;
-}
-
-table.scrollable tr:first-child td{
-	border-top:none;
-}
-
-div.scrollWrapper{
-  float:left;
-  width:550px;
-  overflow-y:auto;
-  border-right:1px solid #000;
-  border-bottom:1px solid #000;
-  margin-bottom:0px;
-}
-
-.narrow div.scrollWrapper{
-	width:99.8%;
-}
-
-.printing div.scrollWrapper{
-	max-height:none;
-	overflow:visible;
-}
 
 .btnNew, .btnEnd{
 	background-color:rgb(153, 153, 255) !important;
 }
 
-.receipt-quantity{
-	width:130px;
-}
-
-.narrow #th-price{
-	width:40%;
-}
-
-.narrow .receipt-quantity{
-	width:20%;
-}
-
-.narrow #th-quantity {
-	width: 20%;
-}
-
-.receipt-price{
-	width:205px;
-}
-
-.narrow .receipt-price{
-	width:40%;
-}
 #single-receipt-holder {
 	position:relative;
 }
@@ -340,7 +246,6 @@ div.scrollWrapper{
 }
 
 .document .listRows table {
-	1width:730px;
 	margin-bottom:15px;
 	margin-top:15px;
 }
@@ -396,54 +301,16 @@ form #point {
 #cashier{
 	margin-top:5px;
 }
+
+.receipt-info-right {
+	text-align:right;
+	padding-right: 10px;
+	border-right:1px solid #000 !important;
+}
+
 @media print{
-	div.scrollWrapper{
-		max-height:none;
-		overflow:visible;
-		border:1px solid #000;
-		border-left:none;
-		border-right:none;
-		width:412px;
-	}
-	
-	table.scrollable td{
-		border:1px solid #000;
-		width:412px;
-	}
-	
-	#receipt-info{
-		margin-top:-1px;
-	}
-	
-	#single-receipt, #receipt-table {
-		width:412px;
-	}
-	
 	.single-receipt-wrapper{
-		padding:0px;
-		margin:0px;
-		border:0px;
+		border:none;
+		padding:0;
 	}
-	
-	.receipt-quantity{
-		width:90px !important;
-	}
-	
-	.receipt-price{
-		width:70px !important;
-	}
-	
-	.receipt-amount{
-		width:80px !important;
-	}
-	
-	#receipt-number, #receipt-title, #cashier{
-		float:left !important;
-		padding:0px !important;
-	}
-	
-	#receipt-number{
-		margin-top:0px;
-	}	
-	
 }
