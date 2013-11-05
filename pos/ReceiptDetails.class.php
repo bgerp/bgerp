@@ -46,7 +46,7 @@ class pos_ReceiptDetails extends core_Detail {
     function description()
     {
     	$this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
-    	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em');
+    	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em;top:1px;position:relative');
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
@@ -551,6 +551,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$data->form->setOptions('action', $mvc->getActionOptions());
     	$data->form->setDefault('quantity', '1');
+    	$data->form->addAttr('quantity', array('type' => 'number'));
     }
     
     
