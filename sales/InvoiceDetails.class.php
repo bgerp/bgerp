@@ -148,6 +148,7 @@ class sales_InvoiceDetails extends core_Detail
             $rec = &$form->rec;
             $update = FALSE;
             list($rec->classId, $rec->productId, $rec->packagingId) = explode('|', $rec->productId);
+            $rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
             
             $productMan = cls::get($rec->classId);
             if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){

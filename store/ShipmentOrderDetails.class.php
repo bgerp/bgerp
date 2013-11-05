@@ -400,7 +400,8 @@ class store_ShipmentOrderDetails extends core_Detail
             
             // Извличаме ид на политиката, кодирано в ид-то на продукта 
             list($rec->classId, $rec->productId, $rec->packagingId) = explode('|', $rec->productId);
-
+			$rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
+            
             /* @var $origin bgerp_DealAggregatorIntf */
             $origin = store_ShipmentOrders::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
             
