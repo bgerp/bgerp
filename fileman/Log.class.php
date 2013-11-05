@@ -69,6 +69,12 @@ class fileman_Log extends core_Manager
     
     
     /**
+     * Името на полито, по което плъгина GroupByDate ще групира редовете
+     */
+    var $groupByDateField = 'lastOn';
+    
+    
+    /**
      * Броя на записите при странициране в диалоговия прозорец
      */
     const DIALOG_LIST_ITEMS_PER_PAGE = 5;
@@ -248,6 +254,11 @@ class fileman_Log extends core_Manager
             
             // Да не се извикат останалите
             return FALSE;
+        } else {
+            
+            // Ако сме в листовия изглед
+            // Добавяме плъгина
+            $mvc->load('plg_GroupByDate');
         }
     }
     
@@ -440,10 +451,10 @@ class fileman_Log extends core_Manager
         } else {
             
             // Обхождаме масива
-            foreach ((array)($data->rows) as $id => $row) {
+            foreach ((array)($data->recs) as $id => $rec) {
                 
                 // Вземаме манипулатора на файла
-                $fh = fileman::idToFh($data->recs[$id]->fileId);
+                $fh = fileman::idToFh($rec->fileId);
                 
                 // Вземаме линка към сингъла на файла
                 $data->rows[$id]->fileId = fileman::getLinkToSingle($fh);
