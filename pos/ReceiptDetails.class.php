@@ -264,12 +264,12 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->ean = trim($rec->ean);
     		
     		if(strlen($rec->ean) == 0) {
-    			$form->setError('ean', 'Имате празно поле');
+    			$form->setError('ean', 'Имате празно поле!');
     			return;
     		}
     		
     		if($rec->quantity == 0) {
-	    		$form->setError('quantity', 'Неможе да въведете нулево количество');
+	    		$form->setError('quantity', 'Не може да въведете нулево количество!');
 	    		return;
 	    	}
 	    	
@@ -278,12 +278,12 @@ class pos_ReceiptDetails extends core_Detail {
 	    		case 'sale':
 	    			$mvc->getProductInfo($rec);
 	    			if(!$rec->productId) {
-	    				$form->setError('ean', 'Няма такъв продукт в системата');
+	    				$form->setError('ean', 'Няма такъв продукт в системата!');
 	    				return;
 	    			}
 	    			
 	    			if(!$rec->price) {
-	    				$form->setError('ean', 'Продукта няма цена в системата');
+	    				$form->setError('ean', 'Продуктът няма цена в системата!');
 	    				return;
 	    			}
 	    			
@@ -302,31 +302,31 @@ class pos_ReceiptDetails extends core_Detail {
 				    if($rec->quantity < 0) {
 				    	
 				    	// Количеството на оставащия продукт не бива да е под 0
-				    	$form->setError('quantity', 'Въвели сте неправилно количество');
+				    	$form->setError('quantity', 'Въвели сте неправилно количество!');
 				    }
 				    
 	    			if($rec->price < 0) {
 				    	
 				    	// Небива да се записвая продукт с отрицателна цена (след приложена отстъпка)
-				    	$form->setError('ean', 'Не може продукта да е с отрицателна цена !');
+				    	$form->setError('ean', 'Продуктът не може да е с отрицателна цена!');
 				    }
 	    			break;
 	    		case 'payment':
 	    			
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
 	    			
 	    			if($rec->ean <= 0) {
-	    				$form->setError('ean', 'Не може да се плати с неположителна стойност');
+	    				$form->setError('ean', 'Не може да се плати с неположителна стойност!');
 	    				return;
 	    			}
 	    			$recRec = $mvc->Master->fetch($rec->receiptId);
 	    			if(!pos_Payments::returnsChange($action->value)
 	    			 && (string)$rec->ean > (string)abs($recRec->paid - $recRec->total)) {
-	    			 	$form->setError('ean', 'Неможе с този платежен метод да се плати по-голяма сума от общата');
+	    			 	$form->setError('ean', 'Не може с този платежен метод да се плати по-голяма сума от общата!');
 	    			}
 	    			$rec->amount = $rec->ean;
 	    			break;
@@ -334,7 +334,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    			
 	    			// Ако действието е "отстъпка"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
@@ -342,25 +342,25 @@ class pos_ReceiptDetails extends core_Detail {
 	    			if($param == 'Sum'){
 	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
 	    				if($total < abs($rec->ean)){
-	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната !');
+	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната!');
 	    				}
 	    			} else {
 	    				if($rec->ean/100 > 1) {
-	    					$form->setError('ean', 'Отстъпката неможе да е по-голяма от 100% !');
+	    					$form->setError('ean', 'Отстъпката не може да е по-голяма от 100%!');
 	    				}
 	    			}
 	    			
 	    			break;
 	    		case 'client':
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
 	    			
 	    			// Ако действието е "клиент"
 	    			$mvc->getClientInfo($rec);
 	    			if(!$rec->param) {
-	    				$form->setError('ean', 'Няма такъв клиент');
+	    				$form->setError('ean', 'Няма такъв клиент!');
 	    			}
 	    			break;
 	    	}

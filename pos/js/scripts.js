@@ -40,6 +40,10 @@ function posActions() {
 		scrollToActiveElement(); 
 	}
 	
+	if($(".formError").length){
+		scrollToError(); 
+	}
+	
     $(function(){
 	        if (typeof(window.WebScan) == "undefined" ) {
 	            $('.webscan').hide();
@@ -94,6 +98,9 @@ function posActions() {
    	    	if($("#last-row").length){
    	    		scrollToActiveElement(); 
    	    	}
+   	    	if($(".formError").length){
+	   	 		scrollToError(); 
+	   	 	}
    	    	$("input[disabled=disabled]").addClass("disabledBtn");
    	    	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
    	    	if (typeof(window.WebScan) == "undefined" ) {
@@ -113,6 +120,12 @@ function posActions() {
 function scrollToActiveElement(){
 	$('html, body').animate({
         scrollTop: $("#last-row").offset().top - $("#last-row").outerHeight()
+    }, 10);
+}
+
+function scrollToError(){
+	$('html, body').animate({
+       scrollTop: $(".formError").offset().top
     }, 10);
 }
 
