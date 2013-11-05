@@ -624,11 +624,13 @@ class pos_Receipts extends core_Master {
         
         $result->agreed->amount                 = $rec->total;
         $result->agreed->currency               = $currencyId;
+        $result->agreed->vatType 				= 'yes';
         $result->agreed->payment->currencyId    = $currencyId;
         $result->agreed->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
        
         $result->shipped->amount                 = $rec->total;
         $result->shipped->currency               = $currencyId;
+        $result->shipped->vatType 				 = 'yes';
         $result->shipped->payment->currencyId    = $currencyId;
         $result->shipped->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
         

@@ -195,22 +195,25 @@ class pos_ReceiptDetails extends core_Detail {
     			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			if($rec->discountPercent || $rec->discountPercent == 0){
-    				$discRec = $rec->discountPercent;
-    				$discRow = $row->discountPercent;
+    			if($rec->discountPercent || $rec->discountPercent === 0){
+    				$discRec = &$rec->discountPercent;
+    				$discRow = &$row->discountPercent;
+    				
     				unset($row->currency);
+    				
     				if($discRec == 0){
     					$row->discountPercent = tr('Без отстъпка');
     				}
     			}else {
-    				$discRec = $rec->discountSum;
-    				$discRow = $row->discountSum;
+    				$discRec = &$rec->discountSum;
+    				$discRow = &$row->discountSum;
     			}
     			
     			if($discRec != 0){
-	    			$discRow = abs($discRec);
+	    			$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
 	    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
     			}
+    			
     			break;
     	}
     }
@@ -338,16 +341,18 @@ class pos_ReceiptDetails extends core_Detail {
 	    				return;
 	    			}
 	    			$param = ucfirst(strtolower($action->value));
-	    			$rec->{"discount{$param}"} = $rec->ean/100;
+	    			
 	    			if($param == 'Sum'){
 	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
 	    				if($total < abs($rec->ean)){
 	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната!');
 	    				}
+	    				$rec->discountSum = $rec->ean;
 	    			} else {
-	    				if($rec->ean/100 > 1) {
+	    				if($rec->ean > 100) {
 	    					$form->setError('ean', 'Отстъпката не може да е по-голяма от 100%!');
 	    				}
+	    				$rec->discountPercent = $rec->ean / 100;
 	    			}
 	    			
 	    			break;
