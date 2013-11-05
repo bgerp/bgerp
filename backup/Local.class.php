@@ -46,7 +46,7 @@ class backup_Local extends core_Master
      */
     static function getFile($fileName)
     {
-        $result = @copy(STORAGE_FOLDER . '/' . $fileName, $fileName);
+        $result = @copy(STORAGE_FOLDER . '/' . $fileName, EF_TEMP_PATH . "/" . $fileName);
         
         return $result;
     }    

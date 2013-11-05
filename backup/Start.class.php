@@ -51,8 +51,9 @@ class backup_Start extends core_Manager
         
             exit(1);
         }
-        
-        $backupFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . ".gz";
+        $now = date("Y_m_d_H_i");
+        $backupFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".gz";
+        $metaFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME;
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
               . $conf->BACKUP_MYSQL_USER_NAME . " -p" . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME 
@@ -65,17 +66,38 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
+        $storage = "backup_" . $conf->BACKUP_STORAGE_TYPE;
+        
         // Сваляме мета файла с описанията за бекъпите
+        if (!$storage::getFile($metaFileName)) {
+            //Създаваме го
+            touch(EF_TEMP_PATH . "/" . $metaFileName);
+            $metaArr = array();
+        } else {
+            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . $metaFileName));
+        }
         
+        if (!is_array($metaArr)) {
+            
+            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            exit(1);
+        }
         // Добавяме нов запис за пълния бекъп
-        // Качваме EF_TEMP_PATH ."/" . BACKUP_PREFIX . "_" . EF_DB_NAME.gz
-        // като BACKUP_PREFIX . "_" . EF_DB_NAME . "_". date("D_M_Y_H_i") . ".gz"
-        $storage = cls::get("backup_{$conf->BACKUP_STORAGE_TYPE}");
+        $metaArr[][0] = $backupFileName;
+        file_put_contents(EF_TEMP_PATH . "/" . $metaFileName, serialize($metaArr));
+
+        $storage = "backup_" . $conf->BACKUP_STORAGE_TYPE;
         
-        $storage->putFile($backupFileName);
+        // Качваме бекъп-а
+        $storage::putFile($backupFileName);
+           
         // Качваме и мета файла
+        $storage::putFile($metaFileName);
+
         // Изтриваме бекъп-а от temp-a и metata
-                
+        unlink(EF_TEMP_PATH . "/" . $backupFileName);
+        unlink(EF_TEMP_PATH . "/" . $metaFileName);
+        
         core_Logs::add("Backup", "", "FULL Backup OK!");
         
         return "FULL Backup OK!"; 
