@@ -103,30 +103,88 @@ class backup_Start extends core_Manager
         return "FULL Backup OK!"; 
     }
 
+    /**
+     * Съхраняване на бинарния лог на MySQL-a
+     * 
+     * 
+     */
     static function BinLog()
     {
+        $conf = core_Packs::getConfig('backup');
+        $now = date("Y_m_d_H_i");
+        $binLogFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".binlog.gz";
+        $metaFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME;
+        
+        $storage = "backup_" . $conf->BACKUP_STORAGE_TYPE;
+        
         // Взима бинарния лог
+        $db = cls::get("core_Db", array('dbUser'=>$conf->BACKUP_MYSQL_USER_NAME,
+                'dbHost'=>$conf->BACKUP_MYSQL_HOST,
+                'dbPass'=>$conf->BACKUP_MYSQL_USER_PASS,
+                'dbName'=>'information_schema')
+               );
         // 1. взимаме името на текущия лог
+        $db->query("SHOW MASTER STATUS");
+        $resArr = $db->fetchArray();
+        // $resArr['file'] e името на текущия бинлог
+
         // 2. флъшваме лог-а
-        // 3. взимаме съдържанието на binlog-a
+        $db->query("FLUSH LOGS");
+
+        // 3. взимаме съдържанието на binlog-a в temp-a и го компресираме
+        exec("mysqlbinlog --read-from-remote-server -u"
+                . $conf->BACKUP_MYSQL_USER_NAME
+                . " -p" . $conf->BACKUP_MYSQL_USER_PASS . " {$resArr['file']} -h"
+                . $conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . "{$binLogFileName}", $output, $returnVar);
+        if ($returnVar !== 0) {
+            core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
+            
+            exit(1);
+        }
         // 4. сваля се метафайла
+        if (!$storage::getFile($metaFileName)) {
+            //Създаваме го
+            touch(EF_TEMP_PATH . "/" . $metaFileName);
+            $metaArr = array();
+        } else {
+            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . $metaFileName));
+        }
+        
+        if (!is_array($metaArr)) {
+        
+            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            exit(1);
+        }
+        
         // 5. добавя се инфо за бинлога
+        $maxKey = max(array_keys($metaArr)); 
+        $metaArr[$maxKey][] = $binLogFileName;
+        file_put_contents(EF_TEMP_PATH . "/" . $metaFileName, serialize($metaArr));
+        
         // 6. Качва се binloga с подходящо име
+        $storage::putFile($binLogFileName);
+         
         // 7. Качва се и мета файла
+        $storage::putFile($metaFileName);
+        
+        // 8. Изтриваме бекъп-а от temp-a и metata
+        unlink(EF_TEMP_PATH . "/" . $binLogFileName);
+        unlink(EF_TEMP_PATH . "/" . $metaFileName);
+        
+        core_Logs::add("Backup", "", "BinLog Backup OK!");
+        
             
-        core_Logs::add("Backup", "", "Backup binlog OK!");
-            
-        return "DIFF Backup OK!";
+        return "BinLog Backup OK!";
     }    
     
-    /**
+   /**
      * Стартиране от крон-а
      *
      * 
      */
-    static function cron_StartFull()
+    static function cron_Full()
     {
-        self::StartFull();
+        self::Full();
     }
     
     /**
@@ -139,4 +197,24 @@ class backup_Start extends core_Manager
         return self::Full();
     }
     
+    /**
+     * Стартиране от крон-а
+     *
+     *
+     */
+    static function cron_BinLog()
+    {
+        self::BinLog();
+    }
+    
+    /**
+     * Метод за извикване през WEB
+     *
+     *
+     */
+    public function act_BinLog()
+    {
+        return self::BinLog();
+    }
+       
 }
