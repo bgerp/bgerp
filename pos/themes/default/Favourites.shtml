@@ -11,7 +11,7 @@
 	<div id='pos-products'>
 		<!--ET_BEGIN ITEM-->
 		[#ITEM#]
-			<div class='pos-product' data-code='[#code#]' data-cat='[#catId#]' title='натиснете за да добавите продукта'>
+			<div class='pos-product' data-code='[#code#]' data-cat='[#catId#]' title='Добавете [#name#]'>
 				<!--ET_BEGIN image-->
 					[#image#]
 				<!--ET_END image-->
