@@ -4,12 +4,12 @@
 </tr>
 <tr [#lastRow#] data-code=[#code#]>
 	<td class='receipt-quantity'><span class='quantity'>[#quantity#]</span> <!--ET_BEGIN packagingId--> &nbsp;[#packagingId#]<!--ET_END packagingId--></td>
-	<td class='receipt-price'>[#price#] <small>[#currency#]</small> 
+	<td class='receipt-price'>[#price#] 
 	<!--ET_BEGIN discountPercent-->
 	 (<span class='receipt-discount-td'> [#discountPercent#] </span>)
 	<!--ET_END discountPercent-->
 	</td>
-	<td class='receipt-amount'><span class='sale-amount'>[#amount#] <small>[#currency#]</small></span></td>
+	<td class='receipt-amount'><span class='sale-amount'>[#amount#]</span></td>
 </tr>
 <!--ET_END sale-->
 
@@ -24,7 +24,7 @@
 		[#discountPercent#]
 	<!--ET_END discountPercent-->
 	<!--ET_BEGIN discountSum-->
-		[#discountSum#] <small>[#currency#]</small>
+		[#discountSum#]
 	<!--ET_END discountSum-->
 	</td>
 </tr>

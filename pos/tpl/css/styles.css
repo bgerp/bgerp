@@ -308,6 +308,12 @@ form #point {
 	border-right:1px solid #000 !important;
 }
 
+.currency-element{
+	float:right;
+	display:inline-block;
+	margin-top:2px;
+}
+
 @media print{
 	.single-receipt-wrapper{
 		border:none;
