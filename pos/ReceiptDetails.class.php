@@ -198,6 +198,7 @@ class pos_ReceiptDetails extends core_Detail {
     			if($rec->discountPercent || $rec->discountPercent === 0){
     				$discRec = &$rec->discountPercent;
     				$discRow = &$row->discountPercent;
+    				$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
     				
     				unset($row->currency);
     				
@@ -207,10 +208,10 @@ class pos_ReceiptDetails extends core_Detail {
     			}else {
     				$discRec = &$rec->discountSum;
     				$discRow = &$row->discountSum;
+    				$discRow = $mvc->fields['discountSum']->type->toVerbal(abs($discRec));
     			}
     			
     			if($discRec != 0){
-	    			$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
 	    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
     			}
     			
@@ -315,6 +316,7 @@ class pos_ReceiptDetails extends core_Detail {
 				    }
 	    			break;
 	    		case 'payment':
+	    			$rec->ean = $mvc->fields['price']->type->fromVerbal($rec->ean);
 	    			
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
@@ -334,27 +336,29 @@ class pos_ReceiptDetails extends core_Detail {
 	    			$rec->amount = $rec->ean;
 	    			break;
 	    		case 'discount':
-	    			
-	    			// Ако действието е "отстъпка"
-	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри!');
-	    				return;
-	    			}
 	    			$param = ucfirst(strtolower($action->value));
 	    			
 	    			if($param == 'Sum'){
+	    				$rec->ean = $mvc->fields['discountSum']->type->fromVerbal($rec->ean);
+	    				
 	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
 	    				if($total < abs($rec->ean)){
 	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната!');
 	    				}
 	    				$rec->discountSum = $rec->ean;
 	    			} else {
-	    				if($rec->ean > 100) {
+	    				$rec->ean = $mvc->fields['discountPercent']->type->fromVerbal($rec->ean);
+	    				if($rec->ean > 1) {
 	    					$form->setError('ean', 'Отстъпката не може да е по-голяма от 100%!');
 	    				}
-	    				$rec->discountPercent = $rec->ean / 100;
+	    				$rec->discountPercent = $rec->ean;
 	    			}
 	    			
+	    			// Ако действието е "отстъпка"
+	    			if(!is_numeric($rec->ean)) {
+	    				$form->setError('ean', 'Полето приема само цифри!');
+	    				return;
+	    			}
 	    			break;
 	    		case 'client':
 	    			if(!is_numeric($rec->ean)) {
