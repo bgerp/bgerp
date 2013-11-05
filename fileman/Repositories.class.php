@@ -352,85 +352,6 @@ class fileman_Repositories extends core_Master
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        // Масив с пътищата до хранилищата
-        $repositoryPathArr = arr::make(EF_REPOSITORIES_PATHS);
-        
-        // Обхождаме всички пътища
-        foreach ($repositoryPathArr as $repositoryPath) {
-            
-            // Флаг, указващ дали има грешки
-            $haveError = FALSE;
-            
-            // Ескейпваме стринга
-            $repositoryPathEsc = core_Type::escape($repositoryPath);
-            
-            // Подготвяме пътя до хранилището
-            $repositoryPath = static::preparePath($repositoryPath);
-            
-            // Ако пътя не е добър
-            if (!static::isGoodPath($repositoryPath)) {
-                
-                // Сетваме грешка
-                $res .= "<li style='color:red'>Хранилището, което сте въвели не може да се използва './': " . $repositoryPathEsc;
-                
-                // Прескачаме
-                continue;
-            }
-            
-            // Ако е директория
-            if (is_dir($repositoryPath)) {
-                
-                // Ако нямаме права за четене
-                if (!is_readable($repositoryPath)) {
-                    
-                    // Добавяме грешката
-                    $res .= "<li style='color:red'>Нямате права за четене в: " . $repositoryPathEsc;
-                    
-                    // Вдигаме флага
-                    $haveError = TRUE;
-                }
-                
-                // Ако нямаме права за запис
-                if (!is_writable($repositoryPath)) {
-                    
-                    // Добавяме грешката
-                    $res .= "<li style='color:red'>Нямате права за запис в: " . $repositoryPathEsc;
-                    
-                    // Вдигаме флага
-                    $haveError = TRUE;
-                }
-                
-                // Ако име грешки прескачаме
-                if ($haveError) continue;
-                
-                // Отбелязваме, че директорията съществува
-                $res .= "<li>Съществуваща директория: " . $repositoryPathEsc;
-            } else {
-                
-                // Ако може да се създаде хранилището
-                if (@mkdir($repositoryPath, 0777, TRUE)) {
-                    
-                    // Добавяме съобщение за успех
-                    $res .= "<li style='color:green'>Създадена директория: " . $repositoryPathEsc;
-                } else {
-                    
-                    // Добавяме грешка
-                    $res .= "<li style='color:red'>Не може да се създаде директория: " . $repositoryPathEsc;
-                }
-            }
-        }
-        
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(static::$bucket, 'Файлове в хранилищата', NULL, '104857600', 'user', 'user');
-    }
-    
-    
-    /**
      * Качва посочения файл в кофата и връща манипулатора му
      * 
      * @param string $filePath - Пътя до файла
@@ -892,5 +813,84 @@ class fileman_Repositories extends core_Master
         $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file), $absolute);
         
         return $url;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Масив с пътищата до хранилищата
+        $repositoryPathArr = arr::make(EF_REPOSITORIES_PATHS);
+        
+        // Обхождаме всички пътища
+        foreach ($repositoryPathArr as $repositoryPath) {
+            
+            // Флаг, указващ дали има грешки
+            $haveError = FALSE;
+            
+            // Ескейпваме стринга
+            $repositoryPathEsc = core_Type::escape($repositoryPath);
+            
+            // Подготвяме пътя до хранилището
+            $repositoryPath = static::preparePath($repositoryPath);
+            
+            // Ако пътя не е добър
+            if (!static::isGoodPath($repositoryPath)) {
+                
+                // Сетваме грешка
+                $res .= "<li style='color:red'>Хранилището, което сте въвели не може да се използва './': " . $repositoryPathEsc;
+                
+                // Прескачаме
+                continue;
+            }
+            
+            // Ако е директория
+            if (is_dir($repositoryPath)) {
+                
+                // Ако нямаме права за четене
+                if (!is_readable($repositoryPath)) {
+                    
+                    // Добавяме грешката
+                    $res .= "<li style='color:red'>Нямате права за четене в: " . $repositoryPathEsc;
+                    
+                    // Вдигаме флага
+                    $haveError = TRUE;
+                }
+                
+                // Ако нямаме права за запис
+                if (!is_writable($repositoryPath)) {
+                    
+                    // Добавяме грешката
+                    $res .= "<li style='color:red'>Нямате права за запис в: " . $repositoryPathEsc;
+                    
+                    // Вдигаме флага
+                    $haveError = TRUE;
+                }
+                
+                // Ако име грешки прескачаме
+                if ($haveError) continue;
+                
+                // Отбелязваме, че директорията съществува
+                $res .= "<li>Съществуваща директория: " . $repositoryPathEsc;
+            } else {
+                
+                // Ако може да се създаде хранилището
+                if (@mkdir($repositoryPath, 0777, TRUE)) {
+                    
+                    // Добавяме съобщение за успех
+                    $res .= "<li style='color:green'>Създадена директория: " . $repositoryPathEsc;
+                } else {
+                    
+                    // Добавяме грешка
+                    $res .= "<li style='color:red'>Не може да се създаде директория: " . $repositoryPathEsc;
+                }
+            }
+        }
+        
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket(static::$bucket, 'Файлове в хранилищата', NULL, '104857600', 'user', 'user');
     }
 }
