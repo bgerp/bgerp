@@ -589,7 +589,7 @@ class pos_Receipts extends core_Master {
     }
     
      
-     /**
+    /**
      * Изтриваме детайлите ако се изтрие мастъра
      */
     function on_AfterDelete($mvc, &$res, $query)
@@ -597,12 +597,6 @@ class pos_Receipts extends core_Master {
         foreach($query->getDeletedRecs() as $rec) {
         	$mvc->pos_ReceiptDetails->delete("#receiptId = {$rec->id}");
         }
-    }
-    
-    
-	function act_Test(){
-    	$i = $this->getAggregateDealInfo('39');
-    	bp($i);
     }
     
     
@@ -653,5 +647,18 @@ class pos_Receipts extends core_Master {
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Метод по подразбиране на canActivate
+     */
+    public static function canActivate($rec)
+    {
+    	if(empty($rec->id) && $rec->state != 'draft' && ($rec->total == 0 || $rec->paid < $rec->total)) {
+			return FALSE;
+		} else {
+			return TRUE;
+		}
     }
 }

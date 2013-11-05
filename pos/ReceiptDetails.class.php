@@ -195,17 +195,17 @@ class pos_ReceiptDetails extends core_Detail {
     			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			if($rec->discountPercent || $rec->discountPercent === 0){
+    			if(isset($rec->discountPercent)){
     				$discRec = &$rec->discountPercent;
     				$discRow = &$row->discountPercent;
-    				$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
     				
-    				unset($row->currency);
-    				
-    				if($discRec == 0){
+    				if($rec->discountPercent != 0){
+    					$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
+    					unset($row->currency);
+    				} else {
     					$row->discountPercent = tr('Без отстъпка');
     				}
-    			}else {
+    			} else {
     				$discRec = &$rec->discountSum;
     				$discRow = &$row->discountSum;
     				$discRow = $mvc->fields['discountSum']->type->toVerbal(abs($discRec));
