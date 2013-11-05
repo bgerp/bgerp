@@ -38,4 +38,12 @@ class bgerp_iface_DealDelivery
      * @var string
      */
     public $time;
+    
+    
+    /**
+     * Склад на доставка
+     *
+     * @var string
+     */
+    public $storeId;
 }
