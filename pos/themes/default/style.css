@@ -5,14 +5,15 @@
 }
 
 .pos-product-category {
-	padding: 0.34em 0.5em;
-	margin-right:8px;
+	padding: 0.2em 0.5em 0.4em;
+	margin:0px 8px 5px 0;
 	max-width:90px;
 	color:black;
 	font-size:0.8em;
 	background-color:rgb(221,221,221);
 	text-align:center;
 	display:block;
+	float:left;
 	border: 1px solid rgba(0,0,0,0.2);
 	border-radius:10px;
 }
@@ -28,7 +29,7 @@
 }
 
 #pos-products {
-	margin-top:10px;
+	margin-top:5px;
 	padding:0 7px;
 }
 
