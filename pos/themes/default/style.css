@@ -1,19 +1,35 @@
-body{
-	/position:relative;
-}
 .pos-bar-holder{
 	position:fixed;
-	bottom:27%;
+	top:25px;
 	left:600px;
 }
 
+.pos-product-category {
+	padding: 0.34em 0.5em;
+	margin-right:8px;
+	max-width:90px;
+	color:black;
+	font-size:0.8em;
+	background-color:rgb(221,221,221);
+	text-align:center;
+	display:block;
+	border: 1px solid rgba(0,0,0,0.2);
+	border-radius:10px;
+}
+
+.pos-product-category:hover, .pos-product-category.active {
+	background-color:rgb(240,240,240);
+	border: 1px solid rgba(0,0,0,0.7);
+	cursor: pointer;
+}
+
+#pos-producy-categories {
+	padding:0 5px;
+}
+
 #pos-products {
-	margin-top:15px;
+	margin-top:10px;
 	padding:0 7px;
-	width: 615px;
-	height:303px;
-	
-	overflow-y:auto;
 }
 
 .pos-product{
@@ -22,7 +38,7 @@ body{
 	width: 90px;
 	height: 90px;
 	cursor: pointer;
-	display:inline-block;
+	display:block;
 	float:left;
 	margin-right:10px;
 	margin-top:5px;
@@ -38,7 +54,7 @@ body{
 	position:absolute;
 	left:0px;
 	bottom:0px;
-	font-size:12px;
+	font-size:0.8em;
 	max-height:30px;
 	display:block;
 	overflow:hidden;
@@ -63,7 +79,7 @@ body{
 	width:60px;
 	text-align:center;
 	height:15px;
-	font-size:12px;
+	font-size:0.75em;
 	display:block;
 	color:white;
 	text-shadow:1px 0px 1px #000000;
@@ -77,42 +93,14 @@ body{
 }
 
 .pos-product-base-currency{
-	font-size:9px;
+	font-size:0.75em;
 	color: black;
 	text-shadow:0px 0px 1px #FFFFFF;
 	font-weight:bold;
-}
-
-.pos-product-category {
-	line-height: 30px;
-	margin-right:8px;
-	margin-top:8px;
-	padding:5px 15px;
-	max-width:90px;
-	color:black;
-	background-color:rgb(221,221,221);
-	font-size:12px;
-	text-align:center;
-	height:30px;
-	display:inline-block;
-	vertical-align:middle;
-	border: 1px solid rgba(0,0,0,0.2);
-	border-radius:11px;
 }
 
 .pos-span-name {
 	display:inline-block;
 	vertical-align:middle;
 	line-height: normal;  
-}
-
-.pos-product-category:hover, .pos-product-category.active {
-	background-color:rgb(240,240,240);
-	border: 1px solid rgba(0,0,0,0.7);
-	cursor: pointer;
-}
-
-#pos-producy-categories {
-	padding:0 5px;
-	width: 615px;
 }
