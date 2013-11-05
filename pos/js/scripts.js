@@ -15,10 +15,12 @@ function posActions() {
 	
 	$('#incBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
+		$("select[name=action]").val('sale|code');
 	});
 	
 	$('#decBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
+		$("select[name=action]").val('sale|code');
 	});
 	
 	$('#subBtn').live("click", function() {
