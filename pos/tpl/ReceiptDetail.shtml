@@ -32,7 +32,7 @@
 
 <!--ET_BEGIN payment-->
 <tr [#lastRow#]>
-	<td colspan='4' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] <small>[#currency#]</small></td>
+	<td colspan='4' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] </td>
 </tr>
 <!--ET_END payment-->
 
