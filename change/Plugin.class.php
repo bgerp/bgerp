@@ -279,7 +279,7 @@ class change_Plugin extends core_Plugin
                 $versionStrRaw = change_Log::escape($versionStr);
                 
                 // Добавяме към заглавието, съответната версия
-                $form->title .= " <b style='color:red;'>{$versionStrRaw}</b>";
+                $form->title .= "|* <b style='color:red;'>{$versionStrRaw}</b>";
             }
         }
         
