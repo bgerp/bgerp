@@ -653,10 +653,35 @@ class fileman_Repositories extends core_Master
     {
         // Ако екшъна е retrive и сме дефинира роли за достъп до хранилището
         // И текущия потребител няма такава
-        if ($action == 'retrive' && trim($rec->rolesForAccess) && !haveRole($rec->rolesForAccess)) {
+        if ($action == 'retrive') {
             
-            // Да не може да пипа
-            $requiredRoles = 'no_one';
+            // Ако няма роля admin
+            // admin трябва да има достъп
+            if (!haveRole('admin')) {
+                
+                // Роли за достъп
+                $rolesForAccess = trim($rec->rolesForAccess);
+                
+                // Потребители, които имат достъп
+                $usersForAccess = trim($rec->usersForAccess);
+                
+                // Ако няма зададени потребители и роли
+                if (!$rolesForAccess && !$usersForAccess) {
+                    
+                    // Да не може да пипа
+                    $requiredRoles = 'no_one';
+                } else {
+                    
+                    // Ако има роли и ние я имаме
+                    // или ако е зададен потребител
+                    if (($rolesForAccess && !haveRole($rolesForAccess))
+                        || ($usersForAccess && !type_Keylist::isIn($userId, $usersForAccess))) {
+                        
+                        // Да не може да пипа
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
         }
     }
 	
