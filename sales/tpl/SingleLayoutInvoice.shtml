@@ -119,19 +119,23 @@
 		                <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
 		                <tr>
 			                <td class='info-right'>|Стойност|* / Subtotal :</td>
-			                <td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#dealValue#]</b></td>
+			                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+			                <td class='info-right'> <b>[#dealValue#]</b></td>
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|Данъчна основа|* / Tax base :</td>
-		                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#baseAmount#]</b></td>
+		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+		                	<td class='info-right'><b>[#baseAmount#]</b></td>
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|ДДС|* / VAT <b>[#vatPercent#]</b> :</td>
-		                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span> &nbsp;<b>[#vatAmount#]</b></td>
+		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+		                	<td class='info-right'><b>[#vatAmount#]</b></td>
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|Общо|* / Total :</td>
-		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span> &nbsp;<b>[#total#]</b></td>
+		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+		                	<td class='info-right'><b>[#total#]</b></td>
 		                </tr>
 		                </table>
 		                </td>
