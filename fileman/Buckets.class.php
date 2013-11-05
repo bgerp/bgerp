@@ -165,11 +165,10 @@ class fileman_Buckets extends core_Manager {
      */
     function getInfoAfterAddingFile($fh)
     {
-        $fileRec = fileman_Files::fetch("#fileHnd = '{$fh}'");
-
-        $bucketRec = $this->fetch($fileRec->bucketId);
-
-        return new ET("<div class='uploaded-title'> <b>{$fileRec->name}</b> </div>");
+        // Линк към сингъла на файла
+        $link = fileman::getLinkToSingle($fh, FALSE, array('target' => '_blank'));
+        
+        return new ET("<div class='uploaded-title'> <b>{$link}</b> </div>");
     }
 
 

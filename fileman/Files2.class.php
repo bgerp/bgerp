@@ -854,10 +854,11 @@ class fileman_Files2 extends core_Master
      * 
      * @param fileHnd $fh - Манипулатор на файла
      * @param boolean $absolute - Дали линка да е абсолютен
+     * @param array $attr - Други параметри
      * 
      * @return core_Et - Линк
      */
-    static function getLinkToSingle($fh, $absolute=FALSE)
+    static function getLinkToSingle($fh, $absolute=FALSE, $attr=array())
     {
         // Вземаме записа
         $rec = fileman_Files::fetchByFh($fh);
@@ -885,7 +886,7 @@ class fileman_Files2 extends core_Master
         $url = static::getUrlToSingle($fh, $absolute);
         
         // Вземаме линка
-        $link = ht::createLink($fileName, $url);
+        $link = ht::createLink($fileName, $url, FALSE, $attr);
         
         return $link;
     }
