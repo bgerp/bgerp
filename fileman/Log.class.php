@@ -180,9 +180,6 @@ class fileman_Log extends core_Manager
      */
     function act_Dialog()
     {
-        // Дали ще качаваме много файлове едновременно
-        $allowMultiUpload = FALSE;
-        
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
         
