@@ -14,7 +14,7 @@
 <!--ET_END sale-->
 
 <!--ET_BEGIN discount-->
-<tr>
+<tr [#lastRow#]>
 	<td colspan='4' class='receipt-discount'>
 	<!--ET_BEGIN discountType-->
 	[#discountType#]: &nbsp;&nbsp;
@@ -31,13 +31,13 @@
 <!--ET_END discount-->
 
 <!--ET_BEGIN payment-->
-<tr>
+<tr [#lastRow#]>
 	<td colspan='4' class='receipt-payment'>|Плащане|* [#actionValue#]: &nbsp;&nbsp;[#amount#] <small>[#currency#]</small></td>
 </tr>
 <!--ET_END payment-->
 
 <!--ET_BEGIN client-->
-<tr>
+<tr [#lastRow#]>
 	<td colspan='4' class='receipt-client'>|Клиент|*: &nbsp;&nbsp;[#clientName#]</td>
 </tr>
 <!--ET_END client-->

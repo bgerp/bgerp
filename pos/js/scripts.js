@@ -32,8 +32,12 @@ function posActions() {
 		if($("input[name=ean]").val() != '') {
 			$("#receipt-details-form form").submit();
 		} 
+		
 	});
-
+	if($("#last-row").length){
+		scrollToActiveElement(); 
+	}
+	
     $(function(){
 	        if (typeof(window.WebScan) == "undefined" ) {
 	            $('.webscan').hide();
@@ -86,7 +90,7 @@ function posActions() {
    	    	$(".single-receipt-wrapper").replaceWith(result);
    	    	$("#last-row").css("background-color", "#FFFF99");
    	    	if($("#last-row").length){
-   	    		scrollToActiveProduct(); 
+   	    		scrollToActiveElement(); 
    	    	}
    	    	$("input[disabled=disabled]").addClass("disabledBtn");
    	    	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
@@ -100,10 +104,11 @@ function posActions() {
    	     }
    	     });
 	});
+	
 }
 
 
-function scrollToActiveProduct(){
+function scrollToActiveElement(){
 	$('html, body').animate({
         scrollTop: $("#last-row").offset().top - $("#last-row").outerHeight()
     }, 10);
