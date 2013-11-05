@@ -353,18 +353,6 @@ class cash_Rko extends core_Master
     }
     
     
-    /**
-     * Поставя бутони за генериране на други банкови документи възоснова
-     * на този.
-     */
-	static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	if($data->rec->state == 'draft'){
-    		$data->toolbar->addBtn('Вносна бележка', array('bank_DepositSlips', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png');
-    	}
-    }
-    
-    
    	/**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
