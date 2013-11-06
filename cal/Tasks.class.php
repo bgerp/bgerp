@@ -245,9 +245,18 @@ class cal_Tasks extends core_Master
  
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
         
-        if($rec->timeStart){
+        // Ако имаме само начална дата на задачата
+        if($rec->timeStart && !$rec->timeEnd){
+        	// я парвим хипервръзка към календара- дневен изглед
         	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart), NULL, "ef_icon=img/16/calendar5.png");
-        } elseif ($rec->timeEnd) {
+          // Ако имаме само крайна дата на задачата 
+        } elseif ($rec->timeEnd && !$rec->timeStart) {
+        	// я правим хипервръзка към календара - дневен изглед
+        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd), NULL, "ef_icon=img/16/calendar5.png");
+          // Ако задачата е с начало и край едновременно
+        } elseif($rec->timeStart && $rec->timeEnd) {
+        	// и двете ги правим хипервръзка към календара - дневен изглед 
+        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart), NULL, "ef_icon=img/16/calendar5.png");
         	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd), NULL, "ef_icon=img/16/calendar5.png");
         }
     }
