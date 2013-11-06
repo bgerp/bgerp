@@ -138,7 +138,6 @@ class currency_Currencies extends core_Master {
         $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
         $this->FLD('groups', 'keylist(mvc=currency_CurrencyGroups, select=name)', 'caption=Групи');
         
-        $this->setDbUnique('name');
         $this->setDbUnique('code');
     }
 
@@ -263,15 +262,17 @@ class currency_Currencies extends core_Master {
     }
     
     
-	/**
-     * Изпълнява се преди запис
+    
+    /**
+     * Изпълнява се преди импортирването на данните
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_BeforeImportRec($mvc, &$rec)
     {
     	if(isset($rec->csv_code) && strlen($rec->csv_code) != 0){
     		
     		// Ако данните идват от csv файл
     		$rec->code = $rec->csv_code;
+    		
     		if(!$rec->id){
     			$rec->lastUpdate = dt::verbal2mysql();
     		}
