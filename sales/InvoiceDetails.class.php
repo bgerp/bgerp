@@ -133,8 +133,6 @@ class sales_InvoiceDetails extends core_Detail
     		$data->rows = array();
     		$data->rows[] = (object) array('reason' => $masterRec->reason,
     									   'amount' => $masterRec->changeAmount);
-    	} else {
-    		
     	}
     }
     
@@ -233,6 +231,6 @@ class sales_InvoiceDetails extends core_Detail
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-       // $data->query->orderBy('#id', 'ASC');
+       $data->query->orderBy('#id', 'ASC');
     }
 }
