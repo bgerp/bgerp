@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search, plg_AutoFilter,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg, cond_plg_DefaultValues,
                     doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
@@ -105,6 +105,12 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'number,folderId';
+    
+    
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo,sales';
@@ -114,12 +120,6 @@ class sales_Invoices extends core_Master
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
-    
-    
-    /**
-     * Поле за търсене
-     */
-    public $searchFields = 'number, date, contragentName';
     
     
     /**
@@ -209,7 +209,7 @@ class sales_Invoices extends core_Master
         
         $this->FLD('type', 
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид, input=hidden,silent'
+            'caption=Вид, input=hidden,silent,autoFilter'
         );
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
@@ -219,7 +219,26 @@ class sales_Invoices extends core_Master
     }
     
     
-     /**
+    /**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->setField('type', 'input,silent');
+		$data->listFilter->setDefault('type','invoice');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
+		
+		$data->listFilter->showFields = 'search,type';
+		$data->listFilter->input('search,type', 'silent');
+		
+		if($type = $data->listFilter->rec->type){
+			$data->query->where("#type = '{$type}'");
+		}
+	}
+	
+	
+    /**
      * След промяна в детайлите на обект от този клас
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
