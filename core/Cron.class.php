@@ -389,7 +389,9 @@ class core_Cron extends core_Manager
 
         $recCurrent = $this->fetch(array("#systemId = '[#1#]'", $rec->systemId));
 
-        if (!empty($recCurrent)) {
+        // Ако има запис и е променян от потребител,
+        // записа остава същия
+        if (!empty($recCurrent) && $recCurrent->modifiedBy !== "-1") {
             $rec = $recCurrent;
         }
 
