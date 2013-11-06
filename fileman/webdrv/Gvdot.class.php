@@ -43,9 +43,11 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
             
             $script = new stdClass();
             $script->params = serialize($params);
-    
-            // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
-            static::afterExtractText($script);    
+            
+            try {
+                // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
+                static::afterExtractText($script);   
+            } catch (Exception $e) {}
         }
     }
     
