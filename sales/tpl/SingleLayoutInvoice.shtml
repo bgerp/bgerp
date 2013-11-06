@@ -62,10 +62,10 @@
 		                            </tr>
 		                            <!--ET_END contragentVatNo-->
 		                            <tr>
-		                                <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
+		                                <td><small><b>[#cNum#]</b></small></td>
 		                            </tr>
 		                            <tr>
-		                                <td class="bigData">[#contragentUiC#]</td>
+		                                <td class="bigData">[#uicNo#]</td>
 		                            </tr>
 		                            </tbody>
 		                        </table>

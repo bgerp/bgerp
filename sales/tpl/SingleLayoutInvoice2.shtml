@@ -36,7 +36,7 @@
 			            		<div class='contragent-info'>[#contragentVatNo#]</div>
 			            		 <!--ET_END contragentVatNo-->
 			            		<div class ='contragent-info' style='font-size:14px'><b>|ЕИК|* / <i>UIC</i></b></div>
-			            		<div class='contragent-info'>[#contragentUiC#]</div>
+			            		<div class='contragent-info'>[#uicNo#]</div>
 			            	</div>
 			            </div>
 						

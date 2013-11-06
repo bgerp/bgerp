@@ -20,32 +20,32 @@ class sales_Invoices extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, 
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, 
                         acc_TransactionSourceIntf, bgerp_DealIntf';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Inv';
+    public $abbr = 'Inv';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Фактури за продажби';
+    public $title = 'Фактури за продажби';
     
     
     /**
      * Единично заглавие
      */
-    var $singleTitle = 'Фактура';
+    public $singleTitle = 'Фактура';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg, cond_plg_DefaultValues,
                     doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
@@ -53,7 +53,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, number, date, folderId, type';
+    public $listFields = 'tools=Пулт, number, date, folderId, type';
     
     
     /**
@@ -71,79 +71,79 @@ class sales_Invoices extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'sales_InvoiceDetails' ;
+    public $details = 'sales_InvoiceDetails' ;
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,sales';
+    public $canRead = 'ceo,sales';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,sales';
+    public $canEdit = 'ceo,sales';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,sales';
+    public $canDelete = 'ceo,sales';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
     
     
     /**
      * Поле за търсене
      */
-    var $searchFields = 'number, date, contragentName';
+    public $searchFields = 'number, date, contragentName';
     
     
     /**
      * Име на полето съдържащо номер на фактурата
      */
-    var $sequencerField = 'number';
+    public $sequencerField = 'number';
     
     
     /**
      * Икона за фактура
      */
-    var $singleIcon = 'img/16/invoice.png';
+    public $singleIcon = 'img/16/invoice.png';
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.3|Търговия";
+    public $newBtnGroup = "3.3|Търговия";
     
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent';
+    public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent';
     
     
     /**
@@ -156,6 +156,7 @@ class sales_Invoices extends core_Master
     	'responsible'         => 'lastDocUser|lastDoc',
     	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
     	'contragentVatNo'     => 'lastDocUser|lastDoc|clientData',
+    	'uicNo'     		  => 'lastDocUser|lastDoc',
 		'contragentPCode'     => 'lastDocUser|lastDoc|clientData',
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
@@ -181,7 +182,8 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
         $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
-        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->ЕИК/VAT №, mandatory,contragentDataField=vatNo');
+        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
+        $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
         $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
         $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
@@ -262,6 +264,13 @@ class sales_Invoices extends core_Master
         $form = $data->form;
         $form->rec->date = dt::today();
         
+        $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
+        if($className == 'crm_Persons'){
+        	$numType = 'bglocal_EgnType';
+        	$form->setField('uicNo', 'caption=ЕГН');
+        	$form->fields['uicNo']->type = cls::get($numType);
+        }
+        
         $type = ($t = Request::get('type')) ? $t : $form->rec->type;
 	    if(!$type){
 	        $form->setDefault('type', 'invoice');
@@ -269,7 +278,7 @@ class sales_Invoices extends core_Master
 	        
         // При създаване на нова ф-ра зареждаме полетата на 
         // формата с разумни стойности по подразбиране.
-        $origin = static::getOrigin($form->rec);
+        expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
         	$form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
         }
@@ -316,6 +325,14 @@ class sales_Invoices extends core_Master
         	
 	        foreach ($mvc->fields as $fName => $field) {
 	            $mvc->invoke('Validate' . ucfirst($fName), array($rec, $form));
+	        }
+	        
+	        if(strlen($rec->contragentVatNo) && !strlen($rec->vatNo)){
+	        	$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+	        	$rec->uicNo = $uic;
+	        	
+	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
+	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
         }
 
@@ -573,12 +590,11 @@ class sales_Invoices extends core_Master
     	
     		$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
     		
-    		// Ако е подаден Ват номер, намираме ЕИК-то от него
-    		$uic = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-    		if($uic == $rec->contragentVatNo){
-    			unset($row->contragentVatNo);
+	    	if(doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons'){
+    			$row->cNum = tr('|ЕГН|* / <i>Personal №</i>');
+    		} else {
+	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
-    		$row->contragentUiC = $uic;
     		
 	    	if($rec->dealValue){
 	    		$row->baseAmount = $Double->toVerbal($rec->baseAmount);

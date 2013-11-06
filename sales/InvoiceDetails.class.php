@@ -19,13 +19,13 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайли на фактурата";
+    public $title = "Детайли на фактурата";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -37,43 +37,43 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Кое е активното меню
      */
-    var $pageMenu = "Фактури";
+    public $pageMenu = "Фактури";
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'invoiceId';
+    public $masterKey = 'invoiceId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'productId, packagingId, quantity, price, amount';
+    public $listFields = 'productId, packagingId, quantity, price, amount';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'sales, ceo';
+    public $canWrite = 'sales, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'sales, ceo';
+    public $canRead = 'sales, ceo';
     
     
     /**
      * Кой таб да бъде отворен
      */
-    var $currentTab = 'Фактури';
+    public $currentTab = 'Фактури';
     
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'price,amount';
+    public $priceFields = 'price,amount';
     
     
     /**
