@@ -148,6 +148,7 @@ class sales_InvoiceDetails extends core_Detail
             $rec = &$form->rec;
             $update = FALSE;
             list($rec->classId, $rec->productId, $rec->packagingId) = explode('|', $rec->productId);
+            $rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
             
             $productMan = cls::get($rec->classId);
             if(!$pInfo = $productMan::getProductInfo($rec->productId, $rec->packagingId)){
@@ -211,16 +212,6 @@ class sales_InvoiceDetails extends core_Detail
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'write' && isset($rec->invoiceId)){
-    		
-    		// Ако фактурата е генерирана от вече контирана продажба
-    		// неможе да се добавят нови продукти
-    		$invoiceRec = $mvc->Master->fetch($rec->invoiceId);
-    		if($invoiceRec->docType && $invoiceRec->docId){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	if($action == 'add' && isset($rec->invoiceId)){
     		$invType = $mvc->Master->fetchField($rec->invoiceId, 'type');
     		

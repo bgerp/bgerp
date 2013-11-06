@@ -87,7 +87,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows,bgerp_plg_GroupByDate,plg_AutoFilter';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows, plg_GroupByDate, plg_AutoFilter';
     
 
     /**

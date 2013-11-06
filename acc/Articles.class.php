@@ -230,19 +230,21 @@ class acc_Articles extends core_Master
     private static function updateAmount($id)
     {
         /* @var $query core_Query */
-        $query = acc_ArticleDetails::getQuery();
-        $query->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
-        $query->show('articleId, sumAmount');
-        $query->groupBy('articleId');
+        $dQuery = acc_ArticleDetails::getQuery();
+        $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
+        $dQuery->show('articleId, sumAmount');
+        $dQuery->groupBy('articleId');
         
         $result = NULL;
         
-        if ($r = $query->fetch("#articleId = {$id}")) {
-            $rec = self::fetch($id);
+        $rec = self::fetch($id);
+        if ($r = $dQuery->fetch("#articleId = {$id}")) {
             $rec->totalAmount = $r->sumAmount;
-            
-            $result = self::save($rec);
+        } else {
+        	$rec->totalAmount = 0;
         }
+        
+        $result = self::save($rec);
         
         return $result;
     }

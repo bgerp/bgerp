@@ -1006,6 +1006,7 @@ class sales_Sales extends core_Master
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
+        $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
         $result->agreed->payment->method        = $rec->paymentMethodId;
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
@@ -1023,6 +1024,7 @@ class sales_Sales extends core_Master
             $result->shipped->amount   = $rec->amountDeal;
             $result->shipped->currency = $rec->currencyId;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
+            $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
             $result->shipped->delivery->time     = $rec->deliveryTime;
         }
@@ -1073,6 +1075,7 @@ class sales_Sales extends core_Master
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
+        $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
         $result->agreed->payment->method        = $rec->paymentMethodId;
@@ -1088,6 +1091,7 @@ class sales_Sales extends core_Master
         $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->currency           = $rec->currencyId;
+        $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
         $result->shipped->delivery->location = $rec->deliveryLocationId;
         $result->shipped->delivery->term     = $rec->deliveryTermId;
         $result->shipped->delivery->time     = $rec->deliveryTime;

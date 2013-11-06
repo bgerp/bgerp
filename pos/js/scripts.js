@@ -15,10 +15,12 @@ function posActions() {
 	
 	$('#incBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
+		$("select[name=action]").val('sale|code');
 	});
 	
 	$('#decBtn').live("click", function() {
 		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
+		$("select[name=action]").val('sale|code');
 	});
 	
 	$('#subBtn').live("click", function() {
@@ -32,8 +34,16 @@ function posActions() {
 		if($("input[name=ean]").val() != '') {
 			$("#receipt-details-form form").submit();
 		} 
+		
 	});
-
+	if($("#last-row").length){
+		scrollToActiveElement(); 
+	}
+	
+	if($(".formError").length){
+		scrollToError(); 
+	}
+	
     $(function(){
 	        if (typeof(window.WebScan) == "undefined" ) {
 	            $('.webscan').hide();
@@ -85,7 +95,12 @@ function posActions() {
    	     { 
    	    	$(".single-receipt-wrapper").replaceWith(result);
    	    	$("#last-row").css("background-color", "#FFFF99");
-   	    	scrollToActiveProduct(); 
+   	    	if($("#last-row").length){
+   	    		scrollToActiveElement(); 
+   	    	}
+   	    	if($(".formError").length){
+	   	 		scrollToError(); 
+	   	 	}
    	    	$("input[disabled=disabled]").addClass("disabledBtn");
    	    	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
    	    	if (typeof(window.WebScan) == "undefined" ) {
@@ -98,14 +113,20 @@ function posActions() {
    	     }
    	     });
 	});
+	
 }
 
 
-function scrollToActiveProduct(){
+function scrollToActiveElement(){
 	$('html, body').animate({
         scrollTop: $("#last-row").offset().top - $("#last-row").outerHeight()
     }, 10);
-	console.log('#last-row');
+}
+
+function scrollToError(){
+	$('html, body').animate({
+       scrollTop: $(".formError").offset().top
+    }, 10);
 }
 
 function updateContainer(){

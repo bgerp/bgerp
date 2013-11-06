@@ -23,9 +23,9 @@ class cond_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('cond_DeliveryTerms', 'Доставки', 'salecond,ceo');
-    	$this->TAB('cond_PaymentMethods', 'Плащания', 'salecond,ceo');    
-        $this->TAB('cond_Parameters', 'Параметри', 'salecond,ceo');
+        $this->TAB('cond_DeliveryTerms', 'Доставки', 'cond,ceo');
+    	$this->TAB('cond_PaymentMethods', 'Плащания', 'cond,ceo');    
+        $this->TAB('cond_Parameters', 'Параметри', 'cond,ceo');
    		
         $this->title = 'Терминология';
     }

@@ -103,7 +103,7 @@ class sales_SalesDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, quantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, quantity=К-во: Д / П, packPrice, discount, amount';
     
         
     /**
@@ -312,7 +312,7 @@ class sales_SalesDetails extends core_Detail
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
-                $row->quantity = new core_ET('[#packQuantity#] &nbsp;<!--ET_BEGIN packQuantityDelivered-->(<span style="font-size:0.9em;">[#packQuantityDelivered#] ' . tr('дост.') . '</span>)<!--ET_END packQuantityDelivered-->');
+                $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $row->quantity->placeObject($row);
                 $row->quantity->removeBlocks(); 
             }

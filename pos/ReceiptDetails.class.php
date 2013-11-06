@@ -46,7 +46,7 @@ class pos_ReceiptDetails extends core_Detail {
     function description()
     {
     	$this->FLD('receiptId', 'key(mvc=pos_Receipts)', 'caption=Бележка, input=hidden, silent');
-    	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em');
+    	$this->FLD('action', 'varchar(32)', 'caption=Действие,width=7em;top:1px;position:relative');
     	$this->FLD('param', 'varchar(32)', 'caption=Параметри,width=7em,input=none');
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
@@ -195,22 +195,26 @@ class pos_ReceiptDetails extends core_Detail {
     			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
     			break;
     		case 'discount':
-    			if($rec->discountPercent || $rec->discountPercent == 0){
-    				$discRec = $rec->discountPercent;
-    				$discRow = $row->discountPercent;
-    				unset($row->currency);
-    				if($discRec == 0){
+    			if(isset($rec->discountPercent)){
+    				$discRec = &$rec->discountPercent;
+    				$discRow = &$row->discountPercent;
+    				
+    				if($rec->discountPercent != 0){
+    					$discRow = $mvc->fields['discountPercent']->type->toVerbal(abs($discRec));
+    					unset($row->currency);
+    				} else {
     					$row->discountPercent = tr('Без отстъпка');
     				}
-    			}else {
-    				$discRec = $rec->discountSum;
-    				$discRow = $row->discountSum;
+    			} else {
+    				$discRec = &$rec->discountSum;
+    				$discRow = &$row->discountSum;
+    				$discRow = $mvc->fields['discountSum']->type->toVerbal(abs($discRec));
     			}
     			
     			if($discRec != 0){
-	    			$discRow = abs($discRec);
 	    			($discRec < 0) ? $row->discountType = tr("Надценка") : $row->discountType = tr("Отстъпка");
     			}
+    			
     			break;
     	}
     }
@@ -264,12 +268,12 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->ean = trim($rec->ean);
     		
     		if(strlen($rec->ean) == 0) {
-    			$form->setError('ean', 'Имате празно поле');
+    			$form->setError('ean', 'Имате празно поле!');
     			return;
     		}
     		
     		if($rec->quantity == 0) {
-	    		$form->setError('quantity', 'Неможе да въведете нулево количество');
+	    		$form->setError('quantity', 'Не може да въведете нулево количество!');
 	    		return;
 	    	}
 	    	
@@ -278,12 +282,12 @@ class pos_ReceiptDetails extends core_Detail {
 	    		case 'sale':
 	    			$mvc->getProductInfo($rec);
 	    			if(!$rec->productId) {
-	    				$form->setError('ean', 'Няма такъв продукт в системата');
+	    				$form->setError('ean', 'Няма такъв продукт в системата!');
 	    				return;
 	    			}
 	    			
 	    			if(!$rec->price) {
-	    				$form->setError('ean', 'Продукта няма цена в системата');
+	    				$form->setError('ean', 'Продуктът няма цена в системата!');
 	    				return;
 	    			}
 	    			
@@ -302,65 +306,70 @@ class pos_ReceiptDetails extends core_Detail {
 				    if($rec->quantity < 0) {
 				    	
 				    	// Количеството на оставащия продукт не бива да е под 0
-				    	$form->setError('quantity', 'Въвели сте неправилно количество');
+				    	$form->setError('quantity', 'Въвели сте неправилно количество!');
 				    }
 				    
 	    			if($rec->price < 0) {
 				    	
 				    	// Небива да се записвая продукт с отрицателна цена (след приложена отстъпка)
-				    	$form->setError('ean', 'Не може продукта да е с отрицателна цена !');
+				    	$form->setError('ean', 'Продуктът не може да е с отрицателна цена!');
 				    }
 	    			break;
 	    		case 'payment':
+	    			$rec->ean = $mvc->fields['price']->type->fromVerbal($rec->ean);
 	    			
 	    			// Ако действието е "плащане"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
 	    			
 	    			if($rec->ean <= 0) {
-	    				$form->setError('ean', 'Не може да се плати с неположителна стойност');
+	    				$form->setError('ean', 'Не може да се плати с неположителна стойност!');
 	    				return;
 	    			}
 	    			$recRec = $mvc->Master->fetch($rec->receiptId);
 	    			if(!pos_Payments::returnsChange($action->value)
 	    			 && (string)$rec->ean > (string)abs($recRec->paid - $recRec->total)) {
-	    			 	$form->setError('ean', 'Неможе с този платежен метод да се плати по-голяма сума от общата');
+	    			 	$form->setError('ean', 'Не може с този платежен метод да се плати по-голяма сума от общата!');
 	    			}
 	    			$rec->amount = $rec->ean;
 	    			break;
 	    		case 'discount':
+	    			$param = ucfirst(strtolower($action->value));
+	    			
+	    			if($param == 'Sum'){
+	    				$rec->ean = $mvc->fields['discountSum']->type->fromVerbal($rec->ean);
+	    				
+	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
+	    				if($total < abs($rec->ean)){
+	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната!');
+	    				}
+	    				$rec->discountSum = $rec->ean;
+	    			} else {
+	    				$rec->ean = $mvc->fields['discountPercent']->type->fromVerbal($rec->ean);
+	    				if($rec->ean > 1) {
+	    					$form->setError('ean', 'Отстъпката не може да е по-голяма от 100%!');
+	    				}
+	    				$rec->discountPercent = $rec->ean;
+	    			}
 	    			
 	    			// Ако действието е "отстъпка"
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
-	    			$param = ucfirst(strtolower($action->value));
-	    			$rec->{"discount{$param}"} = $rec->ean/100;
-	    			if($param == 'Sum'){
-	    				$total = $mvc->Master->fetchField($rec->receiptId, 'total');
-	    				if($total < abs($rec->ean)){
-	    					$form->setError('ean', 'Въведената сума е по-голяма от крайната !');
-	    				}
-	    			} else {
-	    				if($rec->ean/100 > 1) {
-	    					$form->setError('ean', 'Отстъпката неможе да е по-голяма от 100% !');
-	    				}
-	    			}
-	    			
 	    			break;
 	    		case 'client':
 	    			if(!is_numeric($rec->ean)) {
-	    				$form->setError('ean', 'Полето приема само цифри');
+	    				$form->setError('ean', 'Полето приема само цифри!');
 	    				return;
 	    			}
 	    			
 	    			// Ако действието е "клиент"
 	    			$mvc->getClientInfo($rec);
 	    			if(!$rec->param) {
-	    				$form->setError('ean', 'Няма такъв клиент');
+	    				$form->setError('ean', 'Няма такъв клиент!');
 	    			}
 	    			break;
 	    	}
@@ -551,6 +560,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$data->form->setOptions('action', $mvc->getActionOptions());
     	$data->form->setDefault('quantity', '1');
+    	$data->form->addAttr('quantity', array('type' => 'number'));
     }
     
     

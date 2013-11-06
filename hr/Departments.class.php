@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class hr_Departments extends core_Master
+class hr_Departments extends core_Manager
 {
     
     
@@ -255,6 +255,22 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Игнорираме pager-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListPager($mvc, &$res, $data) {
+    	
+    	$chartType = Request::get('Chart');
+    	
+    	if($chartType == 'Structure') { 
+    		//$data->query->limit(1000000);
+    	}
+    }
+    
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -313,11 +329,21 @@ class hr_Departments extends core_Master
      */
     static function getChart ($data)
     {
-
+      
     	foreach($data->recs as $rec){
+    	    // Ако имаме родител 
+    		if($parent = $rec->staff) { 
+    			// взимаме чистото име на наследника
+    			$name = self::fetchField($rec->id, 'name');
+    		} else {
+    			// в противен случай, го взимаме
+    			// както е
+    			$name = $rec->name;
+    		}
+    		
     		$res[]=array(
     				'id' => $rec->id,
-    				'title' => $rec->name,
+    				'title' => $name,
     				'parent_id' => $rec->staff === NULL ? "NULL" : $rec->staff,
     		);
     	}

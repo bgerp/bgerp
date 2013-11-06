@@ -472,8 +472,9 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->currencyId = $dealInfo->agreed->currency;
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
                 $form->rec->locationId = $dealInfo->agreed->delivery->location;
-                $form->rec->time = $dealInfo->agreed->delivery->time;
+                $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
                 $form->rec->chargeVat = $dealInfo->agreed->vatType;
+                $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
                 $form->setReadOnly('chargeVat');
             }
             

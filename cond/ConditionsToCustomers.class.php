@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   salecond
+ * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3

@@ -257,22 +257,24 @@ class dec_Declarations extends core_Master
     		
        		$invoiceNo = str_pad($rec->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
        		$row->invoiceNo = $invoiceNo;
-           
-       		// продуктите
-    		foreach($deal->invoiced->products as $iProduct){
-    			$ProductMan = cls::get($iProduct->classId);
-        		
-        		$products[] = $ProductMan::getTitleById($iProduct->productId);
-
-    		}
-    		
-    		$row->products = "<ol>";
-    		
-    		foreach($products as $product){
-        		$row->products .= "<li>$product</li>";
-			}
-        	
-			$row->products .= "</ol>";
+            
+       		if($deal){
+	       		// продуктите
+	    		foreach($deal->invoiced->products as $iProduct){
+	    			$ProductMan = cls::get($iProduct->classId);
+	        		
+	        		$products[] = $ProductMan::getTitleById($iProduct->productId);
+	
+	    		}
+	    		
+	    		$row->products = "<ol>";
+	    		
+	    		foreach($products as $product){
+	        		$row->products .= "<li>$product</li>";
+				}
+				
+				$row->products .= "</ol>";
+       		}
     	}
     }
 
@@ -422,11 +424,11 @@ class dec_Declarations extends core_Master
     	
     	expect($firstDoc instanceof core_ObjectReference, $firstDoc);
     	
-    	if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+    	if($firstDoc->haveInterface('bgerp_DealIntf')){
 	    	if(empty(static::$cache)){
 	    		
 	    		// Запис във временния кеш
-	    		expect(static::$cache = $firstDoc->getAggregateDealInfo());
+	    		expect(static::$cache = $firstDoc->getDealInfo());
 	    	}
 	    	
 	    	return static::$cache;

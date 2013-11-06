@@ -295,7 +295,7 @@ class cal_Tasks extends core_Master
 
         $Tasks = cls::get('cal_Tasks');
 
-        $Tasks->load('bgerp_plg_GroupByDate');
+        $Tasks->load('plg_GroupByDate');
         
         // Подготвяме редовете на таблицата
         self::prepareListRows($data);
