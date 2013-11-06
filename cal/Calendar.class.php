@@ -259,14 +259,10 @@ class cal_Calendar extends core_Master
       	
 		  $data->listFilter->rec->selectedUsers = 
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+		  
+		  $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+	      $data->query->orWhere('#users IS NULL OR #users = ""');
 	  }
-       // bp($data->listFilter->rec);
-        if($data->listFilter->rec->selectedUsers) {
-          
-	        $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
-	        $data->query->orWhere('#users IS NULL OR #users = ""');
-          
-        } 
     }
     
     
@@ -331,7 +327,13 @@ class cal_Calendar extends core_Master
     	$lowerType = strtolower($rec->type);
        
         $url = parseLocalUrl($rec->url, FALSE);
- 
+       
+        // TODO да стане с интерфейс
+        $isLink = TRUE;
+        if($url['Ctr'] == 'crm_Persons') {
+        	$isLink = crm_Persons::haveRightFor('single', $url['id']);
+        }
+        // TODO
         $attr['class'] = 'linkWithIcon';
         if($rec->type == 'leave'){
         	$attr['style'] = 'background-image:url(' . sbf("img/16/leaves.png") . ');';
@@ -345,8 +347,13 @@ class cal_Calendar extends core_Master
         if($rec->priority <= 0) {
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }
-        $row->event = ht::createLink($row->title, $url, NULL, $attr);
-     
+        // TODO
+        if($isLink){
+        	$row->event = ht::createLink($row->title, $url, NULL, $attr);
+        } else {
+        	$row->event = ht::createElement("span", $attr, $row->title);
+        }
+        // TODO
         $today     = date('Y-m-d');
         $tommorow  = date('Y-m-d', time() + 24 * 60 * 60);
         $dayAT = date('Y-m-d', time() + 48 * 60 * 60);
@@ -581,11 +588,12 @@ class cal_Calendar extends core_Master
                 
             }
         }
+        
         for($i = 1; $i <= 31; $i++) {
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Calendar', 'list', 'from' => "{$i}-{$month}-{$year}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$month}.{$year}"));;
         }
 
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
