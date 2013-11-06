@@ -226,4 +226,13 @@ class sales_InvoiceDetails extends core_Detail
     		}
     	}
     }
+    
+    
+	/**
+     * Преди извличане на записите филтър по number
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+       // $data->query->orderBy('#id', 'ASC');
+    }
 }
