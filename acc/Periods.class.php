@@ -247,7 +247,7 @@ class acc_Periods extends core_Manager
         $firstRec = $query->fetch();
         if(!$firstRec) {
             $firstRec = new stdClass();
-            $firstRec->end = defined(ACC_FIRST_PERIOD_START) ? dt::getLastDayOfMonth(ACC_FIRST_PERIOD_START) : dt::getLastDayOfMonth(NULL, -1);
+            $firstRec->end = defined('ACC_FIRST_PERIOD_START') ? dt::getLastDayOfMonth(ACC_FIRST_PERIOD_START) : dt::getLastDayOfMonth(NULL, -1);
         }
 
         // Ако датата е преди началния период, връщаме началния
@@ -271,7 +271,7 @@ class acc_Periods extends core_Manager
                 $firstRec = self::fetch($firstRec->id); // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период $firstRec->title</li>";
             }
-
+            
             return $firstRec;
         }
 
@@ -462,8 +462,8 @@ class acc_Periods extends core_Manager
     {
         $conf = core_Packs::getConfig('acc');
 
-        $firstPeriodStart = defined(ACC_FIRST_PERIOD_START) ? ACC_FIRST_PERIOD_START : dt::verbal2mysql();
-		
+        $firstPeriodStart = defined('ACC_FIRST_PERIOD_START') ? ACC_FIRST_PERIOD_START : dt::verbal2mysql();
+
         $this->forcePeriod($firstPeriodStart);
 
         $this->forceActive();
