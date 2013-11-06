@@ -41,7 +41,7 @@ class core_App
         {
             if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
                 // При празна база редиректваме безусловно към сетъп-а
-                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
+                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>setupKey())));
             }
             echo $e->getAsHtml();
         }
