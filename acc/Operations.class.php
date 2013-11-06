@@ -98,7 +98,7 @@ class acc_Operations extends core_Manager
     function description()
     {
     	$this->FLD('name', 'varchar(155)', 'caption=Име,width=100%,mandatory,export=Csv');
-    	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,mandatory,export=Csv');
+    	$this->FLD('documentSrc', 'class(interface=acc_TransactionSourceIntf,select=title)', 'caption=Документ,mandatory,export=Csv');
     	$this->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Дебит сметка,mandatory,export=Csv, autoFilter');
     	$this->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId, select=title)', 'caption=Кредит сметка,mandatory,export=Csv');
     	$this->FLD('systemId', 'varchar(32)', 'caption=System ID, mandatory,export=Csv');
