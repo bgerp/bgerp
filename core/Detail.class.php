@@ -53,6 +53,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
+    	
         setIfNot($data->masterKey, $this->masterKey);
         setIfNot($data->masterMvc, $this->Master);
         
@@ -90,7 +91,7 @@ class core_Detail extends core_Manager
      */
     function renderDetailLayout_($data)
     {
-        
+      
         $className = cls::getClassName($this);
         
         // Шаблон за листовия изглед
@@ -114,7 +115,7 @@ class core_Detail extends core_Manager
      * Рендираме общия изглед за 'List'
      */
     function renderDetail_($data)
-    {
+    { 
         if (!isset($this->currentTab)) {
             $this->currentTab = $data->masterMvc->title;
         }
