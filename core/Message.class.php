@@ -26,46 +26,70 @@ class core_Message extends core_BaseClass
      */
     function act_View()
     {
-        // Дешифриране на съобщението
-        $Crypt = cls::get('core_Crypt');
-        $key = Mode::getPermanentKey();
-        $msg = $Crypt->decodeVar(Request::get('msg'), $key);
-        
-        // Създаване на липсващо съобщение
-        if (!$msg) {
-        	$msg = new stdClass();
-            if (Request::get('msg')) {
-                $msg->text = tr('Сгрешено или изтекло съобщение');
-            } else {
-                $msg->text = tr('Липсващо съобщение');
+        try {
+            
+            // Ако няма протокол
+            if (!($protocol = $_SERVER['SERVER_PROTOCOL'])) {
+                
+                // Използваме този
+                $protocol = 'HTTP/1.1';
             }
-            $msg->tpl = 'page_Error';
-            $msg->next = NULL;
-            $msg->cancel = NULL;
-        }
-        
-        // Създаване на шаблона
-        $tpl = cls::get($msg->tpl);
-        
-        // Попълване на шаблона
-        $tpl->replace($msg->text, 'text');
-        
-        if ($msg->cancel || $msg->next) {
-            $toolbar = cls::get('core_Toolbar');
             
-            if ($msg->cancel)
-            $toolbar->addBtn('Отказ', $msg->cancel);
+            // Сетваме хедърите
+            header("{$protocol} 403 Forbidden");
+        
+            // Забранява кеширането
+            header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+            header('Pragma: no-cache'); // HTTP 1.0.
+            header('Expires: 0'); // Proxies.
             
-            if ($msg->next)
-            $toolbar->addBtn('Продължение', toUrl($msg->next));
-            $tpl->replace($toolbar->renderHtml(), 'TOOLBAR');
+            // Дешифриране на съобщението
+            $Crypt = cls::get('core_Crypt');
+            $key = Mode::getPermanentKey();
+            $msg = $Crypt->decodeVar(Request::get('msg'), $key);
+            
+            // Създаване на липсващо съобщение
+            if (!$msg) {
+            	$msg = new stdClass();
+                if (Request::get('msg')) {
+                    $msg->text = tr('Сгрешено или изтекло съобщение');
+                } else {
+                    $msg->text = tr('Липсващо съобщение');
+                }
+                $msg->tpl = 'page_Error';
+                $msg->next = NULL;
+                $msg->cancel = NULL;
+            }
+            
+            // Създаване на шаблона
+            $tpl = cls::get($msg->tpl);
+            
+            // Попълване на шаблона
+            $tpl->replace($msg->text, 'text');
+            
+            if ($msg->cancel || $msg->next) {
+                $toolbar = cls::get('core_Toolbar');
+                
+                if ($msg->cancel)
+                $toolbar->addBtn('Отказ', $msg->cancel);
+                
+                if ($msg->next)
+                $toolbar->addBtn('Продължение', toUrl($msg->next));
+                $tpl->replace($toolbar->renderHtml(), 'TOOLBAR');
+            }
+            
+            if ($msg->wrapper) {
+                MODE::set('wrapper', $msg->wrapper);
+            }
+            
+            return $tpl;
+        } catch (Exception $e) {
+            $err = new core_exception_Expect("Грешка при рендиране на съобщение за грешка");
+            
+            $err->class  = 'core_Message';
+             
+            throw $err;
         }
-        
-        if ($msg->wrapper) {
-            MODE::set('wrapper', $msg->wrapper);
-        }
-        
-        return $tpl;
     }
     
     
