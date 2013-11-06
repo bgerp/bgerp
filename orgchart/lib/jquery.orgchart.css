@@ -6,7 +6,6 @@
 div.orgChart {
     margin                : 10px;
     padding               : 20px 10px;
-    max-width			  : 830px;
 	overflow-x			  : auto !important;
 	_overflow			  : auto !important;
 }
@@ -89,5 +88,22 @@ div.orgChart div.node.hover {
 		 box-shadow           : 1px 1px 2px #aaa;
 	    -moz-box-shadow       : 1px 1px 2px #aaa;
 	    -webkit-box-shadow    : 1px 1px 2px #aaa;
+	}
+	div.orgChart{
+		max-width:100%;
+		overflow:visible;
+	}
+}
+
+
+.printing {
+	div.orgChart div.node{
+		 box-shadow           : 1px 1px 2px #aaa;
+	    -moz-box-shadow       : 1px 1px 2px #aaa;
+	    -webkit-box-shadow    : 1px 1px 2px #aaa;
+	}
+	div.orgChart{
+		max-width:100%;
+		overflow:visible;
 	}
 }
