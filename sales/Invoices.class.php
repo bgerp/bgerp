@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search, plg_AutoFilter,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg, cond_plg_DefaultValues,
                     doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
@@ -209,7 +209,7 @@ class sales_Invoices extends core_Master
         
         $this->FLD('type', 
             'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
-            'caption=Вид, input=hidden,silent,autoFilter'
+            'caption=Вид, input=hidden,silent'
         );
         
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
@@ -225,14 +225,15 @@ class sales_Invoices extends core_Master
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
-		$data->listFilter->setField('type', 'input,silent');
-		$data->listFilter->setDefault('type','invoice');
+		$data->listFilter->FNC('invType','enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
+            'caption=Вид, input,silent');
+		$data->listFilter->setDefault('invType','invoice');
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
 		
-		$data->listFilter->showFields = 'search,type';
-		$data->listFilter->input('search,type', 'silent');
+		$data->listFilter->showFields = 'search,invType';
+		$data->listFilter->input('search,invType', 'silent');
 		
-		if($type = $data->listFilter->rec->type){
+		if($type = $data->listFilter->rec->invType){
 			$data->query->where("#type = '{$type}'");
 		}
 	}
@@ -291,6 +292,7 @@ class sales_Invoices extends core_Master
         }
         
         $type = ($t = Request::get('type')) ? $t : $form->rec->type;
+        
 	    if(!$type){
 	        $form->setDefault('type', 'invoice');
 	    }
@@ -699,8 +701,10 @@ class sales_Invoices extends core_Master
 		$form->setField('deliveryId', 'input=none');
 		$form->setField('deliveryPlaceId', 'input=none');
 		
-		foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'contragentCountryId') as $name){
-			$form->setReadOnly($name);
+		foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
+			if($form->rec->$name){
+				$form->setReadOnly($name);
+			}
 		}
 		
 		$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
