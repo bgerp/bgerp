@@ -307,6 +307,16 @@ class cal_Calendar extends core_Master
     	
     }
     
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
  	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
     	//bp(&$roles, $action, $rec, $userId);
@@ -314,6 +324,7 @@ class cal_Calendar extends core_Master
 	    	 $requiredRoles = 'user';
          }
     }
+    
     
     /**
      * Конвертира един запис в разбираем за човека вид
@@ -473,8 +484,6 @@ class cal_Calendar extends core_Master
         
         return $html;
     }
-
-
 
 
     /**
@@ -802,6 +811,7 @@ class cal_Calendar extends core_Master
         return $this->renderWrapping($tpl);
     }
     
+    
     /**
      * Генерираме масив с часовете на деня
      */
@@ -814,6 +824,7 @@ class cal_Calendar extends core_Master
         
         return self::$hours;
     }
+    
     
     /**
      * Генерираме масив с дните и масив за обратна връзка
@@ -841,6 +852,7 @@ class cal_Calendar extends core_Master
         return (object) array('days'=>$days, 'dates'=> $dates, 'dateJs'=>$dateJs, 'dayWeek'=> $dayWeek, 'tdCssClass'=>$tdCssClass);
       
     }
+    
     
     /**
      * Генерираме масив масива на месеца => номер на седмицата[ден от седмицата][ден]
@@ -879,6 +891,7 @@ class cal_Calendar extends core_Master
         return (object) array('monthArr'=>$monthArr, 'dateJs'=> $dateJs, 'tdCssClass'=>$tdCssClass);
       
     }
+    
     
     /**
      * Генерираме масива за годината
@@ -920,6 +933,8 @@ class cal_Calendar extends core_Master
 		return (object)array('yearArr'=>$yearArr, 'dateJs'=> $dateJs, 'tdCssClass'=>$tdCssClass);
     }
     
+    
+    
     function endTask($hour, $duration)
     {
     
@@ -938,6 +953,7 @@ class cal_Calendar extends core_Master
 	    return $taskEndHour;
     	
     }
+    
     
     /**
      * Намира какъв е типа на деня (празник, работен, не работен)
@@ -974,6 +990,7 @@ class cal_Calendar extends core_Master
     	
     	
     }
+    
     
     /**
      * По зададена mysql-ска дата връща цвят според типа й:
@@ -1056,6 +1073,7 @@ class cal_Calendar extends core_Master
  
     }
 
+    
     /**
      * Взима кой е селектирания потребител от филтъра
      */
@@ -1071,6 +1089,7 @@ class cal_Calendar extends core_Master
     	return $selectUser;
     }
   
+    
     /**
      * Намира началната и крайната дата за деня.
      * Взима данни от филтъра
@@ -1087,6 +1106,7 @@ class cal_Calendar extends core_Master
         
         return $from;
     }
+    
     
     /**
      * Намира началната и крайната дата за седмицата.
@@ -1155,6 +1175,7 @@ class cal_Calendar extends core_Master
     	return $from;
     }
     
+    
     /**
      * Взима данните от филтъра
      * Датата и селектирания потребител
@@ -1167,15 +1188,13 @@ class cal_Calendar extends core_Master
     	return $state;
     }
     
+    
     /**
      * Намира каква е иконата според състоянието на задачата
      */
     static public function getIconByType($type, $key)
     {
-    	 // Картинката за задачите
-        
-       
-    	
+    	// Картинката за задачите
 		if($type == 'task'){
 			$idTask = str_replace("TSK-", " ", $key);
 			$idTask = str_replace("-Start", " ", $idTask);
@@ -1197,6 +1216,7 @@ class cal_Calendar extends core_Master
 		return $img;
     }
    
+    
     /**
      * Генерира заявката към базата данни
      */
@@ -1222,6 +1242,7 @@ class cal_Calendar extends core_Master
 		return $recState;
     }
     
+    
     /**
      * Генерира заявката към базата данни за екшън Година
      */
@@ -1246,6 +1267,7 @@ class cal_Calendar extends core_Master
  		
 		return $recState;
     }
+    
     
     /**
      * Подготвя записите от базата данни за екшън Ден
@@ -1308,6 +1330,7 @@ class cal_Calendar extends core_Master
      	
      	return $dayData;
     }
+    
     
     /**
      * Подготвя записите от базата данни за екшън Седмица
@@ -1442,6 +1465,7 @@ class cal_Calendar extends core_Master
         return $monthDate;
     }
     
+    
     /**
      * Подготвя записите от базата данни за екшън Година
      */
@@ -1510,6 +1534,7 @@ class cal_Calendar extends core_Master
         return $yearDate;
     }
     
+    
     /**
      * Създава линкове за предишен и следващ месец
      */
@@ -1562,6 +1587,7 @@ class cal_Calendar extends core_Master
     	
         return $headerLink;
     }
+    
     
     /**
      * Изчислява номера(/номерата, 
@@ -1621,11 +1647,12 @@ class cal_Calendar extends core_Master
     	
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
-
+     
     	foreach(self::$hours as $h => $t){
+    		
     		if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
-    			
-	    		$hourArr = $dayData[$h];
+    			$tUrl = str_replace('Цял ден', '', $t);
+	    		$hourArr = $dayData[$h]; 
 	    		$hourArr['time'] = $t;
 //	    		$hourArr['timeJs'] = $h;
 	    		
@@ -1634,10 +1661,9 @@ class cal_Calendar extends core_Master
 	    		if ($h != 'allDay') {
 	    			$hourArr['dateJs'] .= '+'.$t;
 	    		} else {
-	    			$hourArr['dateJs'] .= '+' . $h;
+	    			$hourArr['dateJs'];
 	    		}
 	 
-	    		
 	    		// Определяме класа на клетката, за да стане на зебра
 	    		if($h % 2 == 0 && $h !== 'allDay' && ($h != $nowTime || $h != $isToday)){
 	    			$classTd = 'calDayN';
@@ -1660,18 +1686,18 @@ class cal_Calendar extends core_Master
 	    		$cTpl = $tpl->getBlock("COMMENT_LI");
 	    		$cTpl->replace($classTr, 'colTr');
 	    		$cTpl->replace($classTd, 'now');
+	    		
 	    		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
 			    // задаваме уникално ид
 			    for($j = 0; $j < 26; $j++){
-					    
 					    
 					// Линкове на картинката
 					$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
 					
 					// javaScript функциите
-					$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
+					$overs["over".$j] = "onmouseover='ViewImage($h$j)'"; 
 					$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
-			     } 
+			    } 
 			         
 			      
 			    // Заместваме всички масиви
@@ -1679,8 +1705,6 @@ class cal_Calendar extends core_Master
 			    $cTpl->placeArray($aHrefs);
 			    $cTpl->placeArray($overs);
 			    $cTpl->placeArray($outs);
-			  
-	    		
 	   
 	    		$cTpl->placeArray($hourArr);
 	    		
@@ -1688,9 +1712,7 @@ class cal_Calendar extends core_Master
 	    		$cTpl->append2master();
     		}
    		}
-
-   		
-  
+ 
    		$currentDate = self::getFromFilter($data);
    	    $currentDateDay = dt::mysql2Verbal($currentDate['from'], 'd F Y, l');
     
@@ -1747,18 +1769,19 @@ class cal_Calendar extends core_Master
     	$tpl->appendOnce($jsFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsDblFnc, 'SCRIPTS');
     	$tpl->appendOnce($jsCalFnc, 'SCRIPTS');
-    	
- 
-    
-    	
+
    		foreach(self::$hours as $h => $t){
    		
    			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     		$hourArr = $weekData[$h];
     		$hourArr['time'] = $t;
-    		$hourArr['timeJs'] = $h;
-
+    		if($h === 'allDay'){
+    			$hourArr['timeJs'];
+    		} else {
+    			$hourArr['timeJs'] = '+'.$t;
+    		}
+           
     		// Взимаме блока от шаблона
     		$cTpl = $tpl->getBlock("COMMENT_LI");
    			
@@ -1820,8 +1843,7 @@ class cal_Calendar extends core_Master
     		$cTpl->append2master();
    			}
    		}
-
-    	
+        
    		$weekNb = self::prepareWeekNumber($data);
     	
         // Заглавие на страницата
@@ -1948,6 +1970,7 @@ class cal_Calendar extends core_Master
         
         return $tpl;
     }
+    
     
     /**
      * Проверява дали избраната дата от филтъра е днешния ден
