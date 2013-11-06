@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class hr_Departments extends core_Manager
+class hr_Departments extends core_Master
 {
     
     
@@ -262,13 +262,14 @@ class hr_Departments extends core_Manager
      * @param stdClass $data
      */
     static function on_BeforePrepareListPager($mvc, &$res, $data) {
-    	
-    	$chartType = Request::get('Chart');
-    	
-    	if($chartType == 'Structure') { 
-    		//$data->query->limit(1000000);
+    	// Ако искаме да видим графиката на структурата
+    	// не ни е необходимо страницирване
+    	if(Request::get('Chart')  == 'Structure') {
+    		// Задаваме броя на елементите в страница
+            $mvc->listItemsPerPage = 1000000;
     	}
     }
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
