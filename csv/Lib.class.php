@@ -65,16 +65,15 @@ class csv_Lib
                     $rec->{$f} = $data[$i];
                 }
                 
+                // Обработка на записа преди импортиране
+				$mvc->invoke('BeforeImportRec', array(&$rec));
+				
                 // Ако таблицата се попълва от нулата, само се добавят редове
                 if($fromZero) {
                     $mvc->save($rec);
                     $res->created++;
                     continue;
                 }
-                
-                
-				// Обработка на записа преди импортиране
-				$mvc->invoke('BeforeImportRec', array(&$rec));
                 
                 $conflictFields = array();
 
