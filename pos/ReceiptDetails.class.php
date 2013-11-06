@@ -117,12 +117,7 @@ class pos_ReceiptDetails extends core_Detail {
 	        
 	        if($client = $this->hasClient($data->masterData->rec->id)){
 	        	$confInvUrl = $contoUrl;
-	        	$contragentClass = $client->class;
-    			$contragentRec = $contragentClass::fetch($client->id);
-	        	$invArray = array('sales_Invoices', 'add',
-    					 'folderId' => $contragentRec->folderId, 
-    					 'docType' => pos_Receipts::getClassId(), 
-    					 'docId' => $data->masterData->rec->id);
+	        	$invArray = array('pos_Receipts', 'makeInvoice', $data->masterData->rec->id);
 	        	$confInvUrl = array('ret_url' => $invArray) + $confInvUrl;
 	        }
 	        

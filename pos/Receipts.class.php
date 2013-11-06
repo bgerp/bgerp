@@ -155,6 +155,16 @@ class pos_Receipts extends core_Master {
      */
     function act_New()
     {
+    	$id = $this->createNew();
+    	return Redirect(array($this, 'single', $id));
+    }
+    
+    
+    /**
+     * Създава нова чернова бележка
+     */
+    private function createNew()
+    {
     	$rec = new stdClass();
     	$posId = pos_Points::getCurrent();
     	
@@ -164,9 +174,7 @@ class pos_Receipts extends core_Master {
     	$rec->pointId = $posId;
     	$rec->valior = dt::now();
     	$this->requireRightFor('add', $rec);
-    	$id = $this->save($rec);
-    	
-    	return Redirect(array($this, 'single', $id));
+    	return $this->save($rec);
     }
     
     
@@ -664,5 +672,22 @@ class pos_Receipts extends core_Master {
 		} else {
 			return TRUE;
 		}
+    }
+    
+    
+    /**
+     * Създава нова бележка и пренасочва към създаването на фактура
+     */
+    function act_MakeInvoice()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active');
+    	$client = $this->pos_ReceiptDetails->hasClient($id);
+    	$contragentClass = cls::get($client->class);
+    	$folderId = $contragentClass->forceCoverAndFolder($client->id);
+    	
+    	$this->createNew();
+    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
     }
 }
