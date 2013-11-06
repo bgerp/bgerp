@@ -61,6 +61,8 @@ $orange:#f90; /*оранжево като при ховър на менюто*/
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
+
+
  /*common elements*/
  dl {
 	margin:0;
@@ -2910,6 +2912,26 @@ div.location.public{
 		margin-bottom:10px;
 		display:block;
 	}
+	.tab-control.alphabet .tab{
+		display:none !important;
+		&.selected{
+			display:block !important;
+			-moz-box-shadow: none !important;
+			-webkit-box-shadow: none !important;
+		    box-shadow: none !important;
+			color:#000 !important;
+			margin-left:0px !important;
+			&:hover{
+				background:none !important;
+				a{
+					color:#000 !important;
+				}
+			}
+			a{
+				color:#000 !important;
+			}
+		}
+	}
 }
 
 .external {
@@ -2942,6 +2964,26 @@ div.location.public{
 	.quote-header td b{
 		background:transparent !important;
 	}
+	.tab-control.alphabet .tab{
+		display:none !important;
+		&.selected{
+			display:block !important;
+			-moz-box-shadow: none !important;
+			-webkit-box-shadow: none !important;
+		    box-shadow: none !important;
+			color:#000 !important;
+			margin-left:0px !important;
+			&:hover{
+				background:none !important;
+				a{
+					color:#000 !important;
+				}
+			}
+			a{
+				color:#000 !important;
+			}
+		}
+	}
 }
 
 /* Стилове за callcenter*/
@@ -2957,4 +2999,3 @@ div.location.public{
 }
 
 @import "partials/sales";
-
