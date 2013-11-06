@@ -255,7 +255,7 @@ class acc_Balances extends core_Master
      */
     function cron_Recalc()
     {
-        // Взема всички периоди (без closed) от най-стария, към най-новия
+        // Взема всички периоди (без closed и draft) от най-стария, към най-новия
         // За всеки период, ако има стойност в lastEntry:
         //  - взема съответстващия му баланс (мастера)
         //  - ако няма такъв баланс, то той се изчислява
@@ -266,6 +266,7 @@ class acc_Balances extends core_Master
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");
+        $pQuery->where("#state != 'draft'");
         $lastEntry = self::TIME_BEGIN;
         while($pRec = $pQuery->fetch()) {
             
