@@ -241,10 +241,15 @@ class cal_Tasks extends core_Master
             }
         }
  
-      
         $grey->setGradient($blue, $rec->progress);
  
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        
+        if($rec->timeStart){
+        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart), NULL, "ef_icon=img/16/calendar5.png");
+        } elseif ($rec->timeEnd) {
+        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd), NULL, "ef_icon=img/16/calendar5.png");
+        }
     }
 
 
@@ -370,6 +375,15 @@ class cal_Tasks extends core_Master
     }
 
     
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
     	if($action == 'postpone'){
@@ -437,6 +451,7 @@ class cal_Tasks extends core_Master
         }
     }
 
+    
     /**
      * Обновява информацията за задачата в календара
      */
