@@ -612,6 +612,7 @@ class pos_Receipts extends core_Master {
         $rec = self::fetchRec($id);
         $products = static::getProducts($id);
         $currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+        $posRec = pos_Points::fetch($rec->pointId);
         
         $result = new bgerp_iface_DealResponse();
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
@@ -619,15 +620,18 @@ class pos_Receipts extends core_Master {
         $result->agreed->amount                 = $rec->total;
         $result->agreed->currency               = $currencyId;
         $result->agreed->vatType 				= 'yes';
+        $result->agreed->payment->method        = cond_PaymentMethods::fetchField("#name = 'COD'", 'id');
         $result->agreed->payment->currencyId    = $currencyId;
-        $result->agreed->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
+        $result->agreed->payment->caseId        = $posRec->caseId;
        
         $result->shipped->amount                 = $rec->total;
         $result->shipped->currency               = $currencyId;
         $result->shipped->vatType 				 = 'yes';
         $result->shipped->payment->currencyId    = $currencyId;
-        $result->shipped->payment->caseId        = pos_Points::fetchField($rec->pointId, 'caseId');
-        
+        $result->shipped->payment->caseId        = $posRec->caseId;
+        $result->shipped->delivery->storeId      = $posRec->storeId;
+        $result->shipped->delivery->time         = $rec->valior;
+         
         $productManId = cat_Products::getClassId();
         
         foreach ($products as $pr) {
