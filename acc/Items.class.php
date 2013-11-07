@@ -228,6 +228,12 @@ class acc_Items extends core_Manager
         foreach ($lists as $listId) {
             $mvc->Lists->updateSummary($listId);
         }
+        
+        if(empty($rec->classId) && empty($rec->objectId)){
+        	$rec->classId = $mvc->getClassId();
+        	$rec->objectId = $rec->id;
+        	$mvc->save($rec);
+        }
     }
     
     
@@ -700,7 +706,7 @@ class acc_Items extends core_Manager
          */
         $Items = cls::get(__CLASS__);
         
-        $rec->state      = 'active';
+        $rec->state     = 'active';
         $rec->lastUseOn = dt::now();
         
         expect($rec->id);
