@@ -44,7 +44,7 @@ class sales_Sales extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
                     doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
+					doc_EmailCreatePlg, bgerp_plg_Blank,
                     doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
     
@@ -361,37 +361,6 @@ class sales_Sales extends core_Master
                 
                 $saleProduct->save();
             }
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        switch ($action) {
-            /*
-             * Активират се само (непразни) продажби, които не генерират счетоводни транзакции
-             */
-            case 'activate':
-                if (empty($rec->id)) {
-                    // не се допуска активиране на незаписани продажби
-                    $requiredRoles = 'no_one';
-                } elseif (sales_SalesDetails::count("#saleId = {$rec->id}") == 0) {
-                    // Не се допуска активирането на продажба без детайли
-                    $requiredRoles = 'no_one';
-                } elseif ($mvc->haveRightFor('conto', $rec)) {
-                    // не се допуска активиране на продажба, която генерира счет. транзакция.
-                    $requiredRoles = 'no_one';
-                }
-                break;
         }
     }
 

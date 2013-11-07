@@ -332,13 +332,13 @@ class sales_SalesDetails extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $rec       = $data->form->rec;
+        $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
-       
+       	
         $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         if (empty($rec->id)) {
-        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
             
         	$ProductManager = cls::get($rec->classId);
             $data->form->setOptions('productId', 
