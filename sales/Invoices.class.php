@@ -46,7 +46,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, doc_ActivatePlg, cond_plg_DefaultValues,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
                     doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
     
@@ -722,29 +722,6 @@ class sales_Invoices extends core_Master
         $contragentData = $coverClass::getContragentData($coverId);
         
         return ($coverClass == 'crm_Companies') ? $contragentData->company : $contragentData->person;
-    }
-    
-    
-    /**
-     * След проверка на ролите
-     */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	switch ($action) {
-            case 'activate':
-                if (empty($rec->id)) {
-                    // не се допуска активиране на незаписани фактури
-                    $requiredRoles = 'no_one';
-                } elseif (sales_InvoiceDetails::count("#invoiceId = {$rec->id}") == 0) {
-                    // Не се допуска активирането на празни фактури без детайли
-                    $requiredRoles = 'no_one';
-                } elseif ($mvc->haveRightFor('conto', $rec)) {
-                    // не се допуска активиране на фактура, която генерира счет. транзакция.
-                    // Tакива фактури трябва да се контират, не да се активират
-                    $requiredRoles = 'no_one';
-                }
-                break;
-    	}
     }
     
     

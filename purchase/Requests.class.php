@@ -39,7 +39,7 @@ class purchase_Requests extends core_Master
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
         doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues,
-        doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank,
+        doc_EmailCreatePlg, bgerp_plg_Blank,
         doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
     
     
