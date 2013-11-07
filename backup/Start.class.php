@@ -22,14 +22,28 @@ class backup_Start extends core_Manager
      */
     var $title = 'Стартира архивиране';
     
+    /**
+     * Име на семафора за стартиран процес на бекъп
+     */
+    private static $lockFileName;
+    
+    function init()
+    {
+        self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
+    }
     
     /**
      * Стартиране на пълното архивиране на MySQL-a
      * 
      * 
      */
-    static function Full()
+    static function full()
     {
+        if (!self::lock()) {
+            core_Logs::add("Backup", "", "Full Backup не може да вземе Lock!");
+            
+            exit (1);
+        }
         
         $conf = core_Packs::getConfig('backup');
         
@@ -53,7 +67,7 @@ class backup_Start extends core_Manager
         }
         $now = date("Y_m_d_H_i");
         $backupFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".gz";
-        $metaFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME;
+        $metaFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_META";
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
               . $conf->BACKUP_MYSQL_USER_NAME . " -p" . $conf->BACKUP_MYSQL_USER_PASS . " " . EF_DB_NAME 
@@ -70,7 +84,7 @@ class backup_Start extends core_Manager
         
         // Сваляме мета файла с описанията за бекъпите
         if (!$storage::getFile($metaFileName)) {
-            //Създаваме го
+            // Ако го няма - създаваме го
             touch(EF_TEMP_PATH . "/" . $metaFileName);
             $metaArr = array();
         } else {
@@ -99,6 +113,7 @@ class backup_Start extends core_Manager
         unlink(EF_TEMP_PATH . "/" . $metaFileName);
         
         core_Logs::add("Backup", "", "FULL Backup OK!");
+        self::UnLock();
         
         return "FULL Backup OK!"; 
     }
@@ -108,8 +123,14 @@ class backup_Start extends core_Manager
      * 
      * 
      */
-    static function BinLog()
+    private static function binLog()
     {
+        if (!self::Lock()) {
+            core_Logs::add("Backup","", "Warning: BinLog не може да вземе Lock.");
+            
+            exit(1);
+        }
+        
         $conf = core_Packs::getConfig('backup');
         $now = date("Y_m_d_H_i");
         $binLogFileName = $conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".binlog.gz";
@@ -171,20 +192,58 @@ class backup_Start extends core_Manager
         unlink(EF_TEMP_PATH . "/" . $binLogFileName);
         unlink(EF_TEMP_PATH . "/" . $metaFileName);
         
-        core_Logs::add("Backup", "", "BinLog Backup OK!");
-        
+        core_Logs::add("Backup", "", "binLog Backup OK!");
+        self::UnLock();
             
-        return "BinLog Backup OK!";
+        return "binLog Backup OK!";
     }    
     
-   /**
+    /**
+     * Вдига семафор за стартиран бекъп
+     * Връща false ако семафора е вече вдигнат
+     * 
+     *  return boolean
+     */
+    private static function lock()
+    {
+        if (self::isLocked()) {
+            
+            return FALSE;
+        }
+        
+        return touch(self::$lockFileName);
+    }
+    
+    /**
+     * Смъква семафора на бекъп-а
+     * 
+     *  return boolean
+     */
+    private static function unLock()
+    {
+        
+        return unlink(self::$lockFileName);
+    }
+    
+    /**
+     * Показва състоянието на семафора за бекъп
+     *
+     *  return boolean
+     */
+    public static function isLocked()
+    {
+        
+        return file_exists(self::$lockFileName);
+    }
+    
+    /**
      * Стартиране от крон-а
      *
      * 
      */
     static function cron_Full()
     {
-        self::Full();
+        self::full();
     }
     
     /**
@@ -194,7 +253,7 @@ class backup_Start extends core_Manager
      */
     public function act_Full()
     {
-        return self::Full();
+        return self::full();
     }
     
     /**
@@ -204,7 +263,7 @@ class backup_Start extends core_Manager
      */
     static function cron_BinLog()
     {
-        self::BinLog();
+        self::binLog();
     }
     
     /**
@@ -214,7 +273,7 @@ class backup_Start extends core_Manager
      */
     public function act_BinLog()
     {
-        return self::BinLog();
+        return self::binLog();
     }
        
 }
