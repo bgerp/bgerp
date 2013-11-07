@@ -25,12 +25,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
        
+       // валидация на ICQ номер
        $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(-*[1-9][-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationFormat'), $html);
+       
+       // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
+       $html = preg_replace_callback("/^\s*((Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationFormat'), $html);
     }
     
     
@@ -66,9 +70,22 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	case 'mobile' :
         	case 'mob' :
         		
-        		$icon = sbf("img/16/mobile2.png",'');
-        		
         		$PhonesVerbal = cls::get('drdata_PhoneType');
+        		
+        		// парсирваме всеки телефон
+        		$parsTel = $PhonesVerbal->toArray($match[3]);
+        		
+        		foreach($parsTel as $t){
+        			// ако той е мобилен
+        			if(strstr($t->area, 'Cellular')){
+        				// му задаваме една икона
+        				$icon = sbf("img/16/mobile2.png",'');
+        			  // ако не е
+        			} else { 
+        				// му задаваме друга икона
+        				$icon = sbf("img/16/telephone2.png",''); 
+        			}
+        		}
         		
         		// ако мачнатия елемент прилича на телефон
         		if($PhonesVerbal->toVerbal($match[3])){
@@ -106,13 +123,62 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
 		         																			href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
 		        break;
+		        
+		    case 'fax' :
+		    case 'факс' :
+        		
+		    	$PhonesVerbal = cls::get('drdata_PhoneType');
+        		$Email = cls::get('type_Email');
+        		
+        		// ако мачнатия елемент прилича на телефон
+        		// го парсирваме
+        		if($PhonesVerbal->toArray($match[3])){
+        			// за всеки един алемент
+        			foreach($PhonesVerbal->toArray($match[3]) as $t){ 
+	        			// номера започва с +
+        				$value = '+';
+	                    // ако имаме намерен код на страната го добавяме
+		                if($t->countryCode) {
+		                    $value .= '' . $t->countryCode;
+		                }
+		                // ако имаме намерен код на областта го добавяме
+		                if($t->areaCode) {
+		                    $value .= '' . $t->areaCode;
+		                }
+		                // накрая слагаме и номера
+		                if($t->number) {
+		                    $value .= '' . $t->number;
+		                }
+		                // ще показваме, оригинално въведения номер
+		                $toVerbal = $t->original;
+        			}
+        			// слагаме му домейн
+        			$domain = '@fax.man';
+        			// за да може да го изпратим като имейл
+        			$email = $value.$domain;
+
+        			// правим линк за изпращане на имейл през системата
+        			$href = $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3]));
+        			
+        			// и го връщаме
+        			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
+        		}	
+		        break;
+		        
+		        case 'Email' :
+		        case 'E-mail' :
+		        case 'Mail' :
+		        case '@' :
+		        	$icon = sbf("img/16/email.png",''); 
+		        	
+		        	break;
         }
         
     	$Email = cls::get('type_Email');
 	    
     	// Ако мачнатият елемент е валиден имейл за системата
-	    if($Email->isValidEmail($match[3]) !== FALSE){
-	    	
+	    if($Email->isValidEmail($match[3])){
+	    	 
 	    	// оставяме връзката на имейла : изпращана на имейл от системата
 	    	$communicationFormat = str_replace($match[3], $Email->toVerbal($match[3]), $match[0]);
 	    	
