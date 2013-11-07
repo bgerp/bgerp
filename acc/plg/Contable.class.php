@@ -191,10 +191,13 @@ class acc_plg_Contable extends core_Plugin
         		$error = ",error=Неможе да се контира в несъществуващ сч. период";
         	}
 
-            if (!$this->hasContableTransaction($mvc, $data->rec, $res)) {
-                $error = ",error=Документа не генерира валидна транзакция.\\n" . $res;
+        	$transaction = $mvc->getValidatedTransaction($data->rec);
+            if($transaction->isEmpty()){
+            	$caption = ($mvc->canActivate($data->rec)) ? 'Активиране' : 'Контиране';
+            } else {
+            	$caption = 'Контиране';
             }
-            
+        	
             $contoUrl = array(
 	           'acc_Journal',
 	           'conto',
@@ -203,7 +206,7 @@ class acc_plg_Contable extends core_Plugin
 	           'ret_url' => TRUE
             	);
         	
-            $data->toolbar->addBtn("Контиране", $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $data->rec)) {
@@ -263,9 +266,11 @@ class acc_plg_Contable extends core_Plugin
         if ($action == 'conto') {
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
-            } 
-            
-            if (!$this->hasContableTransaction($mvc, $rec)){
+            }
+             
+            $isContable = $this->hasContableTransaction($mvc, $rec);
+            $canActivate = $mvc->canActivate($rec);
+            if (($isContable && !$canActivate) || !$isContable){
             	$requiredRoles = 'no_one';
             }
             
@@ -300,8 +305,10 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
 
-            // Ако документа не генерира валидна и непразна транзакция - не може да му се прави
-            // корекция
+            if(!acc_Journal::fetch("#docId={$rec->id} && #docType='{$mvc::getClassId()}'")){
+            	$requiredRoles = 'no_one';
+            }
+            // Ако документа не генерира валидна и непразна транзакция - не може да му се прави корекция
             if (!$this->hasContableTransaction($mvc, $rec)) {
                 $requiredRoles = 'no_one';
             }
@@ -456,5 +463,32 @@ class acc_plg_Contable extends core_Plugin
         } else {
             unset($row->correctionDocId);
         }
+    }
+    
+    
+	/**
+     * Метод по подразбиране на canActivate
+     */
+    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    {
+    	if(!$res){
+	    	if (!empty($rec->id) && ($rec->state != 'draft' || !$mvc->haveRightFor('edit', $rec))) {
+	    		$res = FALSE;
+	    	} elseif(count($mvc->details)){
+	    		$hasDetail = FALSE;
+	    		
+	    		// Ако класа има поне един запис в детаил, той може да се активира
+	    		foreach ($mvc->details as $name){
+	    			$Details = $mvc->{$name};
+					if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
+						$hasDetail = TRUE;
+						break;
+					}
+	    		}
+	    		$res = $hasDetail;
+	    	} else {
+	    		$res = TRUE;
+	    	}
+    	}
     }
 }
