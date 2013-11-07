@@ -97,24 +97,19 @@ class acc_journal_Transaction
      */
     public function check()
     {
-        acc_journal_Exception::expect(
-            !$this->isEmpty(), 'Не може да се контира празна транзакция'
-        );
-        
         /* @var $entry acc_journal_Entry */ 
-        foreach ($this->entries as $entry) {
-            try {
-                $entry->check();
-            } catch (acc_journal_Exception $ex) {
-                throw new acc_journal_Exception('Невалиден ред на транзакция: ' . $ex->getMessage());
-            }
-        }
+    	if(count($this->entries)){
+	    	foreach ($this->entries as $entry) {
+	            try {
+	                $entry->check();
+	            } catch (acc_journal_Exception $ex) {
+	                throw new acc_journal_Exception('Невалиден ред на транзакция: ' . $ex->getMessage());
+	            }
+	        }
+    	}
         
         if (isset($this->rec->totalAmount)) {
             $sumItemsAmount = $this->amount();
-            if($this->rec->totalAmount != $sumItemsAmount) {
-                bp($this->rec->totalAmount, $sumItemsAmount, $this->entries);
-            }
             acc_journal_Exception::expect($this->rec->totalAmount == $sumItemsAmount,
                 "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$this->rec->totalAmount}) суми на транзакция");
         }
@@ -155,13 +150,15 @@ class acc_journal_Transaction
         }
 
         try {
-            foreach ($this->entries as $entry) {
-                if (!$entry->save($this->rec->id)) {
-                    // Проблем при записването на детайл-запис. Rollback!!!
-                    $this->rollback();
-                    return FALSE;
-                }
-            }
+        	if(count($this->entries)){
+	        	foreach ($this->entries as $entry) {
+	                if (!$entry->save($this->rec->id)) {
+	                    // Проблем при записването на детайл-запис. Rollback!!!
+	                    $this->rollback();
+	                    return FALSE;
+	                }
+	            }
+        	}
             
             $this->commit();
         } catch (Exception $ex) {
@@ -180,6 +177,9 @@ class acc_journal_Transaction
      */
     protected function begin()
     {
+    	// Ако транзакцията е празна не се записва в журнала
+        if($this->isEmpty()) return TRUE;
+        
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
         $this->rec->state = 'draft';
         $this->rec->totalAmount = $this->amount();
@@ -200,8 +200,11 @@ class acc_journal_Transaction
      */
     protected function commit()
     {
-        //  Транзакцията е записана. Активираме
+        // Транзакцията е записана. Активираме
         $this->rec->state = 'active';
+        
+        // Ако транзакцията е празна не се записва в журнала
+        if($this->isEmpty()) return TRUE;
         
         return $this->Journal->save($this->rec);
     }
