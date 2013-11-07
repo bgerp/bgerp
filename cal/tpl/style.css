@@ -202,6 +202,10 @@ img.calWeekAdd{
 	display:none;
 }
 
+.mc-calendar td:hover img.calWeekAdd{
+	display:block;
+}
+
 .add-task-btn{
 	display: block;
 	width: 16px;

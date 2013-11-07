@@ -1693,10 +1693,6 @@ class cal_Calendar extends core_Master
 					    
 					// Линкове на картинката
 					$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
-					
-					// javaScript функциите
-					$overs["over".$j] = "onmouseover='ViewImage($h$j)'"; 
-					$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
 			    } 
 			         
 			      
@@ -1826,10 +1822,6 @@ class cal_Calendar extends core_Master
 		    	
 				// Линкове на картинката
 				$aHrefs["href".$j] = "<img class='calWeekAdd' id=$h$j src=".sbf('img/16/add1-16.png').">";
-				
-				// javaScript функциите
-				$overs["over".$j] = "onmouseover='ViewImage($h$j)'";
-				$outs["out".$j] = "onmouseout='NoneImage($h$j)'";
 		     }
 
              // Заместваме всички масиви в шаблона
