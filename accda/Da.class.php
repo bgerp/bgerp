@@ -138,7 +138,7 @@ class accda_Da extends core_Master
         
         $this->FLD('inUseSince', 'date(format=d.m.Y)', 'caption=В употреба от');
         
-        $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма');
+        $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма,notNull');
         
         $this->setDbUnique('num');
     }
@@ -209,7 +209,26 @@ class accda_Da extends core_Master
         return $row;
     }
     
-    
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
+//    	$data->row->serial = NULL;
+    	if ($data->rec->location) {
+    		$locationRec = crm_Locations::fetch($data->rec->location);
+    		if($locationRec->address || $locationRec->place || $locationRec->countryId){
+    			$locationRow = crm_Locations::recToVerbal($locationRec);
+    			if($locationRow->address){
+    				$data->row->locationAddress .= ", {$locationRow->address}";
+    			}
+    			if($locationRow->place){
+    				$data->row->locationAddress .= ", {$locationRow->place}";
+    			}
+    			if($locationRow->countryId){
+    				$data->row->locationAddress .= ", {$locationRow->countryId}";
+    			}
+    		}
+    	}
+    }
     /**
      * В корици на папки с какви интерфейси може да се слага 
      */

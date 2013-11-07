@@ -2,13 +2,13 @@
 	[#SingleToolbar#]
 	<div class="document">
 		
-		<h2>[#SingleTitle#]</h2>
-		<h3 class="calign">П Р О Т О К О Л &nbsp; № [#id#]</h3>
+		<h3 class="centered">[#SingleTitle#]</h3>
+		<h3 class="centered">П Р О Т О К О Л &nbsp; № [#id#]</h3>
 	
-		<p class="calign">За въвеждане в експлоатация на ДА</p>
+		<p class="centered">За въвеждане в експлоатация на ДА</p>
 		<br />
 		
-		<p>Днес, [#inUseSince#] комисия в състав :</p>
+		<p>Днес, [#inUseSince#]г, комисия в състав :</p>
 		
 		<p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
 		
@@ -18,17 +18,17 @@
 		
 		<br />
 		
-		<p>Въведе в експлоатация [#title#], </p>
+		<p>Въведе в експлоатация <b>[#title#]</b>, </p>
 		
-		<p>с инвертарен № [#num#] и сериен № [#serial#].</p>
+		<p>с инвертарен № <b>[#num#]</b> <!--ET_BEGIN serial-->и сериен № <b>[#serial#]</b><!--ET_END serial-->.</p>
 		
 		<p>Описание на актива: [#info#].</p>
 		
 		<p>Произход на актива: [#origin#].</p>
 		
-		<p>Активът се намира на следната локация: [#location#].</p>
+		<p>Активът се намира на следната локация: [#location#][#locationAddress#].</p>
 		
-		<p>Годишна амортизационна норма : [#amortNorm#].</p>
+		<p>Годишна амортизационна норма: [#amortNorm#].</p>
 		
 		<br />
 		
@@ -44,7 +44,7 @@
 		
 		<div class="sign-holder">
 			<p>Протоколът е създаден от  : . . . . . . . . . . . . . . . . . . . .</p>
-		                                         <span>/[#createdBy#]/</span>
+		                                         <span>/ [#createdByName#] /</span>
 		</div>
 	</div>
 	
