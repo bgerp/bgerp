@@ -20,7 +20,7 @@
                  
                  <!--ET_BEGIN COMMENT_LI-->
                  <tr class="[#colTr#]" data-cal-time="[#timeJs#]"> 
-                     <th class="calDayH">[#time#]</th>
+                     <th class="calDayH [#fromTask#]">[#time#]</th>
                      <td ondblclick="createDblTask('[#dateJs#]');" [#over0#] [#out0#] class="[#now#]" data-cal-date="[#dateJs#]"><div class="relative-holder">[#tasktitle#]<a class="add-task-btn" onclick="createTask('[#dateJs#]');">[#href0#]</a></div></td>
                      
                  </tr>

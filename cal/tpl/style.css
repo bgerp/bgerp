@@ -291,3 +291,8 @@ img.starImg{
 .sunday, .mc-sunday{
 	color: green;	
 }
+
+.activeHour {
+	font-weight: bold !important;
+	text-decoration: underline;
+}

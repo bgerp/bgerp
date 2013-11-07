@@ -1687,6 +1687,17 @@ class cal_Calendar extends core_Master
 	    		$cTpl->replace($classTr, 'colTr');
 	    		$cTpl->replace($classTd, 'now');
 	    		
+	    		
+			    if(Request::get('Task')){
+			    	$from = Request::get('from');
+			    	$active = trim(substr($from, strpos($from, " ")));
+			    	
+			    	if($t == $active){
+			    		$cTpl->replace('activeHour', 'fromTask');
+			    	}
+			    }
+    		   
+	    		
 	    		// За да сработи javaSkript–а за всяка картинак "+", която ще показваме
 			    // задаваме уникално ид
 			    for($j = 0; $j < 26; $j++){
@@ -1801,7 +1812,7 @@ class cal_Calendar extends core_Master
 		    	$classTr = 'calDayD';
 		    	$classToday = 'calWeek';
 		    }
-    		    		
+		     		
     		$cTpl->replace($classTr, 'colTr');
     		$cTpl->replace($classToday, 'now');
     		$cTpl->replace($classTd, 'col');
