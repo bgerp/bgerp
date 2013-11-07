@@ -108,8 +108,11 @@ class hr_Departments extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,width=100%');
-        $this->FLD('type', 'enum(section=Поделение, 
-                                 division=Девизия,
+        $this->FLD('type', 'enum(section=Поделение,
+                                 branch=Клон,
+                                 office=Офис,
+                                 affiliate=Филиал,
+                                 division=Дивизия,
                                  direction=Дирекция,
                                  department=Oтдел,
                                  plant=Завод,
