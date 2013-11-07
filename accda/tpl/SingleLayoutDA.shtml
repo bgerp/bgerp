@@ -20,7 +20,7 @@
 		
 		<p>Въведе в експлоатация <b>[#title#]</b>, </p>
 		
-		<p>с инвертарен № <b>[#num#]</b> <!--ET_BEGIN serial-->и сериен № <b>[#serial#]</b><!--ET_END serial-->.</p>
+		<p>с инвентарен № <b>[#num#]</b> <!--ET_BEGIN serial-->и сериен № <b>[#serial#]</b><!--ET_END serial-->.</p>
 		
 		<p>Описание на актива: [#info#].</p>
 		
