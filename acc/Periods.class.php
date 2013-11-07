@@ -247,7 +247,23 @@ class acc_Periods extends core_Manager
         $firstRec = $query->fetch();
         if(!$firstRec) {
             $firstRec = new stdClass();
-            $firstRec->end = defined('ACC_FIRST_PERIOD_START') ? dt::getLastDayOfMonth(ACC_FIRST_PERIOD_START) : dt::getLastDayOfMonth(NULL, -1);
+            if(defined('ACC_FIRST_PERIOD_START') && ACC_FIRST_PERIOD_START){
+            	
+            	// Проверяваме дали ACC_FIRST_PERIOD_START е във валиден формат за дата
+            	$dateArr = date_parse(ACC_FIRST_PERIOD_START);
+            	if(checkdate($dateArr["month"], $dateArr["day"], $dateArr["year"])){
+            		
+            		// Ако е валидна дата, за първи запис е посочения месец
+            		$firstRec->end = dt::getLastDayOfMonth(dt::verbal2mysql(ACC_FIRST_PERIOD_START));
+            	} else {
+            		
+            		// При грешна дата се създава предходния месец на текущия
+            		$firstRec->end = dt::getLastDayOfMonth(NULL, -1);
+            	}
+            	
+            } else {
+            	$firstRec->end = dt::getLastDayOfMonth(NULL, -1);
+            }
         }
 
         // Ако датата е преди началния период, връщаме началния
@@ -460,11 +476,8 @@ class acc_Periods extends core_Manager
      */
     function loadSetupData()
     {
-        $conf = core_Packs::getConfig('acc');
-
-        $firstPeriodStart = defined('ACC_FIRST_PERIOD_START') ? ACC_FIRST_PERIOD_START : dt::verbal2mysql();
-
-        $this->forcePeriod($firstPeriodStart);
+		// Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
+    	$this->forcePeriod(dt::verbal2mysql());
 
         $this->forceActive();
 
