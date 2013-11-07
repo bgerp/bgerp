@@ -334,22 +334,18 @@ class sales_SalesDetails extends core_Detail
     {
         $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
+       	$ProductManager = cls::get($rec->classId);
        	
         $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
-            
-        	$ProductManager = cls::get($rec->classId);
-            $data->form->setOptions('productId', 
-            	$ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
+            $data->form->setOptions('productId', $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId));
         	
         } else {
             // Нямаме зададена ценова политика. В този случай задъжително трябва да имаме
             // напълно определен продукт (клас и ид), който да не може да се променя във формата
             // и полето цена да стане задължително
-
-            $ProductManager = cls::get($rec->classId);
             $data->form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
         }
         

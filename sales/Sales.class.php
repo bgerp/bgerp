@@ -181,7 +181,7 @@ class sales_Sales extends core_Master
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	//'isInstantShipment'  => 'lastDocUser|lastDoc',
     	'initiatorId'        => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	//'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
@@ -284,7 +284,7 @@ class sales_Sales extends core_Master
         while ($detailRec = $query->fetch()) {
             $vat = 1;
             
-            if ($rec->chargeVat == 'yes') {
+            if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
                 
                 $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
@@ -703,7 +703,7 @@ class sales_Sales extends core_Master
         } else {
         	unset($row->chargeVat);
         }
-        
+       
         $row->amountToPay = $amountType->toVerbal($rec->amountDelivered - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
