@@ -665,21 +665,32 @@ class fileman_Repositories extends core_Master
                 // Потребители, които имат достъп
                 $usersForAccess = trim($rec->usersForAccess);
                 
-                // Ако няма зададени потребители и роли
-                if (!$rolesForAccess && !$usersForAccess) {
+                // Флаг, указващ дали има права
+                $haveRole = FALSE;
+                
+                // Ако има зададени права или потребилите
+                if ($rolesForAccess || $usersForAccess) {
+                    
+                    // Ако има зададени права и потребителя има такива
+                    if ($rolesForAccess && haveRole($rolesForAccess)) {
+                        
+                        // Вдигаме флага
+                        $haveRole = TRUE;
+                    }
+                    
+                    // Ако е зададен съответния потребител
+                    if ($usersForAccess && type_Keylist::isIn($userId, $usersForAccess)) {
+                        
+                        // Вдигаме флага
+                        $haveRole = TRUE;
+                    }
+                }
+                
+                // Ако флага не е вдигнат
+                if (!$haveRole) {
                     
                     // Да не може да пипа
                     $requiredRoles = 'no_one';
-                } else {
-                    
-                    // Ако има роли и ние я имаме
-                    // или ако е зададен потребител
-                    if (($rolesForAccess && !haveRole($rolesForAccess))
-                        || ($usersForAccess && !type_Keylist::isIn($userId, $usersForAccess))) {
-                        
-                        // Да не може да пипа
-                        $requiredRoles = 'no_one';
-                    }
                 }
             }
         }
