@@ -4,7 +4,7 @@
 /**
  * Уникален префикс за имената на архивираните файлове
  */
-defIfNot('BACKUP_PREFIX', 'bgerp.local-mitko');
+defIfNot('BACKUP_PREFIX', 'bgerp.local-' . gethostname());
 
 
 /**
@@ -14,27 +14,25 @@ defIfNot('BACKUP_STORAGE_TYPE', 'local');
 
 /**
  * Период на който се прави пълен бекъп
- * 5/дена/*24/часа/*60/мин/ = 7200 e всеки петък 00 часа
- * + 4/часа/*60/мин/=240
- * За да е бекъп-а всеки петък в 4:00 през нощта
+ * Всеки петък в 4:00 през нощта
  * 
  */
-defIfNot('BACKUP_FULL_PERIOD', '7440');
+defIfNot('BACKUP_FULL_PERIOD', 5*24*60);
 
 /**
  *  Отместване за пълния бекъп
  */
-defIfNot('BACKUP_FULL_OFFSET', '50');
+defIfNot('BACKUP_FULL_OFFSET', 4*60);
 
 /**
- * Час в който се прави пълния бекъп
+ * Период в който се прави binlog бекъп-a
  */
-defIfNot('BACKUP_BINLOG_PERIOD', '5');
+defIfNot('BACKUP_BINLOG_PERIOD', 7);
 
 /**
  *  Отместване за бинлог бекъп-а
  */
-defIfNot('BACKUP_BINLOG_OFFSET', '50');
+defIfNot('BACKUP_BINLOG_OFFSET', 0);
 
 /**
  * Потребител с права за бекъп на mysql сървъра
@@ -51,6 +49,20 @@ defIfNot('BACKUP_MYSQL_USER_PASS', 'swordfish');
  */
 defIfNot('BACKUP_MYSQL_HOST', 'localhost');
 
+/**
+ * Брой пълни бекъпи, които да се пазят
+ */
+defIfNot('BACKUP_CLEAN_KEEP', 4);
+
+/**
+ * Период на почистването
+ */
+defIfNot('BACKUP_CLEAN_PERIOD', 24*60);
+
+/**
+ *  Отместване на почистването
+ */
+defIfNot('BACKUP_CLEAN_OFFSET', 53);
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
@@ -87,7 +99,8 @@ class backup_Setup extends core_ProtoSetup
        'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
        'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп (SELECT, RELOAD, SUPER)'),
        'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола'),
-       'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Хост')
+       'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Хост'),
+       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни бекъп-и, които да се пазят')
     );
     
     
@@ -125,7 +138,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->action = 'full';
     	$rec->period = BACKUP_FULL_PERIOD;
     	$rec->offset = BACKUP_FULL_OFFSET;
-    	$rec->delay = 0;
+    	$rec->delay = 40;
     	$rec->timeLimit = 50;
     	
     	$Cron = cls::get('core_Cron');
@@ -142,7 +155,7 @@ class backup_Setup extends core_ProtoSetup
     	$rec->action = 'binlog';
     	$rec->period = BACKUP_BINLOG_PERIOD;
     	$rec->offset = BACKUP_BINLOG_OFFSET;
-    	$rec->delay = 0;
+    	$rec->delay = 45;
     	$rec->timeLimit = 50;
 
     	if ($Cron->addOnce($rec)) {
@@ -151,7 +164,21 @@ class backup_Setup extends core_ProtoSetup
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
     	}
     	 
+    	$rec->systemId = 'BackupClean';
+    	$rec->description = 'Изтриване на стари бекъпи';
+    	$rec->controller = 'backup_Start';
+    	$rec->action = 'clean';
+    	$rec->period = BACKUP_CLEAN_PERIOD;
+    	$rec->offset = BACKUP_CLEAN_OFFSET;
+    	$rec->delay = 50;
+    	$rec->timeLimit = 50;
     	
+    	if ($Cron->addOnce($rec)) {
+    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп почистване.</font></li>";
+    	} else {
+    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп почистване.</li>";
+    	}
+    	 
         return $html;
     }
     
