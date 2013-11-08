@@ -67,4 +67,20 @@ class backup_Local extends core_Master
         return $result;
     }
     
+    /**
+     * Изтрива файл в локалния архив
+     *
+     * Част от интерфейса: backup_StorageIntf
+     *
+     * @param string $fileName
+     * 
+     * @return boolean
+     */
+    static function removeFile($fileName)
+    {
+        $result = @unlink(EF_TEMP_PATH . "/" . $fileName, STORAGE_FOLDER . '/' . $fileName);
+        
+        return $result;
+    }
+    
 }

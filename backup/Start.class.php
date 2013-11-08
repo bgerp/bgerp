@@ -128,7 +128,7 @@ class backup_Start extends core_Manager
      */
     private static function binLog()
     {
-        if (!self::Lock()) {
+        if (!self::lock()) {
             core_Logs::add("Backup","", "Warning: BinLog не може да вземе Lock.");
             
             exit(1);
@@ -193,6 +193,36 @@ class backup_Start extends core_Manager
             
         return "binLog Backup OK!";
     }    
+    
+    /**
+     * Почистване на стария бекъп
+     * 
+     * 
+     */
+    private static function clean()
+    {
+        if (!self::lock()) {
+            core_Logs::add("Backup","", "Warning: clean не може да вземе Lock.");
+            
+            exit(1);
+        }
+        
+        // Взимаме мета файла
+        if (!self::$storage->getFile(self::$metaFileName)) {
+            core_Logs::add('Backup', '', "Warning: clean не може да вземе МЕТА файла.");
+            
+            exit(1);
+        } else {
+            $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
+        }
+        
+        if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
+            // Има нужда от почистване
+        }
+        
+        self::unLock();
+        bp($metaArr);        
+    }
     
     /**
      * Вдига семафор за стартиран бекъп
@@ -272,5 +302,25 @@ class backup_Start extends core_Manager
     {
         return self::binLog();
     }
-       
+    
+    /**
+     * Стартиране от крон-а
+     *
+     *
+     */
+    static function cron_Clean()
+    {
+        self::clean();
+    }
+    
+    /**
+     * Метод за извикване през WEB
+     *
+     *
+     */
+    public function act_Clean()
+    {
+        return self::clean();
+    }
+    
 }

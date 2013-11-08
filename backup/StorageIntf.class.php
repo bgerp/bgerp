@@ -40,4 +40,14 @@ class backup_StorageIntf
     }
     
     
+    /**
+     * Изтрива файл от сториджа
+     *
+     * @param string $fileName
+     */
+    function removeFile($fileName)
+    {
+        return $this->class->removeFile($fileName);
+    }
+    
 }
