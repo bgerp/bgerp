@@ -15,16 +15,12 @@ class purchase_RequestDetails extends core_Detail
 {
     /**
      * Заглавие
-     * 
-     * @var string
      */
     public $title = 'Детайли на покупки';
 
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Продукт';
     
@@ -37,80 +33,52 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, 
-                        plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_AlignDecimals,Policy=purchase_RequestLastPricePolicy';
     
     
     /**
      * Активен таб на менюто
-     * 
-     * @var string
      */
     public $menuPage = 'Логистика:Покупки';
     
+    
     /**
      * Кой има право да чете?
-     * 
-     * @var string|array
      */
-    public $canRead = 'admin, purchase';
+    public $canRead = 'ceo, purchase';
     
     
     /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
-    public $canEdit = 'admin, purchase';
+    public $canEdit = 'ceo, purchase';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
-    public $canAdd = 'admin, purchase';
-    
-    
-    /**
-     * Кой може да го види?
-     * 
-     * @var string|array
-     */
-    public $canView = 'admin, purchase';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     * 
-     * @var string|array
-     */
-    public $canDelete = 'admin, purchase';
-    
-    
-    /**
-     * Брой записи на страница
-     * 
-     * @var integer
-     */
-    public $listItemsPerPage;
+    public $canAdd = 'ceo, purchase';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, quantity, packagingId, uomId, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, quantity, packPrice, discount, amount';
     
         
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'RowNumb';
+    public $rowToolsField = 'RowNumb';
 
 
+    /**
+     * Активен таб
+     */
+    public $currentTab = 'Покупки';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -119,32 +87,28 @@ class purchase_RequestDetails extends core_Detail
         $this->FLD('requestId', 'key(mvc=purchase_Requests)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         
-        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,mandatory,silent');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
         // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
-        
         $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
-        
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
         $this->FLD('quantityInPack', 'double', 'input=none');
         
         // Цена за единица продукт в основна мярка
-        $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');
-        
+        $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
         
-        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
-        // packagingId)
-        $this->FNC('packPrice', 'double(minDecimals=2,maxDecimals=100)', 'caption=Цена,input=input');
+        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
+        $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
@@ -152,13 +116,10 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Изчисляване на цена за опаковка на реда
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -168,13 +129,10 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Изчисляване на количеството на реда в брой опаковки
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -184,9 +142,6 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Изчисляване на доставеното количеството на реда в брой опаковки
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackQuantityDelivered(core_Mvc $mvc, $rec)
     {
@@ -200,9 +155,6 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Изчисляване на сумата на реда
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcAmount(core_Mvc $mvc, $rec)
     {
@@ -212,26 +164,10 @@ class purchase_RequestDetails extends core_Detail
         
         $rec->amount = $rec->price * $rec->quantity;
     }
-    
-    
-    /**
-     * 
-     * @param core_Mvc $mvc
-     */
-    public static function on_AfterDescription(&$mvc)
-    {
-        // Скриване на полетата за създаване
-        $mvc->setField('createdOn', 'column=none');
-        $mvc->setField('createdBy', 'column=none');
-    }
 
 
     /**
      * Извиква се след успешен запис в модела
-     * 
-     * @param core_Detail $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
@@ -252,13 +188,9 @@ class purchase_RequestDetails extends core_Detail
      */
     public function updateMasterSummary($masterId, $hotRec = NULL)
     {
-        $purchaseRec = $this->Master->fetchRec($masterId);
-        
-        /* @var $query core_Query */
-        $query = $this->getQuery();
-        
         $amountDeal = 0;
-        
+    	$purchaseRec = $this->Master->fetchRec($masterId);
+        $query = $this->getQuery();
         $query->where("#requestId = '{$masterId}'");
         
         while ($rec = $query->fetch()) {
@@ -278,27 +210,23 @@ class purchase_RequestDetails extends core_Detail
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $requiredRoles = $mvc->Master->getRequiredRoles('edit', (object)array('id'=>$rec->requestId), $userId);
+        $requiredRoles = $mvc->Master->getRequiredRoles('edit', (object)array('id' => $rec->requestId), $userId);
     }
     
     
+    /**
+     * След подготовка на записите от базата данни
+     */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        $recs     = $data->recs;
+        $recs        = &$data->recs;
         $purchaseRec = $data->masterData->rec;
         
-        // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме
-        // тук отново
+        // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме тук отново
         $purchaseRec->amountDeal = 0;
         
         if (empty($recs)) {
@@ -329,8 +257,6 @@ class purchase_RequestDetails extends core_Detail
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
-        
-        // Скриваме полето "мярка" 
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
         // Флаг дали има отстъпка
@@ -343,21 +269,15 @@ class purchase_RequestDetails extends core_Detail
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
     
                 if (empty($rec->packagingId)) {
-                    if ($rec->uomId) {
-                        $row->packagingId = $row->uomId;
-                    } else {
-                        $row->packagingId = '???';
-                    }
+                	$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
-                $row->quantity = new core_ET('
-                    <div style="float: left; width: 50%; text-align: left;">[#packQuantity#]</div>
-                    <div style="float: right; width: 50%; margin-left: -6px;">[#packQuantityDelivered#]</div>
-                ');
+                $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $row->quantity->placeObject($row);
+                $row->quantity->removeBlocks(); 
             }
         }
 
@@ -368,28 +288,28 @@ class purchase_RequestDetails extends core_Detail
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
+     * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec       = &$data->form->rec;
         $masterRec = &$data->masterRec;
-        $ProductManager = cls::get($rec->classId);
-        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
-    	if($rec->id){
-    		$products = array($rec->productId => $products[$rec->productId]);
+        $products = $mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        
+        if (empty($rec->id)) {
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';this.form.submit();"));
+        } else {
+        	$products = array($rec->productId => $products[$rec->productId]);
         }
         
         $data->form->setOptions('productId', $products);
                
         if (!empty($rec->packPrice)) {
-            if ($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'no') {
-                // Начисляваме ДДС в/у цената
-                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
+            if ($masterRec->chargeVat == 'yes') {
+                // Начисляване на ДДС в/у цената
+                $rec->packPrice *= 1 + cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             }
             $rec->packPrice /= $masterRec->currencyRate;
         }
@@ -398,33 +318,37 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
-        if ($form->isSubmitted() && !$form->gotErrors()) {
+    	$ProductMan = cls::get($form->rec->classId);
+    	if($form->rec->productId){
+    		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
+        }
+        
+    	if ($form->isSubmitted() && !$form->gotErrors()) {
             
-            // Извличане на информация за продукта - количество в опаковка, единична цена
-            
-            $rec        = $form->rec;
+        	// Извличане на информация за продукта - количество в опаковка, единична цена
+            $rec = &$form->rec;
 
             $masterRec  = purchase_Requests::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
+        	if(empty($rec->id)){
+    			$where = "#requestId = {$rec->requestId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
+    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+    			if($pRec = $mvc->fetch($where)){
+    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка! Искатели да го обновите ?");
+    				$rec->id = $pRec->id;
+    				$update = TRUE;
+    			}
+            }
             
-            $ProductMan = cls::get($rec->classId);
-            
-            /* @var $productRef cat_ProductAccRegIntf */
-            $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
-            $productInfo = $productRef->getProductInfo();
-            
-            expect($productInfo);
+            $productRef = new core_ObjectReference($ProductMan, $rec->productId);
+            expect($productInfo = $productRef->getProductInfo());
             
             // Определяне на цена, количество и отстъпка за опаковка
-            
-            $policyInfo = $ProductMan->getPriceInfo(
+            $policyInfo = $mvc->Policy->getPriceInfo(
                 $masterRec->contragentClassId, 
                 $masterRec->contragentId, 
                 $rec->productId,
@@ -449,39 +373,47 @@ class purchase_RequestDetails extends core_Detail
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
-            if (empty($rec->packPrice)) {
-                // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
-                // няма нужда от конвертиране.
-                
-                // Възможно е, обаче, ценоразписа да не върне цена. В този случай трябва да
-                // да сигнализираме на потребителя, че полето за цена е задължително и да не 
-                // допускаме записи без цени.
-                
-                if (empty($policyInfo->price)) {
+            if (!isset($rec->packPrice)) {
+            	
+            	// Ако няма последна покупна цена и не се обновява запис в текущата покупка
+                if (!isset($policyInfo->price) && empty($pRec)) {
                     $form->setError('price', 'Продукта няма цена в избраната ценова политика');
+                } else {
+                	
+                	// Ако се обновява вече съществуващ запис
+                	if($pRec){
+                		// Ако няма цена, но има такъв запис се взима цената от него
+	                	if ($masterRec->chargeVat == 'yes') {
+	                		// Начисляване на ДДС в/у цената
+	                		$pRec->packPrice *= 1 + cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+	            		}
+	            		$pRec->packPrice /= $masterRec->currencyRate;
+                	}
+                	
+                	// Ако се обновява запис се взима цената от него, ако не от политиката
+                	$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+                	$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
                 }
                 
-                $rec->price = $policyInfo->price;
             } else {
-                // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
-                // на покупката. Конвертираме цената към основна валута по курса, зададен
-                // в мастър-покупка.
                 $rec->packPrice *= $masterRec->currencyRate;
                 
-                if ($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'no') {
-                    // Потребителя въвежда цените с ДДС
-                    $rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
+                if ($masterRec->chargeVat == 'yes') {
+                	if(!$update || ($update && Request::get('Ignore'))){
+                		// Потребителя въвежда цените с ДДС
+                    	$rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
+                	}
                 }
                 
-                // Изчисляваме цената за единица продукт в осн. мярка
+                // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
-            }
+            } 
             
             if (empty($rec->discount)) {
                 $rec->discount = $policyInfo->discount;
             }
             
-            // Записваме основната мярка на продукта
+            // Записване основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
         }
     }
@@ -489,15 +421,10 @@ class purchase_RequestDetails extends core_Detail
     
     /**
      * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $ProductManager = cls::get($rec->classId);
-        
         $row->productId = $ProductManager->getTitleById($rec->productId);
     }
     
@@ -508,21 +435,9 @@ class purchase_RequestDetails extends core_Detail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty ($data->toolbar->buttons ['btnAdd'])) {
-			$productManagers = core_Classes::getOptionsByInterface ('cat_ProductAccRegIntf');
-			$masterRec = $data->masterData->rec;
 			$addUrl = $data->toolbar->buttons ['btnAdd']->url;
-			
-			foreach ($productManagers as $manId => $manName) {
-				$productMan = cls::get ($manId);
-				$products = $productMan->getProducts ($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date);
-				if (!count ($products)) {
-					$error = "error=Няма продаваеми {$productMan->title}";
-				}
-				
-				$data->toolbar->addBtn ($productMan->singleTitle, $addUrl + array ('classId' => $manId), "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-	            	unset($error);
-	        }
-	            
+			$classId = cat_Products::getClassId();
+			$data->toolbar->addBtn ('Артикул', $addUrl + array ('classId' => $classId), "id=btnAdd-{$classId},,order=10", 'ef_icon = img/16/shopping.png');
 	        unset($data->toolbar->buttons['btnAdd']);
 	   }
     }

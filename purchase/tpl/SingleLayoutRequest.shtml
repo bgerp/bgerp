@@ -1,15 +1,18 @@
 [#SingleToolbar#]
 <div class='document'>
- 
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
 <div class='scrolling-holder'>
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
         <td>
-           
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
@@ -55,8 +58,6 @@
                     </div>
                     <!--ET_END supplier-->
                 </tr>
-               
-               
                 </tbody>
             </table>
 			<div class="lines"></div>
@@ -73,12 +74,6 @@
                             |Условие|*: <b>[#deliveryTermId#]</b>
                        	</div>
                        	<!--ET_END deliveryTermId-->
-                       	
-                        <!--ET_BEGIN pricesAtDate-->
-                      	<div>
-                            |Цени към|*: <b>[#pricesAtDate#]</b><br>
-                       	</div>
-                       	<!--ET_END pricesAtDate-->
                        	
                         <!--ET_BEGIN deliveryTime-->
                         <div>
@@ -125,19 +120,16 @@
                                 <td>
                                     <table>
                                         <tr>
-                                            <td style="text-align: right;">|Обща сума|*:</td>
-                                            <td><b>[#amountDeal#]</b> [#chargeVat#]</td>
-                                        </tr>
-                                        <!--ET_BEGIN amountPaid-->
-                                        <tr>
-                                            <td style="text-align: right;">|Платени|*:</td>
-                                            <td><b>[#amountPaid#]</b></td>
-                                        </tr>
-                                        <!--ET_END amountPaid-->
-                                        <tr>
-                                            <td style="text-align: right;">|Остатък|*:</td>
-                                            <td><b>[#amountToPay#]</b></td>
-                                        </tr>
+                                            <td style="text-align: right;" class = 'nowrap'>|Обща сума|*:</td>
+                                        	<td><span class='cCode'>[#currencyId#]</span></td>
+                                        	<td class = 'nowrap' style="text-align: right;"><b>[#amountDeal#]</b></td>
+                                        </tr>  
+                                        <!--ET_BEGIN vat-->
+			                            <tr>
+			                                <td style="text-align:right;" class = 'nowrap'>[#chargeVat#] |ДДС|*:</td>
+			                                <td style="text-align:right;" class = 'nowrap' colspan='2'><b>[#vat#]</b> %</td>
+			                            </tr>
+			                            <!--ET_END vat-->
                                     </table>
                                 </td>
                             </tr>
@@ -147,8 +139,6 @@
                            
                             </tbody>
                         </table>
-                          
-                        
                     </td>
                 </tr>           
                 </tbody>
@@ -162,5 +152,36 @@
     </tr>
     </tbody>
 </table>
+<div class="sale-summary">
+		<table cellspacing="5">
+		<colgroup span="5"/>
+		<thead>
+			<tr>
+				<th>
+				    |Поръчано|*, [#currencyId#]
+				</th>
+				<th>
+				    |Доставено|*, [#currencyId#]
+				</th>
+				<th>
+				    |Платено|*, [#currencyId#]
+				</th>
+				<th>
+				    |Фактурирано|*, [#currencyId#]
+				</th>
+				<th>
+				    |Остатък|*, [#currencyId#]
+				</th>
+				</tr>
+				</thead>
+				<tr>
+				    <td class = 'nowrap'>[#amountDeal#]</td>
+				    <td class = 'nowrap'>[#amountDelivered#]</td>
+				    <td class = 'nowrap'>[#amountPaid#]</td>
+				    <td class = 'nowrap'>[#amountInvoiced#]</td>
+				    <td class = 'nowrap'>[#amountToPay#]</td>
+				   </tr>
+			</table>
+		</div>
 </div>
 </div>

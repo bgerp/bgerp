@@ -65,7 +65,21 @@ class purchase_Setup extends core_ProtoSetup
             array(3.3, 'Логистика', 'Доставки', 'purchase_Offers', 'default', "purchase, ceo"),
         );
 
+
+	/**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+    	$html = parent::install();
         
+        // Добавяме политиката "По последна покупна цена"
+        core_Classes::add('purchase_RequestLastPricePolicy');
+        
+        return $html;
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */

@@ -3,16 +3,16 @@
 
 
 /**
- * Мениджър на заявки за покупки
+ * Документ 'Покупка'
  *
  *
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Заявки за покупки
+ * @title     Покупки
  */
 class purchase_Requests extends core_Master
 {
@@ -21,83 +21,61 @@ class purchase_Requests extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Покупки';
+    public $title = 'Покупки';
 
 
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-        acc_RegisterIntf=sales_RegisterImpl,
-        acc_TransactionSourceIntf=sales_TransactionSourceImpl';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf';
     
     
     /**
      * Плъгини за зареждане
-     *
-     * var string|array
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues,
-        doc_EmailCreatePlg, bgerp_plg_Blank,
-        doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
+    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg,
+				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues,
+				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,purchase';
+    public $canRead = 'ceo,purchase';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,purchase';
+	public $canList = 'ceo,purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,purchase';
+	public $canSingle = 'ceo,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,purchase';
+    public $canEdit = 'ceo,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,purchase';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,purchase';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo,purchase';
+    public $canAdd = 'ceo,purchase';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, contragentClassId, contragentId, currencyId, amountDeal, 
-                            amountDelivered, amountPaid, 
-                             dealerId,
-                             createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid,dealerId,createdOn, createdBy';
 
 
     /**
      * Детайла, на модела
-     *
-     * @var string|array
      */
     public $details = 'purchase_RequestDetails' ;
     
@@ -105,13 +83,11 @@ class purchase_Requests extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    public $rowToolsField = 'id';
 
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Покупка';
 
@@ -119,19 +95,19 @@ class purchase_Requests extends core_Master
     /**
      * Лейаут на единичния изглед 
      */
-    var $singleLayoutFile = 'purchase/tpl/SingleLayoutRequest.shtml';
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutRequest.shtml';
     
     
     /**
      * Документа покупка може да бъде само начало на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.2|Логистика";
+    public $newBtnGroup = "4.2|Логистика";
     
     
     /**
@@ -146,8 +122,6 @@ class purchase_Requests extends core_Master
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'isInstantShipment'  => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
@@ -156,85 +130,49 @@ class purchase_Requests extends core_Master
      */
     function description()
     {
-        
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
-        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
-            'caption=Фактуриране,maxRadio=3,columns=3');
+        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Фактуриране,maxRadio=3,columns=3');
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
-        /*
-         * Стойности
-         */
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
+        $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е фактурирана
         
-        /*
-         * Контрагент
-         */ 
+        // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
-        /*
-         * Доставка
-         */
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 
-            'caption=Доставка->Условие,salecondSysId=deliveryTerm');
-        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
-            'caption=Доставка->От обект,silent'); // обект, от който да се приеме стоката
-        $this->FLD('deliveryTime', 'datetime', 
-            'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
-            'caption=Доставка->До склад'); // наш склад, до който да бъде доставена стоката
-        $this->FLD('isInstantShipment', 'enum(no=По-късно,yes=На момента)', 
-            'input, maxRadio=2, columns=2, caption=Получаване');
+        // Доставка
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->От обект,silent');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->До склад');
         
-        /*
-         * Плащане
-         */
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)',
-            'caption=Плащане->Начин,salecondSysId=paymentMethod');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)',
-            'caption=Плащане->Валута');
+        // Плащане
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)',
-            'caption=Плащане->Банкова сметка');
-        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
-            'caption=Плащане->Каса');
-        $this->FLD('isInstantPayment', 'enum(no=Не,yes=Да)', 'input,maxRadio=2, columns=2, caption=Плащане на момента');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова сметка');
+        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
-        /*
-         * Наш персонал
-         */
-        $this->FLD('dealerId', 'user(allowEmpty)',
-            'caption=Наш персонал->Закупчик');
+        // Наш персонал
+        $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Закупчик');
 
-        /*
-         * Допълнително
-         */
-        $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
+        // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
     	
-    	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
-            'caption=Статус, input=none'
-        );
+    	$this->FLD('state','enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
     }
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param sales_Sales $mvc
-     * @param stdClass $data
+     * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Задаване на стойности на полетата на формата по подразбиране
-        
-        /* @var $form core_Form */
-        $form = $data->form;
-       
+        $form = &$data->form;
         $form->setDefault('valior', dt::now());
         
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
@@ -248,44 +186,24 @@ class purchase_Requests extends core_Master
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
-        
         if (empty($data->form->rec->makeInvoice)) {
             $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($data->form->rec));
         }
         
         // Поле за избор на локация - само локациите на контрагента по покупката
-        $form->getField('deliveryLocationId')->type->options = 
-            array(''=>'') +
-            crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+        $locations = array(''=>'') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+        $form->setOptions('deliveryLocationId', $locations);
         
-        /*
-         * Начисляване на ДДС по подразбиране
-         */
+        // Начисляване на ДДС по подразбиране
         $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
-        $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
-                'yes' : 'export'
-        );
+        $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ? 'yes' : 'export');
         
-        /*
-         * Моментни експедиция и плащане по подразбиране
-         */
-        if (empty($form->rec->id)) {
-            $isInstantShipment = !empty($form->rec->shipmentStoreId);
-            $isInstantShipment = $isInstantShipment && 
-                ($form->rec->shipmentStoreId == store_Stores::getCurrent('id', FALSE));
-            $isInstantShipment = $isInstantShipment && 
-                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
-            
-            $isInstantPayment = !empty($form->rec->caseId);
-            $isInstantPayment = $isInstantPayment && 
-                ($form->rec->caseId == store_Stores::getCurrent('id', FALSE));
-            $isInstantPayment = $isInstantPayment && 
-                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId');
-            
-            $form->setDefault('isInstantShipment', 
-                $isInstantShipment ? 'yes' : 'no');
-            $form->setDefault('isInstantPayment', 
-                $isInstantPayment ? 'yes' : 'no');
+        if ($form->rec->id) {
+        	
+        	// Неможе да се сменя ДДС-то ако има вече детайли
+        	if($mvc->purchase_RequestDetails->fetch("#requestId = {$form->rec->id}")){
+        		$data->form->setReadOnly('chargeVat');
+        	}
         }
     }
 
@@ -299,6 +217,21 @@ class purchase_Requests extends core_Master
 	    	if(!$form->rec->currencyRate){
 				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
 			}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if(haveRole('debug')){
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    	}
+    	
+    	if($data->rec->state == 'active' && sales_Invoices::haveRightFor('add')){
+    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
     	}
     }
     
@@ -382,25 +315,6 @@ class purchase_Requests extends core_Master
         );
     
         $data->listFields['dealerId'] = 'Закупчик';
-    
-        if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
-                $rec = $data->recs[$i];
-    
-                // "Изчисляване" на името на доставчика
-                $contragentData = NULL;
-    
-                if ($rec->contragentClassId && $rec->contragentId) {
-    
-                    $contragent = new core_ObjectReference(
-                        $rec->contragentClassId,
-                        $rec->contragentId
-                    );
-    
-                    $row->contragentClassId = $contragent->getHyperlink();
-                }
-            }
-        }
     }
     
 
@@ -447,32 +361,31 @@ class purchase_Requests extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if (empty($row->amountDeal)) {
-            $row->amountDeal = '0.00';
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+            if ($rec->{"amount{$amnt}"} == 0) {
+                $row->{"amount{$amnt}"} = $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            }
         }
-        $row->amountDeal = $row->currencyId . ' ' . $row->amountDeal;
-    
-        if (!empty($rec->amountPaid)) {
-            $row->amountPaid = $row->currencyId . ' ' . $row->amountPaid;
+        
+    	$row->amountToPay = $mvc->getField('amountDeal')->type->toVerbal($rec->amountDeal - $rec->amountPaid);
+    	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
+        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
+        	$row->vat = $mvc->getField('amountDeal')->type->toVerbal($vat * 100);
+        } else {
+        	unset($row->chargeVat);
         }
-    
-        $amountType = $mvc->getField('amountDeal')->type;
-    
-        $row->amountToPay = $row->currencyId . ' '
-        . $amountType->toVerbal($rec->amountDeal - $rec->amountPaid);
-    
+    	
         if ($rec->chargeVat == 'freed' || $rec->chargeVat == 'export') {
             $row->chargeVat = '';
         }
-    
-        if ($rec->isInstantPayment == 'yes') {
-            $row->caseId .= ' (на момента)';
-        }
-        if ($rec->isInstantShipment == 'yes') {
-            $row->shipmentStoreId .= ' (на момента)';
-        }
+        
+        $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+        
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+	    }
     }
 
 
@@ -481,7 +394,11 @@ class purchase_Requests extends core_Master
      */
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-        // Данните на "Моята фирма"
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    	
+    	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
     
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -513,6 +430,9 @@ class purchase_Requests extends core_Master
     }
     
     
+    /**
+     * Нормализиране на контрагент данните
+     */
     public static function normalizeContragentData($contragentData)
     {
         /*
@@ -583,5 +503,231 @@ class purchase_Requests extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	/**
+     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealIntf::getDealInfo()
+     */
+    public function getDealInfo($id)
+    {
+        $rec = new purchase_model_Request(self::fetchRec($id));
+        
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('purchase_RequestDetails', 'purchase_model_RequestProduct');
+                
+        $result = new bgerp_iface_DealResponse();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
+        
+        $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->vatType 				= $rec->chargeVat;
+        $result->agreed->delivery->location     = $rec->deliveryLocationId;
+        $result->agreed->delivery->term         = $rec->deliveryTermId;
+        $result->agreed->delivery->storeId      = $rec->storeId;
+        $result->agreed->delivery->time         = $rec->deliveryTime;
+        $result->agreed->payment->method        = $rec->paymentMethodId;
+        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
+        $result->agreed->payment->caseId        = $rec->caseId;
+        
+        if ($rec->isInstantPayment == 'yes') {
+            $result->paid->amount   			  = $rec->amountDeal;
+            $result->paid->currency 			  = $rec->currencyId;
+            $result->paid->payment->method        = $rec->paymentMethodId;
+            $result->paid->payment->bankAccountId = $rec->bankAccountId;
+            $result->paid->payment->caseId        = $rec->caseId;
+        }
+
+        if ($rec->isInstantShipment == 'yes') {
+            $result->shipped->amount   			 = $rec->amountDeal;
+            $result->shipped->currency 			 = $rec->currencyId;
+            $result->shipped->delivery->location = $rec->deliveryLocationId;
+            $result->shipped->delivery->storeId  = $rec->storeId;
+            $result->shipped->delivery->term     = $rec->deliveryTermId;
+            $result->shipped->delivery->time     = $rec->deliveryTime;
+        }
+        
+        /* @var $dRec purchase_model_RequestProduct */
+        foreach ($detailRecs as $dRec) {
+            $p = new bgerp_iface_DealProduct();
+            
+            $p->classId     = $dRec->classId;
+            $p->productId   = $dRec->productId;
+            $p->packagingId = $dRec->packagingId;
+            $p->discount    = $dRec->discount;
+            $p->isOptional  = FALSE;
+            $p->quantity    = $dRec->quantity;
+            $p->price       = $dRec->price;
+            $p->uomId       = $dRec->uomId;
+            
+            $result->agreed->products[] = $p;
+            
+            if ($rec->isInstantShipment == 'yes') {
+                $result->shipped->products[] = clone $p;
+            }
+        }
+        
+        return $result;
+    }
+    
+    
+	/**
+     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     * 
+     * @param int|object $id
+     * @return bgerp_iface_DealResponse
+     * @see bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     */
+    public function getAggregateDealInfo($id)
+    {
+        $rec = new purchase_model_Request(self::fetchRec($id));
+        
+        // Извличаме продуктите на продажбата
+        $detailRecs = $rec->getDetails('purchase_RequestDetails', 'purchase_model_RequestProduct');
+        
+        $result = new bgerp_iface_DealResponse();
+        
+        $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
+        
+        $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->vatType 				= $rec->chargeVat;
+        $result->agreed->delivery->location     = $rec->deliveryLocationId;
+        $result->agreed->delivery->storeId      = $rec->storeId;
+        $result->agreed->delivery->term         = $rec->deliveryTermId;
+        $result->agreed->delivery->time         = $rec->deliveryTime;
+        $result->agreed->payment->method        = $rec->paymentMethodId;
+        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
+        $result->agreed->payment->caseId        = $rec->caseId;
+        
+        $result->paid->amount                 = $rec->amountPaid;
+        $result->paid->currency               = $rec->currencyId;
+        $result->paid->payment->method        = $rec->paymentMethodId;
+        $result->paid->payment->bankAccountId = $rec->bankAccountId;
+        $result->paid->payment->caseId        = $rec->caseId;
+
+        $result->shipped->amount             = $rec->amountDelivered;
+        $result->shipped->vatType            = $rec->chargeVat;
+        $result->shipped->currency           = $rec->currencyId;
+        $result->shipped->delivery->storeId  = $rec->storeId;
+        $result->shipped->delivery->location = $rec->deliveryLocationId;
+        $result->shipped->delivery->term     = $rec->deliveryTermId;
+        $result->shipped->delivery->time     = $rec->deliveryTime;
+        
+        /* @var $dRec purchase_model_RequestProduct */
+        foreach ($detailRecs as $dRec) {
+            /*
+             * Договорени продукти
+             */
+            $aProd = new bgerp_iface_DealProduct();
+            
+            $aProd->classId     = $dRec->classId;
+            $aProd->productId   = $dRec->productId;
+            $aProd->packagingId = $dRec->packagingId;
+            $aProd->discount    = $dRec->discount;
+            $aProd->isOptional  = FALSE;
+            $aProd->quantity    = $dRec->quantity;
+            $aProd->price       = $dRec->price;
+            $aProd->uomId       = $dRec->uomId;
+            
+            $result->agreed->products[] = $aProd;
+            
+            /*
+             * Експедирани продукти
+             */
+            $sProd = clone $aProd;
+            $sProd->quantity = $dRec->quantityDelivered;
+            
+            $result->shipped->products[] = $sProd;
+            
+            /*
+             * Фактурирани продукти
+             */
+            $iProd = clone $aProd;
+            $iProd->quantity = $dRec->quantityInvoiced;
+            
+            $result->invoiced->products[] = $iProd;
+        }
+        
+        return $result;
+    }
+    
+    
+	/**
+     * Трасира веригата от документи, породени от дадена покупка. Извлича от тях експедираните 
+     * количества и платените суми.
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ObjectReference $requestRef
+     * @param core_ObjectReference $descendantRef кой породен документ е инициатор на трасирането
+     */
+    public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
+    {
+        $requestRec            = new purchase_model_Request($requestRef->rec());
+        $aggregatedDealInfo = $requestRec->getAggregatedDealInfo();
+
+        $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
+    }
+    
+    
+	/**
+     * След промяна в детайлите на обект от този клас
+     * 
+     * @param core_Manager $mvc
+     * @param int $id ид на мастър записа, чиито детайли са били променени
+     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+        $rec = $mvc->fetchRec($id);
+        
+        $query = $detailMvc->getQuery();
+        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+        
+        $rec->amountDeal = 0;
+        
+        while ($detailRec = $query->fetch()) {
+            $vat = 1;
+            
+            if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
+                $ProductManager = cls::get($detailRec->classId);
+                
+                $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
+            }
+            
+            $rec->amountDeal += $detailRec->amount * $vat;
+        }
+        
+        $mvc->save($rec);
+    }
+    
+    
+	/**
+     * Дебъг екшън показващ агрегираните бизнес данни
+     */
+    function act_AggregateDealInfo()
+    {
+    	requireRole('debug');
+    	expect($id = Request::get('id', 'int'));
+    	$info = $this->getAggregateDealInfo($id);
+    	bp($info);
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'activate' && isset($rec)){
+    		if(!$mvc->purchase_RequestDetails->fetch("#requestId = {$rec->id}")){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }
