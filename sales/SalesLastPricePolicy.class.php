@@ -55,7 +55,7 @@ class sales_SalesLastPricePolicy extends core_Manager
         $detailQuery->where("#productId = '{$productId}'");
         $detailQuery->where("#classId = {$productManId}");
         $detailQuery->where("#state = 'active'");
-        $detailQuery->orderBy('#valior', 'DESC');
+        $detailQuery->orderBy('#valior,#id', 'DESC');
         $lastRec = $detailQuery->fetch();
         
         if(!$lastRec){
