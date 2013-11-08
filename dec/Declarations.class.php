@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -116,12 +116,6 @@ class dec_Declarations extends core_Master
      */ 
    	var $newBtnGroup = "3.8|Търговия";
     
-   	
-    /**
-     * Работен кеш
-     */
-    protected static $cache;
-    
     
     /**
      * Описание на модела
@@ -209,9 +203,13 @@ class dec_Declarations extends core_Master
     	$row->manager = $managerData->name;
     	$row->managerEGN = $managerData->egn;
 
-    	// информация за локацията/ мястото на производство
-    	$locationData = crm_Locations::fetch($rec->locationId);
-    	$row->place = $locationData->title;
+    	if($rec->locationId){
+    		
+    		// информация за локацията/ мястото на производство
+	    	$locationData = crm_Locations::fetch($rec->locationId);
+	    	$row->place = $locationData->title;
+    	}
+    	
 
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
@@ -238,7 +236,14 @@ class dec_Declarations extends core_Master
     		$rec = $class::fetch($dId);
     		
     		// съдържа обобщена информация за сделките в нишката
-    		$deal = static::getDealInfo($data->rec->threadId);
+    		//$deal = static::getDealInfo($data->rec->threadId);
+    		$firstDoc = doc_Threads::getFirstDocument($data->rec->threadId);
+    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+    			$deal = $firstDoc->getAggregateDealInfo();
+    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
+    			$deal = $firstDoc->getDealInfo();
+    		}
+    		expect($deal);
     		
     		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
@@ -258,23 +263,18 @@ class dec_Declarations extends core_Master
        		$invoiceNo = str_pad($rec->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
        		$row->invoiceNo = $invoiceNo;
             
-       		if($deal){
-	       		// продуктите
-	    		foreach($deal->invoiced->products as $iProduct){
-	    			$ProductMan = cls::get($iProduct->classId);
-	        		
-	        		$products[] = $ProductMan::getTitleById($iProduct->productId);
-	
-	    		}
-	    		
-	    		$row->products = "<ol>";
-	    		
-	    		foreach($products as $product){
-	        		$row->products .= "<li>$product</li>";
+	       	// Продуктите
+	       	if(count($deal->invoiced->products)){
+	       		$row->products = "<ol>";
+	       		
+		       	foreach($deal->invoiced->products as $iProduct){
+		    		$ProductMan = cls::get($iProduct->classId);
+		        	$productName = $ProductMan::getTitleById($iProduct->productId);
+		        	$row->products .= "<li>$productName</li>";
 				}
 				
 				$row->products .= "</ol>";
-       		}
+	       	}
     	}
     }
 
@@ -409,32 +409,4 @@ class dec_Declarations extends core_Master
         
         return $row;
     }
-    
-    
-    /**
-     * Връща информацията 'bgerp_DealAggregatorIntf' от първия документ
-     * в нишката ако го поддържа
-     * @param mixed  $threadId - ид на нишката или core_ObjectReference
-     * 							 към първия документ в нишката
-     * @return stdClass - бизнес информацията от документа
-     */
-    public static function getDealInfo($threadId)
-    {
-    	$firstDoc = (is_numeric($threadId)) ? doc_Threads::getFirstDocument($threadId) : $threadId;
-    	
-    	expect($firstDoc instanceof core_ObjectReference, $firstDoc);
-    	
-    	if($firstDoc->haveInterface('bgerp_DealIntf')){
-	    	if(empty(static::$cache)){
-	    		
-	    		// Запис във временния кеш
-	    		expect(static::$cache = $firstDoc->getDealInfo());
-	    	}
-	    	
-	    	return static::$cache;
-    	}
-    	
-    	return FALSE;
-    }
-
 }
