@@ -142,6 +142,7 @@ class doc_Setup
             'doc_PdfCreator',
             'doc_ThreadUsers',
             'doc_Files',
+        	'doc_TplManager'
         );
         
         $instances = array();
