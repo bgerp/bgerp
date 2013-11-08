@@ -14,24 +14,20 @@ class sales_model_SaleProduct extends core_Model
      */
     public static $mvc = 'sales_SalesDetails';
     
+    
     /**
      * @var int key(mvc=sales_Sales)
      */
     public $saleId;
-    
-    /**
-     * Ценова политика
-     * 
-     * @var int class(interface=price_PolicyIntf, select=title)
-     */
-    public $policyId;
 
+    
     /**
      * Мениджър на продукт
      *
      * @var int key(mvc=core_Classes)
      */
     public $classId;
+    
     
     /**
      * ИД на продукт
@@ -40,6 +36,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $productId;
     
+    
     /**
      * Мярка
      * 
@@ -47,12 +44,14 @@ class sales_model_SaleProduct extends core_Model
      */
     public $uomId;
     
+    
     /**
      * Опаковка (ако има)
      * 
      * @var int key(mvc=cat_Packagings)
      */
     public $packagingId;
+    
     
     /**
      * Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
@@ -62,6 +61,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $quantityInPack;
         
+    
     /**
      * Количество (в основна мярка)
      * 
@@ -69,6 +69,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $quantity;
         
+    
     /**
      * Експедирано количество (в основна мярка)
      * 
@@ -76,6 +77,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $quantityDelivered;
         
+    
     /**
      * Фактурирано количество (в основна мярка)
      * 
@@ -83,6 +85,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $quantityInvoiced;
         
+    
     /**
      * Цена за единица продукт в основна мярка
      * 
@@ -90,6 +93,7 @@ class sales_model_SaleProduct extends core_Model
      */
     public $price;
         
+    
     /**
      * Процент отстъпка (0..1 => 0% .. 100%)
      * 
@@ -97,17 +101,10 @@ class sales_model_SaleProduct extends core_Model
      */
     public $discount;
     
-    protected function calc_productClass()
-    {
-        return cls::get(cls::get($this->policyId)->getProductMan());
-    } 
     
-    protected function calc_classId()
-    {
-        return $this->productClass->getClassId();
-    } 
-    
-    
+    /**
+     * Връща к-то в опаковка
+     */
     public function getQuantityInPack()
     {
         $q = 1;
