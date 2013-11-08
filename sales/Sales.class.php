@@ -32,20 +32,17 @@ class sales_Sales extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-                          acc_RegisterIntf=sales_RegisterImpl,
                           acc_TransactionSourceIntf=sales_TransactionSourceImpl,
                           bgerp_DealIntf, bgerp_DealAggregatorIntf';
     
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
                     doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc2, acc_plg_Registry, store_plg_Shippable, acc_plg_DocumentSummary';
+                    doc_plg_BusinessDoc2, store_plg_Shippable, acc_plg_DocumentSummary';
     
     
     /**
@@ -94,8 +91,6 @@ class sales_Sales extends core_Master
     
     /**
      * Кой може да го види?
-     * 
-     * @var string|array
      */
     public $canView = 'ceo,sales';
     
@@ -123,28 +118,16 @@ class sales_Sales extends core_Master
     public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,
                              createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @var string
-     */
-    public $rowToolsField;
 
 
     /**
      * Детайла, на модела
-     *
-     * @var string|array
      */
     public $details = 'sales_SalesDetails' ;
     
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Продажба';
     
@@ -179,9 +162,7 @@ class sales_Sales extends core_Master
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	//'isInstantShipment'  => 'lastDocUser|lastDoc',
     	'initiatorId'        => 'lastDocUser|lastDoc',
-    	//'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
