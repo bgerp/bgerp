@@ -78,7 +78,7 @@ class backup_Local extends core_Master
      */
     static function removeFile($fileName)
     {
-        $result = @unlink(EF_TEMP_PATH . "/" . $fileName, STORAGE_FOLDER . '/' . $fileName);
+        $result = @unlink(STORAGE_FOLDER . '/' . $fileName);
         
         return $result;
     }

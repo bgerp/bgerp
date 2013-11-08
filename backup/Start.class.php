@@ -155,20 +155,24 @@ class backup_Start extends core_Manager
                 . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
         if ($returnVar !== 0) {
             core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
+            self::unLock();
             
             exit(1);
         }
         // 4. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
-            //Създаваме го
-            touch(EF_TEMP_PATH . "/" . self::$metaFileName);
-            $metaArr = array();
+            // Ако го няма - пропускаме - не е минал пълен бекъп
+            core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
+            self::unLock();
+            
+            exit(1);
         } else {
             $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
         }
         
         if (!is_array($metaArr)) {
             core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::unLock();
             
             exit(1);
         }
@@ -218,10 +222,30 @@ class backup_Start extends core_Manager
         
         if (count($metaArr) > self::$conf->BACKUP_CLEAN_KEEP) {
             // Има нужда от почистване
+            $garbage = array_slice($metaArr, 0, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP);
+            $keeped  = array_slice($metaArr, count($metaArr) - self::$conf->BACKUP_CLEAN_KEEP, count($metaArr));
+            file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($keeped));
+            // Качваме МЕТАТ-а в сториджа
+            self::$storage->putFile(self::$metaFileName);
+            // Отключваме бекъп-а, защото изтриването на файлове може да е бавна операция
+            self::unLock();
+        } else {
+            // Нямаме работа по изтриване
+            self::unLock();
+            core_Logs::add("Backup", '', 'info: clean - нищо за изтриване.');
+            
+            return;
         }
+        // Изтриваме боклука
+        $cnt = 0;
+        foreach ($garbage as $backups)
+            foreach ($backups as $fileName) {
+                self::$storage->removeFile($fileName);
+                $cnt++;
+        }
+        core_Logs::add("Backup", '', 'info: clean - успешно изтрити: ' . $cnt . " файла");
         
-        self::unLock();
-        bp($metaArr);        
+        return;
     }
     
     /**
