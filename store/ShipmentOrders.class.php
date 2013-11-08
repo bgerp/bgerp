@@ -147,7 +147,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "4.3|Логистика";
+    public $newBtnGroup = "4.3|Логистика";
    
     
     /**
@@ -302,11 +302,15 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * След рендиране
+     * След рендиране на сингъла
      */
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-        // Данните на "Моята фирма"
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    	
+    	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -342,6 +346,8 @@ class store_ShipmentOrders extends core_Master
     	if($data->rec->chargeVat == 'yes' || $data->rec->chargeVat == 'no'){
     		$data->row->VAT = " " . tr('с ДДС');
     	}
+    	
+    	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
     	// Бутон за отпечатване с цени
         $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
