@@ -886,6 +886,13 @@ class sales_Invoices extends core_Master
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
+   	 *  При фактура основана на ПРОДАЖБА:
+   	 *  		Dt: 411  - Вземания от клиенти
+   	 *  		Ct: 4532 - Начислен ДДС за продажбите
+   	 *  
+   	 *  При фактура основана на ПОКУПКА:
+   	 *  		Dt: 401  - Задължения към доставчици
+   	 *  		Ct: 4531 - Начислен ДДС за покупките
    	 */
     public static function getTransaction($id)
     {
@@ -894,6 +901,16 @@ class sales_Invoices extends core_Master
         
         if (empty($rec->folderId)) {
             return FALSE;
+        }
+        
+        $origin = static::getOrigin($rec);
+        $aggregateInfo = $origin->getAggregateDealInfo();
+        if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
+        	$debitAccId  = '411';
+        	$creditAccId = '4532';
+        } else {
+        	$debitAccId  = '401';
+        	$creditAccId = '4531';
         }
         
         static::prepareAdditionalInfo($rec);
@@ -916,14 +933,14 @@ class sales_Invoices extends core_Master
                 'amount' => $rec->vatAmount,  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
-                    '411', // дебитната сметка
+                    $debitAccId, // дебитната сметка
                         array($contragentClass, $contragentId),
                         array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
                     'quantity' => $rec->vatAmount,
                 ),
                 
                 'credit' => array(
-                    '4532', // кредитна сметка;
+                    $creditAccId, // кредитна сметка;
                     'quantity' => $rec->vatAmount,
                 )
     	    );
