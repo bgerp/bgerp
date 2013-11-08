@@ -163,40 +163,25 @@ class store_ShipmentOrders extends core_Master
     {
         
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
-        
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)',
-            'input=none,caption=Плащане->Валута');
-                
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)',
-            'caption=От склад, mandatory'); // наш склад, от където се експедира стоката
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
-        /*
-         * Стойности
-         */
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'input=none,summary=amount');
         
-        /*
-         * Контрагент
-         */ 
+        // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
-        /*
-         * Доставка
-         */
+        // Доставка
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Условие');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 
-            'caption=Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
-        $this->FLD('deliveryTime', 'datetime', 'caption=Срок до'); // до кога трябва да бъде доставено
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
-        /*
-         * Допълнително
-         */
-        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
-    	
+        // Допълнително
+        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -241,9 +226,6 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * След създаване на запис в модела
-     * 
-     * @param store_Stores $mvc
-     * @param store_model_ShipmentOrder $rec
      */
     public static function on_AfterCreate($mvc, $rec)
     {
@@ -286,14 +268,10 @@ class store_ShipmentOrders extends core_Master
 
     /**
      * След оттегляне на документа
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object|int $id
      */
     public static function on_AfterReject($mvc, &$res, $id)
     {
-        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        // Нотифициране на origin-документа, че някой от веригата му се е променил
         if ($origin = $mvc->getOrigin($id)) {
             $ref = new core_ObjectReference($mvc, $id);
             $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
@@ -363,21 +341,6 @@ class store_ShipmentOrders extends core_Master
      */
     public static function normalizeContragentData($contragentData)
     {
-        /*
-        * Разглеждаме четири случая според данните в $contragentData
-        *
-        *  1. Има данни за фирма и данни за лице
-        *  2. Има само данни за фирма
-        *  3. Има само данни за лице
-        *  4. Нито едно от горните не е вярно
-        */
-        
-        if (empty($contragentData->company) && empty($contragentData->person)) {
-            // Случай 4: нито фирма, нито лице
-            return FALSE;
-        }
-        
-        // Тук ще попълним резултата
         $rec = new stdClass();
         
         $rec->contragentCountryId = $contragentData->countryId;
@@ -394,12 +357,6 @@ class store_ShipmentOrders extends core_Master
                 )
             );
             $rec->contragentVatNo = $contragentData->vatNo;
-        
-            if (!empty($contragentData->person)) {
-                // Случай 1: данни за фирма + данни за лице
-        
-                // TODO за сега не правим нищо допълнително
-            }
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
             $rec->contragentName    = $contragentData->person;
@@ -427,9 +384,7 @@ class store_ShipmentOrders extends core_Master
     	if ($rec->id){
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
-        	$dQuery = $mvc->store_ShipmentOrderDetails->getQuery();
-        	$dQuery->where("#shipmentId = {$rec->id}");
-        	if($dQuery->count()){
+        	if($mvc->store_ShipmentOrderDetails->fetch("#shipmentId = {$rec->id}")){
         		$form->setReadOnly('chargeVat');
         	}
         }
@@ -438,9 +393,7 @@ class store_ShipmentOrders extends core_Master
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
         }
         
-        /*
-         * Определяне на контрагента (ако още не е определен)
-         */
+        // Определяне на контрагента (ако още не е определен)
         if (empty($rec->contragentClassId)) {
             $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         }
@@ -462,8 +415,7 @@ class store_ShipmentOrders extends core_Master
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('locationId')->type->options = 
-            array(''=>'') +
-            crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            array(''=>'') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id) && ($form->rec->originId || $form->rec->threadId)) {
@@ -604,48 +556,14 @@ class store_ShipmentOrders extends core_Master
     }
     
     
-    /**
-     * След вербалното преобразуване на записите
+	/**
+     * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в 
-        // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key(
-            $data->listFields, 
-            arr::make('contragentId', TRUE)
-        );
-        
-        if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
-                $rec = $data->recs[$i];
-                
-                // "Изчисляване" на името на клиента
-                $contragentData = NULL;
-                $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-                
-                if ($rec->contragentClassId && $rec->contragentId) {
-    
-                    $contragent = new core_ObjectReference(
-                        $rec->contragentClassId, 
-                        $rec->contragentId 
-                    );
-                    
-                    $row->contragentClassId = $contragent->getHyperlink();
-                }
-            }
-        }     
-    }
-    
-    
-    /**
-     * След подготовка на заглавието за списъчния изглед
-     */
-    public static function on_AfterPrepareListTitle($mvc, $data)
-    {
-        // Използваме заглавието на списъка за заглавие на филтър-формата
-        $data->listFilter->title = $data->title;
-        $data->title = NULL;
+    	if(isset($fields['-list'])){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    	}
     }
 
 
@@ -666,7 +584,6 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * Може ли ЕН да се добави в посочената нишка?
-     *
      * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
      *
      * @param int $threadId key(mvc=doc_Threads)
@@ -750,7 +667,7 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         
-        /* @var $dRec sales_model_SaleProduct */
+        /* @var $dRec store_model_ShipmentOrder */
         foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             

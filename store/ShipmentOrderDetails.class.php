@@ -197,18 +197,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
         $rec->amount = $rec->price * $rec->quantity;
     }
-        
-    
-    /**
-     * 
-     * @param core_Mvc $mvc
-     */
-    public static function on_AfterDescription(&$mvc)
-    {
-        // Скриване на полетата за създаване
-        $mvc->setField('createdOn', 'column=none');
-        $mvc->setField('createdBy', 'column=none');
-    }
 
 
     /**
@@ -258,27 +246,25 @@ class store_ShipmentOrderDetails extends core_Detail
         $masterIds = empty($masterId) ? $updatedMasterIds : array($masterId);
         
         foreach ($masterIds as $masterId) {
-            /* @var $query core_Query */
-            $query = static::getQuery();
-            
             $amountDelivered = 0;
             
+            $query = $this->getQuery();
             $query->where("#{$this->masterKey} = '{$masterId}'");
             
             while ($rec = $query->fetch()) {
                 $amountDelivered += $rec->amount;
             }
             
-            store_ShipmentOrders::save(
-                (object)array(
-                    'id' => $masterId,
-                    'amountDelivered' => $amountDelivered
-                )
+            $this->Master->save(
+                (object)array('id' => $masterId, 'amountDelivered' => $amountDelivered)
             );
         }
     }
     
     
+    /**
+     * Изпълнява се след приключване на работата на скрипта
+     */
     public function on_Shutdown($mvc)
     {
         $mvc->updateMasterSummary(NULL /* ALL */, TRUE /* force update now */);
@@ -286,13 +272,7 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
@@ -421,17 +401,9 @@ class store_ShipmentOrderDetails extends core_Detail
             if (empty($rec->packagingId)) {
                 $rec->quantityInPack = 1;
             } else {
-                // Извлича $productInfo, за да определи количеството единици продукт (в осн.
-                // мярка) в една опаковка.
-                $productRef  = new core_ObjectReference($rec->classId, $rec->productId);
-                $productInfo = $productRef->getProductInfo();
-                
-                if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
-                    return;
-                }
-                
-                $rec->quantityInPack = $packInfo->quantity;
+                // Извлича $productInfo, за да определи количеството единици продукт (в осн. мярка) в една опаковка
+                $productInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+                $rec->quantityInPack = $productInfo->packagingRec->quantity;
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
