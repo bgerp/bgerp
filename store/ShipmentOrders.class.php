@@ -146,11 +146,11 @@ class store_ShipmentOrders extends core_Master
    
     /**
      * Групиране на документите
-     */ 
-    public $newBtnGroup = "3.2|Търговия";
+     */
+    var $newBtnGroup = "4.2|Логистика";
    
     
-   /**
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'amountDelivered';
@@ -670,11 +670,12 @@ class store_ShipmentOrders extends core_Master
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
-    	
-    	if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
-    		
-    		return FALSE;
+    
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    		return TRUE;
     	}
+    	
+    	return FALSE;
     }
         
     
