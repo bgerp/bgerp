@@ -1,7 +1,14 @@
 <div class="singleView">
 	[#SingleToolbar#]
 	<div class="document">
-		
+		<!--ET_BEGIN blank-->
+			[#blank#]
+		<!--ET_END blank-->
+		<!--ET_BEGIN header-->
+			<div class='header [#STATE_CLASS#]'>
+				<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+			</div>
+		<!--ET_END header-->
 		<h3 class="centered">[#SingleTitle#]</h3>
 		<h3 class="centered">П Р О Т О К О Л &nbsp; № [#id#]</h3>
 	

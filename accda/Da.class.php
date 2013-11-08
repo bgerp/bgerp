@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Дълготрайни активи
@@ -39,7 +39,7 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, accda_Wrapper, plg_State2, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
+    var $loadList = 'plg_RowTools, accda_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
                      bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_BusinessDoc2';
     
     
@@ -86,19 +86,13 @@ class accda_Da extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'ceo,accda';
-    
-    
-    /**
      * Кой може да го разглежда?
      */
     var $canList = 'ceo,accda';
     
     
     /**
-     * @todo Чака за документация...
+     * Кой има достъп до сингъла
      */
     var $canSingle = 'ceo,accda';
     
@@ -114,10 +108,12 @@ class accda_Da extends core_Master
      */
     var $searchFields = 'num, serial, title';
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "6.2|Счетоводни";
+    
     
     /**
      * Описание на модела
@@ -209,10 +205,15 @@ class accda_Da extends core_Master
         return $row;
     }
     
+    
+    /**
+     * След подготовка на сингъла
+     */
     static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
-//    	$data->row->serial = NULL;
+    	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
+		
     	if ($data->rec->location) {
     		$locationRec = crm_Locations::fetch($data->rec->location);
     		if($locationRec->address || $locationRec->place || $locationRec->countryId){
@@ -229,6 +230,19 @@ class accda_Da extends core_Master
     		}
     	}
     }
+    
+    
+	/**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    }
+    
+    
     /**
      * В корици на папки с какви интерфейси може да се слага 
      */
