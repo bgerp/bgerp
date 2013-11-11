@@ -37,14 +37,14 @@ function ganttRender(elem, start,end,array) {
 	jQuery.each( array, function( i, val ) {
 		var duration = val['duration'];
 		var startTime = val['startTime'];
-		var taskid = val['taskid'];
+		var taskid = val['taskId'];
 		var rowId = val['rowId'];
 		var hint = val['hint'];
 		var color = val['color'];
 		var url = val['url'];
 		
 		//дебъг хинт
-		var hint = hint + " row:" + rowId ;
+		var hint = taskid + " " + hint + " row:" + rowId ;
 		
 		var addedAnchor = document.createElement( "a" );
 		
@@ -67,7 +67,7 @@ function ganttRender(elem, start,end,array) {
 		
 		//ширина на задачата
 		var widthTask = duration /secPerPX;
-		
+		console.log(taskid);
 		//добавяме необходимите атрибути и свойства
 		$(addedAnchor).css('left', parseInt(offsetInPx));
 		$(addedAnchor).css('top', parseInt(offsetFromTop));
@@ -78,6 +78,9 @@ function ganttRender(elem, start,end,array) {
 		$(addedAnchor).attr('id', taskid);
 		$(addedAnchor).attr('href', url);
 		$(addedAnchor).attr('target', '_blank');
+		if(widthTask>50){
+			$(addedAnchor).text(taskid);
+		}
 		
 		//графиката на задачата става наследник на див-а, който в релативен елеменент
 		$(tableHolder).append( $( addedAnchor ) );
