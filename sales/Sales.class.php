@@ -326,6 +326,7 @@ class sales_Sales extends core_Master
                 $saleProduct->productId   = $product->productId;
                 $saleProduct->packagingId = $product->packagingId;
                 $saleProduct->quantity    = $product->quantity;
+                $saleProduct->discount    = $product->discount;
                 $saleProduct->price       = $product->price;
                 $saleProduct->uomId       = $product->uomId;
         
@@ -1101,7 +1102,7 @@ class sales_Sales extends core_Master
     
 	/**
      * В кои корици може да се вкарва документа
-     * @return array - интефейси, които трябва да имат кориците
+     * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
     {
