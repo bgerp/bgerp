@@ -29,7 +29,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Sr';
+    var $abbr = 'Sreq';
     
     
     /**
