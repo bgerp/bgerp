@@ -567,7 +567,7 @@ class cash_Pko extends core_Master
     
 	/**
      * В кои корици може да се вкарва документа
-     * @return array - интефейси, които трябва да имат кориците
+     * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
     {
