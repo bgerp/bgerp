@@ -91,7 +91,7 @@ class doc_TplManager extends core_Master
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title)', "caption=Клас, width=100%");
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
         
-        $this->setDbUnique('name,docClass');
+        $this->setDbUnique('name,docClassId');
     }
     
     
