@@ -32,7 +32,7 @@ class backup_Start extends core_Manager
     private static $metaFileName;
     private static $storage;
     
-    function init()
+    function init($params)
     {
         self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
         self::$conf = core_Packs::getConfig('backup');
@@ -246,6 +246,17 @@ class backup_Start extends core_Manager
         core_Logs::add("Backup", '', 'info: clean - успешно изтрити: ' . $cnt . " файла");
         
         return;
+    }
+    
+    /**
+     * Запазва конфигурация на bgERP
+     * 
+     *  return boolean
+     */
+    private static function saveConf()
+    {
+        
+        return ;
     }
     
     /**
