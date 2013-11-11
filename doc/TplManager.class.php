@@ -47,14 +47,14 @@ class doc_TplManager extends core_Master
     
     
     /**
-    * Кой може да го разглежда?
-    */
+     * Кой може да го разглежда?
+     */
     public $canList = 'ceo,admin';
 
 
     /**
-    * Кой може да го изтрива?
-    */
+     * Кой може да го изтрива?
+     */
     public $canDelete = 'ceo,admin';
     
     
@@ -89,7 +89,7 @@ class doc_TplManager extends core_Master
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title)', "caption=Клас, width=100%");
-        $this->FLD('content', 'text', "caption=Текст,column=none, width=100%");
+        $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
         
         $this->setDbUnique('name,docClass');
     }
