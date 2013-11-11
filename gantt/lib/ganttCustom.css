@@ -61,7 +61,8 @@
 }
 
 .task{
-	height:20px;
+	height:18px;
+	padding-top:2px;
 	position:absolute;
 	width:100%;
 	display:block;
