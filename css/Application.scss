@@ -737,6 +737,9 @@ div.acc-detail {
 	font-size:0.9em;	
 }
 
+.narrow .portal .legend .addTask{
+	top:2px;
+}
 
 td.portal-date {
 	text-align:right !important;
@@ -2182,9 +2185,6 @@ div.location.public{
 }
 	
 /*шаблон за пускане в експлоатация на ДА*/
-.calign{
-	text-align:center;
-}
 
 .sign-holder{
 	display:inline-block;
@@ -3002,3 +3002,8 @@ div.location.public{
 }
 
 @import "partials/sales";
+
+
+/*test*/
+	
+	
