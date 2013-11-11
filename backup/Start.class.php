@@ -31,6 +31,7 @@ class backup_Start extends core_Manager
     private static $binLogFileName;
     private static $metaFileName;
     private static $storage;
+    private static $confFileName;
     
     function init($params)
     {
@@ -40,6 +41,7 @@ class backup_Start extends core_Manager
         self::$backupFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".full.gz";
         self::$binLogFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_" . $now . ".binlog.gz";
         self::$metaFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_META";
+        self::$confFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_conf.tar.gz";
         self::$storage = core_Cls::get("backup_" . self::$conf->BACKUP_STORAGE_TYPE);
     }
     
@@ -114,9 +116,10 @@ class backup_Start extends core_Manager
         // Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
         unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
+        self::saveConf();
         
         core_Logs::add("Backup", "", "FULL Backup OK!");
-        self::UnLock();
+        self::unLock();
         
         return "FULL Backup OK!"; 
     }
@@ -255,8 +258,29 @@ class backup_Start extends core_Manager
      */
     private static function saveConf()
     {
+        $traceArr = debug_backtrace();
+        $maxKey = max(array_keys($traceArr));
+        // Директорията от където се изпълнява скрипта
+        $confFiles[] = " " . dirname($traceArr[$maxKey]['file']).'/index.cfg.php';
+        $confFiles[] = " " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php';
+        $confFiles[] = " " . EF_CONF_PATH . '/' . '_common.cfg.php';
         
-        return ;
+        $cmd = "tar cfvz " . EF_TEMP_PATH . "/" .self::$confFileName;
+        foreach ($confFiles as $file) {
+            $cmd .= $file;
+        }
+        //bp($cmd);
+        exec($cmd, $output, $returnVar);
+        if ($returnVar !== 0) {
+            core_Logs::add("Backup", "", "error: tar gzip configuration!");
+        
+            exit(1);
+        }
+        self::$storage->putFile(self::$confFileName);
+        
+        unlink(EF_TEMP_PATH . "/" . self::$confFileName);
+        
+        return;
     }
     
     /**
@@ -293,7 +317,7 @@ class backup_Start extends core_Manager
      */
     public static function isLocked()
     {
-        self::init();
+        self::init(array());
         
         return file_exists(self::$lockFileName);
     }
@@ -315,6 +339,7 @@ class backup_Start extends core_Manager
      */
     public function act_Full()
     {
+        
         return self::full();
     }
     
@@ -356,6 +381,11 @@ class backup_Start extends core_Manager
     public function act_Clean()
     {
         return self::clean();
+    }
+    
+    public function act_SaveConf()
+    {
+        self::saveConf();
     }
     
 }
