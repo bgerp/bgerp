@@ -1,12 +1,21 @@
+.gantt-holder > tbody > tr > td{
+	vertical-align:top;
+}
+
 .scroll-table{
-		width:60px;
+		width:600px;
 		overflow-x:auto;
 		border-left:1px solid #ccc;
 		border-right:1px solid #ccc;
 		position:relative;
+		margin-left:-2px;
 }
+
+.narrow .scroll-table{
+	overflow:visible;
+}
+
 .gantt-table{
-	float:left;
 	table-layout:fixed;
 	border-collapse:collapse;
 }
@@ -35,7 +44,6 @@
 }
 
 .gantt-tasks{
-	float:left;
 	table-layout:fixed;
 	border-collapse:collapse;
 }
@@ -48,6 +56,7 @@
 	border-right:none;
 	height:29px !important;
 	border-spacing:0;
+	white-space:nowrap;
 }
 
 .task{
@@ -64,6 +73,10 @@
 
 .task:hover{
 	cursor:pointer;
+}
+
+.narrow .gantt-table tr:nth-child(even), .narrow .gantt-tasks tr:nth-child(even)  {
+	background: #f1f1f1
 }
 
 .task.first{
