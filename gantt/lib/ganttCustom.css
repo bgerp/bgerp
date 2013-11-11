@@ -1,5 +1,5 @@
 .scroll-table{
-		width:600px;
+		width:60px;
 		overflow-x:auto;
 		border-left:1px solid #ccc;
 		border-right:1px solid #ccc;
@@ -15,6 +15,7 @@
 	height:29px !important;
 	padding:0;
 	border-spacing:0;
+	font-size:0.8em;
 	border:1px solid #ccc;
 }
 
@@ -22,6 +23,9 @@
 	padding:0 5px;
 }
 
+.gantt-table tr:first-child th{
+	font-size:1em;
+}
 .gantt-table tr>td:first-child, .gantt-table tr>th:first-child{
 	border-left:none !important;
 }
@@ -51,6 +55,9 @@
 	position:absolute;
 	width:100%;
 	display:block;
+	opacity:0.8;
+	filter: alpha(opacity=80);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
 	border-radius:5px;
 	box-shadow:1px 1px 2px rgba(0,0,0,0.5);
 }
