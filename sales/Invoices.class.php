@@ -270,7 +270,9 @@ class sales_Invoices extends core_Master
      */
     static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	if(!$type = Request::get('type')) return;
+    	$type = Request::get('type');
+    	if(!$type || $type == 'invoice') return;
+    	
     	$title = ($type == 'debit_note') ? 'Дебитно известие' : 'Кредитно известие';
     	$mvc->singleTitle = $title;
     }
