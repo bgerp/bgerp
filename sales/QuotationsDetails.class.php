@@ -188,13 +188,16 @@ class sales_QuotationsDetails extends core_Detail {
 	    	$rec = &$form->rec;
 	    	
 	    	if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productManId = {$rec->productManId} AND #productId = {$rec->productId}")){
-	    		if($rec->optional == 'yes' && $sameProduct->optional == 'no'){
+	    		if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
 	    			$form->setError('optional', "Неможе да добавите продукта като опционален, защото фигурира вече като задължителен!");
+	    			
 	    			return;
-	    		} elseif($rec->optional == 'no' && $sameProduct->optional == 'yes'){
+	    		} elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
 	    			$form->setError('optional', "Неможе да добавите продукта като задължителен, защото фигурира вече като опционален!");
+	    			
 	    			return;
 	    		}
+	    		
 	    	}
 	    	
 	    	$ProductMan = cls::get($rec->productManId);
@@ -207,9 +210,8 @@ class sales_QuotationsDetails extends core_Detail {
     		if(!$rec->discount){
     			$rec->discount = $price->discount;
 	    	}
-	    		
+	    	
 	    	if(!$rec->price){
-	    		
 	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->productManId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price->price){
