@@ -6,7 +6,7 @@
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
@@ -32,19 +32,16 @@ class store_ShipmentOrders extends core_Master
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-                          acc_RegisterIntf=sales_RegisterImpl,
                           acc_TransactionSourceIntf=store_shipmentorders_Transaction, bgerp_DealIntf';
     
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, acc_plg_Registry, plg_LastUsedKeys';
+                    doc_plg_BusinessDoc2, plg_LastUsedKeys';
 
     
     /**
@@ -116,24 +113,18 @@ class store_ShipmentOrders extends core_Master
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     * 
-     * @var string
      */
     public $rowToolsField;
 
 
     /**
      * Детайла, на модела
-     *
-     * @var string|array
      */
     public $details = 'store_ShipmentOrderDetails' ;
     
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Експедиционно нареждане';
     
