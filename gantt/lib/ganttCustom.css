@@ -56,13 +56,13 @@
 }
 
 .task:hover{
-	cursor:pointer;}
+	cursor:pointer;
 }
 
-.first{
+.task.first{
 	border-radius:0px 5px 5px 0px;
 }
 
-.last{
+.task.last{
 	border-radius:5px 0px 0px 5px;
 }
