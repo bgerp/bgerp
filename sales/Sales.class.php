@@ -16,8 +16,6 @@ class sales_Sales extends core_Master
 {
     /**
      * Заглавие
-     * 
-     * @var string
      */
     public $title = 'Продажби';
 
@@ -47,32 +45,24 @@ class sales_Sales extends core_Master
     
     /**
      * Активен таб на менюто
-     * 
-     * @var string
      */
     public $menuPage = 'Търговия:Продажби';
     
     
     /**
      * Кой има право да чете?
-     * 
-     * @var string|array
      */
     public $canRead = 'ceo,sales';
     
     
     /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
     public $canEdit = 'ceo,sales';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
     public $canAdd = 'ceo,sales';
     
@@ -97,17 +87,18 @@ class sales_Sales extends core_Master
     
     /**
      * Кой може да го изтрие?
-     * 
-     * @var string|array
      */
     public $canDelete = 'ceo,sales';
     
 
     /**
+     * Кой може да го активира?
+     */
+    public $canConto = 'ceo,sales';
+    
+    
+    /**
      * Документа продажба може да бъде само начало на нишка
-     * 
-     * Допълнително, папката в която могат да се създават нишки-продажби трябва да бъде с корица
-     * контрагент. Това се гарантира с метода @see canAddToFolder()
      */
     public $onlyFirstInThread = TRUE;
     
@@ -464,9 +455,7 @@ class sales_Sales extends core_Master
         if ($data->form->rec->id){
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
-        	$dQuery = $mvc->sales_SalesDetails->getQuery();
-        	$dQuery->where("#saleId = {$data->form->rec->id}");
-        	if($dQuery->count()){
+        	if($mvc->sales_SalesDetails->fetch("#saleId = {$data->form->rec->id}")){
         		$data->form->setReadOnly('chargeVat');
         	}
         }
