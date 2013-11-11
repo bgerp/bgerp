@@ -45,6 +45,7 @@ function ganttRender(elem, start,end,array) {
 		}
 		//ако задачата започва преди периода на таблицата графичното й представяне да не е заоблено в началото и да не излиза от таблицата
 		if(startTime < start){
+			duration = duration + startTime - start;
 			startTime = start;
 			$(addedAnchor).addClass('first');
 		}
