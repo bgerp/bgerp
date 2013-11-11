@@ -5,6 +5,16 @@ function ganttRender(elem, start,end,array) {
 	var idTabble = $(elem).attr('id').replace(/ganttTable/, '');
 	var tableHolder = "#scroll-table" + idTabble;
 	
+	
+	//разширяване на scroll-table, ако "реже" колона
+	var scrollWidth = $(tableHolder).width();
+	var tdWidth = ganttTable.find('tbody tr:last td:last').outerWidth() ;
+	
+	if(scrollWidth % tdWidth != 0){
+		scrollWidth = scrollWidth + tdWidth -1  - scrollWidth % tdWidth ;
+		$(tableHolder).css("width", scrollWidth);
+	}
+	
 	//взимаме ширината на таблицата
 	var ganttWidth = ganttTable.width();
 	
@@ -67,6 +77,7 @@ function ganttRender(elem, start,end,array) {
 		$(addedAnchor).attr( "title", hint );
 		$(addedAnchor).attr('id', taskid);
 		$(addedAnchor).attr('href', url);
+		$(addedAnchor).attr('target', '_blank');
 		
 		//графиката на задачата става наследник на див-а, който в релативен елеменент
 		$(tableHolder).append( $( addedAnchor ) );
