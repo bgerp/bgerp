@@ -1,30 +1,26 @@
 <?php
 /**
- * Клас 'store_ShipmentOrderDetails'
+ * Клас 'store_ReceiptDetails'
  *
- * Детайли на мениджър на експедиционни нареждания (@see store_ShipmentOrders)
+ * Детайли на мениджър на детайлите на складовите разписки (@see store_ReceiptDetails)
  *
  * @category  bgerp
  * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ShipmentOrderDetails extends core_Detail
+class store_ReceiptDetails extends core_Detail
 {
     /**
      * Заглавие
-     * 
-     * @var string
      */
-    public $title = 'Детайли на ЕН';
+    public $title = 'Детайли на складовите разписки';
 
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Продукт';
     
@@ -32,13 +28,11 @@ class store_ShipmentOrderDetails extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    public $masterKey = 'shipmentId';
+    public $masterKey = 'receiptId';
     
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, 
                         plg_AlignDecimals, doc_plg_HidePrices';
@@ -46,48 +40,36 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Активен таб на менюто
-     * 
-     * @var string
      */
     public $menuPage = 'Логистика:Складове';
     
     
     /**
      * Кой има право да чете?
-     * 
-     * @var string|array
      */
     public $canRead = 'ceo, store';
     
     
     /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
     public $canEdit = 'ceo, store';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
     public $canAdd = 'ceo, store';
     
     
     /**
      * Кой може да го види?
-     * 
-     * @var string|array
      */
     public $canView = 'ceo, store';
     
     
     /**
      * Кой може да го изтрие?
-     * 
-     * @var string|array
      */
     public $canDelete = 'ceo, store';
     
@@ -107,7 +89,7 @@ class store_ShipmentOrderDetails extends core_Detail
 	/**
      * Полета свързани с цени
      */
-    public $priceFields = 'price,amount,discount,packPrice';
+    public $priceFields = 'price, amount, discount, packPrice';
     
     
     /**
@@ -115,39 +97,23 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('receiptId', 'key(mvc=store_Receipts)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
-        
-        // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        
-        // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
-        // няма стойност, приема се за единица.
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        
-        // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
-        
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        
-        // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
-        
-        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=none');
-        
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
 
 
     /**
      * Изчисляване на цена за опаковка на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
@@ -161,9 +127,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Изчисляване на количеството на реда в брой опаковки
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
@@ -177,9 +140,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Изчисляване на сумата на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcAmount(core_Mvc $mvc, $rec)
     {
@@ -193,10 +153,6 @@ class store_ShipmentOrderDetails extends core_Detail
 
     /**
      * Извиква се след успешен запис в модела
-     * 
-     * @param core_Detail $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fieldsList = NULL)
     {
@@ -269,16 +225,16 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if(($action == 'edit' || $action == 'delete') && isset($rec)){
-        	if($mvc->Master->fetchField($rec->shipmentId, 'state') != 'draft'){
+        	if($mvc->Master->fetchField($rec->receiptId, 'state') != 'draft'){
         		$requiredRoles = 'no_one';
         	}
         }
     	
-    	if($action == 'add' && isset($rec->shipmentId)){
-      		$masterRec = $mvc->Master->fetch($rec->shipmentId);
+    	if($action == 'add' && isset($rec->receiptId)){
+      		$masterRec = $mvc->Master->fetch($rec->receiptId);
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
-		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
+		    $invProducts = $mvc->Master->getDealInfo($rec->receiptId)->shipped;
     		if(!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
     			$requiredRoles = 'no_one';
     		}
@@ -298,7 +254,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
         // Определяме кой вижда ценовата информация
-        if (!store_ShipmentOrders::haveRightFor('viewprices', $data->masterData->rec)) {
+        if (!$mvc->Master->haveRightFor('viewprices', $data->masterData->rec)) {
             $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
         }
     
@@ -338,20 +294,17 @@ class store_ShipmentOrderDetails extends core_Detail
         
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
+     * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-    	$origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
+    	$origin = store_Receipts::getOrigin($data->masterRec, 'bgerp_DealIntf');
         
-        $masterRec = $mvc->Master->fetch($form->rec->shipmentId);
+        $masterRec = $mvc->Master->fetch($form->rec->receiptId);
       	expect($origin = $mvc->Master->getOrigin($masterRec));
       	$dealAspect = $origin->getAggregateDealInfo()->agreed;
-      	$invProducts = $mvc->Master->getDealInfo($form->rec->shipmentId)->shipped;
+      	$invProducts = $mvc->Master->getDealInfo($form->rec->receiptId)->shipped;
         
       	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
     }
@@ -359,9 +312,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
@@ -375,7 +325,7 @@ class store_ShipmentOrderDetails extends core_Detail
 			$rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
             
             /* @var $origin bgerp_DealAggregatorIntf */
-            $origin = store_ShipmentOrders::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
+            $origin = store_Receipts::getOrigin($rec->receiptId, 'bgerp_DealIntf');
             
             /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getAggregateDealInfo();
@@ -408,11 +358,7 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -424,7 +370,7 @@ class store_ShipmentOrderDetails extends core_Detail
 	/**
      * След подготовката на списъчните полета
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         $showPrices = Request::get('showPrices', 'int');
     	if(Mode::is('printing') && empty($showPrices)) {

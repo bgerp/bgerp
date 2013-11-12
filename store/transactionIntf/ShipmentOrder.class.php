@@ -12,7 +12,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class store_shipmentorders_Transaction
+class store_transactionIntf_ShipmentOrder
 {
     /**
      * 
