@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -132,6 +132,7 @@ class acc_Articles extends core_Master
      */
     var $searchFields = 'reason, valior';
     
+    
     /**
      * Групиране на документите
      */
@@ -162,23 +163,6 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Извиква се след изчисляването на необходимите роли за това действие
-     */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if ($action == 'delete' || $action == 'edit') {
-            if ($rec->id && !$rec->state) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if ($rec->state != 'draft') {
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
@@ -196,10 +180,13 @@ class acc_Articles extends core_Master
     }
     
     
+    /**
+     * След подготовка на сингъла
+     */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $row = $data->row;
-        $rec = $data->rec;
+        $row = &$data->row;
+        $rec = &$data->rec;
         
         if ($rec->originId) {
             $doc = doc_Containers::getDocument($rec->originId);
@@ -229,9 +216,8 @@ class acc_Articles extends core_Master
      */
     private static function updateAmount($id)
     {
-        /* @var $query core_Query */
         $dQuery = acc_ArticleDetails::getQuery();
-        $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
+        $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
         $dQuery->show('articleId, sumAmount');
         $dQuery->groupBy('articleId');
         
@@ -249,6 +235,7 @@ class acc_Articles extends core_Master
         return $result;
     }
     
+    
     /*******************************************************************************************
      * 
      *     Имплементация на интерфейса `acc_TransactionSourceIntf`
@@ -263,10 +250,8 @@ class acc_Articles extends core_Master
      */
     public static function getTransaction($id)
     {
-        // Извличаме мастър-записа
-        $rec = self::fetchRec($id);
-        
-        expect($rec);     // @todo да връща грешка
+        // Извличане на мастър-записа
+        expect($rec = self::fetchRec($id));
 
         $result = (object)array(
             'reason' => $rec->reason,
@@ -356,6 +341,7 @@ class acc_Articles extends core_Master
         return $row;
     }
     
+    
 	/**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -367,5 +353,92 @@ class acc_Articles extends core_Master
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     	
         return cls::haveInterface('doc_ContragentDataIntf', $folderClass) || $folderClass == 'doc_UnsortedFolders';
+    }
+    
+    
+    /**
+     * Екшън създаващ обратен мемориален ордер на контиран документ
+     */
+    function act_RevertArticle()
+    {
+    	expect(haveRole('acc,ceo'));
+    	expect($docClassId = Request::get('docType', 'int'));
+    	expect($docId = Request::get('docId', 'int'));
+    	expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
+		
+    	expect($result = static::createReverseArticle($journlRec));
+    	return Redirect(array(cls::get($docClassId), 'single', $docId), FALSE, "Създаден е успешно обратен Мемориален ордер");
+    	
+    }
+    
+    
+	/**
+     * Създава нов МЕМОРИАЛЕН ОРДЕР-чернова, обратен на зададения документ.
+     * 
+     * Контирането на този МО би неутрализирало счетоводния ефект, породен от контирането на 
+     * оригиналния документ, зададен с <$docClass, $docId>
+     * 
+     * @param stdClass $journlRec - запис от журнала
+     */
+    public static function createReverseArticle($journlRec)
+    {
+        $mvc = cls::get($journlRec->docType);
+        
+        $articleRec = (object)array(
+            'reason'      => tr('Сторниране на') . " " . $journlRec->reason . ' / ' . $mvc->getVerbal($journlRec, 'valior'),
+            'valior'      => dt::now(),
+            'totalAmount' => $journlRec->totalAmount,
+            'state'       => 'draft',
+        );
+        
+        $journalDetailsQuery = acc_JournalDetails::getQuery();
+        $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
+        
+        if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
+            $mvcRec = $mvc->fetch($journlRec->docId);
+            
+            $articleRec->folderId = $mvcRec->folderId;
+            $articleRec->threadId = $mvcRec->threadId;
+            $articleRec->originId = $mvcRec->containerId;
+        } else {
+            $articleRec->folderId = doc_UnsortedFolders::forceCoverAndFolder('Сторно');
+        }
+        
+        if (!$articleId = static::save($articleRec)) {
+            return FALSE;
+        }
+        
+        foreach ($entries as $entry) {
+            $articleDetailRec = array(
+                'articleId'      => $articleId,
+                'debitAccId'     => $entry->debitAccId,
+                'debitEnt1'      => $entry->debitItem1,
+                'debitEnt2'      => $entry->debitItem2,
+                'debitEnt3'      => $entry->debitItem3,
+                'debitQuantity'  => -$entry->debitQuantity,
+                'debitPrice'     => $entry->debitPrice,
+                'creditAccId'    => $entry->creditAccId,
+                'creditEnt1'     => $entry->creditItem1,
+                'creditEnt2'     => $entry->creditItem2,
+                'creditEnt3'     => $entry->creditItem3,
+                'creditQuantity' => -$entry->creditQuantity,
+                'creditPrice'    => $entry->creditPrice,
+                'amount'         => isset($entry->amount) ? -$entry->amount : $entry->amount,
+            );
+            
+            if (!$bSuccess = acc_ArticleDetails::save((object)$articleDetailRec)) {
+                break;
+            }
+        }
+        
+        if (!$bSuccess) {
+            // Възникнала е грешка - изтривасе всичко!
+            static::delete($articleId);
+            acc_ArticleDetails::delete("#articleId = {$articleId}");
+            
+            return FALSE;
+        }
+        
+        return array('acc_Articles', $articleId);
     }
 }

@@ -290,7 +290,7 @@ class acc_Journal extends core_Master
      */
     public static function rejectTransaction($docClassId, $docId)
     {
-        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId}"))) {
+        if (!($rec = self::fetchByDoc($docClassId, $docId))) {
             return FALSE;
         }
     
@@ -299,7 +299,7 @@ class acc_Journal extends core_Master
         }
     
         if ($periodRec->state == 'closed') {
-            return static::createReverseArticle($rec);
+            return acc_Articles::createReverseArticle($rec);
         } else {
             return static::deleteTransaction($rec);
         }
@@ -307,76 +307,11 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Създава нов МЕМОРИАЛЕН ОРДЕР-чернова, обратен на зададения документ.
-     * 
-     * Контирането на този МО би неутрализирало счетоводния ефект, породен от контирането на 
-     * оригиналния документ, зададен с <$docClass, $docId>
-     * 
-     * @param int $docClassId
-     * @param int $docId
+     * Връща записа отговарящ на даден документ
      */
-    protected static function createReverseArticle($rec)
+    public static function fetchByDoc($docClassId, $docId)
     {
-        /* @var $mvc core_Manager */
-        $mvc = cls::get($rec->docType);
-        
-        $articleRec = (object)array(
-            'reason' => tr('Сторниране на ') . $rec->reason . ' / ' . $mvc->getVerbal($rec, 'valior'),
-            'valior' => dt::now(),
-            'totalAmount' => $rec->totalAmount,
-            'state' => 'draft',
-        );
-        
-        /* @var $journalDetailsQuery core_Query */
-        $journalDetailsQuery = acc_JournalDetails::getQuery();
-        $entries = $journalDetailsQuery->fetchAll("#journalId = {$rec->id}");
-        
-        if (cls::haveInterface('doc_DocumentIntf', $mvc)) {
-            $mvcRec = $mvc->fetch($rec->docId);
-            
-            $articleRec->folderId = $mvcRec->folderId;
-            $articleRec->threadId = $mvcRec->threadId;
-            $articleRec->originId = $mvcRec->containerId;
-        } else {
-            $articleRec->folderId = doc_UnsortedFolders::forceCoverAndFolder('Сторно');
-        }
-        
-        if (!$articleId = acc_Articles::save($articleRec)) {
-            return FALSE;
-        }
-        
-        foreach ($entries as $entry) {
-            $articleDetailRec = array(
-                'articleId'      => $articleId,
-                'debitAccId'     => $entry->debitAccId,
-                'debitEnt1'      => $entry->debitItem1,
-                'debitEnt2'      => $entry->debitItem2,
-                'debitEnt3'      => $entry->debitItem3,
-                'debitQuantity'  => -$entry->debitQuantity,
-                'debitPrice'     => $entry->debitPrice,
-                'creditAccId'    => $entry->creditAccId,
-                'creditEnt1'     => $entry->creditItem1,
-                'creditEnt2'     => $entry->creditItem2,
-                'creditEnt3'     => $entry->creditItem3,
-                'creditQuantity' => -$entry->creditQuantity,
-                'creditPrice'    => $entry->creditPrice,
-                'amount'         => -$entry->amount,
-            );
-            
-            if (!$bSuccess = acc_ArticleDetails::save((object)$articleDetailRec)) {
-                break;
-            }
-        }
-        
-        if (!$bSuccess) {
-            // Възникнала е грешка - изтриваме всичко!
-            acc_Articles::delete($articleId);
-            acc_ArticleDetails::delete("#articleId = {$articleId}");
-            
-            return FALSE;
-        }
-        
-        return array('acc_Articles', $articleId);
+    	return self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
     }
     
     
@@ -389,7 +324,7 @@ class acc_Journal extends core_Master
             $rec = $docClassId;
             $docId = $rec->docId;
         } else {
-            $rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId}");
+            $rec = self::fetchByDoc($docClassId, $docId);
         }
         
         if (!$rec) {
