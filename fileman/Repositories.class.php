@@ -929,4 +929,57 @@ class fileman_Repositories extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(static::$bucket, 'Файлове в хранилищата', NULL, '104857600', 'user', 'user');
     }
+    
+    
+    /**
+     * Проверява дали даден потребител има достъп до някое хранилище от масива
+     * 
+     * @param array $reposArr - масив с id-та на хранилища
+     * @param integer $userId - id на потребителя
+     * 
+     * @return boolean
+     */
+    static function canAccessToSomeRepo($reposArr, $userId=NULL)
+    {
+        // Обхождаме масива
+        foreach ((array)$reposArr as $repo) {
+            
+            // Ако има права
+            if (static::haveRightFor('retrive', $repo, $userId)) {
+                
+                // Връщаме
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив с хранилището и вербалното му име, ако потребителя има достъп до него
+     * 
+     * @param array $id - масив с id-та на хранилища
+     * @param integer $userId - id на потребителя
+     * 
+     * @return array $accessedReposArr - Масив с хранилища и вербалните им имена
+     */
+    static function getAccessedReposArr($reposArr, $userId=NULL)
+    {
+        // Масива, който ще връщаме
+        $accessedReposArr = array();
+        
+        // Обхождаме масива
+        foreach ((array)$reposArr as $repo) {
+            
+            // Ако имаме права
+            if (static::haveRightFor('retrive', $repo, $userId)) {
+                
+                // Добавяме в масива
+                $accessedReposArr[$repo] = static::getVerbal($repo, 'verbalName');
+            }
+        }
+        
+        return $accessedReposArr;
+    }
 }
