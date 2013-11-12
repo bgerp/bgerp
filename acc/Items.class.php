@@ -508,6 +508,9 @@ class acc_Items extends core_Manager
     			
 	    		if($listRec->regInterfaceId){
 	    			$data->toolbar->removeBtn('btnAdd');
+	    			if(haveRole('ceo,accMaster')){
+	    				$data->toolbar->addBtn("Избор", array($mvc, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
+	    			}
 	    		} else {
 	    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
 	    		}
@@ -574,7 +577,7 @@ class acc_Items extends core_Manager
      * @param int $objectId
      * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
      */
-    protected static function fetchItem($classId, $objectId, $fields = NULL)
+    public static function fetchItem($classId, $objectId, $fields = NULL)
     {
         return static::fetch("#classId = '{$classId}' AND #objectId = '{$objectId}'", $fields);
     }
@@ -727,5 +730,110 @@ class acc_Items extends core_Manager
         foreach ($mvc->touched as $rec) {
             $mvc->save($rec, 'state, lastUseOn');
         }
+    }
+    
+    
+    /**
+     * Екшън за бързо вкарване на пера в номенкатура
+     */
+    function act_Insert()
+    {
+    	requireRole('ceo,accMaster');
+    	expect($listId = Request::get('listId', 'int'));
+    	expect($listRec = acc_Lists::fetch($listId));
+    	expect($listRec->regInterfaceId);
+    	
+    	$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
+    	$options = core_Classes::getOptionsByInterface($intName);
+    	$listTitle = acc_Lists::fetchField($listId, 'name');
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = "Добавяне на пера към номенклатура '{$listTitle}'";
+    	foreach ($options as $className){
+    		$this->prepareInsertForm($form, $className, $listId);
+    	}
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$fields = $form->selectFields();
+    		foreach ($fields as $name => $fld){
+    			$items = keylist::toArray($form->rec->{$name});
+    			if($items){
+    				foreach($items as $id){
+    					acc_Lists::addItem($listId, $name, $id);
+    				}
+    			}
+    		}
+    		
+    		return followRetUrl(NULL, 'Перата са добавени успешно');
+    	}
+    	
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
+    	
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Помощен метод за намиране на всички записи от даден мениджър,
+     * които са пера в определена номенклатура
+     * @param mixed $class - име на клас
+     * @param int $listId - ид на намонклатура
+     * @return array $items - списък с ид-та на обектите, които са пера
+     */
+    public function getClassItems($class, $listId)
+    {
+    	$items = array();
+    	$Class = cls::get($class);
+    	
+    	$itemsQuery = $this->getQuery();
+    	$itemsQuery->like('lists', "|{$listId}|");
+    	$itemsQuery->where("#classId = {$Class->getClassId()}");
+    	$itemsQuery->show('objectId');
+    	while($itemRec = $itemsQuery->fetch()){
+    		$items[] = $itemRec->objectId;
+    	}
+    	
+    	return $items;
+    }
+    
+    
+    /**
+     * Подготовка на полетата на формата за избиране на записи от мениджър,
+     * които ще стават пера
+     * @param core_Form $form - форма
+     * @param mixed $className - име на клас
+     * @param int $listId - ид на наменклатура
+     */
+    private function prepareInsertForm(core_Form &$form, $className, $listId)
+    {
+    	$options = array();
+    	core_Debug::$isLogging = FALSE;
+    	$Class = cls::get($className);
+    	
+    	// Намират се перата, които вече участват на този мениджър
+    	$items = $this->getClassItems($Class, $listId);
+    	
+    	
+    	
+    	// Извличат се всички записи на мениджъра, които не са пера
+    	$query = $Class->getQuery();
+    	$query->where("#state != 'rejected'");
+    	if(count($items)){
+    		$query->notIn('#id', $items);
+    	}
+    	$query->show('id');
+    	
+    	while ($cRec = $query->fetch()){
+    		$options[$cRec->id] = $Class::getTitleById($cRec->id);
+    	}
+    	
+    	if(count($options)) {
+    		$form->FNC($className, "keylist(mvc={$className})", "caption={$Class->title},input");
+    		$form->setSuggestions($className, $options);
+    	}
+    	
+    	core_Debug::$isLogging = TRUE;
     }
 }
