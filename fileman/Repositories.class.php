@@ -987,7 +987,7 @@ class fileman_Repositories extends core_Master
     /**
      * Връща масив с всички хранилища
      * 
-     * @return array
+     * @return array $reposArr - Масив с id-та на всички хранилища
      */
     static function getReposArr()
     {
@@ -1010,5 +1010,30 @@ class fileman_Repositories extends core_Master
         }
         
         return $reposArr;
+    }
+    
+        
+    /**
+     * Създава директория в подаденото хранилище
+     * 
+     * @param integer $repositoryId - id на хранилището
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return boolean - При успех връща TRUE
+     */
+    static function createDirInRepo($repositoryId, $dir)
+    {
+        // Вземаме записа
+        $rec = static::fetch($repositoryId);
+        
+        // Добавяме директорията към пътя
+        $fullPath = static::getFullPath($rec->fullPath, $dir);
+        
+        // Създаваме директрията
+        if (@mkdir($fullPath, 0777, TRUE)) {
+            
+            // Ако се създаде, връщаме истина
+            return TRUE;
+        }
     }
 }
