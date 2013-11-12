@@ -125,17 +125,12 @@ class acc_journal_EntrySide
     public function init($data)
     {
         $data = (object)$data;
-
+		
         $this->amount   = isset($data->amount)   ? floatval($data->amount) : NULL;
         $this->quantity = isset($data->quantity) ? floatval($data->quantity) : NULL;
         $this->price    = isset($data->price)    ? floatval($data->price) : NULL;
         $this->account  = $data->account instanceof acc_journal_Account ? $data->account :
                                 new acc_journal_Account($data->account);
-        
-        acc_journal_Exception::expect(
-            !isset($this->quantity) || $this->quantity > 0,
-            'Зададено не-положително количество', array('data'=>$data)
-        );
 
         $this->items = array();
 
