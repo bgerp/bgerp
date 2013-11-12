@@ -35,6 +35,7 @@ class sales_SalesLastPricePolicy extends core_Manager
      * продажба към контрагента
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
+     * 				  $rec->priority - приоритет на цената
      */
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
@@ -63,7 +64,7 @@ class sales_SalesLastPricePolicy extends core_Manager
         	return NULL;
         }
         
-        return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
+        return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount, 'priority' => '1');
     }
     
     

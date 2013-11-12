@@ -24,6 +24,7 @@ class price_PolicyIntf
      * @return object
      * $rec->price  - цена
      * $rec->discount - отстъпка
+     * $rec->priority - приоритет на цената (0, 1 или 2)
      */
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {

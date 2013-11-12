@@ -142,6 +142,9 @@ class price_ListToCustomers extends core_Detail
     }
 
 
+    /**
+     * След подготовка на заявката към детайла
+     */
     public static function on_AfterPrepareDetailQuery($mvc, $data)
     {
         $cClassId = core_Classes::getId($mvc->Master);
@@ -152,6 +155,9 @@ class price_ListToCustomers extends core_Detail
     }
 
     
+    /**
+     * Кой е мастър класа
+     */
     public function getMasterMvc_($rec)
     {
         $masterMvc = cls::get($rec->cClass);
@@ -160,12 +166,18 @@ class price_ListToCustomers extends core_Detail
     }
     
     
+    /**
+     * Кое поле е ключ към мастъра
+     */
     public function getMasterKey_($rec)
     {
         return 'cId';      
     }
     
     
+    /**
+     * След като се намери мастъра
+     */
     public static function on_AfterGetMasters($mvc, &$masters, $rec)
     {
         if (empty($masters)) {
@@ -229,7 +241,7 @@ class price_ListToCustomers extends core_Detail
         $query->limit(1);
         $query->orderBy("#validFrom,#id", 'DESC');
         $lRec = $query->fetch();
- 
+ 		
         return $lRec;
     }
 
@@ -252,9 +264,10 @@ class price_ListToCustomers extends core_Detail
         self::save($rec);
     }
 
-
     
-    
+    /**
+     * Подготвя ценоразписите на даден клиент
+     */
     public static function preparePricelists($data)
     { 
         static::prepareDetail($data);
@@ -284,12 +297,11 @@ class price_ListToCustomers extends core_Detail
         }
 
         $data->TabCaption = 'Цени';
-
     }
 
 
     /**
-     *
+     * След обработка на ролите
      */
     public function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
@@ -298,16 +310,11 @@ class price_ListToCustomers extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
-        
-        if($action == 'add' && isset($rec->cClass)){
-        	//bp($rec);
-        }
     }
-
 
     
     /**
-     *
+     * Рендиране на ценоразписите на клиента
      */
     public function renderPricelists($data)
     {
@@ -361,15 +368,20 @@ class price_ListToCustomers extends core_Detail
      * @return object
      * $rec->price  - цена
      * $rec->discount - отстъпка
+     * $rec->priority - приоритет на цената
+     * 				  	0 - ако ценоразписа му е публичен
+     * 				  	1 - ако политиката е по последна цена
+     * 					2 - aко има частна ценова политика
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
         $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
-		
-        $rec = new stdClass();
+		$rec = new stdClass();
 
         $rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
-
+		$listAccess = price_Lists::fetchField($listId, 'public');
+        $rec->priority = ($listAccess == 'yes') ? 0 : 2;
+        
         return $rec;
     }
     
