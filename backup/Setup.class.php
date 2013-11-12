@@ -72,7 +72,7 @@ defIfNot('BACKUP_FILEMAN_PERIOD', 13);
 /**
  *  Отместване на почистването
  */
-defIfNot('BACKUP_CLEAN_OFFSET', 55);
+defIfNot('BACKUP_FILEMAN_OFFSET', 0);
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
