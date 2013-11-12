@@ -10,7 +10,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class gantt_Adapter extends core_BaseClass
+class gantt_Adapter extends core_Mvc
 {    
 
     /**
