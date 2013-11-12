@@ -345,7 +345,7 @@ class acc_Lists extends core_Manager {
      */
     protected static function listsToArray($lists)
     {
-        expect (is_null($lists) || is_array($lists) || is_string($lists));
+        expect (is_null($lists) || is_array($lists) || is_string($lists) || is_int($lists));
         
         if (is_string($lists) && substr($lists, 0, 1) == '|' && substr($lists, -1, 1) == '|') {
             // Ако списъка е подаден като keylist, конвертираме го в масив
