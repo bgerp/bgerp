@@ -1,12 +1,22 @@
+.gantt-holder > tbody > tr > td{
+	vertical-align:top;
+}
+
 .scroll-table{
 		width:600px;
 		overflow-x:auto;
 		border-left:1px solid #ccc;
 		border-right:1px solid #ccc;
 		position:relative;
+		margin-left:-2px;
 }
+
+.narrow .scroll-table{
+	overflow:visible;
+	width:100%;
+}
+
 .gantt-table{
-	float:left;
 	table-layout:fixed;
 	border-collapse:collapse;
 }
@@ -15,6 +25,7 @@
 	height:29px !important;
 	padding:0;
 	border-spacing:0;
+	font-size:0.8em;
 	border:1px solid #ccc;
 }
 
@@ -22,6 +33,9 @@
 	padding:0 5px;
 }
 
+.gantt-table tr:first-child th{
+	font-size:1em;
+}
 .gantt-table tr>td:first-child, .gantt-table tr>th:first-child{
 	border-left:none !important;
 }
@@ -31,7 +45,6 @@
 }
 
 .gantt-tasks{
-	float:left;
 	table-layout:fixed;
 	border-collapse:collapse;
 }
@@ -44,25 +57,38 @@
 	border-right:none;
 	height:29px !important;
 	border-spacing:0;
+	white-space:nowrap;
 }
 
 .task{
-	height:20px;
+	height:18px;
+	padding-top:2px;
 	position:absolute;
 	width:100%;
 	display:block;
+	opacity:0.8;
+	filter: alpha(opacity=80);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
 	border-radius:5px;
 	box-shadow:1px 1px 2px rgba(0,0,0,0.5);
+	text-align:center;
+	font-size:0.8em;
+	color:#000 !important;
+	font-weight:bold;
 }
 
 .task:hover{
-	cursor:pointer;}
+	cursor:pointer;
 }
 
-.first{
+.narrow .gantt-table tr:nth-child(even), .narrow .gantt-tasks tr:nth-child(even)  {
+	background: #f1f1f1
+}
+
+.task.first{
 	border-radius:0px 5px 5px 0px;
 }
 
-.last{
+.task.last{
 	border-radius:5px 0px 0px 5px;
 }
