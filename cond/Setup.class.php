@@ -73,7 +73,21 @@ class cond_Setup  extends core_ProtoSetup
             array(3.9, 'Търговия', 'Терминология', 'cond_DeliveryTerms', 'default', "cond, ceo"),
         );
 
-        
+
+	/**
+     * Инсталиране на пакета
+     * @TODO Да се премахне след като кода се разнесе до всички бранчове
+     * и старата роля 'salecond' бъде изтрита
+     */
+    function install()
+    {
+    	// Ако има роля 'salecond'  тя се изтрива (остаряла е)
+    	if($roleRec = core_Roles::fetch("#role = 'salecond'")){
+    		core_Roles::delete("#role = 'salecond'");
+    	}
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */
