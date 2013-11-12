@@ -152,10 +152,12 @@ class cal_Tasks extends core_Master
      */
     var $abbr = "Tsk";
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "1.3|Общи"; 
+    
     
     /**
      * Описание на модела (таблицата)
@@ -339,6 +341,7 @@ class cal_Tasks extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
+    	$cu = core_Users::getCurrent();
         $rec = $form->rec;
   
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
@@ -346,8 +349,57 @@ class cal_Tasks extends core_Master
         if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
             $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
         }
+        
+        // при активиране на задачата
+        if($rec->state == 'active'){
+        	
+        	// проверява дали сме и задали начало и край
+        	// или сме и задали начало и продължителност
+        	if(($rec->timeStart && $rec->timeEnd) || ($rec->timeStart && $rec->timeDuration))
+        	{
+        		// ако имаме зададена продължителност
+        		if($rec->timeDuration){
+        			
+        			// то изчисляваме края на задачата
+        			// като към началото добавяме продължителността
+        			$taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
+        		} else {
+        			$taskEnd = $rec->timeEnd;
+        		}
+        		
+        		// правим заявка към базата
+        		$query = self::getQuery();
+        		
+        		// търсим всички задачи, които са шернати на текущия потребител
+        		// и имат някаква стойност за начало и край
+        		// или за начало и продължителност
+        		$query->likeKeylist('sharedUsers', $rec->sharedUsers);
+        		
+        		if($rec->id) {
+        			$query->where("#id != {$rec->id}");
+        		}
+        		
+        		$query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$rec->timeStart}' AND #timeEnd >= '{$rec->timeStart}')
+        		              OR
+        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$rec->timeStart}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$rec->timeStart}')
+        		              OR
+        		              (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')
+        		              OR
+        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$taskEnd}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$taskEnd}')");
+        		
+        		
+        		$query->where("#state = 'active'");
+        		
+        		// за всяка една задача отговаряща на условията проверяваме 
+        		if ($recTask = $query->fetch()){
+        		 
+        			// и изписваме предупреждение 
+        		 $form->setWarning('timeStart, timeDuration, timeEnd', 'Има колизия във времената на задачата');
+        		}
+        	}
+        }
     }
-
+    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -360,12 +412,45 @@ class cal_Tasks extends core_Master
 
     /**
      *
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if($data->rec->state == 'active') {
             $data->toolbar->addBtn('Прогрес', array('cal_TaskProgresses', 'add', 'taskId' => $data->rec->id, 'ret_url' => array('cal_Tasks', 'single', $data->rec->id)), 'ef_icon=img/16/progressbar.png');
             $data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/bell_clock2.png, row=2');
+        }
+        
+        // ако имаме зададена продължителност
+    	if($data->rec->timeDuration){
+        			
+	        // то изчисляваме края на задачата
+	        // като към началото добавяме продължителността
+	        $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
+	    } else {
+	        $taskEnd = $data->rec->timeEnd;
+        }
+        // изчислява продължителността в секунди
+        $durations = dt::mysql2timestamp($taskEnd) - dt::mysql2timestamp($data->rec->timeStart);
+        
+        // ако имаме бутон "Активиране"
+        if(isset($data->toolbar->buttons['Активиране'])) {
+        	
+        	// заявка към базата
+        	$dataBase = self::getQuery();
+        	
+        	// при следните условия
+        	$dataBase->where("#timeEnd >= '{$data->rec->timeStart}' AND #timeStart <= '{$taskEnd}'");
+        	$dataBase->orWhere("#timeDuration >= '{$durations}' AND #timeStart <= '{$taskEnd}'");
+        	
+        	// и намерим такъв запис
+        	if($dataBase->fetch()){
+        		// променяме бутона "Активиране"
+        		$data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
+        	}
         }
         
     }
