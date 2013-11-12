@@ -877,13 +877,4 @@ class cat_Products extends core_Master {
     	
     	return $cache;
     }
-    
-    
-    function act_Test(){
-    	$Cl = cls::get('cat_Products');
-    	$customerId = '1274';
-    	$productId = '50674';
-    	$p = $Cl->getPriceInfo(crm_Companies::getClassId(), $customerId, $productId, $this->getClassId());
-    	bp($p);
-    }
 }
