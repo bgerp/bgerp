@@ -371,14 +371,6 @@ class store_ShipmentOrders extends core_Master
         $rec  = &$form->rec;
         
         $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
-
-    	if ($rec->id){
-        	
-        	// Неможе да се сменя ДДС-то ако има вече детайли
-        	if($mvc->store_ShipmentOrderDetails->fetch("#shipmentId = {$rec->id}")){
-        		$form->setReadOnly('chargeVat');
-        	}
-        }
         
         if (empty($rec->folderId)) {
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
@@ -388,6 +380,7 @@ class store_ShipmentOrders extends core_Master
         if (empty($rec->contragentClassId)) {
             $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         }
+        
         if (empty($rec->contragentId)) {
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
@@ -409,7 +402,7 @@ class store_ShipmentOrders extends core_Master
             array(''=>'') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id) && ($form->rec->originId || $form->rec->threadId)) {
+        if (empty($form->rec->id)) {
         	
             // ... проверяваме предхождащия за bgerp_DealIntf
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
@@ -424,7 +417,9 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
                 $form->rec->chargeVat = $dealInfo->agreed->vatType;
                 $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
-                $form->setReadOnly('chargeVat');
+                if(isset($form->rec->termId)){
+                	$form->setField('termId', 'input=hidden');
+                }
             }
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
