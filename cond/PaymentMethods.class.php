@@ -43,37 +43,37 @@ class cond_PaymentMethods extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, cond';
+    var $canRead = 'ceo, cond, admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cond';
+	var $canList = 'ceo,cond, admin';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cond';
+	var $canSingle = 'ceo,cond, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, cond';
+    var $canEdit = 'ceo, cond, admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, cond';
+    var $canAdd = 'ceo, cond, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, cond';
+    var $canDelete = 'ceo, cond, admin';
     
     
     /**
@@ -93,18 +93,28 @@ class cond_PaymentMethods extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Име, mandatory');
-        $this->FLD('description', 'varchar', 'caption=Описание, mandatory,width=100%');
+        // Съкратено име на плащането
+        $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
+
+        // Съкратено име на плащането
+        $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
+
+        // Текстово описание
+        $this->FLD('description', 'text', 'caption=Описание, mandatory,width=100%');
         
-        $this->FLD('payAdvanceShare', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент');
-        $this->FLD('payAdvanceTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|7 дни)', 'caption=Авансово плащане->Срок,width=7em,hint=дни');
+        // Процент на авансовото плащане
+        $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент,oldFieldName=payAdvanceShare');
         
-        $this->FLD('payBeforeReceiveShare', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент');
-        $this->FLD('payBeforeReceiveTerm', 'time(uom=days,suggestions=веднага|3 дни|5 дни|10 дни|15 дни|30 дни|45 дни)', 'caption=Плащане преди получаване->Срок,width=7em,hint=дни');
+        // Процент на плащане преди експедиция
+        $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payBeforeReceiveShare');
         
-        $this->FLD('payBeforeInvShare', 'percent(min=0,max=1)', 'caption=Плащане след фактуриране->Дял,width=7em,hint=Процент');
-        $this->FLD('payBeforeInvTerm', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни');
+        // Плащане при получаване
+        $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payOnDeliveryShare');
         
+        // Колко дни след фактуриране да е балансовото плащане?
+        $this->FLD('daysForBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни,oldFieldName=payBeforeInvTerm');
+        
+        $this->setDbUnique('sysId');
         $this->setDbUnique('name');
     }
     
@@ -115,20 +125,13 @@ class cond_PaymentMethods extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()){
-	    	$rec = &$form->rec;
-	    	$total = 0;
-	    	$termArr = array('payAdvanceTerm', 'payBeforeReceiveTerm', 'payBeforeInvTerm');
-	    	$sharesArr = array('payAdvanceShare', 'payBeforeReceiveShare', 'payBeforeInvShare');
-	    	foreach($sharesArr as $i => $share){
-	    		if(empty($rec->$share) && isset($rec->$termArr[$i])){
-	    			$form->setError($share, 'Полето неможе да е празно, ако е въведен срок !');
-	    		} else {
-	    			$total += $rec->$share;
-	    		}
-	    	}
 	    	
-	    	if($total != 1){
-	    		$form->setError('payAdvanceShare,payBeforeReceiveShare,payBeforeInvShare', 'Въведените проценти трябва да правят 100 %');
+            $rec = &$form->rec;
+	    	
+            $total = $rec->downpayment + $rec->paymentBeforeShipping + $rec->paymentOnDelivery;
+	    	 
+	    	if($total > 1){
+	    		$form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
 	    	}
     	}
     }
@@ -149,9 +152,14 @@ class cond_PaymentMethods extends core_Master
     static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/PaymentMethods.csv";
-    	$fields = array( 
-	    	0 => "name", 
-	    	1 => "description");
+    	$fields = array(
+            0 => 'sysId',
+	    	1 => 'name', 
+	    	2 => 'description',
+            3 => 'downpayment',
+            4 => 'paymentBeforeShipping',
+            5 => 'paymentOnDelivery',
+            6 => 'daysForBalancePayment');
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
     	

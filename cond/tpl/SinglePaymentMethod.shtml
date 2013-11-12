@@ -10,22 +10,25 @@
 	<legend class="groupTitle">|Авансово плащане|*</legend>
 	<ul>  
 		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#payAdvanceShare#]
-		</li>
-		<li class="info">
-			 <span class="gray-title">|Срок|*: </span> [#payAdvanceTerm#]
+			 <span class="gray-title">|Дял|*: </span> [#downpayment#]
 		</li>
 	</ul>
 </fieldset>
 
 <fieldset class="detail-info">
-	<legend class="groupTitle">|Плащане преди получаване|*</legend>
+	<legend class="groupTitle">|Плащане преди експедиция|*</legend>
 	<ul>  
 		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#payBeforeReceiveShare#]
+			 <span class="gray-title">|Дял|*: </span> [#paymentBeforeShipping#]
 		</li>
+	</ul>
+</fieldset>
+
+<fieldset class="detail-info">
+	<legend class="groupTitle">|Плащане при доставка|*</legend>
+	<ul>  
 		<li class="info">
-			 <span class="gray-title">|Срок|*: </span> [#payBeforeReceiveTerm#]
+			 <span class="gray-title">|Дял|*: </span> [#paymentOnDelivery#]
 		</li>
 	</ul>
 </fieldset>
@@ -34,10 +37,7 @@
 	<legend class="groupTitle">|Плащане след фактуриране|*</legend>
 	<ul>  
 		<li class="info">
-			 <span class="gray-title">|Дял|*: </span> [#payBeforeInvShare#]
-		</li>
-		<li class="info">
-			 <span class="gray-title">|Срок|*: </span> [#payBeforeInvTerm#]
+			 <span class="gray-title">|Срок|*: </span> [#daysForBalancePayment#]
 		</li>
 	</ul>
 </fieldset>
