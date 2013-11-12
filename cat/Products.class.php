@@ -778,21 +778,33 @@ class cat_Products extends core_Master {
     
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
-     * спрямо посочените ценови политики
+     * спрямо посочените ценови политики, Връща цената с най-голям
+     * приоритет от намерените
      * @return object
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
     {
+    	$prices = array();
     	$policies = $this->getPolicies();
     	foreach($policies as $name){
     		$Policy = cls::get($name);
     		$price = $Policy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime);
     		if($price->price){
-    			
-    			return $price;
+    			$prices[] = $price;
     		}
+    	}
+    	
+    	if(!count($prices)){
+    		return NULL;
+    	} else {
+    		
+    		// Сортиране на намерените цени по техния приоритет
+    		arr::order($prices, $field = 'priority', 'DESC');
+    		
+    		// Връща се цената с най-голям приоритет
+    		return $prices[0];
     	}
     }
     
@@ -864,5 +876,14 @@ class cat_Products extends core_Master {
     	core_Cache::set('cat_Products', "productsMeta", $cache, 2880, array('cat_Products'));
     	
     	return $cache;
+    }
+    
+    
+    function act_Test(){
+    	$Cl = cls::get('cat_Products');
+    	$customerId = '1274';
+    	$productId = '50674';
+    	$p = $Cl->getPriceInfo(crm_Companies::getClassId(), $customerId, $productId, $this->getClassId());
+    	bp($p);
     }
 }
