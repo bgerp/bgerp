@@ -148,11 +148,12 @@ class price_Lists extends core_Master
             $cMvc = cls::get($rec->cClass);
             expect($cRec = $cMvc->fetch($rec->cId));
             $cMvc->requireRightFor('single', $rec);
-            $form->setField('public', 'input=none');
+            $form->setField('public', 'input=hidden');
             $form->setField('customer', 'input');
             $form->setField('validFrom', 'input');
             $title = $cMvc->gettitleById($rec->cId);
             $rec->customer =  $title;
+            $rec->public = 'no';
             $form->setReadonly('customer');
         }
         
