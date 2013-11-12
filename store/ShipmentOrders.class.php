@@ -580,7 +580,7 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
     		return TRUE;
     	}
     	

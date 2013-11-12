@@ -576,7 +576,7 @@ class store_Receipts extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && ($firstDoc->instance() instanceof purchase_Requests) && $docState == 'active'){
+    	if(($firstDoc->instance() instanceof purchase_Requests) && ($firstDoc->instance() instanceof purchase_Requests) && $docState == 'active'){
     		return TRUE;
     	}
     	
