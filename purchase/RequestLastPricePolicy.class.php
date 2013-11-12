@@ -3,9 +3,9 @@
 
 
 /**
-* Имплементация на ценова политика "По последна цена"
+* Имплементация на ценова политика "По последна покупна цена"
 * Връща последната цена на която е купен даден артикул
-* на този клиент (от последната контирана покупка в папката на
+* от този клиент (от последната контирана покупка в папката на
 * клиента)
 *
 * @category  bgerp
@@ -21,7 +21,7 @@ class purchase_RequestLastPricePolicy extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Последна цена';
+    public $title = 'Последна покупна цена';
 
 
     /**
@@ -32,7 +32,6 @@ class purchase_RequestLastPricePolicy extends core_Manager
     
 	/**
      * Връща продуктите, които могат да се купят от посочения клиент
-     *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL)
@@ -42,7 +41,7 @@ class purchase_RequestLastPricePolicy extends core_Manager
     
     
     /**
-     * Връща последната цена за посочения продукт направена в покупка към контрагента
+     * Връща последната цена за посочения продукт направена в покупка от контрагента
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
@@ -52,8 +51,7 @@ class purchase_RequestLastPricePolicy extends core_Manager
        	   $date = dt::now();
         }
         
-        // Намира последната цена на която продукта е бил 
-        // продаден на този контрагент
+        // Намира последната цена на която продукта е бил продаден на този контрагент
         $detailQuery = purchase_RequestDetails::getQuery();
         $detailQuery->EXT('contragentClassId', 'purchase_Requests', 'externalName=contragentClassId,externalKey=requestId');
         $detailQuery->EXT('contragentId', 'purchase_Requests', 'externalName=contragentId,externalKey=requestId');

@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   purchase
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -77,13 +77,7 @@ class purchase_Requests extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'purchase_RequestDetails' ;
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'id';
+    public $details = 'purchase_RequestDetails';
 
 
     /**
@@ -226,12 +220,24 @@ class purchase_Requests extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    	$rec = &$data->rec;
+    	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
+    	if($rec->state == 'active'){
+    		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
+    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    		}
+    		
+	    	if (store_Receipts::haveRightFor('add')) {
+	            $data->toolbar->addBtn('Заприхождаване', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите');
+	        }
+	        
+	    	if(sales_Invoices::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	}
     	}
     	
-    	if($data->rec->state == 'active' && sales_Invoices::haveRightFor('add')){
-    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+    	if(haveRole('debug')){
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
     }
     
@@ -241,7 +247,7 @@ class purchase_Requests extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("Покупка| №" . $rec->id);
+        return tr("|Покупка|* №" . $rec->id);
     }
     
     
@@ -320,7 +326,6 @@ class purchase_Requests extends core_Master
 
     /**
      * Може ли документ-продажба да се добави в посочената папка?
-     *
      * Документи-продажба могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
@@ -406,13 +411,12 @@ class purchase_Requests extends core_Master
             $address .= '<br/>' . $ownCompanyData->address;
         }
     
-        $tpl->placeArray(
-            array(
-                'MyCompany'      => $ownCompanyData->company,
-                'MyCountry'      => $ownCompanyData->country,
-                'MyAddress'      => $address,
-                'MyCompanyVatNo' => $ownCompanyData->vatNo,
-            ), 'supplier'
+        $tpl->placeArray(array(
+	                'MyCompany'      => $ownCompanyData->company,
+	                'MyCountry'      => $ownCompanyData->country,
+	                'MyAddress'      => $address,
+	                'MyCompanyVatNo' => $ownCompanyData->vatNo,
+	            ), 'supplier'
         );
     
         // Данните на клиента
@@ -435,8 +439,8 @@ class purchase_Requests extends core_Master
      */
     public static function normalizeContragentData($contragentData)
     {
-        /*
-         * Разглеждаме четири случая според данните в $contragentData
+       /*
+        * Разглеждаме четири случая според данните в $contragentData
         *
         *  1. Има данни за фирма и данни за лице
         *  2. Има само данни за фирма
@@ -621,9 +625,8 @@ class purchase_Requests extends core_Master
         
         /* @var $dRec purchase_model_RequestProduct */
         foreach ($detailRecs as $dRec) {
-            /*
-             * Договорени продукти
-             */
+            
+        	// Договорени продукти
             $aProd = new bgerp_iface_DealProduct();
             
             $aProd->classId     = $dRec->classId;
@@ -637,17 +640,13 @@ class purchase_Requests extends core_Master
             
             $result->agreed->products[] = $aProd;
             
-            /*
-             * Експедирани продукти
-             */
+            // Експедирани продукти
             $sProd = clone $aProd;
             $sProd->quantity = $dRec->quantityDelivered;
             
             $result->shipped->products[] = $sProd;
             
-            /*
-             * Фактурирани продукти
-             */
+            // Фактурирани продукти
             $iProd = clone $aProd;
             $iProd->quantity = $dRec->quantityInvoiced;
             
@@ -668,7 +667,7 @@ class purchase_Requests extends core_Master
      */
     public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
     {
-        $requestRec            = new purchase_model_Request($requestRef->rec());
+        $requestRec         = new purchase_model_Request($requestRef->rec());
         $aggregatedDealInfo = $requestRec->getAggregatedDealInfo();
 
         $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
