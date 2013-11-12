@@ -982,4 +982,33 @@ class fileman_Repositories extends core_Master
         
         return $accessedReposArr;
     }
+    
+    
+    /**
+     * Връща масив с всички хранилища
+     * 
+     * @return array
+     */
+    static function getReposArr()
+    {
+        // Масив с всички хранилища
+        static $reposArr = array();
+        
+        // Ако не е генериран преди
+        if (!$reposArr) {
+            
+            // Вземаме всички записи
+            $query = static::getQuery();
+            $query->where('1=1');
+            
+            // Обхождаме записите
+            while ($rec = $query->fetch()) {
+                
+                // Добавяме в масива
+                $reposArr[$rec->id] = $rec->id;
+            }
+        }
+        
+        return $reposArr;
+    }
 }
