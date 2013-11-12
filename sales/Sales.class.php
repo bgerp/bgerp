@@ -94,7 +94,7 @@ class sales_Sales extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canConto = 'ceo,sales';
+    public $canConto = 'ceo,sales,acc';
     
     
     /**
@@ -162,65 +162,40 @@ class sales_Sales extends core_Master
      */
     public function description()
     {
-        
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
-        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 
-            'caption=Фактуриране,maxRadio=3,columns=3');
+        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Фактуриране,maxRadio=3,columns=3');
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
-        /*
-         * Стойности
-         */
+        // Стойности
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
         
-        /*
-         * Контрагент
-         */ 
+        // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
-        /*
-         * Доставка
-         */
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 
-            'caption=Доставка->Условие,salecondSysId=deliveryTerm');
-        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 
-            'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
-        $this->FLD('deliveryTime', 'datetime', 
-            'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
-        $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 
-            'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
-        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 
-            'input, maxRadio=2, columns=2, caption=Доставка->Документ');
+        // Доставка
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
+        $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
+        $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
+        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 'input, maxRadio=2, columns=2, caption=Доставка->Документ');
         
-        /*
-         * Плащане
-         */
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)',
-            'caption=Плащане->Начин,salecondSysId=paymentMethod');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)',
-            'caption=Плащане->Валута');
+        // Плащане
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethod');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)',
-            'caption=Плащане->Банкова с-ка');
-        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)',
-            'caption=Плащане->Каса');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
+        $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input,maxRadio=2, columns=2, caption=Плащане->Документ');
         
-        /*
-         * Наш персонал
-         */
-        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)',
-            'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(allowEmpty)',
-            'caption=Наш персонал->Търговец');
+        // Наш персонал
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)', 'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Търговец');
 
-        /*
-         * Допълнително
-         */
+        // Допълнително
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
     	
@@ -653,11 +628,7 @@ class sales_Sales extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
@@ -758,15 +729,11 @@ class sales_Sales extends core_Master
                 }
             }
         }
-            
     }
 
     
     /**
      * Филтър на продажбите
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
@@ -815,18 +782,20 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	$rec = $data->rec;
+    	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
-    	if($rec->state == 'active' && $rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    		$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    	if($rec->state == 'active'){
+    		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
+    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    		}
+    		
+	    	if(sales_Invoices::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	}
     	}
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-    	}
-    	
-    	if($rec->state == 'active' && sales_Invoices::haveRightFor('add')){
-    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
     	}
     }
     

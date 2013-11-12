@@ -29,8 +29,9 @@ class sales_TransactionSourceImpl
      *
      * 1. Задължаване на с/ката на клиента
      *
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
+     *    Dt: 411    - Вземания от клиенти               (Клиент, Валута)
+     *    	Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
+     *    	CR: 703  - Приходи от продажби на услуги     (Клиент, Услуга)
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
@@ -81,7 +82,6 @@ class sales_TransactionSourceImpl
             
             if ($hasPaymentPart) {
                 // Продажбата играе роля и на платежен документ (ПКО)
-
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
             }
@@ -109,12 +109,10 @@ class sales_TransactionSourceImpl
         // Обновяване на кеша (доставено)
         if ($this->hasDeliveryPart($rec)) {
             $rec->amountDelivered = $rec->amountDeal;
-            // Извличаме детайлите на продажбата
-        
-            /* @var $SalesDetails sales_SalesDetails */
+            
+            // Извличане на детайлите на продажбата
             $SalesDetails = cls::get('sales_SalesDetails');
         
-            /* @var $detailQuery core_Query */
             $detailQuery = $SalesDetails->getQuery();
             $detailQuery->where("#saleId = '{$rec->id}'");
             $detailQuery->show('id, quantity');
@@ -150,7 +148,6 @@ class sales_TransactionSourceImpl
         
         if (!empty($rec->id)) {
             // Извличаме детайлите на продажбата
-            /* @var $detailQuery core_Query */
             $detailQuery = sales_SalesDetails::getQuery();
             $detailQuery->where("#saleId = '{$rec->id}'");
             
@@ -203,7 +200,7 @@ class sales_TransactionSourceImpl
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 или Ct: 703 - Приходи от продажби по Документи  (Стоки и Продукти) / Приходи от продажби на услуги
+     *    Ct: 7011 или Ct: 703 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти) / Приходи от продажби на услуги (Клиент, Услуга)
      *    
      * @param stdClass $rec
      * @return array
@@ -238,8 +235,9 @@ class sales_TransactionSourceImpl
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // Сметка "7011. Приходи от продажби по Документи"
-                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
+                    $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти" // Сметка "703". Приходи от продажби на услуги
+                    	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -300,7 +298,7 @@ class sales_TransactionSourceImpl
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
+     *    Dt: 7011 - Приходи от продажби пкъм Контрагенти (Клиент, Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
@@ -318,8 +316,9 @@ class sales_TransactionSourceImpl
         	if(static::isStorable($detailRec->classId, $detailRec->productId)){
         		$entries[] = array(
 	                'debit' => array(
-	                    '7011', // Сметка "7011. Приходи от продажби по Документи"
-	                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
+	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+        					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                

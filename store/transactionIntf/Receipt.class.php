@@ -30,7 +30,8 @@ class store_transactionIntf_Receipt
      * 1. Задължаване на с/ката на клиента
      *
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
+     *    	Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
+     * 		Ct: 703  - Приходи от продажба на услуги     (Клиент, Услуги)
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
@@ -84,8 +85,7 @@ class store_transactionIntf_Receipt
             $this->class->invoke('Activation', array($rec));
         }
         
-        // Нотификация към пораждащия документ, че нещо във веригата му от породени документи
-        // се е променило.
+        // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.
         if ($origin = $this->class->getOrigin($rec)) {
             $rec = new core_ObjectReference($this->class, $rec);
             $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
@@ -126,7 +126,7 @@ class store_transactionIntf_Receipt
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 или Ct: 703 - Приходи от продажби по Документи  (Стоки и Продукти) / Приходи от продажби на услуги
+     *    Ct: 7011 или Ct: 703 - Приходи от продажби към Контрагенти  (Клиент, Стоки и Продукти) / Приходи от продажби на услуги (Клиент, Услуги)
      *    
      * @param stdClass $rec
      * @return array
@@ -160,8 +160,9 @@ class store_transactionIntf_Receipt
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // Сметка "7011. Приходи от продажби по Документи"
-                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
+                    $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
+                    	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -172,11 +173,11 @@ class store_transactionIntf_Receipt
     
     
     /**
-     * Помощен метод - генерира доставната част от транзакцията за Покупка (ако има)
+     * Помощен метод - генерира доставната част от транзакцията за покупка (ако има)
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
+     *    Dt: 7011 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
@@ -194,8 +195,9 @@ class store_transactionIntf_Receipt
         	if(sales_TransactionSourceImpl::isStorable($detailRec->classId, $detailRec->productId)){
         		$entries[] = array(
 	                'debit' => array(
-	                    '7011', // Сметка "7011. Приходи от продажби по Документи"
-	                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Продукт
+	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+        					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
