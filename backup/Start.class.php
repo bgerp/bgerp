@@ -269,7 +269,7 @@ class backup_Start extends core_Manager
         foreach ($confFiles as $file) {
             $cmd .= $file;
         }
-        //bp($cmd);
+
         exec($cmd, $output, $returnVar);
         if ($returnVar !== 0) {
             core_Logs::add("Backup", "", "error: tar gzip configuration!");
@@ -281,6 +281,26 @@ class backup_Start extends core_Manager
         unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
         return;
+    }
+    
+    /**
+     * Запазва файлове от fileMan-a
+     * 
+     * return boolean
+     */
+    private static function saveFileMan()
+    {
+        $unArchived = fileman_Data::getUnArchived();
+        
+        foreach ($unArchived as $fileObj) {
+            if (@copy($fileObj->path, EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj))) {
+                if (self::$storage->putFile(fileman_Data::getFileName($fileObj))) {
+                    fileman_Data::setArchived($fileObj->id);
+                    @unlink(EF_TEMP_PATH . "/" . fileman_Data::getFileName($fileObj));
+                }
+            }
+            
+        }
     }
     
     /**
@@ -386,6 +406,11 @@ class backup_Start extends core_Manager
     public function act_SaveConf()
     {
         self::saveConf();
+    }
+    
+    public function cron_FileMan()
+    {
+        self::saveFileMan();
     }
     
 }

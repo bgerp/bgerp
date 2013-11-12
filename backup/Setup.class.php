@@ -65,6 +65,16 @@ defIfNot('BACKUP_CLEAN_PERIOD', 24*60);
 defIfNot('BACKUP_CLEAN_OFFSET', 53);
 
 /**
+ * Период на почистването
+ */
+defIfNot('BACKUP_FILEMAN_PERIOD', 13);
+
+/**
+ *  Отместване на почистването
+ */
+defIfNot('BACKUP_CLEAN_OFFSET', 55);
+
+/**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
  *
  *
@@ -89,6 +99,10 @@ class backup_Setup extends core_ProtoSetup
      */
     var $info = "Архивиране на системата: база данни, конфигурация, файлове";
     
+    /**
+     * Необходими пакети
+     */
+    var $depends = 'fileman=0.1';
     
     /**
      * Описание на конфигурационните константи
@@ -164,7 +178,7 @@ class backup_Setup extends core_ProtoSetup
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
     	}
     	 
-    	$rec->systemId = 'BackupClean';
+       	$rec->systemId = 'BackupClean';
     	$rec->description = 'Изтриване на стари бекъпи';
     	$rec->controller = 'backup_Start';
     	$rec->action = 'clean';
@@ -177,6 +191,21 @@ class backup_Setup extends core_ProtoSetup
     	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп почистване.</font></li>";
     	} else {
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп почистване.</li>";
+    	}
+    	
+    	$rec->systemId = 'BackupFileman';
+    	$rec->description = 'Архивиране на файловете от fileman-a';
+    	$rec->controller = 'backup_Start';
+    	$rec->action = 'fileman';
+    	$rec->period = BACKUP_FILEMAN_PERIOD;
+    	$rec->offset = BACKUP_FILEMAN_OFFSET;
+    	$rec->delay = 51;
+    	$rec->timeLimit = 50;
+    	 
+    	if ($Cron->addOnce($rec)) {
+    	    $html .= "<li><font color='green'>Задаване по крон да стартира бекъп на fileman-a.</font></li>";
+    	} else {
+    	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп на fileman-a.</li>";
     	}
     	 
         return $html;

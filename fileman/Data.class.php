@@ -58,7 +58,9 @@ class fileman_Data extends core_Manager {
         // Връзки към файла
         $this->FLD("links", "int", 'caption=Връзки,notNull');
         
-      
+        // 
+        $this->FLD('archived', 'datetime', 'caption=Архивиран ли е?,input=none');
+        
         $this->setDbUnique('fileLen,md5', 'DNA');
         
     }
@@ -315,4 +317,40 @@ class fileman_Data extends core_Manager {
         // Връщаме резултата
         return $res;
     }
+    
+    /**
+     * Връща най-новите n неархивирани файла
+     *
+     * @param int $n - броя на файлове
+     *
+     * @return array $res - Масив с md5 на най-новите n неархивирани файла
+     */
+    public static function getUnArchived($n = 10)
+    {
+        $fm = cls::get('fileman_Data');
+        $query = $fm->getQuery();
+        $query->where("#archived is NULL");
+        $query->orderBy("createdOn", 'DESC');
+        $query->limit($n);
+        while ($res[] = $query->fetch());
+
+        return ($res);
+    }
+    
+    /**
+     * Маркира неархивиран файл като архивиран
+     *
+     * @param int $id
+     *
+     */
+    public static function setArchived($id)
+    {
+        $fm = cls::get('fileman_Data');
+        $query = $fm->getQuery();
+        //$query->where("#md5 = '[#1#]'", $md5);
+        $rec = $query->fetch("$id");
+        $rec->archived = dt::verbal2mysql();
+        static::save($rec);
+    }
+    
 }
