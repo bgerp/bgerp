@@ -1,38 +1,36 @@
 <?php
 /**
- * Клас 'store_ShipmentOrders'
+ * Клас 'store_Receipts'
  *
- * Мениджър на експедиционни нареждания
+ * Мениджър на Складовите разписки
  *
  *
  * @category  bgerp
  * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ShipmentOrders extends core_Master
+class store_Receipts extends core_Master
 {
     /**
      * Заглавие
-     * 
-     * @var string
      */
-    public $title = 'Експедиционни нареждания';
+    public $title = 'Складови разписки';
 
 
     /**
      * Абревиатура
      */
-    public $abbr = 'exp';
+    public $abbr = 'Sr';
     
     
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-                          acc_TransactionSourceIntf=store_transactionIntf_ShipmentOrder, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transactionIntf_Receipt, bgerp_DealIntf';
     
     
     /**
@@ -107,8 +105,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered,
-                             createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered,createdOn, createdBy';
     
     
     /**
@@ -120,25 +117,25 @@ class store_ShipmentOrders extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ShipmentOrderDetails' ;
+    public $details = 'store_ReceiptDetails' ;
     
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Експедиционно нареждане';
+    public $singleTitle = 'Складова разписка';
     
     
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutShipmentOrder.shtml';
+    public $singleLayoutFile = 'store/tpl/SingleLayoutReceipt.shtml';
 
    
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.3|Логистика";
+    public $newBtnGroup = "4.4|Логистика";
    
     
     /**
@@ -155,7 +152,7 @@ class store_ShipmentOrders extends core_Master
         
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=В склад, mandatory'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС,input=hidden');
         
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
@@ -167,7 +164,6 @@ class store_ShipmentOrders extends core_Master
         
         // Доставка
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Условие');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
@@ -223,7 +219,7 @@ class store_ShipmentOrders extends core_Master
         $origin = static::getOrigin($rec);
         
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
-        // използваме го за автоматично попълване на детайлите на ЕН
+        // използваме го за автоматично попълване на детайлите на СР
         
         if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
             /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
@@ -238,9 +234,9 @@ class store_ShipmentOrders extends core_Master
                     continue;
                 }
                 
-                $shipProduct = new store_model_ShipmentProduct(NULL);
+                $shipProduct = new store_model_ReceiptProduct(NULL);
                 
-                $shipProduct->shipmentId  = $rec->id;
+                $shipProduct->receiptId  = $rec->id;
                 $shipProduct->classId     = cls::get($product->classId)->getClassId();
                 $shipProduct->productId   = $product->productId;
                 $shipProduct->packagingId = $product->packagingId;
@@ -417,7 +413,7 @@ class store_ShipmentOrders extends core_Master
                 $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
                 $form->rec->chargeVat = $dealInfo->agreed->vatType;
                 $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
-                if(isset($form->rec->termId)){
+            	if(isset($form->rec->termId)){
                 	$form->setField('termId', 'input=hidden');
                 }
             }
@@ -554,10 +550,10 @@ class store_ShipmentOrders extends core_Master
 
 
     /**
-     * ЕН не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * СР не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      *
-     * Допълнително, първия документ на нишка, в която е допустомо да се създаде ЕН трябва да
-     * бъде от клас sales_Sales. Това се гарантира от @see store_ShipmentOrders::canAddToThread()
+     * Допълнително, първия документ на нишка, в която е допустомо да се създаде СР трябва да
+     * бъде от клас sales_Sales. Това се гарантира от @see store_Receipt::canAddToThread()
      *
      * @param $folderId int ид на папката
      * @return boolean
@@ -569,7 +565,7 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * Може ли ЕН да се добави в посочената нишка?
+     * Може ли СР да се добави в посочената нишка?
      * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
      *
      * @param int $threadId key(mvc=doc_Threads)
@@ -580,7 +576,7 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && ($firstDoc->instance() instanceof purchase_Requests) && $docState == 'active'){
     		return TRUE;
     	}
     	
@@ -609,8 +605,8 @@ class store_ShipmentOrders extends core_Master
     
     
 	/**
-     * Връща масив от използваните нестандартни артикули в ЕН-то
-     * @param int $id - ид на ЕН
+     * Връща масив от използваните нестандартни артикули в СР-то
+     * @param int $id - ид на СР
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа
      * 					['id'] - ид на документа
@@ -618,9 +614,9 @@ class store_ShipmentOrders extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->store_ShipmentOrderDetails->getQuery();
-    	$dQuery->EXT('state', 'store_ShipmentOrders', 'externalKey=shipmentId');
-    	$dQuery->where("#shipmentId = '{$id}'");
+    	$dQuery = $this->store_ReceiptDetails->getQuery();
+    	$dQuery->EXT('state', 'store_Receipts', 'externalKey=receiptId');
+    	$dQuery->where("#receiptId = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->classId);
@@ -641,7 +637,7 @@ class store_ShipmentOrders extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new store_model_ShipmentOrder($id);
+        $rec = new store_model_Receipt($id);
         
         $result = new bgerp_iface_DealResponse();
         
@@ -653,8 +649,8 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         
-        /* @var $dRec store_model_ShipmentOrder */
-        foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
+        /* @var $dRec store_model_Receipt */
+        foreach ($rec->getDetails('store_ReceiptDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;

@@ -55,11 +55,11 @@ class store_Setup extends core_ProtoSetup
             'store_Racks',
             'store_RackDetails',
             'store_Products',
-            'store_Documents',
-            'store_DocumentDetails',
             'store_Zones',
             'store_ShipmentOrders',
             'store_ShipmentOrderDetails',
+    		'store_Receipts',
+    		'store_ReceiptDetails'
         );
     
 

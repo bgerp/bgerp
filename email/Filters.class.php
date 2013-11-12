@@ -190,11 +190,22 @@ class email_Filters extends core_Manager
         
         // Ако нещо е останало ...
         if (count($emails) > 0) {
-            // ... то се приема за реалния адрес на изпращача на писмото
-            if (strpos($rec->fromName, $emails[0]) === FALSE) {
-                $rec->fromName .= ' ' . $emails[0];
+            
+            // Ако първия имейл не се съдържа в изпращача
+            if (strpos($rec->fromEml, $emails[0]) === FALSE) {
+                
+                // Задаваме първия имейл
+                $rec->fromName = trim($emails[0]);
+            } else {
+                
+                // Тримваме
+                $rec->fromName = trim($rec->fromName);
             }
-            $rec->fromName .= ' през ' . $serviceRec->title;
+            
+            // Добавяме текста
+            $rec->fromName .= ' ' . tr('чрез') . ' ' . $rec->fromEml;
+            
+            // Задаваме първия имейл
             $rec->fromEml = $emails[0];
         }
     }
