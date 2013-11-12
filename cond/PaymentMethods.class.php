@@ -162,6 +162,8 @@ class cond_PaymentMethods extends core_Master
             $res['paymentAfterInvoice']       = $rec->paymentAfterInvoice * $amount;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
         }
+
+        return $res;
     }
 
     
