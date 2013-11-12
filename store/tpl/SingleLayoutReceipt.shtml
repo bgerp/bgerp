@@ -34,13 +34,7 @@
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
                         	<span class="bigData">[#valior#]</span>
-                        </div>
- 
-                        <!--ET_BEGIN isCorrection-->
-                        <div class="correction"><small>[#isCorrection#]</small></div>
-                        <!--ET_END isCorrection-->
-                        <!--ET_BEGIN correctionDocId-->
-                        <div class="corrected"><small>[#correctionDocId#]</small></div>
+                        </div>#correctionDocId#]</small></div>
                         <!--ET_END correctionDocId-->
                         
                         <!--ET_BEGIN stateText-->
