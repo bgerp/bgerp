@@ -112,7 +112,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след фактуриране да е балансовото плащане?
-        $this->FLD('daysForBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни,oldFieldName=payBeforeInvTerm');
+        $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни,oldFieldName=payBeforeInvTerm');
         
         $this->setDbUnique('sysId');
         $this->setDbUnique('name');
@@ -136,6 +136,34 @@ class cond_PaymentMethods extends core_Master
     	}
     }
     
+
+    /**
+     * Връща масив съдържащ плана за плащане
+     */
+    static function getPaymentPlan($pmId, $amount, $invoiceDate)
+    {
+        expect($rec = self::fetch($pmId));
+
+        if($rec->downpayment) {
+            $res['downpayment'] = $rec->downpayment * $amount;
+        }
+
+        if($rec->paymentBeforeShipment) {
+            $res['paymentBeforeShipment'] = $rec->paymentBeforeShipment * $amount;
+        }
+
+        if($rec->paymentOnDelivery) {
+            $res['paymentOnDelivery'] = $rec->paymentOnDelivery * $amount;
+        }
+
+        $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipment - $rec->downpayment;
+        
+        if($rec->paymentAfterInvoice > 0) {
+            $res['paymentAfterInvoice']       = $rec->paymentAfterInvoice * $amount;
+            $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
+        }
+    }
+
     
     /**
      * Сортиране по name
