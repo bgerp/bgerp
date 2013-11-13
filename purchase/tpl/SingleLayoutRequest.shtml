@@ -33,9 +33,9 @@
                     <td class="cell" align="center" width="30%">
                         <font style="font-size:16pt;"><b>|ПОКУПКА|*</b> </font><br>
                         <div style="padding-top:5px;">
-                        	№ <span class="bigData">[#id#]</span> / 
+                        	№ <span class="bigData">[#id#]</span>
                         	<span class="bigData">[#valior#]</span>
-                        </div>>
+                        </div>
                         <div class="corrected"><small>[#correctionDocId#]</small></div>
                         <!--ET_END correctionDocId-->
                         
