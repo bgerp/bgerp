@@ -143,13 +143,13 @@ class cond_PaymentMethods extends core_Master
     static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
         expect($rec = self::fetch($pmId));
-	
+		
         if($rec->downpayment) {
             $res['downpayment'] = $rec->downpayment * $amount;
         }
 
-        if($rec->paymentBeforeShipment) {
-            $res['paymentBeforeShipment'] = $rec->paymentBeforeShipment * $amount;
+        if($rec->paymentBeforeShipping) {
+            $res['paymentBeforeShipping'] = $rec->paymentBeforeShipping * $amount;
         }
 
         if($rec->paymentOnDelivery) {
