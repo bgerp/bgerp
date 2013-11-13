@@ -313,7 +313,7 @@ class sales_Invoices extends core_Master
 	    }
         	
 	    if(empty($flag)){
-	        $form->setField('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
+	        $form->setDefault('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
 			if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 				$form->setDefault('accountId', $ownAcc);
 			} 
@@ -500,7 +500,7 @@ class sales_Invoices extends core_Master
      * Преди запис в модела
      */
     public static function on_BeforeSave($mvc, $id, $rec)
-    {//bp($rec);
+    {
         if (empty($rec->vatDate)) {
             $rec->vatDate = $rec->date;
         }
@@ -510,8 +510,8 @@ class sales_Invoices extends core_Master
             $rec->contragentId     = doc_Folders::fetchCoverId($rec->folderId);
         }
         
-        if($rec->type != 'invoice'){bp();
-        	//$rec->dealValue = currency_CurrencyRates::convertAmount($rec->changeAmount, dt::now(), $rec->currencyId, NULL);
+        if($rec->type != 'invoice'){
+        	$rec->dealValue = currency_CurrencyRates::convertAmount($rec->changeAmount, dt::now(), $rec->currencyId, NULL);
 		}
     }
     
