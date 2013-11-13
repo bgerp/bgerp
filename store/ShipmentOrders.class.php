@@ -324,6 +324,8 @@ class store_ShipmentOrders extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
+    	
+    	$data->row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($data->rec->valior);
 	}
     
     
@@ -550,6 +552,11 @@ class store_ShipmentOrders extends core_Master
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
+    	
+    	if(isset($fields['-single'])){
+    		$amountDeliveredVat = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+    		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
+    	}
     }
 
 
@@ -647,7 +654,11 @@ class store_ShipmentOrders extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $result->shipped->amount             = $rec->amountDeliveredVat;
+        // Конвертираме данъчната основа към валутата идваща от продажбата
+        $amount = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+        
+        $result->shipped->amount             = $amount;
+        $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
@@ -702,6 +713,6 @@ class store_ShipmentOrders extends core_Master
     	requireRole('debug');
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
-    	bp($info->shipped);
+    	bp($info->shipped, $this->fetch($id));
     }
 }

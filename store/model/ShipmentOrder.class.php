@@ -76,4 +76,8 @@ class store_model_ShipmentOrder extends core_Model
     public $state;
     
     
+    /**
+     * @vat string(3)
+     */
+    public $currencyId;
 }
