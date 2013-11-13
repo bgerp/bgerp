@@ -192,8 +192,8 @@ class sales_Invoices extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=name)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em');
-        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em'); 
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
+        $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
@@ -247,8 +247,7 @@ class sales_Invoices extends core_Master
         $rec = $mvc->fetchRec($id);
         $query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
-    
-        $rec->dealValue = $rec->vatAmount = 0;
+    	$rec->dealValue = $rec->vatAmount = 0;
     
         while ($detailRec = $query->fetch()) {
         	$vat = 0;
@@ -303,7 +302,9 @@ class sales_Invoices extends core_Master
         // формата с разумни стойности по подразбиране.
         expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
-        	$form->rec->vatRate = $origin->getAggregateDealInfo()->shipped->vatType;
+        	$aggregateInfo = $origin->getAggregateDealInfo();
+        	$form->rec->vatRate = $aggregateInfo->shipped->vatType;
+        	$form->rec->currencyId = $aggregateInfo->shipped->currency;
         }
 	        
 	    if($origin->className  == 'sales_Invoices'){
@@ -312,7 +313,7 @@ class sales_Invoices extends core_Master
 	    }
         	
 	    if(empty($flag)){
-	        $form->rec->currencyId = drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode');
+	        $form->setField('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
 			if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 				$form->setDefault('accountId', $ownAcc);
 			} 
@@ -499,7 +500,7 @@ class sales_Invoices extends core_Master
      * Преди запис в модела
      */
     public static function on_BeforeSave($mvc, $id, $rec)
-    {
+    {//bp($rec);
         if (empty($rec->vatDate)) {
             $rec->vatDate = $rec->date;
         }
@@ -509,8 +510,8 @@ class sales_Invoices extends core_Master
             $rec->contragentId     = doc_Folders::fetchCoverId($rec->folderId);
         }
         
-        if($rec->type != 'invoice'){
-        	$rec->dealValue = currency_CurrencyRates::convertAmount($rec->changeAmount, dt::now(), $rec->currencyId, NULL);
+        if($rec->type != 'invoice'){bp();
+        	//$rec->dealValue = currency_CurrencyRates::convertAmount($rec->changeAmount, dt::now(), $rec->currencyId, NULL);
 		}
     }
     
@@ -584,6 +585,7 @@ class sales_Invoices extends core_Master
 	    	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
 				$rec->vatPercent = $rec->vatAmount / $rec->baseAmount;
 			}
+			
 			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
     	}
     }
@@ -915,35 +917,36 @@ class sales_Invoices extends core_Master
         	$creditAccId = '4531';
         }
         
-        static::prepareAdditionalInfo($rec);
+        $cloneRec = clone $rec;
+        static::prepareAdditionalInfo($cloneRec);
         
         // Създаване / обновяване на перото за контрагента
-        $contragentClass = doc_Folders::fetchCoverClassName($rec->folderId);
-        $contragentId    = doc_Folders::fetchCoverId($rec->folderId);
+        $contragentClass = doc_Folders::fetchCoverClassName($cloneRec->folderId);
+        $contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
         
         $result = (object)array(
-            'reason'  => "Фактура №{$rec->number}", // основанието за ордера
+            'reason'  => "Фактура №{$cloneRec->number}", // основанието за ордера
             'valior'  => $rec->date,   // датата на ордера
         	'entries' => array(),
         );
         
-        if(isset($rec->docType) && isset($rec->docId)) return $result;
+        if(isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
         $entries= array();
         
-        if($rec->vatAmount){
+        if($cloneRec->vatAmount){
         	$entries[] = array(
-                'amount' => $rec->vatAmount,  // равностойноста на сумата в основната валута
+                'amount' => $cloneRec->vatAmount,  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
                     $debitAccId, // дебитната сметка
                         array($contragentClass, $contragentId),
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->date)),
-                    'quantity' => $rec->vatAmount,
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
+                    'quantity' => $cloneRec->vatAmount,
                 ),
                 
                 'credit' => array(
                     $creditAccId, // кредитна сметка;
-                    'quantity' => $rec->vatAmount,
+                    'quantity' => $cloneRec->vatAmount,
                 )
     	    );
         }
