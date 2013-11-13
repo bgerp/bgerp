@@ -81,10 +81,14 @@ class cond_Setup  extends core_ProtoSetup
      */
     function install()
     {
+    	$html = parent::install();
+    	
     	// Ако има роля 'salecond'  тя се изтрива (остаряла е)
     	if($roleRec = core_Roles::fetch("#role = 'salecond'")){
     		core_Roles::delete("#role = 'salecond'");
     	}
+    	
+    	return $html;
     }
     
     
