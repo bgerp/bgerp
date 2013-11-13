@@ -139,8 +139,18 @@ class cond_PaymentMethods extends core_Master
 
     /**
      * Връща масив съдържащ плана за плащане
+     * @param int $pmId - ид на метод
+     * @param double $amount - сума
+     * @param invoiceDate - дата на фактуриране (ако няма е датата на продажбата)
+     * @return array $res - масив съдържащ информация за плащането
+     * 
+     * 		['downpayment'] 		      - сума за авансово плащане
+     * 		['paymentBeforeShipping']     - сума за плащане преди експедиране
+     * 		['paymentOnDelivery']         - сума за плащане при получаване
+     * 		['paymentAfterInvoice']       - сума за плащане след фактуриране
+     * 		['deadlineForBalancePayment'] - крайна дата за окончателно плащане
      */
-    static function getPaymentPlan($pmId, $amount, $invoiceDate)
+    public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
         expect($rec = self::fetch($pmId));
 		
