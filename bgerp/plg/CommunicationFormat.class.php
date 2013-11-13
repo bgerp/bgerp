@@ -25,7 +25,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
@@ -96,6 +96,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	    break;
         	    
         	case 'msnim' :
+        		$icon = sbf("img/16/msn.png",'');
+
         	case 'msn' :
         		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>";
         		break;
@@ -127,6 +129,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 		    case 'fax' :
 		    case 'факс' :
         		
+		    	$icon = sbf("img/16/fax2.png",'');
+		    	 
 		    	$PhonesVerbal = cls::get('drdata_PhoneType');
         		$Email = cls::get('type_Email');
         		
@@ -165,9 +169,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         		}	
 		        break;
 		        
-		        case 'Email' :
-		        case 'E-mail' :
-		        case 'Mail' :
+		        case 'email' :
+		        case 'e-mail' :
+		        case 'mail' :
 		        case '@' :
 		        	$icon = sbf("img/16/email.png",''); 
 		        	
