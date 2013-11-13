@@ -760,6 +760,8 @@ class acc_Items extends core_Manager
     			$items = keylist::toArray($form->rec->{$name});
     			if($items){
     				foreach($items as $id){
+    					
+    					// Всеки избран запис, се добавя като перо към номенклатурата
     					acc_Lists::addItem($listId, $name, $id);
     				}
     			}
@@ -815,8 +817,6 @@ class acc_Items extends core_Manager
     	// Намират се перата, които вече участват на този мениджър
     	$items = $this->getClassItems($Class, $listId);
     	
-    	
-    	
     	// Извличат се всички записи на мениджъра, които не са пера
     	$query = $Class->getQuery();
     	$query->where("#state != 'rejected'");
@@ -830,7 +830,7 @@ class acc_Items extends core_Manager
     	}
     	
     	if(count($options)) {
-    		$form->FNC($className, "keylist(mvc={$className})", "caption={$Class->title},input");
+    		$form->FNC($className, "keylist(mvc={$className})", "caption={$Class->title},input,columns=1");
     		$form->setSuggestions($className, $options);
     	}
     	
