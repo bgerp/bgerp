@@ -143,7 +143,7 @@ class cond_PaymentMethods extends core_Master
     static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
         expect($rec = self::fetch($pmId));
-
+	
         if($rec->downpayment) {
             $res['downpayment'] = $rec->downpayment * $amount;
         }
@@ -158,8 +158,8 @@ class cond_PaymentMethods extends core_Master
 
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipment - $rec->downpayment;
         
-        if($rec->paymentAfterInvoice > 0) {
-            $res['paymentAfterInvoice']       = $rec->paymentAfterInvoice * $amount;
+        if($paymentAfterInvoice > 0) {
+            $res['paymentAfterInvoice']       = $paymentAfterInvoice * $amount;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
         }
 

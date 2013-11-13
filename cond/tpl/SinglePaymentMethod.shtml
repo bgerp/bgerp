@@ -37,7 +37,7 @@
 	<legend class="groupTitle">|Плащане след фактуриране|*</legend>
 	<ul>  
 		<li class="info">
-			 <span class="gray-title">|Срок|*: </span> [#daysForBalancePayment#]
+			 <span class="gray-title">|Срок|*: </span> [#timeBalancePayment#]
 		</li>
 	</ul>
 </fieldset>
