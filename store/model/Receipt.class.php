@@ -59,8 +59,12 @@ class store_model_Receipt extends core_Model
      * @var int
      */
     public $storeId;
-        
 
+    /**
+     * @var string(3)
+     */
+    public $currencyId;
+    
     /*
      * Допълнително
      */

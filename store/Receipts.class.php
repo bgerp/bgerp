@@ -320,6 +320,8 @@ class store_Receipts extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
+    	
+    	$data->row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($data->rec->valior);
 	}
     
     
@@ -392,10 +394,6 @@ class store_Receipts extends core_Master
         if (empty($rec->storeId)) {
             $rec->storeId = store_Stores::getCurrent('id', FALSE);
         }
-        
-        // Поле за избор на локация - само локациите на контрагента по продажбата
-        $form->getField('locationId')->type->options = 
-            array(''=>'') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
@@ -546,6 +544,11 @@ class store_Receipts extends core_Master
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
+    	
+       if(isset($fields['-single'])){
+			$amountDeliveredVat = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+			$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
+		}
     }
 
 
@@ -642,8 +645,9 @@ class store_Receipts extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        
-        $result->shipped->amount             = $rec->amountDeliveredVat;
+		
+		$result->shipped->amount             = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+		$result->shipped->currency           = $rec->currencyId;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;

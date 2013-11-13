@@ -94,18 +94,18 @@
 	                        <div class="richtext">[#note#]</div> 
                         <!--ET_END note-->     
                     </td>
-                    <td class="topCell" valign="top" width="40%">
+                    <td class="topCell" valign="top" width="30%">
                     </td>
        
-                    <td class="topCell" align="right" valign="top" width="30%">
+                    <td class="topCell" align="right" valign="top">
                         <table>
                             <tbody>
                             <tr>
-                                <td style="text-align: right;">|Данъчна основа|*: <b>[#amountDelivered#]</b></td>
+                                <td style="text-align: right;">|Данъчна основа|*: <span class='cCode'>[#baseCurrencyId#]</span> <b>[#amountDelivered#]</b></td>
                             </tr>
                             <!--ET_BEGIN amountDeliveredVat-->
                             <tr>
-                                <td style="text-align: right;">|Общо|*[#VAT#]: <b>[#amountDeliveredVat#]</b></td>
+                                <td style="text-align: right;">|Общо|*[#VAT#]: <span class='cCode'>[#currencyId#]</span> <b>[#amountDeliveredVat#]</b></td>
                             </tr>
                             <!--ET_END amountDeliveredVat-->
                             <tr>

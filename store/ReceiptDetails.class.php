@@ -249,6 +249,7 @@ class store_ReceiptDetails extends core_Detail
     {
         $rows = $data->rows;
     	$showVat = $data->masterData->rec->chargeVat == 'yes' || $data->masterData->rec->chargeVat == 'no';
+    	$currencyId = $data->masterData->rec->currencyId;
     	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
@@ -263,14 +264,18 @@ class store_ReceiptDetails extends core_Detail
     
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
-                $rec = $data->recs[$i];
+                $rec = &$data->recs[$i];
+                $ProductManager = cls::get($rec->classId);
+                
     			if($showVat){
-    				$ProductManager = cls::get($rec->classId);
     				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
+    				$price = currency_CurrencyRates::convertAmount($price, $data->masterData->rec->valior, NULL, $currencyId);
+    				
     				$row->price = $mvc->fields['amount']->type->toVerbal($price * $rec->quantityInPack);
     				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);
     			}
                 
+    			$row->productId = $ProductManager->getTitleById($rec->productId);
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
     			
                 if (empty($rec->packagingId)) {
@@ -354,16 +359,6 @@ class store_ReceiptDetails extends core_Detail
                 $rec->discount = $aggreedProduct->discount;
             }
         }
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-    	$ProductManager = cls::get($rec->classId);
-        $row->productId = $ProductManager->getTitleById($rec->productId);
     }
     
     
