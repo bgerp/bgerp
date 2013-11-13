@@ -211,7 +211,7 @@ class purchase_Requests extends core_Master
     { 
     	if($form->isSubmitted()){
 	    	if(!$form->rec->currencyRate){
-				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->paymentCurrencyId, NULL), 4);
+				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
 			}
     	}
     }
