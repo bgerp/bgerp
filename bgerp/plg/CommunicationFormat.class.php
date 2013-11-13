@@ -91,7 +91,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         		if($PhonesVerbal->toVerbal($match[3])){
         			
         			// го обработваме като телефон
-        			$this->mvc->_htmlBoard[$place] =  $PhonesVerbal->toVerbal($match[3]);
+        			$this->mvc->_htmlBoard[$place] =  "<span class='communication'>" . $PhonesVerbal->toVerbal($match[3]) . "</span>";
         		}
         	    break;
         	    
@@ -162,7 +162,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         			$email = $value.$domain;
 
         			// правим линк за изпращане на имейл през системата
-        			$href = $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3]));
+        			$href = "<span class='communication'>" . $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])). "</span>";
         			
         			// и го връщаме
         			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
