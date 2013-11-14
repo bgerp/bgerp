@@ -31,6 +31,14 @@ class bgerp_iface_DealAspect
 
 
     /**
+     * Валутен курс
+     *
+     * @var double
+     */
+    public $rate;
+    
+    
+    /**
      * Дали да се начислява или не ддс
      *
      * @var enum(yes=Включено,no=Отделно, freed=Освободено, export=Без ддс)
