@@ -152,7 +152,6 @@ class store_ShipmentOrders extends core_Master
      */
     public function description()
     {
-        
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
@@ -669,6 +668,7 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
+        $result->shipped->delivery->storeId  = $rec->storeId;
         
         /* @var $dRec store_model_ShipmentOrder */
         foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
