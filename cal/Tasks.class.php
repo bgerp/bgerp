@@ -150,7 +150,7 @@ class cal_Tasks extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Tsk";
+    static $abbr = "Tsk";
     
     
     /**
@@ -394,7 +394,7 @@ class cal_Tasks extends core_Master
         		if ($recTask = $query->fetch()){
         		 
         			// и изписваме предупреждение 
-        		 $form->setWarning('timeStart, timeDuration, timeEnd', 'Има колизия във времената на задачата');
+        		 	$form->setWarning('timeStart, timeDuration, timeEnd', 'Има колизия във времената на задачата');
         		}
         	}
         }
@@ -440,14 +440,15 @@ class cal_Tasks extends core_Master
         if(isset($data->toolbar->buttons['Активиране'])) {
         	
         	// заявка към базата
-        	$dataBase = self::getQuery();
+        	$query = self::getQuery();
         	
         	// при следните условия
-        	$dataBase->where("#timeEnd >= '{$data->rec->timeStart}' AND #timeStart <= '{$taskEnd}'");
-        	$dataBase->orWhere("#timeDuration >= '{$durations}' AND #timeStart <= '{$taskEnd}'");
+        	$query->likeKeylist('sharedUsers', $data->rec->sharedUsers);
+        	$query->where("#timeEnd >= '{$data->rec->timeStart}' AND #timeStart <= '{$taskEnd}'");
+        	$query->where("#timeDuration >= '{$durations}' AND #timeStart <= '{$taskEnd}'");
         	
         	// и намерим такъв запис
-        	if($dataBase->fetch()){
+        	if($query->fetch()){ 
         		// променяме бутона "Активиране"
         		$data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
         	}
@@ -512,6 +513,23 @@ class cal_Tasks extends core_Master
     
     
     /**
+     * Игнорираме pager-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListPager($mvc, &$res, $data) {
+    	// Ако искаме да видим графиката на структурата
+    	// не ни е необходимо страницирване
+    	if(Request::get('Chart')  == 'Gantt') {
+    		// Задаваме броя на елементите в страница
+            $mvc->listItemsPerPage = 1000000;
+    	}
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -525,15 +543,20 @@ class cal_Tasks extends core_Master
 
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-               
+        $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
+          
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->input('selectedUsers', 'silent');
+        $data->listFilter->input('selectedUsers, Chart', 'silent');
 
         if(!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
-      
+        
+	  	if($data->listFilter->rec->Chart == 'Gantt'){
+	  		$data->listFilter->rec->selectedUsers = 'all_users';
+	  	}
+	  	
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
@@ -545,6 +568,34 @@ class cal_Tasks extends core_Master
         }
     }
 
+    
+	/**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$chartType = Request::get('Chart');
+    	
+    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+        
+        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
+
+        $tabs->TAB('Gantt', 'Гант', array($mvc, 'list', 'Chart'=> 'Gantt'));
+       
+        if($chartType == 'Gantt') {
+        	
+        	$tpl = static::getGantt($data);
+        }
+        
+        $tpl = $tabs->renderHtml($tpl, $chartType);
+               
+        $mvc->currentTab = 'Задачи';
+    }
+    
     
     /**
      * Обновява информацията за задачата в календара
