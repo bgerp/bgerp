@@ -404,6 +404,247 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Добавя файла в посочените хранилища
+     * 
+     * @param fileHnd $fh - Манипулатор на файла
+     * @param array $reposArr - Масив с хранилища
+     * @param string $subPath - Подпапка
+     * @param boolean $forceSave - Дали да се форсира записа, ако съществува файл със същото име
+     * @param string $fileName - Името на файла
+     * 
+     * @return array $resArr - Масив с резултатите за записа на файла
+     * array $resArr['existing'] - Файл със същотото име съществува в хранилище
+     * array $resArr['copied'] - Копиран е файла в хранилище
+     * array $resArr['problem'] - Проблем при запис на файла в хранилище
+     */
+    static function addFileInReposFromFh($fh, $reposArr, $subPath='', $forceSave=FALSE, $fileName='')
+    {
+        // Резултата, който ще връщаме
+        $resArr = array();
+        
+        // Преобразуваме в масив
+        $reposArr = arr::make($reposArr);
+        
+        // Обхождаме масива
+        foreach ((array)$reposArr as $repoId) {
+            
+            // Флаг, указващ дали файла съществува
+            $fileExist = NULL;
+            
+            // Вземаме пълния път до хранилището
+            $fullPath = static::fetchField($repoId, 'fullPath');
+            
+            // Вземаме пълния път до подпапката в хранилището
+            $fullPath = static::getFullPath($fullPath, $subPath);
+            
+            // Ако не е задаено името на файла
+            if (!$fileName) {
+                
+                // Вземаме файла
+                $fRec = fileman_Files::fetchByFh($fh);
+                
+                // Вземаме името на файла
+                $fileName = $fRec->name;
+            }
+            
+            // Проверяваме дали файла съществува
+            $fileExist = static::checkFileExistInRepo($fileName, $repoId, $subPath);
+            
+            // Ако файла съществува и не се форсира записа
+            if ($fileExist && !$forceSave) {
+                
+                // Добавяме в масива със съществуващи
+                $resArr['existing'][$repoId] = $fileName;
+            } else {
+                
+                try {
+                    
+                    // Екстрактваме файла
+                    static::extract($fh, $fullPath);
+                    
+                    // Добавяме в копирания
+                    $resArr['copied'][$repoId] = $fileName;
+                } catch (Exception $e) {
+                    
+                    // Ако възникне грешка, добавяме към грешките
+                    $resArr['problem'][$repoId] = $fileName;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Синхронизира файловете в един от оригиналния масив с копираните масиви
+     * 
+     * @param string $fileName - Името на файла
+     * @param array $originalReposArr - Масив с хранилища от където ще се копира файла
+     * @param array $copyReposArr - Масив с хранилища където ще се копира файла
+     * @param string $subPath - Подпапка
+     * @param boolean $forceSave - Дали да се форсира записа, ако съществува файл със същото име
+     * 
+     * @return array $resArr
+     * 
+     * array $resArr['existing'] - Файл със същотото име съществува в хранилище
+     * array $resArr['notExist'] - Файл не съществува в оригиналното хранилище
+     * array $resArr['copied'] - Копиран е файла в хранилище
+     * array $resArr['problem'] - Проблем при запис на файла в хранилище
+     */
+    static function syncFileInRepos($fileName, $originalReposArr, $copyReposArr, $subPath='', $forceSave=FALSE)
+    {
+        // Резултата, който ще връщаме
+        $resArr = array();
+        
+        // Обхождаме масива
+        foreach ((array)$originalReposArr as $originalRepoId) {
+            
+            // Вземаме пълния път до хранилището
+            $fullPath = static::fetchField($originalRepoId, 'fullPath');
+            
+            // Вземаме пълния път до подпапката в хранилището
+            $fullPath = static::getFullPath($fullPath, $subPath);
+            
+            // Пълния път до файла
+            $filePath = static::getFullPath($fullPath, $fileName);
+            
+            // Проверяваме дали файла съществува
+            $fileExist = static::checkFileExistInRepo($fileName, $originalRepoId, $subPath);
+            
+            // Ако файлъ не съществува
+            if (!$fileExist) {
+                
+                // Добавяме в масива
+                $resArr['notExist'][$originalRepoId] = $originalRepoId;
+                
+                // Прескачаме
+                continue;
+            }
+            
+            // Обхоцдаме масива за копиранията
+            foreach ((array)$copyReposArr as $copyRepoId) {
+                
+                // Вземаме пълния път до хранилището
+                $fullPathCopy = static::fetchField($copyRepoId, 'fullPath');
+                
+                // Вземаме пълния път до подпапката в хранилището
+                $fullPathCopy = static::getFullPath($fullPathCopy, $subPath);
+                
+                // Пълния път до файла
+                $filePathCopy = static::getFullPath($fullPathCopy, $fileName);
+                
+                // Проверяваме дали файла съществува
+                $copyFileExist = static::checkFileExistInRepo($filePathCopy, $originalRepoId, $subPath);
+                
+                // Ако файлъъ съществува и не е форсирано записването
+                if ($copyFileExist && !$forceSave) {
+                    
+                    // Добавяме в масива със съществуващи
+                    $resArr['existing'][$copyRepoId] = $fileName;
+                } else {
+                    
+                    // Копираме файла
+                    $copied = copy($filePath, $filePathCopy);
+                    
+                    // Ако копирането е било успешно
+                    if ($copied) {
+                        
+                        // Добавяме в копирания
+                        $resArr['copied'][$copyRepoId] = $fileName;
+                    } else {
+                        
+                        // Добавяме в копирания
+                        $resArr['problem'][$copyRepoId] = $fileName;
+                    }
+                }
+            }
+            
+            // Прекъсваме
+            break;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Изтрива подадени файл от хранилищата
+     * 
+     * @param string $fileName - Името на файла
+     * @param array $reposArr - Масив с хранилища
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return array $resArr - Масив с изтритите данни
+     * array $resArr['notExist'] - Масив с несъществуващи файлове в дадено хранилище
+     * array $resArr['deleted'] - Масив с изтрити файлове в дадено хранилище
+     * array $resArr['isDir'] - Масив с файловете, които са директории в дадено хранилище
+     * array $resArr['problem'] - Масив с файлове, при които възниква проблем при изтриване
+     */
+    static function deleteFileInRepos($fileName, $reposArr, $subPath='')
+    {
+        // Резултата, който ще връщаме
+        $resArr = array();
+        
+        // Преобразуваме в масив
+        $reposArr = arr::make($reposArr);
+        
+        // Обхождаме масива
+        foreach ((array)$reposArr as $repoId) {
+            
+            // Флаг, указващ дали файла съществува
+            $fileExist = NULL;
+            
+            // Вземаме пълния път до хранилището
+            $fullPath = static::fetchField($repoId, 'fullPath');
+            
+            // Вземаме пълния път до подпапката в хранилището
+            $fullPath = static::getFullPath($fullPath, $subPath);
+            
+            // Пълния път до файла
+            $filePath = static::getFullPath($fullPath, $fileName);
+            
+            // Проверяваме дали файла съществува
+            $fileExist = static::checkFileExistInRepo($fileName, $repoId, $subPath);
+            
+            // Ако файла не съществува
+            if (!$fileExist) {
+                
+                // Добавяме в масива със несъществуващи
+                $resArr['notExist'][$repoId] = $fileName;
+            } else {
+                
+                try {
+                    
+                    // Ако е файл
+                    if (is_file($filePath)) {
+                        
+                        // Изтриваме файла
+                        if (unlink($filePath)) {
+                            
+                            // Ако няма грешка, добавяме към изтритите
+                            $resArr['deleted'][$repoId] = $fileName;
+                        }
+                        
+                    } else {
+                        
+                        // Ако не е файл
+                        $resArr['isDir'][$repoId] = $fileName;
+                    }
+                    
+                } catch (Exception $e) {
+                    
+                    // Ако възникне грешка, добавяме към грешките
+                    $resArr['problem'][$repoId] = $fileName;
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
@@ -527,6 +768,36 @@ class fileman_Repositories extends core_Master
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Проверява дали даден файл съществува в хранилището
+     * 
+     * @param string $fileName - Името на файла
+     * @param integer $repoId - id на хранилище
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return boolean
+     */
+    static function checkFileExistInRepo($fileName, $repoId, $subPath='')
+    {
+        // Вземаме записа
+        $rec = static::fetch($repoId);
+        
+        // Вземаме пътя до поддиректорията на съответното репозитори
+        $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
+        
+        // Обединяваме с подадена поддиректория
+        $fullPath = static::getFullPath($fullPath, $subPath);
+        
+        // Вземаме пътя до файла
+        $filePath = static::getFullPath($fullPath, $fileName);
+        
+        // Ако файла съществува
+        if (file_exists($filePath)) return TRUE;
+        
+        return FALSE;
     }
     
     
@@ -970,17 +1241,33 @@ class fileman_Repositories extends core_Master
         $accessedReposArr = array();
         
         // Обхождаме масива
-        foreach ((array)$reposArr as $repo) {
+        foreach ((array)$reposArr as $repoId) {
             
             // Ако имаме права
-            if (static::haveRightFor('retrive', $repo, $userId)) {
+            if (static::haveRightFor('retrive', $repoId, $userId)) {
                 
                 // Добавяме в масива
-                $accessedReposArr[$repo] = static::getVerbal($repo, 'verbalName');
+                $accessedReposArr[$repoId] = static::getRepoName($repoId);
             }
         }
         
         return $accessedReposArr;
+    }
+    
+    
+    /**
+     * Връща вербалното име на хранилището
+     * 
+     * @param integer $repoId - id на хранилището
+     * 
+     * @return string $name - Вербалното име на хранилището
+     */
+    static function getRepoName($repoId)
+    {
+        // Вземаме вербалното име 
+        $name = static::getVerbal($repoId, 'verbalName');
+        
+        return $name;
     }
     
     
