@@ -569,6 +569,82 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Преименува подадения файл във всички хранилища
+     * 
+     * @param string $oldName - Старото име на файла
+     * @param string $newName - Новото име на файла
+     * @param array $reposArr - Масив с хранилищата
+     * @param string $subPath - Подпапката
+     * @param boolean $forceSave - Дали да се форсира преименуването
+     * 
+     * @return array $resArr
+     * array $resArr['existing'] - Файл с новото име съществува в хранилището
+     * array $resArr['notExist'] - Файл със стартото име несъществува в хранилището
+     * array $resArr['renamed'] - Успешно е преименуван файла
+     * array $resArr['problem'] - Проблем при преименуване на файла в хранилище
+     */
+    static function renameFilesInRepos($oldName, $newName, $reposArr, $subPath='', $forceSave=FALSE)
+    {
+        // Резултатния масив
+        $resArr = array();
+        
+        // Обхождаме масива с хранилищата
+        foreach ((array)$reposArr as $repoId) {
+            
+            // Вземаме пълния път до хранилището
+            $fullPath = static::fetchField($repoId, 'fullPath');
+            
+            // Вземаме пълния път до подпапката в хранилището
+            $fullPath = static::getFullPath($fullPath, $subPath);
+            
+            // Пълния път до файла
+            $oldFilePath = static::getFullPath($fullPath, $oldName);
+            
+            // Проверяваме дали файла съществува
+            $fileExist = static::checkFileExistInRepo($oldName, $repoId, $subPath);
+            
+            // Ако файла не съществува
+            if (!$fileExist) {
+                
+                // Добавяме в масива със несъществуващи
+                $resArr['notExist'][$repoId] = $oldName;
+            } else {
+                
+                // Името на новия файл
+                $newFilePath = static::getFullPath($fullPath, $newName);
+                
+                // Проверяваме дали файла съществува
+                $newFileExist = static::checkFileExistInRepo($newName, $repoId, $subPath);
+                
+                // Ако файла съществува и не е форсиран
+                if ($newFileExist && !$forceSave) {
+                    
+                    // Добавяме в масива
+                    $resArr['exist'][$repoId] = $newName;
+                } else {
+                    
+                    // Преименуваме файла
+                    $renamed = rename($oldFilePath, $newFilePath);
+                    
+                    // Ако е преименуван успешно
+                    if ($renamed) {
+                        
+                        // Добавяме в масива
+                        $resArr['renamed'][$repoId] = $newName;
+                    } else {
+                        
+                        // Добавяме проблема в масива
+                        $resArr['problem'][$repoId] = $newName;
+                    }
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Изтрива подадени файл от хранилищата
      * 
      * @param string $fileName - Името на файла
@@ -782,6 +858,10 @@ class fileman_Repositories extends core_Master
      */
     static function checkFileExistInRepo($fileName, $repoId, $subPath='')
     {
+        
+        // Ако не е подадено името на файла
+        if (!$fileName) return FALSE;
+        
         // Вземаме записа
         $rec = static::fetch($repoId);
         
