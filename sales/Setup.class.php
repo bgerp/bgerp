@@ -1,11 +1,14 @@
 <?php
-/**
- *  Изглед за фактурата
- */
-defIfNot('INV_LAYOUT', 'sales/tpl/SingleLayoutInvoice');
+
 
 /**
- * Изглед на header-а на оферта
+ * Шаблон на хедъра на фактурата
+ */
+defIfNot('INV_LAYOUT', 'Normal');
+
+
+/**
+ * Шаблон на хедъра на офертата
  */
 defIfNot('QUOTE_LAYOUT', 'Letter');
 
@@ -29,7 +32,7 @@ defIfNot('SALE_CLOSE_OLD_SALES', 60*60*24*3);
 
 
 /**
- * Покупки - инсталиране / деинсталиране
+ * Продажби - инсталиране / деинсталиране
  *
  *
  * @category  bgerp
@@ -71,11 +74,11 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'INV_LAYOUT'            => array("enum(sales/tpl/SingleLayoutInvoice=Основен изглед,sales/tpl/SingleLayoutInvoice2=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
+			'INV_LAYOUT'            => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
 			'QUOTE_LAYOUT'          => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 			'SALE_MAX_FUTURE_PRICE' => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'   => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
-			'SALE_CLOSE_OLD_SALES'   => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Автоматично приключване на по стари от'),
+			'SALE_CLOSE_OLD_SALES'  => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Автоматично приключване на по стари от'),
 	);
 	
 	
@@ -118,7 +121,7 @@ class sales_Setup extends core_ProtoSetup
     {
     	$html = parent::install();
         
-        // Добавяме политиката "По последна цена"
+        // Добавяме политиката "По последна продажна цена"
         core_Classes::add('sales_SalesLastPricePolicy');
         
         return $html;

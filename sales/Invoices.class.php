@@ -517,27 +517,23 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Попълване на шаблона на единичния изглед с данни на доставчика (Моята фирма)
+     * Извиква се преди рендирането на 'опаковката'
      */
-    public function on_AfterRenderSingle($mvc, core_ET $tpl)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-
-        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
-        $tpl->replace($ownCompanyData->company, 'MyCompany');
-        $tpl->replace($ownCompanyData->country, 'MyCountry');
-        $tpl->replace($address, 'MyAddress');
-        
-        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-        if($uic != $ownCompanyData->vatNo){
-    		$tpl->replace($ownCompanyData->vatNo, 'MyCompanyVatNo');
-    	} 
-    	$tpl->replace($uic, 'uicId');
-        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    	
+    	$conf = core_Packs::getConfig('sales');
+    	if ($conf->INV_LAYOUT == 'Letter') {
+    		$header = getTplFromFile('sales/tpl/InvoiceHeaderLetter.shtml');
+    	} else {
+    		$header = getTplFromFile('sales/tpl/InvoiceHeaderNormal.shtml');
+    	}
+    	
+    	$tpl->replace($header, 'INVOICE_HEADER');
+    	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
     
@@ -555,21 +551,6 @@ class sales_Invoices extends core_Master
     	if($fields['-single']){
     		$mvc::prepareAdditionalInfo($rec);
     	}
-    }
-    
-    
-	/**
-     * Подготвя шаблона за единичния изглед
-     */
-    function renderSingleLayout_(&$data)
-    {
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	if($conf->INV_LAYOUT){
-    		return getTplFromFile($conf->INV_LAYOUT . ".shtml");
-    	}
-        
-    	return parent::renderSingleLayout_($data);
     }
     
     
@@ -643,13 +624,36 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
-	    	if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
-	    	}
-	    	
+	    	$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
+    	
+    		$mvc->prepareMyCompanyInfo($row);
     	}
+    }
+    
+    
+    /**
+     * Подготвя вербалните данни на моята фирма
+     */
+    private function prepareMyCompanyInfo(&$row)
+    {
+    	$ownCompanyData = crm_Companies::fetchOwnCompany();
+		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $row->MyCompany = $ownCompanyData->company;
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $address;
+        
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+    	}
+    	 
+    	$row->uicId = $uic;
     }
     
     

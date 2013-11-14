@@ -1,0 +1,25 @@
+<div id='invoice-header'>
+	<div id='titleHolder'>
+		<div id='invoiceTitle2'><span id='invType'>[#type#]</span></div>
+	    <div class='title-subInfo'>|Номер|* / Number: <span class='subtitle-text'>[#number#]</span></div>
+	    <div class='title-subInfo'>|Дата|* / Date: <span class='subtitle-text'>[#date#]</span></div>
+		<div class='title-subInfo'>|Място|* / Place: <span class='subtitle-text'>[#dealPlace#]</span></div>
+		<div class='title-subInfo original'>|ОРИГИНАЛ|* / <i>ORIGINAL</i></div>
+		<div style='font-weight:normal;'>[#POS#]</div>
+		<!--ET_BEGIN origin-->
+		<div id='origin-title'>|към Фактура|* <b>[#origin#]</b> |от|* [#invDate#]</div>
+		<!--ET_END origin-->
+	</div>
+	<div id='contragent-data'>
+		<div id='contragent-label'>|Получател|* / Buyer</div>
+		<div class='contragent-info'>[#contragentName#]</div>
+		<div class='contragent-info'>[#contragentCountry#]</div>
+		<div class='contragent-info'>[#contragentAddress#]</div>
+		<!--ET_BEGIN contragentVatNo-->
+		<div class ='contragent-vat'>|номер по ЗДДС|* / <i>VAT ID</i></div>
+		<div class='contragent-info'>[#contragentVatNo#]</div>
+		<!--ET_END contragentVatNo-->
+		<div class ='contragent-info' style='font-size:14px'><b>|ЕИК|* / <i>UIC</i></b></div>
+		<div class='contragent-info'>[#uicNo#]</div>
+	</div>
+</div>
