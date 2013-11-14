@@ -932,7 +932,7 @@ class sales_Sales extends core_Master
         $result->agreed->payment->caseId        = $rec->caseId;
         
         if ($rec->isInstantPayment == 'yes') {
-            $result->paid->amount   			  = $amount;
+            $result->paid->amount   			  = $rec->amountDeal;
             $result->paid->currency 			  = $rec->currencyId;
             $result->paid->rate                   = $rec->currencyRate;
             $result->paid->payment->method        = $rec->paymentMethodId;
@@ -941,7 +941,7 @@ class sales_Sales extends core_Master
         }
 
         if ($rec->isInstantShipment == 'yes') {
-            $result->shipped->amount             = $amount;
+            $result->shipped->amount             = $rec->amountDeal;
             $result->shipped->currency           = $rec->currencyId;
             $result->shipped->rate               = $rec->currencyRate;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
@@ -1054,7 +1054,7 @@ class sales_Sales extends core_Master
             
             $result->invoiced->products[] = $iProd;
         }
-        
+        //bp($rec->getAggregatedDealInfo(),$result);
         return $result;
     }
     
