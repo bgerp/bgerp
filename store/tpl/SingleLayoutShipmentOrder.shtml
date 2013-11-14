@@ -87,7 +87,13 @@
                             |От склад|*: <b>[#storeId#]</b>
                         </div>
                         <!--ET_END storeId-->
-                             
+                        
+                        <!--ET_BEGIN locationId--> 
+                        <div>
+                        	|До|*: <b>[#locationId#]</b>
+                        </div>
+                        <!--ET_END locationId-->
+        				
         				<!--ET_BEGIN vehicleId-->
         				<div>
                             |Доставител|*: <b>[#vehicleId#]</b>
