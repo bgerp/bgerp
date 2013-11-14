@@ -913,9 +913,8 @@ class sales_Sales extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        $amount = currency_CurrencyRates::convertAmount($rec->amountDeal, $rec->valior, NULL, $rec->currencyId);
         
-        $result->agreed->amount                 = $amount;
+        $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
