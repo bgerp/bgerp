@@ -21,6 +21,17 @@
 	border-collapse:collapse;
 }
 
+.gantt-header{
+	background-color:#f1f1f1;
+	color:#333;
+}
+.gantt-tasks .gantt-header{
+	text-align:center;
+}
+.other-bg{
+	background-color: #ffffe5;
+}
+
 .gantt-table th, .gantt-table td{
 	height:29px !important;
 	padding:0;
@@ -79,10 +90,6 @@
 
 .task:hover{
 	cursor:pointer;
-}
-
-.narrow .gantt-table tr:nth-child(even), .narrow .gantt-tasks tr:nth-child(even)  {
-	background: #f1f1f1
 }
 
 .task.first{

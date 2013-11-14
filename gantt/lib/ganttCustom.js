@@ -15,12 +15,17 @@ function ganttRender(elem,ganttData) {
 	    var ganttTableTasks ='<table class="gantt-tasks"><tbody>';
 	    
 	    //генериране на 2-та реда, които показват какви деления са колоните
-	    var headerTasks = '<tr><td>'  + ganttData['otherParams']['type'] + '</td></tr><tr><td>' + ganttData['otherParams']['typeChild'] + '</td></tr>';
+	    var headerTasks = '<tr class="gantt-header"><td>'  + ganttData['otherParams']['type'] + '</td></tr><tr class="gantt-header"><td>' + ganttData['otherParams']['typeChild'] + '</td></tr>';
 	    ganttTableTasks += headerTasks;
+	    
+	    //генериране на текстовете на ресурсите
 	    for (var r = 0; r < rows; r++) {
-	    	
-	    	//генериране на текстовете на ресурсите
-	        var row = '<tr><td>'+  ganttData['resources'][r]['name'] + '</td></tr>';
+	    	var row;
+	    	if (r % 2){
+	    		row = '<tr><td class="other-bg">' +  ganttData['resources'][r]['name'] + '</td></tr>';
+	    	}else{
+	    		row = '<tr><td>'+  ganttData['resources'][r]['name'] + '</td></tr>';
+	    	}
 	        ganttTableTasks += row;
 	    } 
 	    ganttTableTasks+= '</tbody></table>';
@@ -30,8 +35,8 @@ function ganttRender(elem,ganttData) {
 	    var tempRows = '';
 	    //"scroll-table" служи за скролиране в широк изглед
 	    var ganttTableGraph ='<div class="scroll-table"><table class="gantt-table" cellpadding=0 cellspacing=0><tbody>';
-	    var firstRow = '<tr>';
-	    var secondRowWhole = '<tr>';
+	    var firstRow = '<tr class="gantt-header">';
+	    var secondRowWhole = '<tr class="gantt-header">';
 	    var buildSecondRow = '';
 	    
 	    //обхождане на големите деления на хедъра на таблицата
@@ -60,7 +65,12 @@ function ganttRender(elem,ganttData) {
 	    
 	    //генериране на празните клетки
 	    for (var i = 0; i < rows; i++) {
-	        var rowStart = '<tr>';
+	    	var rowStart;
+	    	if (i % 2){
+	    		 rowStart = '<tr class="other-bg">';
+	    	}else{
+	    		 rowStart = '<tr>';
+	    	}
 	        var col= '';
 	        for (var j = 0; j < cols; j++) {
 	        	col += '<td></td>';
