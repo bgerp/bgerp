@@ -98,13 +98,7 @@ class purchase_model_Request extends core_Model
     /**
      * @var int
      */
-    public $shipmentStoreId;
-        
-    
-    /**
-     * @var enum(no, yes)
-     */
-    public $isInstantShipment;
+    public $storeId;
 
     
     /*
@@ -142,12 +136,6 @@ class purchase_model_Request extends core_Model
      * @var int
      */
     public $caseId;
-    
-    
-    /**
-     * @var enum(no,yes)
-     */
-    public $isInstantPayment;
         
     
     /*

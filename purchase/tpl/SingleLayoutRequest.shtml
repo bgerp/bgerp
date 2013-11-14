@@ -74,9 +74,15 @@
                         </div>
                         <!--ET_END deliveryTime-->
     
+    					<!--ET_BEGIN deliveryLocationId-->
+    					<div>
+                            |От|*: <b>[#deliveryLocationId#]</b>
+                        </div>
+    					<!--ET_END deliveryLocationId-->
+    					
                         <!--ET_BEGIN shipmentStoreId-->
                         <div>
-                            |До склад|*: <b>[#shipmentStoreId#] </b>
+                            |До склад|*: <b>[#storeId#] </b>
                         </div>
                         <!--ET_END shipmentStoreId-->
                              
