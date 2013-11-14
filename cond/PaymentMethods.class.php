@@ -150,7 +150,7 @@ class cond_PaymentMethods extends core_Master
      * 		['paymentAfterInvoice']       - сума за плащане след фактуриране
      * 		['deadlineForBalancePayment'] - крайна дата за окончателно плащане
      */
-    public static function getPaymentPlan($pmId, $amount, $invoiceDate)
+    public static function getPaymentPlan($pmId, $amount, $invoiceDate, $verbal = FALSE)
     {
         expect($rec = self::fetch($pmId));
 		
@@ -173,6 +173,22 @@ class cond_PaymentMethods extends core_Master
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
         }
 
+        if($verbal) {
+        	if(!count($res)) return $res;
+        	
+        	$Double = cls::get('type_Double');
+        	$Double->params['decimals'] = 2;
+        	$Date = cls::get('type_Date');
+        	
+	        foreach($res as $key => &$value){
+	        	if($key != 'deadlineForBalancePayment'){
+	        		$value = $Double->toVerbal($value);
+	        	} else {
+	        		$value = $Date->toVerbal($value);
+	        	}
+	        }
+        }
+        
         return $res;
     }
 
