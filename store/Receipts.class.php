@@ -163,7 +163,7 @@ class store_Receipts extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Условие');
+        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
@@ -646,7 +646,7 @@ class store_Receipts extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
 		
-		$result->shipped->amount             = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+		$result->shipped->amount             = $rec->amountDeliveredVat;
 		$result->shipped->currency           = $rec->currencyId;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;

@@ -166,7 +166,7 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Условие');
+        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
@@ -655,9 +655,7 @@ class store_ShipmentOrders extends core_Master
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
-        $amount = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
-        
-        $result->shipped->amount             = $amount;
+        $result->shipped->amount             = $rec->amountDeliveredVat;
         $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
