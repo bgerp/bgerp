@@ -254,11 +254,7 @@ class sales_SalesDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs     = $data->recs;
-        $salesRec = $data->masterData->rec;
-        
-        // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме
-        // тук отново
-        $salesRec->amountDeal = 0;
+        $salesRec = clone $data->masterData->rec;
         
         if (empty($recs)) {
             return;
@@ -275,9 +271,7 @@ class sales_SalesDetails extends core_Detail
             $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
-            $rec->amount = round($rec->amount, 2);
-            
-            $salesRec->amountDeal += $rec->amount;
+            $rec->amount = $rec->amount;
         }
     }
     

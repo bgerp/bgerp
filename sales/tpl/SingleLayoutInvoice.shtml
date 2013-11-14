@@ -124,12 +124,12 @@
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|Данъчна основа|* / Tax base :</td>
-		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+		                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
 		                	<td class='info-right'><b>[#baseAmount#]</b></td>
 		                </tr>
 		                <tr>
 		                	<td class='info-right'>|ДДС|* / VAT <b>[#vatPercent#]</b> :</td>
-		                	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+		                	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
 		                	<td class='info-right'><b>[#vatAmount#]</b></td>
 		                </tr>
 		                <tr>

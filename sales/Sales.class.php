@@ -222,7 +222,6 @@ class sales_Sales extends core_Master
     {
         $rec = $mvc->fetchRec($id);
         
-        /* @var $query core_Query */
         $query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
         
@@ -318,7 +317,7 @@ class sales_Sales extends core_Master
      */
     function on_AfterRenderSingle($mvc, $tpl, $data)
     {
-        // Данните на "Моята фирма"
+    	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -443,6 +442,8 @@ class sales_Sales extends core_Master
         $priceAtDateFld = &$data->form->fields['pricesAtDate']->type;
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
+        
+        $data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
     
     
@@ -632,21 +633,24 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+		$amountType = $mvc->getField('amountDeal')->type;
+		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
+		
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
-                $row->{"amount{$amnt}"} = $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            } else {
+            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
+            	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
-        
-        $amountType = $mvc->getField('amountDeal')->type;
+       
         if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
         	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
         	$row->vat = $amountType->toVerbal($vat * 100);
         } else {
         	unset($row->chargeVat);
         }
-       
-        $row->amountToPay = $amountType->toVerbal($rec->amountDelivered - $rec->amountPaid);
 
         if ($rec->chargeVat == 'no') {
             $row->chargeVat = '';
@@ -679,7 +683,7 @@ class sales_Sales extends core_Master
         // Основната валута към момента
         $now            = dt::now();
         $baseCurrencyId = acc_Periods::getBaseCurrencyCode($now);
-        
+       
         // Всички общи суми на продажба - в базова валута към съотв. дата
         foreach ($data->recs as &$rec) {
             $rate = currency_CurrencyRates::getRate($now, $rec->currencyId, $baseCurrencyId);
@@ -909,9 +913,11 @@ class sales_Sales extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        $amount = currency_CurrencyRates::convertAmount($rec->amountDeal, $rec->valior, NULL, $rec->currencyId);
         
-        $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->amount                 = $amount;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
@@ -922,16 +928,18 @@ class sales_Sales extends core_Master
         $result->agreed->payment->caseId        = $rec->caseId;
         
         if ($rec->isInstantPayment == 'yes') {
-            $result->paid->amount   = $rec->amountDeal;
-            $result->paid->currency = $rec->currencyId;
+            $result->paid->amount   			  = $amount;
+            $result->paid->currency 			  = $rec->currencyId;
+            $result->paid->rate                   = $rec->currencyRate;
             $result->paid->payment->method        = $rec->paymentMethodId;
             $result->paid->payment->bankAccountId = $rec->bankAccountId;
             $result->paid->payment->caseId        = $rec->caseId;
         }
 
         if ($rec->isInstantShipment == 'yes') {
-            $result->shipped->amount   = $rec->amountDeal;
-            $result->shipped->currency = $rec->currencyId;
+            $result->shipped->amount             = $amount;
+            $result->shipped->currency           = $rec->currencyId;
+            $result->shipped->rate               = $rec->currencyRate;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
             $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
@@ -982,6 +990,7 @@ class sales_Sales extends core_Master
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
@@ -993,6 +1002,7 @@ class sales_Sales extends core_Master
         
         $result->paid->amount                 = $rec->amountPaid;
         $result->paid->currency               = $rec->currencyId;
+        $result->paid->rate               	  = $rec->currencyRate;
         $result->paid->payment->method        = $rec->paymentMethodId;
         $result->paid->payment->bankAccountId = $rec->bankAccountId;
         $result->paid->payment->caseId        = $rec->caseId;
@@ -1000,6 +1010,7 @@ class sales_Sales extends core_Master
         $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->currency           = $rec->currencyId;
+        $result->shipped->rate               = $rec->currencyRate;
         $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
         $result->shipped->delivery->location = $rec->deliveryLocationId;
         $result->shipped->delivery->term     = $rec->deliveryTermId;

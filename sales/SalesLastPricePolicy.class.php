@@ -48,6 +48,7 @@ class sales_SalesLastPricePolicy extends core_Manager
         $detailQuery = sales_SalesDetails::getQuery();
         $detailQuery->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
         $detailQuery->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+        $detailQuery->EXT('currencyId', 'sales_Sales', 'externalName=currencyId,externalKey=saleId');
         $detailQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
         $detailQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
         $detailQuery->where("#contragentClassId = {$customerClass}");

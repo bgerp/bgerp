@@ -586,7 +586,7 @@ class sales_Invoices extends core_Master
 				$rec->vatPercent = $rec->vatAmount / $rec->baseAmount;
 			}
 			
-			$rec->total = round(($rec->baseAmount + $rec->vatAmount) / $rec->rate, 2);
+			$rec->total = $rec->baseAmount + $rec->vatAmount;
     	}
     }
     
@@ -612,7 +612,7 @@ class sales_Invoices extends core_Master
     		$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
     		$Double = cls::get('type_Double');
     		$Double->params['decimals'] = 2;
-    	
+    		
     		$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
     		
 	    	if(doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons'){
@@ -630,7 +630,7 @@ class sales_Invoices extends core_Master
 	    		
 				$row->vatPercent = $Percent->toVerbal($rec->vatPercent);
 				$row->vatAmount = $Double->toVerbal($rec->vatAmount);
-				$row->total = $Double->toVerbal($rec->total);
+				$row->total = $Double->toVerbal($rec->total / $rec->rate);
 				
 				$SpellNumber = cls::get('core_SpellNumber');
 				$row->amountVerbal = $SpellNumber->asCurrency($rec->total, 'bg', FALSE);
@@ -995,9 +995,11 @@ class sales_Invoices extends core_Master
         static::prepareAdditionalInfo($rec);
         
         $result = new bgerp_iface_DealResponse();
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        $result->invoiced->amount = $rec->total;
-        $result->invoiced->vatType = $rec->vatRate;
+        $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
+        $result->invoiced->amount   = $rec->total;
+        $result->invoiced->currency = $rec->currencyId;
+        $result->invoiced->rate 	= $rec->rate;
+        $result->invoiced->vatType  = $rec->vatRate;
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
