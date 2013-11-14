@@ -207,15 +207,15 @@ function ganttRender(elem,ganttData) {
 					$(addedAnchor).attr('id', taskid);
 					$(addedAnchor).attr('href', url);
 					$(addedAnchor).attr('target', '_blank');
+					
+					//ако е поне 50пх да се показва id-то на задачата
+					if(widthTask>50){
+						$(addedAnchor).text(taskid);
+					}
+					
+					//графиката на задачата става наследник на див-а, който e релативен елеменент
+					$(currentTable).append( $( addedAnchor ) );
 				}
-						
-				//ако е поне 50пх да се показва id-то на задачата
-				if(widthTask>50){
-					$(addedAnchor).text(taskid);
-				}
-				
-				//графиката на задачата става наследник на див-а, който e релативен елеменент
-				$(currentTable).append( $( addedAnchor ) );
 			}
 		});
 	}
