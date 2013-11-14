@@ -629,6 +629,14 @@ class sales_Invoices extends core_Master
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	
     		$mvc->prepareMyCompanyInfo($row);
+    		
+    		$currencySpan = "<span class='cCode'>{$rec->currencyId}</span>";
+		    $plan = cond_PaymentMethods::getPaymentPlan(5, $rec->dealValue, $rec->date, TRUE);
+		    if(count($plan)){
+			    foreach ($plan as $pName => $pValue){
+			    	$row->$pName = (($pName != 'deadlineForBalancePayment') ? $currencySpan . " " : "") . $pValue;
+			    }
+		    }
     	}
     }
     
