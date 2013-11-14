@@ -68,6 +68,7 @@ class thumbnail_Thumbnail extends core_Manager
         
         if($attr['baseName']) {
             $attr['baseName'] = str::utf2ascii($attr['baseName']);
+            $attr['baseName'] = fileman_Files::normalizeFileName($attr['baseName']);
             $baseName = $attr['baseName'];
         } else {
             $baseName = baseName($fileName, "." . $ext);
