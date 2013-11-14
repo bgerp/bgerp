@@ -420,10 +420,11 @@ class bank_CostDocument extends core_Master
         $result = new bgerp_iface_DealResponse();
     
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-    
-        $result->paid->amount = -$rec->amount;
-        $result->paid->currency = currency_Currencies::getCodeById($rec->currencyId);
+    	$result->paid->amount                 = -($rec->amount * $rec->rate);
+        $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
+        $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = $rec->ownAccount;
+        
     	
         return $result;
     }
@@ -437,6 +438,7 @@ class bank_CostDocument extends core_Master
      *
      *   o amount       - обща сума на платежния документ във валутата, зададена от `currencyCode`
      *   o currencyCode - key(mvc=currency_Currencies, key=code): ISO код на валутата
+     *   o currencyRate - double - валутен курс към основната (към датата на док.) валута
      *   o valior       - date - вальор на документа
      */
     public static function getPaymentInfo($id)
@@ -446,6 +448,7 @@ class bank_CostDocument extends core_Master
         return (object)array(
             'amount'       => -$rec->amount,
             'currencyCode' => currency_Currencies::getCodeById($rec->currencyId),
+        	'currencyRate' => $rec->rate,
             'valior'       => $rec->valior,
         );
     }
