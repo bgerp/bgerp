@@ -667,7 +667,7 @@ class sales_Sales extends core_Master
 	            $row->shipmentStoreId .= ' (на момента)';
 	        }
 	        
-		    $mvc->prepareMyCompanyInfo(&$row, $rec);
+		    $mvc->prepareMyCompanyInfo($row, $rec);
 	        
 	        if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";

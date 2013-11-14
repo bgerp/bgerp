@@ -400,7 +400,7 @@ class purchase_Requests extends core_Master
 	            $row->chargeVat = '';
 	        }
 	    	
-	    	$mvc->prepareMyCompanyInfo(&$row, $rec);
+	    	$mvc->prepareMyCompanyInfo($row, $rec);
 	    	
 	    	if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
