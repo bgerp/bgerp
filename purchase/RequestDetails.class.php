@@ -226,9 +226,6 @@ class purchase_RequestDetails extends core_Detail
         $recs        = &$data->recs;
         $purchaseRec = $data->masterData->rec;
         
-        // amountDeal е записана в БД, но за да се избегнат грешки от закръгление я пресмятаме тук отново
-        $purchaseRec->amountDeal = 0;
-        
         if (empty($recs)) {
             return;
         }
@@ -245,8 +242,6 @@ class purchase_RequestDetails extends core_Detail
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
             $rec->amount = round($rec->amount, 2);
-            
-            $purchaseRec->amountDeal += $rec->amount;
         }
     }
     

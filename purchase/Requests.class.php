@@ -370,13 +370,18 @@ class purchase_Requests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$amountType = $mvc->getField('amountDeal')->type;
+		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
+		
     	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
-                $row->{"amount{$amnt}"} = $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+            } else {
+            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
+				$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
         
-    	$row->amountToPay = $mvc->getField('amountDeal')->type->toVerbal($rec->amountDeal - $rec->amountPaid);
     	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
         	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
         	$row->vat = $mvc->getField('amountDeal')->type->toVerbal($vat * 100);
@@ -529,10 +534,10 @@ class purchase_Requests extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
-        $amount = currency_CurrencyRates::convertAmount($rec->amountDeal, $rec->valior, NULL, $rec->currencyId);
-        
-        $result->agreed->amount                 = $amount;
+       
+        $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->rate                   = $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
@@ -586,6 +591,7 @@ class purchase_Requests extends core_Master
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
+        $result->agreed->rate                   = $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->storeId      = $rec->storeId;
