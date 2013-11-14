@@ -266,6 +266,38 @@ class store_Receipts extends core_Master
     }
     
     
+	/**
+     * Подготвя вербалните данни на моята фирма
+     */
+    private function prepareMyCompanyInfo(&$row, $rec)
+    {
+    	$ownCompanyData = crm_Companies::fetchOwnCompany();
+		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $row->MyCompany = $ownCompanyData->company;
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $address;
+        
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+    	}
+    	 
+    	$row->uicId = $uic;
+    	
+    	// Данните на клиента
+        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        
+        foreach((array)$cdata as $name => $value){
+        	$row->$name = $value;
+        }
+    }
+    
+    
     /**
      * След рендиране на сингъла
      */
@@ -274,32 +306,6 @@ class store_Receipts extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	// Данните на "Моята фирма"
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-
-        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
-        $tpl->placeArray(
-            array(
-                'MyCompany'      => $ownCompanyData->company,
-                'MyCountry'      => $ownCompanyData->country,
-                'MyAddress'      => $address,
-                'MyCompanyVatNo' => $ownCompanyData->vatNo,
-            ), 'supplier'
-        );
-        
-        // Данните на клиента
-        $contragent = new core_ObjectReference($data->rec->contragentClassId, $data->rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
-        
-        $tpl->placeObject($cdata, 'contragent');
-        
-        // Описателното (вербалното) състояние на документа
-        $tpl->replace($data->row->state, 'stateText');
     }
     
     
@@ -545,19 +551,16 @@ class store_Receipts extends core_Master
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
     	
-       if(isset($fields['-single'])){
+        if(isset($fields['-single'])){
 			$amountDeliveredVat = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
 			$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
-		}
+			$mvc->prepareMyCompanyInfo(&$row, $rec);
+        }
     }
 
 
     /**
      * СР не може да бъде начало на нишка; може да се създава само в съществуващи нишки
-     *
-     * Допълнително, първия документ на нишка, в която е допустомо да се създаде СР трябва да
-     * бъде от клас sales_Sales. Това се гарантира от @see store_Receipt::canAddToThread()
-     *
      * @param $folderId int ид на папката
      * @return boolean
      */

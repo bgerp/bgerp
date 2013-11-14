@@ -370,6 +370,10 @@ class sales_Quotations extends core_Master
 					$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('cond_DeliveryTerms', 'single', $rec->deliveryTermId));
 				}
 			}
+			
+			$ownCompanyData = crm_Companies::fetchOwnCompany();
+    		$row->MyCompany = $ownCompanyData->company;
+	        $row->MyCountry = $ownCompanyData->country;
 		}
 		
     	if($fields['-list']){
@@ -414,15 +418,10 @@ class sales_Quotations extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	if ($conf->QUOTE_LAYOUT == 'Letter') {
-    		
     		$header = getTplFromFile('sales/tpl/QuotationHeaderLetter.shtml');
     	}else {
-    		
     		$header = getTplFromFile('sales/tpl/QuotationHeaderNormal.shtml');
-    		$ownCompanyData = crm_Companies::fetchOwnCompany();
-    		$header->replace($ownCompanyData->company, 'MyCompany');
-	        $header->replace($ownCompanyData->country, 'MyCountry');
-	    }
+    	}
 	  	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');

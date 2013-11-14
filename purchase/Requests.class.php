@@ -382,25 +382,66 @@ class purchase_Requests extends core_Master
             }
         }
         
-    	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
-        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
-        	$row->vat = $mvc->getField('amountDeal')->type->toVerbal($vat * 100);
-        } else {
-        	unset($row->chargeVat);
-        }
-    	
-        if ($rec->chargeVat == 'freed' || $rec->chargeVat == 'export') {
-            $row->chargeVat = '';
-        }
-        
-        $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
-        
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    }
+	    
+	    if($fields['-single']){
+	    	
+	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+		    if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
+	        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
+	        	$row->vat = $mvc->getField('amountDeal')->type->toVerbal($vat * 100);
+	        } else {
+	        	unset($row->chargeVat);
+	        }
+	    	
+	        if ($rec->chargeVat == 'freed' || $rec->chargeVat == 'export') {
+	            $row->chargeVat = '';
+	        }
+	    	
+	    	$mvc->prepareMyCompanyInfo(&$row, $rec);
+	    	
+	    	if ($rec->currencyRate != 1) {
+	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
+	        }
+	    }
+	    
     }
 
 
+	/**
+     * Подготвя вербалните данни на моята фирма
+     */
+    private function prepareMyCompanyInfo(&$row, $rec)
+    {
+    	$ownCompanyData = crm_Companies::fetchOwnCompany();
+		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+        if ($address && !empty($ownCompanyData->address)) {
+            $address .= '<br/>' . $ownCompanyData->address;
+        }  
+        
+        $row->MyCompany = $ownCompanyData->company;
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $address;
+        
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+    	}
+    	 
+    	$row->uicId = $uic;
+    	
+    	// Данните на клиента
+        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        
+        foreach((array)$cdata as $name => $value){
+        	$row->$name = $value;
+        }
+    }
+    
+    
     /**
      * След рендиране на единичния изглед
      */
@@ -409,35 +450,6 @@ class purchase_Requests extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	// Данните на "Моята фирма"
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-    
-        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }
-    
-        $tpl->placeArray(array(
-	                'MyCompany'      => $ownCompanyData->company,
-	                'MyCountry'      => $ownCompanyData->country,
-	                'MyAddress'      => $address,
-	                'MyCompanyVatNo' => $ownCompanyData->vatNo,
-	            ), 'supplier'
-        );
-    
-        // Данните на клиента
-        $contragent = new core_ObjectReference($data->rec->contragentClassId, $data->rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
-    
-        $tpl->placeObject($cdata, 'contragent');
-    
-        // Описателното (вербалното) състояние на документа
-        $tpl->replace($data->row->state, 'stateText');
-    
-        if (!empty($data->rec->currencyRate) && $data->rec->currencyRate != 1) {
-            $tpl->replace('(<span class="quiet">' . tr('курс') . "</span> {$data->row->currencyRate})", 'currencyRateText');
-        }
     }
     
     

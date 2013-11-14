@@ -312,39 +312,34 @@ class sales_Sales extends core_Master
     }
 
     
-    /**
-     * След рендиране на единичния изглед
+	/**
+     * Подготвя вербалните данни на моята фирма
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    private function prepareMyCompanyInfo(&$row, $rec)
     {
-    	// Данните на "Моята фирма"
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-
-        $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
+    	$ownCompanyData = crm_Companies::fetchOwnCompany();
+		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
             $address .= '<br/>' . $ownCompanyData->address;
         }  
         
-        $tpl->placeArray(
-            array(
-                'MyCompany'      => $ownCompanyData->company,
-                'MyCountry'      => $ownCompanyData->country,
-                'MyAddress'      => $address,
-                'MyCompanyVatNo' => $ownCompanyData->vatNo,
-            ), 'supplier'
-        );
+        $row->MyCompany = $ownCompanyData->company;
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $address;
         
-        // Данните на клиента
-        $contragent = new core_ObjectReference($data->rec->contragentClassId, $data->rec->contragentId);
+        $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
+        if($uic != $ownCompanyData->vatNo){
+    		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+    	}
+    	 
+    	$row->uicId = $uic;
+    	
+    	// Данните на клиента
+        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
         $cdata      = static::normalizeContragentData($contragent->getContragentData());
         
-        $tpl->placeObject($cdata, 'contragent');
-        
-        // Описателното (вербалното) състояние на документа
-        $tpl->replace($data->row->state, 'stateText');
-        
-        if ($data->rec->currencyRate != 1) {
-            $tpl->replace('(<span class="quiet">' . tr('курс') . "</span> {$data->row->currencyRate})", 'currencyRateText');
+        foreach((array)$cdata as $name => $value){
+        	$row->$name = $value;
         }
     }
     
@@ -644,29 +639,39 @@ class sales_Sales extends core_Master
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
-       
-        if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
-        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
-        	$row->vat = $amountType->toVerbal($vat * 100);
-        } else {
-        	unset($row->chargeVat);
-        }
-
-        if ($rec->chargeVat == 'no') {
-            $row->chargeVat = '';
-        }
         
-        if ($rec->isInstantPayment == 'yes') {
-            $row->caseId .= ' (на момента)';
-        }
-        if ($rec->isInstantShipment == 'yes') {
-            $row->shipmentStoreId .= ' (на момента)';
-        }
-        
-        $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+	    }
+	    
+	    if($fields['-single']){
+	    	
+	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+	    	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
+	        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
+	        	$row->vat = $amountType->toVerbal($vat * 100);
+	        } else {
+	        	unset($row->chargeVat);
+	        }
+	
+	        if ($rec->chargeVat == 'no') {
+	            $row->chargeVat = '';
+	        }
+	        
+	        if ($rec->isInstantPayment == 'yes') {
+	            $row->caseId .= ' (на момента)';
+	        }
+	        
+	        if ($rec->isInstantShipment == 'yes') {
+	            $row->shipmentStoreId .= ' (на момента)';
+	        }
+	        
+		    $mvc->prepareMyCompanyInfo(&$row, $rec);
+	        
+	        if ($rec->currencyRate != 1) {
+	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
+	        }
 	    }
     }
     

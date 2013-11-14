@@ -26,10 +26,10 @@
 			                        	<span class="bigData">[#valior#]</span>
 			                        </div>
 			                        
-			                        <!--ET_BEGIN stateText-->
+			                        <!--ET_BEGIN state-->
 			                        <br/>
-			                        <div class="[#STATE_CLASS#]">[#stateText#]</div>
-			                        <!--ET_END stateText-->
+			                        <div class="[#STATE_CLASS#]">[#state#]</div>
+			                        <!--ET_END state-->
 			                    </td>
 			                    
 			                    <td style = 'background-color:#e0e0e0' width='33%'><b>|Доставчик|*</b></td>
