@@ -150,7 +150,7 @@ class cal_Tasks extends core_Master
     /**
      * Абревиатура
      */
-    static $abbr = "Tsk";
+    var $abbr = "Tsk";
     
     
     /**
@@ -269,7 +269,7 @@ class cal_Tasks extends core_Master
      */
     static function renderPortal($userId = NULL)
     {
-
+        
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
@@ -569,6 +569,21 @@ class cal_Tasks extends core_Master
     }
 
     
+    /**
+     * Ако няма записи не вади таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        if(Mode::is('listTasks', 'by') || Mode::is('listTasks', 'to')) {
+            
+           // return FALSE;
+        }
+    }
+    
 	/**
      * Добавя след таблицата
      *
@@ -577,8 +592,8 @@ class cal_Tasks extends core_Master
      * @param StdClass $data
      */
     function on_AfterRenderListTable($mvc, &$tpl, $data)
-    {
-    	$chartType = Request::get('Chart');
+    {   
+    	/*$chartType = Request::get('Chart');
     	
     	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
         
@@ -593,7 +608,9 @@ class cal_Tasks extends core_Master
         
         $tpl = $tabs->renderHtml($tpl, $chartType);
                
-        $mvc->currentTab = 'Задачи';
+        $mvc->currentTab = 'Задачи';*/
+    	
+
     }
     
     
@@ -836,4 +853,5 @@ class cal_Tasks extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
     }
+ 
 }
