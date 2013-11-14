@@ -416,9 +416,10 @@ class store_ShipmentOrders extends core_Master
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
             expect($origin);
             
-            if ($origin->haveInterface('bgerp_DealIntf')) {
+            if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            	
                 /* @var $dealInfo bgerp_iface_DealResponse */
-                $dealInfo = $origin->getDealInfo();
+                $dealInfo = $origin->getAggregateDealInfo();
                 $form->rec->currencyId = $dealInfo->agreed->currency;
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
                 $form->rec->locationId = $dealInfo->agreed->delivery->location;
