@@ -116,6 +116,22 @@
 			                        |Каса|*:  [#caseId#]
 			                    </div>
 		                        <!--ET_END caseId-->
+		                        
+		                        <!--ET_BEGIN downpayment-->
+		                        <div>|Авансово|* [#downpayment#]</div>
+		                        <!--ET_END downpayment-->
+		                        
+		                        <!--ET_BEGIN paymentBeforeShipping-->
+		                        <div>|Преди експедиция|* [#paymentBeforeShipping#]</div>
+		                        <!--ET_END paymentBeforeShipping-->
+		                        
+		                        <!--ET_BEGIN paymentOnDelivery-->
+		                        <div>|При получаване|* [#paymentOnDelivery#]</div>
+		                        <!--ET_END paymentOnDelivery-->
+		                        
+		                        <!--ET_BEGIN paymentAfterInvoice-->
+		                        <div>|Окончателно|* [#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
+		                    	<!--ET_END paymentAfterInvoice-->
 		                    </td>
 		       
 		                    <td class="topCell" align="right" valign="top" width="30%">
