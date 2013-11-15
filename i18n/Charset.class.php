@@ -538,7 +538,7 @@ class i18n_Charset extends core_MVC {
                     $lastText = $t;
                     break;
                 }
-                if (!$lastText) $lastText = $t1;
+                if (!$lastText) $lastText = $t;
             }
             
             $text = $firstText . ' ' . $lastText;
