@@ -642,7 +642,7 @@ class purchase_Requests extends core_Master
      */
     public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
     {
-        $requestRec = new sales_model_Sale($requestRef->rec());
+        $requestRec = new purchase_model_Request($requestRef->rec());
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($requestRef->that);
 		
         $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
