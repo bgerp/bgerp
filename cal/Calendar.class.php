@@ -215,7 +215,7 @@ class cal_Calendar extends core_Master
                     unset($e->users);
                 }
                 if(($e->id = $exEvents[$e->key]->id) ||
-                   ($e->id = self::fetchField("#key = '{$e->key}'", 'id')) ) {
+                   ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id')) ) {
                     unset($exEvents[$e->key]);
                     $res['updated']++;
                 } else {
