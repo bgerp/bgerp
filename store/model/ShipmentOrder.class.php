@@ -80,4 +80,14 @@ class store_model_ShipmentOrder extends core_Model
      * @vat string(3)
      */
     public $currencyId;
+    
+    /**
+     * @var double
+     */
+    public $currencyRate;
+    
+    /**
+     * ДДС 
+     */
+    public $chargeVat;
 }

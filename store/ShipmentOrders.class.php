@@ -154,6 +154,7 @@ class store_ShipmentOrders extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС,input=hidden');
         
@@ -420,6 +421,7 @@ class store_ShipmentOrders extends core_Master
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $origin->getAggregateDealInfo();
                 $form->rec->currencyId = $dealInfo->agreed->currency;
+                $form->rec->currencyRate = $dealInfo->agreed->rate;
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
                 $form->rec->locationId = $dealInfo->agreed->delivery->location;
                 $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
@@ -560,7 +562,7 @@ class store_ShipmentOrders extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$amountDeliveredVat = currency_CurrencyRates::convertAmount($rec->amountDeliveredVat, $rec->valior, NULL, $rec->currencyId);
+    		$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
     		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
     		$mvc->prepareMyCompanyInfo($row, $rec);
     	}
@@ -664,6 +666,7 @@ class store_ShipmentOrders extends core_Master
         // Конвертираме данъчната основа към валутата идваща от продажбата
         $result->shipped->amount             = $rec->amountDeliveredVat;
         $result->shipped->currency		 	 = $rec->currencyId;
+        $result->shipped->rate		         = $rec->currencyRate;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;

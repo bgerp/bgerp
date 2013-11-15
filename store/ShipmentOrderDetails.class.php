@@ -293,7 +293,6 @@ class store_ShipmentOrderDetails extends core_Detail
     {
         $rows = $data->rows;
     	$showVat = $data->masterData->rec->chargeVat == 'yes' || $data->masterData->rec->chargeVat == 'no';
-    	$currencyId = $data->masterData->rec->currencyId;
     	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
@@ -313,7 +312,7 @@ class store_ShipmentOrderDetails extends core_Detail
             	
     			if($showVat){
     				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
-    				$price = currency_CurrencyRates::convertAmount($price, $data->masterData->rec->valior, NULL, $currencyId);
+    				$price /= $data->masterData->rec->currencyRate;
     				
     				$row->price = $mvc->fields['amount']->type->toVerbal($price * $rec->quantityInPack);
     				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);

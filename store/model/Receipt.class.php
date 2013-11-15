@@ -66,6 +66,11 @@ class store_model_Receipt extends core_Model
     public $currencyId;
     
     /**
+     * @var double
+     */
+    public $currencyRate;
+    
+    /**
      * ДДС 
      */
     public $chargeVat;
