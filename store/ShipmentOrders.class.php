@@ -562,7 +562,7 @@ class store_ShipmentOrders extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
+    		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
     		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
     		$mvc->prepareMyCompanyInfo($row, $rec);
     	}

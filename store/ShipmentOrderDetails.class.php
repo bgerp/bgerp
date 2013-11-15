@@ -312,7 +312,7 @@ class store_ShipmentOrderDetails extends core_Detail
             	
     			if($showVat){
     				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
-    				$price /= $data->masterData->rec->currencyRate;
+    				@$price /= $data->masterData->rec->currencyRate;
     				
     				$row->price = $mvc->fields['amount']->type->toVerbal($price * $rec->quantityInPack);
     				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);

@@ -230,7 +230,7 @@ class store_ReceiptDetails extends core_Detail
         	}
         }
     	
-    	if($action == 'add' && isset($rec->receiptId)){
+    	if($action == 'add6' && isset($rec->receiptId)){
       		$masterRec = $mvc->Master->fetch($rec->receiptId);
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
@@ -268,7 +268,7 @@ class store_ReceiptDetails extends core_Detail
                 
     			if($showVat){
     				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
-    				$price /= $data->masterData->rec->currencyRate;
+    				@$price /= $data->masterData->rec->currencyRate;
     				
     				$row->price = $mvc->fields['amount']->type->toVerbal($price * $rec->quantityInPack);
     				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);
