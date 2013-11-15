@@ -3,13 +3,13 @@
 
 
 /**
- * Документ за Разходни Касови Ордери
+ * Документ за Разходни касови ордери
  *
  *
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -34,7 +34,7 @@ class cash_Rko extends core_Master
      */
      var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg';
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, cond_plg_DefaultValues';
     
     
     /**
@@ -136,13 +136,23 @@ class cash_Rko extends core_Master
     /**
      * Параметри за принтиране
      */
-    var $printParams = array( array('Оригинал'),
-    						  array('Копие'),); 
+    var $printParams = array( array('Оригинал'), array('Копие')); 
+    
     
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "4.2|Финанси";
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'operationSysId' => 'lastDocUser|lastDoc',
+    	'currencyId'     => 'lastDocUser|lastDoc',
+    	'beneficiary'    => 'lastDocUser|lastDoc',
+    );
     
     
     /**
@@ -200,27 +210,18 @@ class cash_Rko extends core_Master
     	// Използваме помощната функция за намиране името на контрагента
         bank_IncomeDocument::getContragentInfo($form, 'contragentName');
 
-    	if($originId = $form->rec->originId) {
-    		 $doc = doc_Containers::getDocument($originId);
-    		 $form->setDefault('reason', "Към документ #{$doc->getHandle()}");
-    	}
-    	
-    	$query = static::getQuery();
-    	$query->where("#folderId = {$folderId}");
-    	$query->orderBy('createdOn', 'DESC');
-    	$query->limit(1);
-    	
-    	$today = dt::verbal2mysql();
-    	if($lastRec = $query->fetch()) {
-    		$form->setDefault('beneficiary', $lastRec->beneficiary);
-    		$currencyId = $lastRec->currencyId;
-    	} else {
-    		$currencyId = acc_Periods::getBaseCurrencyId($today);
+    	if($origin = $mvc->getOrigin($form->rec)) {
+    		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+    		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
+    		 	$dealInfo = $origin->getAggregateDealInfo();
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    		 	$form->rec->rate       = $dealInfo->agreed->rate;
+    		 	$form->rec->amount     = $dealInfo->agreed->amount / $dealInfo->agreed->rate;
+    		 }
     	}
     	
     	// Поставяме стойности по подразбиране
-    	$form->setDefault('valior', $today);
-    	$form->setDefault('currencyId', $currencyId);
+    	$form->setDefault('valior', dt::today());
     	
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
@@ -461,7 +462,7 @@ class cash_Rko extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());
@@ -487,7 +488,7 @@ class cash_Rko extends core_Master
     	
     	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'closed')){
     			$res = FALSE;
     		}
     	}

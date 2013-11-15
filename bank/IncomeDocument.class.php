@@ -2,13 +2,13 @@
 
 
 /**
- * Приходен Банков Документ
+ * Приходен банков документ
  *
  *
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,8 +19,7 @@ class bank_IncomeDocument extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf,
-                        bgerp_DealIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf';
    
     
     /**
@@ -34,7 +33,7 @@ class bank_IncomeDocument extends core_Master
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
      	plg_Sorting, doc_plg_BusinessDoc2, doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable';
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, cond_plg_DefaultValues';
     
     
     /**
@@ -82,13 +81,13 @@ class bank_IncomeDocument extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'bank,ceo';
+	var $canList = 'bank, ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'bank,ceo';
+	var $canSingle = 'bank, ceo';
     
     
     /**
@@ -132,6 +131,16 @@ class bank_IncomeDocument extends core_Master
      */
     var $newBtnGroup = "4.3|Финанси";
 
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'operationSysId' => 'lastDocUser|lastDoc',
+    	'currencyId'     => 'lastDocUser|lastDoc',
+    );
+    
+    
     /**
      * Описание на модела
      */
@@ -173,10 +182,20 @@ class bank_IncomeDocument extends core_Master
     {
     	$form = &$data->form;
     	$today = dt::verbal2mysql();
+    	
+    	if($origin = $mvc->getOrigin($form->rec)) {
+    		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+    		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
+    		 	$dealInfo = $origin->getAggregateDealInfo();
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
+    		 	$form->rec->rate       = $dealInfo->agreed->rate;
+    		 	$form->rec->amount     = $dealInfo->agreed->amount / $dealInfo->agreed->rate;
+    		 }
+    	}
+    	
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
-    	$form->setReadOnly('ownAccount');
     	
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
@@ -193,7 +212,7 @@ class bank_IncomeDocument extends core_Master
     
      
      /**
-      * @TODO
+      * Извлича информация за контрагента
       */
      public static function getContragentInfo(core_Form $form, $field)
      {
@@ -254,7 +273,6 @@ class bank_IncomeDocument extends core_Master
     	if($fields['-single']) {
     		
     		$row->currencyId = currency_Currencies::getCodeById($rec->currencyId);
-    		
     		if($rec->rate != '1') {
     			
 	    		$period = acc_Periods::fetchByDate($rec->valior);
@@ -395,7 +413,7 @@ class bank_IncomeDocument extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
@@ -412,6 +430,7 @@ class bank_IncomeDocument extends core_Master
    	/*
      * Реализация на интерфейса sales_PaymentIntf
      */
+    
     
     /**
      * Информация за платежен документ
@@ -454,7 +473,7 @@ class bank_IncomeDocument extends core_Master
     	
     	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'closed')){
     			$res = FALSE;
     		}
     	}

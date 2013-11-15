@@ -113,24 +113,24 @@
 		                        <!--ET_BEGIN caseId-->
 		                        <div>
 			                        <hr>
-			                        |Каса|*:  [#caseId#]
+			                        |Каса|*: [#caseId#]
 			                    </div>
 		                        <!--ET_END caseId-->
 		                        
 		                        <!--ET_BEGIN downpayment-->
-		                        <div>|Авансово|* [#downpayment#]</div>
+		                        <div>|Авансово|*: &nbsp;[#downpayment#]</div>
 		                        <!--ET_END downpayment-->
 		                        
 		                        <!--ET_BEGIN paymentBeforeShipping-->
-		                        <div>|Преди експедиция|* [#paymentBeforeShipping#]</div>
+		                        <div>|Преди експедиция|*: &nbsp;[#paymentBeforeShipping#]</div>
 		                        <!--ET_END paymentBeforeShipping-->
 		                        
 		                        <!--ET_BEGIN paymentOnDelivery-->
-		                        <div>|При получаване|* [#paymentOnDelivery#]</div>
+		                        <div>|При получаване|*: &nbsp;[#paymentOnDelivery#]</div>
 		                        <!--ET_END paymentOnDelivery-->
 		                        
 		                        <!--ET_BEGIN paymentAfterInvoice-->
-		                        <div>|Окончателно|* [#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
+		                        <div>|Окончателно|*: &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
 		                    	<!--ET_END paymentAfterInvoice-->
 		                    </td>
 		       
