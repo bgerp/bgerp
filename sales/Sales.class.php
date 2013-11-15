@@ -674,31 +674,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-        if (!count($data->recs)) {
-            return;
-        }
-        
-        // Основната валута към момента
-        $now            = dt::now();
-        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($now);
-       
-        // Всички общи суми на продажба - в базова валута към съотв. дата
-        foreach ($data->recs as &$rec) {
-            $rate = currency_CurrencyRates::getRate($now, $rec->currencyId, $baseCurrencyId);
-            
-            $rec->amountDeal *= $rate; 
-            $rec->amountDelivered *= $rate; 
-            $rec->amountPaid *= $rate; 
-            $rec->currencyId = NULL; // За да не се показва валутата като префикс в списъка
-        }
-    }
-    
-    
-    /**
      * След обработка на записите
      */
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
@@ -707,7 +682,7 @@ class sales_Sales extends core_Master
         // тук в $rec/$row, а не за да ги показваме
         $data->listFields = array_diff_key(
             $data->listFields, 
-            arr::make('currencyId,initiatorId,contragentId', TRUE)
+            arr::make('initiatorId,contragentId', TRUE)
         );
         
         $data->listFields['dealerId'] = 'Търговец';
@@ -715,19 +690,6 @@ class sales_Sales extends core_Master
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
-                
-                // "Изчисляване" на името на клиента
-                $contragentData = NULL;
-                
-                if ($rec->contragentClassId && $rec->contragentId) {
-    
-                    $contragent = new core_ObjectReference(
-                        $rec->contragentClassId, 
-                        $rec->contragentId 
-                    );
-                    
-                    $row->contragentClassId = $contragent->getHyperlink();
-                }
     
                 // Търговец (чрез инициатор)
                 if (!empty($rec->initiatorId)) {

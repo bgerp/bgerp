@@ -308,22 +308,6 @@ class purchase_Requests extends core_Master
     
         return NULL;
     }
-
-
-    /**
-     * След подготовка записите
-     */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-        // Премахваме някои от полетата в listFields. Те са оставени там за да ги намерим в
-        // тук в $rec/$row, а не за да ги показваме
-        $data->listFields = array_diff_key(
-            $data->listFields,
-            arr::make('currencyId,contragentId', TRUE)
-        );
-    
-        $data->listFields['dealerId'] = 'Закупчик';
-    }
     
 
     /**
