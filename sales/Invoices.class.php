@@ -162,10 +162,6 @@ class sales_Invoices extends core_Master
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
     	'caseId'              => 'lastDocUser|lastDoc',
-        'currencyId'          => 'lastDocUser|lastDoc',
-        'deliveryPlaceId'     => 'lastDocUser|lastDoc',
-        'deliveryId'          => 'lastDocUser|lastDoc|clientCondition',
-    	'paymentMethodId' 	  => 'lastDocUser|lastDoc|clientCondition',
     );
     
     
@@ -189,12 +185,12 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
         $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=name)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=name)', 'caption=Плащане->Начин');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
 		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
-        $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Данъци->ДДС %,input=hidden');
@@ -302,9 +298,21 @@ class sales_Invoices extends core_Master
         // формата с разумни стойности по подразбиране.
         expect($origin = static::getOrigin($form->rec));
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
-        	$aggregateInfo = $origin->getAggregateDealInfo();
-        	$form->rec->vatRate = $aggregateInfo->shipped->vatType;
+        	$aggregateInfo         = $origin->getAggregateDealInfo();
+        	$form->rec->vatRate    = $aggregateInfo->shipped->vatType;
         	$form->rec->currencyId = $aggregateInfo->shipped->currency;
+        	$form->rec->rate       = $aggregateInfo->shipped->rate;
+        	
+        	if($aggregateInfo->agreed->payment->method){
+        		$form->rec->paymentMethodId = $aggregateInfo->agreed->payment->method;
+        		$form->setField('paymentMethodId', 'input=hidden');
+        	}
+        	
+        	$form->rec->deliveryId = $aggregateInfo->shipped->delivery->term;
+        	if($aggregateInfo->shipped->delivery->location){
+        		$form->rec->deliveryPlaceId = $aggregateInfo->shipped->delivery->location;
+        		$form->setField('deliveryPlaceId', 'input=hidden');
+        	}
         }
 	        
 	    if($origin->className  == 'sales_Invoices'){
@@ -631,10 +639,10 @@ class sales_Invoices extends core_Master
     		$mvc->prepareMyCompanyInfo($row);
     		
     		$currencySpan = "<span class='cCode'>{$rec->currencyId}</span>";
-		    $plan = cond_PaymentMethods::getPaymentPlan(5, $rec->dealValue, $rec->date, TRUE);
+		    $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->total / $rec->rate, $rec->date, TRUE);
 		    if(count($plan)){
 			    foreach ($plan as $pName => $pValue){
-			    	$row->$pName = (($pName != 'deadlineForBalancePayment') ? $currencySpan . " " : "") . $pValue;
+			    	$row->$pName = ($pName != 'deadlineForBalancePayment') ? $currencySpan . " <b>{$pValue}</b>" : $pValue;
 			    }
 		    }
     	}
