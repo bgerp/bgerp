@@ -525,23 +525,27 @@ class i18n_Charset extends core_MVC {
                 $start = $i * 400;
                 $t1 = mb_substr($text, $start, 400);
                 if(!self::is7bit($t1)){
-                    $text = $t1;
+                    $firstText = $t1;
                     break;
                 }
+                if (!$firstText) $firstText = $t1;
             }
             
             for($i = 1; $i < $maxI; $i++) {
                 $start = $len - ($i * 400);
                 $t = mb_substr($text, $start, 400);
                 if(!self::is7bit($t)){
-                    $text .= ' ' . $t;
+                    $lastText = $t;
                     break;
                 }
+                if (!$lastText) $lastText = $t1;
             }
-
+            
+            $text = $firstText . ' ' . $lastText;
+            
             $len  = mb_strlen($text);
         }
-
+        
         $sL  = $SL = 'sign';
 
         $c = '';
