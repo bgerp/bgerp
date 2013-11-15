@@ -230,7 +230,7 @@ class store_ReceiptDetails extends core_Detail
         	}
         }
     	
-    	if($action == 'add6' && isset($rec->receiptId)){
+    	if($action == 'add' && isset($rec->receiptId)){
       		$masterRec = $mvc->Master->fetch($rec->receiptId);
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
