@@ -870,9 +870,9 @@ class sales_Sales extends core_Master
      */
     public static function on_DescendantChanged($mvc, $saleRef, $descendantRef = NULL)
     {
-        $saleRec            = new sales_model_Sale($saleRef->rec());
-        $aggregatedDealInfo = $saleRec->getAggregatedDealInfo();
-
+        $saleRec = new sales_model_Sale($saleRef->rec());
+    	$aggregatedDealInfo = $mvc->getAggregateDealInfo($saleRef->that);
+		
         $saleRec->updateAggregateDealInfo($aggregatedDealInfo);
     }
     
@@ -935,6 +935,7 @@ class sales_Sales extends core_Master
             $result->paid->amount   			  = $rec->amountDeal;
             $result->paid->currency 			  = $rec->currencyId;
             $result->paid->rate                   = $rec->currencyRate;
+            $result->paid->vatType 				  = $rec->chargeVat;
             $result->paid->payment->method        = $rec->paymentMethodId;
             $result->paid->payment->bankAccountId = $rec->bankAccountId;
             $result->paid->payment->caseId        = $rec->caseId;
@@ -944,6 +945,7 @@ class sales_Sales extends core_Master
             $result->shipped->amount             = $rec->amountDeal;
             $result->shipped->currency           = $rec->currencyId;
             $result->shipped->rate               = $rec->currencyRate;
+            $result->shipped->vatType 			 = $rec->chargeVat;
             $result->shipped->delivery->location = $rec->deliveryLocationId;
             $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
             $result->shipped->delivery->term     = $rec->deliveryTermId;
@@ -974,88 +976,56 @@ class sales_Sales extends core_Master
     }
     
     
-    /**
-     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+	/**
+	 * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
+     * Генерира агрегираната бизнес информация за тази продажба
      * 
-     * @param int|object $id
+     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
+     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до 
+     * момента.
+     * 
+     * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+     * сечението на следните множества:
+     * 
+     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
+     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
+     *  * Документите, в състояние различно от `draft` и `rejected`
+     * 
      * @return bgerp_iface_DealResponse
-     * @see bgerp_DealAggregatorIntf::getAggregateDealInfo()
      */
     public function getAggregateDealInfo($id)
     {
-        $rec = new sales_model_Sale(self::fetchRec($id));
+        $saleRec = new sales_model_Sale($id);
         
-        // Извличаме продуктите на продажбата
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+    	$saleDocuments = $this->getDescendants($saleRec->id);
         
-        $result = new bgerp_iface_DealResponse();
+        // Извличаме dealInfo от самата продажба
+        /* @var $saleDealInfo bgerp_iface_DealResponse */
+        $saleDealInfo = $this->getDealInfo($saleRec->id);
         
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        // dealInfo-то на самата продажба е база, в/у която се натрупват някой от аспектите
+        // на породените от нея документи (платежни, експедиционни, фактури)
+        $aggregateInfo = clone $saleDealInfo;
         
-        $result->agreed->amount                 = $rec->amountDeal;
-        $result->agreed->currency               = $rec->currencyId;
-        $result->agreed->rate               	= $rec->currencyRate;
-        $result->agreed->vatType 				= $rec->chargeVat;
-        $result->agreed->delivery->location     = $rec->deliveryLocationId;
-        $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
-        $result->agreed->delivery->term         = $rec->deliveryTermId;
-        $result->agreed->delivery->time         = $rec->deliveryTime;
-        $result->agreed->payment->method        = $rec->paymentMethodId;
-        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
-        $result->agreed->payment->caseId        = $rec->caseId;
+        /* @var $d core_ObjectReference */
+        foreach ($saleDocuments as $d) {
+            $dState = $d->rec('state');
+            if ($dState == 'draft' || $dState == 'rejected') {
+                // Игнорираме черновите и оттеглените документи
+                continue;
+            }
         
-        $result->paid->amount                 = $rec->amountPaid;
-        $result->paid->currency               = $rec->currencyId;
-        $result->paid->rate               	  = $rec->currencyRate;
-        $result->paid->payment->method        = $rec->paymentMethodId;
-        $result->paid->payment->bankAccountId = $rec->bankAccountId;
-        $result->paid->payment->caseId        = $rec->caseId;
-
-        $result->shipped->amount             = $rec->amountDelivered;
-        $result->shipped->vatType            = $rec->chargeVat;
-        $result->shipped->currency           = $rec->currencyId;
-        $result->shipped->rate               = $rec->currencyRate;
-        $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
-        $result->shipped->delivery->location = $rec->deliveryLocationId;
-        $result->shipped->delivery->term     = $rec->deliveryTermId;
-        $result->shipped->delivery->time     = $rec->deliveryTime;
-        
-        /* @var $dRec sales_model_SaleProduct */
-        foreach ($detailRecs as $dRec) {
-            /*
-             * Договорени продукти
-             */
-            $aProd = new bgerp_iface_DealProduct();
-            
-            $aProd->classId     = $dRec->classId;
-            $aProd->productId   = $dRec->productId;
-            $aProd->packagingId = $dRec->packagingId;
-            $aProd->discount    = $dRec->discount;
-            $aProd->isOptional  = FALSE;
-            $aProd->quantity    = $dRec->quantity;
-            $aProd->price       = $dRec->price;
-            $aProd->uomId       = $dRec->uomId;
-            
-            $result->agreed->products[] = $aProd;
-            
-            /*
-             * Експедирани продукти
-             */
-            $sProd = clone $aProd;
-            $sProd->quantity = $dRec->quantityDelivered;
-            
-            $result->shipped->products[] = $sProd;
-            
-            /*
-             * Фактурирани продукти
-             */
-            $iProd = clone $aProd;
-            $iProd->quantity = $dRec->quantityInvoiced;
-            
-            $result->invoiced->products[] = $iProd;
+            if ($d->haveInterface('bgerp_DealIntf')) {
+                /* @var $dealInfo bgerp_iface_DealResponse */
+                $dealInfo = $d->getDealInfo();
+                
+                $aggregateInfo->shipped->push($dealInfo->shipped);
+                $aggregateInfo->paid->push($dealInfo->paid);
+                $aggregateInfo->invoiced->push($dealInfo->invoiced);
+            }
         }
-        //bp($rec->getAggregatedDealInfo(),$result);
-        return $result;
+        
+        return $aggregateInfo;
     }
     
     

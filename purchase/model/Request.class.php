@@ -176,57 +176,6 @@ class purchase_model_Request extends core_Model
      * @var enum(draft, active, rejected)
      */
     public $state;
-
-    
-    /**
-     * Генерира агрегираната бизнес информация за тази покупка
-     * 
-     * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
-     * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до 
-     * момента.
-     * 
-     * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
-     * сечението на следните множества:
-     * 
-     *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
-     *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
-     *  * Документите, в състояние различно от `draft` и `rejected`
-     * 
-     * 
-     * @return bgerp_iface_DealResponse
-     */
-    public function getAggregatedDealInfo()
-    {
-        $requestDocuments = $this->_mvc->getDescendants($this->id);
-        
-        // Извличаме dealInfo от самата покупка
-        /* @var $requestDealInfo bgerp_iface_DealResponse */
-        $requestDealInfo = $this->_mvc->getDealInfo($this->id);
-        
-        // dealInfo-то на самата покупка е база, в/у която се натрупват някой от аспектите
-        // на породените от нея документи (платежни, експедиционни, фактури)
-        $aggregateInfo = clone $requestDealInfo;
-        
-        /* @var $d core_ObjectReference */
-        foreach ($requestDocuments as $d) {
-            $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
-            }
-        
-            if ($d->haveInterface('bgerp_DealIntf')) {
-                /* @var $dealInfo bgerp_iface_DealResponse */
-                $dealInfo = $d->getDealInfo();
-                
-                $aggregateInfo->shipped->push($dealInfo->shipped);
-                $aggregateInfo->paid->push($dealInfo->paid);
-                $aggregateInfo->invoiced->push($dealInfo->invoiced);
-            }
-        }
-        
-        return $aggregateInfo;
-    }
     
     
     /**
