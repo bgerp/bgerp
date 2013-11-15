@@ -16,31 +16,24 @@ class store_transactionIntf_Receipt
 {
     /**
      * 
-     * @var sales_Sales
+     * @var purchase_Requests
      */
     public $class;
     
     
     /**
-     * Генериране на счетоводните транзакции, породени от складова разписка.
-     * 
-     * Счетоводната транзакция, породена от складова разписка може да се раздели на две
-     * части:
+     * Генериране на счетоводните транзакции, породени от складова разписка
+     * Заприхождаване на артикул: Dt:602 или Dt:302 или Dt:321
      *
-     * 1. Задължаване на с/ката на клиента
+     *    Dt: 602 - Разходи за външни услуги  (Услуги) - за услугите
+     *	  Dt: 302 - Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
+     *	  Dt: 321 - Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
      *
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    	Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
-     * 		Ct: 703  - Приходи от продажба на услуги     (Клиент, Услуги)
-     * 
-     * 2. Експедиране на стоката от склада (в някой случаи)
+     *    Ct: 401 - Задължения към доставчици (Доставчик, Валути)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
+     *    Цените, по които се заприхождават продуктите от с/ка 321 са според зададената стратегия 
      *
-     *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия 
-     *
-     * @param int|object $id първичен ключ или запис на продажба
+     * @param int|object $id първичен ключ или запис на покупка
      * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
      *                счетоводни транзакции
      * @throws core_exception_Expect когато възникне грешка при генерирането на транзакция               
@@ -51,14 +44,12 @@ class store_transactionIntf_Receipt
         
         $rec = $this->fetchShipmentData($id);
             
-        // Всяко ЕН трябва да има поне един детайл
+        // Всяка СР трябва да има поне един детайл
         if (count($rec->details) > 0) {
-            // Записите от тип 1 (вземане от клиент)
-            $entries = $this->getTakingPart($rec);
                 
             if($rec->storeId){
-            	// Записите от тип 2 (експедиция)
-            	$entries = array_merge($entries, $this->getDeliveryPart($rec));
+            	// Записите от тип 2 (заприхождаване)
+            	$entries = $this->getDeliveryPart($rec);
             }
         }
         
@@ -123,62 +114,14 @@ class store_transactionIntf_Receipt
     
     
     /**
-     * Генериране на записите от тип 1 (вземане от клиент)
-     * 
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 или Ct: 703 - Приходи от продажби към Контрагенти  (Клиент, Стоки и Продукти) / Приходи от продажби на услуги (Клиент, Услуги)
-     *    
-     * @param stdClass $rec
-     * @return array
-     */
-    protected function getTakingPart($rec)
-    {
-        $entries = array();
-        
-        // Изчисляваме курса на валутата на продажбата към базовата валута
-        $currencyRate = $this->getCurrencyRate($rec);
-        $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
-        $currencyId   = currency_Currencies::getIdByCode($currencyCode);
-        
-        foreach ($rec->details as $detailRec) {
-        	
-        	// Ако артикула е складируем кредитира се 7011, иначе 703
-        	if(sales_TransactionSourceImpl::isStorable($detailRec->classId, $detailRec->productId)){
-        		$creditAccId = '7011';
-        	} else {
-        		$creditAccId = '703';
-        	}
-        	
-            $entries[] = array(
-                'amount' => $detailRec->amount * $currencyRate, // В основна валута
-                
-                'debit' => array(
-                    '411', // Сметка "411. Вземания от клиенти"
-                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),     // Перо 2 - Валута
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
-                ),
-                
-                'credit' => array(
-                    $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
-                    	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
-                ),
-            );
-        }
-        
-        return $entries;
-    }
-    
-    
-    /**
-     * Помощен метод - генерира доставната част от транзакцията за покупка (ако има)
-     * 
-     * Експедиране на стоката от склада (в някой случаи)
+     * Помощен метод - генерира доставната част от транзакцията за покупка
+     * Вкарване на стоката в склада (в някои случаи)
      *
-     *    Dt: 7011 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
+     *	  Dt: 602 - Разходи за външни услуги  (Услуги) - за услугите
+     *	  Dt: 302 - Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
+     *	  Dt: 321 - Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
+     *
+     *    Ct: 401 - Задължения към доставчици (Доставчик, Валути)
      *    
      * @param stdClass $rec
      * @return array
@@ -188,27 +131,43 @@ class store_transactionIntf_Receipt
         $entries = array();
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
-            
+        $currencyRate = $this->getCurrencyRate($rec);
+        $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
+        $currencyId   = currency_Currencies::getIdByCode($currencyCode);
+        
         foreach ($rec->details as $detailRec) {
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	
-        	// Само складируемите продукти се изписват от склада
-        	if(sales_TransactionSourceImpl::isStorable($detailRec->classId, $detailRec->productId)){
-        		$entries[] = array(
-	                'debit' => array(
-	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
-	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-        					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
-	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-	                ),
-	                
-	                'credit' => array(
-	                    '321', // Сметка "321. Стоки и Продукти"
-	                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
-	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
-	                ),
-	            );
+        	// Ако е складируем, дебит 602
+        	if(!isset($pInfo->meta['canStore'])) {
+        		$debit = array(
+                    '602', // Сметка "602. Разходи за външни услуги"
+                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                );
+        	} else {
+        		
+        		// Ако е вложим дебит 302 иначе 321
+        		$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
+        		
+        		$debit = array(
+                    $debitAccId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
+                    	array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                );
         	}
+        	
+        	$entries[] = array(
+        		 'amount' => $detailRec->amount * $currencyRate,
+        		 'debit'  => $debit,
+	             'credit' => array(
+	                   '401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
+                       array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
+                       array('currency_Currencies', $currencyId),          // Перо 2 - Валута
+                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+	             ),
+	        );
         }
         
         return $entries;
@@ -216,7 +175,7 @@ class store_transactionIntf_Receipt
     
     
     /**
-     * Курс на валутата на продажбата към базовата валута за периода, в който попада продажбата
+     * Курс на валутата на покупката към базовата валута за периода, в който попада продажбата
      * 
      * @param stdClass $rec запис на покупка
      * @return float
