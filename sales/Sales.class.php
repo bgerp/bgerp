@@ -163,8 +163,6 @@ class sales_Sales extends core_Master
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
-        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Фактуриране,maxRadio=3,columns=3');
-        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС');
         
         // Стойности
         $this->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
@@ -196,8 +194,10 @@ class sales_Sales extends core_Master
         $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Търговец');
 
         // Допълнително
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Допълнително->ДДС');
+        $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
-        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr'=>array('rows'=>3)));
+        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
     	
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
