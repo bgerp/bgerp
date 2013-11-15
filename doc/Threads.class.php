@@ -688,9 +688,8 @@ class doc_Threads extends core_Manager
      */
     public static function getFirstDocument($id)
     {
-        $containerId = static::getFirstContainerId($id);
-        
         try{
+        	$containerId = static::getFirstContainerId($id);
         	$firstDoc = doc_Containers::getDocument($containerId);
         } catch(Exception $e){
         	
