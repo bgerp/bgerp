@@ -152,8 +152,6 @@ function ganttRender(elem,ganttData) {
 		jQuery.each( ganttData['tasksData'], function( i, val ) {
 			
 			//взимане на параметрите, които имаме за задачата
-			var duration = val['duration'];
-			var startTime = val['startTime'];
 			var taskid = val['taskId'];
 			var rowId = val['rowId'];
 			var hint = val['hint'];
@@ -163,58 +161,71 @@ function ganttRender(elem,ganttData) {
 			//дебъг хинт
 			var hint = taskid + " " + hint + " row:" + rowId ;
 			
-			//създаваме линк за съответната задача
-			var addedAnchor = document.createElement( "a" );
-			
-			//ако задачата се пада извън таблицата
-			if(startTime >= end || startTime + duration <= start){
-				duration = 0;
-			}else{
-				//ако задачата приключва извън периода на таблицата графичното й представяне да не е заоблено в края и да не излиза от таблицата
-				if(startTime + duration > end){
-					duration = end - startTime;
-					$(addedAnchor).addClass('last');
-				}
+			//ако има задача за повече от 1 ресурс, да се изчертава за всеки един
+			for ( var i = 0; i < rowId.length; i = i + 1 ) {
 				
-				//ако задачата започва преди периода на таблицата графичното й представяне да не е заоблено в началото и да не излиза от таблицата
-				if(startTime < start){
-					duration = duration + startTime - start;
-					startTime = start;
-					$(addedAnchor).addClass('first');
-				}
-			}
-			
-			//ако задачата трябва да се покаже
-			if(duration){
-				//разстояние до задачата отгоре
-				var offsetFromTop = (rowId * tdHeight) + headerHeight;
+				var duration = val['duration'];
+				var startTime = val['startTime'];
 				
-				//разстояние до задачата отляво
-				var offsetInPx =  (startTime - start) / secPerPX ;
-				//ширина на задачата
-				var widthTask = duration /secPerPX;
+				//създаваме линк за съответната задача
+				var addedAnchor = document.createElement( "a" );
 				
-				//ако представянето на задачата е поне 3пх да се показва
-				if(widthTask > 3){
-					
-					//добавяме необходимите атрибути и свойства
-					$(addedAnchor).css('left', parseInt(offsetInPx));
-					$(addedAnchor).css('top', parseInt(offsetFromTop));
-					$(addedAnchor).css('width', parseInt(widthTask));
-					$(addedAnchor).css('background-color', color);
-					$(addedAnchor).addClass('task');
-					$(addedAnchor).attr("title", hint );
-					$(addedAnchor).attr('id', taskid);
-					$(addedAnchor).attr('href', url);
-					$(addedAnchor).attr('target', '_blank');
-					
-					//ако е поне 50пх да се показва id-то на задачата
-					if(widthTask>50){
-						$(addedAnchor).text(taskid);
+				//ако задачата се пада извън таблицата
+				if(startTime >= end || startTime + duration <= start){
+					duration = 0;
+				}else{
+					//ако задачата приключва извън периода на таблицата графичното й представяне да не е заоблено в края и да не излиза от таблицата
+					if(startTime + duration > end){
+						duration = end - startTime;
+						$(addedAnchor).addClass('last');
 					}
 					
-					//графиката на задачата става наследник на див-а, който e релативен елеменент
-					$(currentTable).append( $( addedAnchor ) );
+					//ако задачата започва преди периода на таблицата графичното й представяне да не е заоблено в началото и да не излиза от таблицата
+					if(startTime < start){
+						duration = duration + startTime - start;
+						startTime = start;
+						$(addedAnchor).addClass('first');
+					}
+				}
+				
+				//ако задачата трябва да се покаже
+				if(duration){
+					
+					//разстояние до задачата отгоре
+					var offsetFromTop = (rowId[i] * tdHeight) + headerHeight;
+					//разстояние до задачата отляво
+					var offsetInPx =  (startTime - start) / secPerPX ;
+					//ширина на задачата
+					var widthTask = duration /secPerPX;
+					
+					//ако представянето на задачата е поне 3пх да се показва
+					if(widthTask > 3){
+						
+						//добавяме необходимите атрибути и свойства
+						$(addedAnchor).css('left', parseInt(offsetInPx));
+						$(addedAnchor).css('top', parseInt(offsetFromTop));
+						$(addedAnchor).css('width', parseInt(widthTask));
+						$(addedAnchor).css('background-color', color);
+						$(addedAnchor).addClass('task');
+						$(addedAnchor).attr("title", hint );
+						$(addedAnchor).attr('href', url);
+						$(addedAnchor).attr('target', '_blank');
+						
+						//за да имаме уникално id за всяка задача, дори и да е за няколко ресурса
+						if(rowId.length > 1){
+							$(addedAnchor).attr('id', taskid + "-"+ i);
+						}else{
+							$(addedAnchor).attr('id', taskid);
+						}
+						
+						//ако е поне 50пх да се показва id-то на задачата
+						if(widthTask>50){
+							$(addedAnchor).text(taskid);
+						}
+						
+						//графиката на задачата става наследник на див-а, който e релативен елеменент
+						$(currentTable).append( $( addedAnchor ) );
+					}
 				}
 			}
 		});
