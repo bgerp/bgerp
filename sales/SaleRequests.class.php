@@ -381,10 +381,10 @@ class sales_SaleRequests extends core_Master
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         $result->quoted->amount                = $rec->amount;
         $result->quoted->currency              = $rec->paymentCurrencyId;
+        $result->quoted->rate 				   = $rec->rate;
         $result->quoted->vatType			   = $rec->vat;
         if($rec->deliveryPlaceId){
-        	$placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
-        	$result->quoted->delivery->location  = $placeId;
+        	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         }
         $result->quoted->delivery->term        = $rec->deliveryTermId;
         $result->quoted->payment->method       = $rec->paymentMethodId;

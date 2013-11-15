@@ -459,12 +459,13 @@ class sales_Sales extends core_Master
         $dealInfo = $origin->getDealInfo();
         $aspect   = $dealInfo->quoted;
         
-        $form->rec->deliveryTermId = $aspect->delivery->term;
+        $form->rec->deliveryTermId     = $aspect->delivery->term;
         $form->rec->deliveryLocationId = $aspect->delivery->location;
-        $form->rec->paymentMethodId = $aspect->payment->method;
-        $form->rec->bankAccountId = $aspect->payment->bankAccountId;
-        $form->rec->currencyId = $aspect->currency;
-        $form->rec->chargeVat = $aspect->vatType;
+        $form->rec->paymentMethodId    = $aspect->payment->method;
+        $form->rec->bankAccountId      = $aspect->payment->bankAccountId;
+        $form->rec->currencyId         = $aspect->currency;
+        $form->rec->currencyRate       = $aspect->rate;
+        $form->rec->chargeVat          = $aspect->vatType;
         $form->setReadOnly('chargeVat');
     }
     
