@@ -533,7 +533,7 @@ class i18n_Charset extends core_MVC {
             for($i = 1; $i < $maxI; $i++) {
                 $start = $len - ($i * 400);
                 $t = mb_substr($text, $start, 400);
-                if(!self::is7bit($t1)){
+                if(!self::is7bit($t)){
                     $text .= ' ' . $t;
                     break;
                 }
