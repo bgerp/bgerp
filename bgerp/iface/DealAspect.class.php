@@ -86,7 +86,11 @@ class bgerp_iface_DealAspect
      */
     public function push(bgerp_iface_DealAspect $aspect)
     {
-        foreach ($aspect->products as $p) {
+    	$this->currency = $aspect->currency;
+        $this->vatType  = $aspect->vatType;
+        $this->rate     = $aspect->rate;
+        
+    	foreach ($aspect->products as $p) {
             $this->pushProduct($p);
         }
         
