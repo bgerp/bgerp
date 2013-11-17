@@ -241,7 +241,7 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
-        $html = preg_replace_callback("/(\S+@\S+\.\w+)/i", array($this, '_catchEmails'), $html);
+        $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
         // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
@@ -261,7 +261,7 @@ class type_Richtext extends type_Blob
         // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
 
         if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif(Mode::is('ClearFormat')) {
            $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
@@ -301,7 +301,7 @@ class type_Richtext extends type_Blob
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = TRUE;
             $sp = "";
-            
+          
             for($i = 0; $i<strlen($html); $i++) {
                 
                 $c = substr($html, $i, 1);

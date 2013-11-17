@@ -113,9 +113,9 @@ class type_Email extends type_Varchar {
             
             return FALSE;
         }
-
-        if(!core_Url::isValidTld($email)) {
-
+        
+        if((mb_stripos($email, '@fax.man') === FALSE) && (!core_Url::isValidTld($email))) {
+            
             return FALSE;
         }
         

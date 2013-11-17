@@ -131,7 +131,7 @@ class core_Tabs extends core_BaseClass
         }
         
         if ($isOptionList) {
-            $head = new ET("<div class='tab selected'>[#1#]</div>&nbsp;&nbsp;&nbsp;{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
+            $head = new ET("<div class='tab selected'>[#1#]</div>{$hintBtn}\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
         }
  
         $html = "<div class='tab-control {$this->htmlClass}'>\n";

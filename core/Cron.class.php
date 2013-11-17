@@ -383,19 +383,34 @@ class core_Cron extends core_Manager
     
     /**
      * Добавя запис, като гледа да няма запис със същото systemId
+     * 
+     * return boolean
      */
     function addOnce($rec)
     {
-        $id = $rec->id = $this->fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id');
+
+        $recCurrent = $this->fetch(array("#systemId = '[#1#]'", $rec->systemId));
+
+        // Ако има запис 
+        if (!empty($recCurrent)) {
+            // и не е променян от потребител - записа се обновява
+            if ($recCurrent->modifiedBy == "-1") {
+                $rec->id = $recCurrent->id;
+            } else { 
+                // Ако е променян от потребител не пипаме нищо
+                return false;
+            } 
+        }
         
-        $rec->state = 'free';
-        
+        // Ако няма зададено преди това състояние - то е празно
+        setIfNot($rec->state, 'free');
+
         // По подразбиране 50 секунди времелимит за извършване на операцията
         setIfNot($rec->timeLimit, 50);
         
         $this->save($rec);
         
-        if(!$id) return $rec->id;
+        return $rec->id;
     }
     
     

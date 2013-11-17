@@ -239,7 +239,7 @@ class core_Master extends core_Manager
      * Рендираме общия изглед за 'List'
      */
     function renderSingle_($data, $tpl = NULL)
-    {
+    { 
         // Рендираме общия лейаут
         if(!$tpl) {
             $tpl = $this->renderSingleLayout($data);
@@ -287,7 +287,7 @@ class core_Master extends core_Manager
                     } else {
                         $method = 'render' . $var;
                     }
-                    
+                   
                     if($tpl->isPlaceholderExists($var)) {
                         $tpl->replace($this->{$var}->$method($data->{$var}), $var);
                     } else {

@@ -1,5 +1,6 @@
 function tooltipCustom(closeUrl){
 	if($('.tooltip-button').length){
+		$('.tooltip-button').css("display","inline");
 		var checkVisibility = $('.tooltip-text');
 		if(checkVisibility.hasClass('show-tooltip')){
 			$('.tooltip-text').css("display","block");

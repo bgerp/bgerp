@@ -325,6 +325,36 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Поставя условие поле да се съдържа в даден масив
+     * @param string $field - поле
+     * @param mixed $values - масив или стринг от стойности
+     * @param boolean $not - Дали да се съдържа или не в масива
+     */
+    public function in($field, $values, $not = FALSE)
+    {
+    	$values = arr::make($values);
+    	$values = implode(',', $values);
+    	
+    	if(!$not){
+    		$this->where("{$field} IN ({$values})");
+    	} else {
+    		$this->where("{$field} NOT IN ({$values})");
+    	}
+    }
+    
+    
+    /**
+     * Поставя условие поле да не се съдържа в даден масив
+     * @param string $field - поле
+     * @param mixed $values - масив или стринг от стойности
+     */
+    public function notIn($field, $values)
+    {
+    	return $this->in($field, $values, TRUE);
+    }
+    
+    
+    /**
      * Добавя полета, по които ще се сортира. Новите са с приоритет
      */
     function orderBy($fields, $direction = '')
