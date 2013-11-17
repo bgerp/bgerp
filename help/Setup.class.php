@@ -1,16 +1,28 @@
 <?php
 
-
 /**
  * Колко пъти поне да се покаже дадена помощна информация на даден потребител
+ * в отворено състояние
  */
-defIfNot('HELP_MAX_SEE_CNT', 3);
+defIfNot('HELP_MAX_OPEN_DISPLAY_CNT', 3);
 
 /**
  * Колко време след първото показване, да се показва дадена помощна информация
- * По подразбиране едно денонощие
+ * в отворено състояние
  */
-defIfNot('HELP_MAX_SEE_TIME', 1*24*60*60);
+defIfNot('HELP_MAX_OPEN_DISPLAY_TIME', 1*24*60*60);
+
+/**
+ * Колко пъти поне да се покаже дадена помощна информация на даден потребител
+ * в затворено състояние
+ */
+defIfNot('HELP_MAX_CLOSE_DISPLAY_CNT', 30);
+
+/**
+ * Колко време след първото показване, да се показва дадена помощна информация
+ * в затворено състояние
+ */
+defIfNot('HELP_MAX_CLOSE_DISPLAY_TIME', 30*24*60*60);
 
 
 /**
@@ -76,10 +88,14 @@ class help_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
            
-       'HELP_MAX_SEE_TIME' => array ('time', 'caption=Показване на помощна информация на потребител->Максимално време'),
+       'HELP_MAX_OPEN_DISPLAY_TIME' => array ('time', 'caption=Отворен изглед за помощната информация->Максимално време'),
 
-       'HELP_MAX_SEE_CNT'   => array ('int', 'caption=Показване на помощна информация на потребител->Максимален брой пъти'),
-    
+       'HELP_MAX_OPEN_DISPLAY_CNT'  => array ('int', 'caption=Отворен изглед за помощната информация->Максимален брой пъти'),
+        
+       'HELP_MAX_CLOSE_DISPLAY_TIME' => array ('time', 'caption=Затворен изглед за помощната информация->Максимално време'),
+
+       'HELP_MAX_CLOSE_DISPLAY_CNT'  => array ('int', 'caption=Затворен изглед за помощната информация->Максимален брой пъти'),
+
     );
 
         

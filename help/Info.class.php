@@ -33,7 +33,6 @@ class help_Info extends core_Master
      */
     var $loadList = 'help_Wrapper, plg_Created, plg_State2, plg_RowTools';
     
-    
    
     /**
      * Полета за листовия изглед
@@ -50,7 +49,7 @@ class help_Info extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user';
+    var $canRead = 'admin,debug,help';
         
     
     /**
@@ -64,8 +63,21 @@ class help_Info extends core_Master
      */
     function description()
     {
-		$this->FLD('class', 'varchar', 'caption=Име на класа');
+        $this->FNC('title', 'varchar', 'caption=Област');
+		$this->FLD('class', 'varchar(64)', 'caption=Име на класа');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език');
 		$this->FLD('text', 'richtext', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
+
+        $this->setDbUnique('class,lg');
+    }
+
+
+    /**
+     * Изчисляване на полето 'titla'
+     */
+    function on_CalcTitle($mvc, $rec)
+    {
+        $rec->title = $rec->class . " ({$rec->lg})";
     }
     
     
@@ -74,18 +86,15 @@ class help_Info extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	
     	// Подготвяме пътя до файла с данните 
     	$file = "help/data/HelpInfo.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 
-    		0 => "class", 
-    		1 => "text",
-    	
-    		
+    		0 => 'class',
+            1 => 'lg',
+    		2 => 'text',
     	);
-    	
     	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
@@ -93,7 +102,6 @@ class help_Info extends core_Master
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
- 		
     }
     
     

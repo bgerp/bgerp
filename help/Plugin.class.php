@@ -21,13 +21,22 @@ class help_Plugin extends core_Plugin
     function on_afterSetCurrentTab($wrapper, $name, $url, &$hint, &$hintBtn, &$tabsTpl)
     {
         setIfNot($ctr, $url['Ctr'], $url[0]);
+        
+        // Текущия език на интерфейса
+        $lg = core_Lg::getCurrent();
 
-        if($rec = help_Info::fetch(array("#class = '[#1#]'", $ctr))) {
+        if($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) {
 
-            // Трябва ли да бъде първоначално отворен хинта?
-
-            if(help_Log::haveToSee($rec->id)) {
-                $mustSeeClass = 'show-tooltip';
+            // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?
+            switch(help_Log::getDisplayMode($rec->id)) {
+                case 'open':
+                    $mustSeeClass = 'show-tooltip';
+                    break;
+                case 'close':
+                    break;
+                case 'none':
+                default:
+                    return;
             }
 
             $imageUrl = sbf("img/mark.png","");

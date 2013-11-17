@@ -71,7 +71,7 @@ class help_Log extends core_Master
     function description()
     {
 		$this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
-		$this->FLD('infoId', 'key(mvc=help_Info)', 'caption=За кой клас, hint=За кой клас се отнася информацията');
+		$this->FLD('infoId', 'key(mvc=help_Info,select=title)', 'caption=За кой клас, hint=За кой клас се отнася информацията');
 		$this->FLD('seeOn', 'datetime', 'caption=Видяно->На, hint=Кога за първи път е видяно');
         $this->FLD('seeCnt', 'int', 'caption=Видяно->Брой, hint=Колко пъти е видяно');
         $this->FLD('closedOn', 'datetime', 'caption=Затворено->На, hint=Кога е затворено');
@@ -81,9 +81,9 @@ class help_Log extends core_Master
 
 
     /**
-     * Трябва ли текущият потребител да види тази помощна информация?
+     * Как да вижда текущият потребител тази помощна информация?
      */
-    static function haveToSee($infoId, $userId = NULL)
+    static function getDisplayMode($infoId, $userId = NULL)
     {
         // Ако нямаме потребител, вземаме текущия
         if(!$userId) {
@@ -102,25 +102,32 @@ class help_Log extends core_Master
             $rec->closedOn = NULL;
         }
 
-        if($rec->seeCnt < $conf->HELP_MAX_SEE_CNT || $rec->seeCnt == 0) {
+        if($rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
             $rec->seeCnt++;
             self::save($rec);
         }
 		
-        // ако сме го затворили ръчно, повече няма да го показваме
-    	if($rec->closedOn) {
-    		
-        		return FALSE;
-        }
-        
-        $untilDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_SEE_TIME);
-        
-        if($untilDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_SEE_CNT) {
+        // Ако се в лимита за време/показвания за отворено показване и помощтта не е затворена ръчно
+        // то връщаме режима за показване 'open'
+        $untilOpenDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_OPEN_DISPLAY_TIME);
+        if(($untilOpenDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_OPEN_DISPLAY_CNT) && !$rec->closedOn) {
                 
-                return TRUE;
+                return 'open';
         }
-
-        return FALSE;
+        
+        /**
+         * Ако и времето и брояча са под определените лимити за показване в затворено състояние, то
+         * връщаме 'closed'
+         */
+        $untilCloseDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_CLOSE_DISPLAY_TIME);
+        if($untilCloseDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_CLOSE_DISPLAY_CNT) {
+                
+                return 'close';
+        }
+        
+        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
+        // връщаме 'none'
+        return 'none';
     }
     
     
