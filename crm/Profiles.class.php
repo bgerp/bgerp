@@ -52,7 +52,7 @@ class crm_Profiles extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search';
+    var $loadList = 'plg_Created,crm_Wrapper,plg_RowTools, plg_Printing, plg_Search, plg_Rejected';
 
 
     /**
@@ -111,6 +111,9 @@ class crm_Profiles extends core_Master
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
         $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId');
+        $this->EXT('state',  'core_Users', 'externalKey=userId');
+        $this->EXT('exState',  'core_Users', 'externalKey=userId');
+        $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
