@@ -88,7 +88,6 @@ class avatar_Plugin extends core_Plugin
         if(!$width) {
             $width = Mode::is('screenMode', 'narrow') ? 48 : 100;
         }
-
         if($userId < 0) {
             // Ако става дума за системния потребител
              $imgUrl = sbf('img/100/system.png', '');
@@ -101,9 +100,11 @@ class avatar_Plugin extends core_Plugin
                 $attr['baseName'] = $key;
                 $Thumbnail = cls::get('thumbnail_Thumbnail');
                 $imgUrl = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), $attr);
-                $width = $attr['width'];
+                if($attr['width']) {
+                    $width = $attr['width'];
+                }
             } else {
-                 $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
+                $imgUrl = avatar_Gravatar::getUrl($userRec->email, $width);
             }
         } elseif($email = strtolower(trim($email))) {
             $imgUrl = avatar_Gravatar::getUrl($email, $width);
