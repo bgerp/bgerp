@@ -789,8 +789,10 @@ class core_App
      */
     public static function sbf($rPath, $qt = '"', $absolute = FALSE)
     {
-        // Взема пътя до файла
-        $f = static::getFullPath($rPath);
+        // Взема пътя до файла, ако той не е в служебна под-директория на sbf
+        if($rPath{0} != '_') {
+            $f = static::getFullPath($rPath);
+        }
         
         // Ако няма файл или не е директория
         if (!$f || !is_dir($f)) {

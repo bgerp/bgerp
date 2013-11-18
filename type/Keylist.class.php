@@ -72,7 +72,10 @@ class type_Keylist extends core_Type {
             
             if(($part = $this->params['select']) && $part != '*') {
                 
-                $rec = $mvc->fetch($k);
+                if(!$rec = $mvc->fetch($k)) {
+ 
+                    return '???';
+                }
                 
                 if ($this->params['translate']) {
                     $rec->{$part} = tr($rec->{$part});

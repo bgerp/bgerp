@@ -34,7 +34,9 @@ class plg_Rejected extends core_Plugin
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
         }
 
-        $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull");
+        if(!isset($mvc->fields['exState'])) {
+            $mvc->FLD('exState', clone($mvc->fields['state']->type), "caption=Пред. състояние,column=none,input=none,notNull");
+        }
         
         if(!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
