@@ -55,9 +55,11 @@ class avatar_Gravatar extends core_Manager {
     {
         $md5 = md5(strtolower(trim($email)));
         
-        $imgUrl = "//www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
+        $imgUrl = "http://www.gravatar.com/avatar/{$md5}?d=wavatar&s={$width}";
         
-        return $imgUrl;
+        $thmb = new img_Thumb($imgUrl, $width, $width, 'url');
+
+        return $thmb->forceUrl();
     }
     
     
