@@ -988,10 +988,11 @@ class sales_Sales extends core_Master
         // Aко няма експедирани/фактурирани продукти, то се копират договорените
         // но с количество 0 за експедирани/фактурирани
         foreach(array('shipped', 'invoiced') as $type){
+        	$aggregateInfo->$type->currency = $aggregateInfo->agreed->currency;
+        	$aggregateInfo->$type->rate     = $aggregateInfo->agreed->rate;
+        	$aggregateInfo->$type->vatType  = $aggregateInfo->agreed->vatType;
+        	
         	if(!count($aggregateInfo->$type->products)){
-        		$aggregateInfo->$type->currency = $aggregateInfo->agreed->currency;
-        		$aggregateInfo->$type->rate = $aggregateInfo->agreed->rate;
-        		$aggregateInfo->$type->vatType = $aggregateInfo->agreed->vatType;
         		
         		foreach ($aggregateInfo->agreed->products as $aProd){
         			$cloneProd = clone $aProd;
@@ -1000,7 +1001,7 @@ class sales_Sales extends core_Master
         		}
         	}
         }
-        
+        		
         return $aggregateInfo;
     }
     
