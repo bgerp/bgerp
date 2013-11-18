@@ -43,7 +43,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'valior=Вальор, docId=Документ, client=Клиент, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
+    var $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
     
     
     /**
@@ -226,18 +226,6 @@ class acc_OpenDeals extends core_Manager {
     
     
     /**
-     * Определя състоянието на сделката от записа
-     * @TODO по правилно да се определя кога сделката е приключила
-     * @param stdClass $rec - запис от sales_Sales или purchase_Requests
-     */
-    private static function getDealState6($rec)
-    {
-    	
-    	return ($rec->state == 'draft') ? 'draft' : $rec->state;
-    }
-    
-    
-    /**
 	 * След обработка на вербалните данни
 	 */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -263,9 +251,7 @@ class acc_OpenDeals extends core_Manager {
 	    		$row->amountPaid = 0;
 	    	}
 	    	
-	    	$currencyId = "<span class='cCode' style='float:left;margin-right:5px'>{$docRec->currencyId}</span>";
-	    	$row->amountDeal = $currencyId . $row->amountDeal;
-	    	$row->amountPaid = $currencyId . $row->amountPaid;
+	    	$row->currencyId = $docRec->currencyId;
 	    	
 	    	if($rec->state == 'active'){
 	    		$row->newDoc = $mvc->getNewDocBtns($docRec->threadId);
