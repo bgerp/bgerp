@@ -103,7 +103,7 @@ class img_Thumb
     /**
      * Какви параметри има този клас
      */
-    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute';
+    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality';
 
 
     /**
@@ -118,7 +118,8 @@ class img_Thumb
                             $timeout = 3, 
                             $allowEnlarge = FALSE, 
                             $expirationTime = NULL,
-                            $isAbsolute = NULL )
+                            $isAbsolute = NULL,
+                            $quality = NULL)
     {
         
         if(is_array($source)) {
@@ -147,11 +148,13 @@ class img_Thumb
                 case 'fileman':
                 case 'gdRes':
                     $this->expirationTime = 2000 * 24 * 60 * 60;
+                    break;
                 default:
                     expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
-
+        
+        setIfNot($this->quality, 90);
         setIfNot($this->timeout, 3);
         setIfNot($this->sourceType, 'fileman');
 
@@ -163,7 +166,7 @@ class img_Thumb
      */
     function getAsString()
     {
-        if(!$this->imgAsString) {
+        if(!$this->imgAsString) { 
             switch($this->sourceType) {
                 case 'url':  
                     $ctx = stream_context_create(array('http' => array('timeout' => $this->timeout)));
@@ -177,6 +180,7 @@ class img_Thumb
                     break;
                 case 'path':
                     $this->imgAsString = @file_get_contents($this->source);
+                    break;
                 case 'gdRes':
                     ob_start();
                     switch($this->getThumbFormat()) {
@@ -220,7 +224,7 @@ class img_Thumb
             }
 
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->maxWidth . '|' .
-                $this->maxHeight . '|' . $this->allowEnlarge . '|' . EF_SALT);
+                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' .  EF_SALT);
         }
 
         return $this->hash;
@@ -272,7 +276,7 @@ class img_Thumb
                 case 'path':
                     $this->format = fileman_Files::getExt($this->source);
                 case 'fileman':
-                    $this->format = fileman_Files::getExt(fileman_Files::fetchByFh($this->source));
+                    $this->format = fileman_Files::getExt(fileman_Files::fetchByFh($this->source, 'name'));
             }
 
             if($this->format == 'jpeg') {
@@ -294,8 +298,8 @@ class img_Thumb
     function getThumbName()
     {
         if(!$this->thumbName) {
-            if($this->varbalName) {
-                $this->thumbName = fileman_Files::normalizeFileName($this->verbalName) . '-';
+            if($this->verbalName) {
+                $this->thumbName = fileman_Files::normalizeFileName($this->verbalName) . '-'; 
             }
             $this->thumbName .= substr($this->getHash(), 0, 8);
             $this->thumbName .= '-' . $this->maxWidth;
@@ -377,7 +381,7 @@ class img_Thumb
             if($newGdRes) { 
                 switch($this->getThumbFormat()) {
                     case 'jpg':
-                        imagejpeg($newGdRes, $path);
+                        imagejpeg($newGdRes, $path, $this->quality);
                         break;
                     case 'gif':
                         imagegif($newGdRes, $path);
