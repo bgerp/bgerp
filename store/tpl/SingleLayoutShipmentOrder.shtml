@@ -19,7 +19,7 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell" width="35%" style='background-color:rgb(224,224,224);'><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
                         <font style="font-size:16pt;"><b>|ЕКСПЕДИЦИОННО НАРЕЖДАНЕ|*</b> </font><br>
                         
@@ -33,12 +33,11 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell" width="35%" style='background-color:rgb(224,224,224);'><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b></td>
                     </tr>
                     <tr>
                     <td class="cell">
                     <!--ET_BEGIN contragent-->
-                    <div>
                         <b>[#contragentName#]</b><br>
                         <!--ET_BEGIN contragentCountry-->
                             <b>[#contragentCountry#]</b><br>
@@ -47,16 +46,13 @@
                             [#contragentAddress#]<br>
                         <!--ET_END contragentAddress-->
                         [#locationId#]
-					</div>
 					<!--ET_END contragent-->
 					</td>
 					<td class="cell">
                     <!--ET_BEGIN supplier-->
-                    <div>
                         <b>[#MyCompany#]</b><br>
                         <b>[#MyCountry#]</b><br>
                         [#MyAddress#] <br>
-                    </div>
                     <!--ET_END supplier-->
                     </td>
                 </tr>

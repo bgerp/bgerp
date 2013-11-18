@@ -185,7 +185,7 @@ class purchase_Requests extends core_Master
         }
         
         // Поле за избор на локация - само локациите на контрагента по покупката
-        $locations = array(''=>'') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
+        $locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
         $form->setOptions('deliveryLocationId', $locations);
         
         // Начисляване на ДДС по подразбиране

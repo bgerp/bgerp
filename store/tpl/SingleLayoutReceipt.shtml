@@ -19,16 +19,8 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell" valign="top" width="35%"><b>|Получател|*</b>
-                    <!--ET_BEGIN supplier-->
-                    <div>
-                        <b>[#MyCompany#]</b><br>
-                        <b>[#MyCountry#]</b><br>
-                        [#MyAddress#] <br>
-                    </div>
-                    <!--ET_END supplier-->
-                    </td>
-                    <td class="cell" align="center" width="30%">
+                    <td class="cell custom-header-bg" valign="top" width="35%"><b>|Получател|*</b></td>
+                    <td class="cell" align="center" width="30%" rowspan='2'>
                         <font style="font-size:16pt;"><b>|СКЛАДОВА РАЗПИСКА|*</b> </font><br>
                         
                         <div style="padding-top:5px;">
@@ -41,9 +33,18 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell" width="35%" valign="top"><b>|Доставчик|*</b>
+                    <td class="cell custom-header-bg" width="35%" valign="top"><b>|Доставчик|*</b></td>
+                    </tr>
+                    <tr>
+                    <td class="cell">
+                    	<!--ET_BEGIN supplier-->
+	                        <b>[#MyCompany#]</b><br>
+	                        <b>[#MyCountry#]</b><br>
+	                        [#MyAddress#] <br>
+                    	<!--ET_END supplier-->
+                    </td>
+                    <td class="cell">
                     <!--ET_BEGIN contragent-->
-                    <div>
                         <b>[#contragentName#]</b><br>
                         <!--ET_BEGIN contragentCountry-->
                             <b>[#contragentCountry#]</b><br>
@@ -52,7 +53,7 @@
                             [#contragentAddress#]<br>
                         <!--ET_END contragentAddress-->
                         [#locationId#]
-					</div>
+					</td>
 					<!--ET_END contragent-->
                 </tr>
                 </tbody>
