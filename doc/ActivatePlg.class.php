@@ -71,7 +71,7 @@ class doc_ActivatePlg extends core_Plugin
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('activate', $data->rec)) {
-            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'warning=Наистина ли искате да активирате документа?', 'ef_icon = img/16/lightning.png,title=Активиране на документа');
+            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'warning=Наистина ли искате да активирате документа?', 'id=btnActivate,ef_icon = img/16/lightning.png,title=Активиране на документа');
         }
     }
     
