@@ -216,8 +216,9 @@ class acc_plg_Contable extends core_Plugin
             if(!acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id)){
             	$requiredRoles = 'no_one';
             }
+            
             // Ако документа не генерира валидна и непразна транзакция - не може да му се прави корекция
-            if (!$this->hasContableTransaction($mvc, $rec)) {
+            if (!$rec->isContable) {
                 $requiredRoles = 'no_one';
             }
         }
