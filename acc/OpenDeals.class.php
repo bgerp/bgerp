@@ -110,8 +110,12 @@ class acc_OpenDeals extends core_Manager {
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
+    	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	$data->listFilter->showFields = 'search';
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->showFields .= ', sState';
+    	}
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
@@ -123,6 +127,10 @@ class acc_OpenDeals extends core_Manager {
 	{
 		$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
+		
+		if(isset($data->listFilter->rec->sState) && $data->listFilter->rec->sState != 'all'){
+			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
+		}
 	}
 	
 	
@@ -221,6 +229,10 @@ class acc_OpenDeals extends core_Manager {
     {
     	if(Request::get('Rejected', 'int')){
     		$data->toolbar->buttons['listBtn']->url = array($mvc, 'list', 'show' => Request::get('show'));
+    	}
+    	
+    	if(!empty($data->toolbar->buttons['binBtn'])){
+    		$data->toolbar->buttons['binBtn']->url = array($mvc, 'list', 'show' => Request::get('show'), 'Rejected' => TRUE);
     	}
     }
     
