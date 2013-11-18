@@ -15,7 +15,14 @@
 	<b>[#amount#]</b>
 	<!--ET_END amount-->
 	
+	<!--ET_BEGIN baseAmount-->
+	<span style='margin-left:15px'>
+	( <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;
+	 [#baseAmount#] )
+	 </span>
+	 <!--ET_END baseAmount-->
 	<br />
+	
 	<!--ET_BEGIN modifiedOn-->
 	|Дата|*: [#modifiedOn#]
 	<!--ET_END modifiedOn-->

@@ -80,6 +80,8 @@ abstract class acc_ClosedDeals extends core_Master
     	// Ид-то на документа, който се затваря
     	$this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
     	$this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
+    	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,input=none');
+        $this->FLD('rate', 'double', 'caption=Плащане->Курс,input=none');
     	
     	// От кой клас наследник на acc_ClosedDeals идва записа
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
@@ -132,7 +134,10 @@ abstract class acc_ClosedDeals extends core_Master
     public static function on_BeforeSave(core_Manager $mvc, $res, &$rec)
     {
     	if($rec->state == 'active'){
+    		$info = static::getDealInfo($rec->threadId);
     		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
+    		$rec->currencyId = $info->agreed->currency;
+    		$rec->rate = $info->agreed->rate;
     	}
     }
     
@@ -208,8 +213,8 @@ abstract class acc_ClosedDeals extends core_Master
     public static function getClosedDealAmount($threadId)
     {
     	expect($info = static::getDealInfo($threadId));
-        $paidAmount = currency_CurrencyRates::convertAmount($info->paid->amount, dt::now(), $saleInfo->paid->currency);
-        $shippedAmount = currency_CurrencyRates::convertAmount($info->shipped->amount, dt::now(), $saleInfo->shipped->currency);
+        $paidAmount = $info->paid->amount;
+        $shippedAmount = $info->shipped->amount;
 		
         // Разликата между платеното и доставеното
         return $paidAmount - $shippedAmount;
@@ -258,14 +263,20 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if(!$rec->amount){
-    		$rec->amount = static::getClosedDealAmount($firstDoc);
-    		$row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount);
+    		$info = static::getDealInfo($rec->threadId);
+    		$rec->baseAmount = static::getClosedDealAmount($rec->threadId);
+    		$amount = $rec->baseAmount / $info->agreed->rate;
+    		$row->currencyId = $info->agreed->currency;
+    		$row->baseAmount = $mvc->fields['amount']->type->toVerbal($rec->baseAmount);
+    	} else {
+    		$row->baseAmount = $row->amount;
+    		@$amount =  $rec->amount / $rec->rate;
     	}
     	
-    	$row->currencyId = acc_Periods::getBaseCurrencyCode($rec->lastModifiedOn);
-    	
-    	if(!$rec->amount){
-    		unset($row->amount, $row->currencyId);
+    	$row->amount = $mvc->fields['amount']->type->toVerbal($amount);
+    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->lastModifiedOn);
+    	if($row->baseCurrencyId == $row->currencyId){
+    		unset($row->baseAmount, $row->baseCurrencyId);
     	}
 
     	if($rec->state == 'draft'){
