@@ -1,7 +1,7 @@
 <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 	<tbody>
 		<tr>
-			<td class="cell" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
+			<td class="cell custom-header-bg" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
 		    <td class="cell" rowspan="3" align="center" width="30%">
 		        <div class='invoiceTitle'><span id='invType'>[#type#]</span></div><br>
 		        <div class='invInfo'>|Номер|* / Number</div>
@@ -18,7 +18,7 @@
 		                <!--ET_END origin-->
 		            </div>
 		    </td>
-		    <td class="cell" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
+		    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
 		</tr>           
 		<tr>
 		    <td class="cell">

@@ -39,6 +39,7 @@ class cal_Tasks extends core_Master
      */
     var $details = 'cal_TaskProgresses';
 
+    
     /**
      * Заглавие
      */
@@ -269,7 +270,7 @@ class cal_Tasks extends core_Master
      */
     static function renderPortal($userId = NULL)
     {
-        
+       
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
@@ -593,22 +594,26 @@ class cal_Tasks extends core_Master
      */
     function on_AfterRenderListTable($mvc, &$tpl, $data)
     {   
-    	/*$chartType = Request::get('Chart');
+    	$currUrl = getCurrentUrl();
     	
-    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-        
-        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
-
-        $tabs->TAB('Gantt', 'Гант', array($mvc, 'list', 'Chart'=> 'Gantt'));
-       
-        if($chartType == 'Gantt') {
-        	
-        	$tpl = static::getGantt($data);
-        }
-        
-        $tpl = $tabs->renderHtml($tpl, $chartType);
-               
-        $mvc->currentTab = 'Задачи';*/
+    	if($currUrl['Ctr'] == "cal_Tasks"){
+	    	$chartType = Request::get('Chart');
+	    	
+	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+	        
+	        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
+	
+	        $tabs->TAB('Gantt', 'Гант', array($mvc, 'list', 'Chart'=> 'Gantt'));
+	       
+	        if($chartType == 'Gantt') {
+	        	
+	        	$tpl = static::getGantt($data);
+	        }
+	        
+	        $tpl = $tabs->renderHtml($tpl, $chartType);
+	               
+	        $mvc->currentTab = 'Задачи';
+    	}
     	
 
     }
@@ -852,6 +857,124 @@ class cal_Tasks extends core_Master
         //Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
+    }
+    
+   
+    /**
+     * Изчертаване на структурата с данни от базата
+     */
+    static function getGantt ($data)
+    {
+	    // масив с цветове
+    	$colors = array( "#610b7d", 
+				    	"#1b7d23",
+				    	"#4a4e7d",
+				    	"#7d6e23", 
+				    	"#33757d",
+				    	"#211b7d", 
+				    	"#72147d",
+				    	"Violet",
+				    	"Green",
+				    	"DeepPink ",
+				    	"MediumVioletRed",
+				    	"#0d777d",
+				    	"Indigo",
+				    	"#7d1c24",
+				    	"DarkSlateBlue",
+				    	"#7b237d", 
+				    	"DarkMagenta ",
+	    				"Pink",
+	    				"#c00",
+	    				"#0c0",
+	    				"#00c",
+	    				"#666",
+	    				"#c0c",
+    	                );
+         
+	    // за всеки едиин запис от базата данни
+    	foreach($data->recs as $v=>$rec){ 
+    		
+    		// ако няма продължителност на задачата
+    		if(!$rec->timeDuration) {
+    			// приемаме, че тя е 30 мин
+    			$timeDuration = 30 * 60;
+    		} else {
+    			$timeDuration = $rec->timeDuration;
+    		}
+    		
+    		// ако нямаме край на задачата
+    		if(!$rec->timeEnd){
+    			// изчисляваме края, като начало и продължителност
+    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
+    		} else {
+    			$timeEnd = $rec->timeEnd;
+    		}
+    		
+    		// правим 2 масива с начални и крайни часове
+    		if($rec->timeStart){
+    			$start[] = dt::mysql2timestamp($rec->timeStart);
+    			$end[] = dt::mysql2timestamp($timeEnd);
+    		}
+            
+    		// масив с шернатите потребители
+    		$sharedUsers[$rec->sharedUsers] = $rec->sharedUsers;
+
+    		// масива със задачите
+    		$resTask[]=array( 
+	    					'taskId' => $rec->id,
+	    					'rowId' => '',
+	    					'duration' => $timeDuration,
+	    					'startTask' => dt::mysql2timestamp($rec->timeStart), 
+	    					'color' => $colors[$v % 22],
+	    					'hint' => '',
+	    					'url' => ''
+	    				
+	    	);
+    		
+    	} 
+  
+    	// малко обработка на масива с шернатите потребители
+    	foreach($sharedUsers as $u){
+    		$resUsers[] = keylist::toArray($u);
+    	}
+ 
+    	foreach($resUsers as $k=>$userProfile){
+    		foreach($userProfile as $id=>$value){
+    			
+    			$uS[$k]['name'] .= crm_Profiles::createLink($value)->getContent();
+    			$uS[$k]['id'] = $id;
+    			
+    			//$resUsers[$k]['name'] = crm_Profiles::createLink($value);
+    			//$resUsers[$k]['id'] = $id;
+    			//$resUsers[$k][$id] = crm_Profiles::createLink($value);
+    		}
+    	} 
+    	    	
+    	// други параметри
+    	$params = array(
+    					"type" => "ден",
+    					"typeChild" => "час",
+    					"startTime" =>	min($start),
+    		        	"endTime" => max($end)
+    	);
+    	
+    	// хедър на таблицата 
+    	$header = array(
+    					'0' => array (
+    						"valParent" => "07.11. четвъртък",
+    						"valChildren" => array(
+    								0 => "10:00",
+    								1 => "11:00",
+    								2 => "12:00" )	
+    				)
+    	);
+        //bp($resTask);
+    	// връщаме един обект от всички масиви
+    	$res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $uS, 'otherParams' => $params);
+
+        $chart = gantt_Adapter::render_($res);
+
+    	return $chart;
     }
  
 }
