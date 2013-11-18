@@ -32,51 +32,51 @@ class fancybox_Fancybox {
      */
     function getImage($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
     {
-        $Thumb = cls::get('thumbnail_Thumbnail');
-        $jQuery = cls::get('jquery_Jquery');
         
-        if(Mode::is('text', 'xhtml') || Mode::is('printing')) {
-            $info['baseName'] = str::utf2ascii($baseName);
-            $info['baseName'] = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $info['baseName']);
-        } else {
-            $info['baseName'] = $baseName;
-        }
-        
+
         // Създаваме изображението
-        $imgAttr['src']    = $Thumb->getLink($fh, $thumbSize, $info);
-        $imgAttr['height'] = isset($info['height']) ? $info['height'] : $info[1];
-        $imgAttr['width']  = isset($info['width']) ? $info['width'] : $info[0];
-        setIfNot($imgAttr['alt'], $baseName);
+        if(is_int($thumbSize)) {
+            $thumbWidth = $thumbHeight = $thumbSize;
+        } elseif(is_array($thumbSize)) {
+            setIfNot($thumbWidth, $thumbSize['width'], $thumbSize[0]);
+            setIfNot($thumbHeight, $thumbSize['height'], $thumbSize[1]);
+        } else {
+            expect(FALSE, $thumbSize);
+        }
+
+        $thumb = new img_Thumb($fh, $thumbWidth, $thumbHeight, 'fileman', $baseName);
 
         if($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
             
-            $imgTpl = ht::createElement('img', $imgAttr);
+            $imgTpl = $thumb->createImg();
 
             return $imgTpl;
         }
 
-        $imgAttr['title']  = tr('Кликни за увеличение');
-        $imgTpl = ht::createElement('img', $imgAttr);
+        $attr = array('title' => tr('Кликни за увеличение'));
+        $imgTpl = $thumb->createImg($attr);
 
         // Създаваме хипервръзката
-        $sizes['baseName'] = $baseName;
-        $aAttr['href'] = $Thumb->getLink($fh, $maxSize, $sizes);
+        if(is_int($maxSize)) {
+            $bigWidth = $bigHeight = $maxSize;
+        } elseif(is_array($thumbSize)) {
+            setIfNot($bigWidth, $maxSize['width'], $maxSize[0]);
+            setIfNot($bigHeight, $maxSize['height'], $maxSize[1]);
+        } else {
+            expect(FALSE, $maxSize);
+        }
+
+        $bigImg = new img_Thumb($fh, $bigWidth, $bigHeight, 'fileman', $baseName);
+
+        $aAttr['href'] = $bigImg->forceUrl(FALSE);
         setIfNot($aAttr['rel'], $maxSize[0] . "_" . $maxSize[1]);
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
 
-    /*    $tpl = new ET('
-            <a href="[#bigUrl#]" class="fancybox" rel="[#rel#]">
-                <img src="[#smallUrl#]" 
-                    alt="' . $baseName '"
-                    title="' . tr('Кликни за увеличение' .'" 
-                    height="[#smallHeight#]" 
-                    width="[#smallWidth#]" />
-            </a>
-        '); */
         
         $tpl->placeObject($rec);
         
+        $jQuery = cls::get('jquery_Jquery');
         $jQuery->enable($tpl);
         
         $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.css', 'CSS');
