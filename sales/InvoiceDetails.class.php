@@ -218,7 +218,7 @@ class sales_InvoiceDetails extends core_Detail
 		      	$origin = $mvc->Master->getOrigin($masterRec);
 		      	$dealAspect = $origin->getAggregateDealInfo()->shipped;
 		      	$invProducts = $mvc->Master->getDealInfo($rec->invoiceId)->invoiced;
-    			if(!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
+    			if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
     				$res = 'no_one';
     			}
     		}

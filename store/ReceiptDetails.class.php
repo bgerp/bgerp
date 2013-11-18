@@ -235,7 +235,7 @@ class store_ReceiptDetails extends core_Detail
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
 		    $invProducts = $mvc->Master->getDealInfo($rec->receiptId)->shipped;
-    		if(!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
+    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts)){
     			$requiredRoles = 'no_one';
     		}
     	}
