@@ -244,7 +244,7 @@ class acc_OpenDeals extends core_Manager {
     {
     	if($fields['-list']){
 	    	$docClass = cls::get($rec->docClass);
-	    	$docRec = $docClass->fetch($rec->docId, 'folderId,threadId,currencyId');
+	    	$docRec = $docClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate');
 	    	$row->client = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
 	    	
 	    	$row->docId = $docClass->getHandle($rec->docId);
@@ -257,16 +257,20 @@ class acc_OpenDeals extends core_Manager {
 	    	
 	    	if(empty($rec->amountDeal)){
 	    		$row->amountDeal = 0;
+	    	} else {
+	    		$row->amountDeal = $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal / $docRec->currencyRate);
 	    	}
 	    	
     		if(empty($rec->amountPaid)){
 	    		$row->amountPaid = 0;
+	    	} else {
+	    		$row->amountPaid = $mvc->fields['amountPaid']->type->toVerbal($rec->amountPaid / $docRec->currencyRate);
 	    	}
 	    	
 	    	$row->currencyId = $docRec->currencyId;
 	    	
 	    	if($rec->state == 'active'){
-	    		$row->newDoc = $mvc->getNewDocBtns($docRec->threadId);
+	    		$row->newDoc = $mvc->getNewDocBtns($docRec->containerId, $docClass);
 	    	}
 	    	
 	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -275,23 +279,37 @@ class acc_OpenDeals extends core_Manager {
     
     
     /**
-     * Подготовка бутоните за генериране на нови документи
-     * възоснова на продажбата/покупката
+     * Подготовка бутоните за генериране на нови документи възоснова на продажбата/покупката
+     * @param int $threadId - ид на нишката 
+     * @param core_Master $docClass - инстанция на класа
+     * @return html $btns
      */
-    private function getNewDocBtns($threadId)
+    private function getNewDocBtns($originId, core_Master $docClass)
     {
     	$btns = "";
     	switch(Request::get('show')){
 	    	case 'cash':
-	    		$btns = ht::createBtn('ПКО', array('cash_Pko', 'add', 'threadId' => $threadId), NULL, NULL, 'ef_icon=img/16/money_add.png,title=Нов приходен касов ордер');
-	    		$btns .= ht::createBtn('РКО', array('cash_Rko', 'add', 'threadId' => $threadId), NULL, NULL, 'ef_icon=img/16/money_delete.png,title=Нов разходен касов ордер');
+	    		
+	    		// Приходен и Разходен касов ордер
+	    		$btns = ht::createBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/money_add.png,title=Нов приходен касов ордер');
+	    		$btns .= ht::createBtn('РКО', array('cash_Rko', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/money_delete.png,title=Нов разходен касов ордер');
 	    		break;
 	    	case 'bank':
-	    		$btns = ht::createBtn('ПБД', array('bank_IncomeDocument', 'add', 'threadId' => $threadId), NULL, NULL, 'ef_icon=img/16/bank_add.png,title=Нов приходен банков документ');
-	    		$btns .= ht::createBtn('РБД', array('bank_CostDocument', 'add', 'threadId' => $threadId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
+	    		
+	    		// Приходен и Разходен банков документ
+	    		$btns = ht::createBtn('ПБД', array('bank_IncomeDocument', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_add.png,title=Нов приходен банков документ');
+	    		$btns .= ht::createBtn('РБД', array('bank_CostDocument', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
 	    		break;
 	    	case 'store':
-	    		$btns = ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'threadId' => $threadId), NULL, NULL, 'ef_icon=img/16/view.png,title=Ново експедиционно нареждане');
+	    		if($docClass instanceof purchase_Requests){
+	    			
+	    			// Ако документа е Покупка, бутона генерира Складова разписка
+	    			$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/view.png,title=Нова складова разписка');
+	    		} elseif($docClass instanceof sales_Sales){
+	    			
+	    			// Ако документа е Продажба, бутона генерира Експедиционно нареждане
+	    			$btns = ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/view.png,title=Ново експедиционно нареждане');
+	    		}
 	    		break;
 	    }
 	    
