@@ -1006,6 +1006,9 @@ class fileman_Repositories extends core_Master
         // И текущия потребител няма такава
         if ($action == 'retrive') {
             
+            // Ако хранилището е премахнато
+            if ($rec === FALSE) $requiredRoles = 'no_one';
+            
             // Ако няма роля admin
             // admin трябва да има достъп
             if (!haveRole('admin')) {
