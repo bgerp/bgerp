@@ -1086,6 +1086,8 @@ class fileman_Repositories extends core_Master
     {
         // Вземаме файловете в дървовидна структура
         $treeTpl = static::getFileTree($data->rec->id);
+        
+        // Добавя към шаблона
         $tpl->append($treeTpl, 'FileTree');
     }
     
