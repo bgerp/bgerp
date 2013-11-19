@@ -129,8 +129,13 @@ class core_Tree extends core_BaseClass
         $tpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ";", 'treeDesciption');
         
         foreach ($this->nodes as $path => $n) {
-            $tpl->append("\n{$name}.add({$n->id}, {$n->pid}, '{$n->title}', '{$n->url}');", 'treeDesciption');
+            
+            // Генерираме стринга
+            $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, '{$n->title}', '{$n->url}');";
         }
+        
+        // Аппендваме стринга
+        $tpl->append($treeDescription, 'treeDesciption');
         
         if($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');

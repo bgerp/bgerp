@@ -12,14 +12,12 @@ function tooltipCustom(closeUrl){
 		//задава като max-width на тултипа разстоянието до активния таб
 		setTooltipMaxWidth();
 		
-		if (isTouchDevice()){
-			//ако сменим ориентацията на телефона, изчисляваме отново позицията на стрелката
-			$(window).resize( function() {
-				setArrowPosition();
-				setTooltipMaxWidth();
-			});
-		}
-		
+		//при резайзване на прозореца изчисляваме отново позицията на стрелката
+		$(window).resize( function() {
+			setArrowPosition();
+			setTooltipMaxWidth();
+		});
+
 		//при клик на бутона, да се скрива и показва инфото и да се изчисли позицията на стрелката
 		 $('.tooltip-button').click(function(e) {
 		     $('.tooltip-text').fadeToggle("slow");
@@ -60,8 +58,3 @@ function setArrowPosition(){
 	$('.tooltip-arrow').css("left",leftOffet ) ;
 	
 }
-
-function isTouchDevice(){
-	return !!('ontouchstart' in window);
-}
-
