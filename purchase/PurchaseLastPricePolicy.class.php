@@ -16,7 +16,7 @@
 * @since     v 0.1
 * @title     Политика "По последна покупна цена"
 */
-class purchase_RequestLastPricePolicy extends core_Manager
+class purchase_PurchaseLastPricePolicy extends core_Manager
 {
     /**
      * Заглавие
