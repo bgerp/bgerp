@@ -144,16 +144,31 @@ class sales_SalesDetails extends core_Detail
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');
         
-        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
-        
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
+        $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
         // packagingId)
         $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
+    }
+    
+    
+	/**
+     * Изчисляване на сумата на реда
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->price) || empty($rec->quantity)) {
+            return;
+        }
+        
+        $rec->amount = $rec->price * $rec->quantity;
     }
     
     
@@ -206,22 +221,6 @@ class sales_SalesDetails extends core_Detail
     
     
     /**
-     * Изчисляване на сумата на реда
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    public function on_CalcAmount(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->price) || empty($rec->quantity)) {
-            return;
-        }
-        
-        $rec->amount = $rec->price * $rec->quantity;
-    }
-    
-    
-    /**
      * 
      * @param core_Mvc $mvc
      */
@@ -269,9 +268,8 @@ class sales_SalesDetails extends core_Detail
             
             // Конвертираме цените във валутата на продажбата
             $rec->packPrice = $rec->packPrice / $salesRec->currencyRate;
-            
+            $rec->packPrice = currency_Currencies::round($rec->packPrice, $salesRec->currencyId);
             $rec->amount = $rec->packPrice * $rec->packQuantity;
-            $rec->amount = $rec->amount;
         }
     }
     
@@ -290,11 +288,11 @@ class sales_SalesDetails extends core_Detail
         $haveDiscount = FALSE;
         
         if(count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
-    
+    			
                 if (empty($rec->packagingId)) {
                     if ($rec->uomId) {
                         $row->packagingId = $row->uomId;

@@ -211,9 +211,6 @@ class sales_Sales extends core_Master
     /**
      * След промяна в детайлите на обект от този клас
      * 
-     * @TODO Тук да се запомнят само мастър ид-тата, а същинското обновление на мастъра да се
-     *       направи на on_Shutdown
-     * 
      * @param core_Manager $mvc
      * @param int $id ид на мастър записа, чиито детайли са били променени
      * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
@@ -232,12 +229,17 @@ class sales_Sales extends core_Master
             
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
-                
                 $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
             
-            $rec->amountDeal += $detailRec->amount * $vat;
+            // Зада няма разминаване при конвертирането, сумираме сумата във валутата на продажбата
+            $detailRec->packPrice = ($detailRec->packPrice * $vat) / $rec->currencyRate;
+            $detailRec->packPrice = currency_Currencies::round($detailRec->packPrice, $rec->currencyId);
+            $rec->amountDeal += $detailRec->packPrice * $detailRec->packQuantity;
         }
+        
+        // Конвертиране на сумата във основна валута, за запазване в db-то
+        $rec->amountDeal *= $rec->currencyRate;
         
         $mvc->save($rec);
     }

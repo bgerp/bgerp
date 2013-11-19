@@ -149,13 +149,13 @@ class store_transactionIntf_ShipmentOrder
         	}
         	
             $entries[] = array(
-                'amount' => $detailRec->amount * $currencyRate, // В основна валута
+                'amount' => currency_Currencies::round($detailRec->amount * $currencyRate), // В основна валута
                 
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                        array('currency_Currencies', $currencyId),     // Перо 2 - Валута
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                        array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
+                    'quantity' => currency_Currencies::round($detailRec->amount, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(

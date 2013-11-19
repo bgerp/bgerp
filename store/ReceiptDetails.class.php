@@ -160,62 +160,6 @@ class store_ReceiptDetails extends core_Detail
         if (empty($rec->{$mvc->masterKey})) {
             $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
         }
-        
-        $mvc->updateMasterSummary($rec->{$mvc->masterKey});
-    }
-
-    
-    /**
-     * Обновява агрегатни стойности в мастър записа
-     * 
-     * @param int $masterId ключ на мастър модела
-     * @param boolean $force FALSE - само запомни ключа на мастъра, но не прави промени по БД
-     * 
-     *                       TRUE  - направи промените в БД сега! Тези промени ще засегнат:
-     *                       
-     *                               * Мастър записа с ключ $masterId, ако $masterId не е 
-     *                                 празно;
-     *                               * Всички мастър записи с ключове, добавени по-рано чрез 
-     *                                 извикване на този метод с параметър $force = FALSE.
-     *                        
-     */
-    public function updateMasterSummary($masterId = NULL, $force = FALSE)
-    {
-        static $updatedMasterIds = array();
-         
-        if (!$force) {
-            if (!empty($masterId)) {
-                $updatedMasterIds[$masterId] = $masterId;
-            }
-            
-            return;
-        }
-        
-        $masterIds = empty($masterId) ? $updatedMasterIds : array($masterId);
-        
-        foreach ($masterIds as $masterId) {
-            $amountDelivered = 0;
-            
-            $query = $this->getQuery();
-            $query->where("#{$this->masterKey} = '{$masterId}'");
-            
-            while ($rec = $query->fetch()) {
-                $amountDelivered += $rec->amount;
-            }
-            
-            $this->Master->save(
-                (object)array('id' => $masterId, 'amountDelivered' => $amountDelivered)
-            );
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след приключване на работата на скрипта
-     */
-    public function on_Shutdown($mvc)
-    {
-        $mvc->updateMasterSummary(NULL /* ALL */, TRUE /* force update now */);
     }
     
     
@@ -267,12 +211,13 @@ class store_ReceiptDetails extends core_Detail
                 $ProductManager = cls::get($rec->classId);
                 
     			if($showVat){
-    				$price = $rec->price * (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
-    				@$price /= $data->masterData->rec->currencyRate;
-    				
-    				$row->price = $mvc->fields['amount']->type->toVerbal($price * $rec->quantityInPack);
-    				$row->amount = $mvc->fields['amount']->type->toVerbal($price * $rec->quantity);
+    				$rec->price *= (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
     			}
+                @$rec->price /= $data->masterData->rec->currencyRate;
+    			$rec->price = currency_Currencies::round($rec->price, $data->masterData->rec->currencyId);
+    				
+    			$row->price = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantityInPack);
+    			$row->amount = $mvc->fields['amount']->type->toVerbal($rec->price * $rec->quantity);
                 
     			$row->productId = $ProductManager->getTitleById($rec->productId);
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
@@ -301,7 +246,7 @@ class store_ReceiptDetails extends core_Detail
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
-    {bp();
+    {
         $form = &$data->form;
     	$origin = store_Receipts::getOrigin($data->masterRec, 'bgerp_DealIntf');
         

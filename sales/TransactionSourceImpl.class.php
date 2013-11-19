@@ -225,13 +225,13 @@ class sales_TransactionSourceImpl
         	}
         	
             $entries[] = array(
-                'amount' => $detailRec->amount * $currencyRate, // В основна валута
+                'amount' => currency_Currencies::round($detailRec->amount * $currencyRate), // В основна валута
                 
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($detailRec->amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -271,13 +271,13 @@ class sales_TransactionSourceImpl
             
         foreach ($rec->details as $detailRec) {
             $entries[] = array(
-                'amount' => $detailRec->amount * $currencyRate, // В основна валута
+                'amount' => currency_Currencies::round($detailRec->amount * $currencyRate), // В основна валута
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($detailRec->amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(

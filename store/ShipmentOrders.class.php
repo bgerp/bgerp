@@ -184,9 +184,6 @@ class store_ShipmentOrders extends core_Master
     /**
      * След промяна в детайлите на обект от този клас
      *
-     * @TODO Тук да се запомнят само мастър ид-тата, а същинското обновление на мастъра да се
-     *       направи на on_Shutdown
-     *
      * @param core_Manager $mvc
      * @param int $id ид на мастър записа, чиито детайли са били променени
      * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
@@ -201,16 +198,26 @@ class store_ShipmentOrders extends core_Master
     
         while ($detailRec = $query->fetch()) {
             $vat = 1;
-    
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
     			$vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
+            
+            // Събиране на сумата във валутата на Ен-то за да няма разминаване
+            $priceVat = ($detailRec->price * $vat) / $rec->currencyRate;
+            $price = $detailRec->price / $rec->currencyRate;
     		
-            $rec->amountDelivered += $detailRec->amount;
-            $rec->amountDeliveredVat += $detailRec->amount * $vat;
+            $priceVat = currency_Currencies::round($priceVat, $rec->currencyCode);
+            $price = currency_Currencies::round($price, $rec->currencyCode);
+            
+    		$rec->amountDelivered += $price * $detailRec->quantity;
+            $rec->amountDeliveredVat += $priceVat * $detailRec->quantity;
         }
     	
+        // Конвертиране на сумата във основна валута, за запазване в db-то
+        $rec->amountDelivered *= $rec->currencyRate;
+        $rec->amountDeliveredVat *= $rec->currencyRate;
+        
         $mvc->save($rec);
     }
     

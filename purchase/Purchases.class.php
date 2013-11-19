@@ -682,12 +682,17 @@ class purchase_Purchases extends core_Master
             
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
-                
                 $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
             
-            $rec->amountDeal += $detailRec->amount * $vat;
+            // Зада няма разминаване при конвертирането, сумираме сумата във валутата на покупката
+            $detailRec->packPrice = ($detailRec->packPrice * $vat) / $rec->currencyRate;
+            $detailRec->packPrice = currency_Currencies::round($detailRec->packPrice, $rec->currencyId);
+            $rec->amountDeal += $detailRec->packPrice * $detailRec->packQuantity;
         }
+        
+        // Конвертиране на сумата във основна валута, за запазване в db-то
+        $rec->amountDeal *= $rec->currencyRate;
         
         $mvc->save($rec);
     }

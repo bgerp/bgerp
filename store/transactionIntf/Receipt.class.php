@@ -159,13 +159,13 @@ class store_transactionIntf_Receipt
         	}
         	
         	$entries[] = array(
-        		 'amount' => $detailRec->amount * $currencyRate,
+        		 'amount' => currency_Currencies::round($detailRec->amount * $currencyRate),
         		 'debit'  => $debit,
 	             'credit' => array(
 	                   '401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => $detailRec->amount, // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($detailRec->amount, $currencyCode), // "брой пари" във валутата на продажбата
 	             ),
 	        );
         }

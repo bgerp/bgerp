@@ -181,37 +181,6 @@ class purchase_PurchasesDetails extends core_Detail
         if (empty($rec->{$mvc->masterKey})) {
             $rec->{$mvc->masterKey} = $mvc->fetchField($rec->id, $mvc->masterKey);
         }
-        
-        $mvc->updateMasterSummary($rec->{$mvc->masterKey}, $rec);
-    }
-
-    
-    /**
-     * Обновява агрегатни стойности в мастър записа
-     * 
-     * @param int $masterId ключ на мастър модела
-     * @param stdClass $hotRec запис на модела, промяната на който е предизвикала обновяването
-     */
-    public function updateMasterSummary($masterId, $hotRec = NULL)
-    {
-        $amountDeal = 0;
-    	$purchaseRec = $this->Master->fetchRec($masterId);
-        $query = $this->getQuery();
-        $query->where("#requestId = '{$masterId}'");
-        
-        while ($rec = $query->fetch()) {
-            $VAT = 1;
-            
-            if ($purchaseRec->chargeVat == 'yes' || $purchaseRec->chargeVat == 'no') {
-                $ProductManager = cls::get($rec->classId);
-                $VAT += $ProductManager->getVat($rec->productId, $purchaseRec->valior);
-            }
-            
-            $amountDeal += $rec->amount * $VAT;
-        }
-        
-        $purchaseRec->amountDeal = $amountDeal;
-        $this->Master->save($purchaseRec);
     }
     
     
@@ -240,14 +209,14 @@ class purchase_PurchasesDetails extends core_Detail
             // Начисляваме ДДС, при нужда
             if ($purchaseRec->chargeVat == 'yes' || $purchaseRec->chargeVat == 'no') {
                 $ProductManager = cls::get($rec->classId);
-                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
+                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $purchaseRec->valior);
             }
             
-            // Конвертираме цените във валутата на покупката
+            // Конвертираме цените във валутата на продажбата
             $rec->packPrice = $rec->packPrice / $purchaseRec->currencyRate;
+            $rec->packPrice = currency_Currencies::round($rec->packPrice, $purchaseRec->currencyId);
             
             $rec->amount = $rec->packPrice * $rec->packQuantity;
-            $rec->amount = round($rec->amount, 2);
         }
     }
     
@@ -264,7 +233,7 @@ class purchase_PurchasesDetails extends core_Detail
         $haveDiscount = FALSE;
         
         if(count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
