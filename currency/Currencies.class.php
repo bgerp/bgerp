@@ -294,12 +294,25 @@ class currency_Currencies extends core_Master {
     		// Ако валутата е активна, добавя се като перо
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-    	}
-    	else {
-		// Ако валутата НЕ е активна, перото се изтрива ("изключва" ако вече е използвано)
-		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
+    	} else {
+			// Ако валутата НЕ е активна, перото се изтрива ("изключва" ако вече е използвано)
+			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
     		acc_Lists::removeItem($mvc, $rec->id, $rec->lists);
-	}
+		}
+    }
+    
+    
+    /**
+     * Функция за закръгляне на валута, която
+     * трябва да се използва във всички бизнес документи за показване на суми
+     * @param double $amount - сума
+     * @param string(3) $code -трибуквен код на валута
+     */
+    public static function round($amount, $code = NULL)
+    {
+    	// Мокъп имплементация
+    	//@TODO да не е мокъп
+    	return round($amount, 2);
     }
     
     
