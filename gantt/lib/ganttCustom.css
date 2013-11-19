@@ -119,3 +119,14 @@
 	border-bottom-left-radius: 0px;
 	border-left: 1px dashed #000;
 }
+
+@media print{
+	.task{
+		box-shadow:none;
+		border:1px solid #333 !important;
+	}
+}
+.printing .task{
+		box-shadow:none;
+		border:1px solid #333 !important;
+}
