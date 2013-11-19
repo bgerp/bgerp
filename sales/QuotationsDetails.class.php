@@ -120,6 +120,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    		$rec->price *= 1 + $rec->vatPercent;
 	    		$rec->price = $rec->price / $masterRec->rate;
+		    	$rec->price = currency_Currencies::round($rec->price, $masterRec->paymentCurrencyId);
 		    	
 		    	// Сумата с добавено ддс и конвертирана
 	    		if($rec->quantity){
