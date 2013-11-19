@@ -7,16 +7,16 @@
  * @property int $classId key(mvc=core_Classes) първичен ключ на мениджъра на продукта
  * @property core_Manager $productClass инстанция на мениджъра на продукта
  */
-class purchase_model_RequestProduct extends core_Model
+class purchase_model_PurchaseProduct extends core_Model
 {
     /**
      * @var string|int|core_Mvc
      */
-    public static $mvc = 'purchase_RequestDetails';
+    public static $mvc = 'purchase_PurchasesDetails';
     
     
     /**
-     * @var int key(mvc=purchase_Request)
+     * @var int key(mvc=purchase_Purchases)
      */
     public $requestId;
 

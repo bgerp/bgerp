@@ -301,7 +301,7 @@ class acc_OpenDeals extends core_Manager {
 	    		$btns .= ht::createBtn('РБД', array('bank_CostDocument', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
 	    		break;
 	    	case 'store':
-	    		if($docClass instanceof purchase_Requests){
+	    		if($docClass instanceof purchase_Purchases){
 	    			
 	    			// Ако документа е Покупка, бутона генерира Складова разписка
 	    			$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/view.png,title=Нова складова разписка');

@@ -301,7 +301,7 @@ class store_ReceiptDetails extends core_Detail
      * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
-    {
+    {bp();
         $form = &$data->form;
     	$origin = store_Receipts::getOrigin($data->masterRec, 'bgerp_DealIntf');
         

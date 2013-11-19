@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Покупки
  */
-class purchase_Requests extends core_Master
+class purchase_Purchases extends core_Master
 {
     
     
@@ -36,6 +36,18 @@ class purchase_Requests extends core_Master
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg,
 				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'purchase_Requests';
+    
+    
+    /**
+     * Абревиатура
+     */
+    public $abbr = 'Pur';
     
     
     /**
@@ -77,7 +89,7 @@ class purchase_Requests extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'purchase_RequestDetails';
+    public $details = 'purchase_PurchasesDetails';
 
 
     /**
@@ -89,7 +101,7 @@ class purchase_Requests extends core_Master
     /**
      * Лейаут на единичния изглед 
      */
-    public $singleLayoutFile = 'purchase/tpl/SingleLayoutRequest.shtml';
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutPurchase.shtml';
     
     
     /**
@@ -195,7 +207,7 @@ class purchase_Requests extends core_Master
         if ($form->rec->id) {
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
-        	if($mvc->purchase_RequestDetails->fetch("#requestId = {$form->rec->id}")){
+        	if($mvc->purchase_PurchasesDetails->fetch("#requestId = {$form->rec->id}")){
         		$data->form->setReadOnly('chargeVat');
         	}
         }
@@ -285,7 +297,7 @@ class purchase_Requests extends core_Master
      *
      *  Ако никой от тях няма права за създаване - резултатът е NULL
      *
-     * @param stdClass $rec запис на модела purchase_Requests
+     * @param stdClass $rec запис на модела purchase_Purchases
      * @return int|NULL user(roles=purchase)
      */
     public static function getDefaultDealerId($rec)
@@ -522,10 +534,10 @@ class purchase_Requests extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new purchase_model_Request(self::fetchRec($id));
+        $rec = new purchase_model_Purchase(self::fetchRec($id));
         
         // Извличаме продуктите на продажбата
-        $detailRecs = $rec->getDetails('purchase_RequestDetails', 'purchase_model_RequestProduct');
+        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
                 
         $result = new bgerp_iface_DealResponse();
         
@@ -543,7 +555,7 @@ class purchase_Requests extends core_Master
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
         
-        /* @var $dRec purchase_model_RequestProduct */
+        /* @var $dRec purchase_model_PurchaseProduct */
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
@@ -582,7 +594,7 @@ class purchase_Requests extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $requestRec = new purchase_model_Request($id);
+        $requestRec = new purchase_model_Purchase($id);
         
     	$requestDocuments = $this->getDescendants($requestRec->id);
         
@@ -642,7 +654,7 @@ class purchase_Requests extends core_Master
      */
     public static function on_DescendantChanged($mvc, $requestRef, $descendantRef = NULL)
     {
-        $requestRec = new purchase_model_Request($requestRef->rec());
+        $requestRec = new purchase_model_Purchase($requestRef->rec());
     	$aggregatedDealInfo = $mvc->getAggregateDealInfo($requestRef->that);
 		
         $requestRec->updateAggregateDealInfo($aggregatedDealInfo);
@@ -699,7 +711,7 @@ class purchase_Requests extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'activate' && isset($rec)){
-    		if(!$mvc->purchase_RequestDetails->fetch("#requestId = {$rec->id}")){
+    		if(!$mvc->purchase_PurchasesDetails->fetch("#requestId = {$rec->id}")){
     			$res = 'no_one';
     		}
     	}

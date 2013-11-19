@@ -320,7 +320,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Форсира спецификация
      * @param core_Mvc $mvc - mvc на модела
-     * @param stdClass $rec - запис от sales_Sales или purchase_Requests
+     * @param stdClass $rec - запис от sales_Sales или purchase_Purchases
      * @return int - ид на създадения или обновения запис
      */
     public static function forceRec(core_Mvc $mvc, $rec)

@@ -1,6 +1,6 @@
 <?php
 /**
- * Клас 'purchase_RequestDetails'
+ * Клас 'purchase_PurchasesDetails'
  *
  * Детайли на мениджър на документи за покупка на продукти (@see purchase_Requests)
  *
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class purchase_RequestDetails extends core_Detail
+class purchase_PurchasesDetails extends core_Detail
 {
     /**
      * Заглавие
@@ -34,7 +34,7 @@ class purchase_RequestDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_AlignDecimals,Policy=purchase_RequestLastPricePolicy';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_AlignDecimals,Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**
@@ -47,6 +47,12 @@ class purchase_RequestDetails extends core_Detail
      * Кой има право да чете?
      */
     public $canRead = 'ceo, purchase';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'purchase_RequestDetails';
     
     
     /**
@@ -84,7 +90,7 @@ class purchase_RequestDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('requestId', 'key(mvc=purchase_Requests)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('requestId', 'key(mvc=purchase_Purchases)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,mandatory,silent');
@@ -326,7 +332,7 @@ class purchase_RequestDetails extends core_Detail
         	// Извличане на информация за продукта - количество в опаковка, единична цена
             $rec = &$form->rec;
 
-            $masterRec  = purchase_Requests::fetch($rec->{$mvc->masterKey});
+            $masterRec  = purchase_Purchases::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
         	if(empty($rec->id)){

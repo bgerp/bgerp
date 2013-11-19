@@ -46,8 +46,8 @@ class purchase_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'purchase_Offers',
-            'purchase_Requests',
-            'purchase_RequestDetails',
+            'purchase_Purchases',
+            'purchase_PurchasesDetails',
         );
 
         
@@ -73,7 +73,7 @@ class purchase_Setup extends core_ProtoSetup
     	$html = parent::install();
         
         // Добавяме политиката "По последна покупна цена"
-        core_Classes::add('purchase_RequestLastPricePolicy');
+        core_Classes::add('purchase_PurchaseLastPricePolicy');
         
         return $html;
     }

@@ -16,7 +16,7 @@ class store_transactionIntf_Receipt
 {
     /**
      * 
-     * @var purchase_Requests
+     * @var purchase_Purchases
      */
     public $class;
     

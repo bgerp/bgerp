@@ -354,7 +354,7 @@ abstract class acc_ClosedDeals extends core_Master
     	if(isset($plugins['sales_Wrapper'])){
     		$docClassId = sales_Sales::getClassId();
     	} elseif(isset($plugins['purchase_Wrapper'])){
-    		$docClassId = purchase_Requests::getClassId();
+    		$docClassId = purchase_Purchases::getClassId();
     	}
     	
     	if($docClassId){

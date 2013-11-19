@@ -1,11 +1,11 @@
 <?php
 
-class purchase_model_Request extends core_Model
+class purchase_model_Purchase extends core_Model
 {
     /**
      * @var string|int|core_Mvc
      */
-    public static $mvc = 'purchase_Requests';
+    public static $mvc = 'purchase_Purchases';
         
     
     /**
@@ -190,11 +190,11 @@ class purchase_model_Request extends core_Model
         $this->amountDelivered = $aggregateDealInfo->shipped->amount;
         $this->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
         
-        $requestProducts = $this->getDetails('purchase_RequestDetails', 'purchase_model_RequestProduct');
+        $requestProducts = $this->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
         
         $this->save();
         
-        /* @var $p purchase_model_RequestProduct */
+        /* @var $p purchase_model_PurchaseProduct */
         foreach ($requestProducts as $p) {
             $aggrProduct = $aggregateDealInfo->shipped->findProduct($p->productId, $p->classId, $p->packagingId);
             if ($aggrProduct) {

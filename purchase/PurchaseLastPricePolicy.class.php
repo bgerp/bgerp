@@ -52,11 +52,11 @@ class purchase_RequestLastPricePolicy extends core_Manager
         }
         
         // Намира последната цена на която продукта е бил продаден на този контрагент
-        $detailQuery = purchase_RequestDetails::getQuery();
-        $detailQuery->EXT('contragentClassId', 'purchase_Requests', 'externalName=contragentClassId,externalKey=requestId');
-        $detailQuery->EXT('contragentId', 'purchase_Requests', 'externalName=contragentId,externalKey=requestId');
-        $detailQuery->EXT('valior', 'purchase_Requests', 'externalName=valior,externalKey=requestId');
-        $detailQuery->EXT('state', 'purchase_Requests', 'externalName=state,externalKey=requestId');
+        $detailQuery = purchase_PurchasesDetails::getQuery();
+        $detailQuery->EXT('contragentClassId', 'purchase_Purchases', 'externalName=contragentClassId,externalKey=requestId');
+        $detailQuery->EXT('contragentId', 'purchase_Purchases', 'externalName=contragentId,externalKey=requestId');
+        $detailQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
+        $detailQuery->EXT('state', 'purchase_Purchases', 'externalName=state,externalKey=requestId');
         $detailQuery->where("#contragentClassId = {$customerClass}");
         $detailQuery->where("#contragentId = {$customerId}");
         $detailQuery->where("#valior <= '{$date}'");
