@@ -547,6 +547,8 @@ class sales_SaleRequests extends core_Master
     			$productMan = cls::get($d->productManId);
     			$d->price *= 1 + $productMan->getVat($d->productId);
     		}
+    		$d->price /= $rec->rate;
+    		$d->price = currency_Currencies::round($d->price, $rec->paymentCurrencyId);
     		
     		$amount = $d->price * $d->quantity;
     		if($d->discount){
@@ -555,6 +557,9 @@ class sales_SaleRequests extends core_Master
     		
     		$total += $amount;
     	}
+    	
+    	$total *= $rec->rate;
+    	$discount *= $rec->rate;
     	
     	$afterDisc = ($discount != 0) ? $total - $discount : NULL;
     	return array($total, $afterDisc);

@@ -95,7 +95,7 @@ class sales_SaleRequestDetails extends core_Detail {
         $rows = $data->rows;
         $haveDiscount = FALSE;
         if(count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
+            foreach ($data->rows as $i => &$row) {
             	$haveDiscount = $haveDiscount || !empty($data->recs[$i]->discount);
             }
         }
@@ -109,9 +109,10 @@ class sales_SaleRequestDetails extends core_Detail {
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
+    public static function on_AfterRecToVerbal(core_Manager $mvc, &$row, $rec)
+    { 
     	$productMan = cls::get($rec->productManId);
+    	$masterRec = $mvc->Master->fetch($rec->requestId);
     	
     	$row->productId = $productMan->getTitleById($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
@@ -123,6 +124,9 @@ class sales_SaleRequestDetails extends core_Detail {
     		$vat = $productMan->getVat($rec->productId);
     		$rec->price = $rec->price * (1 + $vat);
     	}
+    	
+    	$rec->price /= $masterRec->rate;
+    	$rec->price = currency_Currencies::round($rec->price, $masterRec->paymentCurrencyId);
     	
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
     	$row->uomId = cat_UoM::getTitleById($measureId);
