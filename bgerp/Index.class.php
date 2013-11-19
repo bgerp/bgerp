@@ -9,17 +9,16 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class bgerp_Index extends core_Manager
 {
     
     
     /**
-     * @todo Чака за документация...
+     * Дефолт екшън след логване
      */
     function act_Default()
     {   
@@ -28,8 +27,13 @@ class bgerp_Index extends core_Manager
                 
                 return new Redirect(array('bgerp_Menu', 'Show'));
             } else {
-                
-                return new Redirect(array('bgerp_Portal', 'Show'));
+                if(haveRole('powerUser')){
+                	
+                	return new Redirect(array('bgerp_Portal', 'Show'));
+                } else {
+                	
+                	return new Redirect(array('colab_Profiles', 'Single'));
+                }
             }
         } else {
             return new Redirect(array('cms_Content', 'Show'));
