@@ -44,7 +44,7 @@ class acc_Periods extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, lastEntry, close=Приключване";
+    var $listFields = "id, title, start=Начало, end, vatRate, baseCurrencyId, state, lastEntry, close=Приключване";
     
     
     /**
