@@ -1082,10 +1082,11 @@ class fileman_Repositories extends core_Master
     /**
      * След подготовка на единичния изглед
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Вземаме файловете в дървовидна структура
-        $data->row->FileTree = static::getFileTree($data->rec->id);
+        $treeTpl = static::getFileTree($data->rec->id);
+        $tpl->append($treeTpl, 'FileTree');
     }
     
     
