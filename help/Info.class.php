@@ -37,7 +37,7 @@ class help_Info extends core_Master
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,class,text,createdOn,createdBy';
+    var $listFields = '✍,class,lg,text,createdOn,createdBy';
 
 
     /**
