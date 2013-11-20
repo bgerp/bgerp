@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .ppf файлове.
+ * Драйвер за работа с .ai файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Ppf extends fileman_webdrv_PostScript
+class fileman_webdrv_Ai extends fileman_webdrv_PostScript
 {
     
 }
