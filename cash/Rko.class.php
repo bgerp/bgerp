@@ -214,9 +214,14 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
+    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
+    		 	if($amount <= 0) {
+    		 		$amount = 0;
+    		 	}
+    		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
     		 	$form->rec->rate       = $dealInfo->agreed->rate;
-    		 	$form->rec->amount     = $dealInfo->agreed->amount / $dealInfo->agreed->rate;
+    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->agreed->currency);
     		 }
     	}
     	
@@ -234,9 +239,7 @@ class cash_Rko extends core_Master
         
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
-        
-        $form->setDefault('peroCase', cash_Cases::getCurrent());
-        $form->setReadOnly('peroCase');
+        $form->setReadOnly('peroCase', cash_Cases::getCurrent());
         
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
