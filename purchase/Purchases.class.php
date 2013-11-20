@@ -536,7 +536,7 @@ class purchase_Purchases extends core_Master
     {
         $rec = new purchase_model_Purchase(self::fetchRec($id));
         
-        // Извличаме продуктите на продажбата
+        // Извличаме продуктите на покупката
         $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
                 
         $result = new bgerp_iface_DealResponse();
@@ -720,5 +720,33 @@ class purchase_Purchases extends core_Master
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+	/**
+     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * @param int $id - ид на покупката
+     * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
+     * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
+     */
+    public function hasStorableProducts($id, $storable = TRUE)
+    {
+    	$rec = new purchase_model_Purchase(self::fetchRec($id));
+        $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
+        
+        foreach ($detailRecs as $d){
+        	$info = cls::get($d->classId)->getProductInfo($d->productId);
+        	if($storable){
+        		
+        		// Връща се TRUE ако има поне един складируем продукт
+        		if(isset($info->meta['canStore'])) return TRUE;
+        	} else {
+        		
+        		// Връща се TRUE ако има поне един НЕ складируем продукт
+        		if(!isset($info->meta['canStore']))return TRUE;
+        	}
+        }
+        
+        return FALSE;
     }
 }

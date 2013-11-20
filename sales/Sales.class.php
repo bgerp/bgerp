@@ -1118,4 +1118,31 @@ class sales_Sales extends core_Master
     	$info = $this->getAggregateDealInfo($id);
     	bp($info);
     }
+    
+    
+    /**
+     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * @param int $id - ид на продажба
+     * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
+     * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
+     */
+    public function hasStorableProducts($id, $storable = TRUE)
+    {
+    	$rec = new sales_model_Sale(self::fetchRec($id));
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        foreach ($detailRecs as $d){
+        	$info = cls::get($d->classId)->getProductInfo($d->productId);
+        	if($storable){
+        		
+        		// Връща се TRUE ако има поне един складируем продукт
+        		if(isset($info->meta['canStore'])) return TRUE;
+        	} else {
+        		
+        		// Връща се TRUE ако има поне един НЕ складируем продукт
+        		if(!isset($info->meta['canStore']))return TRUE;
+        	}
+        }
+        
+        return FALSE;
+    }
 }
