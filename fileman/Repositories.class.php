@@ -322,6 +322,20 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Връща пълния път до хранилището по подадено id
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return string - Пътя до хранилището
+     */
+    static function getFullPathFromId($id)
+    {
+        
+        return static::fetchField($id, 'fullPath');
+    }
+    
+    
+    /**
      * Обединява хранилището и подпапката
      * 
      * @param string $basePath - Хранилището
@@ -772,10 +786,11 @@ class fileman_Repositories extends core_Master
      * @param integer $repositoryId - id на хранилището
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
+     * @param integer $depth - Дълбочината на папката, до която ще се търси
      * 
      * @return array - Масив с всички папки и файловете в тях
      */
-    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE)
+    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE)
     {
         // Очакваме да е число
         expect(is_numeric($repositoryId));
@@ -818,11 +833,31 @@ class fileman_Repositories extends core_Master
             // Вземаме пътя
             $path = $iterator->current()->getPath();
             
+            // Ако сме задали някаква дълбочина
+            // Първата е 0
+            if ($depth !== FALSE) {
+                
+                // Вземаме текущута дълбочина
+                $currentDepth = $iterator->getDepth();
+                
+                // Ако текущатат е повече от зададената
+                if ($currentDepth > $depth) {
+                    
+                    // Преместваме итератора
+                    $iterator->next();
+                    
+                    // Прескачаме, иначе ще се изпълни и останалта част от кода
+                    continue;
+                }
+            }
+            
             // Ако не е задедено да се използва целия път до файла
             if (!$useFullPath) {
                 
                 // Вземаме пътя без целия път
                 $path = str_ireplace($fullPath, '', $path);
+                
+                // Ако няма път, за да не е празна стойност
                 if (!$path) $path = '/';
             }
             
@@ -848,7 +883,7 @@ class fileman_Repositories extends core_Master
                 }
             }
             
-            // Прескачаме на следващия
+            // Преместваме итератора
             $iterator->next();
         }
         
