@@ -302,8 +302,6 @@ class sales_Quotations extends core_Master
     		// Трябва да има зададена цена
     		expect($origin->getPriceInfo()->price);
     		
-    		// Да не е оттеглена
-    		expect($originRec->state != 'rejected');
     		$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
     		if(($quantities[0] || $quantities[1] || $quantities[2])){
     			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $quantities);
