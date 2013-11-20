@@ -264,16 +264,6 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * Сортираме резултатите по продукти
-     */
-	static function on_AfterPrepareDetailQuery(core_Detail $mvc, $data)
-    {
-        // Историята на ценовите групи на продукта - в обратно хронологичен ред.
-        $data->query->orderBy("id,productId", 'ASC');
-    }
-    
-    
-    /**
      * След подготовка на детайлите, изчислява се общата цена
      * и данните се групират
      */
@@ -350,14 +340,23 @@ class sales_QuotationsDetails extends core_Detail {
     	$resArr = array_values($data->recs);
     	foreach($resArr as $i => $rec){
     		if($rec->optional == 'no'){
-    			if($i != 0){
-    				$prevRec = $resArr[$i-1];
-    				if($rec->productId == $prevRec->productId && $rec->productManId == $prevRec->productManId) return;
-    				if($rec->vatPercent != $prevRec->vatPercent){
-    					$avVat = FALSE;
-    				} 
-    			}
+    			$id = $rec->id;
+    			$productId = $rec->productId;
+    			$productManId = $rec->productManId;
     			
+    			// За всеки елемент проверяваме дали се повтаря в масива
+    			$other = array_values(array_filter($resArr, function ($val) use ($productId, $productManId, $id) {
+           				if($val->optional == 'no' && $val->productId == $productId && $val->productManId == $productManId && $val->id != $id){
+            				return $val;
+            			}}));
+            			
+            	// Ако елемента се среща поне още веднъж спира се изчисляването на общата сума
+    			if(count($other)) return;
+    			
+    			if($rec->vatPercent != $other[0]->vatPercent){
+    				$avVat = FALSE;
+    			} 
+            			
     			$total += $rec->amount;
     			if($rec->discAmountVat){
     				$totalDisc += $rec->amount - $rec->discAmountVat; 
