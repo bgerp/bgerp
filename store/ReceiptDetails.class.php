@@ -254,8 +254,7 @@ class store_ReceiptDetails extends core_Detail
       	expect($origin = $mvc->Master->getOrigin($masterRec));
       	$dealAspect = $origin->getAggregateDealInfo()->agreed;
       	$invProducts = $mvc->Master->getDealInfo($form->rec->receiptId)->shipped;
-        
-      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
+      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, TRUE, $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
     }
     
     

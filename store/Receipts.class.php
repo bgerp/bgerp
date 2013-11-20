@@ -238,9 +238,10 @@ class store_Receipts extends core_Master
             
             /* @var $product bgerp_iface_DealProduct */
             foreach ($remainingToShip->products as $product) {
-                if ($product->quantity <= 0) {
-                    continue;
-                }
+            	$isStorale = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
+                
+            	// Пропускат се експедираните и нескладируемите продукти
+            	if (!$isStorale || $product->quantity <= 0) continue;
                 
                 $shipProduct = new store_model_ReceiptProduct(NULL);
                 
@@ -593,8 +594,11 @@ class store_Receipts extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
+    	// Ако началото на треда е активирана покупка
     	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
-    		return TRUE;
+    		
+    		// Ако има поне един складируем продукт в покупката
+    		return $firstDoc->hasStorableProducts();
     	}
     	
     	return FALSE;

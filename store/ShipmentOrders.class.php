@@ -241,10 +241,10 @@ class store_ShipmentOrders extends core_Master
             
             /* @var $product bgerp_iface_DealProduct */
             foreach ($remainingToShip->products as $product) {
-                if ($product->quantity <= 0) {
-                    continue;
-                }
+            	$isStorale = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
                 
+            	// Пропускат се експедираните и нескладируемите продукти
+            	if (!$isStorale || $product->quantity <= 0) continue;
                 $shipProduct = new store_model_ShipmentProduct(NULL);
                 
                 $shipProduct->shipmentId  = $rec->id;
@@ -603,8 +603,11 @@ class store_ShipmentOrders extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
+    	// Ако началото на треда е активирана продажба
     	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
-    		return TRUE;
+    		
+    		// Ако има поне един складируем продукт в продажбата
+    		return $firstDoc->hasStorableProducts();
     	}
     	
     	return FALSE;

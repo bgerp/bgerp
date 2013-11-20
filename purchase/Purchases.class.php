@@ -241,12 +241,12 @@ class purchase_Purchases extends core_Master
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
     		
-	    	if (store_Receipts::haveRightFor('add')) {
-	            $data->toolbar->addBtn('Заприхождаване', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите');
+	    	if (store_Receipts::canAddToThread($data->rec->threadId)) {
+	            $data->toolbar->addBtn('Заприхождаване', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Заприхождаване на артикулите в склада');
 	        }
 	        
 	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    	}
     	}
     	

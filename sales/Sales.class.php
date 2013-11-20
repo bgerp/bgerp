@@ -761,7 +761,7 @@ class sales_Sales extends core_Master
     		}
     		
 	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    	}
     	}
     	

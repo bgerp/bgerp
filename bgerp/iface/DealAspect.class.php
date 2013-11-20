@@ -163,6 +163,7 @@ class bgerp_iface_DealAspect
      * 
 	 * @param array $dealAspectOriginProducts - продуктите които идват от ориджина
 	 * @param array $dealAspectThisProducts - вече вкараните продукти
+	 * @param boolean $storable - дали да останат в масива само скалдируемите или нескладируемите продукти
 	 * @param ibt $productId - ид на продукт
 	 * @param int $classId - класа на продукта
 	 * @param int $classId - ид на опаковката
@@ -171,7 +172,7 @@ class bgerp_iface_DealAspect
      *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
      *                на този продуктов клас.
 	 */
-    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $productId = NULL, $classId = NULL, $packagingId = NULL)
+    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $storable = TRUE, $productId = NULL, $classId = NULL, $packagingId = NULL)
     {
         $options = array();
         
@@ -182,6 +183,10 @@ class bgerp_iface_DealAspect
         }
         
         foreach ($dealAspectOriginProducts->products as $p) {
+        	$info = cls::get($p->classId)->getProductInfo($p->productId);
+        	$skip = ($storable) ? !isset($info->meta['canStore']) : isset($info->meta['canStore']);
+        	if($skip) continue;
+        	
         	if($dealAspectThisProducts->findProduct($p->productId, $p->classId, $p->packagingId)) continue;
         	
             $ProductManager = cls::get($p->classId);
