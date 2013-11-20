@@ -568,14 +568,40 @@ class fileman_Files extends core_Master
      */
     static function getUrLForAddFile($bucketId, $callback)
     {
+        // Защитаваме променливите
         Request::setProtected('bucketId,callback');
         
-        // Вземаме името на класа
-        $class = fileman_DialogWrapper::getLastUploadTab();
-        
-        $url = array($class, 'Dialog', 'bucketId' => $bucketId, 'callback' => $callback);
+        // Задаваме линка
+        $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback);
         
         return toUrl($url);
+    }
+    
+    
+    /**
+     * Екшън, който редиректва към качването на файл в съответния таб
+     */
+    function act_AddFile()
+    {
+        // Защитаваме променливите
+        Request::setProtected('bucketId,callback');
+        
+        // Името на класа
+        $class = fileman_DialogWrapper::getLastUploadTab();
+        
+        // Инстанция на класа
+        $class = cls::get($class);
+        
+        // Вземаме екшъна
+        $act = $class->getActionForAddFile();
+        
+        // Други допълнителни данни
+        $bucketId = Request::get('bucketId');
+        $callback = Request::get('callback');
+        
+        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
+        
+        return new Redirect($url);
     }
     
     

@@ -133,6 +133,23 @@ class fileman_DialogWrapper extends core_Plugin
     
     
     /**
+     * Прихваща извикването на getActionForAddFile
+     * Връща името на екшъна за добавяне на файл
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     */
+    static function on_AfterGetActionForAddFile($mvc, $res)
+    {
+        // Ако не е сетнат
+        if (!$res) {
+            
+            $res = 'Dialog';
+        }
+    }
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function getTabsArr()
