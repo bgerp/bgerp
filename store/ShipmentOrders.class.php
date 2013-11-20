@@ -41,7 +41,7 @@ class store_ShipmentOrders extends core_Master
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, plg_LastUsedKeys';
+                    doc_plg_BusinessDoc2, plg_LastUsedKeys, cond_plg_DefaultValues';
 
     
     /**
@@ -141,6 +141,12 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array('termId' => 'lastDocUser|lastDoc|clientCondition');
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -159,7 +165,7 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory');
+        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
@@ -393,14 +399,6 @@ class store_ShipmentOrders extends core_Master
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
         
-        /*
-         * Условия за доставка по подразбиране - трябва да е след определянето на контрагента, 
-         * тъй-като определянето зависи от него
-         */
-        if (empty($rec->termId)) {
-            $rec->termId = $mvc::getDefaultDeliveryTermId($rec);
-        }
-        
         if (empty($rec->storeId)) {
             $rec->storeId = store_Stores::getCurrent('id', FALSE);
         }
@@ -414,23 +412,20 @@ class store_ShipmentOrders extends core_Master
         	
             // ... проверяваме предхождащия за bgerp_DealIntf
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
-            expect($origin);
-            
-            if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
+            expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
             	
-                /* @var $dealInfo bgerp_iface_DealResponse */
-                $dealInfo = $origin->getAggregateDealInfo();
-                $form->rec->currencyId = $dealInfo->agreed->currency;
-                $form->rec->currencyRate = $dealInfo->agreed->rate;
+            /* @var $dealInfo bgerp_iface_DealResponse */
+            $dealInfo = $origin->getAggregateDealInfo();
+            $form->rec->currencyId = $dealInfo->agreed->currency;
+            $form->rec->currencyRate = $dealInfo->agreed->rate;
+            if($dealInfo->agreed->delivery->term){
                 $form->rec->termId = $dealInfo->agreed->delivery->term;
-                $form->rec->locationId = $dealInfo->agreed->delivery->location;
-                $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
-                $form->rec->chargeVat = $dealInfo->agreed->vatType;
-                $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
-                if(isset($form->rec->termId)){
-                	$form->setField('termId', 'input=hidden');
-                }
+                $form->setField('termId', 'input=hidden');
             }
+            $form->rec->locationId = $dealInfo->agreed->delivery->location;
+            $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
+            $form->rec->chargeVat = $dealInfo->agreed->vatType;
+            $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
@@ -443,78 +438,6 @@ class store_ShipmentOrders extends core_Master
                 }
             }
         }
-    }
-    
-
-    /**
-     * Условия за доставка по подразбиране
-     * 
-     * @param stdClass $rec
-     * @return int key(mvc=cond_DeliveryTerms)
-     */
-    public static function getDefaultDeliveryTermId($rec)
-    {
-        $deliveryTermId = NULL;
-        
-        // 1. Условията на последната продажба на същия клиент
-        if ($recentRec = self::getRecentShipment($rec)) {
-            $deliveryTermId = $recentRec->deliveryTermId;
-        }
-        
-        // 2. Условията определени от локацията на клиента (държава, населено място)
-        // @see cond_DeliveryTermsByPlace
-        if (empty($deliveryTermId)) {
-            $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-            $deliveryTermId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'deliveryTerm');
-        }
-        
-        return $deliveryTermId;
-    }
-    
-    
-    /**
-     * Най-новата контирана продажба към същия клиент, създадена от текущия потребител, тима му или всеки
-     * 
-     * @param stdClass $rec запис на модела sales_Sales
-     * @param string $scope 'user' | 'team' | 'any'
-     * @return stdClass
-     */
-    protected static function getRecentShipment($rec, $scope = NULL)
-    {
-        if (!isset($scope)) {
-            foreach (array('user', 'team', 'any') as $scope) {
-                expect(!is_null($scope));
-                if ($recentRec = self::getRecentShipment($rec, $scope)) {
-                    return $recentRec;
-                }
-            }
-            
-            return NULL;
-        }
-        
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $query->where("#contragentClassId = '{$rec->contragentClassId}'");
-        $query->where("#contragentId = '{$rec->contragentId}'");
-        $query->orderBy("createdOn", 'DESC');
-        $query->limit(1);
-        
-        switch ($scope) {
-            case 'user':
-                $query->where('#createdBy = ' . core_Users::getCurrent('id'));
-                break;
-            case 'team':
-                $teamMates = core_Users::getTeammates(core_Users::getCurrent('id'));
-                $teamMates = keylist::toArray($teamMates);
-                if (!empty($teamMates)) {
-                    $query->where('#createdBy IN (' . implode(', ', $teamMates) . ')');
-                }
-                break;
-        }
-        
-        $recentRec = $query->fetch();
-        
-        return $recentRec ? $recentRec : NULL;
     }
     
     
