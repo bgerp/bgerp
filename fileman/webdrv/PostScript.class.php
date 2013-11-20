@@ -32,7 +32,7 @@ class fileman_webdrv_PostScript extends fileman_webdrv_Office
         $params = array(
             'callBack' => 'fileman_webdrv_PostScript::afterConvertToJpg',
             'dataId' => $fRec->dataId,
-        	'asynch' => FALSE,
+        	'asynch' => TRUE,
             'createdBy' => core_Users::getCurrent('id'),
             'type' => 'jpg',
         );
