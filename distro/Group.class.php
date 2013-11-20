@@ -40,6 +40,12 @@ class distro_Group extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'repos';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'powerUser';
@@ -339,6 +345,9 @@ class distro_Group extends core_Master
                 
                 // Създаваме директория в хранилището
                 fileman_Repositories::createDirInRepo($repoId, $rec->title);
+                
+                // Активираме хранилището
+                fileman_Repositories::activateRepo($repoId);
             }
         }
     }
@@ -403,6 +412,16 @@ class distro_Group extends core_Master
         
         // Връщаме масива
         return $reposArr;
+    }
+    
+    
+	/**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    static function getThreadState($id)
+    {
+        
+        return 'opened';
     }
     
     
