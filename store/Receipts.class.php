@@ -106,12 +106,6 @@ class store_Receipts extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, folderId, amountDelivered,createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField;
 
 
     /**
@@ -473,18 +467,6 @@ class store_Receipts extends core_Master
         return $deliveryTermId;
     }
     
-
-    /**
-     * Връща разбираемо за човека заглавие, отговарящо на записа
-     */
-    static function getRecTitle($rec, $escaped = TRUE)
-    {
-        $title = tr("|Експедиционно нареждане|* №" . $rec->id);
-        
-         
-        return $title;
-    }
-    
     
     /**
      * Най-новата контирана продажба към същия клиент, създадена от текущия потребител, тима му или всеки
@@ -606,19 +588,20 @@ class store_Receipts extends core_Master
         
     
     /**
-     * @param int $id key(mvc=sales_Sales)
+     * @param int $id key(mvc=store_Receipts)
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
+        $title = "Експедиционно нареждане №{$rec->id} / " . $this->getVerbal($rec, 'valior');
         
         $row = (object)array(
-            'title'    => "Експедиционно нареждане №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+            'title'    => $title,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $this->getRecTitle($rec)
+            'recTitle' => $title
         );
         
         return $row;
