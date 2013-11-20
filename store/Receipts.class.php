@@ -594,7 +594,7 @@ class store_Receipts extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Експедиционно нареждане №{$rec->id} / " . $this->getVerbal($rec, 'valior');
+        $title = "Складова разписка №{$rec->id} / " . $this->getVerbal($rec, 'valior');
         
         $row = (object)array(
             'title'    => $title,
