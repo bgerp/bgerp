@@ -15,7 +15,7 @@ function ganttRender(elem,ganttData) {
 	    var ganttTableTasks ='<table class="gantt-tasks"><tbody>';
 	    
 	    //генериране на 2-та реда, които показват какви деления са колоните
-	    var headerTasks = '<tr class="gantt-header"><td>'  + ganttData['otherParams']['type'] + '</td></tr><tr class="gantt-header"><td>' + ganttData['otherParams']['typeChild'] + '</td></tr>';
+	    var headerTasks = '<tr class="gantt-header"><td>'  + ganttData['otherParams']['mainHeaderCaption'] + '</td></tr><tr class="gantt-header"><td>' + ganttData['otherParams']['subHeaderCaption'] + '</td></tr>';
 	    ganttTableTasks += headerTasks;
 	    
 	    //генериране на текстовете на ресурсите
@@ -42,16 +42,16 @@ function ganttRender(elem,ganttData) {
 	    //обхождане на големите деления на хедъра на таблицата
 	    jQuery.each( ganttData['headerInfo'], function( i, val ) {
 	    	
-	        var h2Count = Object.keys(val['valChildren']).length;
+	        var h2Count = Object.keys(val['subHeader']).length;
 	        
 	        //получаване на всички колони, които трябва да има таблицата
 	        cols = cols + h2Count;
 	        
 	        //гериране на реда с големите деления на периода
-	        firstRow += '<th colspan='+ h2Count + '>' + val['valParent'] + '</th>';
+	        firstRow += '<th colspan='+ h2Count + '>' + val['mainHeader'] + '</th>';
 	      
 	        //обхождане на малките деления на хедъра на таблицата
-	        jQuery.each( val['valChildren'], function( j, children ) {
+	        jQuery.each( val['subHeader'], function( j, children ) {
 	        	buildSecondRow +='<th>' + children + '</th>';
 	        	
 	        });
