@@ -96,7 +96,7 @@ class fileman_Repositories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created, plg_State';
     
     
     /**
@@ -183,6 +183,15 @@ class fileman_Repositories extends core_Master
             
             // Избираме първия, по подразбиране
             $data->form->setDefault('basePath', key($basePathsArr));
+        } else {
+            
+            // Ако е активирано
+            if ($data->form->rec->state == 'active') {
+                
+                // Да не може да се променя пътя до хранилището
+                $data->form->setReadOnly('subPath');
+                $data->form->setReadOnly('basePath');
+            }
         }
         
         // Плейсхолдера, който ще показваме
@@ -1048,9 +1057,43 @@ class fileman_Repositories extends core_Master
                 }
             }
         }
+        
+        // Ако има запис и се опитваме да изтрием
+        if ($rec && ($action == 'delete')) {
+            
+            // Ако състоянието е активно
+            if ($rec->state == 'active') {
+            
+				// Да не може да се изтрие
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 	
+    
+    /**
+     * Активира състоянието на хранилището
+     * 
+     * @param integer $id - id на хранилище
+     * 
+     * @return integer - id на записа, ако се е активирал
+     */
+    static function activateRepo($id)
+    {
+        // Вземаем записа
+        $rec = static::fetch($id);
+        
+        // Ако не е бил активиран
+        if ($rec->state != 'active') {
+            
+            // Активираме
+            $rec->state = 'active';
+            
+            return static::save($rec);
+        }
+    }
 	
+    
 	/**
      * След преобразуване на записа в четим за хора вид.
      *
