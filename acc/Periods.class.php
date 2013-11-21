@@ -419,9 +419,10 @@ class acc_Periods extends core_Manager
             if($rec->end >= $curPerEnd || $rec->state != 'active') {
                  $requiredRoles = "no_one";
             }
+            
             $balRec = acc_Balances::fetch("#periodId = {$rec->id}");
 
-            if(!$balRec || $balRec->lastCalculate < $rec->lastEntry) {
+            if(($balRec->lastCalculate || $rec->lastEntry) && ($balRec->lastCalculate < $rec->lastEntry)) {
                 $requiredRoles = "no_one";
             }
         }
