@@ -39,8 +39,7 @@ class sales_Sales extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
                     doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc2, store_plg_Shippable, acc_plg_DocumentSummary';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
     /**
@@ -766,6 +765,10 @@ class sales_Sales extends core_Master
 	    	
     		if (sales_Services::canAddToThread($data->rec->threadId)) {
 	            $data->toolbar->addBtn('Услуга', array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	        }
+	        
+	    	if (store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	            $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
     	}
     	
