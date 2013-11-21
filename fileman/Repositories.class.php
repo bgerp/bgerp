@@ -377,21 +377,29 @@ class fileman_Repositories extends core_Master
     /**
      * Качва посочения файл в кофата и връща манипулатора му
      * 
-     * @param string $filePath - Пътя до файла
+     * @param string $repoPath - Пътя до хранилището
+     * @param string $file - Името на файла
+     * @param string $subPath - Подпапка в хранилището
      * @param string $bucket - Кофата, в която да се качи
      * 
      * @return fileHnd - Връща манипулатора на качения файл
      */
-    static function absorbFile($filePath, $bucket=NULL)
+    static function absorbFile($repoPath, $file, $subPath='', $bucket=NULL)
     {
         // Задаваме кофата, ако не е зададена
         setIfNot($bucket, static::$bucket);
         
-        // Очакваме да няма хакове по пътя
-        expect(static::isGoodPath($filePath));
+        // Обединяваме подпапката и хранилището
+        $repoPath = static::getFullPath($repoPath, $subPath);
+        
+        // Добавяме името на файла към пътя
+        $filePath = static::getFullPath($repoPath, $file);
         
         // Подготвяме пътя
         $filePath = static::preparePath($filePath);
+        
+        // Очакваме да няма хакове по пътя
+        expect(static::isGoodPath($filePath));
         
         // Очакваме да е валиден файл        
         expect(is_file($filePath));
@@ -405,21 +413,22 @@ class fileman_Repositories extends core_Master
      * Абсорбира подадения файл, който се намира в съответното хранилище
      * 
      * @param integer $id - id на хранилището
-     * @param string $file - Файла в хранилището
+     * @param string $file - Името на файла в хранилището
+     * @param string $subPath - Подпапка в хранилището
      * @param string $bucket - Кофата
      * 
      * @return array $fh - Манипулатор на файла
      */
-    static function absorbFileFromId($id, $file, $bucket=NULL)
+    static function absorbFileFromId($id, $file, $subPath='', $bucket=NULL)
     {
         // Вземаме записа
         $rec = static::fetch($id);
         
-        // Вземаем пътя до файла
-        $filePath = static::getFullPath($rec->fullPath, $file);
+        // Вземаем пътя до хранилището
+        $repoPath = static::getFullPathFromId($id);
         
         // Абсорбираме файла
-        $fh = static::absorbFile($filePath, $bucket);
+        $fh = static::absorbFile($repoPath, $file, $subPath, $bucket);
         
         // Връщаме манупулатора му
         return $fh;
@@ -1221,11 +1230,8 @@ class fileman_Repositories extends core_Master
                     // Вземаме пътя до файла
                     $filePathEntry = $filePathEntry . '->' . $file;
                     
-                    // Пътя до файла
-                    $fullPath = static::getFullPath($path, $file);
-                    
                     // URL за абсорбиране на файла
-                    $urlPath = static::getAbsorbUrl($id, $fullPath);
+                    $urlPath = static::getAbsorbUrl($id, $file, $path);
                     
                     // Добавяме в дървото
                     $tableInst->addNode($filePathEntry, $urlPath, TRUE);
@@ -1252,11 +1258,14 @@ class fileman_Repositories extends core_Master
         // id на хранилището
         $id = Request::get('id', 'int');
         
+        // Подпапката
+        $subPath = Request::get('subPath');
+        
         // Относителен път до файла в хранилището
         $file = Request::get('file');
         
         // Абсорбираме файла и вземаме манипулатора му
-        $fh = static::absorbFileFromId($id, $file);
+        $fh = static::absorbFileFromId($id, $file, $subPath);
         
         // Линк към сингъла на файла
         $singleUrl = fileman::getUrlToSingle($fh);
@@ -1269,19 +1278,20 @@ class fileman_Repositories extends core_Master
     /**
      * Връща URL към екшъна за абсорбиране на съответния файл
      * 
-     * @param integer $id
-     * @param string $file
-     * @param boolean $absolute
+     * @param integer $id - id на хранилищетп
+     * @param string $file - Името на файла
+     * @param string $subPath - Подпапка в хранилището
+     * @param boolean $absolute - Дали линка е да абсолютен
      * 
-     * @return string $url
+     * @return string
      */
-    static function getAbsorbUrl($id, $file, $absolute=FALSE)
+    static function getAbsorbUrl($id, $file, $subPath='', $absolute=FALSE)
     {
         // Очакваме да има id
         expect($id);
         
         // Вземаме URL' то
-        $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file), $absolute);
+        $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file, 'subPath' => $subPath), $absolute);
         
         return $url;
     }
