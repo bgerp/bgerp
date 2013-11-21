@@ -18,19 +18,19 @@ class hyphen_Plugin extends core_Plugin
 	/**
      * Минималната дължина на стринга, над която ще се хифенира стринга
      */
-    const TRANSFER_WORD_MIN_LENGTH = 15;
+    const TRANSFER_WORD_MIN_LENGTH = 32;
     
     
 	/**
      * Минималната дължина след която ще се добавя знак за хифенация
      */
-    const MIN_LENGTH_HYPHEN = 4;
+    const MIN_LENGTH_HYPHEN = 24;
     
     
     /**
-     * Максималната дължина след която ще се добавя знак за хифенация
+     * Максималната дължина след която ще се добавя (задължително) знак за хифенация
      */
-    const MAX_LENGTH_HYPHEN = 10;
+    const MAX_LENGTH_HYPHEN = 28;
     
     
     /**
