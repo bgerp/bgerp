@@ -622,24 +622,18 @@ class distro_Files extends core_Detail
     /**
      * Синхронизира съдържанието на хранилищата с модела
      * 
-     * @param distro_Files $mvc - Инстанция на класа
-     * 
      * @return array - Двумерен масив с добавените файлове в хранилищата
      */
-    static function syncFiles($mvc=NULL)
+    static function syncFiles()
     {
-        // Ако не е подаден клас
-        if (!$mvc) {
-            
-            // Вземаме текущия
-            $mvc = cls::get(get_called_class());
-        }
+        // Вземаме текущия
+        $me = cls::get(get_called_class());
         
         // Инстанция на мастъра
-        $Master = $mvc->Master;
+        $Master = $me->Master;
         
         // Ключа към мастъра
-        $masterKey = $mvc->masterKey;
+        $masterKey = $me->masterKey;
         
         // Вземаме пътищата на активните групи
         $pathArr = $Master->getActiveGroupArr();
@@ -719,6 +713,47 @@ class distro_Files extends core_Detail
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Функция, която се вика от крон
+     * Синрхоронизира файловете в хранилищитата с модела
+     */
+    static function cron_SyncFiles()
+    {
+        
+        // Извикваме функцията и връщаме резултата му
+        return static::syncFiles();
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        $rec = new stdClass();
+        $rec->systemId = 'SyncFiles';
+        $rec->description = 'Синхронизира файловете в хранилищете със записите в модела';
+        $rec->controller = $mvc->className;
+        $rec->action = 'SyncFiles';
+        $rec->period = 3;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 120;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да синхронизира файловете.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да сваля синхронизира файловете.</li>";
+        }
+        
+        return $res;
     }
     
     
