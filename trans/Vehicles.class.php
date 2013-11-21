@@ -2,7 +2,7 @@
 /**
  * Клас 'trans_vehicles'
  *
- * Детайли на мениджър на експедиционни нареждания (@see store_ShipmentOrders)
+ * Мениджър за транспортни средства
  *
  * @category  bgerp
  * @package   trans
@@ -11,26 +11,24 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class trans_Vehicles extends core_Manager
+class trans_Vehicles extends core_Master
 {
     /**
      * Заглавие
      */
-    public $title = 'Превозни средства';
+    public $title = 'Транспортни средства';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Превозни средство';
+    public $singleTitle = 'Транспортни средство';
     
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Modified, trans_Wrapper, plg_RowNumbering';
+    public $loadList = 'plg_RowTools, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected';
     
     
     /**
@@ -66,7 +64,7 @@ class trans_Vehicles extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,name,type,operator,modifiedOn,modifiedBy';
+    public $listFields = 'RowNumb=Пулт,name,number,createdOn,createdBy';
     
         
     /**
@@ -76,13 +74,23 @@ class trans_Vehicles extends core_Manager
     
     
     /**
+     * Файл с шаблон за единичен изглед
+     */
+    public $singleLayoutFile = 'trans/tpl/SingleLayoutVehicle.shtml';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-    	$this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
-    	$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
-    	$this->FLD('operator', 'user(roles=trans)', 'caption=Шофьор, mandatory');
+    	$this->FLD('name', 'varchar(120)', 'caption=Наименование,mandatory');
+    	$this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
+    	$this->FLD('load', 'double', 'caption=Товароносимост');
+    	$this->FLD('description', 'richtext(rows=3)', 'caption=Описание');
+    	
+    	//$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
+    	//$this->FLD('operator', 'user(roles=trans)', 'caption=Шофьор, mandatory');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
     	$this->setdbUnique('name');
