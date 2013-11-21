@@ -763,6 +763,10 @@ class sales_Sales extends core_Master
 	    	if(sales_Invoices::haveRightFor('add')){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    	}
+	    	
+    		if (sales_Services::canAddToThread($data->rec->threadId)) {
+	            $data->toolbar->addBtn('Услуга', array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	        }
     	}
     	
     	if(haveRole('debug')){
