@@ -288,7 +288,9 @@ class techno_Specifications extends core_Manager {
     		return $TechnoClass->getTitleById($rec->docId, $escaped);
     	}
     	
-	    return $TechnoClass->getShortLayout($rec->docId);
+    	$data = $TechnoClass->prepareData($rec->docId);
+    	
+	    return $TechnoClass->renderShortView($data);
      }
     
     

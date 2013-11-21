@@ -254,7 +254,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareDetail($mvc, $res, &$data)
+    static function on_AfterPrepareDetail(core_Mvc $mvc, $res, &$data)
     {	
         if(isset($data->noTotal)) return;
     	if(count($data->recs)){
@@ -291,18 +291,31 @@ class techno_GeneralProductsDetails extends core_Detail {
     
     
     /**
-     * Връща краткото представяне на документа
+     * Подготвя данните за краткия изглед
      * @param int $generalProductId - ид на продукта
+     * @return array() - всички детайли
      */
-    public function getShortLayout($generalProductId)
+    public function prepareDetails($generalProductId)
     {
-    	$tpl = getTplFromFile('techno/tpl/GeneralProductsDetails.shtml')->getBlock('SHORT');
     	$query = $this->getQuery();
     	$query->where("#generalProductId = {$generalProductId}");
     	$query->where("#componentId != -1");
-    	$recs = $query->fetchAll();
-    	if(count($recs)){
-    		foreach ($recs as $rec){
+    	
+    	return $query->fetchAll();
+    }
+    
+    
+    /**
+     * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
+     * @param array $array - записи
+     * @return core_ET - шаблон
+     */
+	public function renderShortView($array)
+    {
+    	$tpl = getTplFromFile('techno/tpl/GeneralProductsDetails.shtml')->getBlock('SHORT');
+    	
+    	if(count($array)){
+    		foreach ($array as $rec){
     			$row = $this->recToVerbal($rec, 'componentId,cQuantity,cMeasureId');
     			$block = clone $tpl->getBlock('COMPONENT');
     			$block->placeObject($row);
@@ -312,6 +325,16 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Връща краткото представяне на документа
+     * @param int $generalProductId - ид на продукта
+     */
+    public function getShortLayout($array)
+    {
+    	
     }
     
     

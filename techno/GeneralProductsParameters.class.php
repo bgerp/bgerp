@@ -126,7 +126,11 @@ class techno_GeneralProductsParameters extends core_Manager
      */
     function prepareParams($data, $short = FALSE)
     {
-        $productId = ($data->masterData->rec->id) ? $data->masterData->rec->id : $data->id;
+        if(is_numeric($data)){
+        	$data = (object)array('id' => $data);
+        }
+        
+    	$productId = ($data->masterData->rec->id) ? $data->masterData->rec->id : $data->id;
     	$query = $this->getQuery();
         $query->where("#generalProductId = {$productId}");
         while($rec = $query->fetch()){
@@ -139,6 +143,8 @@ class techno_GeneralProductsParameters extends core_Manager
 	        	$data->addParamUrl = array($this, 'add', 'generalProductId' => $data->masterData->rec->id);
 	        } 
         }
+        
+        return $data;
     }  
 
     
@@ -217,17 +223,5 @@ class techno_GeneralProductsParameters extends core_Manager
         if($paramRec->type != 'percent'){
             $row->value .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
         }
-    }
-    
-    
-    /**
-     * Връща краткото представяне на продукта
-     * @param int $id - ид на универсален продукт
-     */
-    public function getShortLayout($id)
-    {
-    	$params = (object)array('id' => $id);
-    	$this->prepareParams($params, TRUE);
-    	return $this->renderParams($params, TRUE);
     }
 }

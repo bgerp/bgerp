@@ -59,12 +59,23 @@ class techno_ProductsIntf
     
     
 	/**
-     * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
+     * Подготвя данните на продукта за показване
      * @param int $id - ид на продукт
+     * @return stdClass - обработените данни
+     */
+    public function prepareData($id)
+    {
+        return $this->class->prepareData($id);
+    }
+    
+    
+	/**
+     * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
+     * @param stdClass $data - данните на артикула
      * @return text/html - вербално представяне на изделието
      */
-    public function getShortLayout($id)
+    public function renderShortView($data)
     {
-        return $this->class->getShortLayout($id);
+        return $this->class->renderShortView($data);
     }
 }
