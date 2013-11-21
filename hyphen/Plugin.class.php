@@ -43,7 +43,7 @@ class hyphen_Plugin extends core_Plugin
         if (Mode::is('text', 'plain')) return ;
         
         // Ако сме в широк режим и не сме в дебъг, връщаме
-        if (Mode::is('screenMode', 'wide') && !isDebug()) return ;
+        if (!Mode::is('screenMode', 'narrow')) return ;
         
         // Шаблона, за намиране, на думите, които ще хифинираме
         $pattern = "/(?'html'\<[^\>]*\>)|(?'space'[\s]+)|(?'entity'\&[^\;]*\;)|(?'words'[^\s\<\&]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";
