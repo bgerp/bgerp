@@ -238,25 +238,23 @@ class store_Receipts extends core_Master
             
             /* @var $product bgerp_iface_DealProduct */
             foreach ($remainingToShip->products as $product) {
-            	$isStorale = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
+            	$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
                 
             	// Пропускат се експедираните и нескладируемите продукти
-            	if (!$isStorale || $product->quantity <= 0) continue;
+            	if (!isset($info->meta['canStore']) || $product->quantity <= 0) continue;
                 
-                $shipProduct = new store_model_ReceiptProduct(NULL);
-                
-                $shipProduct->receiptId  = $rec->id;
-                $shipProduct->classId     = cls::get($product->classId)->getClassId();
+                $shipProduct = new stdClass();
+                $shipProduct->receiptId   = $rec->id;
+                $shipProduct->classId     = $product->classId;
                 $shipProduct->productId   = $product->productId;
                 $shipProduct->packagingId = $product->packagingId;
                 $shipProduct->quantity    = $product->quantity;
                 $shipProduct->price       = $product->price;
                 $shipProduct->uomId       = $product->uomId;
                 $shipProduct->discount    = $product->discount;
+                $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
                 
-                $shipProduct->quantityInPack = $shipProduct->getQuantityInPack();
-                
-                $shipProduct->save();
+                $mvc->store_ReceiptDetails->save($shipProduct);
             }
         }
     }
@@ -419,7 +417,6 @@ class store_Receipts extends core_Master
                 $form->setField('termId', 'input=hidden');
             }
            
-            $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
             $form->rec->storeId = $dealInfo->agreed->delivery->storeId;

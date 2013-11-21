@@ -106,7 +106,6 @@ class store_transactionIntf_ShipmentOrder
         
         if (!empty($rec->id)) {
             // Извличаме детайлите на продажбата
-            /* @var $detailQuery core_Query */
             $detailQuery = store_ShipmentOrderDetails::getQuery();
             $detailQuery->where("#shipmentId = '{$rec->id}'");
             $rec->details  = array();

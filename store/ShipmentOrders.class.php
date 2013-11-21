@@ -7,7 +7,7 @@
  *
  * @category  bgerp
  * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -166,7 +166,7 @@ class store_ShipmentOrders extends core_Master
         
         // Доставка
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
@@ -240,24 +240,23 @@ class store_ShipmentOrders extends core_Master
             
             /* @var $product bgerp_iface_DealProduct */
             foreach ($remainingToShip->products as $product) {
-            	$isStorale = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
-                
+            	$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+            	
             	// Пропускат се експедираните и нескладируемите продукти
-            	if (!$isStorale || $product->quantity <= 0) continue;
-                $shipProduct = new store_model_ShipmentProduct(NULL);
+            	if (!isset($info->meta['canStore']) || $product->quantity <= 0) continue;
                 
+            	$shipProduct = new stdClass();
                 $shipProduct->shipmentId  = $rec->id;
-                $shipProduct->classId     = cls::get($product->classId)->getClassId();
+                $shipProduct->classId     = $product->classId;
                 $shipProduct->productId   = $product->productId;
                 $shipProduct->packagingId = $product->packagingId;
                 $shipProduct->quantity    = $product->quantity;
                 $shipProduct->price       = $product->price;
                 $shipProduct->uomId       = $product->uomId;
                 $shipProduct->discount    = $product->discount;
+                $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
                 
-                $shipProduct->quantityInPack = $shipProduct->getQuantityInPack();
-                
-                $shipProduct->save();
+                $mvc->store_ShipmentOrderDetails->save($shipProduct);
             }
         }
     }
