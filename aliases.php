@@ -10,3 +10,5 @@ abstract class Redirect extends core_Redirect {}
 abstract class str extends core_String {}
 abstract class Debug extends core_Debug {}
 abstract class Fileman extends fileman_Files2 {}
+abstract class Users extends core_Users {}
+abstract class keylist extends type_Keylist {}
