@@ -491,7 +491,7 @@ class cash_Rko extends core_Master
     	
     	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'closed')){
+    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState != 'active')){
     			$res = FALSE;
     		}
     	}

@@ -416,7 +416,7 @@ class bank_CostDocument extends core_Master
     	
     	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState == 'closed')){
+    		if(($firstDoc->haveInterface('bgerp_DealIntf') && $docState != 'active')){
     			$res = FALSE;
     		}
     	}
