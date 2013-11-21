@@ -620,6 +620,109 @@ class distro_Files extends core_Detail
     
     
     /**
+     * Синхронизира съдържанието на хранилищата с модела
+     * 
+     * @param distro_Files $mvc - Инстанция на класа
+     * 
+     * @return array - Двумерен масив с добавените файлове в хранилищата
+     */
+    static function syncFiles($mvc=NULL)
+    {
+        // Ако не е подаден клас
+        if (!$mvc) {
+            
+            // Вземаме текущия
+            $mvc = cls::get(get_called_class());
+        }
+        
+        // Инстанция на мастъра
+        $Master = $mvc->Master;
+        
+        // Ключа към мастъра
+        $masterKey = $mvc->masterKey;
+        
+        // Вземаме пътищата на активните групи
+        $pathArr = $Master->getActiveGroupPathArr();
+        
+        // Резултатания масив, който ще връщаме
+        $resArr = array();
+        
+        // Обхождаме масива
+        foreach ((array)$pathArr as $masterId => $repoArr) {
+            
+            // Обхождаме масива с хранилищата и файловете
+            foreach ((array)$repoArr as $repoId => $subPath) {
+                
+                try {
+                    
+                    // Вземаме всички достъпни файлове в хранилището, само от основната директория
+                    $reposFileArr = fileman_Repositories::retriveFiles($repoId, $subPath, FALSE, 0);
+                } catch (Exception $e) {
+                    
+                    // Ако възникне грешка
+                    // Записваме грешката
+                    static::log("Възникна грешка при обхождането на хранилище '{$repoId}'");
+                    
+                    // Прескачаме хранилището
+                    continue;
+                }
+                
+                // Вземаме масив с файловете само в главната директрия
+                $fileNameArr = $reposFileArr['/'];
+                
+                // Ако няма файлове в хранилището, прескачаме
+                if (!$fileNameArr) continue;
+                
+                // Обхождаме всички открити файлове
+                foreach ((array)$fileNameArr as $fileName => $dummy) {
+                    
+                    // Вземаме от модела всички файлове със съответното име и от съответната група
+                    $query = static::getQuery();
+                    $query->where(array("#name = '$fileName'"));
+                    $query->where(array("#{$masterKey} = '{$masterId}'"));
+                    
+                    // Ако има запис
+                    if ($rec = $query->fetch()) {
+                        
+                        // Ако файла е отбелязан в хранилището
+                        if (type_Keylist::isIn($repoId, $rec->repos)) {
+                            
+                            // Прескачаме
+                            continue;
+                        }
+                        
+                    } else {
+                        
+                        // Ако няма запис
+                        // Създаваме такъв
+                        $rec = new stdClass();
+                        $rec->name = $fileName;
+                        $rec->{$masterKey} = $masterId;
+                    }
+                    
+                    // Добавяме хранилището към стринга
+                    $rec->repos = type_Keylist::addKey($rec->repos, $repoId);
+                    
+                    // Записваме
+                    if (static::save($rec)) {
+                        
+                        // Добавяме в резултатния масив
+                        $resArr[$repoId][] = $fileName;
+                        
+                    } else {
+                        
+                        // Ако възникне грешка при запис, отбелязваме в лога
+                        static::log("Възникна грешка при запис: " . serialize($rec));
+                    }
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Записва масива в лога
      * 
      * @param array $resArr - Масив с данни
