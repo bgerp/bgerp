@@ -242,7 +242,7 @@ class purchase_Purchases extends core_Master
     		}
     		
 	    	if (store_Receipts::canAddToThread($data->rec->threadId)) {
-	            $data->toolbar->addBtn('Заприхождаване', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Заприхождаване на артикулите в склада');
+	            $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Заприхождаване на артикулите в склада,order=9.21');
 	        }
 	        
 	    	if(sales_Invoices::haveRightFor('add')){
