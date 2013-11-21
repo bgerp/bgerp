@@ -642,7 +642,7 @@ class distro_Files extends core_Detail
         $masterKey = $mvc->masterKey;
         
         // Вземаме пътищата на активните групи
-        $pathArr = $Master->getActiveGroupPathArr();
+        $pathArr = $Master->getActiveGroupArr();
         
         // Резултатания масив, който ще връщаме
         $resArr = array();

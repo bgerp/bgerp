@@ -415,6 +415,43 @@ class distro_Group extends core_Master
     }
     
     
+    /**
+     * Връща масив с актвитните групи и хранилищата
+     * 
+     * @return array - Двуемерен масив с id на записа, id на хранилището и заглавието на групата
+     */
+    static function getActiveGroupArr()
+    {
+        // Вземаме всички активни групи, подредени в обратен ред
+        $query = static::getQuery();
+        $query->where('1=1');
+        $query->where("#state = 'active'");
+        $query->orderBy('id', 'DESC');
+        
+        // Двумерния масив, който ще връщаме
+        $pathArr = array();
+        
+        // Обхождаме резултата
+        while($rec = $query->fetch()) {
+            
+            // Вземаме хранилищата
+            $reposArr = type_Keylist::toArray($rec->repos);
+            
+            // Ако няма хранилище, прескачаме
+            if (!$reposArr) continue;
+            
+            // Обхождаме масива с хранилищата
+            foreach ((array)$reposArr as $repoId) {
+                
+                // Добавяме в масива
+                $pathArr[$rec->id][$repoId] = $rec->title;
+            }
+        }
+        
+        return $pathArr;
+    }
+    
+    
 	/**
      * Реализация  на интерфейсния метод ::getThreadState()
      */
