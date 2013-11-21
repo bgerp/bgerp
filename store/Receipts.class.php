@@ -105,7 +105,7 @@ class store_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDeliveredVat,createdOn, createdBy';
 
 
     /**
@@ -156,7 +156,7 @@ class store_Receipts extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС,input=hidden');
         
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'input=none,summary=amount');
+        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount');
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
@@ -435,28 +435,6 @@ class store_Receipts extends core_Master
     }
     
     
-    /**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-        if (!count($data->recs)) {
-            return;
-        }
-        
-        // Основната валута към момента
-        $now            = dt::now();
-        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($now);
-        
-        // Всички общи суми на продажба - в базова валута към съотв. дата
-        foreach ($data->recs as &$rec) {
-            $rate = currency_CurrencyRates::getRate($now, $rec->currencyId, $baseCurrencyId);
-            
-            $rec->amountDelivered *= $rate; 
-        }
-    }
-    
-    
 	/**
      * След преобразуване на записа в четим за хора вид
      */
@@ -464,6 +442,11 @@ class store_Receipts extends core_Master
     {
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		if($rec->amountDeliveredVat){
+    			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+    		} else {
+    			$row->amountDeliveredVat = "<span class='quiet'>0</span>";
+    		}
     	}
     	
         if(isset($fields['-single'])){
