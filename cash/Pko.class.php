@@ -213,14 +213,14 @@ class cash_Pko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->agreed->rate;
+    		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 	if($amount <= 0) {
     		 		$amount = 0;
     		 	}
     		 	
-    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    		 	$form->rec->rate       = $dealInfo->agreed->rate;
-    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->agreed->currency);
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
+    		 	$form->rec->rate       = $dealInfo->shipped->rate;
+    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
     		 }
     	}
     	
