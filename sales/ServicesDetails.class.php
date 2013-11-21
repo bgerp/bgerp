@@ -174,7 +174,7 @@ class sales_ServicesDetails extends core_Detail
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
 		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
-    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, FALSE)){
+    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services')){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -252,7 +252,7 @@ class sales_ServicesDetails extends core_Detail
       	expect($origin = $mvc->Master->getOrigin($masterRec));
       	$dealAspect = $origin->getAggregateDealInfo()->agreed;
       	$invProducts = $mvc->Master->getDealInfo($form->rec->shipmentId)->shipped;
-      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, FALSE, $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
+      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services', $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
     }
     
     
