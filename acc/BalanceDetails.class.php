@@ -507,16 +507,18 @@ class acc_BalanceDetails extends core_Detail
      */
     function saveBalance($balanceId)
     {
-        foreach ($this->balance as $accId => $l0) {
-            foreach ($l0 as $ent1 => $l1) {
-                foreach ($l1 as $ent2 => $l2) {
-                    foreach ($l2 as $ent3 => $rec) {
-                        $rec['balanceId'] = $balanceId;
-                        $this->save((object)$rec);
-                    }
-                }
-            }
-        }
+		if(count($this->balance)) {
+			foreach ($this->balance as $accId => $l0) {
+				foreach ($l0 as $ent1 => $l1) {
+					foreach ($l1 as $ent2 => $l2) {
+						foreach ($l2 as $ent3 => $rec) {
+							$rec['balanceId'] = $balanceId;
+							$this->save((object)$rec);
+						}
+					}
+				}
+			}
+		}
         
         unset($this->balance, $this->strategies);
     }
