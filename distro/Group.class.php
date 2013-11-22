@@ -368,18 +368,30 @@ class distro_Group extends core_Master
     
     
     /**
+     * Проверява дали може да се добави в детайла
      * 
+     * @param integer $id - id на записи
+     * @param integer $userId - id на потребител
      * 
-     * @param integer $id
-     * @param integer $userId
-     * 
-     * @return boolean
+     * @return boolean - Ако имаме права
      */
     static function canAddDetail($id, $userId=NULL)
     {
-        // Ако имаме достъп до сингъла на документа
-        if ($id && static::haveRightFor('single', $id, $userId)) {
+        // Ако няма id
+        if (!$id) return FALSE;
             
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Ако състоянието не е актвино
+        if ($rec->state != 'active') {
+            
+            return FALSE;
+        }
+        
+        // Ако имаме достъп до сингъла на документа
+        if (static::haveRightFor('single', $rec, $userId)) {
+                
             return TRUE;
         }
         
