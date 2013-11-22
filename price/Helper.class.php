@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class price_Helper extends core_Mvc
+abstract class price_Helper
 {
 	/**
      * Умно закръгляне на цена
