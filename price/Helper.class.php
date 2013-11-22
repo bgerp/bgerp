@@ -43,21 +43,13 @@ abstract class price_Helper extends core_Mvc
 	public static function calcPrice($price, $vat, $rate)
 	{
 		$arr = array();
-		$arr['noVat'] = static::roundPrice($price);
-		$arr['withVat'] = static::roundPrice($price * (1 + $vat));
         
-        // Конвертиране цените във валутата
-        $arr['noVat'] = $arr['noVat'] / $rate;
-		$arr['withVat'] = $arr['withVat'] / $rate;
-		
-		
-        /*
         // Конвертиране цените във валутата
         $arr['noVat'] = $price / $rate;
 		$arr['withVat'] = ($price * (1 + $vat)) / $rate;
 		
 		$arr['noVat'] = static::roundPrice($arr['noVat']);
-		$arr['withVat'] = static::roundPrice($arr['withVat']);*/
+		$arr['withVat'] = static::roundPrice($arr['withVat']);
 		
         return (object)$arr;
 	}
