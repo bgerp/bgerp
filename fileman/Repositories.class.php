@@ -810,9 +810,6 @@ class fileman_Repositories extends core_Master
         // Вземаме записа
         $rec = static::fetch($repositoryId);
         
-        // Проверяваме дали има права за папката
-        static::requireRightFor('retrive', $rec);
-        
         // Вземаме пътя до поддиректорията на съответното репозитори
         $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
         
@@ -1109,6 +1106,17 @@ class fileman_Repositories extends core_Master
             if ($rec->state == 'active') {
             
 				// Да не може да се изтрие
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Ако екшъна е сингъл
+        if ($action == 'single') {
+            
+            // Ако няам права за retrive
+            if (!static::haveRightFor('retrive', $rec, $userId)) {
+                
+                // Да няма права и за сингъла
                 $requiredRoles = 'no_one';
             }
         }
