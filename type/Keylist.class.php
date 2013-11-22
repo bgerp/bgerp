@@ -582,4 +582,27 @@ class type_Keylist extends core_Type {
 
         return $res;
     }
+    
+    
+    
+    /**
+     * Проверява дали kelist-а/масива е празен
+     * 
+     * @param mixed $klist - Масив или klist, който да се проверява
+     * 
+     * @return boolean - Ако е празен, връщаме истина
+     */
+    static function isEmpty($klist) 
+    {
+        // Преобразуваме в масив
+        $klist = self::toArray($klist);
+        
+        // Ако е празен
+        if (!$klist) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
 }
