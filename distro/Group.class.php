@@ -98,7 +98,7 @@ class distro_Group extends core_Master
      */
 //    var $loadList = 'distro_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
 //        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
-    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools';
+    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search';
     
     
     /**
@@ -140,7 +140,7 @@ class distro_Group extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-//    var $searchFields = '';
+    var $searchFields = 'title, repos';
     
     
     /**
