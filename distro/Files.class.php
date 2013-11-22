@@ -94,6 +94,12 @@ class distro_Files extends core_Detail
     
     
     /**
+     * Флаг, който указва дали да се изтрие и файла след изтриване на хранилището
+     */
+    var $onlyDelRepo = FALSE;
+    
+    
+    /**
      * 
      */
 //    var $listFields = 'id, name, description, maintainers';
@@ -269,7 +275,7 @@ class distro_Files extends core_Detail
                 $rec = $mvc->fetch($form->rec->id);
                 
                 // Вземаме масива с различията между хранилищата в модела и във формата
-                $diffArr = static::getDiffArr($rec->repos, $form->rec->repos);
+                $diffArr = type_Keylist::getDiffArr($rec->repos, $form->rec->repos);
                 
                 // Ако няма непроменени и нови
                 if (!$diffArr['same'] && !$diffArr['add']) {
@@ -386,34 +392,6 @@ class distro_Files extends core_Detail
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Връща масив с различията между хранилищата
-     * 
-     * @param string $fRepos
-     * @param string $lRepos
-     * 
-     * @return array $arr - Масив с различията
-     * $arr['same'] - без промяна
-     * $arr['delete'] - изтрити от първия
-     * $arr['add'] - добавени към първия
-     */
-    static function getDiffArr($fRepos, $lRepos)
-    {
-        // Вземаме масива на първия
-        $fReposArr = type_Keylist::toArray($fRepos);
-        
-        // Вземаме масива на втория
-        $lReposArr = type_Keylist::toArray($lRepos);
-        
-        // Изчисляваме различичта
-        $arr['same'] = array_intersect($fReposArr, $lReposArr);
-        $arr['delete'] = array_diff($fReposArr, $lReposArr);
-        $arr['add'] = array_diff($lReposArr, $fReposArr);
-        
-        return $arr;
     }
     
     
@@ -581,6 +559,9 @@ class distro_Files extends core_Detail
      */
     static function on_AfterDelete($mvc, &$res, $query)
     {
+        // Ако е зададено да се изтрие само хранилището, без файла
+        if ($mvc->onlyDelRepo) return ;
+        
         // Вземаме изтритите записи
         $deletedRecsArr = $query->getDeletedRecs();
         
@@ -629,6 +610,10 @@ class distro_Files extends core_Detail
         // Вземаме текущия
         $me = cls::get(get_called_class());
         
+        // Сетваме флага да не се изтрият файловете при изтриване на записа
+        // Това е необходимо, защото записа се изтрива, ако няма файлове
+        $me->onlyDelRepo = TRUE;
+        
         // Инстанция на мастъра
         $Master = $me->Master;
         
@@ -643,6 +628,27 @@ class distro_Files extends core_Detail
         
         // Обхождаме масива
         foreach ((array)$pathArr as $masterId => $repoArr) {
+            
+            // Масив с всички хранилища и файловете, за този мастър
+            $orArr = array();
+            
+            // Вземаме всички записи за този мастър
+            $query = static::getQuery();
+            $query->where(array("#{$masterKey} = '{$masterId}'"));
+            
+            // Обхождаме резултата
+            while($rec = $query->fetch()) {
+                
+                // Масив с хранилищата от записа
+                $repoArrFromRec = type_Keylist::toArray($rec->repos);
+                
+                // Обхождаме масива
+                foreach ((array)$repoArrFromRec as $repoId) {
+                    
+                    // Добавяме в масива
+                    $orArr[$repoId][$rec->name] = $rec->name;
+                }
+            }
             
             // Обхождаме масива с хранилищата и файловете
             foreach ((array)$repoArr as $repoId => $subPath) {
@@ -664,53 +670,85 @@ class distro_Files extends core_Detail
                 // Вземаме масив с файловете само в главната директрия
                 $fileNameArr = $reposFileArr['/'];
                 
-                // Ако няма файлове в хранилището, прескачаме
-                if (!$fileNameArr) continue;
+                // Всички файлове в това хранилище
+                $filesArrInThisRepo = $orArr[$repoId];
                 
-                // Обхождаме всички открити файлове
-                foreach ((array)$fileNameArr as $fileName => $dummy) {
+                // Вземама масива с различията
+                $diffArr = type_Keylist::getDiffArr($filesArrInThisRepo, $fileNameArr);
+                
+                // Ако има изтрити файлове
+                if ($diffArr['delete']) {
                     
-                    // Вземаме от модела всички файлове със съответното име и от съответната група
-                    $query = static::getQuery();
-                    $query->where(array("#name = '$fileName'"));
-                    $query->where(array("#{$masterKey} = '{$masterId}'"));
-                    
-                    // Ако има запис
-                    if ($rec = $query->fetch()) {
+                    // Обхождаме масива
+                    foreach ((array)$diffArr['delete'] as $deletedFiles => $dummy) {
                         
-                        // Ако файла е отбелязан в хранилището
-                        if (type_Keylist::isIn($repoId, $rec->repos)) {
+                        // Вземаме всички записи, на мастера в които файла съществува
+                        $fileRec = static::fetch(array("#{$masterKey} = '{$masterId}' AND #name = '[#1#]'", $deletedFiles));
+                        
+                        // Премахваме id'то на хранилището
+                        $fileRec->repos = type_Keylist::removeKey($fileRec->repos, $repoId);
+                        
+                        // Ако няма записи
+                        if (type_Keylist::isEmpty($fileRec->repos)) {
                             
-                            // Прескачаме
-                            continue;
+                            // Изтриваме запие
+                            static::delete($fileRec->id);
+                            
+                            // Добавяме в масива
+                            $resArr['deletedRec'][$fileRec->id] = $fileRec->id;
+                        } else {
+                            
+                            // Записваме промениете
+                            static::save($fileRec);
+                            
+                            // Добавяме в масива
+                            $resArr['deletedRepo'][$fileRec->id] = $repoId;
+                        }
+                    }
+                }
+                
+                // Ако има добавени файлове, които не фигурират в модела
+                if ($diffArr['add']) {
+                    
+                    // Обхождаме масива
+                    foreach ((array)$diffArr['add'] as $addFiles => $dummy) {
+                        
+                        // Вземаме записа за файла
+                        $fileRec = static::fetch(array("#{$masterKey} = '{$masterId}' AND #name = '[#1#]'", $addFiles));
+                        
+                        // Ако има запис
+                        if ($fileRec) {
+                            
+                            // Ако файла е отбелязан в хранилището
+                            if (type_Keylist::isIn($repoId, $fileRec->repos)) {
+                                
+                                // Прескачаме
+                                continue;
+                            }
+                            
+                        } else {
+                            // Ако няма запис
+                            // Създаваме такъв
+                            $fileRec = new stdClass();
+                            $fileRec->name = $addFiles;
+                            $fileRec->{$masterKey} = $masterId;
                         }
                         
-                    } else {
+                        // Добавяме id-то на хранилището
+                        $fileRec->repos = type_Keylist::addKey($fileRec->repos, $repoId);
                         
-                        // Ако няма запис
-                        // Създаваме такъв
-                        $rec = new stdClass();
-                        $rec->name = $fileName;
-                        $rec->{$masterKey} = $masterId;
-                    }
-                    
-                    // Добавяме хранилището към стринга
-                    $rec->repos = type_Keylist::addKey($rec->repos, $repoId);
-                    
-                    // Записваме
-                    if (static::save($rec)) {
+                        // Добавяме в масива
+                        $resArr['addRepo'][$fileRec->id] = $repoId;
                         
-                        // Добавяме в резултатния масив
-                        $resArr[$repoId][] = $fileName;
-                        
-                    } else {
-                        
-                        // Ако възникне грешка при запис, отбелязваме в лога
-                        static::log("Възникна грешка при запис: " . serialize($rec));
+                        // Записваме
+                        static::save($fileRec);
                     }
                 }
             }
         }
+        
+        // Изтриваме всички записи, за файлове които не се намират в някое хранилище
+        $resArr['delete'] = static::delete("#repos IS NULL OR #repos = '|'");
         
         return $resArr;
     }
