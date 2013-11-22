@@ -60,7 +60,7 @@ class distro_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.66, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "powerUser");
+        $html .= $Menu->addItem(1.66, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "admin");
         
         return $html;
     }

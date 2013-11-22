@@ -48,7 +48,7 @@ class distro_Group extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'admin';
     
     
     /**
@@ -66,13 +66,13 @@ class distro_Group extends core_Master
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'admin';
     
     
     /**

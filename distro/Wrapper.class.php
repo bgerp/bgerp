@@ -24,8 +24,8 @@ class distro_Wrapper extends plg_ProtoWrapper
     function description()
     {        
         // 
-        $this->TAB('distro_Group', 'Групи', 'powerUser');
-        $this->TAB('distro_Files', 'Файлове', 'powerUser');
-        $this->TAB('distro_Automation', 'Автоматизации', 'powerUser');
+        $this->TAB('distro_Group', 'Групи', 'admin');
+        $this->TAB('distro_Files', 'Файлове', 'admin');
+        $this->TAB('distro_Automation', 'Автоматизации', 'admin');
     }
 }
