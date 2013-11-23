@@ -579,7 +579,7 @@ class distro_Files extends core_Detail
      * @param stdClass $res
      * @param core_Query $query
      */
-    static function on_AfterDelete($mvc, &$res, $query)
+    static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         // Вземаме изтритите записи
         $deletedRecsArr = $query->getDeletedRecs();
