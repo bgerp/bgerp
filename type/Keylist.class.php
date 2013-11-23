@@ -582,4 +582,64 @@ class type_Keylist extends core_Type {
 
         return $res;
     }
+    
+    
+    
+    /**
+     * Проверява дали kelist-а/масива е празен
+     * 
+     * @param mixed $klist - Масив или klist, който да се проверява
+     * 
+     * @return boolean - Ако е празен, връщаме истина
+     */
+    static function isEmpty($klist) 
+    {
+        // Преобразуваме в масив
+        $klist = self::toArray($klist);
+        
+        // Ако е празен
+        if (!$klist) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив с различията между хранилищата
+     * 
+     * @param string $fRepos - Първият масив/keylist
+     * @param string $lRepos - Вторият масив/keylist
+     * @param boolean $useKey - Дали да се използват ключовете за сравнение
+     * 
+     * @return array $arr - Масив с различията
+     * $arr['same'] - без промяна
+     * $arr['delete'] - изтрити от първия
+     * $arr['add'] - добавени към първия
+     */
+    static function getDiffArr($fRepos, $lRepos, $useKey=FALSE)
+    {
+        // Вземаме масива на първия
+        $fReposArr = type_Keylist::toArray($fRepos);
+        
+        // Вземаме масива на втория
+        $lReposArr = type_Keylist::toArray($lRepos);
+        
+        // Ако е сетнат флага
+        if ($useKey) {
+            
+            // Задаваме ключовете, като стойности
+            $fReposArr = array_keys($fReposArr);
+            $lReposArr = array_keys($lReposArr);
+        }
+        
+        // Изчисляваме различията
+        $arr['same'] = array_intersect($fReposArr, $lReposArr);
+        $arr['delete'] = array_diff($fReposArr, $lReposArr);
+        $arr['add'] = array_diff($lReposArr, $fReposArr);
+        
+        return $arr;
+    }
 }
