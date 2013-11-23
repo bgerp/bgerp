@@ -472,7 +472,7 @@ class blast_ListDetails extends core_Detail
                         if($id == NULL) continue;
                         $rec->{$name} = trim($rowArr[$id-1]);
                     }
-                   
+                    
                     $err = $this->normalizeRec($rec);
                     $keyField = $listRec->keyField;
                     
@@ -537,8 +537,27 @@ class blast_ListDetails extends core_Detail
         if($rec->email) {
             $rec->email = strtolower($rec->email);
             
-            if(!type_Email::isValidEmail($rec->email)) {
-                $err['email'] = "Некоректен е-имейл адрес";
+            // Масив с всички имейли
+            $emailArr = type_Emails::toArray($rec->email);
+            
+            // Обхождаме масива
+            foreach ($emailArr as $email) {
+                
+                // Ако не е валиден имейл, прескачаме
+                if (!type_Email::isValidEmail($email)) continue;
+                
+                // Сетваме флага
+                $haveValidEmail = TRUE;
+                
+                // Добавяме първия имейл
+                $rec->email = $email;
+                
+                // Прекъсваме
+                break;
+            }
+            
+            if(!$haveValidEmail) {
+                $err['email'] = "Некоректен имейл адрес";
             }
         }
         

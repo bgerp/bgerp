@@ -1,30 +1,26 @@
 <?php
 /**
- * Клас 'store_ShipmentOrderDetails'
+ * Клас 'sales_ServicesDetails'
  *
- * Детайли на мениджър на експедиционни нареждания (@see store_ShipmentOrders)
+ * Детайли на мениджър на протокол за доставка на услуги (@see sales_ServicesDetails)
  *
  * @category  bgerp
- * @package   store
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @package   sales
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ShipmentOrderDetails extends core_Detail
+class sales_ServicesDetails extends core_Detail
 {
     /**
      * Заглавие
-     * 
-     * @var string
      */
-    public $title = 'Детайли на ЕН';
+    public $title = 'Детайли на протокола за доставка на услуги';
 
 
     /**
      * Заглавие в единствено число
-     *
-     * @var string
      */
     public $singleTitle = 'Продукт';
     
@@ -37,59 +33,39 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Плъгини за зареждане
-     * 
-     * var string|array
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, 
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, 
                         plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
-     * Активен таб на менюто
-     * 
-     * @var string
-     */
-    public $menuPage = 'Логистика:Складове';
-    
-    
-    /**
      * Кой има право да чете?
-     * 
-     * @var string|array
      */
-    public $canRead = 'ceo, store';
+    public $canRead = 'ceo, sales';
     
     
     /**
      * Кой има право да променя?
-     * 
-     * @var string|array
      */
-    public $canEdit = 'ceo, store';
+    public $canEdit = 'ceo, sales';
     
     
     /**
      * Кой има право да добавя?
-     * 
-     * @var string|array
      */
-    public $canAdd = 'ceo, store';
+    public $canAdd = 'ceo, sales';
     
     
     /**
      * Кой може да го види?
-     * 
-     * @var string|array
      */
-    public $canView = 'ceo, store';
+    public $canView = 'ceo, sales';
     
     
     /**
      * Кой може да го изтрие?
-     * 
-     * @var string|array
      */
-    public $canDelete = 'ceo, store';
+    public $canDelete = 'ceo, sales';
     
     
     /**
@@ -115,7 +91,7 @@ class store_ShipmentOrderDetails extends core_Detail
      */
     public function description()
     {
-        $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
@@ -145,9 +121,6 @@ class store_ShipmentOrderDetails extends core_Detail
 
     /**
      * Изчисляване на цена за опаковка на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
@@ -161,9 +134,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Изчисляване на количеството на реда в брой опаковки
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
@@ -177,9 +147,6 @@ class store_ShipmentOrderDetails extends core_Detail
     
     /**
      * Изчисляване на сумата на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
      */
     public function on_CalcAmount(core_Mvc $mvc, $rec)
     {
@@ -207,7 +174,7 @@ class store_ShipmentOrderDetails extends core_Detail
 		    $origin = $mvc->Master->getOrigin($masterRec);
 		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
 		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
-    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable')){
+    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services')){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -226,7 +193,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
         // Определяме кой вижда ценовата информация
-        if (!store_ShipmentOrders::haveRightFor('viewprices', $data->masterData->rec)) {
+        if (!sales_Services::haveRightFor('viewprices', $data->masterData->rec)) {
             $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
         }
     
@@ -279,13 +246,13 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-    	$origin = store_ShipmentOrders::getOrigin($data->masterRec, 'bgerp_DealIntf');
+    	$origin = sales_Services::getOrigin($data->masterRec, 'bgerp_DealIntf');
         
         $masterRec = $mvc->Master->fetch($form->rec->shipmentId);
       	expect($origin = $mvc->Master->getOrigin($masterRec));
       	$dealAspect = $origin->getAggregateDealInfo()->agreed;
       	$invProducts = $mvc->Master->getDealInfo($form->rec->shipmentId)->shipped;
-      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable', $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
+      	$form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services', $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
     }
     
     
@@ -307,7 +274,7 @@ class store_ShipmentOrderDetails extends core_Detail
 			$rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
             
             /* @var $origin bgerp_DealAggregatorIntf */
-            $origin = store_ShipmentOrders::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
+            $origin = sales_Services::getOrigin($rec->shipmentId, 'bgerp_DealIntf');
             
             /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getAggregateDealInfo();

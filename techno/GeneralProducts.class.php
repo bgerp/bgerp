@@ -190,29 +190,43 @@ class techno_GeneralProducts extends core_Master {
     }
     
     
-	/**
+    /**
+     * Подготвя данните за краткия изглед
+     */
+    public function prepareData($id)
+    {
+    	$data = new stdClass();
+    	$data->rec = $this->fetch($id);
+    	$data->row = $this->recToVerbal($data->rec, 'title,description,-single,-short');
+    	$data->details = $this->techno_GeneralProductsDetails->prepareDetails($id);
+    	$data->params =  $this->Params->prepareParams($id, TRUE);
+    	
+    	return $data;
+    }
+    
+    
+    /**
      * Връща вербалното представяне на даденото изделие (HTML, може с картинка)
      * @param int $id - ид на продукт
      * @return core_ET $tpl - краткия изглед на продукта
      */
-    public function getShortLayout($id)
+	public function renderShortView($data)
     {
-    	$rec = $this->fetch($id);
-    	$row = $this->recToVerbal($rec, 'title,description,-single,-short');
-    	
     	// Зареждане на щаблона за краткото представяне
     	$tpl = getTplFromFile('techno/tpl/SingleLayoutGeneralProductsShort.shtml');
-    	$tpl->placeObject($row);
-    	
-    	// Рендиране на изгледа на детайлите
-    	$detailsLayout = $this->techno_GeneralProductsDetails->getShortLayout($id);
-    	$tpl->replace($detailsLayout, 'COMPONENTS');
-    	
-    	// Рендиране на изгледа на параметрите
-    	$paramsLayout = $this->Params->getShortLayout($id);
-    	$tpl->replace($paramsLayout, 'PARAMS');
-    	
     	$tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+    	$tpl->placeObject($data->row);
+    	
+    	if(count($data->details)){
+    		$detailsLayout = $this->techno_GeneralProductsDetails->renderShortView($data->details);
+    		$tpl->replace($detailsLayout, 'COMPONENTS');
+    	}
+    	
+    	if(count($data->params)){
+    		$paramsLayout = $this->Params->renderParams($data->params, TRUE);
+    		$tpl->replace($paramsLayout, 'PARAMS');
+    	}
+    	
     	return $tpl;
     }
     

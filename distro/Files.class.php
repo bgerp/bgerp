@@ -30,7 +30,7 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'admin';
     
     
     /**
@@ -48,13 +48,13 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'admin';
     
     
     /**
@@ -91,6 +91,12 @@ class distro_Files extends core_Detail
      * Кои полета ще извличаме, преди изтриване на заявката
      */
     var $fetchFieldsBeforeDelete = 'id, sourceFh, repos, groupId, name';
+    
+    
+    /**
+     * Флаг, който указва дали да се изтрие и файла след изтриване на хранилището
+     */
+    var $onlyDelRepo = FALSE;
     
     
     /**
@@ -269,7 +275,7 @@ class distro_Files extends core_Detail
                 $rec = $mvc->fetch($form->rec->id);
                 
                 // Вземаме масива с различията между хранилищата в модела и във формата
-                $diffArr = static::getDiffArr($rec->repos, $form->rec->repos);
+                $diffArr = type_Keylist::getDiffArr($rec->repos, $form->rec->repos);
                 
                 // Ако няма непроменени и нови
                 if (!$diffArr['same'] && !$diffArr['add']) {
@@ -386,34 +392,6 @@ class distro_Files extends core_Detail
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Връща масив с различията между хранилищата
-     * 
-     * @param string $fRepos
-     * @param string $lRepos
-     * 
-     * @return array $arr - Масив с различията
-     * $arr['same'] - без промяна
-     * $arr['delete'] - изтрити от първия
-     * $arr['add'] - добавени към първия
-     */
-    static function getDiffArr($fRepos, $lRepos)
-    {
-        // Вземаме масива на първия
-        $fReposArr = type_Keylist::toArray($fRepos);
-        
-        // Вземаме масива на втория
-        $lReposArr = type_Keylist::toArray($lRepos);
-        
-        // Изчисляваме различичта
-        $arr['same'] = array_intersect($fReposArr, $lReposArr);
-        $arr['delete'] = array_diff($fReposArr, $lReposArr);
-        $arr['add'] = array_diff($lReposArr, $fReposArr);
-        
-        return $arr;
     }
     
     
@@ -581,6 +559,9 @@ class distro_Files extends core_Detail
      */
     static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
+        // Ако е зададено да се изтрие само хранилището, без файла
+        if ($mvc->onlyDelRepo) return ;
+        
         // Вземаме изтритите записи
         $deletedRecsArr = $query->getDeletedRecs();
         
@@ -616,6 +597,201 @@ class distro_Files extends core_Detail
                 expect(FALSE);
             }
         }
+    }
+    
+    
+    /**
+     * Синхронизира съдържанието на хранилищата с модела
+     * 
+     * @return array - Двумерен масив с добавените файлове в хранилищата
+     */
+    static function syncFiles()
+    {
+        // Вземаме текущия
+        $me = cls::get(get_called_class());
+        
+        // Сетваме флага да не се изтрият файловете при изтриване на записа
+        // Това е необходимо, защото записа се изтрива, ако няма файлове
+        $me->onlyDelRepo = TRUE;
+        
+        // Инстанция на мастъра
+        $Master = $me->Master;
+        
+        // Ключа към мастъра
+        $masterKey = $me->masterKey;
+        
+        // Вземаме пътищата на активните групи
+        $pathArr = $Master->getActiveGroupArr();
+        
+        // Резултатания масив, който ще връщаме
+        $resArr = array();
+        
+        // Обхождаме масива
+        foreach ((array)$pathArr as $masterId => $repoArr) {
+            
+            // Масив с всички хранилища и файловете, за този мастър
+            $orArr = array();
+            
+            // Вземаме всички записи за този мастър
+            $query = static::getQuery();
+            $query->where(array("#{$masterKey} = '{$masterId}'"));
+            
+            // Обхождаме резултата
+            while($rec = $query->fetch()) {
+                
+                // Масив с хранилищата от записа
+                $repoArrFromRec = type_Keylist::toArray($rec->repos);
+                
+                // Обхождаме масива
+                foreach ((array)$repoArrFromRec as $repoId) {
+                    
+                    // Добавяме в масива
+                    $orArr[$repoId][$rec->name] = $rec->name;
+                }
+            }
+            
+            // Обхождаме масива с хранилищата и файловете
+            foreach ((array)$repoArr as $repoId => $subPath) {
+                
+                try {
+                    
+                    // Вземаме всички достъпни файлове в хранилището, само от основната директория
+                    $reposFileArr = fileman_Repositories::retriveFiles($repoId, $subPath, FALSE, 0);
+                } catch (Exception $e) {
+                    
+                    // Ако възникне грешка
+                    // Записваме грешката
+                    static::log("Възникна грешка при обхождането на хранилище '{$repoId}'");
+                    
+                    // Прескачаме хранилището
+                    continue;
+                }
+                
+                // Вземаме масив с файловете само в главната директрия
+                $fileNameArr = $reposFileArr['/'];
+                
+                // Всички файлове в това хранилище
+                $filesArrInThisRepo = $orArr[$repoId];
+                
+                // Вземама масива с различията
+                $diffArr = type_Keylist::getDiffArr($filesArrInThisRepo, $fileNameArr);
+                
+                // Ако има изтрити файлове
+                if ($diffArr['delete']) {
+                    
+                    // Обхождаме масива
+                    foreach ((array)$diffArr['delete'] as $deletedFiles => $dummy) {
+                        
+                        // Вземаме всички записи, на мастера в които файла съществува
+                        $fileRec = static::fetch(array("#{$masterKey} = '{$masterId}' AND #name = '[#1#]'", $deletedFiles));
+                        
+                        // Премахваме id'то на хранилището
+                        $fileRec->repos = type_Keylist::removeKey($fileRec->repos, $repoId);
+                        
+                        // Ако няма записи
+                        if (type_Keylist::isEmpty($fileRec->repos)) {
+                            
+                            // Изтриваме запие
+                            static::delete($fileRec->id);
+                            
+                            // Добавяме в масива
+                            $resArr['deletedRec'][$fileRec->id] = $fileRec->id;
+                        } else {
+                            
+                            // Записваме промениете
+                            static::save($fileRec);
+                            
+                            // Добавяме в масива
+                            $resArr['deletedRepo'][$fileRec->id] = $repoId;
+                        }
+                    }
+                }
+                
+                // Ако има добавени файлове, които не фигурират в модела
+                if ($diffArr['add']) {
+                    
+                    // Обхождаме масива
+                    foreach ((array)$diffArr['add'] as $addFiles => $dummy) {
+                        
+                        // Вземаме записа за файла
+                        $fileRec = static::fetch(array("#{$masterKey} = '{$masterId}' AND #name = '[#1#]'", $addFiles));
+                        
+                        // Ако има запис
+                        if ($fileRec) {
+                            
+                            // Ако файла е отбелязан в хранилището
+                            if (type_Keylist::isIn($repoId, $fileRec->repos)) {
+                                
+                                // Прескачаме
+                                continue;
+                            }
+                            
+                        } else {
+                            // Ако няма запис
+                            // Създаваме такъв
+                            $fileRec = new stdClass();
+                            $fileRec->name = $addFiles;
+                            $fileRec->{$masterKey} = $masterId;
+                        }
+                        
+                        // Добавяме id-то на хранилището
+                        $fileRec->repos = type_Keylist::addKey($fileRec->repos, $repoId);
+                        
+                        // Добавяме в масива
+                        $resArr['addRepo'][$fileRec->id] = $repoId;
+                        
+                        // Записваме
+                        static::save($fileRec);
+                    }
+                }
+            }
+        }
+        
+        // Изтриваме всички записи, за файлове които не се намират в някое хранилище
+        $resArr['delete'] = static::delete("#repos IS NULL OR #repos = '|'");
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Функция, която се вика от крон
+     * Синрхоронизира файловете в хранилищитата с модела
+     */
+    static function cron_SyncFiles()
+    {
+        
+        // Извикваме функцията и връщаме резултата му
+        return static::syncFiles();
+    }
+    
+    
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        $rec = new stdClass();
+        $rec->systemId = 'SyncFiles';
+        $rec->description = 'Синхронизира файловете в хранилищете със записите в модела';
+        $rec->controller = $mvc->className;
+        $rec->action = 'SyncFiles';
+        $rec->period = 3;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 120;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да синхронизира файловете.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да сваля синхронизира файловете.</li>";
+        }
+        
+        return $res;
     }
     
     

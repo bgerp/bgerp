@@ -188,8 +188,7 @@ class cash_ExchangeDocument extends core_Master
     	$today = dt::verbal2mysql();
         $currencyId = acc_Periods::getBaseCurrencyId($today);
         
-        $form->setDefault('peroFrom', $cCase);
-        $form->setReadOnly('peroFrom');
+        $form->setReadOnly('peroFrom', $cCase);
         $form->setDefault('creditCurrency', $currencyId);
         $form->setDefault('debitCurrency', $currencyId);
         $form->setDefault('valior', $today);

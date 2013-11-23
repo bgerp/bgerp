@@ -163,6 +163,7 @@ class bgerp_iface_DealAspect
      * 
 	 * @param array $dealAspectOriginProducts - продуктите които идват от ориджина
 	 * @param array $dealAspectThisProducts - вече вкараните продукти
+	 * @param mixed $filter - Кои продукти да се филтрират ('storable', 'services', 'all')
 	 * @param ibt $productId - ид на продукт
 	 * @param int $classId - класа на продукта
 	 * @param int $classId - ид на опаковката
@@ -171,9 +172,10 @@ class bgerp_iface_DealAspect
      *                ид на мениджър на продуктов клас, а `productId` е ид на продукт в рамките
      *                на този продуктов клас.
 	 */
-    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $productId = NULL, $classId = NULL, $packagingId = NULL)
+    public static function buildProductOptions($dealAspectOriginProducts, $dealAspectThisProducts, $filter = 'all', $productId = NULL, $classId = NULL, $packagingId = NULL)
     {
         $options = array();
+        expect(in_array($filter, array('storable', 'services', 'all')));
         
         if($productId && $classId){
         	$options["{$classId}|{$productId}|{$packagingId}"] = cls::get($classId)->getTitleById($productId);
@@ -182,6 +184,12 @@ class bgerp_iface_DealAspect
         }
         
         foreach ($dealAspectOriginProducts->products as $p) {
+        	$info = cls::get($p->classId)->getProductInfo($p->productId);
+        	if($filter != 'all'){
+	        	$skip = ($filter == 'storable') ? !isset($info->meta['canStore']) : isset($info->meta['canStore']);
+	        	if($skip) continue;
+        	}
+        	
         	if($dealAspectThisProducts->findProduct($p->productId, $p->classId, $p->packagingId)) continue;
         	
             $ProductManager = cls::get($p->classId);

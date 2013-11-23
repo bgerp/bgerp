@@ -1,0 +1,132 @@
+[#SingleToolbar#]
+<div class='document'>
+ 
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+
+	<!--ET_BEGIN header-->
+		<div class='header [#STATE_CLASS#]'>
+			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+		</div>
+	<!--ET_END header-->
+<table width=100% cellpadding="0" cellspacing="0">
+    <tbody>
+    <tr>
+        <td>
+           	<div class='scrolling-holder'>
+           	<div class='display-table'>
+            <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
+                <tbody>
+                <tr>
+                    <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
+                    <td class="cell" align="center" width="30%" rowspan='2'>
+                        <font style="font-size:16pt;"><b>|ПРОТОКОЛ|*<br /><span style='font-size:12pt;'>|ЗА ДОСТАВКА НА УСЛУГИ|*</span></b> </font><br>
+                        
+                        <div style="padding-top:5px;">
+                        	№ <span class="bigData">[#id#]</span> / 
+                        	<span class="bigData">[#valior#]</span>
+                        </div>
+                        
+                        <!--ET_BEGIN state-->
+                        <br/>
+                        <div class="[#STATE_CLASS#]">[#state#]</div>
+                        <!--ET_END state-->
+                    </td>
+                    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b></td>
+                    </tr>
+                    <tr>
+                    <td class="cell">
+                    <!--ET_BEGIN contragent-->
+                        <b>[#contragentName#]</b><br>
+                        <!--ET_BEGIN contragentCountry-->
+                            <b>[#contragentCountry#]</b><br>
+                        <!--ET_END contragentCountry-->
+                        <!--ET_BEGIN contragentAddress-->
+                            [#contragentAddress#]<br>
+                        <!--ET_END contragentAddress-->
+                        [#locationId#]
+					<!--ET_END contragent-->
+					</td>
+					<td class="cell">
+                    <!--ET_BEGIN supplier-->
+                        <b>[#MyCompany#]</b><br>
+                        <b>[#MyCountry#]</b><br>
+                        [#MyAddress#] <br>
+                    <!--ET_END supplier-->
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+			<div class="lines"></div>
+			<div class="details">
+            		[#sales_ServicesDetails#]
+           	</div>
+           	<div class="lines"></div>		
+            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+                <tbody><tr>
+                    <td class="topCell first" valign="top">
+                        <!--ET_BEGIN deliveryTime-->
+                        <div>
+                            |Срок до|*: <b>[#deliveryTime#]</b>
+                        </div>
+                        <!--ET_END deliveryTime-->
+                        
+                        <!--ET_BEGIN locationId--> 
+                        <div>
+                        	|До|*: <b>[#locationId#]</b>
+                        </div>
+                        <!--ET_END locationId-->
+        				
+        				<!--ET_BEGIN vehicleId-->
+        				<div>
+                            |Доставител|*: <b>[#vehicleId#]</b>
+                        </div>
+        				<!--ET_END vehicleId-->
+        				
+                        <!--ET_BEGIN note-->
+	                        <hr />
+	                        <div class="richtext">[#note#]</div> 
+                        <!--ET_END note-->     
+                    </td>
+                    <td class="topCell" valign="top">
+                    <!--ET_BEGIN currencyId-->
+			             <div>|Валута|*:  <b>[#currencyId#]</b></div>
+			        <!--ET_END currencyId-->
+                    </td>
+       
+                    <td class="topCell" align="right" valign="top">
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td style="text-align: right;">|Данъчна основа|*: <span class='cCode'>[#baseCurrencyId#]</span> <b>[#amountDelivered#]</b></td>
+                            </tr>
+                            <!--ET_BEGIN amountDeliveredVat-->
+                            <tr>
+                                <td style="text-align: right;">|Общо|*[#VAT#]: <span class='cCode'>[#currencyId#]</span> <b>[#amountDeliveredVat#]</b></td>
+                            </tr>
+                            <!--ET_END amountDeliveredVat-->
+                            <tr>
+                                <td align="RIGHT"></td>
+                            </tr>
+                           
+                            </tbody>
+                        </table>
+                          
+                        
+                    </td>
+                </tr>           
+                </tbody>
+            </table>
+            </div>
+            </div>
+ 				<!--ET_BEGIN DETAILS-->
+				<div class='details'>
+					[#DETAILS#]
+				</div>
+				<!--ET_END DETAILS-->
+        </td>
+    </tr>
+    </tbody>
+</table>
+</div>

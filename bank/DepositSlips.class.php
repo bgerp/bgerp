@@ -215,13 +215,12 @@ class bank_DepositSlips extends core_Master
     	if($contragentData) {
     		if($contragentData->company) {
     			
-    			$form->setDefault('beneficiaryName', $contragentData->company);
+    			$form->setReadOnly('beneficiaryName', $contragentData->company);
     		} elseif ($contragentData->person) {
     			
     			// Ако папката е на лице, то вносителя по дефолт е лицето
-    			$form->setDefault('beneficiaryName', $contragentData->person);
+    			$form->setReadOnly('beneficiaryName', $contragentData->person);
     		}
-    		$form->setReadOnly('beneficiaryName');
     	}
     }
     

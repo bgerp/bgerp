@@ -1,81 +1,80 @@
 <?php
 /**
- * Клас 'store_Receipts'
+ * Клас 'sales_Services'
  *
- * Мениджър на Складовите разписки, Само складируеми продукти могат да се заприхождават в склада
+ * Мениджър на Протоколи за доставка на услуги
  *
  *
  * @category  bgerp
- * @package   store
+ * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_Receipts extends core_Master
+class sales_Services extends core_Master
 {
     /**
      * Заглавие
      */
-    public $title = 'Складови разписки';
+    public $title = 'Протоколи за доставка на услуги';
 
 
     /**
      * Абревиатура
      */
-    public $abbr = 'Sr';
+    public $abbr = 'Pss';
     
     
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
-                          acc_TransactionSourceIntf=store_transactionIntf_Receipt, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, plg_LastUsedKeys, cond_plg_DefaultValues';
+                    doc_plg_BusinessDoc2, plg_LastUsedKeys';
 
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,store';
+    public $canRead = 'ceo,sales';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,store';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,store';
+	public $canSingle = 'ceo,sales';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,sales';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,sales';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo,store';
+    public $canView = 'ceo,sales';
 
 
     /**
@@ -87,13 +86,13 @@ class store_Receipts extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,store';
+    public $canDelete = 'ceo,sales';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canConto = 'ceo,store';
+    public $canConto = 'ceo,sales';
     
     
     /**
@@ -105,25 +104,25 @@ class store_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDeliveredVat,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDeliveredVat, createdOn, createdBy';
 
 
     /**
      * Детайла, на модела
      */
-    public $details = 'store_ReceiptDetails' ;
+    public $details = 'sales_ServicesDetails';
     
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Складова разписка';
+    public $singleTitle = 'Протокол за доставка на услуги';
     
     
     /**
      * Файл за единичния изглед
      */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutReceipt.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutServices.shtml';
 
    
     /**
@@ -138,12 +137,6 @@ class store_Receipts extends core_Master
     public $priceFields = 'amountDelivered';
     
     
-   /**
-	* Стратегии за дефолт стойностти
-	*/
-    public static $defaultStrategies = array('termId' => 'lastDocUser|lastDoc|clientCondition');
-
-
     /**
      * Описание на модела (таблицата)
      */
@@ -151,19 +144,18 @@ class store_Receipts extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута');
-        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=В склад, mandatory'); 
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=ДДС,input=hidden');
         
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount');
+        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,summary=amount,input=none');
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
@@ -194,12 +186,11 @@ class store_Receipts extends core_Master
     
         while ($detailRec = $query->fetch()) {
             $vat = 1;
-    
             if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
                 $ProductManager = cls::get($detailRec->classId);
     			$vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
             }
-    		
+            
             // Събиране на сумата във валутата на Ен-то за да няма разминаване
             $priceVat = ($detailRec->price * $vat) / $rec->currencyRate;
             $price = $detailRec->price / $rec->currencyRate;
@@ -214,7 +205,7 @@ class store_Receipts extends core_Master
         // Конвертиране на сумата във основна валута, за запазване в db-то
         $rec->amountDelivered *= $rec->currencyRate;
         $rec->amountDeliveredVat *= $rec->currencyRate;
-    	
+        
         $mvc->save($rec);
     }
     
@@ -227,35 +218,34 @@ class store_Receipts extends core_Master
         $origin = static::getOrigin($rec);
         
         // Ако новосъздадения документ има origin, който поддържа bgerp_AggregateDealIntf,
-        // използваме го за автоматично попълване на детайлите на СР
+        // използваме го за автоматично попълване на детайлите на протокола
+        expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         
-        if ($origin->haveInterface('bgerp_DealAggregatorIntf')) {
-            /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
-            $aggregatedDealInfo = $origin->getAggregateDealInfo();
+        /* @var $aggregatedDealInfo bgerp_iface_DealResponse */
+        $aggregatedDealInfo = $origin->getAggregateDealInfo();
             
-            $remainingToShip = clone $aggregatedDealInfo->agreed;
-            $remainingToShip->pop($aggregatedDealInfo->shipped);
+        $remainingToShip = clone $aggregatedDealInfo->agreed;
+        $remainingToShip->pop($aggregatedDealInfo->shipped);
             
-            /* @var $product bgerp_iface_DealProduct */
-            foreach ($remainingToShip->products as $product) {
-            	$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+        /* @var $product bgerp_iface_DealProduct */
+        foreach ($remainingToShip->products as $product) {
+            $info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
                 
-            	// Пропускат се експедираните и нескладируемите продукти
-            	if (!isset($info->meta['canStore']) || $product->quantity <= 0) continue;
+            // Пропускат се експедираните и складируемите артикули
+            if (isset($info->meta['canStore']) || $product->quantity <= 0) continue;
+            
+            $shipProduct = new stdClass();
+            $shipProduct->shipmentId  = $rec->id;
+            $shipProduct->classId     = $product->classId;
+            $shipProduct->productId   = $product->productId;
+            $shipProduct->packagingId = $product->packagingId;
+            $shipProduct->quantity    = $product->quantity;
+            $shipProduct->price       = $product->price;
+            $shipProduct->uomId       = $product->uomId;
+            $shipProduct->discount    = $product->discount;
+            $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
                 
-                $shipProduct = new stdClass();
-                $shipProduct->receiptId   = $rec->id;
-                $shipProduct->classId     = $product->classId;
-                $shipProduct->productId   = $product->productId;
-                $shipProduct->packagingId = $product->packagingId;
-                $shipProduct->quantity    = $product->quantity;
-                $shipProduct->price       = $product->price;
-                $shipProduct->uomId       = $product->uomId;
-                $shipProduct->discount    = $product->discount;
-                $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-                
-                $mvc->store_ReceiptDetails->save($shipProduct);
-            }
+            $mvc->sales_ServicesDetails->save($shipProduct);
         }
     }
 
@@ -370,10 +360,7 @@ class store_Receipts extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param store_Stores $mvc
-     * @param stdClass $data
+     * Преди показване на форма за добавяне/промяна
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
@@ -396,9 +383,9 @@ class store_Receipts extends core_Master
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
         
-        if (empty($rec->storeId)) {
-            $rec->storeId = store_Stores::getCurrent('id', FALSE);
-        }
+        // Поле за избор на локация - само локациите на контрагента по продажбата
+        $form->getField('locationId')->type->options = 
+            array(''=>'') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
@@ -406,20 +393,14 @@ class store_Receipts extends core_Master
             // ... проверяваме предхождащия за bgerp_DealIntf
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
             expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-            
+            	
             /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getAggregateDealInfo();
-                
             $form->rec->currencyId = $dealInfo->agreed->currency;
             $form->rec->currencyRate = $dealInfo->agreed->rate;
-        	if(isset($dealInfo->agreed->delivery->term)){
-        		$form->rec->termId = $dealInfo->agreed->delivery->term;
-                $form->setField('termId', 'input=hidden');
-            }
-           
+            $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
-            $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
@@ -449,16 +430,17 @@ class store_Receipts extends core_Master
     		}
     	}
     	
-        if(isset($fields['-single'])){
-			@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
-			$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
-			$mvc->prepareMyCompanyInfo($row, $rec);
-        }
+    	if(isset($fields['-single'])){
+    		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
+    		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
+    		$mvc->prepareMyCompanyInfo($row, $rec);
+    	}
     }
 
 
     /**
-     * СР не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * Протокола не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     *
      * @param $folderId int ид на папката
      * @return boolean
      */
@@ -469,7 +451,7 @@ class store_Receipts extends core_Master
     
     
     /**
-     * Може ли СР да се добави в посочената нишка?
+     * Може ли протокол да се добави в посочената нишка?
      * Експедиционните нареждания могат да се добавят само в нишки с начало - документ-продажба
      *
      * @param int $threadId key(mvc=doc_Threads)
@@ -480,11 +462,11 @@ class store_Receipts extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	// Ако началото на треда е активирана покупка
-    	if(($firstDoc->instance() instanceof purchase_Purchases) && $docState == 'active'){
+    	// Ако началото на треда е активирана продажба
+    	if(($firstDoc->instance() instanceof sales_Sales) && $docState == 'active'){
     		
-    		// Ако има поне един складируем продукт в покупката
-    		return $firstDoc->hasStorableProducts();
+    		// Ако има поне един нескладируем продукт в продажбата
+    		return $firstDoc->hasStorableProducts(FALSE);
     	}
     	
     	return FALSE;
@@ -492,14 +474,13 @@ class store_Receipts extends core_Master
         
     
     /**
-     * @param int $id key(mvc=store_Receipts)
+     * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Складова разписка №{$rec->id} / " . $this->getVerbal($rec, 'valior');
-        
+        $title = "Протокол за доставка на услуги №{$rec->id} / " . $this->getVerbal($rec, 'valior');
         $row = (object)array(
             'title'    => $title,
             'authorId' => $rec->createdBy,
@@ -513,8 +494,8 @@ class store_Receipts extends core_Master
     
     
 	/**
-     * Връща масив от използваните нестандартни артикули в СР-то
-     * @param int $id - ид на СР
+     * Връща масив от използваните нестандартни артикули в протоколa
+     * @param int $id - ид на протоколa
      * @return param $res - масив с използваните документи
      * 					['class'] - инстанция на документа
      * 					['id'] - ид на документа
@@ -522,9 +503,9 @@ class store_Receipts extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->store_ReceiptDetails->getQuery();
-    	$dQuery->EXT('state', 'store_Receipts', 'externalKey=receiptId');
-    	$dQuery->where("#receiptId = '{$id}'");
+    	$dQuery = $this->sales_ServicesDetails->getQuery();
+    	$dQuery->EXT('state', 'sales_Services', 'externalKey=shipmentId');
+    	$dQuery->where("#shipmentId = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
     		$productMan = cls::get($dRec->classId);
@@ -545,22 +526,21 @@ class store_Receipts extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new store_model_Receipt($id);
-        
+        $rec = new sales_model_Service($id);
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-		
-		$result->shipped->amount             = $rec->amountDeliveredVat;
-		$result->shipped->currency           = $rec->currencyId;
-		$result->shipped->rate 				 = $rec->currencyRate;
-        $result->shipped->vatType            = $rec->chargeVat;
-        $result->shipped->delivery->term     = $rec->termId;
-        $result->shipped->delivery->time     = $rec->deliveryTime;
-        $result->shipped->delivery->storeId  = $rec->storeId;
         
-        /* @var $dRec store_model_Receipt */
-        foreach ($rec->getDetails('store_ReceiptDetails') as $dRec) {
+        // Конвертираме данъчната основа към валутата идваща от продажбата
+        $result->shipped->amount             = $rec->amountDeliveredVat;
+        $result->shipped->currency		 	 = $rec->currencyId;
+        $result->shipped->rate		         = $rec->currencyRate;
+        $result->shipped->vatType            = $rec->chargeVat;
+        $result->shipped->delivery->location = $rec->locationId;
+        $result->shipped->delivery->time     = $rec->deliveryTime;
+        
+        /* @var $dRec sales_model_Service */
+        foreach ($rec->getDetails('sales_ServicesDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;
@@ -608,6 +588,70 @@ class store_Receipts extends core_Master
     	requireRole('debug');
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
-    	bp($info->shipped);
+    	bp($info->shipped, $this->fetch($id));
+    }
+    
+    
+    /**
+     * Финализиране на транзакцията
+     * @param int $id
+     */
+	public function finalizeTransaction($id)
+    {
+        $rec = $this->fetchRec($id);
+        $rec->state = 'active';
+        
+        if ($this->save($rec)) {
+            $this->invoke('Activation', array($rec));
+        }
+        
+        // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.
+        if ($origin = $this->getOrigin($rec)) {
+            $rec = new core_ObjectReference($this, $rec);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
+        }
+    }
+    
+    
+    /**
+     * Транзакция за запис в журнала
+     * @param int $id
+     */
+	public function getTransaction($id)
+    {
+        $entries = array();
+        $rec = new sales_model_Service($id);
+        $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        
+        $detailsRec = $rec->getDetails('sales_ServicesDetails');
+        if(count($detailsRec)){
+	        foreach ($detailsRec as $dRec) {
+	        	$entries[] = array(
+	                'amount' => currency_Currencies::round($dRec->amount * $rec->currencyRate), // В основна валута
+	                
+	                'debit' => array(
+	                    '411', // Сметка "411. Вземания от клиенти"
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+	                        array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
+	                    'quantity' => currency_Currencies::round($dRec->amount, $rec->currencyId), // "брой пари" във валутата на продажбата
+	                ),
+	                
+	                'credit' => array(
+	                    '703', // Сметка "703". Приходи от продажби на услуги
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+	                    	array($dRec->classId, $dRec->productId), // Перо 2 - Артикул
+	                    'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
+	                ),
+            	);
+	        }
+        }
+        
+        $transaction = (object)array(
+            'reason'  => 'Протокол за доставка на услуги #' . $rec->id,
+            'valior'  => $rec->valior,
+            'entries' => $entries, 
+        );
+        
+        return $transaction;
     }
 }

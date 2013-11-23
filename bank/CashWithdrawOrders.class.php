@@ -189,8 +189,7 @@ class bank_CashWithdrawOrders extends core_Master
     		
     		$account = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
     		$form->setDefault('execBank', $account->bank);
-    		$form->setDefault('ordererIban', $rec->ownAccount);
-    		$form->setReadOnly('ordererIban');
+    		$form->setReadOnly('ordererIban', $rec->ownAccount);
     		
     		// Ако контрагента е лице, слагаме името му за получател
     		$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);

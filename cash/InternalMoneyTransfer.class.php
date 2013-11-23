@@ -251,8 +251,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-      	$form->setDefault('creditCase', cash_Cases::getCurrent());
-      	$form->setReadOnly('creditCase');
+      	$form->setReadOnly('creditCase', cash_Cases::getCurrent());
      }
     
      

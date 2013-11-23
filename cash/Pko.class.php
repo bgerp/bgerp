@@ -213,9 +213,14 @@ class cash_Pko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->agreed->currency);
-    		 	$form->rec->rate       = $dealInfo->agreed->rate;
-    		 	$form->rec->amount     = $dealInfo->agreed->amount / $dealInfo->agreed->rate;
+    		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 	if($amount <= 0) {
+    		 		$amount = 0;
+    		 	}
+    		 	
+    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
+    		 	$form->rec->rate       = $dealInfo->shipped->rate;
+    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
     		 }
     	}
     	
@@ -235,9 +240,7 @@ class cash_Pko extends core_Master
     	$options = acc_Operations::getPossibleOperations(get_called_class());
         $options = acc_Operations::filter($options, $contragentClassId);
     	$form->setOptions('operationSysId', $options);
-    	
-    	$form->setDefault('peroCase', cash_Cases::getCurrent());
-    	$form->setReadOnly('peroCase');
+    	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -489,7 +492,7 @@ class cash_Pko extends core_Master
     	
     	$res = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	if($res){
-    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState == 'closed')){
+    		if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf') && $docState != 'active')){
     			$res = FALSE;
     		}
     	}

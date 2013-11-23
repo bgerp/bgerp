@@ -270,7 +270,7 @@ class cal_Tasks extends core_Master
      */
     static function renderPortal($userId = NULL)
     {
-       
+        
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
@@ -288,7 +288,7 @@ class cal_Tasks extends core_Master
         
         if(Mode::is('listTasks', 'by')) {
             $data->query->where("#createdBy = $userId AND (#timeStart < '{$now}' || #timeStart IS NULL)");
-        } else {
+        } else { 
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%' AND (#timeStart < '{$now}' || #timeStart IS NULL)");
         }
 
@@ -825,7 +825,7 @@ class cal_Tasks extends core_Master
      */
     function act_SwitchByTo()
     {
-        if(Mode::is('listTasks', 'by')) {
+        if (Mode::is('listTasks', 'by')) {
             Mode::setPermanent('listTasks', 'to');
         } else {
             Mode::setPermanent('listTasks', 'by');
@@ -854,7 +854,7 @@ class cal_Tasks extends core_Master
         
         $res .= "<li>Известяване за стартирани задачи по крон</li>";
         
-        //Създаваме, кофа, където ще държим всички прикачени файлове в задачи
+        // Създаваме, кофа, където ще държим всички прикачени файлове в задачи
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('calTasks', 'Прикачени файлове в задачи', NULL, '104857600', 'user', 'user');
     }
@@ -893,88 +893,170 @@ class cal_Tasks extends core_Master
          
 	    // за всеки едиин запис от базата данни
     	foreach($data->recs as $v=>$rec){ 
-    		
-    		// ако няма продължителност на задачата
-    		if(!$rec->timeDuration) {
-    			// приемаме, че тя е 30 мин
-    			$timeDuration = 30 * 60;
-    		} else {
-    			$timeDuration = $rec->timeDuration;
+    		if($rec->state == 'active' && $rec->timeStart){
+    			// ако няма продължителност на задачата
+	    		if(!$rec->timeDuration ) {
+	    			// приемаме, че тя е 30 мин ?!? 
+	    			//bp(dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart));
+	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
+	    		} else {
+	    			$timeDuration = $rec->timeDuration;
+	    		}
+	    		
+	    		// ако нямаме край на задачата
+	    		/*if(!$rec->timeEnd){
+	    			// изчисляваме края, като начало и продължителност
+	    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
+	    		} else {
+	    			$timeEnd = $rec->timeEnd;
+	    		}
+	    		
+	    		// правим 2 масива с начални и крайни часове
+	    		if($rec->timeStart){
+	    			$start[] = dt::mysql2timestamp($rec->timeStart);
+	    			$end[] = dt::mysql2timestamp($timeEnd);
+	    		}*/
+	            
+	    		// масив с шернатите потребители
+	    		$sharedUsers[$rec->sharedUsers] = $rec->sharedUsers;
+	          
+	    		
+	    		
+		    		// масива със задачите
+		    		$resTask[]=array( 
+			    					'taskId' => $rec->id,
+			    					'rowId' =>  array_values(keylist::toArray($rec->sharedUsers)),
+		    						'timeline' => array (
+		    											'0' => array(
+		                								'duration' => $timeDuration,  
+		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
+		    		                
+			    					'color' => $colors[$v % 22],
+			    					'hint' => '',
+			    					'url' => ''
+			    				
+			    	);
     		}
-    		
-    		// ако нямаме край на задачата
-    		if(!$rec->timeEnd){
-    			// изчисляваме края, като начало и продължителност
-    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
-    		} else {
-    			$timeEnd = $rec->timeEnd;
-    		}
-    		
-    		// правим 2 масива с начални и крайни часове
-    		if($rec->timeStart){
-    			$start[] = dt::mysql2timestamp($rec->timeStart);
-    			$end[] = dt::mysql2timestamp($timeEnd);
-    		}
-            
-    		// масив с шернатите потребители
-    		$sharedUsers[$rec->sharedUsers] = $rec->sharedUsers;
+	} 
+	      
+	    	// малко обработка на масива с шернатите потребители
+	    	foreach($sharedUsers as $u){
+	    		$resUsers[] = keylist::toArray($u);
+	    	}
+	// /bp($resUsers);
+	    	foreach($resUsers as $k=>$userProfile){ 
+	    		foreach($userProfile as $id=>$value){ 
+	    			
+	    			$uS[$k]['name'] = crm_Profiles::createLink($value)->getContent();
+	    			$uS[$k]['id'] = $id;
+	    			
+	    			//$resUsers[$k]['name'] = crm_Profiles::createLink($value);
+	    			//$resUsers[$k]['id'] = $id;
+	    			//$resUsers[$k][$id] = crm_Profiles::createLink($value);
+	    		}
+	    	} 
+	
+	    	// други параметри
+	    	$others = self::getGanttTimeTipe($data);
+	    	
+	    	$params = $others->otherParams;
+	    	$header = $others->headerInfo;
 
-    		// масива със задачите
-    		$resTask[]=array( 
-	    					'taskId' => $rec->id,
-	    					'rowId' => '',
-	    					'duration' => $timeDuration,
-	    					'startTask' => dt::mysql2timestamp($rec->timeStart), 
-	    					'color' => $colors[$v % 22],
-	    					'hint' => '',
-	    					'url' => ''
-	    				
-	    	);
-    		
-    	} 
-  
-    	// малко обработка на масива с шернатите потребители
-    	foreach($sharedUsers as $u){
-    		$resUsers[] = keylist::toArray($u);
-    	}
- 
-    	foreach($resUsers as $k=>$userProfile){
-    		foreach($userProfile as $id=>$value){
-    			
-    			$uS[$k]['name'] .= crm_Profiles::createLink($value)->getContent();
-    			$uS[$k]['id'] = $id;
-    			
-    			//$resUsers[$k]['name'] = crm_Profiles::createLink($value);
-    			//$resUsers[$k]['id'] = $id;
-    			//$resUsers[$k][$id] = crm_Profiles::createLink($value);
-    		}
-    	} 
-    	    	
-    	// други параметри
-    	$params = array(
-    					"type" => "ден",
-    					"typeChild" => "час",
-    					"startTime" =>	min($start),
-    		        	"endTime" => max($end)
-    	);
+	    	// връщаме един обект от всички масиви
+	    	$res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $uS, 'otherParams' => $params);
+	        	   
+	        $chart = gantt_Adapter::render_($res);
+	//bp($chart);
+	    	return $chart;
     	
-    	// хедър на таблицата 
-    	$header = array(
-    					'0' => array (
-    						"valParent" => "07.11. четвъртък",
-    						"valChildren" => array(
-    								0 => "10:00",
-    								1 => "11:00",
-    								2 => "12:00" )	
-    				)
-    	);
-        //bp($resTask);
-    	// връщаме един обект от всички масиви
-    	$res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $uS, 'otherParams' => $params);
+    }
+    
+    
+    
+    static function getGanttTimeTipe($data)
+    {
+    // за всеки едиин запис от базата данни
+    	foreach($data->recs as $v=>$rec){ 
+    		
+    		if($rec->state == 'active'){
+	    		// ако няма продължителност на задачата
+	    		if(!$rec->timeDuration) {
+	    			// приемаме, че тя е 30 мин
+	    			$timeDuration = 30 * 60;
+	    		} else {
+	    			$timeDuration = $rec->timeDuration;
+	    		}
+	    		
+	    		// ако нямаме край на задачата
+	    		if(!$rec->timeEnd){
+	    			// изчисляваме края, като начало и продължителност
+	    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
+	    		} else {
+	    			$timeEnd = $rec->timeEnd;
+	    		}
+	    		
+	    		// правим 2 масива с начални и крайни часове
+	    		if($rec->timeStart){
+	    			$start[] = dt::mysql2timestamp($rec->timeStart);
+	    			$end[] = dt::mysql2timestamp($timeEnd);
+	    		}
+    		}
+    	}
+    	
+    	// Масив [0] - датата
+    	//       [1] - часа
+    	$startTime = explode(" ", dt::timestamp2Mysql(min($start)));
+    	$endTime = explode(" ", dt::timestamp2Mysql(max($end)));
+    	
+    	// Масив [0] - година
+    	//       [1] - месец
+    	//       [2] - ден
+    	$startExplode =  explode("-", $startTime[0]);
+    	$endExplode = explode("-", $endTime[0]);
+    	
+    	if (dt::daysBetween($endTime[0],$startTime[0]) >= 356) {
+    		
+    		$otherParams['mainHeaderCaption'] = tr('година');
+    		$otherParams['subHeaderCaption'] = tr('месеци');
+    		$otherParams['startTime'] = mktime(0, 0, 0, 1, $startExplode[1], $startExplode[0]);
+    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[0]));
+    		
+    		$headerInfo[0]['mainHeader'] = $startExplode[0];
+    		$headerInfo[1]['mainHeader'] = $endExplode[0];
+    		
+    		for ($i = $startExplode[1]; $i <= 12; $i++) {
+    			$headerInfo[0]['subHeader'][$i] = date("m", mktime(0, 0, 0, $i, 1, $startExplode[0]));
+    		}
+    		
+    		for ($j = 1; $j <= $endExplode[1]; $j++){
+    			$headerInfo[1]['subHeader'][$j] = date("m", mktime(0, 0, 0, $j, 1, $endExplode[0]));
+    		}
 
-        $chart = gantt_Adapter::render_($res);
-
-    	return $chart;
+    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) < 7) {
+    		
+    		$otherParams['mainHeaderCaption'] = tr('ден');
+    		$otherParams['subHeaderCaption'] = tr('часове');
+    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[2], $startExplode[1], $startExplode[0]);
+    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[2], $endExplode[1], $endExplode[0]);
+    		
+    		
+    	} elseif (7 >= dt::daysBetween($endTime[0],$startTime[0])  && dt::daysBetween($endTime[0],$startTime[0]) <= 31) {
+    		
+    		$otherParams['mainHeaderCaption'] = tr('седмица');
+    		$otherParams['subHeaderCaption'] = tr('ден');
+    		$otherParams['startTime'] = " ";
+    		$otherParams['endTime'] = " ";
+    		
+    	} elseif (32 >= dt::daysBetween($endTime[0],$startTime[0]) && dt::daysBetween($endTime[0],$startTime[0]) <= 356) {
+    		
+    		$otherParams['mainHeaderCaption'] = tr('месец');
+    		$otherParams['subHeaderCaption'] = tr('ден');
+    		$otherParams['startTime'] = mktime(0, 0, 0, 1, $startExplode[1], $startExplode[0]);
+    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[0]). " 23:59:59");
+    		
+    	}
+    	
+    	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
     }
  
 }

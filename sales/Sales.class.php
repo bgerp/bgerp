@@ -39,8 +39,7 @@ class sales_Sales extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
                     doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank,
-                    doc_plg_BusinessDoc2, store_plg_Shippable, acc_plg_DocumentSummary';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
     /**
@@ -761,8 +760,16 @@ class sales_Sales extends core_Master
     		}
     		
 	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактуриране", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    	}
+	    	
+    		if (sales_Services::canAddToThread($data->rec->threadId)) {
+	            $data->toolbar->addBtn('Услуга', array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	        }
+	        
+	    	if (store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	            $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
+	        }
     	}
     	
     	if(haveRole('debug')){
@@ -1117,5 +1124,32 @@ class sales_Sales extends core_Master
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getAggregateDealInfo($id);
     	bp($info);
+    }
+    
+    
+    /**
+     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * @param int $id - ид на продажба
+     * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
+     * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
+     */
+    public function hasStorableProducts($id, $storable = TRUE)
+    {
+    	$rec = new sales_model_Sale(self::fetchRec($id));
+        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
+        foreach ($detailRecs as $d){
+        	$info = cls::get($d->classId)->getProductInfo($d->productId);
+        	if($storable){
+        		
+        		// Връща се TRUE ако има поне един складируем продукт
+        		if(isset($info->meta['canStore'])) return TRUE;
+        	} else {
+        		
+        		// Връща се TRUE ако има поне един НЕ складируем продукт
+        		if(!isset($info->meta['canStore']))return TRUE;
+        	}
+        }
+        
+        return FALSE;
     }
 }

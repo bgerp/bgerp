@@ -30,10 +30,9 @@ class store_transactionIntf_ShipmentOrder
      * 1. Задължаване на с/ката на клиента
      *
      *    Dt: 411    - Вземания от клиенти               (Клиент, Валута)
-     *    	Ct: 7011 - Приходи от продажби към Клиенти   (Стоки и Продукти)
-     *    	Ct: 703  - Приходи от продажба на услуги     (Клиент, Услуги)
+     *    Ct: 7011 - Приходи от продажби към Клиенти   (Стоки и Продукти)
      * 
-     * 2. Експедиране на стоката от склада (в някой случаи)
+     * 2. Експедиране на стоката от склада
      *
      *    Dt: 7011 - Приходи от продажби към Клиенти (Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
@@ -107,7 +106,6 @@ class store_transactionIntf_ShipmentOrder
         
         if (!empty($rec->id)) {
             // Извличаме детайлите на продажбата
-            /* @var $detailQuery core_Query */
             $detailQuery = store_ShipmentOrderDetails::getQuery();
             $detailQuery->where("#shipmentId = '{$rec->id}'");
             $rec->details  = array();
@@ -125,7 +123,7 @@ class store_transactionIntf_ShipmentOrder
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 или Ct: 703 - Приходи от продажби към Контрагенти  (Клиенти, Стоки и Продукти) / Приходи от продажби на услуги (Клиент, Услуга)
+     *    Ct: 7011 - Приходи от продажби към Контрагенти  (Клиенти, Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -141,13 +139,6 @@ class store_transactionIntf_ShipmentOrder
         
         foreach ($rec->details as $detailRec) {
         	
-        	// Ако артикула е складируем кредитира се 7011, иначе 703
-        	if(sales_TransactionSourceImpl::isStorable($detailRec->classId, $detailRec->productId)){
-        		$creditAccId = '7011';
-        	} else {
-        		$creditAccId = '703';
-        	}
-        	
             $entries[] = array(
                 'amount' => currency_Currencies::round($detailRec->amount * $currencyRate), // В основна валута
                 
@@ -159,7 +150,7 @@ class store_transactionIntf_ShipmentOrder
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // Сметка "7011. Приходи от продажби по Документи" // Сметка "703". Приходи от продажби на услуги
+                     '7011', // Сметка "7011. Приходи от продажби по Документи"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     	array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
@@ -174,7 +165,7 @@ class store_transactionIntf_ShipmentOrder
     /**
      * Помощен метод - генерира доставната част от транзакцията за продажба (ако има)
      * 
-     * Експедиране на стоката от склада (в някой случаи)
+     * Експедиране на стоката от склада
      *
      *    Dt: 7011 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти)
      *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
@@ -189,11 +180,8 @@ class store_transactionIntf_ShipmentOrder
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
-        	
-        	// Само складируемите продукти се изписват от склада
-        	if(sales_TransactionSourceImpl::isStorable($detailRec->classId, $detailRec->productId)){
-        		$entries[] = array(
-	                'debit' => array(
+        	$entries[] = array(
+	             'debit' => array(
 	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
         					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
@@ -206,8 +194,7 @@ class store_transactionIntf_ShipmentOrder
 	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
-	            );
-        	}
+	       );
         }
         
         return $entries;

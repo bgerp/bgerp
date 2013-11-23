@@ -264,8 +264,7 @@ class bank_InternalMoneyTransfer extends core_Master
         $today = dt::verbal2mysql();
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-      	$form->setDefault('creditBank', bank_OwnAccounts::getCurrent());
-      	$form->setReadOnly('creditBank');
+      	$form->setReadOnly('creditBank', bank_OwnAccounts::getCurrent());
     }
     
      

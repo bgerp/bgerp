@@ -40,9 +40,15 @@ class distro_Group extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'repos';
+    
+    
+    /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'admin';
     
     
     /**
@@ -60,13 +66,13 @@ class distro_Group extends core_Master
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'admin';
     
     
     /**
@@ -92,7 +98,7 @@ class distro_Group extends core_Master
      */
 //    var $loadList = 'distro_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
 //        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
-    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools';
+    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search';
     
     
     /**
@@ -134,7 +140,7 @@ class distro_Group extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-//    var $searchFields = '';
+    var $searchFields = 'title, repos';
     
     
     /**
@@ -339,6 +345,9 @@ class distro_Group extends core_Master
                 
                 // Създаваме директория в хранилището
                 fileman_Repositories::createDirInRepo($repoId, $rec->title);
+                
+                // Активираме хранилището
+                fileman_Repositories::activateRepo($repoId);
             }
         }
     }
@@ -359,18 +368,30 @@ class distro_Group extends core_Master
     
     
     /**
+     * Проверява дали може да се добави в детайла
      * 
+     * @param integer $id - id на записи
+     * @param integer $userId - id на потребител
      * 
-     * @param integer $id
-     * @param integer $userId
-     * 
-     * @return boolean
+     * @return boolean - Ако имаме права
      */
     static function canAddDetail($id, $userId=NULL)
     {
-        // Ако имаме достъп до сингъла на документа
-        if ($id && static::haveRightFor('single', $id, $userId)) {
+        // Ако няма id
+        if (!$id) return FALSE;
             
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Ако състоянието не е актвино
+        if ($rec->state != 'active') {
+            
+            return FALSE;
+        }
+        
+        // Ако имаме достъп до сингъла на документа
+        if (static::haveRightFor('single', $rec, $userId)) {
+                
             return TRUE;
         }
         
@@ -403,6 +424,53 @@ class distro_Group extends core_Master
         
         // Връщаме масива
         return $reposArr;
+    }
+    
+    
+    /**
+     * Връща масив с актвитните групи и хранилищата
+     * 
+     * @return array - Двуемерен масив с id на записа, id на хранилището и заглавието на групата
+     */
+    static function getActiveGroupArr()
+    {
+        // Вземаме всички активни групи, подредени в обратен ред
+        $query = static::getQuery();
+        $query->where('1=1');
+        $query->where("#state = 'active'");
+        $query->orderBy('id', 'DESC');
+        
+        // Двумерния масив, който ще връщаме
+        $pathArr = array();
+        
+        // Обхождаме резултата
+        while($rec = $query->fetch()) {
+            
+            // Вземаме хранилищата
+            $reposArr = type_Keylist::toArray($rec->repos);
+            
+            // Ако няма хранилище, прескачаме
+            if (!$reposArr) continue;
+            
+            // Обхождаме масива с хранилищата
+            foreach ((array)$reposArr as $repoId) {
+                
+                // Добавяме в масива
+                $pathArr[$rec->id][$repoId] = $rec->title;
+            }
+        }
+        
+        return $pathArr;
+    }
+    
+    
+	/**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    static function getThreadState($id)
+    {
+        
+        return 'opened';
     }
     
     

@@ -24,43 +24,43 @@ class distro_Automation extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'admin';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'admin';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	var $canSingle = 'admin';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'powerUser';
+    var $canReject = 'admin';
     
     
     /**
