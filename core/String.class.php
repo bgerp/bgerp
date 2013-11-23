@@ -279,9 +279,16 @@ class core_String
         $lastChar = '';
         
         for ($i = 0; $i <= $len; $i++) {
+            
             $c = $expr{$i};
             
-            if ($c == "'" && $lastChar != "\\") {
+            if($lastChar == "\\") {
+                $bckSl++;
+            } else {
+                $bckSl = 0;
+            }
+
+            if ($c == "'" && (($bckSl % 2) == 0)) {
                 $esc = (!$esc);
             }
             
