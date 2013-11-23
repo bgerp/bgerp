@@ -18,19 +18,19 @@ class hyphen_Plugin extends core_Plugin
 	/**
      * Минималната дължина на стринга, над която ще се хифенира стринга
      */
-    const TRANSFER_WORD_MIN_LENGTH = 15;
+    const TRANSFER_WORD_MIN_LENGTH = 32;
     
     
 	/**
      * Минималната дължина след която ще се добавя знак за хифенация
      */
-    const MIN_LENGTH_HYPHEN = 4;
+    const MIN_LENGTH_HYPHEN = 24;
     
     
     /**
-     * Максималната дължина след която ще се добавя знак за хифенация
+     * Максималната дължина след която ще се добавя (задължително) знак за хифенация
      */
-    const MAX_LENGTH_HYPHEN = 10;
+    const MAX_LENGTH_HYPHEN = 28;
     
     
     /**
@@ -43,7 +43,7 @@ class hyphen_Plugin extends core_Plugin
         if (Mode::is('text', 'plain')) return ;
         
         // Ако сме в широк режим и не сме в дебъг, връщаме
-        if (Mode::is('screenMode', 'wide') && !isDebug()) return ;
+        if (!Mode::is('screenMode', 'narrow')) return ;
         
         // Шаблона, за намиране, на думите, които ще хифинираме
         $pattern = "/(?'html'\<[^\>]*\>)|(?'space'[\s]+)|(?'entity'\&[^\;]*\;)|(?'words'[^\s\<\&]{" . static::TRANSFER_WORD_MIN_LENGTH .",})/iu";

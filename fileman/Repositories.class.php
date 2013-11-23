@@ -96,7 +96,7 @@ class fileman_Repositories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created';
+    var $loadList = 'fileman_Wrapper, plg_RowTools, plg_Created, plg_State';
     
     
     /**
@@ -183,6 +183,15 @@ class fileman_Repositories extends core_Master
             
             // Избираме първия, по подразбиране
             $data->form->setDefault('basePath', key($basePathsArr));
+        } else {
+            
+            // Ако е активирано
+            if ($data->form->rec->state == 'active') {
+                
+                // Да не може да се променя пътя до хранилището
+                $data->form->setReadOnly('subPath');
+                $data->form->setReadOnly('basePath');
+            }
         }
         
         // Плейсхолдера, който ще показваме
@@ -313,6 +322,20 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Връща пълния път до хранилището по подадено id
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return string - Пътя до хранилището
+     */
+    static function getFullPathFromId($id)
+    {
+        
+        return static::fetchField($id, 'fullPath');
+    }
+    
+    
+    /**
      * Обединява хранилището и подпапката
      * 
      * @param string $basePath - Хранилището
@@ -354,21 +377,29 @@ class fileman_Repositories extends core_Master
     /**
      * Качва посочения файл в кофата и връща манипулатора му
      * 
-     * @param string $filePath - Пътя до файла
+     * @param string $repoPath - Пътя до хранилището
+     * @param string $file - Името на файла
+     * @param string $subPath - Подпапка в хранилището
      * @param string $bucket - Кофата, в която да се качи
      * 
      * @return fileHnd - Връща манипулатора на качения файл
      */
-    static function absorbFile($filePath, $bucket=NULL)
+    static function absorbFile($repoPath, $file, $subPath='', $bucket=NULL)
     {
         // Задаваме кофата, ако не е зададена
         setIfNot($bucket, static::$bucket);
         
-        // Очакваме да няма хакове по пътя
-        expect(static::isGoodPath($filePath));
+        // Обединяваме подпапката и хранилището
+        $repoPath = static::getFullPath($repoPath, $subPath);
+        
+        // Добавяме името на файла към пътя
+        $filePath = static::getFullPath($repoPath, $file);
         
         // Подготвяме пътя
         $filePath = static::preparePath($filePath);
+        
+        // Очакваме да няма хакове по пътя
+        expect(static::isGoodPath($filePath));
         
         // Очакваме да е валиден файл        
         expect(is_file($filePath));
@@ -382,21 +413,22 @@ class fileman_Repositories extends core_Master
      * Абсорбира подадения файл, който се намира в съответното хранилище
      * 
      * @param integer $id - id на хранилището
-     * @param string $file - Файла в хранилището
+     * @param string $file - Името на файла в хранилището
+     * @param string $subPath - Подпапка в хранилището
      * @param string $bucket - Кофата
      * 
      * @return array $fh - Манипулатор на файла
      */
-    static function absorbFileFromId($id, $file, $bucket=NULL)
+    static function absorbFileFromId($id, $file, $subPath='', $bucket=NULL)
     {
         // Вземаме записа
         $rec = static::fetch($id);
         
-        // Вземаем пътя до файла
-        $filePath = static::getFullPath($rec->fullPath, $file);
+        // Вземаем пътя до хранилището
+        $repoPath = static::getFullPathFromId($id);
         
         // Абсорбираме файла
-        $fh = static::absorbFile($filePath, $bucket);
+        $fh = static::absorbFile($repoPath, $file, $subPath, $bucket);
         
         // Връщаме манупулатора му
         return $fh;
@@ -763,10 +795,11 @@ class fileman_Repositories extends core_Master
      * @param integer $repositoryId - id на хранилището
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
+     * @param integer $depth - Дълбочината на папката, до която ще се търси
      * 
      * @return array - Масив с всички папки и файловете в тях
      */
-    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE)
+    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE)
     {
         // Очакваме да е число
         expect(is_numeric($repositoryId));
@@ -776,9 +809,6 @@ class fileman_Repositories extends core_Master
         
         // Вземаме записа
         $rec = static::fetch($repositoryId);
-        
-        // Проверяваме дали има права за папката
-        static::requireRightFor('retrive', $rec);
         
         // Вземаме пътя до поддиректорията на съответното репозитори
         $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
@@ -809,11 +839,31 @@ class fileman_Repositories extends core_Master
             // Вземаме пътя
             $path = $iterator->current()->getPath();
             
+            // Ако сме задали някаква дълбочина
+            // Първата е 0
+            if ($depth !== FALSE) {
+                
+                // Вземаме текущута дълбочина
+                $currentDepth = $iterator->getDepth();
+                
+                // Ако текущатат е повече от зададената
+                if ($currentDepth > $depth) {
+                    
+                    // Преместваме итератора
+                    $iterator->next();
+                    
+                    // Прескачаме, иначе ще се изпълни и останалта част от кода
+                    continue;
+                }
+            }
+            
             // Ако не е задедено да се използва целия път до файла
             if (!$useFullPath) {
                 
                 // Вземаме пътя без целия път
                 $path = str_ireplace($fullPath, '', $path);
+                
+                // Ако няма път, за да не е празна стойност
                 if (!$path) $path = '/';
             }
             
@@ -839,7 +889,7 @@ class fileman_Repositories extends core_Master
                 }
             }
             
-            // Прескачаме на следващия
+            // Преместваме итератора
             $iterator->next();
         }
         
@@ -1048,9 +1098,54 @@ class fileman_Repositories extends core_Master
                 }
             }
         }
+        
+        // Ако има запис и се опитваме да изтрием
+        if ($rec && ($action == 'delete')) {
+            
+            // Ако състоянието е активно
+            if ($rec->state == 'active') {
+            
+				// Да не може да се изтрие
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        // Ако екшъна е сингъл
+        if ($action == 'single') {
+            
+            // Ако няам права за retrive
+            if (!static::haveRightFor('retrive', $rec, $userId)) {
+                
+                // Да няма права и за сингъла
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 	
+    
+    /**
+     * Активира състоянието на хранилището
+     * 
+     * @param integer $id - id на хранилище
+     * 
+     * @return integer - id на записа, ако се е активирал
+     */
+    static function activateRepo($id)
+    {
+        // Вземаем записа
+        $rec = static::fetch($id);
+        
+        // Ако не е бил активиран
+        if ($rec->state != 'active') {
+            
+            // Активираме
+            $rec->state = 'active';
+            
+            return static::save($rec);
+        }
+    }
 	
+    
 	/**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -1143,11 +1238,8 @@ class fileman_Repositories extends core_Master
                     // Вземаме пътя до файла
                     $filePathEntry = $filePathEntry . '->' . $file;
                     
-                    // Пътя до файла
-                    $fullPath = static::getFullPath($path, $file);
-                    
                     // URL за абсорбиране на файла
-                    $urlPath = static::getAbsorbUrl($id, $fullPath);
+                    $urlPath = static::getAbsorbUrl($id, $file, $path);
                     
                     // Добавяме в дървото
                     $tableInst->addNode($filePathEntry, $urlPath, TRUE);
@@ -1174,11 +1266,14 @@ class fileman_Repositories extends core_Master
         // id на хранилището
         $id = Request::get('id', 'int');
         
+        // Подпапката
+        $subPath = Request::get('subPath');
+        
         // Относителен път до файла в хранилището
         $file = Request::get('file');
         
         // Абсорбираме файла и вземаме манипулатора му
-        $fh = static::absorbFileFromId($id, $file);
+        $fh = static::absorbFileFromId($id, $file, $subPath);
         
         // Линк към сингъла на файла
         $singleUrl = fileman::getUrlToSingle($fh);
@@ -1191,19 +1286,20 @@ class fileman_Repositories extends core_Master
     /**
      * Връща URL към екшъна за абсорбиране на съответния файл
      * 
-     * @param integer $id
-     * @param string $file
-     * @param boolean $absolute
+     * @param integer $id - id на хранилищетп
+     * @param string $file - Името на файла
+     * @param string $subPath - Подпапка в хранилището
+     * @param boolean $absolute - Дали линка е да абсолютен
      * 
-     * @return string $url
+     * @return string
      */
-    static function getAbsorbUrl($id, $file, $absolute=FALSE)
+    static function getAbsorbUrl($id, $file, $subPath='', $absolute=FALSE)
     {
         // Очакваме да има id
         expect($id);
         
         // Вземаме URL' то
-        $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file), $absolute);
+        $url = toUrl(array('fileman_Repositories', 'absorbFile', $id, 'file' => $file, 'subPath' => $subPath), $absolute);
         
         return $url;
     }
