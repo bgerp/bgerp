@@ -104,8 +104,6 @@ class email_Fingerprints extends core_Manager
         
         if($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
-        } else {
-        	$data->query->fetchAll();
         }
     }
     
