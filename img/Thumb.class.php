@@ -29,6 +29,12 @@ defIfNot('IMG_THUMB_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
 class img_Thumb
 {
     /**
+     * Сол за генериране на ключ за криптиране
+     */
+    const KEY_SALTH = 'IMAGE THUMBNAILS';
+
+
+    /**
      * Максимална широчина на скалираното изображение
      */
     var $maxWidth;
@@ -337,19 +343,47 @@ class img_Thumb
 
 
     /**
-     * Връща урл към умаленото изображение
+     * Връща ключа за криптиране на отложение връзки
      */
-    function forceUrl($postpond = TRUE)
+    static function getCryptKey()
+    {
+        $key = sha1(EF_SALTH . self::KEY_SALTH);
+    }
+
+
+    /**
+     * Връща УРЛ към  картинката, което е с отложено изпълнение
+     * Картинката, ако липсва ще се генерира, когато URL-то се покаже
+     */
+    function getDeferredUrl()
+    {
+        foreach(arr::make(self::$argumentList) as $i => $argName) {
+            $state[$argName] = $this->{$argName};
+        }
+        
+        $id = core_Crypt::encodeVar($state, img_Thumb::getCryptKey()) . '.' . $this->getThumbFormat();
+        
+        return toUrl(array('img_M', 'R', 't' => $id));
+    }
+
+
+    /**
+     * Връща урл към умаленото изображение
+     * 
+     * @param string $mode Режим за генериране на URL: 'auto', 'deferred', 'forced'
+     *
+     * $return string 
+     */
+    function getUrl($mode = 'auto')
     {
         $path = $this->getThumbPath();
         
         if(!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
-            if($postpond) {
-                foreach(arr::make(self::$argumentList) as $i => $argName) {
-                    $state[$argName] = $this->{$argName};
-                }
-                $id = core_Crypt::encodeVar($state);
-                return toUrl(array('img_M', 'R', 't' => $id));
+            if($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml'))) {
+                
+                $url = $this->getDeferredUrl();
+
+                return $url;
             } else {
                 $this->saveThumb();  
             }
@@ -361,6 +395,9 @@ class img_Thumb
     }
 
 
+    /**
+     * създава и записва thumb изображението
+     */
     function saveThumb()
     {
         if($gdRes = $this->getGdRes()) {
@@ -404,7 +441,7 @@ class img_Thumb
      */
     function createImg($attr = array())
     {
-        $attr['src']    = $this->forceUrl();
+        $attr['src']    = $this->getUrl();
         $attr['width']  = $this->scaledWidth;
         $attr['height'] = $this->scaledHeight;
         $attr['alt'] = $this->verbalName;

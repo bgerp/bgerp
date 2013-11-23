@@ -68,7 +68,7 @@ class fancybox_Fancybox {
 
         $bigImg = new img_Thumb($fh, $bigWidth, $bigHeight, 'fileman', $baseName);
 
-        $aAttr['href'] = $bigImg->forceUrl(FALSE);
+        $aAttr['href'] = $bigImg->getUrl();
         setIfNot($aAttr['rel'], $maxSize[0] . "_" . $maxSize[1]);
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);

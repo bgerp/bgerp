@@ -19,9 +19,34 @@ class img_M extends core_Mvc
     function act_R()
     {
         $id = Request::get('t');
-        $arguments = core_Crypt::decodeVar($id);
-        $thumb = new img_Thumb($arguments);
+        
+        // Премахва фиктивното файлово разширение
+        list($id,) = explode('.', $id);
 
-        redirect($thumb->forceUrl(FALSE));
+        $arguments = core_Crypt::decodeVar($id, img_Thumb::getCryptKey());
+
+        $thumb = new img_Thumb($arguments);
+        
+        if( file_exists($file = $thumb->getThumbPath()) ) {
+            $type = fileman_Files::getExt($file);
+            if($type == 'jpg') {
+                $type = 'jpeg';
+            }
+            header("Content-Type: image/{$type}");
+            header('Content-Length: ' . filesize($file));
+            readfile($file);
+            
+            $this->thumb = $thumb;
+
+            shutdown();
+        }
+
+        redirect($thumb->getUrl('forced'));
+    }
+
+
+    function on_Shutdown()
+    {
+        $this->thumb->getUrl('forced');
     }
 }

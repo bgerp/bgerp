@@ -59,7 +59,7 @@ class avatar_Gravatar extends core_Manager {
         
         $thmb = new img_Thumb($imgUrl, $width, $width, 'url');
 
-        return $thmb->forceUrl();
+        return $thmb->getUrl();
     }
     
     
