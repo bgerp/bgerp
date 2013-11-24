@@ -267,6 +267,10 @@ class img_Thumb
             $this->height = imagesy($gdRes);
         }
 
+        if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
+            list($this->scaledWidth, $this->scaledHeight, $this->ratio) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge);
+        }
+
         return array($this->width, $this->height);
     }
 
@@ -404,12 +408,10 @@ class img_Thumb
             
             $path = $this->getThumbPath();
 
-            list($width, $height) = $this->getSize();
+            $this->getSize();
 
-            list($this->scaledWidth, $this->scaledHeight, $ratio) = self::scaleSize($width, $height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge);
-                 
             // Склаираме, само ако имаме пропорция, различна от 1
-            if($ratio != 1) {
+            if($this->ratio != 1) {
                 $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight);  
             } elseif($this->sourceType == 'gdRes') {
                 $newGdRes = $gdRes;
@@ -442,6 +444,7 @@ class img_Thumb
     function createImg($attr = array())
     {
         $attr['src']    = $this->getUrl();
+        $this->getSize();  
         $attr['width']  = $this->scaledWidth;
         $attr['height'] = $this->scaledHeight;
         $attr['alt'] = $this->verbalName;
