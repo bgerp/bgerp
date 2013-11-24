@@ -822,7 +822,7 @@ class type_Richtext extends type_Blob
             
             $bgPlace = $this->getPlace();
             $thumb = new img_Thumb("http://www.google.com/s2/u/0/favicons?domain={$domain}", 16, 16, 'url');
-            $iconUrl = $thumb->forceUrl();
+            $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 
             $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
