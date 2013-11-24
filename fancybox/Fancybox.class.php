@@ -47,13 +47,14 @@ class fancybox_Fancybox {
         $thumb = new img_Thumb($fh, $thumbWidth, $thumbHeight, 'fileman', $baseName);
 
         if($thumbSize[0] >= $maxSize[0] && $thumbSize[1] >= $maxSize[1]) {
-            
-            $imgTpl = $thumb->createImg();
+  
+            $imgTpl = $thumb->createImg($imgAttr);
 
             return $imgTpl;
         }
 
-        $attr = array('title' => tr('Кликни за увеличение'));
+        $attr = array('title' => tr('Кликни за увеличение')) + $imgAttr;
+     
         $imgTpl = $thumb->createImg($attr);
 
         // Създаваме хипервръзката
