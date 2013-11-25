@@ -482,8 +482,7 @@ class price_ListRules extends core_Detail
 		        		$rec->validFrom = dt::now();
 		        		$rec->createdBy = -1;
 	        		
-		        		// Деактивираме прекъсванията и плъгините след записването при Setup-a.
-	        			static::save_($rec);
+	        			static::save($rec);
 	        			$inserted++;
             		}
             	}
