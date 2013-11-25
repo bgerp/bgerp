@@ -116,11 +116,13 @@
 							      <td align='right'><b>[#amountBase#]</b></td>
 							  </tr>
 							  <!--ET_END amountBase-->
+							  <!--ET_BEGIN amountDeliveredVat-->
 							  <tr>
 							      <td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
-							      <td align='center'><span class='cCode'>[#currencyId#]</span></td>
+							      <td align='center'><span class='cCode'>[#vatCurrencyId#]</span></td>
 							      <td align='right'><b>[#amountDeliveredVat#]</b></td>
 							  </tr>
+							  <!--ET_END amountDeliveredVat-->
 							  <tr>
 							      <td align='right'>|Общо|* [#vatType#]:</td>
 							      <td align='center'><span class='cCode'>[#currencyId#]</span></td>

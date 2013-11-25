@@ -194,9 +194,8 @@ class store_Receipts extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
-        $rec->amountDelivered = $amoundDeal * $rec->currencyRate;
-        $rec->amountDeliveredVat  = $rec->total->vat * $rec->currencyRate;
+        $rec->amountDelivered = $rec->total->amount * $rec->currencyRate;
+        $rec->amountDeliveredVat = $rec->total->vat * $rec->currencyRate;
     	
         $mvc->save($rec);
     }
@@ -433,7 +432,6 @@ class store_Receipts extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$row->vatType = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') ? tr('с ДДС') : tr('без ДДС');
     		$row->amountBase = ($rec->chargeVat == 'yes') ? $rec->amountDelivered - $rec->amountDeliveredVat : $rec->amountDelivered;
     		
     		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
@@ -442,6 +440,13 @@ class store_Receipts extends core_Master
     		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
     		$row->amountBase = $mvc->fields['amountDeliveredVat']->type->toVerbal($row->amountBase);
     		
+    		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
+    			$row->vatType = tr('с ДДС');
+    			$row->vatCurrencyId = $row->currencyId;
+    		} else {
+    			$row->vatType = tr('без ДДС');
+    			unset($row->amountDeliveredVat);
+    		}
     		$mvc->prepareMyCompanyInfo($row, $rec);
     	}
     }
