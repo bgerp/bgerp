@@ -77,6 +77,15 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * Помощен масив за мапиране на полета изпозлвани в price_Helper
+     */
+    public static $map = array('priceFld'    => 'price',
+        			 		   'rateFld'     => 'rate', 
+        			 		   'chargeVat'   => 'vatRate', 
+        			 		   'quantityFld' => 'quantity', 
+        			 		   'valior'      => 'date',
+    						   'alwaysHideVat' => TRUE);
+    /**
      * Описание на модела
      */
     function description()
@@ -87,7 +96,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена, input=none');
+        $this->FLD('price', 'double', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
 		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
 		
@@ -169,6 +178,23 @@ class sales_InvoiceDetails extends core_Detail
     }
 
     
+	/**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+        $recs = &$data->recs;
+        $invRec = clone $data->masterData->rec;
+        
+        if (empty($recs)) return;
+        foreach ($recs as &$rec){
+        	$rec->price = $rec->price * $rec->quantityInPack;
+        }
+        
+        price_Helper::fillRecs($recs, $invRec, static::$map);
+    }
+    
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -192,16 +218,6 @@ class sales_InvoiceDetails extends core_Detail
     	} else {
     		$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
     	}
-    	
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
-    	$masterRec = $mvc->Master->fetch($rec->invoiceId);
-    	
-    	$price = round($rec->price / $masterRec->rate, 2);
-    	$row->price = $double->toVerbal($price * $rec->quantityInPack);
-    	
-    	$amount = round($rec->amount / $masterRec->rate, 2);
-    	$row->amount = $double->toVerbal($amount);
     }
     
     

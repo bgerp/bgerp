@@ -241,20 +241,18 @@ class sales_Invoices extends core_Master
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetchRec($id);
-        $query = $detailMvc->getQuery();
+    	$query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
-    	$rec->dealValue = $rec->vatAmount = 0;
-    
-        while ($detailRec = $query->fetch()) {
-        	$vat = 0;
-        	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
-        		$ProductManager = cls::get($detailRec->classId);
-    			$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
-        	}
-        	
-        	$rec->dealValue += $detailRec->amount;
-        	$rec->vatAmount += $detailRec->amount * $vat;
+        $recs = $query->fetchAll();
+        if(count($recs)){
+	        foreach ($recs as &$dRec){
+	        	$dRec->price = $dRec->price * $dRec->quantityInPack;
+	        }
         }
+    	
+        price_Helper::fillRecs($recs, $rec, sales_InvoiceDetails::$map);
+        $rec->dealValue = $rec->total->amount * $rec->rate;
+        $rec->vatAmount = $rec->total->vat * $rec->rate;
         
         $mvc->save($rec);
     }
@@ -568,7 +566,7 @@ class sales_Invoices extends core_Master
      */
     private static function prepareAdditionalInfo(&$rec)
     {
-    	if($rec->dealValue  && $rec->rate){
+    	if($rec->dealValue){
 	    	$rec->baseAmount = $rec->dealValue;
 	    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
 	    	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
