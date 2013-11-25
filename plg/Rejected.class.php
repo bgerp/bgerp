@@ -80,12 +80,8 @@ class plg_Rejected extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
-            $ws = $data->toolbar->buttons['with_selected'];
-            $data->toolbar->removeBtn('*');
+            $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn', "ef_icon = img/16/application_view_list.png,title=Всички " . mb_strtolower($mvc->title));
-            if(isset($ws)){
-            	$data->toolbar->buttons['with_selected'] = $ws;
-            }
         } else {
             $rejCnt = $data->rejQuery->count();
 
