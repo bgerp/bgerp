@@ -64,9 +64,14 @@ class plg_LastUsedKeys extends core_Plugin
                     
                     if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $usedRec = new stdClass();
-                        $usedRec->id = $rec->{$field};
-                        $usedRec->lastUsedOn = dt::verbal2mysql();
-                        $usedClass->save($usedRec, 'lastUsedOn', 'DELAY');
+                        
+                        // id' то трябва да е над 0
+                        // За случаи с createdBy = -1 или createdBy = 0
+                        if ($rec->{$field} > 0) {
+                            $usedRec->id = $rec->{$field};
+                            $usedRec->lastUsedOn = dt::verbal2mysql();
+                            $usedClass->save($usedRec, 'lastUsedOn', 'DELAY');
+                        }
                     }
                 }
                 
@@ -79,9 +84,14 @@ class plg_LastUsedKeys extends core_Plugin
                         if(count($keysArr)) {
                             foreach($keysArr as $key) {
                                 $usedRec = new stdClass();
-                                $usedRec->id = $key;
-                                $usedRec->lastUsedOn = dt::verbal2mysql();
-                                $usedClass->save($usedRec, 'lastUsedOn', 'DELAY');
+                                
+                                // id' то трябва да е над 0
+                                // За случаи с createdBy = -1 или createdBy = 0
+                                if ($key > 0) {
+                                    $usedRec->id = $key;
+                                    $usedRec->lastUsedOn = dt::verbal2mysql();
+                                    $usedClass->save($usedRec, 'lastUsedOn', 'DELAY');
+                                }
                             }
                         }
                     }
