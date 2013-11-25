@@ -324,8 +324,9 @@ class backup_Start extends core_Manager
      * 
      *  return boolean
      */
-    private static function unLock()
+    public static function unLock()
     {
+        self::init(array());
         
         return unlink(self::$lockFileName);
     }

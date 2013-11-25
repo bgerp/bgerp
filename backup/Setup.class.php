@@ -144,6 +144,8 @@ class backup_Setup extends core_ProtoSetup
     	
     	$conf = core_Packs::getConfig('backup');
     	
+    	backup_Start::unLock();
+    	
     	// Залагаме в cron
     	$rec = new stdClass();
     	$rec->systemId = 'BackupStartFull';
