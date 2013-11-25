@@ -138,25 +138,15 @@ class store_transactionIntf_Receipt
         foreach ($rec->details as $detailRec) {
         	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	
-        	// Ако е складируем, дебит 602
-        	if(!isset($pInfo->meta['canStore'])) {
-        		$debit = array(
-                    '602', // Сметка "602. Разходи за външни услуги"
-                        array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
-                );
-        	} else {
+        	// Ако е вложим дебит 302 иначе 321
+        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
         		
-        		// Ако е вложим дебит 302 иначе 321
-        		$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
-        		
-        		$debit = array(
-                    $debitAccId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
-                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                    	array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
-                );
-        	}
+        	$debit = array(
+                  $debitAccId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+                       array('store_Stores', $rec->storeId), // Перо 1 - Склад
+                       array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
+                  'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+            );
         	
         	$entries[] = array(
         		 'amount' => currency_Currencies::round($detailRec->amount * $currencyRate),
@@ -165,7 +155,7 @@ class store_transactionIntf_Receipt
 	                   '401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($detailRec->amount, $currencyCode), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($detailRec->amount, $currencyCode), // "брой пари" във валутата на покупката
 	             ),
 	        );
         }
