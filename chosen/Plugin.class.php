@@ -111,7 +111,7 @@ class chosen_Plugin extends core_Plugin
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
         $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
-        $tpl->push(CHOSEN_PATH . "/chosen.jquery.min.js", "JS");
+        $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
         
         $JQuery->run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         

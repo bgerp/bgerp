@@ -60,7 +60,7 @@ class chosen_PluginSelect extends core_Plugin
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
         $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
-        $tpl->push(CHOSEN_PATH . "/chosen.jquery.min.js", "JS");
+        $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
 
         if($invoker->params['allowEmpty']) {
             $allowEmpty = ", allow_single_deselect: true";
