@@ -1469,7 +1469,7 @@ class fileman_Repositories extends core_Master
         // Ако не е зададено
         if (!$fieldName) {
             
-            // Задаваме името на полеот
+            // Задаваме името на полето
             $fieldName = 'verbalName';
         }
         
