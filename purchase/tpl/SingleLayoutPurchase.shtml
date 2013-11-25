@@ -116,29 +116,32 @@
        
                     <td class="topCell" align="right" valign="top" width="30%">
                         <table>
-                            <tbody>
                             <tr>
                                 <td>
-                                    <table>
-                                        <tr>
-                                            <td style="text-align: right;" class = 'nowrap'>|Обща сума|*:</td>
-                                        	<td><span class='cCode'>[#currencyId#]</span></td>
-                                        	<td class = 'nowrap' style="text-align: right;"><b>[#amountDeal#]</b></td>
-                                        </tr>  
-                                        <!--ET_BEGIN vat-->
-			                            <tr>
-			                                <td style="text-align:right;" class = 'nowrap'>[#chargeVat#] |ДДС|*:</td>
-			                                <td style="text-align:right;" class = 'nowrap' colspan='2'><b>[#vat#]</b> %</td>
-			                            </tr>
-			                            <!--ET_END vat-->
-                                    </table>
+                                    <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
+							             <!--ET_BEGIN amountBase-->
+							             <tr>
+							                <td class='info-right'>|Общо без ДДС|* :</td>
+							                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+							                <td class='info-right'><b>[#amountBase#]</b></td>
+							             </tr>
+							             <!--ET_END amountBase-->
+							             <tr>
+							                <td class='info-right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
+							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+							                <td class='info-right'><b>[#amountVat#]</b></td>
+							             </tr>
+							             <tr>
+							                <td class='info-right'>|Общо|*:</td>
+							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+							                <td class='info-right'><b>[#amountDeal#]</b></td>
+							             </tr>
+							        </table>
                                 </td>
                             </tr>
                             <tr>
                                 <td align="RIGHT"></td>
                             </tr>
-                           
-                            </tbody>
                         </table>
                     </td>
                 </tr>           

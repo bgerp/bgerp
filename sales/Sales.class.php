@@ -168,6 +168,7 @@ class sales_Sales extends core_Master
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
+        $this->FLD('amountVat', 'double(decimals=2)', 'input=none'); // ДДС-то
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
@@ -216,29 +217,17 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        $query = $detailMvc->getQuery();
+    	$rec = $mvc->fetchRec($id);
+    	
+    	$query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
         
-        $rec->amountDeal = 0;
+        price_Helper::fillRecs($query->fetchAll(), $rec);
         
-        while ($detailRec = $query->fetch()) {
-            $vat = 1;
-            
-            if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
-                $ProductManager = cls::get($detailRec->classId);
-                $vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
-            }
-            
-            // Зада няма разминаване при конвертирането, сумираме сумата във валутата на продажбата
-            $detailRec->packPrice = ($detailRec->packPrice * $vat) / $rec->currencyRate;
-            $detailRec->packPrice = currency_Currencies::round($detailRec->packPrice, $rec->currencyId);
-            $rec->amountDeal += $detailRec->packPrice * $detailRec->packQuantity;
-        }
-        
-        // Конвертиране на сумата във основна валута, за запазване в db-то
-        $rec->amountDeal *= $rec->currencyRate;
+        // ддс-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
+        $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
+        $rec->amountDeal = $amoundDeal * $rec->currencyRate;
+        $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
         
         $mvc->save($rec);
     }
@@ -267,9 +256,6 @@ class sales_Sales extends core_Master
 
     /**
      * След създаване на запис в модела
-     *
-     * @param store_Stores $mvc
-     * @param store_model_ShipmentOrder $rec
      */
     public static function on_AfterCreate($mvc, $rec)
     {
@@ -630,22 +616,25 @@ class sales_Sales extends core_Master
 		$amountType = $mvc->getField('amountDeal')->type;
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
 		
-    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'Vat') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
-            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
-            	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
+            	$rec->{"amount{$amnt}"} /= $rec->currencyRate;
+            	$row->{"amount{$amnt}"} = $amountType->toVerbal($rec->{"amount{$amnt}"});
             }
         }
-        
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    }
 	    
 	    if($fields['-single']){
-	    	
+		    if($rec->chargeVat == 'no'){
+	        	$row->baseCurrencyId = $row->currencyId;
+	        	$row->amountBase = $amountType->toVerbal($rec->amountDeal - $rec->amountVat);
+		    }
+		    
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
 	        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;

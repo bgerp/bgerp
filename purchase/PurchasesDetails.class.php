@@ -198,26 +198,11 @@ class purchase_PurchasesDetails extends core_Detail
      */
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        $recs        = &$data->recs;
-        $purchaseRec = $data->masterData->rec;
+        $recs = &$data->recs;
+        $purchaseRec = clone $data->masterData->rec;
         
-        if (empty($recs)) {
-            return;
-        }
-        
-        foreach ($recs as $rec) {
-            // Начисляваме ДДС, при нужда
-            if ($purchaseRec->chargeVat == 'yes' || $purchaseRec->chargeVat == 'no') {
-                $ProductManager = cls::get($rec->classId);
-                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $purchaseRec->valior);
-            }
-            
-            // Конвертираме цените във валутата на продажбата
-            $rec->packPrice = $rec->packPrice / $purchaseRec->currencyRate;
-            $rec->packPrice = currency_Currencies::round($rec->packPrice, $purchaseRec->currencyId);
-            
-            $rec->amount = $rec->packPrice * $rec->packQuantity;
-        }
+        if (empty($recs)) return;
+        price_Helper::fillRecs($recs, $purchaseRec);
     }
     
     

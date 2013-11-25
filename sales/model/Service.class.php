@@ -19,7 +19,7 @@ class sales_model_Service extends core_Model
     /**
      * @var double
      */
-    public $amountDeliveredVat;
+    public $amountDelivered;
         
     /*
      * Контрагент

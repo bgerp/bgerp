@@ -19,8 +19,8 @@ class store_model_ShipmentOrder extends core_Model
     /**
      * @var double
      */
-    public $amountDeliveredVat;
-        
+    public $amountDelivered;
+    
     /*
      * Контрагент
      */ 

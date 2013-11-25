@@ -95,7 +95,7 @@ class store_ShipmentOrderDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, price, discount, amount';
+    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount';
     
         
     /**
@@ -137,7 +137,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
-        $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=none');
+        $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
@@ -214,13 +214,26 @@ class store_ShipmentOrderDetails extends core_Detail
     }
 
 
+	/**
+     * След извличане на записите от базата данни
+     */
+    public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
+    {
+        $recs = &$data->recs;
+        $orderRec = clone $data->masterData->rec;
+        
+        if (empty($recs)) return;
+        
+        price_Helper::fillRecs($recs, $orderRec);
+    }
+    
+    
     /**
      * След обработка на записите от базата данни
      */
     public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         $rows = $data->rows;
-    	$showVat = $data->masterData->rec->chargeVat == 'yes' || $data->masterData->rec->chargeVat == 'no';
     	
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
@@ -237,25 +250,12 @@ class store_ShipmentOrderDetails extends core_Detail
             foreach ($data->rows as $i => &$row) {
             	$rec = &$data->recs[$i];
             	$ProductManager = cls::get($rec->classId);
-            	
-    			if($showVat){
-    				$rec->price *= (1 + $ProductManager->getVat($rec->productId, $data->masterData->rec->valior));
-    			}
-                @$rec->price /= $data->masterData->rec->currencyRate;
-    			$rec->price = currency_Currencies::round($rec->price, $data->masterData->rec->currencyId);
-    				
-    			$row->price = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantityInPack);
-    			$row->amount = $mvc->fields['amount']->type->toVerbal($rec->price * $rec->quantity);
                 
         		$row->productId = $ProductManager->getTitleById($rec->productId);
         		$haveDiscount = $haveDiscount || !empty($rec->discount);
     			
                 if (empty($rec->packagingId)) {
-                    if ($rec->uomId) {
-                        $row->packagingId = $row->uomId;
-                    } else {
-                        $row->packagingId = '???';
-                    }
+                    $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
                     $row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);

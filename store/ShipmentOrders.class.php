@@ -190,32 +190,16 @@ class store_ShipmentOrders extends core_Master
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetchRec($id);
+    	
     	$query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
-    
-        $rec->amountDeliveredVat = $rec->amountDelivered = 0;
-    
-        while ($detailRec = $query->fetch()) {
-            $vat = 1;
-            if ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') {
-                $ProductManager = cls::get($detailRec->classId);
-    			$vat += $ProductManager->getVat($detailRec->productId, $rec->valior);
-            }
-            
-            // Събиране на сумата във валутата на Ен-то за да няма разминаване
-            $priceVat = ($detailRec->price * $vat) / $rec->currencyRate;
-            $price = $detailRec->price / $rec->currencyRate;
-    		
-            $priceVat = currency_Currencies::round($priceVat, $rec->currencyCode);
-            $price = currency_Currencies::round($price, $rec->currencyCode);
-            
-    		$rec->amountDelivered += $price * $detailRec->quantity;
-            $rec->amountDeliveredVat += $priceVat * $detailRec->quantity;
-        }
-    	
-        // Конвертиране на сумата във основна валута, за запазване в db-то
-        $rec->amountDelivered *= $rec->currencyRate;
-        $rec->amountDeliveredVat *= $rec->currencyRate;
+        
+        price_Helper::fillRecs($query->fetchAll(), $rec);
+        
+        // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
+        $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
+        $rec->amountDelivered = $amoundDeal * $rec->currencyRate;
+        $rec->amountDeliveredVat  = $rec->total->vat * $rec->currencyRate;
         
         $mvc->save($rec);
     }
@@ -450,13 +434,20 @@ class store_ShipmentOrders extends core_Master
     		if($rec->amountDeliveredVat){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     		} else {
-    			$row->amountDeliveredVat = "<span class='quiet'>0</span>";
+    			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
     	}
     	
     	if(isset($fields['-single'])){
+    		$row->vatType = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') ? tr('с ДДС') : tr('без ДДС');
+    		$row->amountBase = ($rec->chargeVat == 'yes') ? $rec->amountDelivered - $rec->amountDeliveredVat : $rec->amountDelivered;
+    		
     		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
+    		@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+    		$row->amountDelivered = $mvc->fields['amountDelivered']->type->toVerbal($amountDelivered);
     		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
+    		$row->amountBase = $mvc->fields['amountDeliveredVat']->type->toVerbal($row->amountBase);
+    		
     		$mvc->prepareMyCompanyInfo($row, $rec);
     	}
     }
@@ -560,7 +551,7 @@ class store_ShipmentOrders extends core_Master
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
-        $result->shipped->amount             = $rec->amountDeliveredVat;
+        $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->rate		         = $rec->currencyRate;
         $result->shipped->vatType            = $rec->chargeVat;
