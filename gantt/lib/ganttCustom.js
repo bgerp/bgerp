@@ -139,8 +139,8 @@ function ganttRender(elem,ganttData) {
 		var tdHeight = currentGraphChart.find('tbody tr:last td:last').outerHeight() ;
 		
 		//начало и край на таблицата в секунди
-		var end = ganttData['otherParams']['endTime'];
-		var start = ganttData['otherParams']['startTime'];
+		var end = parseInt(ganttData['otherParams']['endTime']);
+		var start = parseInt(ganttData['otherParams']['startTime']);
 		
 		//дължината на таблицата в секунди
 		var durationTableSec = end - start;
@@ -171,30 +171,31 @@ function ganttRender(elem,ganttData) {
 				for( var currentPartNumber = 0; currentPartNumber < taskParts; currentPartNumber = currentPartNumber + 1 ){
 					
 					//взимаме съответното начало и дължина на задачата
-					var duration = val['timeline'][currentPartNumber]['duration'];
-					var startTime = val['timeline'][currentPartNumber]['startTime'];
-						
+					var duration = parseInt(val['timeline'][currentPartNumber]['duration']);
+					var startTime = parseInt(val['timeline'][currentPartNumber]['startTime']);
+					
 					//създаваме линк за съответната задача
 					var addedAnchor = document.createElement( "a" );
 					
 					//ако задачата се пада извън таблицата
 					if(startTime >= end || startTime + duration <= start){
 						duration = 0;
+						
+						
 					}else{
+					
 						//ако задачата приключва извън периода на таблицата графичното й представяне да не е заоблено в края и да не излиза от таблицата
-						if(startTime + duration > end){
+						if((startTime + duration) > end){
 							duration = end - startTime;
 							$(addedAnchor).addClass('last');
 						}
-						
 						//ако задачата започва преди периода на таблицата графичното й представяне да не е заоблено в началото и да не излиза от таблицата
 						if(startTime < start){
-							duration = duration + startTime - start;
+							duration = duration - (start - startTime );
 							startTime = start;
 							$(addedAnchor).addClass('first');
 						}
 					}
-					
 					//ако задачата има прекъсвания да добавим необходимите класове, свързани с прекъсванията
 					if(taskParts>1){
 						//ако трябва частта от задачата да е прекъсната в дясно
@@ -224,7 +225,7 @@ function ganttRender(elem,ganttData) {
 						
 						//ако представянето на задачата е поне 3пх да се показва
 						if(widthTask > 3){
-							var zIndex = parseInt(1000 - widthTask);
+							var zIndex = parseInt(1000000 - widthTask);
 							//добавяме необходимите атрибути и свойства
 							$(addedAnchor).css('left', parseInt(offsetInPx));
 							$(addedAnchor).css('top', parseInt(offsetFromTop));
