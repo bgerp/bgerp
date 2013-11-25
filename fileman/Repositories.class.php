@@ -1454,13 +1454,17 @@ class fileman_Repositories extends core_Master
     
     
     /**
-     * Връща линк към хранилището
+     * Връща линк към сингъла на документа
      * 
-     * @param integer $repoId - id на хранилище
+     * @param integer $id - id на записа
+     * @param string $fieldName - Името на полето, което ще се използва за линк
      * 
      * @return core_Et - Линк към сингъла
+     * 
+     * @Override
+     * @see core_Master::getLinkToSingle_
      */
-    static function getLinkToSingle_($repoId)
+    static function getLinkToSingle_($repoId, $fieldName=NULL, $absolute=FALSE)
     {
         
         return parent::getLinkToSingle_($repoId, 'verbalName');
