@@ -123,18 +123,18 @@
 							             <tr>
 							                <td class='info-right'>|Общо без ДДС|* :</td>
 							                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-							                <td class='info-right'><b>[#amountBase#]</b></td>
+							                <td align='right'><b>[#amountBase#]</b></td>
 							             </tr>
 							             <!--ET_END amountBase-->
 							             <tr>
 							                <td class='info-right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
 							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td class='info-right'><b>[#amountVat#]</b></td>
+							                <td align='right'><b>[#amountVat#]</b></td>
 							             </tr>
 							             <tr>
 							                <td class='info-right'>|Общо|*:</td>
 							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td class='info-right'><b>[#amountDeal#]</b></td>
+							                <td align='right'><b>[#amountDeal#]</b></td>
 							             </tr>
 							        </table>
                                 </td>
