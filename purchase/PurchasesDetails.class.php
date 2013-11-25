@@ -114,7 +114,7 @@ class purchase_PurchasesDetails extends core_Detail
         $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
-        $this->FNC('packPrice', 'double(decimals=2)', 'caption=Цена,input=input');
+        $this->FNC('packPrice', 'double', 'caption=Цена,input=input');
         
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
