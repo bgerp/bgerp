@@ -485,7 +485,7 @@ class core_Master extends core_Manager
         if ($fieldName) {
             
             // Вземаме вербалното име
-            $name = static::getVerbal($id, $fieldName);
+            $name = $me->getVerbal($id, $fieldName);
         } else {
             
             // Генерираме име
