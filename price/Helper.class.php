@@ -19,15 +19,16 @@ abstract class price_Helper
 	 * Масив за мапване на стойностите от мениджърите
 	 */
 	private static $map = array(
-		'priceFld' 	  => 'packPrice',
-		'quantityFld' => 'packQuantity',
-		'amountFld'   => 'amount',
-		'rateFld' 	  => 'currencyRate',
-		'classId' 	  => 'classId',
-		'productId'	  => 'productId',
-		'chargeVat'   => 'chargeVat',
-		'valior' 	  => 'valior',
-		'currencyId'  => 'currencyId',
+		'priceFld' 	    => 'packPrice',
+		'quantityFld'   => 'packQuantity',
+		'amountFld'     => 'amount',
+		'rateFld' 	    => 'currencyRate',
+		'classId' 	    => 'classId',
+		'productId'	    => 'productId',
+		'chargeVat'     => 'chargeVat',
+		'valior' 	    => 'valior',
+		'currencyId'    => 'currencyId',
+		'alwaysHideVat' => FALSE, // TRUE всичко трябва да е без ДДС
 	);
 	
 	
@@ -115,7 +116,13 @@ abstract class price_Helper
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
 		$map = array_merge(static::$map, $map);
 		
-		$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
+		// Дали трябва винаги да не се показва ддс-то към цената
+		if($map['alwaysHideVat']) {
+			$hasVat = FALSE;
+		} else {
+			$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
+		}
+		
 		$amount = $amountVat = 0;
 		
 		foreach($recs as &$rec){
@@ -124,7 +131,7 @@ abstract class price_Helper
                 $ProductManager = cls::get($rec->$map['classId']);
                 $vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
             }
-            
+           
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
         	$price = static::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
         	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
