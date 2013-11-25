@@ -1466,8 +1466,14 @@ class fileman_Repositories extends core_Master
      */
     static function getLinkToSingle_($repoId, $fieldName=NULL, $absolute=FALSE)
     {
+        // Ако не е зададено
+        if (!$fieldName) {
+            
+            // Задаваме името на полеот
+            $fieldName = 'verbalName';
+        }
         
-        return parent::getLinkToSingle_($repoId, 'verbalName');
+        return parent::getLinkToSingle_($repoId, $fieldName);
     }
     
     
