@@ -367,15 +367,46 @@ class distro_Files extends core_Detail
                         // Масив с хранилищата където е променено името
                         $renamedReposArr = (array)$diffArr['same'] + (array)$diffArr['add'];
                         
-                        // Проверяваме дали файла съществува
-                        $reposArrWithRenamedFile = static::getArrFilesExistInRepo($form->rec->name, $renamedReposArr, $title);
-                        
-                        // Ако файла с новото име съществува някъде
-                        if ($reposArrWithRenamedFile) {
+                        // Ако има хранилища, къдете е променено името
+                        if ($renamedReposArr) {
                             
-                            // Сетваме грешката
-                            $form->setError('name', 'Файл със същото име съществува в хранилищата|*: ' . implode(', ', $reposArrWithRenamedFile));
-                        } elseif ($renamedReposArr) {
+                            // Ако има манипулатор на файл
+                            if ($rec->sourceFh) {
+                                
+                                // Вземаме записа
+                                $fRec = fileman_Files::fetchByFh($rec->sourceFh);
+                                
+                                // Вземаме възможното име в кофата
+                                $possibleName = fileman_Files::getPossibleName($form->rec->name, $fRec->bucketId);
+                                
+                            } else {
+                                
+                                // Нормализираме името
+                                $possibleName = fileman_Files::normalizeFileName($form->rec->name);
+                            }
+                            
+                            // Ако името не съвпада с промененото
+                            if ($possibleName != $form->rec->name) {
+                                
+                                // Съобщение за грешка
+                                $msg = 'Не може да се зададе|*: ' . type_Varchar::escape($form->rec->name) . '.';
+                                $msg .= " " . "|Ще се зададе|*: " . type_Varchar::escape($possibleName);
+                                $form->setWarning('name', $msg);
+                                
+                                // Задаваме новото име
+                                $form->rec->name = $possibleName;
+                            } else {
+                                
+                                // Проверяваме дали файла съществува
+                                $reposArrWithRenamedFile = static::getArrFilesExistInRepo($form->rec->name, $renamedReposArr, $title);
+                                
+                                // Ако файла с новото име съществува някъде
+                                if ($reposArrWithRenamedFile) {
+                                    
+                                    // Сетваме грешката
+                                    $form->setError('name', 'Файл със същото име съществува в хранилищата|*: ' . implode(', ', $reposArrWithRenamedFile));
+                                }
+                            }
                             
                             // Сетваме масива за преименуване
                             $renameRepoArr = array(
@@ -383,6 +414,7 @@ class distro_Files extends core_Detail
                                 'newName' => $form->rec->name,
                                 'repos' => $renamedReposArr,
                                 'title' => $title,
+                                'fileHnd' => $rec->sourceFh,
                             );
                             
                             // Добавяме в масива
@@ -489,6 +521,27 @@ class distro_Files extends core_Detail
         
         // Ако е сетнат масива с преименуваните файлове
         if ($renamedArr = $mvc->actionWithFile['renamed']) {
+            
+            // Ако има манипулатор на файла
+            if ($renamedArr['fileHnd']) {
+                
+                // Преименуваме
+                $renamed = fileman::rename($renamedArr['fileHnd'], $renamedArr['newName']);
+                
+                // Ако новото име и преименуваното не съвпадата
+                if ($renamed != $renamedArr['newName']) {
+                    
+                    // Сетваме масива за грешките
+                    $renamedFileHndArr['renamed'] = $renamed;
+                    $renamedFileHndArr['newName'] = $renamedArr['newName'];
+                    
+                    // Записваме в лога
+                    static::saveToLog($renamedFileHndArr, $rec->id);
+                    
+                    // Сетваме грешка 
+                    expect(FALSE);
+                }
+            }
             
             // Преименуваме файловете
             $resArr = fileman_Repositories::renameFilesInRepos($renamedArr['oldName'], $renamedArr['newName'],
