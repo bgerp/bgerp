@@ -14,9 +14,26 @@
  */
 abstract class price_Helper
 {
+	
+	/**
+	 * Масив за мапване на стойностите от мениджърите
+	 */
+	private static $map = array(
+		'priceFld' 	  => 'packPrice',
+		'quantityFld' => 'packQuantity',
+		'amountFld'   => 'amount',
+		'rateFld' 	  => 'currencyRate',
+		'classId' 	  => 'classId',
+		'productId'	  => 'productId',
+		'chargeVat'   => 'chargeVat',
+		'valior' 	  => 'valior',
+		'currencyId'  => 'currencyId',
+	);
+	
+	
 	/**
      * Умно закръгляне на цена
-     * @param double $price - цена, която ще се закръгля
+     * @param double $price  - цена, която ще се закръгля
      * @return double $price - закръглената цена
      */
 	public static function roundPrice($price)
@@ -36,11 +53,13 @@ abstract class price_Helper
 	
 	/**
 	 * Пресмята цена с ддс и без ддс
-	 * @param double $price
-	 * @param double $vat
-	 * @param unknown_type $rate
+	 * @param double $price      - цената в основна валута без ддс
+	 * @param double $vat        - процента ддс
+	 * @param double $rate       - курса на валутата
+	 * @return stdClass->noVat   - цената без ддс
+	 * 		   stdClass->withVat - цената с ддс
 	 */
-	public static function calcPrice($price, $vat, $rate)
+	private static function calcPrice($price, $vat, $rate)
 	{
 		$arr = array();
         
@@ -56,14 +75,13 @@ abstract class price_Helper
 	
 	
 	/**
-	 * 
-	 * Enter description here ...
-	 * @param unknown_type $price
-	 * @param unknown_type $packQuantity
-	 * @param unknown_type $vat
-	 * @param unknown_type $isPriceWithVat
+	 * Калкулиране на сумата на реда
+	 * @param double $price           - цената
+	 * @param int $packQuantity       - количеството
+	 * @param double $vat             - процента ддс
+	 * @param boolean $isPriceWithVat - дали цената е с включено ддс
 	 */
-	public static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode)
+	private static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode)
 	{
 		$arr = array();
 		$arr['amount'] = $price * $packQuantity;
@@ -80,38 +98,47 @@ abstract class price_Helper
 	}
 	
 	
-	
-	
-	public function fillRecs(&$recs, $masterRec, $priceFld = 'packPrice', $quantityFld = 'packQuantity', $amountFld = 'amount', $rateFld = 'currencyRate')
+	/**
+	 * Помощен метод използван в бизнес документите за показване на закръглени цени на редовете
+	 * и за изчисляване на общата цена
+	 * 
+	 * @param array $recs - записи от детайли на модел
+	 * @param stdClass $masterRec - мастър записа
+	 * @param array $map - масив с мапващи стойностите на полета от фунцкията
+	 * с полета в модела, има стойности по подрабзиране (@see static::$map)
+	 */
+	public function fillRecs(&$recs, $masterRec, $map = array())
 	{
 		if(!count($recs)) return;
-		
 		expect(is_object($masterRec));
-		$hasVat = ($masterRec->chargeVat == 'yes') ? TRUE : FALSE;
+		
+		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
+		$map = array_merge(static::$map, $map);
+		
+		$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
 		$amount = $amountVat = 0;
 		
 		foreach($recs as &$rec){
 			$vat = 0;
-        	if ($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'no') {
-                $ProductManager = cls::get($rec->classId);
-                $vat = $ProductManager->getVat($rec->productId, $masterRec->valior);
+        	if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'no') {
+                $ProductManager = cls::get($rec->$map['classId']);
+                $vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
             }
             
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-        	$price = static::calcPrice($rec->$priceFld, $vat, $masterRec->$rateFld);
-        	$rec->$priceFld = ($hasVat) ? $price->withVat : $price->noVat;
+        	$price = static::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
+        	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
         	
         	// Калкулира се сумата на реда
-        	$amountObj = static::calcAmount($rec->$priceFld, $rec->$quantityFld, $vat, $hasVat, $masterRec->currencyId);
-        	
-        	$rec->$amountFld  = $amountObj->amount;
-        	$amount      += $amountObj->amount;
-        	$amountVat   += $amountObj->vatAmount;
-        	$a[] = $amountObj->amount;
+        	$amountObj = static::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId']);
+        	$rec->$map['amountFld']  = $amountObj->amount;
+        	$amount          	+= $amountObj->amount;
+        	$amountVat       	+= $amountObj->vatAmount;
+        	$a[] 			  	 = $amountObj->amount;
 		}
 		
-		$amount = currency_Currencies::round($amount, $rec->currencyId);
-        $amountVat = currency_Currencies::round($amountVat, $rec->currencyId);
-		bp($a, $amount,$amountVat);
+		$masterRec->total         = new stdClass();
+        $masterRec->total->amount = currency_Currencies::round($amount, $rec->$map['currencyId']);
+        $masterRec->total->vat    = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
 	}
 }
