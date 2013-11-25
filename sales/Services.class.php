@@ -410,7 +410,7 @@ class sales_Services extends core_Master
     		if($rec->amountDeliveredVat){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     		} else {
-    		$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
+    			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
     	}
     	

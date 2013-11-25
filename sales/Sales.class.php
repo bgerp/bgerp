@@ -224,7 +224,7 @@ class sales_Sales extends core_Master
         
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
-        // ддс-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
+        // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
         $rec->amountDeal = $amoundDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
@@ -620,8 +620,8 @@ class sales_Sales extends core_Master
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
-            	$rec->{"amount{$amnt}"} /= $rec->currencyRate;
-            	$row->{"amount{$amnt}"} = $amountType->toVerbal($rec->{"amount{$amnt}"});
+            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
+            	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
         
@@ -632,7 +632,7 @@ class sales_Sales extends core_Master
 	    if($fields['-single']){
 		    if($rec->chargeVat == 'no'){
 	        	$row->baseCurrencyId = $row->currencyId;
-	        	$row->amountBase = $amountType->toVerbal($rec->amountDeal - $rec->amountVat);
+	        	$row->amountBase = $amountType->toVerbal(($rec->amountDeal - $rec->amountVat) / $rec->currencyRate);
 		    }
 		    
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";

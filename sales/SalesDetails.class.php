@@ -256,6 +256,7 @@ class sales_SalesDetails extends core_Detail
     	$recs = &$data->recs;
         $salesRec = clone $data->masterData->rec;
         price_Helper::fillRecs($recs, $salesRec);
+        //bp($data->masterData->rec);
     }
     
     

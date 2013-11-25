@@ -374,8 +374,8 @@ class purchase_Purchases extends core_Master
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
-            	$rec->{"amount{$amnt}"} = $rec->{"amount{$amnt}"} / $rec->currencyRate;
-				$row->{"amount{$amnt}"} = $amountType->toVerbal($rec->{"amount{$amnt}"});
+            	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
+				$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
         
@@ -386,7 +386,7 @@ class purchase_Purchases extends core_Master
 	    if($fields['-single']){
 	    	if($rec->chargeVat == 'no'){
 	        	$row->baseCurrencyId = $row->currencyId;
-	        	$row->amountBase = $amountType->toVerbal($rec->amountDeal - $rec->amountVat);
+	        	$row->amountBase = $amountType->toVerbal(($rec->amountDeal - $rec->amountVat)  / $rec->currencyRate);
 		    }
 	    	
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
