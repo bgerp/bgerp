@@ -109,19 +109,21 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
-     * Премахва посочения бутон. Ако не е посочен бутон, премахва всичките
+     * Премахва посочения бутон/бутони в полето $ids
+     * Запазва бутоните посочени в $remains 
      */
-    function removeBtn($id)
+    function removeBtn($ids, $remains = NULL)
     {
-        if(isset($this->buttons[$id])) {
-            unset($this->buttons[$id]);
-        } elseif ($id == '*') {
-            $this->buttons = array();
-        } else {
-            return FALSE;
+        $ids = arr::make($ids, TRUE);
+        $remains = arr::make($remains, TRUE);
+        foreach($this->buttons as $id => $btn) { 
+            if(($ids['*'] || $ids[$id]) && !$remains[$id]) {
+                unset($this->buttons[$id]); 
+                $cnt++;
+            }
         }
-        
-        return TRUE;
+
+        return $cnt;
     }
     
     
