@@ -416,18 +416,7 @@ class techno_Specifications extends core_Manager {
         /* TODO */
     }
     
-    
-   /**
-	* Имат ли обектите на регистъра размерност?
-	*
-	* @return boolean
-	*/
-    static function isDimensional()
-    {
-        return TRUE;
-    }
-    
-    
+
     /**
      * Имплементиране на интерфейсен метод за съвместимост със стари записи
      */

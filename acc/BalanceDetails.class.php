@@ -20,7 +20,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists';
+    var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists, plg_StyleNumbers, plg_AlignDecimals';
     
     
     /**
@@ -77,13 +77,13 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
-        $this->FLD('baseQuantity', 'double', 'caption=База->К-во');
+        $this->FLD('baseQuantity', 'double', 'caption=База->Количество');
         $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->К-во');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
         
         //        $this->setDbUnique('balanceId, accountId, ent1Id, ent2Id, ent3Id');
@@ -202,11 +202,11 @@ class acc_BalanceDetails extends core_Detail
         
         $data->listFields = array(
             'accountNum' => 'Сметка->#',
-            'accountId' => 'Сметка->име',
-            'debitAmount' => 'Обороти->дебит',
-            'creditAmount' => 'Обороти->кредит',
-            'baseAmount' => 'Салдо->начално',
-            'blAmount' => 'Салдо->крайно',
+            'accountId' => 'Сметка->Име',
+            'debitAmount' => 'Обороти->Дебит',
+            'creditAmount' => 'Обороти->Кредит',
+            'baseAmount' => 'Салдо->Начално',
+            'blAmount' => 'Салдо->Крайно',
         );
     }
     
@@ -218,7 +218,7 @@ class acc_BalanceDetails extends core_Detail
      * @param StdClass $data
      */
     private function prepareDetailedBalance($data)
-    {
+    { 
         // Кода по-надолу има смисъл само за детайлизиран баланс, очаква да има фиксирана
         // сметка.
         expect($this->Master->accountRec);
@@ -251,7 +251,7 @@ class acc_BalanceDetails extends core_Detail
         $bShowQuantities = FALSE;
         
         foreach ($listRecs as $i=>$listRec) {
-            $bShowQuantities = $bShowQuantities || ($listRec->dimensional == 'yes');
+            $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             
             if ($groupingForm && $groupingForm->rec->{"grouping{$i}"}) {
                 //
@@ -288,23 +288,25 @@ class acc_BalanceDetails extends core_Detail
         
         if ($bShowQuantities) {
             $data->listFields += array(
-                'debitQuantity' => 'Дебит->к-во',
-                'debitAmount' => 'Дебит->сума',
-                'creditQuantity' => 'Кредит->к-во',
-                'creditAmount' => 'Кредит->сума',
-                'baseQuantity' => 'Начално салдо->к-во',
-                'baseAmount' => 'Начално салдо->сума',
-                'blQuantity' => 'Крайно салдо->к-во',
-                'blAmount' => 'Крайно салдо->сума',
+                'baseQuantity' => 'Начално салдо->ДК->Количество',
+                'baseAmount' => 'Начално салдо->ДК->Сума',
+                'debitQuantity' => 'Обороти->Дебит->Количество',
+                'debitAmount' => 'Обороти->Дебит->Сума',
+                'creditQuantity' => 'Обороти->Кредит->Количество',
+                'creditAmount' => 'Обороти->Кредит->Сума',
+                'blQuantity' => 'Крайно салдо->ДК->Количество',
+                'blAmount' => 'Крайно салдо->ДК->Сума',
             );
         } else {
             $data->listFields += array(
+                'baseAmount' => 'Салдо->Начално',
                 'debitAmount' => 'Обороти->Дебит',
                 'creditAmount' => 'Обороти->Кредит',
-                'baseAmount' => 'Салдо->начално',
-                'blAmount' => 'Салдо->крайно',
+                'blAmount' => 'Салдо->Крайно',
             );
         }
+
+      
     }
     
     
@@ -541,6 +543,7 @@ class acc_BalanceDetails extends core_Detail
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
             
             if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
+                
                 // "Захранваме" обекта стратегия с количество и сума
                 $strategy->feed($rec->blQuantity, $rec->blAmount);
             }
@@ -584,6 +587,9 @@ class acc_BalanceDetails extends core_Detail
             $this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
         }
+
+        // core_Html::$dumpMaxDepth = 6;
+        // bp($this->balance);
     }
     
     
@@ -690,16 +696,17 @@ class acc_BalanceDetails extends core_Detail
         expect(in_array($type, array('debit', 'credit')));
         
 //         expect($rec->amount, $rec);
-        
+        $quantityField = "{$type}Quantity";
+
         $sign = ($type == 'debit') ? 1 : -1;
         
         $accId = $rec->{"{$type}AccId"};
         
-        $ent1Id = !empty($rec->{"{$type}Item1"}) ? $rec->{"{$type}Item1"} : null;
-        $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : null;
-        $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : null;
+        $ent1Id = !empty($rec->{"{$type}Item1"}) ? $rec->{"{$type}Item1"} : NULL;
+        $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : NULL;
+        $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : NULL;
          
-        if ($ent1Id != null || $ent2Id != null || $ent3Id != null) {
+        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL) {
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
@@ -708,12 +715,14 @@ class acc_BalanceDetails extends core_Detail
             $b['ent2Id'] = $ent2Id;
             $b['ent3Id'] = $ent3Id;
             
-            $this->inc($b["{$type}Quantity"], $rec->quantity);
+            $this->inc($b[$quantityField], $rec->{$quantityField});
             $this->inc($b["{$type}Amount"], $rec->amount);
-            $this->inc($b['blQuantity'], $rec->quantity * $sign);
+
+ 
+            $this->inc($b['blQuantity'], $rec->{$quantityField} * $sign);
             $this->inc($b['blAmount'], $rec->amount * $sign);
         }
-        
+       
         for ($accNum = $this->Accounts->getNumById($accId); !empty($accNum); $accNum = substr($accNum, 0, -1)) {
             if (!($accId = $this->Accounts->getIdByNum($accNum))) {
                 continue;
@@ -726,9 +735,9 @@ class acc_BalanceDetails extends core_Detail
             $b['ent2Id'] = NULL;
             $b['ent3Id'] = NULL;
             
-            $this->inc($b["{$type}Quantity"], $rec->quantity);
+            $this->inc($b[$quantityField], $rec->{$quantityField});
             $this->inc($b["{$type}Amount"], $rec->amount);
-            $this->inc($b['blQuantity'], $rec->quantity * $sign);
+            $this->inc($b['blQuantity'], $rec->{$quantityField} * $sign);
             $this->inc($b['blAmount'], $rec->amount * $sign);
         }
     }

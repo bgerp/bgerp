@@ -251,6 +251,13 @@ class doc_DocumentPlg extends core_Plugin
             if(!$row->singleTitle) {
                 $row->singleTitle = tr($invoker->singleTitle);
             }
+
+            if($rec->state == 'rejected') {
+                $tpl = new ET(tr(' от [#user#] на [#date#]'));
+                $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            }
+            
+           // bp($row);
         }
     }
     
@@ -629,7 +636,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     protected static function updateDocumentState($mvc, $rec)
     {
-        if (!$mvc->save($rec, 'state, brState, containerId')) {
+        if (!$mvc->save($rec, 'state, brState, containerId, modifiedOn, modifiedBy')) {
+
             return FALSE;
         }
         

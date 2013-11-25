@@ -245,8 +245,8 @@ class acc_ArticleDetails extends core_Detail
         $form->setField('debitAccId', 'caption=Дебит->Сметка');
         $form->setField('creditAccId', 'caption=Кредит->Сметка');
         
-        $debitAcc = $mvc->getAccountInfo($rec->debitAccId);
-        $creditAcc = $mvc->getAccountInfo($rec->creditAccId);
+        $debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
+        $creditAcc = acc_Accounts::getAccountInfo($rec->creditAccId);
         
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
         
@@ -304,8 +304,8 @@ class acc_ArticleDetails extends core_Detail
         $rec = $form->rec;
         
         $accs = array(
-            'debit' => $mvc->getAccountInfo($rec->debitAccId),
-            'credit' => $mvc->getAccountInfo($rec->creditAccId),
+            'debit' => acc_Accounts::getAccountInfo($rec->debitAccId),
+            'credit' => acc_Accounts::getAccountInfo($rec->creditAccId),
         );
         
         $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) ||
@@ -370,34 +370,6 @@ class acc_ArticleDetails extends core_Detail
                 $form->setError('debitQuantity, debitPrice, creditQuantity, creditPrice, amount', 'Дебит и кредит страните са различни');
             }
         }
-    }
-    
-    
-    /**
-     * Връща информация за сметката
-     */
-    private function getAccountInfo($accountId)
-    {
-        $acc = (object)array(
-            'rec' => acc_Accounts::fetch($accountId),
-            'groups' => array(),
-            'isDimensional' => false
-        );
-        
-        foreach (range(1, 3) as $i) {
-            $listPart = "groupId{$i}";
-            
-            if (!empty($acc->rec->{$listPart})) {
-                $listId = $acc->rec->{$listPart};
-                if(!isset($acc->groups[$i])) {
-                    $acc->groups[$i] = new stdClass();
-                }
-                $acc->groups[$i]->rec = acc_Lists::fetch($listId);
-                $acc->isDimensional = acc_Lists::isDimensional($listId);
-            }
-        }
-        
-        return $acc;
     }
     
     

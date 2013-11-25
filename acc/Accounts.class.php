@@ -596,7 +596,7 @@ class acc_Accounts extends core_Manager
         $acc = (object)array(
             'rec' => acc_Accounts::fetch($accountId),
             'groups' => array(),
-            'isDimensional' => false
+            'isDimensional' => FALSE
         );
         
         foreach (range(1, 3) as $i) {
@@ -606,7 +606,7 @@ class acc_Accounts extends core_Manager
                 $listId = $acc->rec->{$listPart};
                 $acc->groups[$i] = new stdClass();
                 $acc->groups[$i]->rec = acc_Lists::fetch($listId);
-                $acc->isDimensional = acc_Lists::isDimensional($listId);
+                $acc->isDimensional = $acc->isDimensional || acc_Lists::isDimensional($listId);
             }
         }
         

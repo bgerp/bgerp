@@ -334,7 +334,9 @@ class acc_Journal extends core_Master
         acc_JournalDetails::delete("#journalId = $rec->id");
         
         static::delete($rec->id);
-        
+
+        acc_Periods::touch($rec->valior);
+
         return array($docClassId, $docId);
     }
     

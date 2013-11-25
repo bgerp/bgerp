@@ -53,15 +53,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * @todo Чака за документация...
-     */
-    static function isDimensional()
-    {
-        return TRUE;
-    }
-    
-    
-    /**
      * Връща масив с опаковките на, в които може да се слага даден продукт,
      * във вид подходящ за опции на key
      */

@@ -23,7 +23,7 @@ class acc_strategy_Strategy
      */
     var $accountId;
     
-    protected $data = array();
+    var $data = array();
     
     
     /**

@@ -32,15 +32,13 @@ class acc_JournalDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering,
-        Accounts=acc_Accounts, plg_AlignDecimals
-    ';
+    var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering, Accounts=acc_Accounts, plg_AlignDecimals';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount=Сума';
+    var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount';
 
 
     /**
@@ -54,22 +52,29 @@ class acc_JournalDetails extends core_Detail
      */
     function description()
     {
+        // Ключ към матера
         $this->FLD('journalId', 'key(mvc=acc_Journal)', 'column=none,input=hidden,silent');
-        $this->FLD('debitAccId', 'key(mvc=acc_Accounts,select=title,remember)',
+
+        // Дебитна аналитична сметка
+        $this->FLD('debitAccId', 'key(mvc=acc_Accounts,select=title)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input=hidden');
-        $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title,remember)',
-            'silent,caption=Кредит->Сметка и пера,mandatory,input=hidden');
-        $this->FLD('debitItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 1');
-        $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 2');
-        $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 3');
+        $this->FLD('debitItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 1');
+        $this->FLD('debitItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 2');
+        $this->FLD('debitItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->Перо 3');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
-        $this->FLD('creditItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 1');
-        $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 2');
-        $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 3');
+        
+        // Кредитна аналитична сметка
+        $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title)',
+            'silent,caption=Кредит->Сметка и пера,mandatory,input=hidden');
+        $this->FLD('creditItem1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 1');
+        $this->FLD('creditItem2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 2');
+        $this->FLD('creditItem3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->Перо 3');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
+
+        // Обща сума на транзакцията
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     }
     
     

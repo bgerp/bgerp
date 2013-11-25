@@ -1,8 +1,5 @@
 <?php
 
-cls::load('acc_strategy_Strategy');
-
-
 /**
  * Клас 'acc_strategy_FIFO' -
  *
@@ -43,7 +40,7 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
             $quantity -= $q;
             $amount += $a;
         };
-        
+
         // Изчисляваме остатъка и коригираме с него общата стойност.
         $a = ($a / $q) * $quantity;
         $amount += $a;

@@ -62,7 +62,7 @@ class acc_Lists extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,itemMaxNum,systemId,lastUseOn,tools=Пулт';
+    var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,itemMaxNum,systemId,lastUseOn,isDimensional,tools=Пулт';
     
     
     /**
@@ -101,6 +101,9 @@ class acc_Lists extends core_Manager {
         
         // Титла - хипервръзка
         $this->FNC('title', 'html', 'column=none');
+
+        // Дали елементите имат размерност
+        $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност, export');
         
         // Уникални индекси
         $this->setDbUnique('num');
@@ -147,9 +150,9 @@ class acc_Lists extends core_Manager {
         $rec->title = $num . '.&nbsp;' . $name;
     }
     
-    
+
     /**
-     * @todo Чака за документация...
+     * Извлича запис по име
      */
     static function fetchByName($name)
     {
@@ -532,20 +535,14 @@ class acc_Lists extends core_Manager {
         
         return $tpl;
     }
-    
+
     
     /**
-     * @todo Чака за документация...
+     * Дали посочената номенклатура има размерност
      */
     static public function isDimensional($id)
     {
-        $result = FALSE;
-        
-        if ($regInterfaceId = self::fetchField($id, 'regInterfaceId')) {
-            $regInterfaceName = core_Interfaces::fetchField($regInterfaceId, 'name');
-            $proxy = cls::get($regInterfaceName);
-            $result = $proxy->isDimensional();
-        }
+        $result =  ('yes' == self::fetchField($id, 'isDimensional')); 
         
         return $result;
     }
@@ -589,4 +586,16 @@ class acc_Lists extends core_Manager {
     	// Ако никоя номенклатура е поддържа интерфейса връщаме NULL
     	return NULL;
     }
+
+
+    /**
+     * Обработка, преди импортиране на запис при начално зареждане
+     */
+    function on_BeforeImportRec($mvc, $rec)
+    {
+        $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
+        $rec->state = 'active';
+    }
+
+
 }

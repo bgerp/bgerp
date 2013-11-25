@@ -49,6 +49,8 @@ class acc_plg_Contable extends core_Plugin
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
             $transaction       = $transactionSource->getTransaction($rec);
             
+            core_Html::$dumpMaxDepth = 5;
+
             if(!static::hasContableTransaction($mvc, $rec, $transactionRes)){
             	bp($transactionRes, $transaction);
             } else {

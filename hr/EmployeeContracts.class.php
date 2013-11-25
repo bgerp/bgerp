@@ -641,16 +641,6 @@ class hr_EmployeeContracts extends core_Master
     }
         
     
-	/**
-     * Имат ли обектите на регистъра размерност?
-     *
-     * @return boolean
-     */
-    static function isDimensional()
-    {
-        return false;
-    }
-    
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */

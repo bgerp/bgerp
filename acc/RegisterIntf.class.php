@@ -58,14 +58,4 @@ class acc_RegisterIntf
         return $this->class->itemInUse($objectId, $inUse);
     }
     
-    
-    /**
-     * Имат ли обектите на регистъра размерност?
-     *
-     * @return boolean
-     */
-    static function isDimensional()
-    {
-        return false;
-    }
 }

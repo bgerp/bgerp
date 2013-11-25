@@ -64,7 +64,7 @@ class doc_Threads extends core_Manager
     /**
      * Какви действия са допустими с избраните редове?
      */
-    var $doWithSelected = 'open=Отваряне,close=Затваряне,reject=Оттегляне,move=Преместване';
+    var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
     
     /**
      * Данните на адресанта, с най - много попълнени полета
@@ -127,6 +127,24 @@ class doc_Threads extends core_Manager
      */
     function act_Reject()
     {
+        return $this->doRejectOrRestore('Reject');
+    }
+    
+
+    /**
+     * Екшън за възстановяване на тредове
+     */
+    function act_Restore()
+    {
+        return $this->doRejectOrRestore('Restore');
+    }
+
+    
+    /**
+     * Изпълнява процедура по оттегляне/възстановяване на нишка
+     */
+    function doRejectOrRestore($act)
+    {
         if($selected = Request::get('Selected')) {
             $selArr = arr::make($selected);
             
@@ -143,7 +161,7 @@ class doc_Threads extends core_Manager
             $this->requireRightFor('single', $rec);
             $fDoc = doc_Containers::getDocument($rec->firstContainerId);
             
-            Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => 'Reject'));
+            Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => $act));
             $res = Request::forward();
             Request::pop();
         }
@@ -191,7 +209,8 @@ class doc_Threads extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
-        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
+            'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -890,7 +909,7 @@ class doc_Threads extends core_Manager
         
         // Бутони за разгледане на всички оттеглени тредове
         if(Request::get('Rejected')) {
-            $data->toolbar->removeBtn('*');
+            $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', 'ef_icon = img/16/star_2.png');
