@@ -1454,6 +1454,20 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Връща линк към хранилището
+     * 
+     * @param integer $repoId - id на хранилище
+     * 
+     * @return core_Et - Линк към сингъла
+     */
+    static function getLinkToSingle_($repoId)
+    {
+        
+        return parent::getLinkToSingle_($repoId, 'verbalName');
+    }
+    
+    
+    /**
      * Връща масив с всички хранилища
      * 
      * @return array $reposArr - Масив с id-та на всички хранилища
