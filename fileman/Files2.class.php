@@ -876,11 +876,8 @@ class fileman_Files2 extends core_Master
             $icon = "fileman/icons/default.png";
         }
         
-        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-        
         // Вербалното име на файла
-        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $isAbsolute) . ");'>" . fileman_Files::getVerbal($rec,'name') . "</span>";
+        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $absolute) . ");'>" . fileman_Files::getVerbal($rec,'name') . "</span>";
         
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);
