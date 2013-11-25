@@ -23,6 +23,7 @@
 205,Машини и оборудване,accda_DaAccRegIntf,machinery,no
 206,Транспортни средства,accda_DaAccRegIntf,vehicles,no
 207,Офис обзавеждане,accda_DaAccRegIntf,furnishing,no
+208,ДМА по ОП Конкурентноспособност,accda_DaAccRegIntf,taInOPs,no
 209,Други ДМА,accda_DaAccRegIntf,otherTangibleAssets,no
 210,Дълготрайни НЕматериални активи,accda_DaAccRegIntf,intangibleAssets,no
 219,Дълготрайни активи - всички,accda_DaAccRegIntf,fixedAssets,no
