@@ -224,10 +224,11 @@ function ganttRender(elem,ganttData) {
 						
 						//ако представянето на задачата е поне 3пх да се показва
 						if(widthTask > 3){
-							
+							var zIndex = parseInt(1000 - widthTask);
 							//добавяме необходимите атрибути и свойства
 							$(addedAnchor).css('left', parseInt(offsetInPx));
 							$(addedAnchor).css('top', parseInt(offsetFromTop));
+							$(addedAnchor).css('zIndex', zIndex);
 							$(addedAnchor).css('width', parseInt(widthTask));
 							$(addedAnchor).css('background-color', color);
 							$(addedAnchor).addClass('task');
