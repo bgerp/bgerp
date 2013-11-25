@@ -55,7 +55,6 @@ class backup_Start extends core_Manager
         if (!self::lock()) {
             core_Logs::add("Backup", "", "Full Backup не може да вземе Lock!");
             
-            return ("Full Backup не може да вземе Lock!");
             exit (1);
         }
         
@@ -99,17 +98,31 @@ class backup_Start extends core_Manager
         }
         
         if (!is_array($metaArr)) {
-            
             core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            
             exit(1);
         }
         // Добавяме нов запис за пълния бекъп
         $metaArr[][0] = self::$backupFileName;
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
-
+        
+        // Ако има дефинирана парола криптираме файловете с данните
+        if (!empty(self::$conf->BACKUP_PASS)) {
+            exec("openssl enc -aes-256-cbc -in " 
+                    . self::$backupFileName . 
+                    " -out " . self::$backupFileName . ".enc" . " -k ". self::$conf->BACKUP_PASS, $output, $returnVar);
+            if ($returnVar !==0 ) {
+                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$returnVar}");
+                // Продължаваме без криптиране
+            } else {
+                self::$backupFileName = self::$backupFileName . ".enc";
+            }
+            
+        }
+        
         // Качваме бекъп-а
         self::$storage->putFile(self::$backupFileName);
-           
+          
         // Качваме и мета файла
         self::$storage->putFile(self::$metaFileName);
 
@@ -180,18 +193,31 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
-        // 5. добавя се инфо за бинлога
+        // 5. Ако има дефинирана парола криптираме файловете с данните
+        if (!empty(self::$conf->BACKUP_PASS)) {
+            exec("openssl enc -aes-256-cbc -in " 
+                    . self::$binLogFileName . 
+                    " -out " . self::$binLogFileName . ".enc" . " -k ". self::$conf->BACKUP_PASS, $output, $returnVar);
+            if ($returnVar !==0 ) {
+                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$returnVar}");
+                // Продължаваме без криптиране
+            } else {
+                self::$binLogFileName = self::$binLogFileName . ".enc";
+            }
+            
+        }
+        // 6. добавя се инфо за бинлога
         $maxKey = max(array_keys($metaArr)); 
         $metaArr[$maxKey][] = self::$binLogFileName;
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
         
-        // 6. Качва се binloga с подходящо име
+        // 7. Качва се binloga с подходящо име
         self::$storage->putFile(self::$binLogFileName);
          
-        // 7. Качва се и мета файла
+        // 8. Качва се и мета файла
         self::$storage->putFile(self::$metaFileName);
         
-        // 8. Изтриваме бекъп-а от temp-a и metata
+        // 9. Изтриваме бекъп-а от temp-a и metata
         unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
         unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
         
@@ -328,7 +354,7 @@ class backup_Start extends core_Manager
     {
         self::init(array());
         
-        return unlink(self::$lockFileName);
+        return @unlink(self::$lockFileName);
     }
     
     /**

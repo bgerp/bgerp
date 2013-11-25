@@ -60,7 +60,7 @@ defIfNot('BACKUP_CLEAN_KEEP', 4);
 defIfNot('BACKUP_CLEAN_PERIOD', 24*60);
 
 /**
- *  Отместване на почистването
+ *  Отместване на почистването в крон-а
  */
 defIfNot('BACKUP_CLEAN_OFFSET', 53);
 
@@ -70,9 +70,15 @@ defIfNot('BACKUP_CLEAN_OFFSET', 53);
 defIfNot('BACKUP_FILEMAN_PERIOD', 13);
 
 /**
- *  Отместване на почистването
+ * Отместване в крон-а на архивирането на Fileman-a
  */
 defIfNot('BACKUP_FILEMAN_OFFSET', 0);
+
+/**
+ * Парола за криптиране на архива
+ * Ако е празна архива не се криптира
+ */
+defIfNot('BACKUP_PASS_OFFSET', 'secret');
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
@@ -112,9 +118,10 @@ class backup_Setup extends core_ProtoSetup
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
        'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
        'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп (SELECT, RELOAD, SUPER)'),
-       'BACKUP_MYSQL_USER_PASS'   => array ('varchar', 'caption=Парола'),
+       'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Парола'),
        'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Хост'),
-       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни бекъп-и, които да се пазят')
+       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни бекъп-и, които да се пазят'),
+       'BACKUP_PASS'     => array ('password', 'caption=Парола за архивираните файлове')
     );
     
     
@@ -144,6 +151,7 @@ class backup_Setup extends core_ProtoSetup
     	
     	$conf = core_Packs::getConfig('backup');
     	
+    	// Отключваме процеса, ако не е бил легално отключен
     	backup_Start::unLock();
     	
     	// Залагаме в cron
