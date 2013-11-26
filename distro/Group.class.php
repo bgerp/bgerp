@@ -514,12 +514,11 @@ class distro_Group extends core_Master
         foreach ($detailsArr as $className) {
             
             try {
-                
                 // Инстанция на класа
                 $inst = core_Cls::get($className);
                 
                 // Ако има запис в детайла
-                if ($inst->haveRec($data->rec->id)) {
+                if ($inst->haveRec($inst, $data->rec->id)) {
                     
                     // Премахваме хранилищата
                     unset($data->row->repos);

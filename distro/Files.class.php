@@ -876,6 +876,311 @@ class distro_Files extends core_Detail
     }
     
     
+	/**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
+     */
+    function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        // Масив с хранилищата и файловете в тях
+        $reposAndFilesArr = array();
+        
+        // Масив за мастерите
+        static $masterArr;
+        
+        // Обхождаме записите
+        foreach ((array)$data->recs as $id => $rec) {
+            
+            // Ако има мастер
+            if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
+                
+                // Ако не е обходен този запис
+                if (!$masterArr[$rec->$masterKey]) {
+                    
+                    // Вземаме масива с хранилищата от мастера
+                    $reposArr = $mvc->Master->getReposArr($rec->$masterKey);
+                    
+                    // Обхождаме масива
+                    foreach ((array)$reposArr as $repoId => $dummy) {
+                        
+                        // Ако не е добавен
+                        if (!$reposAndFilesArr[$repoId]) {
+                            
+                            // Добавяме
+                            $reposAndFilesArr[$repoId] = array();
+                        }
+                    }
+                    
+                    // Добавяме към масива
+                    $masterArr[$rec->$masterKey];
+                }
+            }
+            
+            
+            // Масива от записа
+            $reposArr = type_Keylist::toArray($rec->repos);
+            
+            // Обхождаме хранилищата
+            foreach ((array)$reposArr as $repoId) {
+                
+                // Добавяме в хранилищата
+                $reposAndFilesArr[$repoId][$id] = $id;
+            }
+        }
+        
+        // Добавяме масива
+        $data->reposAndFilesArr = $reposAndFilesArr;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareListRows($mvc, &$data)
+    {
+        // Икона за изтриване
+        $delImg = ht::createElement('img', array('src' => sbf('img/16/delete.png', '')));
+        
+        // Икона за редактиране
+        $editImg = ht::createElement('img', array('src' => sbf('img/16/edit-icon.png', '')));
+        
+        // Обхождаме масива с хранилищата и файловете в тях
+        foreach ((array)$data->reposAndFilesArr as $repoId => $idsArr) {
+            
+            // Масив със вербалните данни
+            $data->rowReposAndFilesArr[$repoId] = array();
+            
+            // Заглавие на хранилището
+            $repoTitle = fileman_Repositories::getRepoName($repoId);
+            
+            // Обхождаме масива с id'та
+            foreach ((array)$idsArr as $id) {
+                
+                // Името на файла
+                // Ако има манипулатор, да е линка към сингъла
+                $file = ($data->rows[$id]->sourceFh) ? $data->rows[$id]->sourceFh : $data->rows[$id]->name;
+                
+                // Добавяме файла в масива
+                $data->rowReposAndFilesArr[$repoId][$id]->file = $file;
+                
+                // Информация за файла
+                $data->rowReposAndFilesArr[$repoId][$id]->info = $data->rows[$id]->info;
+                
+                // Данни за модифициране
+                $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
+                
+                // Ако имаме права за редактиране
+                if ($mvc->haveRightFor('edit')) {
+                    
+                    // Линк за изтриване от хранилището
+                    $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
+                                       tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => tr('Изтриване')));
+                    // Линк за редактиране
+                    $editLink = ht::createLink($editImg, array($mvc, 'edit', $id, 'ret_url' => TRUE),
+                                       NULL, array('title' => tr('Редактиране')));
+                    // Добавяме линковете
+                    $data->rowReposAndFilesArr[$repoId][$id]->tools = $editLink . $delLink;
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $tpl
+     * @param unknown_type $data
+     */
+    function on_BeforeRenderListTable($mvc, $tpl, $data)
+    {
+        // Вземаме таблицата
+        $tpl = $mvc->renderReposAndFiles($data);
+        
+        // Да не се изпълнява кода
+        return FALSE;
+    }
+    
+    
+    /**
+     * Рендира таблицата за хранилища и файлове
+     * 
+     * @param object $data - Данни
+     */
+    static function renderReposAndFiles($data)
+    {
+        // Шаблон за таблиците
+        $tplRes = getTplFromFile('distro/tpl/FilesAllReposTables.shtml');
+        
+        // Ако няма записи
+        if (!$data->rowReposAndFilesArr) {
+            
+            // Сетваме текста
+            $tplRes->append(tr('Няма записи'), 'REPORES');
+            
+            // Връщаме шаблона
+            return $tplRes;
+        }
+        
+        // Обхождаме масива
+        foreach ((array)$data->rowReposAndFilesArr as $repoId => $reposArr) {
+            
+            // Шаблон за таблица
+            $tplTable = getTplFromFile('distro/tpl/FilesRepoTable.shtml');
+            
+            // Обхождаме масива с хранилищата
+            foreach ($reposArr as $repo) {
+                
+                // Шаблон за ред в таблицата
+                $tplRow = getTplFromFile('distro/tpl/FilesRepoTableRow.shtml');
+                
+                // Заместваме данните
+                $tplRow->replace($repo->modified, 'modified');
+                $tplRow->replace($repo->file, 'file');
+                $tplRow->replace($repo->tools, 'tools');
+                
+                // Ако има информация
+                if ($info = trim($repo->info)) {
+                    
+                    // Заместваме информацията
+                    $tplRow->replace($info, 'fileInfo');
+                }
+                
+                // Премахваме незаместените блокове
+                $tplRow->removeBlocks();
+                
+                // Добавяме към шаблона за таблиците
+                $tplTable->append($tplRow, 'repoRow');
+            }
+            
+            // Линк към хранилището
+            $repoTitleLink = fileman_Repositories::getLinkToSingle($repoId);
+            
+            // Добавяме в шаблона
+            $tplTable->append($repoTitleLink,'repoTitle');
+            
+            // Ако няма файлове
+            if (!$reposArr) {
+                
+                // Задаваме, че няма файлове
+                $tplTable->append(tr('Няма файлове'), 'otherInfo');
+            } else {
+                
+                // Добавяме в шаблона
+                $tplTable->append($tplTable,'repoTable');
+            }
+            
+            // Добавяме в резултатния шаблон
+            $tplRes->append($tplTable, 'REPORES');
+        }
+        
+        return  $tplRes;
+    }
+    
+    
+    /**
+     * Екшън за премахване на файл от дадено хранилище
+     */
+    function act_RemoveFromRepo()
+    {
+        // Трябва да имаме права за редактиране
+        $this->requireRightFor('edit');
+        
+        // id на записа
+        $id = Request::get('id', 'int');
+        
+        // id на хранилище, от което ще се премахне
+        $repoId = Request::get('repoId', 'int');
+        
+        // Записа
+        $rec = $this->fetch($id);
+        
+        // Очакваме да има права за редактиране на записа
+        $this->requireRightFor('edit', $rec);
+        
+        // Масив с хранилищататт
+        $reposArr = type_Keylist::toArray($rec->repos);
+        
+        
+        // Очакваме хранилището да е в записа
+        expect(type_Keylist::isIn($repoId, $rec->repos));
+        
+        // Премахваме от записа
+        $rec->repos = type_Keylist::removeKey($rec->repos, $repoId);
+        
+        // Ако има master
+        if (($masterKey = $this->masterKey) && ($rec->$masterKey)) {
+            
+            // Вземаме заглавието/титлата на полето
+            $title = $this->Master->getGroupTitle($rec->$masterKey);
+        }
+        
+        // Масив с хранилища от които трябва да се премахне файла
+        $deleteFileInReposArr = array(
+                                     'title' => $title,
+                                     'name' => $rec->name,
+                                     'deleteReposArr' => $repoId,
+                                     );
+        
+        // Добавяме масива
+        $this->actionWithFile['deleteFileInRepo'] = $deleteFileInReposArr;
+        
+        // Ако записа мине успешно
+        if ($this->save($rec)) {
+            
+            // Съобщени
+            $msg = 'Успешно премахнат от хранилището';
+        } else {
+            
+            // Ако има грешка
+            $msg = 'Грешка при изтриването';
+        }
+        
+        // URL за редирект
+        $retUrl = getRetUrl();
+        
+        // Ако не е зададено
+        if (!$retUrl) {
+            
+            // Да сочи към сингъла на мастера
+            $retUrl = array($this->Master, 'single', $rec->$masterKey);
+        }
+        
+        // Редиректваме
+        return new Redirect($retUrl, tr($msg));
+    }
+    
+    
+    /**
+     * Функция, която връща дали има запис към мастъра
+     * 
+     * @param int $masterId - id на мастъра
+     * 
+     * @return boolean
+     */
+    static function haveRec($me, $masterId)
+    {
+        // Ако има мастер
+        if ($masterKey = $me->masterKey) {
+            
+            // Ако има запис към мастера
+            if (static::fetch(array("#{$masterKey} = '[#1#]'", $masterId))) {
+                
+                return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
     /**
      * Функция, която се вика от крон
      * Синрхоронизира файловете в хранилищитата с модела
