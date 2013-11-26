@@ -497,4 +497,40 @@ class distro_Group extends core_Master
         
         return $row;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingle($mvc, $res, &$data)
+    {
+        // Вземаме масива с детайлите
+        $detailsArr = arr::make($mvc->details);
+        
+        // Обхождаме записите
+        foreach ($detailsArr as $className) {
+            
+            try {
+                
+                // Инстанция на класа
+                $inst = core_Cls::get($className);
+                
+                // Ако има запис в детайла
+                if ($inst->haveRec($data->rec->id)) {
+                    
+                    // Премахваме хранилищата
+                    unset($data->row->repos);
+                    
+                    // Прекъсваме
+                    break;
+                }
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
+    }
 }
