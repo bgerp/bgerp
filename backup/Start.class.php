@@ -109,24 +109,7 @@ class backup_Start extends core_Manager
         
         // Ако има дефинирана парола криптираме файловете с данните
         if (strlen(self::$conf->BACKUP_PASS)>0) {
-            $command = "openssl enc -aes-256-cbc -in "
-                    . EF_TEMP_PATH . "/" . self::$backupFileName . 
-                    " -out " . EF_TEMP_PATH . "/" . self::$backupFileName . ".enc" . " -k "
-                    . self::$conf->BACKUP_PASS . " 2>&1";
-                
-            exec($command, $output, $returnVar);
-            //bp($output);
-            if ($returnVar !== 0 ) {
-                $err = implode(",", $output);
-                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
-                self::unLock();
-                
-                exit(1);
-            } else {
-                // Разкарваме некриптирания файл
-                @unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
-                self::$backupFileName = self::$backupFileName . ".enc";
-            }
+            self::$backupFileName = self::crypt(self::$backupFileName);
         }
        
         // Добавяме нов запис за пълния бекъп
@@ -205,26 +188,12 @@ class backup_Start extends core_Manager
             
             exit(1);
         }
+        
         // 5. Ако има дефинирана парола криптираме файловете с данните
         if (strlen(self::$conf->BACKUP_PASS)>0) {
-            $command = "openssl enc -aes-256-cbc -in "
-                    . EF_TEMP_PATH . "/" . self::$binLogFileName . 
-                    " -out " . EF_TEMP_PATH . "/" . self::$binLogFileName . ".enc" . " -k "
-                    . self::$conf->BACKUP_PASS . " 2>&1";
-            
-            exec($command, $output, $returnVar);
-            if ($returnVar !== 0 ) {
-                $err = implode(",", $output);
-                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
-                self::unLock();
-                
-                exit(1);
-            } else {
-                // Разкарваме некриптирания файл
-                @unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
-                self::$binLogFileName = self::$binLogFileName . ".enc";
-            }
+            self::$binLogFileName = self::crypt(self::$binLogFileName);
         }
+
         // 6. добавя се инфо за бинлога
         $maxKey = max(array_keys($metaArr)); 
         $metaArr[$maxKey][] = self::$binLogFileName;
@@ -322,11 +291,40 @@ class backup_Start extends core_Manager
         
             exit(1);
         }
+        self::$confFileName = self::crypt(self::$confFileName);
         self::$storage->putFile(self::$confFileName);
         
         unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
         return;
+    }
+    
+    /**
+     * Криптира зададен файл в темп директорията
+     * със зададената парола и изтрива оригинала
+     * 
+     * return string - името на новия файл
+     */
+    private static function crypt($fileName)
+    {
+        $command = "openssl enc -aes-256-cbc -in "
+        . EF_TEMP_PATH . "/" . $fileName .
+        " -out " . EF_TEMP_PATH . "/" . $fileName . ".enc" . " -k "
+        . self::$conf->BACKUP_PASS . " 2>&1";
+        
+        exec($command, $output, $returnVar);
+        if ($returnVar !== 0 ) {
+            $err = implode(",", $output);
+            core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
+            self::unLock();
+        
+            exit(1);
+        } else {
+            // Разкарваме некриптирания файл
+            @unlink(EF_TEMP_PATH . "/" . $fileName);
+        }
+        
+        return $fileName.".enc";
     }
     
     /**
