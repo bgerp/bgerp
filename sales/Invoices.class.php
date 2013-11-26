@@ -364,6 +364,10 @@ class sales_Invoices extends core_Master
 	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
+	        
+	        if($rec->type != 'invoice'){
+	        	$rec->dealValue = $rec->changeAmount * $rec->rate;
+			}
         }
 
         acc_Periods::checkDocumentDate($form);
@@ -515,10 +519,6 @@ class sales_Invoices extends core_Master
             $rec->contragentClassId  = doc_Folders::fetchCoverClassId($rec->folderId);
             $rec->contragentId     = doc_Folders::fetchCoverId($rec->folderId);
         }
-        
-        if($rec->type != 'invoice'){
-        	$rec->dealValue = currency_CurrencyRates::convertAmount($rec->changeAmount, dt::now(), $rec->currencyId, NULL);
-		}
     }
     
     
