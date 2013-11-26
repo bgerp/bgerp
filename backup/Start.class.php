@@ -50,12 +50,12 @@ class backup_Start extends core_Manager
      * 
      * 
      */
-    static function full()
+    private static function full()
     {
         if (!self::lock()) {
             core_Logs::add("Backup", "", "Full Backup не може да вземе Lock!");
             
-            exit (1);
+            exit(1);
         }
         
         // проверка дали всичко е наред с mysqldump-a
@@ -65,7 +65,8 @@ class backup_Start extends core_Manager
                  . self::$conf->BACKUP_MYSQL_USER_PASS. " " . EF_DB_NAME ." 2>&1", $output ,  $returnVar);
         if ($returnVar !== 0) {
             core_Logs::add("Backup", "", "FULL Backup mysqldump ERROR!");
-
+            self::unLock();
+            
             exit(1);
         }
         
@@ -73,7 +74,8 @@ class backup_Start extends core_Manager
         exec("gzip --help", $output,  $returnVar);
         if ($returnVar !== 0) {
             core_Logs::add("Backup", "", "gzip NOT found");
-        
+            self::unLock();
+            
             exit(1);
         }
         
@@ -84,6 +86,7 @@ class backup_Start extends core_Manager
         
         if ($returnVar !==0 ) {
             core_Logs::add("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
+            self::unLock();
             
             exit(1);
         }
@@ -99,26 +102,36 @@ class backup_Start extends core_Manager
         
         if (!is_array($metaArr)) {
             core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::unLock();
             
             exit(1);
         }
+        
+        // Ако има дефинирана парола криптираме файловете с данните
+        if (strlen(self::$conf->BACKUP_PASS)>0) {
+            $command = "openssl enc -aes-256-cbc -in "
+                    . EF_TEMP_PATH . "/" . self::$backupFileName . 
+                    " -out " . EF_TEMP_PATH . "/" . self::$backupFileName . ".enc" . " -k "
+                    . self::$conf->BACKUP_PASS . " 2>&1";
+                
+            exec($command, $output, $returnVar);
+            //bp($output);
+            if ($returnVar !== 0 ) {
+                $err = implode(",", $output);
+                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
+                self::unLock();
+                
+                exit(1);
+            } else {
+                // Разкарваме некриптирания файл
+                @unlink(EF_TEMP_PATH . "/" . self::$backupFileName);
+                self::$backupFileName = self::$backupFileName . ".enc";
+            }
+        }
+       
         // Добавяме нов запис за пълния бекъп
         $metaArr[][0] = self::$backupFileName;
         file_put_contents(EF_TEMP_PATH . "/" . self::$metaFileName, serialize($metaArr));
-        
-        // Ако има дефинирана парола криптираме файловете с данните
-        if (!empty(self::$conf->BACKUP_PASS)) {
-            exec("openssl enc -aes-256-cbc -in " 
-                    . self::$backupFileName . 
-                    " -out " . self::$backupFileName . ".enc" . " -k ". self::$conf->BACKUP_PASS, $output, $returnVar);
-            if ($returnVar !==0 ) {
-                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$returnVar}");
-                // Продължаваме без криптиране
-            } else {
-                self::$backupFileName = self::$backupFileName . ".enc";
-            }
-            
-        }
         
         // Качваме бекъп-а
         self::$storage->putFile(self::$backupFileName);
@@ -192,19 +205,25 @@ class backup_Start extends core_Manager
             
             exit(1);
         }
-        
         // 5. Ако има дефинирана парола криптираме файловете с данните
-        if (!empty(self::$conf->BACKUP_PASS)) {
-            exec("openssl enc -aes-256-cbc -in " 
-                    . self::$binLogFileName . 
-                    " -out " . self::$binLogFileName . ".enc" . " -k ". self::$conf->BACKUP_PASS, $output, $returnVar);
-            if ($returnVar !==0 ) {
-                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$returnVar}");
-                // Продължаваме без криптиране
+        if (strlen(self::$conf->BACKUP_PASS)>0) {
+            $command = "openssl enc -aes-256-cbc -in "
+                    . EF_TEMP_PATH . "/" . self::$binLogFileName . 
+                    " -out " . EF_TEMP_PATH . "/" . self::$binLogFileName . ".enc" . " -k "
+                    . self::$conf->BACKUP_PASS . " 2>&1";
+            
+            exec($command, $output, $returnVar);
+            if ($returnVar !== 0 ) {
+                $err = implode(",", $output);
+                core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
+                self::unLock();
+                
+                exit(1);
             } else {
+                // Разкарваме некриптирания файл
+                @unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
                 self::$binLogFileName = self::$binLogFileName . ".enc";
             }
-            
         }
         // 6. добавя се инфо за бинлога
         $maxKey = max(array_keys($metaArr)); 
@@ -243,6 +262,7 @@ class backup_Start extends core_Manager
         // Взимаме мета файла
         if (!self::$storage->getFile(self::$metaFileName)) {
             core_Logs::add('Backup', '', "Warning: clean не може да вземе МЕТА файла.");
+            self::unLock();
             
             exit(1);
         } else {
