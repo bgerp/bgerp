@@ -301,10 +301,6 @@ class acc_Items extends core_Manager
             $form->setField('num', 'input=none');
             $form->setField('title', 'input=none');
             
-            if (!$register->isDimensional()) {
-                $form->setHidden('uomId');
-            }
-            
             if (!$rec->id) {
                 // Попълва полетата на $rec с данни извлечени от съотв. регистър
                 static::syncItemRec($rec, $register, $rec->objectId);
