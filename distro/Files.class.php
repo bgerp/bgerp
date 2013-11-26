@@ -60,13 +60,13 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    var $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper, plg_RowTools';
+    var $loadList = 'distro_Wrapper, plg_Modified';
     
     
     /**
@@ -208,6 +208,19 @@ class distro_Files extends core_Detail
             
             // Сетваме името да е задължително поле
             $data->form->setField('name', 'mandatory');
+            
+            // Добавяме функционално поле
+            $data->form->FNC('archive', 'set(upload=Качване)', 'caption=Архивиране, input=input');
+            
+            // Ако има манипулатор на файла
+            if ($data->form->rec->sourceFh) {
+                
+                // Да е избран по подразбиране
+                $data->form->setDefault('archive', 'upload');
+                
+                // Да не може да се променя
+                $data->form->addAttr('archive', array('disabled'=>'disabled'));
+            }
         }
     }
     
@@ -230,6 +243,48 @@ class distro_Files extends core_Detail
                 $title = $mvc->Master->getGroupTitle($form->rec->$masterKey);
             }
             
+            // Ако редактираме запис
+            if ($form->rec->id) {
+                
+                // Вземаме оригиналния запис
+                $rec = $mvc->fetch($form->rec->id);
+                
+                // Вземаме масива с хранилищата
+                $reposArr = type_Keylist::toArray($rec->repos);
+            } else {
+                
+                // Вземаме масива с хранилищата
+                $reposArr = type_Keylist::toArray($form->rec->repos);
+            }
+            
+            // Ако сме избрали да се качва файла
+            if (($form->rec->archive == 'upload') && !$form->rec->sourceFh) {
+                
+                // Кофата
+                $bucket = fileman_Repositories::$bucket;
+                
+                // Вземаме името след като се качи файла
+                $possibleName = fileman_Files::getPossibleName($form->rec->name, $bucket);
+                
+                // Ако името след качване не отговаря на името въведено от потребителя
+                if ($possibleName != $form->rec->name) {
+                    
+                    // Сетваме предупреждение
+                    $msg = "Файлът ще се преименува на|*: " . type_Varchar::escape($possibleName);
+                    $form->rec->name = $possibleName;
+                    $form->setWarning('name', $msg);
+                }
+                
+                // Масив, за качване на файл
+                $uploadFileArr = array('title' => $title,
+                                       'reposArr' => $reposArr,
+                                       'name' => $form->rec->name,
+                                       'bucket' => $bucket,
+                                       );
+                // Добавяме в действията
+                $mvc->actionWithFile['upladFile'] = $uploadFileArr;
+            }
+            
             // Ако създаваме нов запис
             if (!$form->rec->id) {
                 
@@ -239,9 +294,6 @@ class distro_Files extends core_Detail
                     // Сетваме името от манипулатора
                     $form->rec->name = fileman_Files::fetchByFh($form->rec->sourceFh, 'name');
                 }
-                
-                // Вземаме масива с хранилищата
-                $reposArr = type_Keylist::toArray($form->rec->repos);
                 
                 // Очакваме да са сетнати
                 expect($reposArr);
@@ -258,7 +310,7 @@ class distro_Files extends core_Detail
                     
                     // Ако файла не съществува и има манипулатор
                     
-                    // Създаваме масив за добавяне от манипулато на файл
+                    // Създаваме масив за добавяне от манипулатор на файл
                     $addFromFhArr = array('title' => $title,
                     					  'fileHnd' => $form->rec->sourceFh,
                                           'reposArr' => $reposArr,
@@ -270,9 +322,6 @@ class distro_Files extends core_Detail
             } else {
                 
                 // Ако редактираме записа
-                
-                // Вземаме оригиналния запис
-                $rec = $mvc->fetch($form->rec->id);
                 
                 // Вземаме масива с различията между хранилищата в модела и във формата
                 $diffArr = type_Keylist::getDiffArr($rec->repos, $form->rec->repos);
@@ -390,7 +439,7 @@ class distro_Files extends core_Detail
                                 
                                 // Съобщение за грешка
                                 $msg = 'Не може да се зададе|*: ' . type_Varchar::escape($form->rec->name) . '.';
-                                $msg .= " " . "|Ще се зададе|*: " . type_Varchar::escape($possibleName);
+                                $msg .= " " . "|Ще се използва|*: " . type_Varchar::escape($possibleName);
                                 $form->setWarning('name', $msg);
                                 
                                 // Задаваме новото име
@@ -562,6 +611,26 @@ class distro_Files extends core_Detail
                 // Сетваме грешка
                 expect(FALSE);
             }
+        }
+        
+        // Ако е зададен масива за качване на файл
+        if ($uploadFileaArr = $mvc->actionWithFile['upladFile']) {
+            
+            // Обхождаме масива с хранилищата
+            foreach ((array)$uploadFileaArr['reposArr'] as $repoId) {
+                
+                // Абсорбираме файла
+                $fh = fileman_Repositories::absorbFileFromId($repoId, $uploadFileaArr['name'], $uploadFileaArr['title'], $uploadFileaArr['bucket']);
+                
+                // Ако има манипулатор на файла, прекъсваме
+                if ($fh) break;
+            }
+            
+            // Очакваме да има манипулатор
+            expect($fh);
+            
+            // Добавяме манипулатор
+            $rec->sourceFh = $fh;
         }
         
         // Ако има записи за изтриване
