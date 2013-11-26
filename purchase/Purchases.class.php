@@ -243,15 +243,17 @@ class purchase_Purchases extends core_Master
     		}
     		
 	    	if (store_Receipts::canAddToThread($data->rec->threadId)) {
-	            $data->toolbar->addBtn('Засклаждане', array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Заприхождаване на артикулите в склада,order=9.21');
+	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21,warning=Искатели да създадете нова Складова разписка ?');
 	        }
 	        
 	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
 	    	}
 	    	
     		if(purchase_Services::canAddToThread($data->rec->threadId)) {
-	            $data->toolbar->addBtn('Услуга', array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+    			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов протокол за покупка на услуги ?');
 	        }
     	}
     	

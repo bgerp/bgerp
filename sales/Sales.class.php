@@ -749,15 +749,17 @@ class sales_Sales extends core_Master
     		}
     		
 	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
 	    	}
 	    	
     		if (sales_Services::canAddToThread($data->rec->threadId)) {
-	            $data->toolbar->addBtn('Услуга', array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+    			$serviceUrl =  array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов Протокол за доставка на услуги ?');
 	        }
 	        
 	    	if (store_ShipmentOrders::canAddToThread($rec->threadId)) {
-	            $data->toolbar->addBtn('Експедиране', array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
+	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искатели да създадете ново Експедиционно нареждане ?');
 	        }
     	}
     	
