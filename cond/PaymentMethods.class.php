@@ -138,6 +138,20 @@ class cond_PaymentMethods extends core_Master
     
 
     /**
+     * Дали подадения метод е Наложен платеж (Cash on Delivery)
+     * @param mixed $payment - ид или име на метод
+     * @return boolean
+     */
+    public static function isCOD($payment)
+    {
+    	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
+    	expect($name = static::fetchField($where, 'name'));
+    	
+    	return ($name == 'COD');
+    }
+    
+    
+    /**
      * Връща масив съдържащ плана за плащане
      * @param int $pmId - ид на метод
      * @param double $amount - сума
