@@ -225,7 +225,7 @@ function ganttRender(elem,ganttData) {
 						
 						//ако представянето на задачата е поне 3пх да се показва
 						if(widthTask > 3){
-							var zIndex = parseInt(1000000 - widthTask);
+							var zIndex = parseInt(10000 - widthTask);
 							//добавяме необходимите атрибути и свойства
 							$(addedAnchor).css('left', parseInt(offsetInPx));
 							$(addedAnchor).css('top', parseInt(offsetFromTop));
@@ -244,8 +244,14 @@ function ganttRender(elem,ganttData) {
 								$(addedAnchor).attr('id', taskid);
 							}
 							
-							//ако е поне 50пх да се показва id-то на задачата
-							if(widthTask>50){
+							//брой символи на taskid
+							var countOfChars = taskid.length;
+							//приблизителна мин. ширина, спрямо бр. символи
+							var minWidthForTextDisplay = countOfChars*7 + 5;
+							
+							
+							//ако текстът се събира го показваме
+							if(widthTask > minWidthForTextDisplay){
 								$(addedAnchor).text(taskid);
 							}
 							

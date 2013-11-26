@@ -36,16 +36,16 @@
 	height:29px !important;
 	padding:0;
 	border-spacing:0;
-	font-size:0.8em;
+	font-size:0.7em;
 	border:1px solid #ccc;
 }
 
 .gantt-table th{
-	padding:0 5px;
+	padding:0 2px;
 }
 
 .gantt-table tr:first-child th{
-	font-size:1em;
+	font-size:0.9em;
 }
 .gantt-table tr>td:first-child, .gantt-table tr>th:first-child{
 	border-left:none !important;
@@ -77,13 +77,13 @@
 	position:absolute;
 	width:100%;
 	display:block;
-	opacity:0.8;
-	filter: alpha(opacity=80);
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	opacity:0.85;
+	filter: alpha(opacity=85);
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=85)";
 	border-radius:5px;
 	box-shadow:1px 1px 2px rgba(0,0,0,0.5);
-	text-align:center;
-	font-size:0.8em;
+	text-indent:3px;
+	font-size:0.75em;
 	color:#000 !important;
 	font-weight:bold;
 }
