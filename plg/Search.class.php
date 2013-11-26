@@ -285,11 +285,16 @@ class plg_Search extends core_Plugin
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        if(!$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+        $i = 0;
+    	if(!$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             $query = $mvc->getQuery();
             while($rec = $query->fetch()) {
-                $mvc->save($rec);
-                $i++;
+            	try{
+                	$mvc->save($rec);
+                } catch(Exception $e) {
+            		continue;
+            	}
+            	$i++;
             }
         }
 
