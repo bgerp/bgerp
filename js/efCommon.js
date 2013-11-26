@@ -875,13 +875,17 @@ function setMinHeight()
                         
 		if(document.getElementById('maincontent')) {
 			var mc = document.getElementById('maincontent');
-			var h = (ch - fct - 40) + 'px';
+			var h = (ch - fct - 51) + 'px';
 			mc.style.minHeight = h;
 		}
 
 		if(document.getElementById('packWrapper')) {
 			var pw = document.getElementById('packWrapper');
-			var h = (ch - fct - 116) + 'px';
+			var sub = 100;
+			if( document.body.className.match('wide')){
+				sub = 118;
+			}
+			var h = (ch - fct - sub) + 'px';
 			pw.style.minHeight = h;
 		}
 	}
@@ -899,9 +903,9 @@ function setMinHeightExt()
 		var cb = document.getElementById('cmsBottom').offsetHeight;     
 		var cm = document.getElementById('cmsMenu').offsetHeight; 
 		
-		var add = 6;
+		var add = 7;
 		if( document.body.className.match('wide')){
-			add = 16;
+			add = 36;
 		}
 		
 		if(document.getElementById('maincontent')) {
