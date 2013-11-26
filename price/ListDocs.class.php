@@ -44,6 +44,12 @@ class price_ListDocs extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт, title, date, policyId, state, createdOn, createdBy';
@@ -128,6 +134,17 @@ class price_ListDocs extends core_Master
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name, translate)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    }
+    
+    
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
