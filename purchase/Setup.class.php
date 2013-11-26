@@ -48,6 +48,8 @@ class purchase_Setup extends core_ProtoSetup
             'purchase_Offers',
             'purchase_Purchases',
             'purchase_PurchasesDetails',
+    		'purchase_Services',
+    		'purchase_ServicesDetails',
         );
 
         
