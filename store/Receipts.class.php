@@ -194,7 +194,8 @@ class store_Receipts extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $rec->amountDelivered = $rec->total->amount * $rec->currencyRate;
+        $amount = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
+        $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->total->vat * $rec->currencyRate;
     	
         $mvc->save($rec);
@@ -432,7 +433,7 @@ class store_Receipts extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$row->amountBase = ($rec->chargeVat == 'yes') ? $rec->amountDelivered - $rec->amountDeliveredVat : $rec->amountDelivered;
+    		$row->amountBase = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') ? $rec->amountDelivered - $rec->amountDeliveredVat : $rec->amountDelivered;
     		
     		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
     		@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;

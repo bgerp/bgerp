@@ -5,7 +5,6 @@
  * @author developer
  *
  * @property int $classId key(mvc=core_Classes) първичен ключ на мениджъра на продукта
- * @property core_Manager $productClass инстанция на мениджъра на продукта
  */
 class sales_model_SaleProduct extends core_Model
 {
