@@ -39,7 +39,7 @@ class store_Receipts extends core_Master
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, plg_LastUsedKeys, cond_plg_DefaultValues';
+                    doc_plg_BusinessDoc2, cond_plg_DefaultValues';
 
     
     /**
@@ -94,12 +94,6 @@ class store_Receipts extends core_Master
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'vehicleId';
     
     
     /**
@@ -165,7 +159,7 @@ class store_Receipts extends core_Master
         // Доставка
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
+        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. Линия');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
