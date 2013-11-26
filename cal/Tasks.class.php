@@ -932,7 +932,7 @@ class cal_Tasks extends core_Master
 		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
 		    		                
 			    					'color' => $colors[$v % 22],
-			    					'hint' => '',
+			    					'hint' => $rec->title,
 			    					'url' => ''
 			    				
 			    	);
@@ -964,7 +964,7 @@ class cal_Tasks extends core_Master
 
 	    	// връщаме един обект от всички масиви
 	    	$res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $uS, 'otherParams' => $params);
-	      // bp($res, $resTask);
+// /bp($res, $resTask);
 	        $chart = gantt_Adapter::render_($res);
 	//bp($chart);
 	    	return $chart;
@@ -1016,34 +1016,38 @@ class cal_Tasks extends core_Master
     	$endExplode = explode("-", $endTime[0]);
     	
     	// ако периода на таблицата е по-голям от година
-    	if (dt::daysBetween($endTime[0],$startTime[0]) >= 356) {
+    	if (dt::daysBetween($endTime[0],$startTime[0]) >= 168) {
     		
     		// делението е година/месец
     		$otherParams['mainHeaderCaption'] = tr('година');
     		$otherParams['subHeaderCaption'] = tr('месеци');
     		
     		// таблицата започва от първия ден на стартовия месец
-    		$otherParams['startTime'] = mktime(0, 0, 0, 1, $startExplode[1], $startExplode[0]);
+    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0]);
     		// до последния ден на намерения месец за край
-    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[0]));
+    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[0]). " 23:59:59");
     		
-    		// оформяме заглавните части в 2 деления
-    		// началната година и крайната година
-    		$headerInfo[0]['mainHeader'] = $startExplode[0];
-    		$headerInfo[1]['mainHeader'] = $endExplode[0];
+    		//$curDate = $startTime[0]. " 00:00:00"; 
+    		//$toDate = $endTime[0]. " 23:59:59"; 
+
+    		$curDate = dt::timestamp2mysql(mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0])); 
+    		$toDate = dt::getLastDayOfMonth($endTime[0]). " 23:59:59"; 
     		
-    		// започваме да чертаем от намерения стартов месец, до края на годината
-    		for ($i = $startExplode[1]; $i <= 12; $i++) {
-    			$headerInfo[0]['subHeader'][$i] = date("m", mktime(0, 0, 0, $i, 1, $startExplode[0]));
+    		// генерираме номерата на седмиците между началото и края
+    		while ($curDate < $toDate){
+    		    
+    			$w = date("Y", dt::mysql2timestamp($curDate));
+    		 	$res[$w]['mainHeader'] = $w;
+    		 	$res[$w]['subHeader'][] = date("m", dt::mysql2timestamp($curDate));
+    		 	$curDate = dt::addMonths(1, $curDate); 
     		}
     		
-    		// започваме да чертаем от началото на годината до месеца намерен за край
-    		for ($j = 1; $j <= $endExplode[1]; $j++){
-    			$headerInfo[1]['subHeader'][$j] = date("m", mktime(0, 0, 0, $j, 1, $endExplode[0]));
+    		foreach ($res as $headerArr) {
+    			$headerInfo[] = $headerArr;
     		}
-           
+    		
     		// ако периода на таблицата е в рамките на една една седмица
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) < 7) {
+    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) < 6) {
     		
     		// делението е ден/час
     		$otherParams['mainHeaderCaption'] = tr('ден');
@@ -1066,21 +1070,21 @@ class cal_Tasks extends core_Master
     		}
    		
     		// ако периода на таблицата е в рамките на седмица - месец
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 7  && dt::daysBetween($endTime[0],$startTime[0]) <= 31) {
+    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 6  && dt::daysBetween($endTime[0],$startTime[0]) < 28) {
     		
     		// делението е седмица/ден
     		$otherParams['mainHeaderCaption'] = tr('седмица');
     		$otherParams['subHeaderCaption'] = tr('ден');
     		
     		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
-    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[1]) . " 23:59:59");
+    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
     		
     		$curDate = $startTime[0]. " 00:00:00"; 
     		$toDate = $endTime[0]. " 23:59:59"; 
 
     		// генерираме номерата на седмиците между началото и края
-    		while ($curDate < dt::addDays(1, $toDate)){
-    		
+    		while ($curDate < $toDate){
+    		    
     			$w = date("W", dt::mysql2timestamp($curDate));
     		 	$res[$w]['mainHeader'] = $w;
     		 	$res[$w]['subHeader'][] =	date("d.m. ", dt::mysql2timestamp($curDate));
@@ -1091,20 +1095,74 @@ class cal_Tasks extends core_Master
     			$headerInfo[] = $headerArr;
     		}
 
-    	   // ако периода на таблицата е в рамките на месец - година
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 32 && dt::daysBetween($endTime[0],$startTime[0]) <= 356) {
+    	   // ако периода на таблицата е в рамките на месец - ден
+    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 28 && dt::daysBetween($endTime[0],$startTime[0]) < 84) {
     		
     		// делението е месец/ден
     		$otherParams['mainHeaderCaption'] = tr('месец');
     		$otherParams['subHeaderCaption'] = tr('ден');
     		
     		// таблицата започва от 1 ден на намерения за начало месец
-    		$otherParams['startTime'] = mktime(0, 0, 0, 1, $startExplode[1], $startExplode[0]);
+    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
     		// до последния ден на намерения за край месец
-    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime[0]). " 23:59:59");
+    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
     		
-    		$headerInfo[0]['mainHeader'] = $startExplode[1];
+    		$curDate = $startTime[0]. " 00:00:00"; 
+    		$toDate = $endTime[0]. " 23:59:59"; 
+
+    		// генерираме номерата на седмиците между началото и края
+    		while ($curDate < $toDate){
+    		    
+    			$curDateExplode =  explode("-", $curDate);
+    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
+    		 	$res[$w]['mainHeader'] = $w;
+    		 	$res[$w]['subHeader'][] =	date("d.m. ", dt::mysql2timestamp($curDate));
+    		 	$curDate = dt::addDays(1, $curDate); 
+    		}
     		
+    		foreach ($res as $headerArr) {
+    			$headerInfo[] = $headerArr;
+    		}
+    	  
+    		// ако периода на таблицата е в рамките на година - седмици
+    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 84 && dt::daysBetween($endTime[0],$startTime[0]) < 168) {
+    		
+    		// делението е месец/ден
+    		$otherParams['mainHeaderCaption'] = tr('година');
+    		$otherParams['subHeaderCaption'] = tr('седмица');
+    		
+    		$curStart = date("w",  mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]));
+    		$curEnd = date("w",  mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]));
+    		
+    		// таблицата започва от 1 ден на намерения за начало месец
+    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]) - (4 * 24 * 60 * 60);
+    		// до последния ден на намерения за край месец
+    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]) + 24 * 60 * 60;
+    		//bp(dt::timestamp2mysql($otherParams['startTime']), dt::timestamp2mysql($otherParams['endTime']));
+    		$curDate = dt::timestamp2mysql($otherParams['startTime']); 
+    		$toDate = dt::timestamp2mysql($otherParams['endTime']); 
+          // bp($curDate, $toDate);
+    		// генерираме номерата на седмиците между началото и края
+    		while ($curDate < $toDate){
+    		    
+    			$curDateExplode =  explode("-", $curDate);
+    			$w = $curDateExplode[0];
+    		 	$res[$w]['mainHeader'] = $w;
+    		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = date("W", dt::mysql2timestamp($curDate));
+    		 	$curDate = dt::addDays(7, $curDate);
+    		}
+    		
+    		foreach ($res as $key => $headerArr) {
+                foreach($headerArr['subHeader'] as $val){
+                	$subInfo[$key]['mainHeader'] = $key;
+    				$subInfo[$key]['subHeader'][] = $val;
+                }
+    		}
+    		
+    		foreach($subInfo as $infoArr){
+    			$headerInfo[] = $infoArr;
+    		}
+//            /bp($headerInfo);
     	}
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
