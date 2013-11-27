@@ -75,8 +75,6 @@ class acc_Setup extends core_ProtoSetup
             'acc_BalanceDetails',
             'acc_Articles',
             'acc_ArticleDetails',
-            'acc_Sales',
-            'acc_SaleDetails',
             'acc_Journal',
             'acc_JournalDetails',
         	'acc_Operations',
