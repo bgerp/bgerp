@@ -41,7 +41,7 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_SaveAndNew, sales_Wrapper, bgerp_plg_Blank,
+    var $loadList = 'sales_Wrapper, bgerp_plg_Blank,
     				 dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools, doc_DocumentIntf, doc_DocumentPlg';
     
     
@@ -426,5 +426,16 @@ class dec_Declarations extends core_Master
     	}
     	
     	return FALSE;
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
 }
