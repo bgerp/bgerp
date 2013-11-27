@@ -139,7 +139,7 @@ class fileman_DialogWrapper extends core_Plugin
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    static function on_AfterGetActionForAddFile($mvc, $res)
+    static function on_AfterGetActionForAddFile($mvc, &$res)
     {
         // Ако не е сетнат
         if (!$res) {
