@@ -269,7 +269,7 @@ class backup_Start extends core_Manager
     /**
      * Запазва конфигурация на bgERP
      * 
-     *  return boolean
+     *  @return boolean
      */
     private static function saveConf()
     {
@@ -294,7 +294,7 @@ class backup_Start extends core_Manager
         self::$confFileName = self::crypt(self::$confFileName);
         self::$storage->putFile(self::$confFileName);
         
-        unlink(EF_TEMP_PATH . "/" . self::$confFileName);
+        @unlink(EF_TEMP_PATH . "/" . self::$confFileName);
         
         return;
     }
@@ -302,8 +302,9 @@ class backup_Start extends core_Manager
     /**
      * Криптира зададен файл в темп директорията
      * със зададената парола и изтрива оригинала
+     * @param string $fileName
      * 
-     * return string - името на новия файл
+     * @return string - името на новия файл
      */
     private static function crypt($fileName)
     {
@@ -330,7 +331,7 @@ class backup_Start extends core_Manager
     /**
      * Запазва файлове от fileMan-a
      * 
-     * return boolean
+     * @return boolean
      */
     private static function saveFileMan()
     {
@@ -351,7 +352,7 @@ class backup_Start extends core_Manager
      * Вдига семафор за стартиран бекъп
      * Връща false ако семафора е вече вдигнат
      * 
-     *  return boolean
+     *  @return boolean
      */
     private static function lock()
     {
@@ -366,7 +367,7 @@ class backup_Start extends core_Manager
     /**
      * Смъква семафора на бекъп-а
      * 
-     *  return boolean
+     *  @return boolean
      */
     public static function unLock()
     {
@@ -378,7 +379,7 @@ class backup_Start extends core_Manager
     /**
      * Показва състоянието на семафора за бекъп
      *
-     *  return boolean
+     *  @return boolean
      */
     public static function isLocked()
     {
@@ -397,9 +398,25 @@ class backup_Start extends core_Manager
         self::full();
     }
     
+    static function cron_BinLog()
+    {
+        self::binLog();
+    }
+    
+    static function cron_Clean()
+    {
+        self::clean();
+    }
+    
+    public function cron_FileMan()
+    {
+        self::saveFileMan();
+    }
+    
+
+    
     /**
-     * Метод за извикване през WEB
-     *
+     * Методи за извикване през WEB
      *
      */
     public function act_Full()
@@ -408,41 +425,11 @@ class backup_Start extends core_Manager
         return self::full();
     }
     
-    /**
-     * Стартиране от крон-а
-     *
-     *
-     */
-    static function cron_BinLog()
-    {
-        self::binLog();
-    }
-    
-    /**
-     * Метод за извикване през WEB
-     *
-     *
-     */
     public function act_BinLog()
     {
         return self::binLog();
     }
     
-    /**
-     * Стартиране от крон-а
-     *
-     *
-     */
-    static function cron_Clean()
-    {
-        self::clean();
-    }
-    
-    /**
-     * Метод за извикване през WEB
-     *
-     *
-     */
     public function act_Clean()
     {
         return self::clean();
@@ -450,12 +437,7 @@ class backup_Start extends core_Manager
     
     public function act_SaveConf()
     {
-        self::saveConf();
-    }
-    
-    public function cron_FileMan()
-    {
-        self::saveFileMan();
+        return self::saveConf();
     }
     
 }
