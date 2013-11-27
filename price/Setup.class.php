@@ -89,7 +89,7 @@ class price_Setup extends core_ProtoSetup
     {
     	$html = parent::loadSetupData();
     	
-    	$html .= price_setup_Groups::setup();
+    	//$html .= price_setup_Groups::setup();
     	
     	$html .= price_ListRules::setup();
     	
