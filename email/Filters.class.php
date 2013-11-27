@@ -102,16 +102,7 @@ class email_Filters extends core_Manager
 
        // $this->setDbUnique('systemId');
     }
-    
-    
-	/**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
- 		
-		$res .= self::loadData();    
-    }
+
     
     /**
      * Проверява дали входящото писмо се прихваща от един от записаните в този модел филтри.
@@ -313,45 +304,49 @@ class email_Filters extends core_Manager
     {
         return FALSE; // @TODO
     }
+
     
     /**
+     * Извиква се след SetUp-а на таблицата за модела
+     * 
      * Зареждане на потребителски правила за
      * рутиране на имейли според събджект или тяло
      */
-    static public function loadData()
+    static function on_AfterSetupMvc($mvc, &$res) 
     {
-       $csvFile = __DIR__ . "/data/Filters.csv";
- 	   $ins = 0;
- 	   
-        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
-         
-            while (($csvRow = fgetcsv($handle, 2000, ",", '"', '\\')) !== FALSE) {
-               
-                $rec = new stdClass();
-                $rec->email = $csvRow[0]; 
-                $rec->subject = $csvRow[1];
-                $rec->body = $csvRow[2];
-                $rec->action = $csvRow[3];
-             	$rec->folderId = $csvRow[4]; 
-                $rec->note = $csvRow[5];
-                $rec->state = $csvRow[6];
-                $rec->createdBy = -1;
-                
-                $rec->id = self::fetchField("#email = '{$rec->email}' AND #createdBy = '{$rec->createdBy}'");
-              
-                self::save($rec, NULL, "IGNORE");
-
-                $ins++;
-            }
-            
-            fclose($handle);
-
-            $res .= "<li style='color:green;'>Създадени са записи за {$ins} потребителски правила за рутиране</li>";
-        } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	// Подготвяме пътя до файла с данните 
+    	$file = "email/data/Filters.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "email", 
+    		1 => "subject",
+    		2 => "body",
+    		3 => "action",
+    		4 => "folderId",
+    		5 => "note",
+    		6 => "state",
+    		7 => "csv_createdBy",
+    	);
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	if (isset($rec->csv_createdBy)) {
+    		
+    		$rec->createdBy = -1;
+    	}
     }
 
 }
