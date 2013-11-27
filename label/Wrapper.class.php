@@ -22,8 +22,7 @@ class label_Wrapper extends plg_ProtoWrapper
      * Описание на опаковката от табове
      */
     function description()
-    {        
-        // 
+    {
         $this->TAB('label_Labels', 'Етикети', 'debug');
         $this->TAB('label_Templates', 'Шаблони', 'debug');
         $this->TAB('label_TemplateFormats', 'Параметри', 'debug');
