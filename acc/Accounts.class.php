@@ -396,6 +396,83 @@ class acc_Accounts extends core_Manager
         }
     }
     
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+    	// Подготвяме пътя до файла с данните 
+    	$file = "acc/setup/csv/Accounts.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "num", 
+    		1 => "title",
+    		2 => "type",
+    		3 => "strategy",
+    		4 => "csv_groupId1",
+    		5 => "csv_groupId2",
+    		6 => "csv_groupId3",
+    		7 => "systemId",
+    		8 => "state",
+    		9 => "csv_createdBy",
+    	);
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	if (isset($rec->csv_groupId1) || isset($rec->csv_groupId2) || isset($rec->csv_groupId3) || isset($rec->csv_createdBy)) {
+    		
+    		$rec->groupId1 = self::getListsId($rec->csv_groupId1);
+    		$rec->groupId2 = self::getListsId($rec->csv_groupId2);
+    		$rec->groupId3 = self::getListsId($rec->csv_groupId3);
+    		$rec->createdBy = -1;
+    	}
+    }
+    
+    
+    /**
+     * Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
+     *
+     * @param string стринг от вида `име на номенклатура (код)`
+     * @return int ид на номенклатура
+     */
+    static private function getListsId($string)
+    {
+        $string = strip_tags($string);
+        $string = trim($string);
+        
+        if (empty($string)) {
+            // Няма разбивка
+            return NULL;
+        }
+        
+        if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
+            bp('Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
+        }
+        
+        $num = (int)$matches[1];
+        
+        if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id'))) {
+            // Проблем: парсиран е код, но не е намерена номенклатура с този код
+            bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
+        }
+        
+        return $listId;
+    }
+    
     
     /**
      * @todo Чака за документация...
