@@ -20,6 +20,8 @@
  */
 class doc_plg_BusinessDoc2 extends core_Plugin
 {
+    
+    
     /**
      * След инициализирането на модела
      * 
@@ -59,7 +61,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
             // Има основание - не правим нищо
             return;
         }
-         
+        
         // Генериране на форма за основание
         $form = static::prepareReasonForm($mvc);
         
@@ -79,9 +81,16 @@ class doc_plg_BusinessDoc2 extends core_Plugin
             }
         }
         
+        // Ако няма поне едно поле key във формата
+        if(!count($form->selectFields("#key"))){ 
+        	$msg = tr('Неможе да се добави документ в папка, защото възможните списъци за избор са празни');
+        	return Redirect(core_Message::getErrorUrl($msg, 'page_Error'));
+        }
+        
         $form->title = 'Избор на папка';
         $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png');
+        
         $form = $form->renderHtml();
         $tpl = $mvc->renderWrapping($form);
         
@@ -152,14 +161,19 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     			
     			// Създаване на поле за избор от дадения клас
     			$Class = cls::get($coverId);
+    			
+    			$options = $mvc->getCoverOptions($Class);
+	    		$optionList = implode(", ", array_keys($options));
 	    		list($pName, $coverName) = explode('_', $coverId);
 	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-	    		$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
-	    		
-	    		$options = $mvc->getCoverOptions($Class);
-	    		$optionList = implode(", ", array_keys($options));
-	    		 
-	    		if (!$optionList) continue;
+	    		if ($optionList) {
+	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%,key");
+	    		} else {
+	    			$form->FNC($coverName, "varchar", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
+	    			$form->setReadOnly($coverName);
+	    			
+	    			continue;
+	    		}
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$query = $Class::getQuery();
