@@ -116,7 +116,7 @@ class sens_IndicationsLog extends core_Manager
     {
         
         $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
-        $data->listFilter->FNC('period', 'enum(all=Период,day=Последни 24 часа,week=Последна седмица,month=Последен месец,quarter=Последни 3 мец.)', 'caption=Период,input');
+        $data->listFilter->FNC('period', 'enum(all=Период,day=Последни 24 часа,week=Последна седмица,month=Последен месец,quarter=Последни 3 мес.)', 'caption=Период,input');
         $data->listFilter->showFields = 'sensorId,paramId,groupBy,period';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
