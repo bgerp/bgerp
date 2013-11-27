@@ -95,35 +95,21 @@ class bglocal_Mvr extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        $filePath = __DIR__ . "/data/Mvr.csv";
         
-        // Нулираме броячите
-        $updCnt = $newCnt = 0;
-        
-        if (($handle = fopen($filePath, "r")) !== FALSE) {
-            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                
-                $rec = new stdClass();
-                $rec->city    = $csvRow[0];
-                $rec->account = $csvRow[1];
-                
-                // Ако има запис с това 'city'
-                $rec->id = $mvc->fetchField(array("#city = '[#1#]'", $rec->city), 'id');
-                
-                if($rec->id) {
-                    $updCnt++;
-                } else {
-                    $newCnt++;
-                }
-                
-                $mvc->save($rec);
-            }
-            
-            fclose($handle);
-            
-            $res .= "<li> Добавени данни за МВР - {$newCnt} нови, {$updCnt} съществуващи.</li>";
-        } else {
-            $res .= "<li> Не може да бъде прочетен файла {$filePath}</li>";
-        }
+        // Подготвяме пътя до файла с данните 
+    	$file = "bglocal/data/Mvr.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "city", 
+    		1 => "account",
+    	);
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
     }
 }
