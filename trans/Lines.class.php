@@ -125,6 +125,8 @@ class trans_Lines extends core_Master
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Допълнително->Превозвач');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Допълнително->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Допълнително->Подочетно лице');
+    	
+    	$this->setDbUnique('title');
     }
     
     
