@@ -415,4 +415,35 @@ class crm_Locations extends core_Master {
             }
         }
     }
+    
+    
+    /**
+     * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
+     * @param unknown_type $id
+     */
+    public static function getAddress($id)
+    {
+    	expect($rec = static::fetch($id));
+    	$row = static::recToVerbal($rec);
+    	
+    	$string = '';
+    	
+    	if($rec->countryId){
+    		$string .= $row->countryId . ", ";
+    	}
+    	
+    	if($rec->pCode){
+    		$string .= $row->pCode . " ";
+    	}
+    	
+    	if($rec->place){
+    		$string .= $row->place . ", ";
+    	}
+    	
+    	if(!$rec->address){
+    		$string .= $row->address;
+    	}
+    	
+    	return trim($string, ", ");
+    }
 }
