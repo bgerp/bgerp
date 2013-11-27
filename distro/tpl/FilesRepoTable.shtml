@@ -1,0 +1,21 @@
+<div>[#repoTitle#]</div>
+<!--ET_BEGIN otherInfo-->
+	[#otherInfo#]
+<!--ET_END otherInfo-->
+
+<!--ET_BEGIN table-->
+	[#table#]
+	
+	<table class="styled-table" width="100%">
+		
+		<!--ET_BEGIN repoRow-->
+			<tr>
+				<th colspan="1">✍</th>
+				<th colspan="1">|Файл|*</th>
+				<th colspan="1">|Последно|*</th>
+			            
+			</tr>
+			[#repoRow#]
+		<!--ET_END repoRow-->
+	</table>
+<!--ET_BEGIN table-->

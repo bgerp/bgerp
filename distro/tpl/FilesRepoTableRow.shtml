@@ -1,0 +1,11 @@
+<tr>
+	<td>[#tools#]</td>
+	<td>[#file#]</td>
+	<td>[#modified#]</td>
+</tr>
+
+<!--ET_BEGIN fileInfo-->
+	<tr>
+		<td colspan='3'>[#fileInfo#]</td>
+	</tr>
+<!--ET_END fileInfo-->
