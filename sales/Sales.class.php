@@ -747,10 +747,6 @@ class sales_Sales extends core_Master
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
-    		
-	    	if(sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
-	    	}
 	    	
     		if (sales_Services::canAddToThread($data->rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
