@@ -29,7 +29,7 @@ class trans_Lines extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -46,7 +46,7 @@ class trans_Lines extends core_Master
     
     
     /**
-     * По кои олета ще се търси
+     * По кои полета ще се търси
      */
     public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId';
     
@@ -155,7 +155,7 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Екшън за отваряне затваряне на линия
+     * Екшън за отваряне/затваряне на линия
      */
     function act_ChangeState()
     {
@@ -167,7 +167,8 @@ class trans_Lines extends core_Master
     	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
     	$this->save($rec);
     	
-    	return Redirect(array($this, 'single', $rec->id));
+    	$msg = ($rec->state == 'active') ? tr('Линията е отворена успешно') : tr('Линията е затворена успешно');
+    	return Redirect(array($this, 'single', $rec->id), FALSE, $msg);
     }
     
     
@@ -206,7 +207,7 @@ class trans_Lines extends core_Master
     	
     	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
     		$attr['class'] = "linkWithIcon";
-	        $attr['style'] = "background-image:url(' . sbf('img/16/tractor.png') . ');";
+	        $attr['style'] = "background-image:url(' . sbf('img/16/tractor.png') . ')";
     	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId));
     	}
     	
@@ -234,7 +235,7 @@ class trans_Lines extends core_Master
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $this->getRecTitle($rec),
+            'recTitle' => $rec->title,
         );
         
         return $row;
@@ -291,5 +292,18 @@ class trans_Lines extends core_Master
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Дали има свързано подочетно лице към линията
+     * @param int $id - ид на линията
+     * @return boolean
+     */
+    public static function hasForwarderPersonId($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return isset($rec->forwarderPersonId);
     }
 }

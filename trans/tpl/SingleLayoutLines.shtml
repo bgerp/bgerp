@@ -64,10 +64,11 @@
 			[#Receipts#]
 		</div>
 		
+		<!--ET_BEGIN Transfers-->
 		<div>
 			<div class='line-header'>|Междускладови трансфери|*</div>
-			<i><small>@TODO</small></i>
 			[#Transfers#]
 		</div>
+		<!--ET_END Transfers-->
 	</div>
 </div>
