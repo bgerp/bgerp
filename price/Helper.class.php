@@ -40,7 +40,7 @@ abstract class price_Helper
 	public static function roundPrice($price)
 	{
 	    // Минимален брой значещи знаци
-	    defIfNot('PRICE_MIN_DIGITS', 4);
+	    defIfNot('PRICE_MIN_DIGITS', 5);
 	    
 	    // Плаваща прецизност
 	    $precision =  max(2, PRICE_MIN_DIGITS - round(log10($price)));
