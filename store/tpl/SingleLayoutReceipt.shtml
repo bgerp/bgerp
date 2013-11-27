@@ -84,11 +84,11 @@
                         </div>
                         <!--ET_END storeId-->
                              
-        				<!--ET_BEGIN vehicleId-->
+        				<!--ET_BEGIN lineId-->
         				<div>
-                            |Доставител|*: <b>[#vehicleId#]</b>
+                            |Транс. Линия|*: <br /><b>[#lineId#]</b>
                         </div>
-        				<!--ET_END vehicleId-->
+        				<!--ET_END lineId-->
         				
                         <!--ET_BEGIN note-->
 	                        <hr />

@@ -29,7 +29,7 @@ class store_Receipts extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_DocumentIntf,
                           acc_TransactionSourceIntf=store_transactionIntf_Receipt, bgerp_DealIntf';
     
     
@@ -599,5 +599,127 @@ class store_Receipts extends core_Master
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
     	bp($info->shipped);
+    }
+    
+    
+	/**
+     * Връща теглото на всички артикули в документа
+     * @TODO mockup
+     * @param stdClass $rec - запис от модела
+     * @return stdClass   			
+     * 				[weight]    - тегло  
+	 * 				[measureId] - мярката
+     */
+    public function getWeight($rec)
+    {
+    	$obj = new stdClass();
+    	$obj->weight = $rec->amountDelivered * 1.2;
+    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кг'", 'id');
+    	
+    	return $obj;
+    }
+    
+    
+    /**
+     * Връща обема на всички артикули в документа
+     * @TODO mockup
+     * @param stdClass $rec - запис от модела
+     * @return stdClass
+	 *   			[volume]    - обем 
+	 * 				[measureId] - мярката
+     */
+	public function getVolume($rec)
+    {
+    	$obj = new stdClass();
+    	$obj->volume = $rec->amountDelivered * 2;
+    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кв.м'", 'id');
+    	
+    	return $obj;
+    }
+    
+    
+    /**
+     * Помощен метод за показване на документа в транспортните линии
+     * @param stdClass $rec - запис на документа
+     * @param stdClass $row - вербалния запис
+     */
+    private function prepareLineRows($rec)
+    {
+    	$row = new stdClass();
+    	$oldRow = $this->recToVerbal($rec, '-single');
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	$weight = $this->getWeight($rec);
+    	$volume = $this->getVolume($rec);
+    	$dealInfo = $this->getDealInfo($rec->id)->shipped;
+    	$amount = currency_Currencies::round($dealInfo->amount / $dealInfo->rate, $dealInfo->currency);
+    	
+    	$row->weight = $Double->toVerbal($weight->weight) . " " . cat_UoM::getShortName($weight->measureId);
+    	$row->volume = $Double->toVerbal($volume->volume) . " " . cat_UoM::getShortName($volume->measureId);
+    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $Double->toVerbal($amount);
+    	$row->rowNumb = $rec->rowNumb;
+    	
+    	$row->address = $oldRow->contragentName;
+    	if($rec->locationId){
+    		$row->address .= ", " . crm_Locations::getAddress($rec->locationId);
+    	} else {
+    		$row->address .= ", " . $oldRow->contragentCountry . (($oldRow->contragentAddress) ? ", " . $oldRow->contragentAddress : '');
+    	}
+    	
+    	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
+    	
+    	if($this->haveRightFor('single', $rec->id)){
+	    	$icon = sbf($this->getIcon($rec->id), '');
+	    	$row->docId = $this->getHandle($rec->id);
+	    	$attr['class'] = "linkWithIcon";
+	        $attr['style'] = "background-image:url('{$icon}');";
+	        $attr['title'] = "Складова разписка №{$rec->id}";
+	        
+	    	$row->docId = ht::createLink($row->docId, array($this, 'single', $rec->id), NULL, $attr);
+	    }
+    	
+    	return $row;
+    }
+    
+    
+    /**
+     * Подготовка на показване като детайл в транспортните линии
+     */
+    public function prepareReceipts($data)
+    {
+    	$masterRec = $data->masterData->rec;
+    	$query = $this->getQuery();
+    	$query->where("#lineId = {$masterRec->id}");
+    	$query->orderBy("#createdOn", 'DESC');
+    	
+    	$i = 1;
+    	while($dRec = $query->fetch()){
+    		$dRec->rowNumb = $i;
+    		$data->receipts[$dRec->id] = $this->prepareLineRows($dRec);
+    		$i++;
+    	}
+    }
+    
+    
+    /**
+     * Подготовка на показване като детайл в транспортните линии
+     */
+    public function renderReceipts($data)
+    {
+    	$tpl = getTplFromFile('store/tpl/LineDetails.shtml');
+    	
+    	if($data->receipts){
+    		foreach($data->receipts as $row){
+    			$block = clone $tpl->getBlock('ROW');
+    			$block->placeObject($row);
+    			$block->removeBlocks();
+    			$block->append2master();
+    		}
+    	} else {
+    		$tpl->append("<tr><td colspan='5'>" . tr('няма записи') . "</td></tr>", "NOROWS");
+    	}
+    	
+    	return $tpl;
     }
 }
