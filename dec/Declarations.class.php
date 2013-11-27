@@ -33,7 +33,7 @@ class dec_Declarations extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Заглавие на менюто
      */
     var $pageMenu = "Декларации";
     
@@ -399,5 +399,32 @@ class dec_Declarations extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
+    }
+    
+    
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+        return FALSE;
+    }
+    
+    
+    /**
+     * Дали документа може да се добави към нишката
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	if(sales_Invoices::fetch("#threadId = {$threadId} AND #state = 'active'")){
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
     }
 }
