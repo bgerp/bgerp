@@ -7,7 +7,7 @@
  * Поддържа системното меню и табове-те на пакета 'distro'
  *
  * @category  bgerp
- * @package   doc
+ * @package   distro
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
