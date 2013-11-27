@@ -1,0 +1,14 @@
+.document .line-header{
+	margin-bottom:10px;
+	font-weight:bold;
+}
+
+.document .details .shipment-th{
+	background-color:#eee;
+	padding:4px;
+	text-align:center;
+}
+
+.document .details td.padding-td{
+	padding:6px;
+}

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Период, на който крона ще затваря миналите Линии и ще генерира нови
+ */
+defIfNot('TRANS_LINES_CRON_INTERVAL', 60 * 60);
 
 
 /**
@@ -46,6 +50,7 @@ class trans_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'trans_Vehicles',
+    		'trans_Lines',
         );
 
         
@@ -62,7 +67,14 @@ class trans_Setup extends core_ProtoSetup
             array(3.4, 'Логистика', 'Транспорт', 'trans_Vehicles', 'default', "trans, ceo"),
         );
 
-        
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+		'TRANS_LINES_CRON_INTERVAL' => array("time", 'caption=Период за генериране и затваряне на линии'),
+	);
+
+	
     /**
      * Де-инсталиране на пакета
      */

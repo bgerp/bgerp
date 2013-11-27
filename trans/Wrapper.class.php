@@ -7,7 +7,7 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
@@ -23,6 +23,7 @@ class trans_Wrapper extends plg_ProtoWrapper
     function description()
     {
         $this->TAB('trans_Vehicles', 'Превозни средства', 'ceo,trans');
+        $this->TAB('trans_Lines', 'Линии', 'ceo,trans');
         $this->title = 'Транспорт';
     }
 }

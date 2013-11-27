@@ -1,0 +1,73 @@
+[#SingleToolbar#]
+<div class='document'>
+	 	<!--ET_BEGIN blank-->
+			[#blank#]
+		<!--ET_END blank-->
+		<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
+	<div class='scrolling-holder'>
+	
+		<div>
+			<div class='line-header'>[#title#]</div>
+			<table class='styled-table'>
+				<tr>
+					<td>|Начало|*:</td>
+					<td>[#start#]</td>
+				</tr>
+				<tr>
+					<td>|Дестинация|*:</td>
+					<td>[#destination#]</td>
+				</tr>
+				<tr>
+					<td>|Повторение|*:</td>
+					<td>[#repeat#]</td>
+				</tr>
+			</table>
+		</div>
+			
+		<div>
+			<div class='line-header'>|Допълнително|*</div>
+			<table class='styled-table'>
+				<!--ET_BEGIN vehicleId-->
+				<tr>
+					<td>|Транс. средство|*:</td>
+					<td>[#vehicleId#]</td>
+				</tr>
+				<!--ET_END vehicleId-->
+				
+				<!--ET_BEGIN forwarderId-->
+				<tr>
+					<td>|Транспортна фирма|*:</td>
+					<td>[#forwarderId#]</td>
+				</tr>
+				<!--ET_END forwarderId-->
+				
+				<!--ET_BEGIN forwarderPersonId-->
+				<tr>
+					<td>|Подотчетно лице|*:</td>
+					<td>[#forwarderPersonId#]</td>
+				</tr>
+				<!--ET_END forwarderPersonId-->
+			</table>
+		</div>
+		
+		<div>
+			<div class='line-header'>|Товари към клиенти|*</div>
+			[#Shipments#]
+		</div>
+		
+		<div style='margin-bottom:15px'>
+			<div class='line-header'>|Товари към доставчици|*</div>
+			[#Receipts#]
+		</div>
+		
+		<div>
+			<div class='line-header'>|Междускладови трансфери|*</div>
+			<i><small>@TODO</small></i>
+			[#Transfers#]
+		</div>
+	</div>
+</div>

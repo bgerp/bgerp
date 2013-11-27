@@ -22,7 +22,7 @@ class trans_Vehicles extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Транспортни средство';
+    public $singleTitle = 'Транспортно средство';
     
     
     /**
@@ -66,7 +66,13 @@ class trans_Vehicles extends core_Master
      */
     public $listFields = 'RowNumb=Пулт,name,number,createdOn,createdBy';
     
-        
+    
+    /**
+     * Поле за единичен изглед
+     */
+    public $rowToolsSingleField = 'name';
+    
+    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -80,6 +86,12 @@ class trans_Vehicles extends core_Master
     
     
     /**
+     * Икона за единичен изглед
+     */
+    public $singleIcon = 'img/16/tractor.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -88,9 +100,7 @@ class trans_Vehicles extends core_Master
     	$this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
     	$this->FLD('load', 'double', 'caption=Товароносимост');
     	$this->FLD('description', 'richtext(rows=3)', 'caption=Описание');
-    	
-    	//$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
-    	//$this->FLD('operator', 'user(roles=trans)', 'caption=Шофьор, mandatory');
+    	$this->FLD('type', 'enum(truck=Камион,minibus=Минибус,pickup=Пикап)', 'caption=Вид');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	
     	$this->setdbUnique('name');
