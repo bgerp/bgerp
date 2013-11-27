@@ -25,7 +25,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'exp';
+    public $abbr = 'Exp';
     
     
     /**
