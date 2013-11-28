@@ -460,13 +460,8 @@ class store_ShipmentOrders extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$row->amountBase = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') ? $rec->amountDelivered - $rec->amountDeliveredVat : $rec->amountDelivered;
-    		
-    		@$amountDeliveredVat = $rec->amountDeliveredVat / $rec->currencyRate;
     		@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
     		$row->amountDelivered = $mvc->fields['amountDelivered']->type->toVerbal($amountDelivered);
-    		$row->amountDeliveredVat = $mvc->fields['amountDeliveredVat']->type->toVerbal($amountDeliveredVat);
-    		$row->amountBase = $mvc->fields['amountDeliveredVat']->type->toVerbal($row->amountBase);
     		
     		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
     			$row->vatType = tr('с ДДС');
