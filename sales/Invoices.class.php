@@ -1017,7 +1017,9 @@ class sales_Invoices extends core_Master
         $result->invoiced->amount   = $rec->total;
         $result->invoiced->currency = $rec->currencyId;
         $result->invoiced->rate 	= $rec->rate;
+        $result->invoiced->valior   = $rec->date;
         $result->invoiced->vatType  = $rec->vatRate;
+        $result->invoiced->payment->method  = $rec->paymentMethodId;
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
