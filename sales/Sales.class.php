@@ -106,7 +106,7 @@ class sales_Sales extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
-                             dealerId, initiatorId,
+                             dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
 
@@ -199,11 +199,11 @@ class sales_Sales extends core_Master
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
     	
-    	$this->FLD('state', 
+        $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
         );
-    	
+    	$this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
@@ -605,6 +605,8 @@ class sales_Sales extends core_Master
                 $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
         }
+        
+        $form->rec->paymentState = 'pending';
     }
     
     
@@ -623,6 +625,10 @@ class sales_Sales extends core_Master
             	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
+        }
+        
+        if($rec->paymentState == 'overdue'){
+        	$row->amountDelivered = "<span style='color:red'>{$row->amountDelivered}</span>";
         }
         
     	if($fields['-list']){
@@ -696,7 +702,7 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
+        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Пресрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
 		$data->listFilter->showFields .= ',type';
 		$data->listFilter->input();
 		
@@ -707,6 +713,9 @@ class sales_Sales extends core_Master
 						break;
 					case 'paid':
 						$data->query->orWhere("#amountPaid = #amountDeal");
+						break;
+					case 'overdue':
+						$data->query->orWhere("#paymentState ='overdue'");
 						break;
 					case 'delivered':
 						$data->query->orWhere("#amountDelivered = #amountDeal");
@@ -883,6 +892,7 @@ class sales_Sales extends core_Master
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
+        $result->agreed->valior 				= $rec->valior;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
         $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
@@ -1093,16 +1103,38 @@ class sales_Sales extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$Cron = cls::get('core_Cron');
-        
-        $rec = new stdClass();
+    	$rec = new stdClass();
         $rec->systemId = "Close sales";
         $rec->description = "Затваря приключените продажби";
         $rec->controller = "sales_Sales";
-        $rec->action = "closeOldSales";
-        $rec->period = 24*60;
+        $rec->action = "CloseOldSales";
+        $rec->period = 1440;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
         
-        $Cron->addOnce($rec);
+        $rec2 = new stdClass();
+        $rec2->systemId = "IsSaleOverdue";
+        $rec2->description = "Проверява дали продажбата е пресрочена";
+        $rec2->controller = "sales_Sales";
+        $rec2->action = "CheckSalesPayments";
+        $rec2->period = 60;
+        $rec2->offset = 0;
+        $rec2->delay = 0;
+        $rec2->timeLimit = 100;
+        
+        $Cron = cls::get('core_Cron');
+    	if($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да приключва стари продажби.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да приключва стари продажби.</li>";
+        }
+        
+    	if($Cron->addOnce($rec2)) {
+            $res .= "<li><font color='green'>Задаване на крон да проверява дали продажбата е пресрочена.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е пресрочена.</li>";
+        }
     }
     
     
@@ -1142,5 +1174,48 @@ class sales_Sales extends core_Master
         }
         
         return FALSE;
+    }
+    
+    
+	/**
+     * Проверява дали фактурите са пресрочени или платени
+     */
+    function cron_CheckSalesPayments()
+    {
+    	// Проверяват се всички активирани и продажби с чакащо плащане
+    	$query = $this->getQuery();
+    	$query->where("#paymentState = 'pending'");
+    	$query->where("#state = 'active'");
+    	
+    	while($rec = $query->fetch()){
+    		if($rec->state == 'closed'){
+    			// Ако състоянието е затворено, то приема че продажбата е платена
+    			$rec->paymentState = 'paid';
+    			$this->save($rec);
+    		} else {
+    			// Намира се метода на плащане от интерфейса
+    			$dealInfo = $this->getAggregateDealInfo($rec->id);
+    			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
+    			if($mId){
+    				// Намира се датата в реда фактура/експедиция/продажба
+    				foreach (array('invoiced', 'shipped', 'agreed') as $asp){
+    					if($date = $dealInfo->$asp->valior){
+    						break;
+    					}
+    				}
+    				
+    				// Извлича се платежния план
+    				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    				
+    				// Проверка дали продажбата е пресрочена
+    				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
+    				
+    					// Ако да, то продажбата се отбелязва като пресрочена
+    					$rec->paymentState = 'overdue';
+    					$this->save($rec);
+    				}
+    			}
+    		}
+    	}
     }
 }
