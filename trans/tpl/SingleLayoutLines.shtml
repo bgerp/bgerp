@@ -9,7 +9,6 @@
 	</div>
 	<!--ET_END header-->
 	<div class='scrolling-holder'>
-	
 		<div>
 			<div class='line-header'>[#title#]</div>
 			<table class='styled-table'>
@@ -28,6 +27,8 @@
 			</table>
 		</div>
 			
+		<!--ET_BEGIN ADDITIONAL-->
+		[#ADDITIONAL#]
 		<div>
 			<div class='line-header'>|Допълнително|*</div>
 			<table class='styled-table'>
@@ -53,6 +54,7 @@
 				<!--ET_END forwarderPersonId-->
 			</table>
 		</div>
+		<!--ET_END ADDITIONAL-->
 		
 		<div>
 			<div class='line-header'>|Товари към клиенти|*</div>
