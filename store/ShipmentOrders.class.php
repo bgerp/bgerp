@@ -387,7 +387,7 @@ class store_ShipmentOrders extends core_Master
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('locationId')->type->options = 
-            array(''=>'') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
@@ -419,6 +419,28 @@ class store_ShipmentOrders extends core_Master
                     redirect(array($mvc, 'single', $form->rec->id));
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * След изпращане на формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+        	$rec = &$form->rec;
+        	
+        	if($rec->lineId){
+        		$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        		
+        		// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
+        		if($pMethods = $dealInfo->agreed->payment->method){
+        			if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
+        				$form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице!');
+        			}
+        		}
+        	}
         }
     }
     

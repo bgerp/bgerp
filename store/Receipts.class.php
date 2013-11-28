@@ -418,6 +418,28 @@ class store_Receipts extends core_Master
     
     
 	/**
+     * След изпращане на формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+        	$rec = &$form->rec;
+        	
+        	if($rec->lineId){
+        		$dealInfo = static::getOrigin($rec)->getAggregateDealInfo();
+        		
+        		// Ако има избрана линия и метод на плащане, линията трябва да има подочетно лице
+        		if($pMethods = $dealInfo->agreed->payment->method){
+        			if(cond_PaymentMethods::isCOD($pMethods) && !trans_Lines::hasForwarderPersonId($rec->lineId)){
+        				$form->setError('lineId', 'При наложен платеж, избраната линия трябва да няма материално отговорно лице !');
+        			}
+        		}
+        	}
+        }
+    }
+    
+    
+	/**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
