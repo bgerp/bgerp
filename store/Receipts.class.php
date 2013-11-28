@@ -159,7 +159,7 @@ class store_Receipts extends core_Master
         // Доставка
         $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. Линия');
+        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');

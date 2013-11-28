@@ -92,7 +92,7 @@
         				
         				<!--ET_BEGIN lineId-->
         				<div>
-                            |Транс. Линия|*: <br /><b>[#lineId#]</b>
+                            |Транс. линия|*: <br /><b>[#lineId#]</b>
                         </div>
         				<!--ET_END lineId-->
         				
