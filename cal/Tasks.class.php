@@ -1035,7 +1035,7 @@ class cal_Tasks extends core_Master
     		
     		// генерираме номерата на седмиците между началото и края
     		while ($curDate < $toDate){
-    		    
+    		    bp(explode("-", $curDate));
     			$w = date("Y", dt::mysql2timestamp($curDate));
     		 	$res[$w]['mainHeader'] = $w;
     		 	$res[$w]['subHeader'][] = date("m", dt::mysql2timestamp($curDate));
@@ -1076,7 +1076,9 @@ class cal_Tasks extends core_Master
     		$otherParams['mainHeaderCaption'] = tr('седмица');
     		$otherParams['subHeaderCaption'] = tr('ден');
     		
+    		// от началото на намерения стартов ден
     		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
+    		// до края на намерения за край ден
     		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
     		
     		$curDate = $startTime[0]. " 00:00:00"; 
@@ -1124,34 +1126,36 @@ class cal_Tasks extends core_Master
     			$headerInfo[] = $headerArr;
     		}
     	  
-    		// ако периода на таблицата е в рамките на година - седмици
+    	   // ако периода на таблицата е в рамките на година - седмици
     	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 84 && dt::daysBetween($endTime[0],$startTime[0]) < 168) {
     		
-    		// делението е месец/ден
+    		// делението е месец/седмица
     		$otherParams['mainHeaderCaption'] = tr('година');
     		$otherParams['subHeaderCaption'] = tr('седмица');
     		
-    		$curStart = date("w",  mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]));
-    		$curEnd = date("w",  mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]));
-    		
-    		// таблицата започва от 1 ден на намерения за начало месец
-    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]) - (4 * 24 * 60 * 60);
-    		// до последния ден на намерения за край месец
-    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]) + 24 * 60 * 60;
-    		//bp(dt::timestamp2mysql($otherParams['startTime']), dt::timestamp2mysql($otherParams['endTime']));
-    		$curDate = dt::timestamp2mysql($otherParams['startTime']); 
-    		$toDate = dt::timestamp2mysql($otherParams['endTime']); 
-          // bp($curDate, $toDate);
+    		// таблицата започва от понеделника преди намерената стартова дата
+    		$otherParams['startTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]))));
+    		// до неделята след намеренета за край дата
+    		$otherParams['endTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
+   		
+    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
+    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
+          
     		// генерираме номерата на седмиците между началото и края
     		while ($curDate < $toDate){
     		    
     			$curDateExplode =  explode("-", $curDate);
     			$w = $curDateExplode[0];
+    			
+    			// годината
     		 	$res[$w]['mainHeader'] = $w;
+    		 	// номера на седмицата
     		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = date("W", dt::mysql2timestamp($curDate));
+    		 	// обикаляме по седмиците
     		 	$curDate = dt::addDays(7, $curDate);
     		}
     		
+    		// тези действия са за номериране на вътрешния масив от 0,1, ...
     		foreach ($res as $key => $headerArr) {
                 foreach($headerArr['subHeader'] as $val){
                 	$subInfo[$key]['mainHeader'] = $key;
@@ -1159,10 +1163,10 @@ class cal_Tasks extends core_Master
                 }
     		}
     		
+    		// тези действия са за номериране на външния масив от 0,1, ...
     		foreach($subInfo as $infoArr){
     			$headerInfo[] = $infoArr;
     		}
-//            /bp($headerInfo);
     	}
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
