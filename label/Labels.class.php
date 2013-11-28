@@ -136,7 +136,7 @@ class label_Labels extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
-        $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
+        $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
         $this->FLD('params', 'blob', 'caption=Параметри');
         $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети');
         
@@ -151,5 +151,74 @@ class label_Labels extends core_Master
         
     }
     
-    // ТОДО трябва да има запис в label_Templates
+    
+	/**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Ако формата не е субмитната
+        if (!$data->form->isSubmitted()) {
+            
+            // id на шаблона
+            $templateId = Request::get('templateId', 'int');
+            
+            // Ако не е избрано id на шаблона
+            if (!$templateId) {
+                
+                // Редиректваме към екшъна за избор на шаблон
+                return Redirect(array($mvc, 'selectTemplate'));
+            }
+        } else {
+            // 
+        }
+    }
+    
+    
+    /**
+     * Екшън за избор на шаблон
+     */
+    function act_SelectTemplate()
+    {
+        // Права за работа с екшън-а
+        $this->requireRightFor('add');
+        
+        // URL за редирект
+        $retUrl = getRetUrl();
+        
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this));
+
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Добавяме функционално поле
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
+        
+        // Въвеждаме полето
+        $form->input('selectTemplateId');
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Редиректваме към екшъна за добавяне
+            return new Redirect(array($this, 'add', 'templateId' => $form->rec->selectTemplateId));
+        }
+        
+        // Заглавие на шаблона
+        $form->title = "Избор на шаблон";
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'selectTemplateId';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        // Рендираме опаковката
+        return $this->renderWrapping($form->renderHtml());
+    }
 }
