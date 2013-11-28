@@ -83,7 +83,13 @@
                             |В склад|*: <b>[#storeId#]</b>
                         </div>
                         <!--ET_END storeId-->
-                             
+                        
+                        <!--ET_BEGIN locationId--> 
+                        <div>
+                        	|От|*: <b>[#locationId#]</b>
+                        </div>
+                        <!--ET_END locationId-->
+                         
         				<!--ET_BEGIN lineId-->
         				<div>
                             |Транс. линия|*: <br /><b>[#lineId#]</b>

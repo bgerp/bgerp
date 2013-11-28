@@ -537,6 +537,7 @@ class purchase_Services extends core_Master
         $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->rate		         = $rec->currencyRate;
+        $result->shipped->valior 			 = $rec->valior;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;

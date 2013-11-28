@@ -38,8 +38,7 @@ class store_Receipts extends core_Master
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, cond_plg_DefaultValues';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2';
 
     
     /**
@@ -130,12 +129,6 @@ class store_Receipts extends core_Master
      * Полета свързани с цени
      */
     public $priceFields = 'amountDelivered';
-    
-    
-   /**
-	* Стратегии за дефолт стойностти
-	*/
-    public static $defaultStrategies = array('termId' => 'lastDocUser|lastDoc|clientCondition');
 
 
     /**
@@ -157,7 +150,7 @@ class store_Receipts extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект от,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
@@ -382,6 +375,10 @@ class store_Receipts extends core_Master
             $rec->storeId = store_Stores::getCurrent('id', FALSE);
         }
         
+        // Поле за избор на локация - само локациите на контрагента по покупката
+        $form->getField('locationId')->type->options = 
+            array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
+            
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
         	
@@ -394,11 +391,7 @@ class store_Receipts extends core_Master
                 
             $form->rec->currencyId = $dealInfo->agreed->currency;
             $form->rec->currencyRate = $dealInfo->agreed->rate;
-        	if(isset($dealInfo->agreed->delivery->term)){
-        		$form->rec->termId = $dealInfo->agreed->delivery->term;
-                $form->setField('termId', 'input=hidden');
-            }
-           
+            $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
             $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
@@ -566,7 +559,9 @@ class store_Receipts extends core_Master
 		$result->shipped->amount             = $rec->amountDelivered;
 		$result->shipped->currency           = $rec->currencyId;
 		$result->shipped->rate 				 = $rec->currencyRate;
+		$result->shipped->valior 			 = $rec->valior;
         $result->shipped->vatType            = $rec->chargeVat;
+        $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
