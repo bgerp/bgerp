@@ -28,6 +28,37 @@ class barcode_Generator extends core_Manager
     
     
     /**
+     * Масив с поддържаните баркодове и вербалните им стойности
+     */
+    static $barcodeTypesArr = array(
+        'qr' => 'QR',
+        'ean8' => 'EAN-8',
+        'ean13' => 'EAN-13',
+        'code11' => 'code11',
+        'code39' => 'code39',
+        'code93' => 'code93',
+        'code128' => 'code128',
+        'datamatrix' => 'DataMatrix',
+        'std25' => 'STD25',
+        'int25' => 'INT25',
+        'msi' => 'MSI',
+        'codabar' => 'Codabar',
+    );
+    
+    
+    /**
+     * Връща всички баркодове, за които можем да генерираме изображение
+     * 
+     * @return array - 
+     */
+    static function getAllowedBarcodeTypesArr()
+    {
+        
+        return static::$barcodeTypesArr;
+    }
+    
+    
+    /**
      * Генерира и връща баркод GD image
      * 
      * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
@@ -56,22 +87,10 @@ class barcode_Generator extends core_Manager
         $type = strtolower($type);
         
         // Разрешените типове за баркодове
-        $permittedType = array( 
-            'codabar',
-            'code11',
-            'code39',
-            'code93',
-            'code128',
-            'ean8',
-            'ean13',
-            'std25',
-            'int25',
-            'msi',
-            'datamatrix',
-            'qr');
+        $permittedType = static::getAllowedBarcodeTypesArr();
         
         // Очакваме да е подаден един от разрешените типове баркод
-        expect(in_array($type, $permittedType), "Не се поддържа '{$type}' баркод.");
+        expect($permittedType[$type], "Не се поддържа '{$type}' баркод.");
         
         // Ако баркода е QR
         if (strtolower($type) == 'qr') {
