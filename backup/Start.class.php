@@ -59,12 +59,13 @@ class backup_Start extends core_Manager
         }
         
         // проверка дали всичко е наред с mysqldump-a
-        exec("mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
+        $cmd = "mysqldump --no-data --no-create-info --no-create-db --skip-set-charset --skip-comments -h"
                  . self::$conf->BACKUP_MYSQL_HOST . " -u"
                  . self::$conf->BACKUP_MYSQL_USER_NAME. " -p"
-                 . self::$conf->BACKUP_MYSQL_USER_PASS. " " . EF_DB_NAME ." 2>&1", $output ,  $returnVar);
+                 . self::$conf->BACKUP_MYSQL_USER_PASS. " " . EF_DB_NAME ." 2>&1";
+        exec($cmd, $output ,  $returnVar);
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "FULL Backup mysqldump ERROR!");
+            core_Logs::add("Backup", "", "FULL Backup mysqldump ERROR!" . $output[0]);
             self::unLock();
             
             exit(1);
@@ -108,7 +109,7 @@ class backup_Start extends core_Manager
         }
         
         // Ако има дефинирана парола криптираме файловете с данните
-        if (strlen(self::$conf->BACKUP_PASS)>0) {
+        if (self::$conf->BACKUP_CRYPT == 'yes') {
             self::$backupFileName = self::crypt(self::$backupFileName);
         }
        
@@ -146,32 +147,7 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
-        // Взима бинарния лог
-        $db = cls::get("core_Db", array('dbUser'=>self::$conf->BACKUP_MYSQL_USER_NAME,
-                'dbHost'=>self::$conf->BACKUP_MYSQL_HOST,
-                'dbPass'=>self::$conf->BACKUP_MYSQL_USER_PASS,
-                'dbName'=>'information_schema')
-               );
-        // 1. взимаме името на текущия лог
-        $db->query("SHOW MASTER STATUS");
-        $resArr = $db->fetchArray();
-        // $resArr['file'] e името на текущия бинлог
-
-        // 2. флъшваме лог-а
-        $db->query("FLUSH LOGS");
-
-        // 3. взимаме съдържанието на binlog-a в temp-a и го компресираме
-        exec("mysqlbinlog --read-from-remote-server -u"
-                . self::$conf->BACKUP_MYSQL_USER_NAME
-                . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$resArr['file']} -h"
-                . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
-        if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
-            self::unLock();
-            
-            exit(1);
-        }
-        // 4. сваля се метафайла
+        // 1. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
             core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
@@ -189,8 +165,34 @@ class backup_Start extends core_Manager
             exit(1);
         }
         
+        // Взима бинарния лог
+        $db = cls::get("core_Db", array('dbUser'=>self::$conf->BACKUP_MYSQL_USER_NAME,
+                'dbHost'=>self::$conf->BACKUP_MYSQL_HOST,
+                'dbPass'=>self::$conf->BACKUP_MYSQL_USER_PASS,
+                'dbName'=>'information_schema')
+               );
+        // 2. взимаме името на текущия лог
+        $db->query("SHOW MASTER STATUS");
+        $resArr = $db->fetchArray();
+        // $resArr['file'] e името на текущия бинлог
+
+        // 3. флъшваме лог-а
+        $db->query("FLUSH LOGS");
+
+        // 4. взимаме съдържанието на binlog-a в temp-a и го компресираме
+        exec("mysqlbinlog --read-from-remote-server -u"
+                . self::$conf->BACKUP_MYSQL_USER_NAME
+                . " -p" . self::$conf->BACKUP_MYSQL_USER_PASS . " {$resArr['file']} -h"
+                . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
+        if ($returnVar !== 0) {
+            core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
+            self::unLock();
+            
+            exit(1);
+        }
+        
         // 5. Ако има дефинирана парола криптираме файловете с данните
-        if (strlen(self::$conf->BACKUP_PASS)>0) {
+        if (self::$conf->BACKUP_CRYPT == 'yes') {
             self::$binLogFileName = self::crypt(self::$binLogFileName);
         }
 
@@ -291,7 +293,12 @@ class backup_Start extends core_Manager
         
             exit(1);
         }
-        self::$confFileName = self::crypt(self::$confFileName);
+        
+        // Ако има дефинирана парола криптираме файловете с данните
+        if (self::$conf->BACKUP_CRYPT == 'yes') {
+            self::$confFileName = self::crypt(self::$confFileName);
+        }
+        
         self::$storage->putFile(self::$confFileName);
         
         @unlink(EF_TEMP_PATH . "/" . self::$confFileName);
@@ -421,22 +428,29 @@ class backup_Start extends core_Manager
      */
     public function act_Full()
     {
+        self::init(array());
         
         return self::full();
     }
     
     public function act_BinLog()
     {
+        self::init(array());
+        
         return self::binLog();
     }
     
     public function act_Clean()
     {
+        self::init(array());
+        
         return self::clean();
     }
     
     public function act_SaveConf()
     {
+        self::init(array());
+        
         return self::saveConf();
     }
     
