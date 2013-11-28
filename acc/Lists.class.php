@@ -68,7 +68,8 @@ class acc_Lists extends core_Manager {
     /**
      * Описание на модела (таблицата)
      */
-    function description() {
+    function description() 
+    {
         // Трибуквен, уникален номер
         $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
         
@@ -175,7 +176,8 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди запис на номенклатурата
      */
-    static function on_BeforeSave($mvc, $id, $rec) {
+    static function on_BeforeSave($mvc, $id, $rec)
+    {
         if (!$rec->id) {
             $rec->itemCount = 0;
         }
@@ -255,7 +257,8 @@ class acc_Lists extends core_Manager {
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
      * стойности - наименования на номенклатурите.
      */
-    static function getItemLists($class, $objectId) {
+    static function getItemLists($class, $objectId)
+    {
         $result = array ();
         
         expect($classId = core_Classes::getId($class));
@@ -281,7 +284,8 @@ class acc_Lists extends core_Manager {
      * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
      * стойности - наименования на номенклатурите.
      */
-    static function getPossibleLists($class) {
+    static function getPossibleLists($class) 
+    {
         $result = array ();
         
         if (is_null($class)) {
@@ -464,7 +468,8 @@ class acc_Lists extends core_Manager {
      * @param int $objectId
      * @return boolean true при успех, false при грешка, null при липсващо перо
      */
-    static function removeItem($class, $objectId) {
+    static function removeItem($class, $objectId) 
+    {
         $result = NULL;
         
         // Извличаме съществуващия запис за перо
@@ -556,7 +561,8 @@ class acc_Lists extends core_Manager {
      * @return mixed 1/2/3/NULL - Позицията на която е номенклатурата или
      * NULL ако не се среща
      */
-     static function getPosition($accSysId, $iface) {
+     static function getPosition($accSysId, $iface)
+     {
      	
     	// Ако е подаден Ид на интерфейса очакваме да има такъв запис
      	if (is_numeric($iface)) {
@@ -596,6 +602,25 @@ class acc_Lists extends core_Manager {
         $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $rec->regInterfaceId), 'id');
         $rec->state = 'active';
     }
-
-
+    
+    
+    /**
+     * Връща списък с всички записи на даден мениджър,от дадена номенклатура
+     * @param mixed $class - име/ид/инстанция на класа
+     * @param varchar $sysId - систем ид на номенклатура
+     * @return array $res - списък с опции
+     */
+    public static function getItemsByList($class, $sysId)
+    {
+    	$res = array();
+    	expect($Class = cls::get($class));
+    	expect($list = static::fetchBySystemId($sysId));
+    	if($items = acc_Items::getClassItems($Class, $list->id)){
+    		foreach ($items as $id){
+    			$res[$id] = $Class->getTitleById($id);
+    		}
+    	}
+    	
+    	return $res;
+    }
 }
