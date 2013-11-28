@@ -780,12 +780,12 @@ class acc_Items extends core_Manager
      * @param int $listId - ид на намонклатура
      * @return array $items - списък с ид-та на обектите, които са пера
      */
-    public function getClassItems($class, $listId)
+    public static function getClassItems($class, $listId)
     {
     	$items = array();
-    	$Class = cls::get($class);
+    	expect($Class = cls::get($class));
     	
-    	$itemsQuery = $this->getQuery();
+    	$itemsQuery = static::getQuery();
     	$itemsQuery->like('lists', "|{$listId}|");
     	$itemsQuery->where("#classId = {$Class->getClassId()}");
     	$itemsQuery->show('objectId');
@@ -811,7 +811,7 @@ class acc_Items extends core_Manager
     	$Class = cls::get($className);
     	
     	// Намират се перата, които вече участват на този мениджър
-    	$items = $this->getClassItems($Class, $listId);
+    	$items = static::getClassItems($Class, $listId);
     	
     	// Извличат се всички записи на мениджъра, които не са пера
     	$query = $Class->getQuery();
