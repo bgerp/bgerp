@@ -1074,4 +1074,34 @@ class core_Form extends core_FieldSet
                 $value => $verbal
             ));
     }
+    
+    
+    /**
+     * Добавя функционални полета
+     * 
+     * @param array $fieldsArr - Масив с името на полето и стойноситете
+     * $fieldsArr['type'] - Тип на полето
+     * $fieldsArr[...] - Други необходими параметри
+     */
+    function addFncFields($fieldsArr)
+    {
+        // Обхождаме масива
+        foreach ((array)$fieldsArr as $name => $params) {
+            
+            // Ако не е зададен изрично input, задаваме го
+            setIfNot($params['input'], 'input');
+            
+            // Вземаме типа
+            $type = $params['type'];
+            
+            // Ако няма тип, прескачаме
+            if (!$type) continue;
+            
+            // Премахваме типа от масива
+            unset($params['type']);
+            
+            // Добавяме функционално поле
+            $this->FNC($name, $type, $params);
+        }
+    }
 }
