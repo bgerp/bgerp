@@ -205,7 +205,29 @@ class cond_PaymentMethods extends core_Master
         
         return $res;
     }
-
+    
+    
+    /**
+     * Дали документа е пресрочен
+     * @param array $payment - платежния план (@see static::getPaymentPlan)
+     * @param double $restAmount - оставаща сума за плащане
+     * @param datetime $today - дата
+     * @return boolean
+     */
+    public static function isOverdue($payment, $restAmount, $today = NULL)
+    {
+    	expect(is_array($payment) && isset($restAmount));
+    	if(!$today){
+    		$today = dt::verbal2mysql();
+    	}
+    	
+    	// Ако остатъка за плащане е 0 или по-малко
+    	if($restAmount <= 0) return FALSE;
+    	
+    	// Ако текущата дата след крайния срок за плащане, документа е пресрочен
+    	return ($today > $payment['deadlineForBalancePayment']);
+    }
+    
     
     /**
      * Сортиране по name
