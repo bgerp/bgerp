@@ -459,23 +459,6 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Извлича опциите според id-то на номенклатурата
-     */
-    function fetchOptions($listId)
-    {
-        $query = $this->getQuery();
-        
-        $query->orderBy("#num");
-        
-        while($rec = $query->fetch("#lists LIKE '%|{$listId}|%' AND #state = 'active'")) {
-            $options[$rec->id] = $this->getVerbal($rec, 'caption');
-        }
-        
-        return $options;
-    }
-    
-    
-    /**
      * Подготовка на номенклатурите, в които участва обекта
      */
     public static function prepareObjectLists($data)
