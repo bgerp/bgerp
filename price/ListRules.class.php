@@ -462,39 +462,51 @@ class price_ListRules extends core_Detail
 
     
     /**
-     * Задаваме надценки/отстъпки за началните категории
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    static function setup()
+    static function on_AfterSetupMvc($mvc, &$res) 
     {
-        $csvFile = __DIR__ . "/setup/csv/Groups.csv";
-        $inserted = 0;
-        
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
-            while (($csvRow = fgetcsv($handle, 2000, ",")) !== FALSE) {
-            	if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
-            		
-            		if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = " . price_ListRules::PRICE_LIST_CATALOG . " AND #groupId = {$groupId}")){
-            			$rec = new stdClass();
-		        		$rec->listId = price_ListRules::PRICE_LIST_CATALOG;
-		        		$rec->groupId = $groupId;
-		        		$rec->discount = $csvRow[2]; // Задаваме груповата наддценка в проценти
-		        		$rec->type = 'groupDiscount';
-		        		$rec->validFrom = dt::now();
-		        		$rec->createdBy = -1;
-	        		
-	        			static::save($rec);
-	        			$inserted++;
-            		}
-            	}
-            }
-            $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
-        } else {
-        	$res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
-        }
-        
-        return $res;
+    	// Подготвяме пътя до файла с данните 
+    	$file = "price/setup/csv/Groups.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "csv_id", 
+    		1 => "csv_listId",
+    		2 => "discount",
+       		3 => "csv_groupId",
+    		4 => "csv_type",
+    		5 => "csv_validFrom",
+    		6 => "csv_createdBy",
+    	);
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
     }
-
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+    	if($groupId = price_Groups::fetchField("#title = '{$rec->csv_id}'", 'id')){
+            		
+	        if(!$gRec = static::fetch("#discount = '$rec->discount' AND #listId = " . price_ListRules::PRICE_LIST_CATALOG . " AND #groupId = {$groupId}")){
+	            			
+				$rec->listId = price_ListRules::PRICE_LIST_CATALOG;
+				$rec->groupId = $groupId;
+				$rec->type = 'groupDiscount';
+				$rec->validFrom = dt::now();
+				$rec->createdBy = -1;
+	
+	        }
+        }
+    }
     
     /**
      * Подготовка на историята на себестойностите на даден продукт
