@@ -99,7 +99,7 @@ class store_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDeliveredVat,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered,createdOn, createdBy';
 
 
     /**
@@ -444,19 +444,19 @@ class store_Receipts extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
+    	$row->amountDelivered = $mvc->fields['amountDelivered']->type->toVerbal($amountDelivered);
+    		
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		if($rec->amountDeliveredVat){
-    			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+    		if($rec->amountDelivered){
+    			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
     		} else {
-    			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
+    			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
     	}
     	
     	if(isset($fields['-single'])){
-    		@$amountDelivered = $rec->amountDelivered / $rec->currencyRate;
-    		$row->amountDelivered = $mvc->fields['amountDelivered']->type->toVerbal($amountDelivered);
-    		
     		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
     			$row->vatType = tr('с ДДС');
     			$row->vatCurrencyId = $row->currencyId;
