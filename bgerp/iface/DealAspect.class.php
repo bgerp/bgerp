@@ -39,9 +39,17 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Дата
+     *
+     * @var double
+     */
+    public $valior;
+    
+    
+    /**
      * Дали да се начислява или не ддс
      *
-     * @var enum(yes=Включено,no=Отделно, freed=Освободено, export=Без ддс)
+     * @var enum(yes=Включено, no=Отделно, freed=Освободено, export=Без ддс)
      */
     public $vatType;
     
@@ -89,6 +97,11 @@ class bgerp_iface_DealAspect
     	$this->currency = $aspect->currency;
         $this->vatType  = $aspect->vatType;
         $this->rate     = $aspect->rate;
+        if(empty($this->valior)){
+        	$this->valior = $aspect->valior;
+        } else {
+        	$this->valior = min(array($aspect->valior, $this->valior));
+        }
         
     	foreach ($aspect->products as $p) {
             $this->pushProduct($p);
