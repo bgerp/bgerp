@@ -138,4 +138,21 @@ class label_Templates extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('template', 'html', 'caption=Шаблон');
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        // Ако имаме права за добавяне на етикет
+        if (label_Labels::haveRightFor('add')) {
+        
+        	// Добавяме бутон за нов етикет
+            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id), 'ef_icon = img/16/star_2.png');
+        }
+    }
 }
