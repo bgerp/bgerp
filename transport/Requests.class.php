@@ -83,7 +83,7 @@ class transport_Requests extends core_Manager
     	$this->FLD('from','keylist(mvc=crm_Locations, select=title)', 'caption=Локация->От');
     	$this->FLD('to','varchar', 'caption=Локация->До');
     	$this->FLD('fromDate','datetime', 'caption=Дата->Товарене');
-    	$this->FLD('toDate','datetime', 'caption=Дата->Доставака');
+    	$this->FLD('toDate','datetime', 'caption=Дата->Доставка');
     }
 
 }
