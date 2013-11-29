@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 
 /**
@@ -30,37 +30,37 @@ class label_TemplateFormats extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    var $canRead = 'label';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'debug';
+    var $canEdit = 'label';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'debug';
+    var $canAdd = 'label';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    var $canView = 'label';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    var $canList = 'label';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'label';
     
     
     /**
@@ -105,6 +105,12 @@ class label_TemplateFormats extends core_Detail
     static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка';
     
     
+    /**
+     * 
+     */
+    static $bucket = 'label';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -113,7 +119,7 @@ class label_TemplateFormats extends core_Detail
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
         $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory');
         $this->FLD('type', 'enum(' . static::$typeEnumOpt . ')', 'caption=Тип, silent');
-        $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none, column=none');
+        $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
         
         $this->setDbUnique('templateId, placeHolder');
     }
@@ -189,9 +195,10 @@ class label_TemplateFormats extends core_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        // Ако не е зададен тип в записа
         if (!($type = $data->form->rec->type)) {
             
-            // Типа
+            // Типа от URL-то
             $type = Request::get('type');
         }
         
@@ -205,7 +212,7 @@ class label_TemplateFormats extends core_Detail
         $data->form->setReadonly('type');
         
         // Вземаме масив с полетата
-        $fieldsArr = static::getFncFieldsArr($type);
+        $fieldsArr = static::getFieldsArrForType($type);
         
         // Показваме полетата
         $data->form->addFncFields($fieldsArr);
@@ -228,7 +235,7 @@ class label_TemplateFormats extends core_Detail
      * @param label_TemplateFormats $mvc
      * @param core_Form $form
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
@@ -247,7 +254,7 @@ class label_TemplateFormats extends core_Detail
             }
             
             // Масив с полетата за този тип
-            $fieldsArr = static::getFncFieldsArr($type);
+            $fieldsArr = static::getFieldsArrForType($type);
             
             // Обхождаме масива
             foreach ((array)$fieldsArr as $fieldName => $dummy) {
@@ -269,14 +276,15 @@ class label_TemplateFormats extends core_Detail
         }
     }
     
+    
     /**
-     * Връща масив с функционалните полета
+     * Връща масив с полета за създаване в зависимост от типа
      * 
      * @param string $type - Името на типа, за което ще се търси
      * 
      * @return array - Двумерен масив с името и параметрите на тип
      */
-    static function getFncFieldsArr($type)
+    static function getFieldsArrForType($type)
     {
         // Масива, който ще връщаме
         $filedsArr = array();
@@ -288,6 +296,7 @@ class label_TemplateFormats extends core_Detail
             case 'caption':
                 
                 // Поле за максимален брой символи
+                $filedsArr['MaxLength']['clsType'] = 'type_Int';
                 $filedsArr['MaxLength']['type'] = 'int';
                 $filedsArr['MaxLength']['caption'] = 'Макс. символи';
             break;
@@ -296,6 +305,7 @@ class label_TemplateFormats extends core_Detail
             case 'counter':
                 
                 // Поле за избор на брояч
+                $filedsArr['CounterId']['clsType'] = 'type_Key';
                 $filedsArr['CounterId']['type'] = 'key(mvc=label_Counters, select=name)';
                 $filedsArr['CounterId']['caption'] = 'Брояч';
                 
@@ -306,25 +316,30 @@ class label_TemplateFormats extends core_Detail
                 $barcodeStr = type_Enum::fromArray($barcodesArr);
                 
                 // Поле за избор на баркод
+                $filedsArr['BarcodeType']['clsType'] = 'type_Enum';
                 $filedsArr['BarcodeType']['type'] = 'enum(' . $barcodeStr . ')';
                 $filedsArr['BarcodeType']['caption'] = 'Тип баркод';
                 
                 // Поле за показване на баркод
+                $filedsArr['Showing']['clsType'] = 'type_Enum';
                 $filedsArr['Showing']['type'] = 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)';
                 $filedsArr['Showing']['caption'] = 'Показване';
                 $filedsArr['Showing']['title'] = 'Показване на баркод';
                 
                 // Поле за широчина
+                $filedsArr['Width']['clsType'] = 'type_Int';
                 $filedsArr['Width']['type'] = 'int';
                 $filedsArr['Width']['caption'] = 'Широчина';
                 $filedsArr['Width']['unit'] = 'mm';
                 
                 // Поле за височина
+                $filedsArr['Height']['clsType'] = 'type_Int';
                 $filedsArr['Height']['type'] = 'int';
                 $filedsArr['Height']['caption'] = 'Височина';
                 $filedsArr['Height']['unit'] = 'mm';
                 
                 // Поле за формат
+                $filedsArr['Format']['clsType'] = 'type_Varchar';
                 $filedsArr['Format']['type'] = 'varchar';
                 $filedsArr['Format']['caption'] = 'Формат';
             break;
@@ -332,16 +347,19 @@ class label_TemplateFormats extends core_Detail
             case 'image':
                 
                 // Поле за широчина
+                $filedsArr['Width']['clsType'] = 'type_Int';
                 $filedsArr['Width']['type'] = 'int';
                 $filedsArr['Width']['caption'] = 'Широчина';
                 $filedsArr['Width']['unit'] = 'mm';
                 
                 // Поле за височина
+                $filedsArr['Height']['clsType'] = 'type_Int';
                 $filedsArr['Height']['type'] = 'int';
                 $filedsArr['Height']['caption'] = 'Височина';
                 $filedsArr['Height']['unit'] = 'mm';
                 
                 // Поле дали за избор дали да се ротира
+                $filedsArr['Rotation']['clsType'] = 'type_Enum';
                 $filedsArr['Rotation']['type'] = 'enum(yes=Допустима, no=Недопустима)';
                 $filedsArr['Rotation']['caption'] = 'Ротация';
             break;
@@ -352,5 +370,133 @@ class label_TemplateFormats extends core_Detail
         }
         
         return $filedsArr;
+    }
+    
+    
+    /**
+     * Връща масив с полета за създаване за записите към masterId
+     * 
+     * @param integer $masterId - id на мастера
+     * 
+     * @return array - Двумерен масив с името и параметрите на тип
+     */
+    static function getFieldArrForTemplate($masterId)
+    {
+        // Инстанция на класа
+        $me = cls::get(get_called_class());
+        
+        // Масив с типовете на полето
+        $typeArr = arr::make(static::$typeEnumOpt, TRUE);
+        
+        // Резултатния масив
+        $resArr =array();
+        
+        // Вземаме всички записи за съответния master, без броячите
+        $query = $me->getQuery();
+        $query->where(array("#{$me->masterKey} = '[#1#]'", $masterId));
+        $query->where("#type != 'counter'");
+        $query->orderBy('type', 'DESC');
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Плейсхолдера
+            $placeHolder = trim($rec->placeHolder);
+            
+            // Името на полето
+            $placeHolderField = 'Field' . $placeHolder;
+            
+            // Добавяме в масива името на полето
+            $resArr[$placeHolderField]['caption'] = "Шаблони->{$typeArr[$rec->type]}->" . $placeHolder;
+            
+            $resArr[$placeHolderField]['name'] = $placeHolder;
+            
+            // Ако типа е image
+            if ($rec->type == 'image') {
+                
+                $resArr[$placeHolderField]['clsType'] = 'fileman_FileType';
+                
+                // Добавяме кофа за качване на файл
+                $resArr[$placeHolderField]['type'] = 'fileman_FileType(bucket=' . static::$bucket . ')';
+            } elseif ($rec->type == 'caption') {
+                
+                // Ако тупа е надпис
+                
+                $resArr[$placeHolderField]['clsType'] = 'type_Varchar';
+                
+                // Ако е зададена максимална дължина
+                if ($maxLength = $rec->formatParams['MaxLength']) {
+                    
+                    // Задаваме стрингов тип с максимална дължина
+                    $resArr[$placeHolderField]['type'] = "varchar({$maxLength})";
+                } else {
+                    
+                    // Задаваме стрингов ти
+                    $resArr[$placeHolderField]['type'] = 'varchar';
+                }
+            }
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $row
+     * @param unknown_type $rec
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // Масив с шаблоните
+        static $fieldsArr=array();
+        
+        // Ако не е сетнат за този шаблон
+        if(!$fieldsArr[$rec->type]) {
+            
+            // Вземаме полетата
+            $fieldsArr[$rec->type] = static::getFieldsArrForType($rec->type);
+        }
+        
+        // Нулираме стойността
+        $row->formatParams = '';
+        
+        // Обхождаме масива с полетата
+        foreach((array)$fieldsArr[$rec->type] as $name => $otherParams) {
+            
+            // Името на полето
+            $fieldName = $otherParams['caption'];
+            
+            // Ескейпваме
+            $fieldName = type_Varchar::escape($fieldName);
+            $fieldName = core_Type::escape($fieldName);
+            
+            // Инстанция на класа
+            $inst = cls::get($otherParams['clsType']);
+            
+            // Вербалната стойност
+            $verbalVal = $inst->toVerbal($rec->formatParams[$name]);
+            
+            // Добавяме в полето
+            $row->formatParams .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
+        }
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Инстанция на класа
+        $Bucket = cls::get('fileman_Buckets');
+        
+        // Създаваме, кофа, където ще държим всички прикачени файлове
+        $res .= $Bucket->createBucket(static::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'user');
     }
 }

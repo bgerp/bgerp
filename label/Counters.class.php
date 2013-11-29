@@ -48,49 +48,49 @@ class label_Counters extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    var $canRead = 'label';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'debug';
+    var $canEdit = 'label';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'debug';
+    var $canAdd = 'label';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    var $canView = 'label';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    var $canList = 'label';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'debug';
+	var $canSingle = 'label';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'debug';
+    var $canReject = 'label';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'label';
     
     
     /**

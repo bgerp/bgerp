@@ -48,49 +48,49 @@ class label_Labels extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    var $canRead = 'label';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'debug';
+    var $canEdit = 'label';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'debug';
+    var $canAdd = 'label';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    var $canView = 'label';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    var $canList = 'label';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'debug';
+	var $canSingle = 'label';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'debug';
+    var $canReject = 'label';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'label';
     
     
     /**
@@ -137,7 +137,7 @@ class label_Labels extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
-        $this->FLD('params', 'blob', 'caption=Параметри');
+        $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети');
         
         $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре');
@@ -149,6 +149,7 @@ class label_Labels extends core_Master
         $this->FLD('linesCnt', 'int', 'caption=Редове->Брой, title=Брой редове в един лист');
         $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, title=Разстояние на редовете в един лист');
         
+        $this->setDbUnique('title');
     }
     
     
@@ -160,8 +161,8 @@ class label_Labels extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Ако формата не е субмитната
-        if (!$data->form->isSubmitted()) {
+        // Ако формата не е субмитната и нея редактираме
+        if (!$data->form->isSubmitted() && !$data->form->rec->id) {
             
             // id на шаблона
             $templateId = Request::get('templateId', 'int');
@@ -172,8 +173,124 @@ class label_Labels extends core_Master
                 // Редиректваме към екшъна за избор на шаблон
                 return Redirect(array($mvc, 'selectTemplate'));
             }
-        } else {
-            // 
+        }
+        
+        // Ако няма templateId
+        if (!$templateId) {
+            
+            // Вземаме от записа
+            $templateId = $data->form->rec->templateId;
+            
+            // Очакваме вече да има
+            expect($templateId);
+        }
+        
+        // Вземаме масив с полетата
+        $fieldsArr = label_TemplateFormats::getFieldArrForTemplate($templateId);
+        
+        // Показваме полетата
+        $data->form->addFncFields($fieldsArr);
+        
+        // Вземаме данните от предишния запис
+        $dataArr = $data->form->rec->params;
+        
+        // Обхождаме масива
+        foreach ((array)$dataArr as $fieldName => $value) {
+            
+            // Добавяме данните от записите
+            $data->form->rec->$fieldName = $value;
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param label_TemplateFormats $mvc
+     * @param core_Form $form
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // Ако формата е субмитната
+        if ($form->isSubmitted()) {
+            
+            // Вземаме типа
+            $type = $form->rec->type;
+            
+            // Ако редактираме записа
+            if ($form->rec->id) {
+                
+                // Вземаме записа
+                $rec = $mvc->fetch($form->rec->id);
+                
+                // Вземаме старите стойности
+                $oldDataArr = $rec->params;
+            }
+            
+            // Вземаме масив с полетата
+            $fieldsArr = label_TemplateFormats::getFieldArrForTemplate($form->rec->templateId);
+            
+            // Обхождаме масива
+            foreach ((array)$fieldsArr as $fieldName => $dummy) {
+                
+                // Ако има масив за старите данни и новта стойност е NULL
+                if ($oldDataArr && ($form->rec->$fieldName === NULL)) {
+                    
+                    // Използваме старата стойност
+                    $dataArr[$fieldName] = $oldDataArr[$fieldName];
+                } else {
+                    
+                    // Добавяме данните от формата
+                    $dataArr[$fieldName] = $form->rec->$fieldName;
+                }
+            }
+            
+            // Добавяме целия масив към формата
+            $form->rec->params = $dataArr;
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $row
+     * @param unknown_type $rec
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // Масив с шаблоните
+        static $fieldsArr=array();
+        
+        // Ако не е сетнат за този шаблон
+        if(!$fieldsArr[$rec->templateId]) {
+            
+            // Вземаме полетата
+            $fieldsArr[$rec->templateId] = label_TemplateFormats::getFieldArrForTemplate($rec->templateId);
+        }
+        
+        // Нулираме стойността
+        $row->params = '';
+        
+        // Обхождаме масива с полетата
+        foreach((array)$fieldsArr[$rec->templateId] as $name => $otherParams) {
+            
+            // Името на полето
+            $fieldName = $otherParams['name'];
+            
+            // Ескейпваме
+            $fieldName = type_Varchar::escape($fieldName);
+            $fieldName = core_Type::escape($fieldName);
+            
+            // Инстанция на класа
+            $inst = cls::get($otherParams['clsType']);
+            
+            // Вербалната стойност
+            $verbalVal = $inst->toVerbal($rec->params[$name]);
+            
+            // Добавяме в полето
+            $row->params .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
         }
     }
     
