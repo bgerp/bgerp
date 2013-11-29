@@ -392,6 +392,39 @@ class techno_Specifications extends core_Manager {
     }
     
     
+	/**
+     * Връща масив от продукти отговарящи на зададени мета данни:
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
+     * @param mixed $properties - комбинация на горе посочените мета 
+     * 							  данни или като масив или като стринг
+     * @return array $products - продукти отговарящи на условието, ако не са
+     * 							 зададени мета данни връща всички продукти
+     */
+    public static function getByProperty($properties)
+    {
+    	$products = array();
+    	$properties = arr::make($properties);
+    	expect(count($properties));
+    	
+    	$query = static::getQuery();
+    	$query->where("#state = 'active'");
+    	while($rec = $query->fetch()){
+    		$flag = FALSE;
+    		$DocClass = cls::get($rec->docClassId);
+    		$meta = $DocClass->getProductInfo($rec->docId)->meta;
+    		foreach ($properties as $prop){
+    			if(empty($meta[$prop])) $flag = TRUE;
+    		}
+    		
+    		if(!$flag){
+    			$products[$rec->id] = $DocClass->getTitleById($rec->docId);
+    		}
+    	}
+    	
+    	return $products;
+    }
+    
+    
    /**
 	* Хипервръзка към този обект
 	*
