@@ -38,7 +38,7 @@ class store_Receipts extends core_Master
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
     /**
@@ -667,13 +667,14 @@ class store_Receipts extends core_Master
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
-    	$weight = $this->getWeight($rec);
-    	$volume = $this->getVolume($rec);
-    	$dealInfo = $this->getDealInfo($rec->id)->shipped;
-    	$amount = currency_Currencies::round($dealInfo->amount / $dealInfo->rate, $dealInfo->currency);
+    	$dQuery = $this->store_ReceiptDetails->getQuery();
+    	$dQuery->where("#receiptId = {$rec->id}");
     	
-    	$row->weight = $Double->toVerbal($weight->weight) . " " . cat_UoM::getShortName($weight->measureId);
-    	$row->volume = $Double->toVerbal($volume->volume) . " " . cat_UoM::getShortName($volume->measureId);
+    	$measures = $this->getMeasures($dQuery->fetchAll());
+    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $dealInfo->currency);
+    	
+    	$row->weight = $Double->toVerbal($measures->weight);
+    	$row->volume = $Double->toVerbal($measures->volume);
     	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $Double->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
@@ -685,16 +686,7 @@ class store_Receipts extends core_Master
     	}
     	
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
-    	
-    	if($this->haveRightFor('single', $rec->id)){
-	    	$icon = sbf($this->getIcon($rec->id), '');
-	    	$row->docId = $this->getHandle($rec->id);
-	    	$attr['class'] = "linkWithIcon";
-	        $attr['style'] = "background-image:url('{$icon}');";
-	        $attr['title'] = "Складова разписка №{$rec->id}";
-	        
-	    	$row->docId = ht::createLink($row->docId, array($this, 'single', $rec->id), NULL, $attr);
-	    }
+    	$row->docId = $this->getDocLink($rec->id);
     	
     	return $row;
     }
@@ -724,19 +716,9 @@ class store_Receipts extends core_Master
      */
     public function renderReceipts($data)
     {
-    	$tpl = getTplFromFile('store/tpl/LineDetails.shtml');
+    	$table = cls::get('core_TableView');
+    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
     	
-    	if($data->receipts){
-    		foreach($data->receipts as $row){
-    			$block = clone $tpl->getBlock('ROW');
-    			$block->placeObject($row);
-    			$block->removeBlocks();
-    			$block->append2master();
-    		}
-    	} else {
-    		$tpl->append("<tr><td colspan='5'>" . tr('няма записи') . "</td></tr>", "NOROWS");
-    	}
-    	
-    	return $tpl;
+    	return $table->get($data->receipts, $fields);
     }
 }

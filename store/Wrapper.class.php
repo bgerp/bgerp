@@ -27,6 +27,7 @@ class store_Wrapper extends plg_ProtoWrapper
         $this->TAB('store_Stores', 'Складове', 'ceo,store');
         $this->TAB('store_ShipmentOrders', 'Експедиция', 'ceo,store');
         $this->TAB('store_Receipts', 'Разписки', 'ceo,store');
+        $this->TAB('store_Transfers', 'Трансфери', 'ceo,store');
 		$this->TAB('store_Movements', 'Движения', 'ceo,store');
         $this->TAB('store_Pallets', 'Палети', 'ceo,store');
         $this->TAB('store_Racks', 'Стелажи', 'ceo,store');

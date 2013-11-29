@@ -23,7 +23,7 @@ class store_Stores extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
+    var $interfaces = 'store_AccRegIntf, acc_RegisterIntf, store_TransferFolderCoverIntf';
     
     
     /**

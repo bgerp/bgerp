@@ -59,7 +59,9 @@ class store_Setup extends core_ProtoSetup
             'store_ShipmentOrders',
             'store_ShipmentOrderDetails',
     		'store_Receipts',
-    		'store_ReceiptDetails'
+    		'store_ReceiptDetails',
+    		'store_Transfers',
+    		'store_TransfersDetails',
         );
     
 
