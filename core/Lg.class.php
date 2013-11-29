@@ -340,46 +340,6 @@ class core_Lg extends core_Manager
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res) 
-    {
-    	// Подготвяме пътя до файла с данните 
-    	$file = "bgerp/data/csv/Translations.csv";
-    	
-    	$fields = array( 
-	    	0 => "lg", 
-	    	1 => "kstring", 
-	    	2 => "translated", 
-	    	3 => "csv_createdBy",
-	    );
-    	    	
-    	// Импортираме данните от CSV файла. 
-    	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
-     	
-    	$res .= static::addForAllLg();
-    	
-    	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
-    	
-    	
-    }
-    
-    
-    /**
-     * Изпълнява се преди импортирването на данните
-     */
-    public static function on_BeforeImportRec($mvc, &$rec)
-    {
-    	if (isset($rec->csv_createdBy)) {
-
-    		$rec->createdBy = -1;
-    	}
-    }
-    
-    
-    /**
      * Транслитерира подадения стринг в латиница, ако текущия език не е кирилски и в текста има поне един символ на кирилица
      * 
      * @param string $str - Стринга, който ще се транслитерира
@@ -432,65 +392,5 @@ class core_Lg extends core_Manager
         
         // Проверяваме дали са еднакви
         return (boolean)($lg == $currLg);
-    }
-    
-    
-    /**
-     * Добавя съдържанието на преводите, които са зададени в EF_LANGUAGES
-     * Добавя за всички езици без `en` и `bg`
-     */
-    static function addForAllLg()
-    {
-        // Масив в всички езици
-        $langArr = arr::make(EF_LANGUAGES, TRUE);
-        
-        // Премахваме английския и българския
-        unset($langArr['en']);
-        unset($langArr['bg']);
-        
-        // Ако няма повече езици, не се изпълянва
-        if (!count($langArr)) return ;
-
-        // Вземаме всички преводи на английски
-        $query = core_Lg::getQuery();
-        $query->where("#lg = 'en'");
-        while ($enLangRec = $query->fetch()) {
-            
-            // Добавяме ги в масив
-            $enLangRecArr[$enLangRec->id] = $enLangRec;
-        }
-        
-        // Обхождаме езиците
-        foreach ($langArr as $lang => $dummy) {
-            
-            // Обхождаме всички преводи на английски
-            foreach ((array)$enLangRecArr as $enLangRec) {
-                
-                // Създаваме запис
-                $nRec = new stdClass();
-                $nRec->lg = $lang;
-                $nRec->kstring = $enLangRec->kstring;
-                $nRec->translated = $enLangRec->translated;
-                
-                // Опитваме се да запишем данните за съответния език
-                core_Lg::save($nRec, NULL, 'IGNORE');
-                
-                // Ако запишем успешно
-                if ($nRec->id) {
-                    
-                    // Увеличаваме брояча за съответния език
-                    $nArr[$lang]++;
-                }
-            }
-        }
-        
-        // Обхождаме всички записани резултати
-        foreach ((array)$nArr as $lg => $times) {
-            
-            // Добавяме информационен стринг за всеки език
-            $res .= "<li style='color:green'>Към {$langArr[$lg]} са добавени {$times} превода на английски.";
-        }
-        
-        return $res;
     }
 }
