@@ -56,18 +56,18 @@
 		</div>
 		<!--ET_END ADDITIONAL-->
 		
-		<div>
+		<div style='margin-bottom:15px' class='line-detail'>
 			<div class='line-header'>|Товари към клиенти|*</div>
 			[#Shipments#]
 		</div>
 		
-		<div style='margin-bottom:15px'>
+		<div style='margin-bottom:15px' class='line-detail'>
 			<div class='line-header'>|Товари към доставчици|*</div>
 			[#Receipts#]
 		</div>
 		
 		<!--ET_BEGIN Transfers-->
-		<div>
+		<div class='line-detail'>
 			<div class='line-header'>|Междускладови трансфери|*</div>
 			[#Transfers#]
 		</div>
