@@ -702,18 +702,21 @@ function toggleAllCheckboxes()
 function SetWithCheckedButton()
 { 
 	var state = false;
-    trColorOriginals.forEach( function (el, id, all) {
-        var pTarget = get$("cb_" + id);
-        if(pTarget.checked == true) {
-            state = true;
-        } 
-     });
+	trColorOriginals.forEach( function (el, id, all) {
+	    var pTarget = get$("cb_" + id);
+	    if(pTarget.checked == true) {
+	    	state = true;
+	    } 
+	});
 
-	 var btn = get$('with_selected');
-
+	var btn = get$('with_selected');
+	
+	// Ако не може да се определи
+	if (!btn) return;
+	
 	btn.className = btn.className.replace(' btn-with-selected-disabled', '');
 	btn.className = btn.className.replace(' btn-with-selected', '');
-
+	
 	if(state) {
 		btn.className += ' btn-with-selected';
 		btn.disabled = false;
@@ -721,7 +724,7 @@ function SetWithCheckedButton()
 		btn.className += ' btn-with-selected-disabled';
 		btn.disabled = true;
 		btn.blur();
-	 }
+	}
 }
 
 function flashHashDoc(flasher)
