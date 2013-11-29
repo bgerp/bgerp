@@ -75,9 +75,9 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    function convertToBaseUnit($amount, $unitId)
+    static function convertToBaseUnit($amount, $unitId)
     {
-        $rec = $this->fetch($unitId);
+        $rec = static::fetch($unitId);
         
         if ($rec->baseUnitId == null) {
             $ratio = 1;
@@ -96,9 +96,9 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    function convertFromBaseUnit($amount, $unitId)
+    static function convertFromBaseUnit($amount, $unitId)
     {
-        $rec = $this->fetch($unitId);
+        $rec = static::fetch($unitId);
         
         if ($rec->baseUnitId == null) {
             $ratio = 1;
