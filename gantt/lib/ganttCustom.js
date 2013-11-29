@@ -15,7 +15,9 @@ function ganttRender(elem,ganttData) {
 	    var ganttTableTasks ='<table class="gantt-tasks"><tbody>';
 	    
 	    //генериране на 2-та реда, които показват какви деления са колоните
-	    var headerTasks = '<tr class="gantt-header"><td>'  + ganttData['otherParams']['mainHeaderCaption'] + '</td></tr><tr class="gantt-header"><td>' + ganttData['otherParams']['subHeaderCaption'] + '</td></tr>';
+	    var headerTasks = '<tr class="gantt-header"><td><span class="iconLink">' +ganttData['otherParams']['biggerPeriod']  + '</span>' +
+	    ganttData['otherParams']['mainHeaderCaption'] + '</td></tr><tr class="gantt-header"><td><span class="iconLink">'+ 
+	    ganttData['otherParams']['smallerPeriod'] + '</span>' + ganttData['otherParams']['subHeaderCaption'] + '</span></td></tr>';
 	    ganttTableTasks += headerTasks;
 	    
 	    //генериране на текстовете на ресурсите
