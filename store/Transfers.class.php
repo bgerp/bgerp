@@ -140,7 +140,6 @@ class store_Transfers extends core_Master
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
  		
         // Доставка
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
@@ -367,10 +366,7 @@ class store_Transfers extends core_Master
     	$row->volume = $Double->toVerbal($measures->volume);
     	$row->rowNumb = $rec->rowNumb;
     	
-    	$row->address = $oldRow->contragentName;
-    	if($rec->locationId){
-    		$row->address .= ", " . crm_Locations::getAddress($rec->locationId);
-    	}
+    	//$row->address = $oldRow->contragentName;
     	
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
     	$row->docId = $this->getDocLink($rec->id);
