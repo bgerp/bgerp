@@ -275,7 +275,7 @@ class hr_EmployeeContracts extends core_Master
     	$rec = $data->form->rec;
         
     	// Скриваме опцията за номеклатурата
-    	$data->form->fields['lists']->input = "none";
+    	//$data->form->fields['lists']->input = "none";
     	
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
