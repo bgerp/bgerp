@@ -86,4 +86,18 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date);
     }
+    
+    
+    /**
+     * Връща масив от продукти отговарящи на зададени мета данни:
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
+     * @param mixed $properties - комбинация на горе посочените мета 
+     * 							  данни или като масив или като стринг
+     * @return array $products - продукти отговарящи на условието, ако не са
+     * 							 зададени мета данни връща всички продукти
+     */
+    function getByProperty($properties)
+    {
+    	return $this->class->getByProperty($properties);
+    }
 }
