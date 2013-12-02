@@ -382,7 +382,7 @@ class img_Thumb
         $path = $this->getThumbPath();
         
         if(!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
-            if($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml'))) {
+            if(($this->sourceType != 'gdRes') && ($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml')))) {
                 
                 $url = $this->getDeferredUrl();
 
