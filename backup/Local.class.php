@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Път до масива за съхранение на файлове
- */
-defIfNot('STORAGE_FOLDER',  '/storage');
 
 
 /**
@@ -46,7 +42,8 @@ class backup_Local extends core_Master
      */
     static function getFile($fileName)
     {
-        $result = @copy(STORAGE_FOLDER . '/' . $fileName, EF_TEMP_PATH . "/" . $fileName);
+        $conf = core_Packs::getConfig('backup');
+        $result = @copy($conf->BACKUP_LOCAL_PATH . '/' . $fileName, EF_TEMP_PATH . "/" . $fileName);
         
         return $result;
     }    
@@ -62,7 +59,8 @@ class backup_Local extends core_Master
      */
     static function putFile($fileName)
     {
-        $result = @copy(EF_TEMP_PATH . "/" . $fileName, STORAGE_FOLDER . '/' . $fileName);
+        $conf = core_Packs::getConfig('backup');
+        $result = @copy(EF_TEMP_PATH . "/" . $fileName, $conf->BACKUP_LOCAL_PATH . '/' . $fileName);
         
         return $result;
     }
@@ -78,7 +76,8 @@ class backup_Local extends core_Master
      */
     static function removeFile($fileName)
     {
-        $result = @unlink(STORAGE_FOLDER . '/' . $fileName);
+        $conf = core_Packs::getConfig('backup');
+        $result = @unlink($conf->BACKUP_LOCAL_PATH . '/' . $fileName);
         
         return $result;
     }

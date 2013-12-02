@@ -76,9 +76,13 @@ defIfNot('BACKUP_FILEMAN_OFFSET', 0);
 
 /**
  * Парола за криптиране на архива
- * Ако е празна архива не се криптира
  */
 defIfNot('BACKUP_PASS_OFFSET', 'secret');
+
+/**
+ * Път до масива за съхранение на файлове
+ */
+defIfNot('BACKUP_LOCAL_PATH', '/storage');
 
 /**
  * Клас 'backup_Setup' - Начално установяване на пакета 'backup'
@@ -116,12 +120,14 @@ class backup_Setup extends core_ProtoSetup
     var $configDescription = array (
             
        'BACKUP_PREFIX'   => array ('varchar', 'caption=Префикс за архивираните файлове'),
-       'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'), 
-       'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Потребител в MySQL сървъра с права за бекъп (SELECT, RELOAD, SUPER)'),
-       'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Парола'),
-       'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Хост'),
-       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни бекъп-и, които да се пазят'),
-       'BACKUP_PASS'     => array ('password', 'caption=Парола за архивираните файлове')
+       'BACKUP_STORAGE_TYPE'   => array ('enum(local=локален, ftp=ФТП, rsync=rsync)', 'caption=Тип на мястото за архивиране'),
+       'BACKUP_LOCAL_PATH' => array ('varchar', 'notNull, value=/storage, caption=Настройки локален архив->Локален път'),
+       'BACKUP_MYSQL_USER_NAME'   => array ('varchar', 'caption=Връзка към MySQL->Потребител в MySQL сървъра с права за бекъп, title=(SELECT, RELOAD, SUPER)'),
+       'BACKUP_MYSQL_USER_PASS'   => array ('password', 'caption=Връзка към MySQL->Парола'),
+       'BACKUP_MYSQL_HOST'     => array ('varchar', 'caption=Връзка към MySQL->Хост'),
+       'BACKUP_CLEAN_KEEP'     => array ('int', 'caption=Брой пълни архиви->Брой пълни бекъп-и които да се пазят'),
+       'BACKUP_CRYPT'     => array ('enum(yes=Да, no=Не)', 'notNull,value=no,maxRadio=2,caption=Данни за криптиране->Криптиране на архивите?'),
+       'BACKUP_PASS'     => array ('varchar', 'caption=Данни за криптиране->Парола за криптиране')
     );
     
     
@@ -173,6 +179,7 @@ class backup_Setup extends core_ProtoSetup
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира full бекъп.</li>";
     	}
     	
+    	$rec = new stdClass();
     	$rec->systemId = 'BackupStartBinLog';
     	$rec->description = 'Архивиране binlog на MySQL';
     	$rec->controller = 'backup_Start';
@@ -187,7 +194,8 @@ class backup_Setup extends core_ProtoSetup
     	} else {
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира binlog бекъп.</li>";
     	}
-    	 
+
+    	$rec = new stdClass();
        	$rec->systemId = 'BackupClean';
     	$rec->description = 'Изтриване на стари бекъпи';
     	$rec->controller = 'backup_Start';
@@ -203,6 +211,7 @@ class backup_Setup extends core_ProtoSetup
     	    $html .= "<li>Отпреди Cron е бил нагласен да стартира бекъп почистване.</li>";
     	}
     	
+    	$rec = new stdClass();
     	$rec->systemId = 'BackupFileman';
     	$rec->description = 'Архивиране на файловете от fileman-a';
     	$rec->controller = 'backup_Start';
