@@ -192,7 +192,7 @@ class bgerp_Setup {
         
         
         //Зарежда данни за инициализация от CSV файл за core_Lg
-        //$html .= bgerp_data_Translations::loadData();
+        $html .= bgerp_data_Translations::loadData();
         
 
         // Инсталираме плъгина за прихващане на първото логване на потребител в системата
