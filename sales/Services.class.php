@@ -550,7 +550,6 @@ class sales_Services extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;

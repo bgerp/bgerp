@@ -1028,7 +1028,6 @@ class sales_Invoices extends core_Master
             $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             

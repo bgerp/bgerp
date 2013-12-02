@@ -69,14 +69,7 @@ class bgerp_iface_DealProduct
      * @var double в интервала [0..1]
      */
     public $discount;
-
-
-    /**
-     * Продукта е неотменна част от сделката (FALSE) или е опция (TRUE)
-     *
-     * @var boolean
-     */
-    public $isOptional;
+    
     
     /**
      * Първичния ключ на мениджъра на продукта
