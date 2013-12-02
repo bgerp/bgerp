@@ -1,0 +1,14 @@
+<div class='singleView'>
+    [#SingleToolbar#]
+
+<h3><div>|Етикети|* <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b></div></h3>
+    <div class='scrolling-holder'>
+    
+    <b>|Преглед|*:</b>
+         [#template#]
+         <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+     </div>
+     
+     <br>
+     [#DETAILS#]
+</div>
