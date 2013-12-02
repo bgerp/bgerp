@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -52,7 +52,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName";
+    var $listFields = "id,name,shortName,sysId,state";
     
     
     /**
@@ -64,6 +64,8 @@ class cat_UoM extends core_Manager
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
+        $this->FLD('sysId', 'varchar', 'caption=System Id,mandatory');
+        $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -222,7 +224,9 @@ class cat_UoM extends core_Manager
 	    	1 => "shortName", 
 	    	2 => "csv_baseUnitId", 
 	    	3 => "baseUnitRatio",
-	    	4 => "state");
+	    	4 => "state",
+	    	5 => "sysId",
+	    	6 => "sinonims");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
