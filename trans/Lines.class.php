@@ -373,7 +373,8 @@ class trans_Lines extends core_Master
     	$newRec = new stdClass();
     	$newRec->destination 	   = $rec->destination;
     	$newRec->repeat            = $rec->repeat;
-    	$newRec->folderId            = $rec->folderId;
+    	$newRec->createdBy         = $rec->createdBy;
+    	$newRec->folderId          = $rec->folderId;
     	$newRec->vehicleId 		   = $rec->vehicleId;
     	$newRec->forwarderId 	   = $rec->forwarderId;
     	$newRec->forwarderPersonId = $rec->forwarderPersonId;
