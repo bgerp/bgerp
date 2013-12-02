@@ -138,6 +138,10 @@ class img_Thumb
                 $this->{$argName} = $args[$i];
             }
         }
+        
+        setIfNot($this->quality, 90);
+        setIfNot($this->timeout, 3);
+        setIfNot($this->sourceType, $sourceType);
 
         expect($this->maxWidth > 0 && $this->maxHeight > 0, $this); 
 
@@ -159,11 +163,6 @@ class img_Thumb
                     expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
-        
-        setIfNot($this->quality, 90);
-        setIfNot($this->timeout, 3);
-        setIfNot($this->sourceType, 'fileman');
-
     }
 
 
