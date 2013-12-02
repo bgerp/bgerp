@@ -20,8 +20,7 @@ class cash_Pko extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, 
-                        bgerp_DealIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf';
    
     
     /**
@@ -42,7 +41,7 @@ class cash_Pko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number, reason, valior, amount, currencyId, rate, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number, reason, valior, amount, currencyId, state, createdOn, createdBy";
     
     
     /**

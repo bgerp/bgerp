@@ -40,7 +40,7 @@ class cash_Rko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, number, reason, valior, amount, currencyId, rate, state, createdOn, createdBy";
+    var $listFields = "id, number, reason, valior, amount, currencyId, state, createdOn, createdBy";
     
     
     /**
