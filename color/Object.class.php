@@ -62,6 +62,12 @@ class color_Object {
         if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
             return;
         }
+
+        if(strlen($value) == 6) {
+            if($this->hexToRgb('#' . $value, $this->r, $this->g, $this->b)) {
+                return;
+            }
+        }
         
         if($hexColor = $this->getNamedColor($value)) {
             if($this->hexToRgb($hexColor, $this->r, $this->g, $this->b)) {
@@ -69,7 +75,7 @@ class color_Object {
             }
         }
         
-        $this->error = "Непознат цвят";
+        $this->error = "Непознат цвят|*$value";
     }
     
     
@@ -80,7 +86,7 @@ class color_Object {
     {
         if($hexColor{0} == '#') $hexColor = substr($hexColor, 1);
         
-        if(dechex(hexdec($hexColor)) == $hexColor) {
+        if(preg_match("/[0-9a-f]{3}([0-9a-f]{3})/i", $hexColor)) {
             if(strlen($hexColor) == 3) {
                 $r = hexdec($hexColor{0} . $hexColor{0});
                 $g = hexdec($hexColor{1} . $hexColor{1});
@@ -89,11 +95,10 @@ class color_Object {
                 $r = hexdec($hexColor{0} . $hexColor{1});
                 $g = hexdec($hexColor{2} . $hexColor{3});
                 $b = hexdec($hexColor{4} . $hexColor{5});
-            } else {
+            } else { bp(1);
                 return FALSE;
             }
         } else {
-            
             return FALSE;
         }
         
