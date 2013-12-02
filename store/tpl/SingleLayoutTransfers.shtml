@@ -52,7 +52,7 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="topCell first" valign="top">
+                    <td class="topCell first" valign="top" style='min-width:70%'>
                         
                         <!--ET_BEGIN deliveryTime-->
                         <div>
@@ -76,6 +76,13 @@
 	                        <hr />
 	                        <div class="richtext">[#note#]</div> 
                         <!--ET_END note-->
+                        </td>
+                        <td>
+                        <div style='float:right'>
+                        |Тегло|* [#weight#]<br/>
+                        |Обем|*	 [#volume#]
+                        </div>
+                        </td>
                 </tr>           
                 </tbody>
             </table>

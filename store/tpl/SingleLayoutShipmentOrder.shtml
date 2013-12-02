@@ -114,6 +114,14 @@
 							      <td align='center' class = 'nowrap'><span class='cCode'>[#currencyId#]</span></td>
 							      <td align='right' class = 'nowrap'><b>[#amountDelivered#]</b></td>
 							 </tr>
+							 <tr>
+							 	  <td align='right'>|Тегло|*</td>
+							 	  <td align='right' class = 'nowrap' colspan='2'>[#weight#]</td>
+							 </tr>
+							 <tr>
+							 	<td align='right'>|Обем|* </td>
+							 	<td align='right' class = 'nowrap' colspan='2'>[#volume#]</td>
+							 </tr>
 						</table>
                     </td>
                 </tr>           

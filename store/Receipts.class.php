@@ -98,7 +98,7 @@ class store_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**
@@ -155,6 +155,8 @@ class store_Receipts extends core_Master
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
         // Допълнително
+        $this->FLD('weight', 'double(decimals=2)', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'double(decimals=2)', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -178,7 +180,12 @@ class store_Receipts extends core_Master
     	$query = $detailMvc->getQuery();
         $query->where("#{$detailMvc->masterKey} = '{$id}'");
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        $recs = $query->fetchAll();
+        price_Helper::fillRecs($recs, $rec);
+        $measures = $mvc->getMeasures($recs);
+    	
+    	$rec->weight = $measures->weight;
+    	$rec->volume = $measures->volume;
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
@@ -663,19 +670,14 @@ class store_Receipts extends core_Master
     private function prepareLineRows($rec)
     {
     	$row = new stdClass();
-    	$oldRow = $this->recToVerbal($rec, '-single');
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
-    	
-    	$dQuery = $this->store_ReceiptDetails->getQuery();
-    	$dQuery->where("#receiptId = {$rec->id}");
-    	
-    	$measures = $this->getMeasures($dQuery->fetchAll());
+    	$fields = $this->selectFields();
+    	$fields['-single'] = TRUE;
+    	$oldRow = $this->recToVerbal($rec, $fields);
     	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $dealInfo->currency);
     	
-    	$row->weight = $Double->toVerbal($measures->weight);
-    	$row->volume = $Double->toVerbal($measures->volume);
-    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $Double->toVerbal($amount);
+    	$row->weight = $oldRow->weight;
+    	$row->volume = $oldRow->volume;
+    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
     	$row->address = $oldRow->contragentName;

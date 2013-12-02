@@ -103,7 +103,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-   public $listFields = 'id, valior, fromStore, toStore, folderId,createdOn, createdBy';
+   public $listFields = 'id, valior, fromStore, toStore, folderId, volume, weight,createdOn, createdBy';
 
 
     /**
@@ -127,7 +127,7 @@ class store_Transfers extends core_Master
     /**
      * Групиране на документите
      */
-    //public $newBtnGroup = "4.5|Логистика";
+    public $newBtnGroup = "4.5|Логистика";
 
 
     /**
@@ -138,7 +138,9 @@ class store_Transfers extends core_Master
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
- 		
+ 		$this->FLD('weight', 'double(decimals=2)', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'double(decimals=2)', 'input=none,caption=Обем');
+        
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
@@ -162,6 +164,15 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
+    	$rec = $mvc->fetch($id);
+    	$dQuery = $detailMvc->getQuery();
+    	$dQuery->where("#transferId = {$id}");
+    	$measures = $mvc->getMeasures($dQuery->fetchAll());
+    	
+    	$rec->weight = $measures->weight;
+    	$rec->volume = $measures->volume;
+    	
+    	$mvc->save($rec);
     }
     
     
@@ -210,15 +221,6 @@ class store_Transfers extends core_Master
         		$form->setError('toStore', 'Складовете трябва да са различни');
         	}
         }
-    }
-    
-    
-	/**
-     * След преобразуване на записа в четим за хора вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	
     }
 
 
@@ -353,21 +355,9 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = new stdClass();
-    	$oldRow = $this->recToVerbal($rec, '-single');
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
-    	
-    	$dQuery = $this->store_TransfersDetails->getQuery();
-    	$dQuery->where("#transferId = {$rec->id}");
-    	$measures = $this->getMeasures($dQuery->fetchAll());
-    	
-    	$row->weight = $Double->toVerbal($measures->weight);
-    	$row->volume = $Double->toVerbal($measures->volume);
+    	$row = $this->recToVerbal($rec);
     	$row->rowNumb = $rec->rowNumb;
-    	
     	//$row->address = $oldRow->contragentName;
-    	
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
     	$row->docId = $this->getDocLink($rec->id);
     	
