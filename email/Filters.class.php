@@ -314,6 +314,7 @@ class email_Filters extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res) 
     {
+     
     	// Подготвяме пътя до файла с данните 
     	$file = "email/data/Filters.csv";
     	
@@ -348,5 +349,26 @@ class email_Filters extends core_Manager
     		$rec->createdBy = -1;
     	}
     }
+    
 
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	
+    	// Ако се опитваме да направим заповед за отпуска
+	    if($action == 'edit' || $action == 'delete'){ 
+			if ($rec->id && $rec->createdBy == "-1") {
+				        // то не може да я направим
+						$requiredRoles = 'no_one';
+		    }
+	    }
+     }
 }
