@@ -233,4 +233,15 @@ class cat_UoM extends core_Manager
     	
     	return $res;
     }
+    
+    
+    /**
+     * Връща мерна еденициа по систем ид
+     * @param varchar $sysId - sistem Id
+     * @return stdClass $rec - записа отговарящ на сис Ид-то
+     */
+    public static function fetchBySysId($sysId)
+    {
+    	return static::fetch("#sysId = '{$sysId}'");
+    }
 }
