@@ -556,6 +556,8 @@ class label_TemplateFormats extends core_Detail
                     barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
                 } elseif ($rec->formatParams['Rotation'] == 'yes') {
                     
+                    // TODO баркод и текст, само текст
+                    
                     // Ако ще се ротира
                     try {
                         

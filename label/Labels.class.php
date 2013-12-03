@@ -97,7 +97,7 @@ class label_Labels extends core_Master
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing';
     
     
     /**
@@ -337,5 +337,224 @@ class label_Labels extends core_Master
         
         // Рендираме опаковката
         return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Добавя бутон за настройки в единичен изглед
+     * 
+     * @param stdClass $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        $data->toolbar->removeBtn('btnPrint');
+        
+        // URL за избор на брой отпечатвания
+	    $url = array(
+            $mvc,
+            'selectPrintCnt',
+            $data->rec->id,
+            'ret_url' => TRUE
+        );
+        
+        // Бутон за избор на брой отпечатвания
+        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+    }
+    
+    
+    /**
+     * Екшън за задаване на брой на отпечатвания
+     */
+    function act_SelectPrintCnt()
+    {
+        // Права за работа с екшън-а
+        $this->requireRightFor('single');
+        
+        // id на записа
+        $id = Request::get('id', 'int');
+        
+        // Вземаме записа
+        $rec = $this->fetch($id);
+        
+        // Очакваме да има запис
+        expect($rec);
+        
+        // Очакваме да имаме права към сингъла за този запис
+        $this->requireRightFor('single', $rec);
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Добавяме функционално поле
+        $form->FNC('printCnt', 'int', 'caption=Брой, mandatory');
+        
+        // За вкавране на silent записите
+        $form->input(NULL, TRUE);
+        
+        // Въвеждаме полето
+        $form->input('printCnt', TRUE);
+        
+        // URL за редирект
+        $retUrl = getRetUrl();
+        
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // TODO increase printedCnt
+            
+            // URL за печат
+    	    $printUrl = array(
+                $this,
+                'print',
+                $id,
+                'cnt' => $form->rec->printCnt,
+                'Printing' => 'yes',
+                'ret_url' => $retUrl
+            );
+            
+            // Редиректваме към екшъна за добавяне
+            return new Redirect($printUrl);
+        }
+        
+        // Заглавие на шаблона
+        $form->title = "Брой отпечатвания";
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'printCnt';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        // Рендираме опаковката
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Екшън за принтиране
+     */
+    function act_Print()
+    {
+        // Права за работа с екшън-а
+        $this->requireRightFor('single');
+        
+        // id на записа
+        $id = Request::get('id', 'int');
+        
+        // Брой печат едновремменно
+        $cnt = Request::get('cnt');
+        
+        // Записа
+        $rec = $this->fetch($id);
+        
+        // Очакваме да има запис
+        expect($rec);
+        
+        // Очакваме да имаме права за сингъл за записа
+        $this->requireRightFor('single', $rec);
+        
+        // Данни
+        $data = new stdClass();
+        $data->cnt = $cnt;
+        $data->rec = $rec;
+        
+        // Подгогвяме етикетите
+        $this->prepareLabel($data);
+        
+        // Рендираме етикетите
+        $tpl = $this->renderLabel($data);
+        
+        // URL за редирект
+        $retUrl = getRetUrl();
+        
+        // URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Подготвяме етикета
+     * 
+     * @param object $data
+     */
+    static function prepareLabel(&$data)
+    {
+        // TODO да не са нули
+        
+        // Колко етикети ще има на страница
+        $data->itemsPerPage = $data->rec->columnsCnt * $data->rec->linesCnt;
+        
+        // Брой страници
+        $data->pageCnt = (int)ceil($data->cnt / $data->itemsPerPage);
+        
+        // Брой записи в поседната страница
+        $data->lastPageCnt = (int)($data->cnt % $data->itemsPerPage);
+        
+        // Вземаме шаблона
+        $template = label_Templates::getTemplate($data->rec->templateId);
+        
+        // Вземема плейсхолдерите в шаблона
+        $placesArr = $template->getPlaceholders();
+        
+        // Параметрите
+        $params = $data->rec->params;
+        
+        // TODO работи за един запис на страница
+        
+//        for ($i = 0; $i < $data->rec->columnsCnt; $i++) {
+
+            // Шаблона
+            $data->templateRow = clone($template);
+            
+            // TODO разделяне на рендиране и подготвяне
+            
+            // Обхождаме плейсхолдерите от масива
+            foreach ($placesArr as $place) {
+                
+                // Вземаме името на плейсхолдера
+                $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
+                
+                // Вземаме вербалната стойност
+                $verbalVal = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace]);
+                
+                // Заместваме в етикете
+                $data->templateRow->replace($verbalVal, $place);
+            }
+//        }
+    }
+    
+    
+    /**
+     * Рендираме етикете
+     * 
+     * @param unknown_type $data
+     */
+    static function renderLabel(&$data)
+    {
+        // TODO - работи само за един етикет
+        
+//        $tpl = new ET('<table>[#TABLE#]</table>');
+        $tpl = new ET('[#TABLE#]');
+        
+        $tpl->append($data->templateRow, 'TABLE');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        
+//        $data->toolbar->removeBtn('btnPrint');
     }
 }
