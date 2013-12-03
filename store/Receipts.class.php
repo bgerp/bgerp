@@ -114,6 +114,12 @@ class store_Receipts extends core_Master
     
     
     /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/shipment.png';
+    
+    
+    /**
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleLayoutReceipt.shtml';
@@ -155,8 +161,8 @@ class store_Receipts extends core_Master
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
         // Допълнително
-        $this->FLD('weight', 'double(decimals=2)', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'double(decimals=2)', 'input=none,caption=Обем');
+        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -364,23 +370,9 @@ class store_Receipts extends core_Master
         $rec  = &$form->rec;
         
         $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
-        
-        if (empty($rec->folderId)) {
-            expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
-        }
-        
-        // Определяне на контрагента (ако още не е определен)
-        if (empty($rec->contragentClassId)) {
-            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-        }
-        
-        if (empty($rec->contragentId)) {
-            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        }
-        
-        if (empty($rec->storeId)) {
-            $rec->storeId = store_Stores::getCurrent('id', FALSE);
-        }
+        $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $rec->storeId = store_Stores::getCurrent('id', FALSE);
         
         // Поле за избор на локация - само локациите на контрагента по покупката
         $form->getField('locationId')->type->options = 
@@ -455,6 +447,9 @@ class store_Receipts extends core_Master
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
     	}
+    	
+    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
+    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
     	
     	if(isset($fields['-single'])){
     		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
@@ -581,7 +576,6 @@ class store_Receipts extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
@@ -623,42 +617,6 @@ class store_Receipts extends core_Master
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
     	bp($info->shipped);
-    }
-    
-    
-	/**
-     * Връща теглото на всички артикули в документа
-     * @TODO mockup
-     * @param stdClass $rec - запис от модела
-     * @return stdClass   			
-     * 				[weight]    - тегло  
-	 * 				[measureId] - мярката
-     */
-    public function getWeight($rec)
-    {
-    	$obj = new stdClass();
-    	$obj->weight = $rec->amountDelivered * 1.2;
-    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кг'", 'id');
-    	
-    	return $obj;
-    }
-    
-    
-    /**
-     * Връща обема на всички артикули в документа
-     * @TODO mockup
-     * @param stdClass $rec - запис от модела
-     * @return stdClass
-	 *   			[volume]    - обем 
-	 * 				[measureId] - мярката
-     */
-	public function getVolume($rec)
-    {
-    	$obj = new stdClass();
-    	$obj->volume = $rec->amountDelivered * 2;
-    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кв.м'", 'id');
-    	
-    	return $obj;
     }
     
     

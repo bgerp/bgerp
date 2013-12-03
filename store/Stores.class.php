@@ -155,6 +155,7 @@ class store_Stores extends core_Master
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefId', 'key(mvc=core_Users, select=names)', 'caption=Отговорник,mandatory');
         $this->FLD('workersIds', 'userList(store,storeWorker,ceo)', 'caption=Товарачи');
+        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
     
@@ -246,6 +247,10 @@ class store_Stores extends core_Master
 
 	static function on_AfterPrepareEditForm($mvc, &$res, $data)
 	{
+		$company = crm_Companies::fetchOwnCompany();
+		$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);
+		$data->form->setOptions('locationId', $locations);
+		
 		// Ако сме в тесен режим
 		if (Mode::is('screenMode', 'narrow')) {
 	

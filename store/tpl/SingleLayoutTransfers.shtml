@@ -37,10 +37,12 @@
                     </tr>
                     <tr>
                     <td class="cell">
-                    <b>[#fromStore#]</b>
+                    <b>[#fromStore#]</b><br />
+                    [#fromAdress#]
                     </td>
                     <td class="cell">
-                    <b>[#toStore#]</b>
+                    <b>[#toStore#]</b><br />
+                    [#toAdress#]
 					</td>
                 </tr>
                 </tbody>
@@ -59,12 +61,6 @@
                             |Срок до|*: <b>[#deliveryTime#]</b>
                         </div>
                         <!--ET_END deliveryTime-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	|До|*: <b>[#locationId#]</b>
-                        </div>
-                        <!--ET_END locationId-->
                          
         				<!--ET_BEGIN lineId-->
         				<div>
@@ -79,8 +75,8 @@
                         </td>
                         <td>
                         <div style='float:right'>
-                        |Тегло|* [#weight#]<br/>
-                        |Обем|*	 [#volume#]
+                        |Тегло|*: <b>[#weight#]</b><br/>
+                        |Обем|*: <b>[#volume#]</b>
                         </div>
                         </td>
                 </tr>           

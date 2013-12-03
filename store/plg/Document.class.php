@@ -55,7 +55,7 @@ class store_plg_Document extends core_Plugin
 					$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
 					(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 				} else {
-					//$obj->volume = NULL;
+					$obj->volume = NULL;
 				}
 			}
 			
@@ -64,7 +64,7 @@ class store_plg_Document extends core_Plugin
 					$weight = $pack->netWeight + $pack->tareWeight;
 					(!$volume) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 				} else {
-					//$obj->weight = NULL;
+					$obj->weight = NULL;
 				}
 			}
 		}

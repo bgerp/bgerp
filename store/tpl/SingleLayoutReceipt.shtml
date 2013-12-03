@@ -112,12 +112,12 @@
 							      <td align='right' class = 'nowrap'><b>[#amountDelivered#]</b></td>
 							 </tr>
 							 <tr>
-							 	  <td align='right'>|Тегло|*</td>
-							 	  <td align='right' class = 'nowrap' colspan='2'>[#weight#]</td>
+							 	  <td align='right'>|Тегло|*: </td>
+							 	  <td align='right' class = 'nowrap' colspan='2'><b>[#weight#]</b></td>
 							 </tr>
 							 <tr>
-							 	<td align='right'>|Обем|* </td>
-							 	<td align='right' class = 'nowrap' colspan='2'>[#volume#]</td>
+							 	<td align='right'>|Обем|*: </td>
+							 	<td align='right' class = 'nowrap' colspan='2'><b>[#volume#]</b></td>
 							 </tr>
 						</table>
                     </td>

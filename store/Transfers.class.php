@@ -138,8 +138,8 @@ class store_Transfers extends core_Master
         $this->FLD('valior', 'date', 'caption=Дата, mandatory,oldFieldName=date');
         $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
- 		$this->FLD('weight', 'double(decimals=2)', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'double(decimals=2)', 'input=none,caption=Обем');
+ 		$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
         
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
@@ -187,12 +187,26 @@ class store_Transfers extends core_Master
     }
     
     
-    /**
-     * След подготовка на единичния изглед
+	/**
+     * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
+    	if($fields['-single']){
+    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+	    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
+	    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
+	    	
+	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
+	    	if($fromStoreLocation){
+	    		$row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
+	    	}
+	    	
+	    	$toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
+    		if($toStoreLocation){
+	    		$row->toAdress = crm_Locations::getAddress($toStoreLocation);
+	    	}
+    	}
     }
     
     
@@ -355,9 +369,9 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec);
+    	$row = $this->recToVerbal($rec, '-single');
     	$row->rowNumb = $rec->rowNumb;
-    	//$row->address = $oldRow->contragentName;
+    	$row->address = $row->toAdress;
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
     	$row->docId = $this->getDocLink($rec->id);
     	
