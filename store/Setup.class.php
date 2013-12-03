@@ -68,7 +68,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'store';
+    var $roles = 'store, storeWorker';
     
 
     /**
