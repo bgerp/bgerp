@@ -301,7 +301,7 @@ class cat_UoM extends core_Manager
         
         // Първата сума по голяма от 1 се връща
         foreach ($all as $mId => $amount){
-	        if($amount > 1){
+	        if($amount >= 1){
 	        	return ($all[$mId] == 0) ? 0 : $Double->toVerbal($all[$mId]) . " " . static::getShortName($mId);
 	        }
         }
