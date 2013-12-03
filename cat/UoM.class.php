@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -52,7 +52,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName";
+    var $listFields = "id,name,shortName,sysId,state";
     
     
     /**
@@ -64,6 +64,8 @@ class cat_UoM extends core_Manager
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
+        $this->FLD('sysId', 'varchar', 'caption=System Id,mandatory');
+        $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -75,9 +77,9 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    function convertToBaseUnit($amount, $unitId)
+    static function convertToBaseUnit($amount, $unitId)
     {
-        $rec = $this->fetch($unitId);
+        $rec = static::fetch($unitId);
         
         if ($rec->baseUnitId == null) {
             $ratio = 1;
@@ -96,9 +98,9 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    function convertFromBaseUnit($amount, $unitId)
+    static function convertFromBaseUnit($amount, $unitId)
     {
-        $rec = $this->fetch($unitId);
+        $rec = static::fetch($unitId);
         
         if ($rec->baseUnitId == null) {
             $ratio = 1;
@@ -222,11 +224,96 @@ class cat_UoM extends core_Manager
 	    	1 => "shortName", 
 	    	2 => "csv_baseUnitId", 
 	    	3 => "baseUnitRatio",
-	    	4 => "state");
+	    	4 => "state",
+	    	5 => "sysId",
+	    	6 => "sinonims");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща мерна еденициа по систем ид
+     * @param varchar $sysId - sistem Id
+     * @return stdClass $rec - записа отговарящ на сис ид-то
+     */
+    public static function fetchBySysId($sysId)
+    {
+    	return static::fetch("#sysId = '{$sysId}'");
+    }
+    
+    
+    /**
+     * Връща запис отговарящ на име на мерна еденица
+     * (включва българско, английско или фонетично записване)
+     * @param string $string - дума по която се търси
+     * @return stdClass $rec - записа отговарящ на сис Ид-то
+     */
+    public static function fetchBySinonim($string)
+    {
+    	$string = strtolower(str::utf2ascii($string));
+    	
+    	$query = static::getQuery();
+    	$query->likeKeylist('sinonims', "|{$string}|");
+    	
+    	return $query->fetch();
+    }
+    
+    
+    /**
+     * Помощна ф-я правеща умно закръгляне на сума в най-оптималната близка
+     * мерна еденица от същия тип
+     * @param double $val - сума за закръгляне
+     * @param string $sysId - системно ид на мярка
+     * @param boolean $verbal - дали да са вербални числата
+     * @return string - закръглената сума с краткото име на мярката
+     */
+    public static function smartConvert($val, $sysId, $verbal = TRUE)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	// Намира се коя мярка отговаря на това сис ид
+    	$typeUom = cat_UoM::fetchBySysId($sysId);
+    	
+    	// Извличат се мерките от същия тип и се премахва празния елемент в масива
+        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
+        unset($sameMeasures[""]);
+       
+        if(count($sameMeasures) == 1){
+        	
+        	// Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
+        	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
+        	$val = ($verbal) ? $Double->toVerbal($val) : $val;
+        	
+        	return ($val == 0) ? 0 : $val . " " . $typeUom->shortName;
+        }
+        
+        // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
+        $all = array();
+        foreach ($sameMeasures as $mId => $name){
+        	$all[$mId] = cat_UoM::convertFromBaseUnit($val, $mId);
+        }
+       
+        // Сумите се пдореждат в възходящ ред
+        asort($all);
+        
+        // Първата сума по голяма от 1 се връща
+        foreach ($all as $mId => $amount){
+	        if($amount >= 1){
+	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+	        	return ($all[$mId] == 0) ? 0 : $all[$mId] . " " . static::getShortName($mId);
+	        }
+        }
+        
+        // Ако няма такава се връща последната (тази най-близо до 1)
+        end($all);
+        $uomId = key($all);
+        
+        $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+        return ($all[$uomId] == 0) ? 0 : $all[$uomId] . " " . static::getShortName($mId);
     }
 }

@@ -64,7 +64,7 @@
 					<div style='clear: both;'></div>  
 					</small></div>  
 					
-		</div>
+
 		<!-- END Писмо -->
 		
 		<div style='clear: both;'></div>  
@@ -111,8 +111,9 @@
 				
 				<!-- END Блок долу -->
 				
-			<div style='clear: both;'></div>
+					<div style='clear: both;'></div>
+				</div>
+			</div>
 		</div>
-	</div>
-</div>
-<!-- END container -->
+        <!-- END container -->
+ </div>

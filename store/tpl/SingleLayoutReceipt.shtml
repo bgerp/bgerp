@@ -83,7 +83,13 @@
                             |В склад|*: <b>[#storeId#]</b>
                         </div>
                         <!--ET_END storeId-->
-                             
+                        
+                        <!--ET_BEGIN locationId--> 
+                        <div>
+                        	|От|*: <b>[#locationId#]</b>
+                        </div>
+                        <!--ET_END locationId-->
+                         
         				<!--ET_BEGIN lineId-->
         				<div>
                             |Транс. линия|*: <br /><b>[#lineId#]</b>
@@ -104,6 +110,14 @@
 							      <td align='right' class = 'nowrap'>|Общо|* [#vatType#]:</td>
 							      <td align='center' class = 'nowrap'><span class='cCode'>[#currencyId#]</span></td>
 							      <td align='right' class = 'nowrap'><b>[#amountDelivered#]</b></td>
+							 </tr>
+							 <tr>
+							 	  <td align='right'>|Тегло|*: </td>
+							 	  <td align='right' class = 'nowrap' colspan='2'><b>[#weight#]</b></td>
+							 </tr>
+							 <tr>
+							 	<td align='right'>|Обем|*: </td>
+							 	<td align='right' class = 'nowrap' colspan='2'><b>[#volume#]</b></td>
 							 </tr>
 						</table>
                     </td>

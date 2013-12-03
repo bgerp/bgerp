@@ -30,37 +30,37 @@ class label_CounterItems extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    var $canRead = 'label';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'debug';
+    var $canEdit = 'label';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'debug';
+    var $canAdd = 'label';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    var $canView = 'label';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    var $canList = 'label';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'label';
     
     
     /**

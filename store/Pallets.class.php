@@ -26,7 +26,7 @@ class store_Pallets extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys, store_PalletteWrapper';
     
     
     /**
@@ -117,9 +117,6 @@ class store_Pallets extends core_Manager
                                           active=Работи се, 
                                           closed=На място)', 'caption=Състояние');
         $this->FLD('position', 'varchar(16)', 'caption=Позиция->Текуща');
-        
-        // $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
-        // $this->FNC('move',          'varchar(64)',                          'caption=Местене');
     }
     
     
@@ -611,6 +608,7 @@ class store_Pallets extends core_Manager
                 }
                 
                 // $recMovements
+                $recMovements = new stdClass();
                 $recMovements->storeId = $selectedStoreId;
                 $recMovements->palletId = $palletId;
                 $recMovements->positionOld = 'Зона: ' . $rec->zone;

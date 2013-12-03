@@ -138,6 +138,12 @@ class purchase_Services extends core_Master
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -168,20 +174,26 @@ class purchase_Services extends core_Master
     }
 
 
-
     /**
      * След промяна в детайлите на обект от този клас
-     *
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-         $rec = $mvc->fetchRec($id);
+         // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetchRec($id);
     	
-    	$query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    	$query = $this->purchase_ServicesDetails->getQuery();
+        $query->where("#shipmentId = '{$id}'");
         
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
@@ -190,7 +202,20 @@ class purchase_Services extends core_Master
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->total->vat * $rec->currencyRate;
         
-        $mvc->save($rec);
+        $this->save($rec);
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
     }
     
     
@@ -271,7 +296,8 @@ class purchase_Services extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -329,7 +355,6 @@ class purchase_Services extends core_Master
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -340,7 +365,6 @@ class purchase_Services extends core_Master
             $rec->contragentVatNo = $contragentData->vatNo;
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
 
@@ -537,6 +561,7 @@ class purchase_Services extends core_Master
         $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->rate		         = $rec->currencyRate;
+        $result->shipped->valior 			 = $rec->valior;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
@@ -549,7 +574,6 @@ class purchase_Services extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;

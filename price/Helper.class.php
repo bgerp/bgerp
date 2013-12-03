@@ -108,13 +108,13 @@ abstract class price_Helper
 	 * @param array $map - масив с мапващи стойностите на полета от фунцкията
 	 * с полета в модела, има стойности по подрабзиране (@see static::$map)
 	 */
-	public function fillRecs(&$recs, $masterRec, $map = array())
+	public static function fillRecs(&$recs, &$masterRec, $map = array())
 	{
-		if(!count($recs)) return;
+		if(count($recs) === 0) return;
 		expect(is_object($masterRec));
 		
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
-		$map = array_merge(static::$map, $map);
+		$map = array_merge(self::$map, $map);
 		
 		// Дали трябва винаги да не се показва ддс-то към цената
 		if($map['alwaysHideVat']) {
@@ -133,15 +133,14 @@ abstract class price_Helper
             }
            
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
-        	$price = static::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
+        	$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
         	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
         	
         	// Калкулира се сумата на реда
-        	$amountObj = static::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId']);
+        	$amountObj = self::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId']);
         	$rec->$map['amountFld']  = $amountObj->amount;
         	$amount          	+= $amountObj->amount;
         	$amountVat       	+= $amountObj->vatAmount;
-        	$a[] 			  	 = $amountObj->amount;
 		}
 		
 		$masterRec->total         = new stdClass();

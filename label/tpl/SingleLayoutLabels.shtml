@@ -1,0 +1,59 @@
+<div class='singleView'>
+    [#SingleToolbar#]
+
+<h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Етикети|* 
+    <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b>
+</div></h3>
+
+    <div class='scrolling-holder'>
+            <table class="styled-table" width="99%">
+                <tr>
+                    <td class="title-style" width="150px">|Отпечатъци|*</td>
+                    <td> [#printedCnt#]</td>
+                </tr>
+                 <tr>
+                    <td class="title-style">|Параметри|*</td>
+                    <td> [#params#]</td>
+                </tr>
+            </table>
+            <table class="styled-table" width="99%">
+                <tr>
+                    <th colspan='2'>|Поле|* </th>
+                </tr>
+                <tr>
+                    <td class="title-style" width="150px">|Отгоре|*</td>
+                    <td>[#fieldUp#]</td>
+                </tr>
+                <tr>
+                    <td class="title-style">|Отляво|*</td>
+                    <td>[#fieldLeft#]</td>
+                </tr>
+            </table>
+            <table class="styled-table" width="99%">
+                 <tr>
+                    <th colspan='2'>|Колони в един лист|* </th>
+                </tr>
+                 <tr>
+                    <td class="title-style" width="150px">|Брой|*</td>
+                    <td> [#columnsCnt#]</td>
+                </tr>
+                <tr>
+                    <td class="title-style">|Разстояние|*</td>
+                    <td>[#columnsDist#]</td>
+                </tr>
+               </table>
+            <table class="styled-table" width="99%">
+                <tr>
+                    <th colspan='2'>|Редове|*</th>
+                </tr>
+                <tr>
+                    <td class="title-style"  width="150px">|Брой|*</td>
+                    <td>[#linesCnt#]</td>
+                </tr>
+                <tr>
+                    <td class="title-style">|Разстояние|*</td>
+                    <td> [#linesDist#]</td>
+                </tr>
+            </table>
+     </div>
+</div>

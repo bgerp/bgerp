@@ -39,14 +39,6 @@ class sales_model_QuotationProduct
      * @var double
      */
     public $quantity;
-        
-    
-    /**
-     * Дали е опционален
-     * 
-     * @var boolean
-     */
-    public $isOptional;
 
     
     /**
@@ -74,7 +66,6 @@ class sales_model_QuotationProduct
         $this->productId   = $rec->productId;
         $this->packagingId = NULL;
         $this->discount    = $rec->discount;
-        $this->isOptional  = FALSE;
         $this->quantity    = $rec->quantity;
         $this->price       = $rec->price;
         $this->uomId = $Class->getProductInfo($rec->productId)->productRec->measureId;

@@ -48,49 +48,49 @@ class label_Templates extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'debug';
+    var $canRead = 'label';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'debug';
+    var $canEdit = 'label';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'debug';
+    var $canAdd = 'label';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'debug';
+    var $canView = 'label';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    var $canList = 'label';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'debug';
+	var $canSingle = 'label';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'debug';
+    var $canReject = 'label';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'debug';
+    var $canDelete = 'label';
     
     
     /**
@@ -137,5 +137,22 @@ class label_Templates extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('template', 'html', 'caption=Шаблон');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        // Ако имаме права за добавяне на етикет
+        if (label_Labels::haveRightFor('add')) {
+        
+        	// Добавяме бутон за нов етикет
+            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png');
+        }
     }
 }

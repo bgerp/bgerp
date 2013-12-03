@@ -23,10 +23,10 @@ class label_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('label_Labels', 'Етикети', 'debug');
-        $this->TAB('label_Templates', 'Шаблони', 'debug');
-        $this->TAB('label_TemplateFormats', 'Параметри', 'debug');
-        $this->TAB('label_Counters', 'Брояч', 'debug');
-        $this->TAB('label_CounterItems', 'Записи', 'debug');
+        $this->TAB('label_Labels', 'Етикети', 'label');
+        $this->TAB('label_Templates', 'Шаблони', 'label');
+        $this->TAB('label_TemplateFormats', 'Параметри', 'label');
+        $this->TAB('label_Counters', 'Брояч', 'label');
+        $this->TAB('label_CounterItems', 'Записи', 'label');
     }
 }

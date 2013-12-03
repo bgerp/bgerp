@@ -132,6 +132,12 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -437,7 +443,9 @@ class purchase_Purchases extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -461,21 +469,6 @@ class purchase_Purchases extends core_Master
      */
     public static function normalizeContragentData($contragentData)
     {
-       /*
-        * Разглеждаме четири случая според данните в $contragentData
-        *
-        *  1. Има данни за фирма и данни за лице
-        *  2. Има само данни за фирма
-        *  3. Има само данни за лице
-        *  4. Нито едно от горните не е вярно
-        */
-    
-        if (empty($contragentData->company) && empty($contragentData->person)) {
-            // Случай 4: нито фирма, нито лице
-            return FALSE;
-        }
-    
-        // Тук ще попълним резултата
         $rec = new stdClass();
     
         $rec->contragentCountryId = $contragentData->countryId;
@@ -483,7 +476,6 @@ class purchase_Purchases extends core_Master
     
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -492,15 +484,8 @@ class purchase_Purchases extends core_Master
                 )
             );
             $rec->contragentVatNo = $contragentData->vatNo;
-    
-            if (!empty($contragentData->person)) {
-                // Случай 1: данни за фирма + данни за лице
-    
-                // TODO за сега не правим нищо допълнително
-            }
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
     
@@ -570,7 +555,6 @@ class purchase_Purchases extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
@@ -670,25 +654,46 @@ class purchase_Purchases extends core_Master
     
 	/**
      * След промяна в детайлите на обект от този клас
-     * 
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-        $rec = $mvc->fetchRec($id);
-        $query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+         // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	$query = $this->purchase_PurchasesDetails->getQuery();
+        $query->where("#requestId = '{$id}'");
         
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
-        // ддс-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
+        // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
         $rec->amountDeal = $amoundDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
         
-        $mvc->save($rec);
+        $this->save($rec);
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
     }
     
     

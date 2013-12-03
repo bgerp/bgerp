@@ -213,7 +213,7 @@ class bank_CostDocument extends core_Master
         $form->setOptions('operationSysId', $options);
     
         // Използваме помощната функция за намиране името на контрагента
-        bank_IncomeDocument::getContragentInfo($form, 'contragentName');
+        $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
 	

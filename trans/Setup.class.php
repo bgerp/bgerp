@@ -30,7 +30,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'trans_Vehicles';
+    var $startCtr = 'trans_Lines';
     
     
     /**
@@ -64,7 +64,7 @@ class trans_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.4, 'Логистика', 'Транспорт', 'trans_Vehicles', 'default', "trans, ceo"),
+            array(3.4, 'Логистика', 'Транспорт', 'trans_Lines', 'default', "trans, ceo"),
         );
 
     /**

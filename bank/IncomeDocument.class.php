@@ -211,28 +211,9 @@ class bank_IncomeDocument extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         $form->setOptions('operationSysId', $options);
      
-        static::getContragentInfo($form, 'contragentName');
+        $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+       
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
-    }
-    
-     
-     /**
-      * Извлича информация за контрагента
-      */
-     public static function getContragentInfo(core_Form $form, $field)
-     {
-     	$folderId = $form->rec->folderId;
-    	
-    	// Информацията за контрагента на папката
-    	expect($contragentData = doc_Folders::getContragentData($folderId), "Проблем с данните за контрагент по подразбиране");
-    	$cClass = doc_Folders::fetchCoverClassName($folderId);
-    	if($contragentData) {
-    		if($cClass == 'crm_Persons'){
-    			$form->setReadOnly($field, $contragentData->person);
-    		} elseif($cClass == 'crm_Companies'){
-    			$form->setReadOnly($field, $contragentData->company);
-    		}
-    	}
     }
      
      

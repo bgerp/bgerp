@@ -649,7 +649,6 @@ class pos_Receipts extends core_Master {
             $p->productId   = $pr->productId;
             $p->packagingId = $pr->packagingId;
             //$p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $pr->quantity;
             $p->price       = $pr->price;
             $p->uomId       = $pr->uomId;

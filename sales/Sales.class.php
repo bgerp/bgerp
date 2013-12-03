@@ -106,7 +106,7 @@ class sales_Sales extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
-                             dealerId, initiatorId,
+                             dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
 
@@ -157,6 +157,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -199,28 +205,35 @@ class sales_Sales extends core_Master
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
     	
-    	$this->FLD('state', 
+        $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
         );
-    	
+    	$this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
     
-    /**
+	/**
      * След промяна в детайлите на обект от този клас
-     * 
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-    	$rec = $mvc->fetchRec($id);
+         // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetchRec($id);
     	
-    	$query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    	$query = $this->sales_SalesDetails->getQuery();
+        $query->where("#saleId = '{$id}'");
         
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
@@ -229,7 +242,20 @@ class sales_Sales extends core_Master
         $rec->amountDeal = $amoundDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
         
-        $mvc->save($rec);
+        $this->save($rec);
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
     }
     
     
@@ -323,7 +349,9 @@ class sales_Sales extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -336,21 +364,6 @@ class sales_Sales extends core_Master
      */
     public static function normalizeContragentData($contragentData)
     {
-        /*
-        * Разглеждаме четири случая според данните в $contragentData
-        *
-        *  1. Има данни за фирма и данни за лице
-        *  2. Има само данни за фирма
-        *  3. Има само данни за лице
-        *  4. Нито едно от горните не е вярно
-        */
-        
-        if (empty($contragentData->company) && empty($contragentData->person)) {
-            // Случай 4: нито фирма, нито лице
-            return FALSE;
-        }
-        
-        // Тук ще попълним резултата
         $rec = new stdClass();
         
         $rec->contragentCountryId = $contragentData->countryId;
@@ -358,7 +371,6 @@ class sales_Sales extends core_Master
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -367,15 +379,9 @@ class sales_Sales extends core_Master
                 )
             );
             $rec->contragentVatNo = $contragentData->vatNo;
-        
-            if (!empty($contragentData->person)) {
-                // Случай 1: данни за фирма + данни за лице
-        
-                // TODO за сега не правим нищо допълнително
-            }
+            
         } elseif (!empty($contragentData->person)) {
-            // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
+        	// Случай 3: само данни за физическо лице
             $rec->contragentAddress = $contragentData->pAddress;
         }
 
@@ -490,20 +496,18 @@ class sales_Sales extends core_Master
         );
         
         // Моментни експедиция и плащане по подразбиране
-        if (empty($form->rec->id)) {
-        	if(!$storeId = store_Stores::getCurrent('id', FALSE)){
-        		$form->setField('isInstantShipment', 'input=hidden');
-        		$form->rec->isInstantShipment = 'no';
-        	} else {
-        		$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
-        	}
+        if(!$storeId = store_Stores::getCurrent('id', FALSE)){
+        	$form->setField('isInstantShipment', 'input=hidden');
+        	$form->rec->isInstantShipment = 'no';
+        } else {
+        	$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
+        }
         	
-        	if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
-        		$form->setField('isInstantPayment', 'input=hidden');
-        		$form->rec->isInstantPayment = 'no';
-        	} else {
-        		$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
-        	}
+        if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
+        	$form->setField('isInstantPayment', 'input=hidden');
+        	$form->rec->isInstantPayment = 'no';
+        } else {
+        	$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
         }
     }
 
@@ -605,6 +609,8 @@ class sales_Sales extends core_Master
                 $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
         }
+        
+        $form->rec->paymentState = 'pending';
     }
     
     
@@ -623,6 +629,10 @@ class sales_Sales extends core_Master
             	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
+        }
+        
+        if($rec->paymentState == 'overdue'){
+        	$row->amountDelivered = "<span style='color:red'>{$row->amountDelivered}</span>";
         }
         
     	if($fields['-list']){
@@ -696,7 +706,7 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
+        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Пресрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
 		$data->listFilter->showFields .= ',type';
 		$data->listFilter->input();
 		
@@ -707,6 +717,9 @@ class sales_Sales extends core_Master
 						break;
 					case 'paid':
 						$data->query->orWhere("#amountPaid = #amountDeal");
+						break;
+					case 'overdue':
+						$data->query->orWhere("#paymentState ='overdue'");
 						break;
 					case 'delivered':
 						$data->query->orWhere("#amountDelivered = #amountDeal");
@@ -883,6 +896,7 @@ class sales_Sales extends core_Master
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
+        $result->agreed->valior 				= $rec->valior;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
         $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
@@ -920,7 +934,6 @@ class sales_Sales extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
@@ -1093,16 +1106,38 @@ class sales_Sales extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$Cron = cls::get('core_Cron');
-        
-        $rec = new stdClass();
+    	$rec = new stdClass();
         $rec->systemId = "Close sales";
         $rec->description = "Затваря приключените продажби";
         $rec->controller = "sales_Sales";
-        $rec->action = "closeOldSales";
-        $rec->period = 24*60;
+        $rec->action = "CloseOldSales";
+        $rec->period = 1440;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
         
-        $Cron->addOnce($rec);
+        $rec2 = new stdClass();
+        $rec2->systemId = "IsSaleOverdue";
+        $rec2->description = "Проверява дали продажбата е пресрочена";
+        $rec2->controller = "sales_Sales";
+        $rec2->action = "CheckSalesPayments";
+        $rec2->period = 60;
+        $rec2->offset = 0;
+        $rec2->delay = 0;
+        $rec2->timeLimit = 100;
+        
+        $Cron = cls::get('core_Cron');
+    	if($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да приключва стари продажби.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да приключва стари продажби.</li>";
+        }
+        
+    	if($Cron->addOnce($rec2)) {
+            $res .= "<li><font color='green'>Задаване на крон да проверява дали продажбата е пресрочена.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е пресрочена.</li>";
+        }
     }
     
     
@@ -1142,5 +1177,48 @@ class sales_Sales extends core_Master
         }
         
         return FALSE;
+    }
+    
+    
+	/**
+     * Проверява дали фактурите са пресрочени или платени
+     */
+    function cron_CheckSalesPayments()
+    {
+    	// Проверяват се всички активирани и продажби с чакащо плащане
+    	$query = $this->getQuery();
+    	$query->where("#paymentState = 'pending'");
+    	$query->where("#state = 'active'");
+    	
+    	while($rec = $query->fetch()){
+    		if($rec->state == 'closed'){
+    			// Ако състоянието е затворено, то приема че продажбата е платена
+    			$rec->paymentState = 'paid';
+    			$this->save($rec);
+    		} else {
+    			// Намира се метода на плащане от интерфейса
+    			$dealInfo = $this->getAggregateDealInfo($rec->id);
+    			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
+    			if($mId){
+    				// Намира се датата в реда фактура/експедиция/продажба
+    				foreach (array('invoiced', 'shipped', 'agreed') as $asp){
+    					if($date = $dealInfo->$asp->valior){
+    						break;
+    					}
+    				}
+    				
+    				// Извлича се платежния план
+    				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    				
+    				// Проверка дали продажбата е пресрочена
+    				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
+    				
+    					// Ако да, то продажбата се отбелязва като пресрочена
+    					$rec->paymentState = 'overdue';
+    					$this->save($rec);
+    				}
+    			}
+    		}
+    	}
     }
 }

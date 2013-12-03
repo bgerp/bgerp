@@ -39,9 +39,8 @@ class store_ShipmentOrders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary, store_DocumentWrapper,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
     /**
@@ -101,9 +100,15 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered, createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
-
+    
+    /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/shipment.png';
+    
+    
     /**
      * Детайла, на модела
      */
@@ -135,9 +140,9 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * Стратегии за дефолт стойностти
+     * Опашка от записи за записване в on_Shutdown
      */
-    public static $defaultStrategies = array('termId' => 'lastDocUser|lastDoc|clientCondition');
+    protected $updated = array();
     
     
     /**
@@ -159,12 +164,13 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('termId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие,mandatory,salecondSysId=deliveryTerm');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
         
         // Допълнително
+        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -176,26 +182,52 @@ class store_ShipmentOrders extends core_Master
 
     /**
      * След промяна в детайлите на обект от този клас
-     *
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    { 
+        // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
     {
-        $rec = $mvc->fetchRec($id);
+    	$rec = $this->fetchRec($id);
     	
-    	$query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    	$query = $this->store_ShipmentOrderDetails->getQuery();
+        $query->where("#shipmentId = '{$id}'");
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        $recs = $query->fetchAll();
+        
+        price_Helper::fillRecs($recs, $rec);
+        $measures = $this->getMeasures($recs);
+    	
+    	$rec->weight = $measures->weight;
+    	$rec->volume = $measures->volume;
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amount = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->total->vat * $rec->currencyRate;
         
-        $mvc->save($rec);
+        $this->save($rec);
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	            $mvc->updateMaster($id);
+	        }
+        }
     }
     
     
@@ -277,7 +309,8 @@ class store_ShipmentOrders extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -335,7 +368,6 @@ class store_ShipmentOrders extends core_Master
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -346,7 +378,6 @@ class store_ShipmentOrders extends core_Master
             $rec->contragentVatNo = $contragentData->vatNo;
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
 
@@ -367,23 +398,9 @@ class store_ShipmentOrders extends core_Master
         $rec  = &$form->rec;
         
         $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
-        
-        if (empty($rec->folderId)) {
-            expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
-        }
-        
-        // Определяне на контрагента (ако още не е определен)
-        if (empty($rec->contragentClassId)) {
-            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
-        }
-        
-        if (empty($rec->contragentId)) {
-            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        }
-        
-        if (empty($rec->storeId)) {
-            $rec->storeId = store_Stores::getCurrent('id', FALSE);
-        }
+        $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+        $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $rec->storeId = store_Stores::getCurrent('id', FALSE);
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('locationId')->type->options = 
@@ -400,10 +417,6 @@ class store_ShipmentOrders extends core_Master
             $dealInfo = $origin->getAggregateDealInfo();
             $form->rec->currencyId = $dealInfo->agreed->currency;
             $form->rec->currencyRate = $dealInfo->agreed->rate;
-            if($dealInfo->agreed->delivery->term){
-                $form->rec->termId = $dealInfo->agreed->delivery->term;
-                $form->setField('termId', 'input=hidden');
-            }
             $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
@@ -461,6 +474,9 @@ class store_ShipmentOrders extends core_Master
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
     	}
+    	
+    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
+    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
     	
     	if(isset($fields['-single'])){
     		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
@@ -577,9 +593,9 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->amount             = $rec->amountDelivered;
         $result->shipped->currency		 	 = $rec->currencyId;
         $result->shipped->rate		         = $rec->currencyRate;
+        $result->shipped->valior 			 = $rec->valior;
         $result->shipped->vatType            = $rec->chargeVat;
         $result->shipped->delivery->location = $rec->locationId;
-        $result->shipped->delivery->term     = $rec->termId;
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
         
@@ -591,7 +607,6 @@ class store_ShipmentOrders extends core_Master
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
             $p->discount    = $dRec->discount;
-            $p->isOptional  = FALSE;
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
@@ -637,42 +652,6 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * Връща теглото на всички артикули в документа
-     * @TODO mockup
-     * @param stdClass $rec - запис от модела
-     * @return stdClass   			
-     * 				[weight]    - тегло  
-	 * 				[measureId] - мярката
-     */
-    public function getWeight($rec)
-    {
-    	$obj = new stdClass();
-    	$obj->weight = $rec->amountDelivered * 1.2;
-    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кг'", 'id');
-    	
-    	return $obj;
-    }
-    
-    
-    /**
-     * Връща обема на всички артикули в документа
-     * @TODO mockup
-     * @param stdClass $rec - запис от модела
-     * @return stdClass
-	 *   			[volume]    - обем 
-	 * 				[measureId] - мярката
-     */
-	public function getVolume($rec)
-    {
-    	$obj = new stdClass();
-    	$obj->volume = $rec->amountDelivered * 2;
-    	$obj->measureId = cat_UoM::fetchField("#shortName = 'кв.м'", 'id');
-    	
-    	return $obj;
-    }
-    
-    
-    /**
      * Помощен метод за показване на документа в транспортните линии
      * @param stdClass $rec - запис на документа
      * @param stdClass $row - вербалния запис
@@ -680,18 +659,14 @@ class store_ShipmentOrders extends core_Master
     private function prepareLineRows($rec)
     {
     	$row = new stdClass();
-    	$oldRow = $this->recToVerbal($rec, '-single');
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
+    	$fields = $this->selectFields();
+    	$fields['-single'] = TRUE;
+    	$oldRow = $this->recToVerbal($rec, $fields);
+    	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $dealInfo->currency);
     	
-    	$weight = $this->getWeight($rec);
-    	$volume = $this->getVolume($rec);
-    	$dealInfo = $this->getDealInfo($rec->id)->shipped;
-    	$amount = currency_Currencies::round($dealInfo->amount / $dealInfo->rate, $dealInfo->currency);
-    	
-    	$row->weight = $Double->toVerbal($weight->weight) . " " . cat_UoM::getShortName($weight->measureId);
-    	$row->volume = $Double->toVerbal($volume->volume) . " " . cat_UoM::getShortName($volume->measureId);
-    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $Double->toVerbal($amount);
+    	$row->weight = $oldRow->weight;
+    	$row->volume = $oldRow->volume;
+    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
     	$row->address = $oldRow->contragentName;
@@ -702,16 +677,7 @@ class store_ShipmentOrders extends core_Master
     	}
     	
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
-    	
-    	if($this->haveRightFor('single', $rec->id)){
-	    	$icon = sbf($this->getIcon($rec->id), '');
-	    	$row->docId = $this->getHandle($rec->id);
-	    	$attr['class'] = "linkWithIcon";
-	        $attr['style'] = "background-image:url('{$icon}');";
-	        $attr['title'] = "Експедицонно нареждане №{$rec->id}";
-	        
-	    	$row->docId = ht::createLink($row->docId, array($this, 'single', $rec->id), NULL, $attr);
-	    }
+    	$row->docId = $this->getDocLink($rec->id);
     	
     	return $row;
     }
@@ -741,19 +707,9 @@ class store_ShipmentOrders extends core_Master
      */
     public function renderShipments($data)
     {
-    	$tpl = getTplFromFile('store/tpl/LineDetails.shtml');
+    	$table = cls::get('core_TableView');
+    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
     	
-    	if($data->shipmentOrders){
-    		foreach($data->shipmentOrders as $row){
-    			$block = clone $tpl->getBlock('ROW');
-    			$block->placeObject($row);
-    			$block->removeBlocks();
-    			$block->append2master();
-    		}
-    	} else {
-    		$tpl->append("<tr><td colspan='5'>" . tr('няма записи') . "</td></tr>", "NOROWS");
-    	}
-    	
-    	return $tpl;
+    	return $table->get($data->shipmentOrders, $fields);
     }
 }

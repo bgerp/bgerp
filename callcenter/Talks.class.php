@@ -1150,6 +1150,9 @@ class callcenter_Talks extends core_Master
             
             // Записваме
             static::save($rec);
+            
+            // Добавяме нотификация
+            static::addNotification($rec);
         }
     }
     

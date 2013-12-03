@@ -22,6 +22,12 @@
 							<td> [#workersIds#]</td>
 						</tr>
 						<!--ET_END workersIds-->
+						<!--ET_BEGIN locationId-->
+						<tr>
+							<td class='dt'>|Локация|*:</td>
+							<td> [#locationId#]</td>
+						</tr>
+						<!--ET_END locationId-->
 						<!--ET_BEGIN strategy-->
 						<tr>
 							<td class='dt'>|Стратегия|*:</td>
