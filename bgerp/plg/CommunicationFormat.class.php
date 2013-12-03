@@ -34,7 +34,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(-*[1-9][-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationFormat'), $html);
        
        // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
-       $html = preg_replace_callback("/^\s*((Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Имейл|Eмайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationFormat'), $html);
     }
     
     
@@ -47,7 +47,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      * @param array $match
      */
     function catchCommunicationFormat($match)
-    {
+    {   
+        if(!trim($match[3])) return;
+
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         
@@ -58,7 +60,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         // Намираме иконата в sbf папката
         $nameIcon = str::utf2ascii($matchElement);
 	    $icon = sbf("img/16/{$nameIcon}.png",'');
-
+        
         // в зависимост от услугата, правим различни линкове
         switch ($matchElement) {
         	
@@ -70,20 +72,24 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	case 'mobile' :
         	case 'mob' :
         		
+                $icon = sbf("img/16/telephone2.png", '');
+
         		$PhonesVerbal = cls::get('drdata_PhoneType');
         		
         		// парсирваме всеки телефон
         		$parsTel = $PhonesVerbal->toArray($match[3]);
         		
+                if(!count($parsTel)) break;
+
         		foreach($parsTel as $t){
         			// ако той е мобилен
         			if(strstr($t->area, 'Cellular')){
         				// му задаваме една икона
-        				$icon = sbf("img/16/mobile2.png",'');
+        				$icon = sbf("img/16/mobile2.png", '');
         			  // ако не е
         			} else { 
         				// му задаваме друга икона
-        				$icon = sbf("img/16/telephone2.png",''); 
+        				$icon = sbf("img/16/telephone2.png", ''); 
         			}
         		}
         		
@@ -123,22 +129,24 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 		 		        
 		    case 'icq' :
 		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
-		         																			href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
+		            href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
 		        break;
 		        
 		    case 'fax' :
 		    case 'факс' :
         		
+                if(!haveRole('officer')) break;
+
 		    	$icon = sbf("img/16/fax2.png",'');
-		    	 
+                
 		    	$PhonesVerbal = cls::get('drdata_PhoneType');
         		$Email = cls::get('type_Email');
         		
         		// ако мачнатия елемент прилича на телефон
         		// го парсирваме
-        		if($PhonesVerbal->toArray($match[3])){
+        		if($tArr = $PhonesVerbal->toArray($match[3])){
         			// за всеки един алемент
-        			foreach($PhonesVerbal->toArray($match[3]) as $t){ 
+        			foreach($tArr as $t){ 
 	        			// номера започва с +
         				$value = '+';
 	                    // ако имаме намерен код на страната го добавяме
@@ -166,12 +174,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         			
         			// и го връщаме
         			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
-        		}	
+        		}
+
 		        break;
 		        
 		        case 'email' :
 		        case 'e-mail' :
 		        case 'mail' :
+                case 'Имейл':
+                case 'Eмайл':
+                case 'Е-майл':
 		        case '@' :
 		        	$icon = sbf("img/16/email.png",''); 
 		        	
