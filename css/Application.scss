@@ -2145,6 +2145,13 @@ div.location{
 		text-align:center;
 		> div{
 		 	width:99% !important;
+		 	img {
+			 	max-width:none !important; 
+			 	max-height:none !important; 
+			 	width:auto; 
+			 	height:auto;
+		 	}
+		 	
 		}
 	}
 	div.locImage{
