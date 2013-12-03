@@ -153,8 +153,8 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('chiefId', 'key(mvc=core_Users, select=names)', 'caption=Отговорник,mandatory');
-        $this->FLD('workersIds', 'userList(store,storeWorker,ceo)', 'caption=Товарачи');
+        $this->FLD('chiefId', 'user(roles=store|ceo)', 'caption=Отговорник,mandatory');
+        $this->FLD('workersIds', 'userList(roles=store|storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
