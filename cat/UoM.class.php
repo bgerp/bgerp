@@ -268,6 +268,7 @@ class cat_UoM extends core_Manager
      * мерна еденица от същия тип
      * @param double $val - сума за закръгляне
      * @param string $sysId - системно ид на мярка
+     * @param boolean $verbal - дали да са вербални числата
      * @return string - закръглената сума с краткото име на мярката
      */
     public static function smartConvert($val, $sysId, $verbal = TRUE)
@@ -309,7 +310,7 @@ class cat_UoM extends core_Manager
         }
         
         // Ако няма такава се връща последната (тази най-близо до 1)
-        end($array);
+        end($all);
         $uomId = key($all);
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
