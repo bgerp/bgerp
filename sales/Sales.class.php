@@ -490,20 +490,18 @@ class sales_Sales extends core_Master
         );
         
         // Моментни експедиция и плащане по подразбиране
-        if (empty($form->rec->id)) {
-        	if(!$storeId = store_Stores::getCurrent('id', FALSE)){
-        		$form->setField('isInstantShipment', 'input=hidden');
-        		$form->rec->isInstantShipment = 'no';
-        	} else {
-        		$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
-        	}
+        if(!$storeId = store_Stores::getCurrent('id', FALSE)){
+        	$form->setField('isInstantShipment', 'input=hidden');
+        	$form->rec->isInstantShipment = 'no';
+        } else {
+        	$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
+        }
         	
-        	if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
-        		$form->setField('isInstantPayment', 'input=hidden');
-        		$form->rec->isInstantPayment = 'no';
-        	} else {
-        		$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
-        	}
+        if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
+        	$form->setField('isInstantPayment', 'input=hidden');
+        	$form->rec->isInstantPayment = 'no';
+        } else {
+        	$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
         }
     }
 
