@@ -121,8 +121,8 @@ class purchase_Purchases extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'deliveryTermId'     => 'lastDocUser|lastDoc|clientCondition',
-    	'paymentMethodId'    => 'lastDocUser|lastDoc|clientCondition',
+    	'deliveryTermId'     => 'clientCondition|lastDocUser|lastDoc',
+    	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|defMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
