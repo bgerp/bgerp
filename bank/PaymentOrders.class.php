@@ -182,7 +182,7 @@ class bank_PaymentOrders extends core_Master
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
     		$myCompany = crm_Companies::fetchOwnCompany();
-    		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId,$rec->contragentClassId);
+    		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId, $rec->contragentClassId);
     		
     		if($doc->className == 'bank_IncomeDocument') {
     			
@@ -212,8 +212,8 @@ class bank_PaymentOrders extends core_Master
 	    $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     		
 	    // Използваме помощната функция за намиране името на контрагента
-	    bank_IncomeDocument::getContragentInfo($data->form, 'beneficiaryName');
-    }
+	    $form->setReadOnly('beneficiaryName', cls::get($rec->contragentClassId)->getTitleById($rec->contragentId));
+	}
     
     
     /**

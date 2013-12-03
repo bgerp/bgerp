@@ -206,8 +206,6 @@ class cash_Pko extends core_Master
     	$form = &$data->form;
     	
     	// Използваме помощната функция за намиране името на контрагента
-    	bank_IncomeDocument::getContragentInfo($form, 'contragentName');
-
     	if($origin = $mvc->getOrigin($form->rec)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
@@ -240,6 +238,7 @@ class cash_Pko extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
     	$form->setOptions('operationSysId', $options);
     	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
+    	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
     	
     	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
