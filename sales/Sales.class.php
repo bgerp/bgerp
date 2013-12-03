@@ -157,6 +157,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -208,19 +214,26 @@ class sales_Sales extends core_Master
     }
     
     
-    /**
+	/**
      * След промяна в детайлите на обект от този клас
-     * 
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-    	$rec = $mvc->fetchRec($id);
+         // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetchRec($id);
     	
-    	$query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+    	$query = $this->sales_SalesDetails->getQuery();
+        $query->where("#saleId = '{$id}'");
         
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
@@ -229,7 +242,20 @@ class sales_Sales extends core_Master
         $rec->amountDeal = $amoundDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
         
-        $mvc->save($rec);
+        $this->save($rec);
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
     }
     
     
