@@ -155,4 +155,21 @@ class label_Templates extends core_Master
             $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png');
         }
     }
+    
+    
+    /**
+     * Връща шаблона
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return core_Et - Шаблона на записа
+     */
+    static function getTemplate($id)
+    {
+        // Шаблона
+        $template = static::fetchField($id, 'template');
+        
+        return new ET($template);
+    }
 }
+
