@@ -30,7 +30,7 @@ class fancybox_Fancybox {
     /**
      * @todo Чака за документация...
      */
-    function getImage($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
+    static function getImage($fh, $thumbSize, $maxSize, $baseName = NULL, $imgAttr = array(), $aAttr = array())
     {
         
 
