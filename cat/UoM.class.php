@@ -238,10 +238,78 @@ class cat_UoM extends core_Manager
     /**
      * Връща мерна еденициа по систем ид
      * @param varchar $sysId - sistem Id
-     * @return stdClass $rec - записа отговарящ на сис Ид-то
+     * @return stdClass $rec - записа отговарящ на сис ид-то
      */
     public static function fetchBySysId($sysId)
     {
     	return static::fetch("#sysId = '{$sysId}'");
+    }
+    
+    
+    /**
+     * Връща запис отговарящ на име на мерна еденица
+     * (включва българско, английско или фонетично записване)
+     * @param string $string - дума по която се търси
+     * @return stdClass $rec - записа отговарящ на сис Ид-то
+     */
+    public static function fetchBySinonim($string)
+    {
+    	$string = strtolower(str::utf2ascii($string));
+    	
+    	$query = static::getQuery();
+    	$query->likeKeylist('sinonims', "|{$string}|");
+    	
+    	return $query->fetch();
+    }
+    
+    
+    /**
+     * Помощна ф-я правеща умно закръгляне на сума в най-оптималната близка
+     * мерна еденица от същия тип
+     * @param double $val - сума за закръгляне
+     * @param string $sysId - системно ид на мярка
+     * @return string - закръглената сума с краткото име на мярката
+     */
+    public static function smartConvert($val, $sysId)
+    {
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	// Намира се коя мярка отговаря на това сис ид
+    	$typeUom = cat_UoM::fetchBySysId($sysId);
+    	
+    	// Извличат се мерките от същия тип и се премахва празния елемент в масива
+        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUom->id);
+        unset($sameMeasures[""]);
+       
+        if(count($sameMeasures) == 1){
+        	
+        	// Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
+        	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
+        	
+        	return ($val == 0) ? 0 : $Double->toVerbal($val) . " " . $typeUom->shortName;
+        }
+        
+        // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
+        $all = array();
+        foreach ($sameMeasures as $mId => $name){
+        	$all[$mId] = cat_UoM::convertFromBaseUnit($val, $mId);
+        }
+       
+        // Сумите се пдореждат в възходящ ред
+        asort($all);
+        
+        // Първата сума по голяма от 1 се връща
+        foreach ($all as $mId => $amount){
+	        if($amount > 1){
+	        	return ($all[$mId] == 0) ? 0 : $Double->toVerbal($all[$mId]) . " " . static::getShortName($mId);
+	        }
+        }
+        
+        // Ако няма такава се връща последната (тази най-близо до 1)
+        end($array);
+        $uomId = key($all);
+        
+        return ($all[$uomId] == 0) ? 0 : $Double->toVerbal($all[$uomId]) . " " . static::getShortName($mId);
     }
 }
