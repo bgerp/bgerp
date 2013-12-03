@@ -342,6 +342,11 @@ class label_TemplateFormats extends core_Detail
                 $filedsArr['Format']['clsType'] = 'type_Varchar';
                 $filedsArr['Format']['type'] = 'varchar';
                 $filedsArr['Format']['caption'] = 'Формат';
+                
+                // Поле дали за избор дали да се ротира
+                $filedsArr['Rotation']['clsType'] = 'type_Enum';
+                $filedsArr['Rotation']['type'] = 'enum(yes=Допустима, no=Недопустима, rotate=Винаги)';
+                $filedsArr['Rotation']['caption'] = 'Ротация';
             break;
             
             case 'image':
@@ -404,10 +409,10 @@ class label_TemplateFormats extends core_Detail
             $placeHolder = trim($rec->placeHolder);
             
             // Името на полето
-            $placeHolderField = 'Field' . $placeHolder;
+            $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
             // Добавяме в масива името на полето
-            $resArr[$placeHolderField]['caption'] = "Шаблони->{$typeArr[$rec->type]}->" . $placeHolder;
+            $resArr[$placeHolderField]['caption'] = "Шаблони->" . $placeHolder;
             
             $resArr[$placeHolderField]['name'] = $placeHolder;
             
@@ -438,6 +443,161 @@ class label_TemplateFormats extends core_Detail
         }
         
         return $resArr;
+    }
+    
+    
+    /**
+     * Връщаме името на полето
+     * 
+     * @param string $placeHolder - Името на плейсхолдера
+     * 
+     * @param string - Новото име на плейсхолдера
+     */
+    static function getPlaceholderFieldName($placeHolder)
+    {
+        
+        return 'Field' . $placeHolder;
+    }
+    
+    
+    /**
+     * Връща вербалното представаня на данните за плейсхолдера
+     * 
+     * @param integer $templateId - id на шаблона
+     * @param string $place - Името на плейсхолдера
+     * @param string $val - Вербалната стойност
+     * 
+     * @return string - Вербалното представяне на стойността
+     */
+    static function getVerbalTemplate($templateId, $place, $val)
+    {
+        // Масив със записите
+        static $recArr = array();
+        
+        // Масив с извлечените вербални стойности
+        static $verbalValArr = array();
+        
+        // Уникален стринг, за да вземаме даден запис само един път
+        $recStr = $place . '|' . $templateId;
+        
+        // Ако записа не е вземан преди
+        if (!$recArr[$recStr]) {
+            
+            // Вземаме записа
+            $recArr[$recStr] = static::fetch(array("#templateId = '[#1#]' AND #placeHolder = '[#2#]'", $templateId, $place));
+        }
+        
+        // Записа
+        $rec = $recArr[$recStr];
+        
+        // Типа
+        $type = $rec->type;
+        
+        // TODO cache
+        if ($type == 'caption') {
+            
+            if (!$verbalValArr[$val]) {
+                $Varchar = cls::get('type_Varchar');
+                $verbalValArr[$val] = $Varchar->toVerbal($val);
+            }
+            
+            
+        } elseif ($type == 'image') {
+            if (!$verbalValArr[$val]) {
+                
+                $attr = array();
+                if ($val) {
+                    $val = 'qloMfJ';
+                    $thumb= new img_Thumb($val, $rec->formatParams['Width'], $rec->formatParams['Height']);
+                        
+                    if ($rec->formatParams['Rotation'] == 'yes') {
+                        if ($thumb->isGoodToRotate($rec->formatParams['Width'], $rec->formatParams['Height'])) {
+                            $thumb->rotate();
+                            $attr['class'] = 'rotate';
+                        }
+                    }
+                    
+                    $verbalValArr[$val] = $thumb->createImg($attr);
+                }
+            }
+        } elseif ($type == 'counter') {
+            
+            // TODO formatVal - % labe_CounterItems
+            
+            // Вземаме формата
+            $formatVal = $rec->formatParams['Format'];
+            
+            // Типа на баркода
+            $barcodeType = $rec->formatParams['BarcodeType'];
+            
+            // Стринг за уникалност
+            $val = $formatVal . '|' . $barcodeType;
+            
+            // Ако не е вземана стойността
+            if (!$verbalValArr[$val]) {
+                
+                // Нилираме стойностите
+                $attr = array();
+                $rotate = FALSE;
+                
+                // Масив с размерите
+                $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
+                
+                // Масив с обърнатите размери
+                $sizeRotate = array('height' => $rec->formatParams['Width'], 'width' => $rec->formatParams['Height']);
+                
+                // Вземаме минималната височина и широчината
+                $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
+                
+                // Ако няма да се ротира
+                if ($rec->formatParams['Rotation'] == 'no') {
+                    
+                    // Очакваме размера на баркода да може да се вмести
+                    barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                } elseif ($rec->formatParams['Rotation'] == 'yes') {
+                    
+                    // Ако ще се ротира
+                    try {
+                        
+                        // Проверяваме размера
+                        barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                    } catch (Exception $e) {
+                        
+                        // Ако възникне грешка със старите
+                        
+                        // Проверяваме с разменени размер
+                        barcode_Generator::checkSizes($barcodeType, $sizeRotate, $minWidthAndHeight);
+                        
+                        // Вдигаме флага за ротиране
+                        $rotate = TRUE;
+                    }
+                } elseif ($rec->formatParams['Rotation'] == 'rotate') {
+                    
+                    // Ако е зададено да се ротира твърдо
+                    
+                    // Проверяваме размера след ротиране
+                    barcode_Generator::checkSizes($barcodeType, $sizeRotate, $minWidthAndHeight);
+                    
+                    // Вдигаме флага
+                    $rotate = TRUE;
+                }
+                
+                // Ако ще се ротира
+                if ($rotate) {
+                    
+                    // Добавяме класа за ротиране
+                    $attr = array('class' => 'rotate');
+                    
+                    // Променяме масива с размерите
+                    $size = $sizeRotate;
+                }
+                
+                // Вземаме вербалната стойност
+                $verbalValArr[$val] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
+            }
+        }
+        
+        return $verbalValArr[$val];
     }
     
     
