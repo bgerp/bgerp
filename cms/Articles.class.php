@@ -290,7 +290,7 @@ class cms_Articles extends core_Master
 
         $query->orderBy("#level");
 
-        $navTpl = new ET();
+        $navData = new stdClass();
         
         $cnt = 0;
 
@@ -330,42 +330,33 @@ class cms_Articles extends core_Master
                 
             }
 
-            $class = ($rec->id == $rec1->id) ? $class = 'sel_page' : '';
+            $l = new stdClass();
 
+            $l->selected = ($rec->id == $rec1->id);
 
             if($lArr1[2]) {
-                $class .= ' level3';
+                $l->level = 3;
             } elseif($lArr1[1]) {
-                $class .= ' level2';
+                $l->level = 2;
             } elseif($lArr1[0]) {
-                $class .= ' level1';
+                $l->level = 1;
             }
 
-            $navTpl->append("<div class='nav_item {$class}'>");
             if(trim($rec1->body)) {
-                $navTpl->append(ht::createLink($title, array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id)));
-            } else {
-               $navTpl->append($title);
-            }
+                $l->url = array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id);
+            } 
+            
+            $l->title = $title;
             
             // Вземаме линка за промяна на записа
-            if($changeLink = $this->getChangeLink($rec1->id)) {
-                
-                // Добавяме интервал
-                $navTpl->append('&nbsp;');
-                
-                // Добавяме линка
-                $navTpl->append($changeLink);
-            }
+            $l->editLink = $this->getChangeLink($rec1->id);
 
-            $navTpl->append("</div>");
+            $navData->links[] = $l;
 
         }
         
         if(self::haveRightFor('add')) {
-            $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin-top:10px;font-size:0.7em'>");
-            $navTpl->append(ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId))));
-            $navTpl->append( "</div>");
+            $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
 		
         Mode::set('cMenuId', $menuId);
@@ -375,7 +366,7 @@ class cms_Articles extends core_Master
         }
         
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
-            $content->append($navTpl, 'NAVIGATION');
+            $content->append(cms_Articles::renderNavigation($navData), 'NAVIGATION');
         }
         
         $richText = cls::get('type_RichText');
@@ -397,6 +388,45 @@ class cms_Articles extends core_Master
         }
 
         return $content; 
+    }
+
+
+    /**
+     * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editUrl} )
+     * $data->new = {$caption, $url}
+     * 
+     */
+    function renderNavigation_($data)
+    {
+        $navTpl = new ET();
+
+        foreach($data->links as $l) {
+            $selected = ($l->selected) ? $sel = 'sel_page' : '';
+            $navTpl->append("<div class='nav_item level{$l->level} $selected'>");
+            if($l->url) {
+                $navTpl->append(ht::createLink($l->title, $l->url));
+            } else {
+                $navTpl->append($l->title);
+            }
+
+            if($l->editLink) {
+                // Добавяме интервал
+                $navTpl->append('&nbsp;');
+                
+                // Добавяме линка
+                $navTpl->append($l->editLink);
+
+            }
+            $navTpl->append("</div>");
+        }
+
+        if($data->addLink) {
+            $navTpl->append( "<div style='padding:2px; border:solid 1px #ccc; background-color:#eee; margin-top:10px;font-size:0.7em'>");
+            $navTpl->append($data->addLink);
+            $navTpl->append( "</div>");
+        }
+
+        return $navTpl;
     }
     
     
