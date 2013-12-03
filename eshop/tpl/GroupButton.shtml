@@ -1,0 +1,8 @@
+<div class='eshop-group-button'>
+	<div class='eshop-group-button-img'>
+		[#IMG#]
+	</div>
+	<div class='eshop-group-button-title'>
+		[#TITLE#]
+	</div>
+</div>
