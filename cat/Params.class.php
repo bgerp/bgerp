@@ -129,7 +129,7 @@ class cat_Params extends core_Manager
         	$rec = &$form->rec;
         	if($rec->options){
         		$vArr = arr::make($rec->options);
-        		$Type = cls::get("type_{$rec->type}");
+        		$Type = cls::get(($rec->type == 'cat_type_Uom') ? 'cat_type_Uom' : "type_{$rec->type}");
         		foreach($vArr as $option){
         			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
         				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");

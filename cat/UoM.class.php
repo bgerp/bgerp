@@ -270,7 +270,7 @@ class cat_UoM extends core_Manager
      * @param string $sysId - системно ид на мярка
      * @return string - закръглената сума с краткото име на мярката
      */
-    public static function smartConvert($val, $sysId)
+    public static function smartConvert($val, $sysId, $verbal = TRUE)
     {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
@@ -286,8 +286,9 @@ class cat_UoM extends core_Manager
         	
         	// Ако мярката няма сродни мерки, сумата се конвертира в нея и се връща
         	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
+        	$val = ($verbal) ? $Double->toVerbal($val) : $val;
         	
-        	return ($val == 0) ? 0 : $Double->toVerbal($val) . " " . $typeUom->shortName;
+        	return ($val == 0) ? 0 : $val . " " . $typeUom->shortName;
         }
         
         // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
@@ -302,7 +303,8 @@ class cat_UoM extends core_Manager
         // Първата сума по голяма от 1 се връща
         foreach ($all as $mId => $amount){
 	        if($amount >= 1){
-	        	return ($all[$mId] == 0) ? 0 : $Double->toVerbal($all[$mId]) . " " . static::getShortName($mId);
+	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+	        	return ($all[$mId] == 0) ? 0 : $all[$mId] . " " . static::getShortName($mId);
 	        }
         }
         
@@ -310,6 +312,7 @@ class cat_UoM extends core_Manager
         end($array);
         $uomId = key($all);
         
-        return ($all[$uomId] == 0) ? 0 : $Double->toVerbal($all[$uomId]) . " " . static::getShortName($mId);
+        $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
+        return ($all[$uomId] == 0) ? 0 : $all[$uomId] . " " . static::getShortName($mId);
     }
 }

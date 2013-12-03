@@ -74,11 +74,11 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
-        $this->FLD('netWeight', 'double(decimals=3)', 'input,caption=Тегло->Нето');
-        $this->FLD('tareWeight', 'double(decimals=3)', 'input,caption=Тегло->Тара');
-        $this->FLD('sizeWidth', 'double(decimals=3)', 'input,caption=Габарит->Ширина');
-        $this->FLD('sizeHeight', 'double(decimals=3)', 'input,caption=Габарит->Височина');
-        $this->FLD('sizeDepth', 'double(decimals=3)', 'input,caption=Габарит->Дълбочина');
+        $this->FLD('netWeight', 'cat_type_Weight', 'input,caption=Тегло->Нето');
+        $this->FLD('tareWeight', 'cat_type_Weight', 'input,caption=Тегло->Тара');
+        $this->FLD('sizeWidth', 'cat_type_Dimension', 'input,caption=Габарит->Ширина');
+        $this->FLD('sizeHeight', 'cat_type_Dimension', 'input,caption=Габарит->Височина');
+        $this->FLD('sizeDepth', 'cat_type_Dimension', 'input,caption=Габарит->Дълбочина');
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Код->EAN');
         $this->FLD('customCode', 'varchar(64)', 'input,caption=Код->Вътрешен');
         
@@ -253,16 +253,16 @@ class cat_products_Packagings extends cat_products_Detail
     	$row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
     	
     	if($rec->eanCode){
-    		$row->code = "EAN: {$row->eanCode} <br />";
+    		$row->code = tr("|EAN|*:") . $row->eanCode . "<br />";
     	}
     	if($rec->customCode){
-    		$row->code .= "Вътрешен: {$row->customCode}";
+    		$row->code .= tr("Вътрешен") . ": " . $row->customCode;
     	}
     	if($rec->netWeight){
-    		$row->weight = "Нето: {$row->netWeight} <br />";
+    		$row->weight = tr("|Нето|*: ") . $row->netWeight . "<br />";
     	}
     	if($rec->tareWeight){
-    		$row->weight .= "Тара: {$row->tareWeight}";
+    		$row->weight .= tr("|Тара|*: {$row->tareWeight}");
     	}
     }
 
