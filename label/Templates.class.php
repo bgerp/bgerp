@@ -136,7 +136,8 @@ class label_Templates extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
-        $this->FLD('template', 'html', 'caption=Шаблон');
+        $this->FLD('template', 'html', 'caption=Шаблон->HTML');
+        $this->FLD('css', 'text', 'caption=Шаблон->CSS');
     }
     
     
@@ -169,7 +170,26 @@ class label_Templates extends core_Master
         // Шаблона
         $template = static::fetchField($id, 'template');
         
-        return new ET($template);
+        // Шаблона
+        $tpl = new ET($template);
+        
+        // Добавяме стиловете
+        $tpl->append(static::fetchField($id, 'css'), 'STYLES');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $row
+     * @param unknown_type $rec
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // Добавяме CSS' а към шаблона
+        $row->template = $rec->css . $row->template;
     }
 }
-
