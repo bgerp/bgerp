@@ -280,7 +280,8 @@ class store_Receipts extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -338,7 +339,6 @@ class store_Receipts extends core_Master
         
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -349,7 +349,6 @@ class store_Receipts extends core_Master
             $rec->contragentVatNo = $contragentData->vatNo;
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
 

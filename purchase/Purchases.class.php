@@ -437,7 +437,9 @@ class purchase_Purchases extends core_Master
     	
     	// Данните на клиента
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata      = static::normalizeContragentData($contragent->getContragentData());
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        
+        $cdata = static::normalizeContragentData($contragent->getContragentData());
         
         foreach((array)$cdata as $name => $value){
         	$row->$name = $value;
@@ -461,21 +463,6 @@ class purchase_Purchases extends core_Master
      */
     public static function normalizeContragentData($contragentData)
     {
-       /*
-        * Разглеждаме четири случая според данните в $contragentData
-        *
-        *  1. Има данни за фирма и данни за лице
-        *  2. Има само данни за фирма
-        *  3. Има само данни за лице
-        *  4. Нито едно от горните не е вярно
-        */
-    
-        if (empty($contragentData->company) && empty($contragentData->person)) {
-            // Случай 4: нито фирма, нито лице
-            return FALSE;
-        }
-    
-        // Тук ще попълним резултата
         $rec = new stdClass();
     
         $rec->contragentCountryId = $contragentData->countryId;
@@ -483,7 +470,6 @@ class purchase_Purchases extends core_Master
     
         if (!empty($contragentData->company)) {
             // Случай 1 или 2: има данни за фирма
-            $rec->contragentName    = $contragentData->company;
             $rec->contragentAddress = trim(
                 sprintf("%s %s\n%s",
                     $contragentData->place,
@@ -492,15 +478,8 @@ class purchase_Purchases extends core_Master
                 )
             );
             $rec->contragentVatNo = $contragentData->vatNo;
-    
-            if (!empty($contragentData->person)) {
-                // Случай 1: данни за фирма + данни за лице
-    
-                // TODO за сега не правим нищо допълнително
-            }
         } elseif (!empty($contragentData->person)) {
             // Случай 3: само данни за физическо лице
-            $rec->contragentName    = $contragentData->person;
             $rec->contragentAddress = $contragentData->pAddress;
         }
     
