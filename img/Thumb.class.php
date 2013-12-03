@@ -254,17 +254,57 @@ class img_Thumb
         return $this->gdRes;
     }
 
-
-    /**
-     * Връща размера на изображението
-     */
-    function getSize()
+    function isGoodToRotate($maxWidth, $maxHeigt)
     {
+        $this->setWidthAndHeight();
+        
+        $original = $this->scaleSize($this->width, $this->height, $maxWidth, $maxHeigt);
+        $rotated = $this->scaleSize($this->width, $this->height, $maxHeigt, $maxWidth);
+        
+        $originalRatio = abs(1-$original[2]);
+        $rotatedRatio = abs(1-$rotated[2]);
+        
+        if ($originalRatio && $originalRatio < $rotatedRatio) {
+//            bp($originalRatio, $rotatedRatio);
+            return TRUE;
+        }
+    }
+    
+    
+    /**
+     * Промена височината и широчината
+     */
+    function rotate()
+    {
+        // Временна променлива
+        $maxWidth = $this->maxWidth;
+        
+        // Променяме височината и широчината
+        $this->maxWidth = $this->maxHeight;
+        $this->maxHeight = $maxWidth;
+    }
+    
+    
+    /**
+     * Задаваме височината и широчината
+     */
+    function setWidthAndHeight()
+    {
+        // Ако не са зададени
         if(!$this->width || !$this->height) {
             $gdRes = $this->getGdRes();
             $this->width  = imagesx($gdRes);
             $this->height = imagesy($gdRes);
         }
+    }
+    
+    
+    /**
+     * Връща размера на изображението
+     */
+    function getSize()
+    {
+        $this->setWidthAndHeight();
 
         if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
             list($this->scaledWidth, $this->scaledHeight, $this->ratio) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge);
