@@ -702,18 +702,21 @@ function toggleAllCheckboxes()
 function SetWithCheckedButton()
 { 
 	var state = false;
-    trColorOriginals.forEach( function (el, id, all) {
-        var pTarget = get$("cb_" + id);
-        if(pTarget.checked == true) {
-            state = true;
-        } 
-     });
+	trColorOriginals.forEach( function (el, id, all) {
+	    var pTarget = get$("cb_" + id);
+	    if(pTarget.checked == true) {
+	    	state = true;
+	    } 
+	});
 
-	 var btn = get$('with_selected');
-
+	var btn = get$('with_selected');
+	
+	// Ако не може да се определи
+	if (!btn) return;
+	
 	btn.className = btn.className.replace(' btn-with-selected-disabled', '');
 	btn.className = btn.className.replace(' btn-with-selected', '');
-
+	
 	if(state) {
 		btn.className += ' btn-with-selected';
 		btn.disabled = false;
@@ -721,7 +724,7 @@ function SetWithCheckedButton()
 		btn.className += ' btn-with-selected-disabled';
 		btn.disabled = true;
 		btn.blur();
-	 }
+	}
 }
 
 function flashHashDoc(flasher)
@@ -875,13 +878,17 @@ function setMinHeight()
                         
 		if(document.getElementById('maincontent')) {
 			var mc = document.getElementById('maincontent');
-			var h = (ch - fct - 40) + 'px';
+			var h = (ch - fct - 51) + 'px';
 			mc.style.minHeight = h;
 		}
 
 		if(document.getElementById('packWrapper')) {
 			var pw = document.getElementById('packWrapper');
-			var h = (ch - fct - 116) + 'px';
+			var sub = 100;
+			if( document.body.className.match('wide')){
+				sub = 118;
+			}
+			var h = (ch - fct - sub) + 'px';
 			pw.style.minHeight = h;
 		}
 	}
@@ -899,9 +906,9 @@ function setMinHeightExt()
 		var cb = document.getElementById('cmsBottom').offsetHeight;     
 		var cm = document.getElementById('cmsMenu').offsetHeight; 
 		
-		var add = 6;
+		var add = 7;
 		if( document.body.className.match('wide')){
-			add = 16;
+			add = 36;
 		}
 		
 		if(document.getElementById('maincontent')) {

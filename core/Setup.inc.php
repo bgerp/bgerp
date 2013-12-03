@@ -891,7 +891,7 @@ if($step == start) {
     // Следващият ред генерира notice,
     // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
     @ob_end_clean();
-    
+
     header("Connection: close\r\n");
     header("Content-Encoding: none\r\n");
     ob_start();
@@ -913,16 +913,19 @@ if($step == start) {
 
     $ef = new core_Setup();
     try {
-        $res = $ef->install();
-        file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'OK' . $res);
-    } catch (core_exception_Expect $e) {
-        file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getAsHtml());
+        try {
+            $res = $ef->install();
+            file_put_contents(EF_TEMP_PATH . '/setupLog.html', 'OK' . $res);
+        } catch (core_exception_Expect $e) {
+            file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res . "ERROR: " . $e->getAsHtml());
+        }
+    } catch (Exception $e) {
+        file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
     }
     
     $Packs = cls::get('core_Packs');
     //$Packs->setupMVC();
     //$Packs->checkSetup();
-    
     // за сега стартираме пакета bgERP за пълно обновяване
     $Packs->setupPack("bgerp");
 

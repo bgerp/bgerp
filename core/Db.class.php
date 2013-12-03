@@ -652,30 +652,20 @@ class core_Db extends core_BaseClass
         }
         
         if (mysql_errno($this->link) > 0) {
-            // Ако при възникване на грешка базата е празна
-            // - редиректваме към сетъп-а и получаваме права за сетъпване
-//             if ($this->databaseEmpty()) {
-//                 if (!$setupFlag) {
-//                     redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-//                 }
-//             }
-
-//            if (!$silent) {
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
                 
-                $err = new core_exception_Expect("Грешка {$errno} в БД при " . $action, array("query"=>$this->query, "error"=>$error));
+                $err = new core_exception_Expect("Грешка {$errno} в БД при " . $action . ": {$error}", array("query"=>$this->query, "error"=>$error));
 
                 $err->class  = 'core_Db';
                 $err->errNum = $errno;
                  
                 throw $err;
                 
-                error("Грешка {$errno} в БД при " . $action, array(
-                        "query" => $this->query,
-                        "error" => $error
-                    ), 'ГРЕШКА В БАЗАТА ДАННИ');
-//            }
+//                 error("Грешка {$errno} в БД при " . $action, array(
+//                         "query" => $this->query,
+//                         "error" => $error
+//                     ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
 
         return mysql_errno();

@@ -85,7 +85,7 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if(!$pack) error('Missing pack name.');
+        if (!$pack) error('Missing pack name.');
         
         $res = $this->setupPack($pack);
         
@@ -102,21 +102,21 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if(!$pack) error('Липсващ пакет', $pack);
+        if (!$pack) error('Липсващ пакет', $pack);
         
-        if(!$this->fetch("#name = '{$pack}'")) {
+        if (!$this->fetch("#name = '{$pack}'")) {
             error('Този пакет не е инсталиран', $pack);
         }
         
-        if($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
+        if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
             
             $cls = $pack . "_Setup";
             
-            if(cls::load($cls, TRUE)) {
+            if (cls::load($cls, TRUE)) {
                 
                 $setup = cls::get($cls);
                 
-                if(!method_exists($setup, 'deinstall')) {
+                if (!method_exists($setup, 'deinstall')) {
                     $res = "<h2>Пакета <font color=\"\">'{$pack}'</font> няма деинсталатор.</h2>";
                 } else {
                     $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
@@ -156,7 +156,7 @@ class core_Packs extends core_Manager
     function getNonInstalledPacks()
     {
         
-        if(!$this->fetch("#name = 'core'")) {
+        if (!$this->fetch("#name = 'core'")) {
             $path = EF_EF_PATH . "/core/Setup.class.php";
             
             if(file_exists($path)) {
@@ -170,15 +170,15 @@ class core_Packs extends core_Manager
         
         $efDirs = $this->getSubDirs(EF_EF_PATH);
         
-        if(defined('EF_PRIVATE_PATH')) {
+        if (defined('EF_PRIVATE_PATH')) {
             $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
         }
         
         if (count($appDirs)) {
-            foreach($appDirs as $dir => $dummy) {
+            foreach ($appDirs as $dir => $dummy) {
                 $path = EF_APP_PATH . "/" . $dir . "/" . "Setup.class.php";
                 
-                if(file_exists($path)) {
+                if (file_exists($path)) {
                     unset($vendorDirs[$dir]);
                     unset($efDirs[$dir]);
                     
@@ -192,10 +192,10 @@ class core_Packs extends core_Manager
         }
         
         if (count($vendorDirs)) {
-            foreach($vendorDirs as $dir => $dummy) {
+            foreach ($vendorDirs as $dir => $dummy) {
                 $path = EF_VENDORS_PATH . "/" . $dir . "/" . "Setup.class.php";
                 
-                if(file_exists($path)) {
+                if (file_exists($path)) {
                     unset($efDirs[$dir]);
                     
                     // Ако този пакет не е инсталиран - 
@@ -208,10 +208,10 @@ class core_Packs extends core_Manager
         }
         
         if (count($efDirs)) {
-            foreach($efDirs as $dir => $dummy) {
+            foreach ($efDirs as $dir => $dummy) {
                 $path = EF_EF_PATH . "/" . $dir . "/" . "Setup.class.php";
                 
-                if(file_exists($path)) {
+                if (file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
                     if(!$this->fetch("#name = '{$dir}'")) {
@@ -225,10 +225,10 @@ class core_Packs extends core_Manager
             foreach($privateDirs as $dir => $dummy) {
                 $path = EF_PRIVATE_PATH . "/" . $dir . "/" . "Setup.class.php";
                 
-                if(file_exists($path)) {
+                if (file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
-                    if(!$this->fetch("#name = '{$dir}'")) {
+                    if (!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] =  $dir .' - собствен компонент';
                     }
                 }
@@ -253,7 +253,7 @@ class core_Packs extends core_Manager
      */
     function renderListToolbar_($data)
     {
-        if(! ($opt = $this->getNonInstalledPacks())) return "";
+        if (! ($opt = $this->getNonInstalledPacks())) return "";
         
         $form = cls::get('core_Form', array('view' => 'horizontal'));
         $form->FNC('pack', 'varchar', 'caption=Пакет,input');
@@ -282,7 +282,7 @@ class core_Packs extends core_Manager
                     
                     if ($file == "." || $file == "..") continue;
                     
-                    if(is_dir($dir . "/" . $file)) {
+                    if (is_dir($dir . "/" . $file)) {
                         $dirs[$file] = TRUE;
                     }
                 }
@@ -309,11 +309,11 @@ class core_Packs extends core_Manager
          
         $row->name = new ET($row->name);
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
-        if($rec->startCtr) {
+        if ($rec->startCtr) {
         	$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
         }
         
-        if($rec->deinstall == 'yes') {
+        if ($rec->deinstall == 'yes') {
         	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
         } else {
         	$row->deinstall = "";
@@ -326,13 +326,13 @@ class core_Packs extends core_Manager
         
         $filePath = getFullPath("{$rec->name}/icon.png");
 
-        if($filePath){
+        if ($filePath){
        		$imageUrl = sbf("{$rec->name}/icon.png","");
        	}
        	
        	$row->img = ht::createElement("img", array('src' => $imageUrl));
        	
-       	if($rec->startCtr) {
+       	if ($rec->startCtr) {
        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
        	}
        	
@@ -349,11 +349,11 @@ class core_Packs extends core_Manager
         }
        
 
-        if($conf->getConstCnt()) {
+        if ($conf->getConstCnt()) {
             $row->config = ht::createLink(tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config"));
         }
 
-        if($conf->haveErrors()) {
+        if ($conf->haveErrors()) {
 
             $row->ROW_ATTR['style'] = 'background-color:red';
         }
@@ -375,9 +375,9 @@ class core_Packs extends core_Manager
         
         $semafor = TRUE;
         
-        if(!$this->db->tableExists($this->dbTableName)) {
+        if (!$this->db->tableExists($this->dbTableName)) {
             $this->firstSetup();
-        } elseif(!$this->fetch("#name = 'core'") ||
+        } elseif (!$this->fetch("#name = 'core'") ||
             (!$this->fetch("#name = '" . EF_APP_CODE_NAME . "'") && cls::load(EF_APP_CODE_NAME . "_Setup", TRUE))) {
             $this->firstSetup();
         } else {
@@ -392,7 +392,7 @@ class core_Packs extends core_Manager
      */
     function act_Setup()
     {
-        if(isDebug()) {
+        if (isDebug()) {
             return $this->firstSetup(array('Index'));
         }
     }
@@ -414,7 +414,7 @@ class core_Packs extends core_Manager
         // Редиректваме към Users->add, с връщане към текущата страница
         $Users = cls::get('core_Users');
         
-        if(!$nextUrl) {
+        if (!$nextUrl) {
             // Ако нямаме нито един потребител, редиректваме за добавяне на администратор
             if(!$Users->fetch('1=1')) {
                 $url = array('core_Users', 'add', 'ret_url' => TRUE);
@@ -460,7 +460,7 @@ class core_Packs extends core_Manager
         $pack = strtolower($pack);
         
         // Предпазване срещу рекурсивно зацикляне
-        if($this->alreadySetup[$pack . $force]) return;
+        if ($this->alreadySetup[$pack . $force]) return;
         
         // Отбелязваме, че на текущия хит, този пакет е установен
         $this->alreadySetup[$pack . $force] = TRUE;
@@ -468,12 +468,12 @@ class core_Packs extends core_Manager
         GLOBAL $setupFlag;
         
         // Ако е пуснат от сетъп-а записваме в Лог-а 
-        if($setupFlag) {
+        if ($setupFlag) {
         	file_put_contents(EF_TEMP_PATH . '/setupLog.html', "<h2>Инсталиране на {$pack} ... <h2>", FILE_APPEND|LOCK_EX);
         }
         
         // Проверка дали Setup класа съществува
-        if(!cls::load($pack . "_Setup", TRUE)) {
+        if (!cls::load($pack . "_Setup", TRUE)) {
             return "<h4>Невъзможност да се инсталира <font color='red'>{$pack}</font>. " .
             "Липсва <font color='red'>Setup</font> клас.</h4>";
         }
@@ -483,7 +483,7 @@ class core_Packs extends core_Manager
         
         // Ако има зависимости, проследяваме ги
         // Първо инсталираме зависимостите
-        if($setup->depends) {
+        if ($setup->depends) {
             $depends = arr::make($setup->depends, TRUE);
             
             foreach($depends as $p => $v) {
@@ -492,7 +492,7 @@ class core_Packs extends core_Manager
         }
 
         // Започваме самото инсталиране
-        if($setup->startCtr && !$setupFlag) {
+        if ($setup->startCtr && !$setupFlag) {
             $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"&nbsp;";
         } else {
@@ -513,7 +513,7 @@ class core_Packs extends core_Manager
         
         // Единственото, което правим, когато версията, която инсталираме
         // е по-малка от изискваната, е да сигнализираме за този факт
-        if($version > 0 && $version > $setup->version) {
+        if ($version > 0 && $version > $setup->version) {
             $res .= "<li style='color:red'>За пакета '{$pack}' се изисква версия [{$version}], " .
             "а наличната е [{$setup->version}]</li>";
         }
@@ -522,11 +522,11 @@ class core_Packs extends core_Manager
         //   или този пакет не е инсталиран до сега 
         //   или инсталираната версия е различна спрямо тази
         // извършваме инсталационна процедура
-        if(!$force) {
+        if (!$force) {
             $rec = $this->fetch("#name = '{$pack}'");
         }
         
-        if($force || empty($rec) || ($rec->version != $setup->version)) {
+        if ($force || empty($rec) || ($rec->version != $setup->version)) {
             
             // Форсираме системния потребител
             core_Users::forceSystemUser();
@@ -561,7 +561,7 @@ class core_Packs extends core_Manager
         
         $res .= "</ul>";
         
-        if($setupFlag) {
+        if ($setupFlag) {
 			// Махаме <h2> тага на заглавието
 			$res = substr($res, strpos($res, "</h2>"), strlen($res));
 			file_put_contents(EF_TEMP_PATH . '/setupLog.html', $res, FILE_APPEND|LOCK_EX);
@@ -570,7 +570,7 @@ class core_Packs extends core_Manager
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
         
-        if($setupFlag && $pack == 'bgerp') {
+        if ($setupFlag && $pack == 'bgerp') {
             shutdown();
         }
 
@@ -658,19 +658,19 @@ class core_Packs extends core_Manager
         
         $cls = $packName . "_Setup";
             
-        if(cls::load($cls, TRUE)) {
+        if (cls::load($cls, TRUE)) {
             $setup = cls::get($cls);
         } else {
             error("Липсваш клас $cls");
         }
         
-        if($setup->configDescription) {
+        if ($setup->configDescription) {
             $description = $setup->configDescription;
         } else {
             error("Пакета $pack няма нищо за конфигуриране");
         }
         
-        if($rec->configData) {
+        if ($rec->configData) {
             $data = unserialize($rec->configData);
         } else {
             $data = array();
@@ -680,7 +680,7 @@ class core_Packs extends core_Manager
 
         $form->title = "Настройки на пакета |*<b style='color:green;'>{$packName}<//b>";
 
-        foreach($description as $field => $arguments) {
+        foreach ($description as $field => $arguments) {
             $type   = $arguments[0];
             $params = arr::combine($arguments[1], $arguments[2]);
             
@@ -692,14 +692,14 @@ class core_Packs extends core_Manager
 
             $typeInst = core_Type::getByName($type);
 
-            if(defined($field)) {
+            if (defined($field)) {
                 $defVal = $typeInst->toVerbal(constant($field));
                 $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
             }
 
             $form->FNC($field, $type, $params);
             
-            if($data[$field]) { 
+            if ($data[$field]) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
@@ -717,14 +717,17 @@ class core_Packs extends core_Manager
             $retUrl = array($this);
         }
         
-        if($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             
             // $data = array();
 
-            foreach($description as $field => $params) {
+            foreach ($description as $field => $params) {
                 $sysDefault = defined($field) ? constant($field) : '';
-                if($sysDefault != $form->rec->{$field}) {
-                    $data[$field] = $form->rec->{$field};
+                if ($sysDefault != $form->rec->{$field} ) {
+                    
+                    if ($form->rec->{$field} !== NULL) {
+                        $data[$field] = $form->rec->{$field};
+                    }
                 } else {
                     $data[$field] = '';
                 }
@@ -741,8 +744,8 @@ class core_Packs extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png');
 
         // Добавяне на допълнителни системни действия
-        if(count($setup->systemActions)) {
-            foreach($setup->systemActions as $name => $url) {
+        if (count($setup->systemActions)) {
+            foreach ($setup->systemActions as $name => $url) {
                 $form->toolbar->addBtn($name, $url);
             }
         }
@@ -774,7 +777,7 @@ class core_Packs extends core_Manager
     		$exData = array();
     	}
     	
-    	if(count($data)) {
+    	if (count($data)) {
     		foreach($data as $key => $value) {
                 $exData[$key] = $value;
     		}
@@ -811,7 +814,7 @@ class core_Packs extends core_Manager
         $cArr = explode(',', $conf);
         
         // Обхождаме масива
-        foreach($cArr as $conf) {
+        foreach ($cArr as $conf) {
             
             // Изчистваме празните интервали
             $conf = trim($conf);
@@ -836,7 +839,7 @@ class core_Packs extends core_Manager
     	$res = new ET(getFileContent("core/tpl/ListPack.shtml"));
     	$blockTpl = $res->getBlock('ROW');
     	
-    	foreach($data->rows as $row) {
+    	foreach ($data->rows as $row) {
     		$rowTpl = clone($blockTpl);
     		$rowTpl->placeObject($row);
     		$rowTpl->removeBlocks();

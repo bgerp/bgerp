@@ -143,11 +143,11 @@ class core_Setup {
         $Logs = cls::get('core_Logs');
         $html .= $Logs->setupMVC();
         
-        $Lg = cls::get('core_Lg');
-        $html .= $Lg->setupMVC();
-        
         $Cache = cls::get('core_Cache');
         $html .= $Cache->setupMVC();
+
+        $Lg = cls::get('core_Lg');
+        $html .= $Lg->setupMVC();
         
         $Roles = cls::get('core_Roles');
         $html .= $Roles->setupMVC();

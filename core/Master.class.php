@@ -466,4 +466,48 @@ class core_Master extends core_Manager
 
         return !empty($this->detail);
     }
+    
+    
+    /**
+     * Връща линк към сингъла на документа
+     * 
+     * @param integer $id - id на записа
+     * @param string $fieldName - Името на полето, което ще се използва за линк
+     * 
+     * @return core_Et - Линк към сингъла 
+     */
+    public static function getLinkToSingle_($id, $fieldName=NULL, $absolute=FALSE)
+    {
+        // Инстанция на класа
+        $me = cls::get(get_called_class());
+        
+        // Ако е подадено името на полето
+        if ($fieldName) {
+            
+            // Вземаме вербалното име
+            $name = $me->getVerbal($id, $fieldName);
+        } else {
+            
+            // Генерираме име
+            $name = $me->singleTitle . " #" . $id;
+        }
+        
+        // Масива за URL
+        $url = array();
+        
+        // Ако има права за сингъла
+        if ($me->haveRightFor('single')) { 
+            
+            // Линка към сингъла
+            $url = array($me, 'single', $id);
+        }
+        
+        // Иконата
+        $img = sbf($me->getIcon(), '"', $absolute);
+        
+        // Вземаме линка
+        $link = ht::createLink($name, $url, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon'));
+        
+        return $link;
+    }
 }
