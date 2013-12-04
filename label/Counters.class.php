@@ -36,7 +36,7 @@ class label_Counters extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-//    var $singleLayoutFile = 'label/tpl/.shtml';
+    var $singleLayoutFile = 'label/tpl/SingleLayoutCounters.shtml';
     
     
     /**
