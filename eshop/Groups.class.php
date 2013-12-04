@@ -182,7 +182,9 @@ class eshop_Groups extends core_Master
     function act_ShowAll()
     {
         $menuId = Request::get('cMenuId', 'int');
-
+        if($menuId) {
+            cms_Content::setLang(cms_Content::fetchField($menuId, 'lang'));
+        }
         $data = new stdClass();
 
         $this->prepareNavigation($data, $menuId);   
@@ -205,6 +207,10 @@ class eshop_Groups extends core_Master
         expect($rec = $this->fetch($groupId));
         Mode::set('cMenuId', $rec->menuId);
         
+        if($rec->menuId) {
+            cms_Content::setLang(cms_Content::fetchField($rec->menuId, 'lang'));
+        }
+
         $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
         
         $row = new stdClass();
