@@ -623,7 +623,7 @@ class label_Labels extends core_Master
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='lable-table'>";
+        $t = "<table class='label-table'>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {
