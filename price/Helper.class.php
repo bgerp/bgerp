@@ -19,17 +19,19 @@ abstract class price_Helper
 	 * Масив за мапване на стойностите от мениджърите
 	 */
 	private static $map = array(
-		'priceFld' 	    => 'packPrice',
-		'quantityFld'   => 'packQuantity',
-		'amountFld'     => 'amount',
-		'rateFld' 	    => 'currencyRate',
-		'classId' 	    => 'classId',
-		'productId'	    => 'productId',
-		'chargeVat'     => 'chargeVat',
-		'valior' 	    => 'valior',
-		'currencyId'    => 'currencyId',
-		'alwaysHideVat' => FALSE, // TRUE всичко трябва да е без ДДС
-	);
+			'priceFld' 	    => 'packPrice',
+			'quantityFld'   => 'packQuantity',
+			'amountFld'     => 'amount',
+			'rateFld' 	    => 'currencyRate',
+			'classId' 	    => 'classId',
+			'productId'	    => 'productId',
+			'chargeVat'     => 'chargeVat',
+			'valior' 	    => 'valior',
+			'currencyId'    => 'currencyId',
+			'discAmountFld'	=> 'discAmount',
+			'discount'	    => 'discount',
+			'alwaysHideVat' => FALSE, // TRUE всичко трябва да е без ДДС
+		);
 	
 	
 	/**
@@ -81,16 +83,20 @@ abstract class price_Helper
 	 * @param int $packQuantity       - количеството
 	 * @param double $vat             - процента ддс
 	 * @param boolean $isPriceWithVat - дали цената е с включено ддс
+	 * @param currencyCode 			  - валута
+	 * @param discount				  - отстъпка
 	 */
-	private static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode)
+	private static function calcAmount($price, $packQuantity, $vat, $isPriceWithVat = TRUE, $currencyCode, $discount)
 	{
 		$arr = array();
 		$arr['amount'] = $price * $packQuantity;
 		
+		$arr['discount'] = ($discount) ? $arr['amount'] * $discount : 0;
+		
 		if($isPriceWithVat){
-			$arr['vatAmount'] = $arr['amount'] * $vat / (1 + $vat);
+			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat / (1 + $vat);
 		} else {
-			$arr['vatAmount'] = $arr['amount'] * $vat;
+			$arr['vatAmount'] = ($arr['amount'] - $arr['discount']) * $vat;
 		}
 		
 		$arr['amount'] = currency_Currencies::round($arr['amount'], $currencyCode);
@@ -123,7 +129,7 @@ abstract class price_Helper
 			$hasVat = ($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE;
 		}
 		
-		$amount = $amountVat = 0;
+		$discount = $amount = $amountVat = 0;
 		
 		foreach($recs as &$rec){
 			$vat = 0;
@@ -137,14 +143,22 @@ abstract class price_Helper
         	$rec->$map['priceFld'] = ($hasVat) ? $price->withVat : $price->noVat;
         	
         	// Калкулира се сумата на реда
-        	$amountObj = self::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId']);
+        	$amountObj = self::calcAmount($rec->$map['priceFld'], $rec->$map['quantityFld'], $vat, $hasVat, $masterRec->$map['currencyId'], $rec->$map['discount']);
+        	
+        	// Изчисляване на цената без търговската отстъпка
+        	if($amountObj->discount){
+        		 $rec->$map['discAmountFld'] = $amountObj->discount;
+                 $discount += $rec->$map['discAmountFld'];
+        	}
+        	
         	$rec->$map['amountFld']  = $amountObj->amount;
-        	$amount          	+= $amountObj->amount;
-        	$amountVat       	+= $amountObj->vatAmount;
+        	$amount          		+= $amountObj->amount;
+        	$amountVat       		+= $amountObj->vatAmount;
 		}
 		
-		$masterRec->total         = new stdClass();
-        $masterRec->total->amount = currency_Currencies::round($amount, $rec->$map['currencyId']);
-        $masterRec->total->vat    = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
+		$masterRec->total           = new stdClass();
+        $masterRec->total->amount   = currency_Currencies::round($amount, $rec->$map['currencyId']);
+        $masterRec->total->vat      = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
+        $masterRec->total->discount = currency_Currencies::round($discount, $rec->$map['currencyId']);
 	}
 }
