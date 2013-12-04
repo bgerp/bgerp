@@ -36,7 +36,7 @@ class label_Labels extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-//    var $singleLayoutFile = 'label/tpl/.shtml';
+    var $singleLayoutFile = 'label/tpl/SingleLayoutLabels.shtml';
     
     
     /**
@@ -138,7 +138,7 @@ class label_Labels extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
-        $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети');
+        $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
         
         $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре');
         $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, title=Поле на листа отляво');
@@ -404,7 +404,11 @@ class label_Labels extends core_Master
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
-            // TODO increase printedCnt
+            // Увеличаваме броя на отпечатванията в модела
+            $rec->printedCnt += $form->rec->printCnt;
+            
+            // Записваме
+            $this->save($rec);
             
             // URL за печат
     	    $printUrl = array(
@@ -462,18 +466,13 @@ class label_Labels extends core_Master
         $data = new stdClass();
         $data->cnt = $cnt;
         $data->rec = $rec;
+        $data->id = $id;
         
         // Подгогвяме етикетите
         $this->prepareLabel($data);
         
         // Рендираме етикетите
         $tpl = $this->renderLabel($data);
-        
-        // URL за редирект
-        $retUrl = getRetUrl();
-        
-        // URL' то където ще се редиректва при отказ
-        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         return $tpl;
     }
@@ -486,66 +485,170 @@ class label_Labels extends core_Master
      */
     static function prepareLabel(&$data)
     {
-        // TODO да не са нули
+        // Ако няма запис
+        if (!$data->rec) {
+            
+            // Вземаме записа
+            $data->rec = static::fetch($data->id);
+        }
         
-        // Колко етикети ще има на страница
-        $data->itemsPerPage = $data->rec->columnsCnt * $data->rec->linesCnt;
+        // Ако не е сетната бройката
+        setIfNot($data->cnt, 1);
         
-        // Брой страници
-        $data->pageCnt = (int)ceil($data->cnt / $data->itemsPerPage);
-        
-        // Брой записи в поседната страница
-        $data->lastPageCnt = (int)($data->cnt % $data->itemsPerPage);
+        // Подготвяме данните за страниците
+        static::preparePageLayout($data);
         
         // Вземаме шаблона
-        $template = label_Templates::getTemplate($data->rec->templateId);
+        $data->row->Template = label_Templates::getTemplate($data->rec->templateId);
         
         // Вземема плейсхолдерите в шаблона
-        $placesArr = $template->getPlaceholders();
+        $placesArr = $data->row->Template->getPlaceholders();
         
         // Параметрите
         $params = $data->rec->params;
         
-        // TODO работи за един запис на страница
-        
-//        for ($i = 0; $i < $data->rec->columnsCnt; $i++) {
-
-            // Шаблона
-            $data->templateRow = clone($template);
+        // Докато достигнем броя на принтиранията
+        for ($i = 0; $i < $data->cnt; $i++) {
             
-            // TODO разделяне на рендиране и подготвяне
-            
-            // Обхождаме плейсхолдерите от масива
-            foreach ($placesArr as $place) {
+            // Обхождаме масива с шаблоните
+            foreach ((array)$placesArr as $place) {
                 
                 // Вземаме името на плейсхолдера
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $verbalVal = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace]);
-                
-                // Заместваме в етикете
-                $data->templateRow->replace($verbalVal, $place);
+                $data->rows[$i]->$place = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace]);
             }
-//        }
+        }
+    }
+    
+    
+    /**
+     * Подготвя данните необходими за странициране
+     * 
+     * @param object $data
+     */
+    static function preparePageLayout(&$data)
+    {
+        // Ако някоя от необходимите стойности не е сетната
+        if (!$data->rec->columnsCnt || !$data->rec->linesCnt || !$data->cnt) return FALSE;
+        
+        // Колко етикети ще има на страница
+        $data->pageLayout->itemsPerPage = $data->rec->columnsCnt * $data->rec->linesCnt;
+        
+        // Брой страници
+        $data->pageLayout->pageCnt = (int)ceil($data->cnt / $data->pageLayout->itemsPerPage);
+        
+        // Брой записи в поседната страница
+        $data->pageLayout->lastPageCnt = (int)($data->cnt % $data->pageLayout->itemsPerPage);
+        
+        // Брой на колоните
+        $data->pageLayout->columnsCnt = $data->rec->columnsCnt;
+        
+        // Брой на редовете
+        $data->pageLayout->linesCnt = $data->rec->linesCnt;
+        
+        // Ако не са сетнати да са единици
+        setIfNot($data->pageLayout->columnsCnt, 1);
+        setIfNot($data->pageLayout->linesCnt, 1);
     }
     
     
     /**
      * Рендираме етикете
      * 
-     * @param unknown_type $data
+     * @param object $data
+     * 
+     * @return core_Et - Шаблона, който ще връщаме
      */
     static function renderLabel(&$data)
     {
-        // TODO - работи само за един етикет
+        // Генерираме шаблона
+        $allTpl = new core_ET();
         
-//        $tpl = new ET('<table>[#TABLE#]</table>');
-        $tpl = new ET('[#TABLE#]');
+        // Брой записи на страница
+        $itemsPerPage = $data->pageLayout->itemsPerPage;
         
-        $tpl->append($data->templateRow, 'TABLE');
+        // Обхождаме резултатите
+        foreach ((array)$data->rows as $rowId => $row) {
+            
+            // Номера на вътрешния шаблон
+            $n = $rowId % $itemsPerPage;
+            
+            // Ако е първа или нямам шаблон
+            if ($n === 0 || !$tpl) {
+                
+                // Рендираме изгледа за една страница
+                $tpl = static::renderPageLayout($data);
+            }
+
+            // Вземаме шаблона
+            $template = clone($data->row->Template);
+            
+            // Заместваме в шаблона всички данни
+            $template->placeArray($row);
+            
+            // Заместваме шаблона в таблицата на страницата
+            $tpl->replace($template, $n);
+            
+            // Ако сме на последния запис в страницата или изобщо на последния запис
+            if (($rowId == $data->cnt - 1) || ($n == $itemsPerPage - 1)) {
+                
+                // Добавяме към главния шаблон
+                $allTpl->append($tpl);
+            }
+        }
         
-        return $tpl;
+        // Премахваме незаместените плейсхолдери
+        $allTpl->removePlaces();
+        
+        return $allTpl;
+    }
+    
+    
+    /**
+     * Рендираме шаблона за една страница
+     * 
+     * @param object $data
+     */
+    static function renderPageLayout(&$data)
+    {
+        // Брой колоени
+        $columns = $data->pageLayout->columnsCnt;
+        
+        // Брой редове
+        $lines = $data->pageLayout->linesCnt;
+        
+        // Брояч
+        $cnt = 0;
+        
+        // Създаваме таблицата
+        $t = "<table class='label-table'>";
+        
+        // Броя на редовете
+        for ($i = 0; $i < $lines; $i++) {
+            
+            // Добавям ред
+            $t .= '<tr>';
+            
+            // Броя на колоните
+            for ($s = 0; $s < $columns; $s++) {
+                
+                // Добавяме колона
+                $t .= "<td>[#$cnt#]</td>";
+                
+                // Увеличаваме брояча
+                $cnt++;
+            }
+            
+            // Добавяме край на ред
+            $t .= "</tr>";
+        }
+        
+        // Добавяме край на таблица
+        $t .= '</table>';
+        
+        return new ET($t);
     }
     
     

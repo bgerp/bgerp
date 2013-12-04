@@ -36,7 +36,7 @@ class label_Templates extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-//    var $singleLayoutFile = 'label/tpl/.shtml';
+    var $singleLayoutFile = 'label/tpl/SingleLayoutTemplates.shtml';
     
     
     /**
