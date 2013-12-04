@@ -220,13 +220,16 @@ class img_Thumb
             switch($this->sourceType) {
                 case 'url':
                 case 'string':
-                case 'fileman':
                     $param = $this->source;
+                    break;
+                case 'fileman':
+                    $param = fileman_Files::fetchByFh($this->source, 'md5');
                     break;
                 case 'path':
                     $param = md5_file($this->source);
+                    break;
                 case 'gdRes':
-                    $param = $this->getAsString($this->source);
+                    $param = md5_file($this->getAsString($this->source));
             }
 
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->maxWidth . '|' .
