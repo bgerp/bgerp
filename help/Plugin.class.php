@@ -22,10 +22,19 @@ class help_Plugin extends core_Plugin
     {
         setIfNot($ctr, $url['Ctr'], $url[0]);
         
+        $act = Request::get('Act');
+        
+        // какъв е метода на показваната страница?
+        if (strtolower($act) == 'edit' || strtolower($act) == 'add') {
+        	$act = 'edit';
+        } elseif ($act == " " || strtolower($act) == 'default' || $act == NULL) {
+        	$act = 'list';
+        }
+       
         // Текущия език на интерфейса
         $lg = core_Lg::getCurrent();
 
-        if($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) {
+        if($rec = help_Info::fetch(array("#class = '[#1#]' AND #action = '[#2#]' AND #lg = '[#3#]'", $ctr, $act, $lg))) {
 
             // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?
             switch(help_Log::getDisplayMode($rec->id)) {
@@ -46,7 +55,7 @@ class help_Plugin extends core_Plugin
             $hintText = $convertText->toVerbal($rec->text);
             $hint = new ET("<div class='tooltip-text {$mustSeeClass}'><div class='tooltip-arrow'></div><a class='close-tooltip'></a>[#1#]</div>", $hintText);
             $url = toUrl(array('help_Log', 'CloseInfo', $rec->id));
-            //$tabsTpl->appendOnce("helpUrl = '{$url}'", 'SCRIPTS');
+            
             jquery_Jquery::enable($tabsTpl);
          
             $tabsTpl->push('css/tooltip.css', 'CSS');

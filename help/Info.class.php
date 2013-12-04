@@ -37,7 +37,7 @@ class help_Info extends core_Master
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,class,lg,text,createdOn,createdBy';
+    var $listFields = '✍,class,action,lg,text,createdOn,createdBy';
 
 
     /**
@@ -65,10 +65,11 @@ class help_Info extends core_Master
     {
         $this->FNC('title', 'varchar', 'caption=Област');
 		$this->FLD('class', 'varchar(64)', 'caption=Име на класа');
+		$this->FLD('action', 'varchar(13)', 'caption=Метод');
         $this->FLD('lg', 'varchar(2)', 'caption=Език');
 		$this->FLD('text', 'richtext', 'caption=Помощна информацията, hint=Текст на информацията за помощ');
 
-        $this->setDbUnique('class,lg');
+        $this->setDbUnique('class,lg,action');
     }
 
 
@@ -92,8 +93,9 @@ class help_Info extends core_Master
     	// Кои колонки ще вкарваме
     	$fields = array( 
     		0 => 'class',
-            1 => 'lg',
-    		2 => 'text',
+    		1 => 'action',
+            2 => 'lg',
+    		3 => 'text',
     	);
     	
     	// Импортираме данните от CSV файла. 
