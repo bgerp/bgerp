@@ -2492,6 +2492,18 @@ div.location.public{
 }
 /*Край на стилове за пос*/
 
+
+/*стилове за ротация на елементи*/
+.rotate{
+  -webkit-transform: rotate(90deg);  /* Chrome, Safari 3.1+ */
+     -moz-transform: rotate(90deg);  /* Firefox 3.5-15 */
+      -ms-transform: rotate(90deg);  /* IE 9 */
+       -o-transform: rotate(90deg);  /* Opera 10.50-12.00 */
+          transform: rotate(90deg);  /* Firefox 16+, IE 10+, Opera 12.10+ */
+}
+/*край на стилове за ротация на елементи*/
+
+
 /*бъгфиксове*/
 .store_Racks  table.listTable > tbody > tr > td, .hr_ContractTypes table.listTable > tbody > tr > td{
 	max-width:700px;
