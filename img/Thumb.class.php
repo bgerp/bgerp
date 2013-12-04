@@ -138,6 +138,10 @@ class img_Thumb
                 $this->{$argName} = $args[$i];
             }
         }
+        
+        setIfNot($this->quality, 90);
+        setIfNot($this->timeout, 3);
+        setIfNot($this->sourceType, $sourceType);
 
         expect($this->maxWidth > 0 && $this->maxHeight > 0, $this); 
 
@@ -159,11 +163,6 @@ class img_Thumb
                     expect(FALSE, 'Непознат тип за източник на графичен файл', $this->sourceType);
             }
         }
-        
-        setIfNot($this->quality, 90);
-        setIfNot($this->timeout, 3);
-        setIfNot($this->sourceType, 'fileman');
-
     }
 
 
@@ -258,17 +257,57 @@ class img_Thumb
         return $this->gdRes;
     }
 
-
-    /**
-     * Връща размера на изображението
-     */
-    function getSize()
+    function isGoodToRotate($maxWidth, $maxHeigt)
     {
+        $this->setWidthAndHeight();
+        
+        $original = $this->scaleSize($this->width, $this->height, $maxWidth, $maxHeigt);
+        $rotated = $this->scaleSize($this->width, $this->height, $maxHeigt, $maxWidth);
+        
+        $originalRatio = abs(1-$original[2]);
+        $rotatedRatio = abs(1-$rotated[2]);
+        
+        if ($originalRatio && $originalRatio < $rotatedRatio) {
+//            bp($originalRatio, $rotatedRatio);
+            return TRUE;
+        }
+    }
+    
+    
+    /**
+     * Промена височината и широчината
+     */
+    function rotate()
+    {
+        // Временна променлива
+        $maxWidth = $this->maxWidth;
+        
+        // Променяме височината и широчината
+        $this->maxWidth = $this->maxHeight;
+        $this->maxHeight = $maxWidth;
+    }
+    
+    
+    /**
+     * Задаваме височината и широчината
+     */
+    function setWidthAndHeight()
+    {
+        // Ако не са зададени
         if(!$this->width || !$this->height) {
             $gdRes = $this->getGdRes();
             $this->width  = imagesx($gdRes);
             $this->height = imagesy($gdRes);
         }
+    }
+    
+    
+    /**
+     * Връща размера на изображението
+     */
+    function getSize()
+    {
+        $this->setWidthAndHeight();
 
         if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
             list($this->scaledWidth, $this->scaledHeight, $this->ratio) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge);
@@ -386,7 +425,7 @@ class img_Thumb
         $path = $this->getThumbPath();
         
         if(!file_exists($path) || (filemtime($path) + $this->expirationTime < time())) {
-            if($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml'))) {
+            if(($this->sourceType != 'gdRes') && ($mode == 'deferred' || ($mode == 'auto' && !Mode::is('text', 'xhtml')))) {
                 
                 $url = $this->getDeferredUrl();
 

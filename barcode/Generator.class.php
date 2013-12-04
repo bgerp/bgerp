@@ -14,6 +14,18 @@ defIfNot('PHP_QRCODE_VERSION', '1.1.4');
 
 
 /**
+ * Вкарваме файловете необходими за работа с баркодове
+ */
+require_once 'phpbarcode/' . PHP_BARCODE_VERSION . '/php-barcode.php';
+
+
+/**
+ * Вкарваме файловете необходими за работа с програмата.
+ */
+require_once 'phpqrcode/' . PHP_QRCODE_VERSION . '/qrlib.php';
+
+
+/**
  * Клас 'barcode_Generator' - Генериране на баркодове
  *
  * @category  vendors
@@ -25,6 +37,12 @@ defIfNot('PHP_QRCODE_VERSION', '1.1.4');
  */
 class barcode_Generator extends core_Manager
 {
+    
+    
+    /**
+     * Сол за генериране на ключ за криптиране
+     */
+    const KEY_SALTH = 'BARCODE IMAGE';
     
     
     /**
@@ -75,7 +93,7 @@ class barcode_Generator extends core_Manager
      * $params['saveAndPrint'] - При генериране на изображение, да се запише във файла и да се изведе на екрана.
      * 
      * За останалите:
-     * $params['angle'] - Ъгул на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
+     * $params['angle'] - Ъгъл на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
      * Ако е 90 или 270, баркода ще е вертикален. Ако е 180 баркода ще е обърнат надолу.
      *
      * @param array $output - Масив, в който се записват данните след генерирането на баркода 
@@ -95,9 +113,6 @@ class barcode_Generator extends core_Manager
         // Ако баркода е QR
         if (strtolower($type) == 'qr') {
             
-            // Вкарваме файловете необходими за работа с програмата.
-            require_once 'phpqrcode/' . PHP_QRCODE_VERSION . '/qrlib.php';
-            
             // Ако не се зададени параметрите, използваме по подразбиране
             $pixelPerPoint = $params['pixelPerPoint'] ? $params['pixelPerPoint'] : 3;
             $outFileName = $params['outFileName'] ? $params['outFileName'] : FALSE;
@@ -110,9 +125,6 @@ class barcode_Generator extends core_Manager
             
             return $im;
         }
-        
-        // Вкарваме файловете необходими за работа с баркодове
-        require_once 'phpbarcode/' . PHP_BARCODE_VERSION . '/php-barcode.php';
         
         // Проверяваме дали подадени данни са коректни
         self::checkContent($type, $conten);
@@ -180,18 +192,116 @@ class barcode_Generator extends core_Manager
      * $params['outerFrame'] - Рамката на изображението. По подразбирена е 0.
      * 
      * За останалите:
-     * $params['angle'] - Ъгул на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
+     * $params['angle'] - Ъгъл на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
      * Ако е 90 или 270, баркода ще е вертикален. Ако е 180 баркода ще е обърнат надолу.
      * 
      * @return - Показва изображението и спира изпълнението на скрипта
      */
     static function printImg($type, $conten, $size, $params=array())
     {
-        self::getImg($type, $conten, $size, $params);
-
+        // Вземаме изображението
+        $im = self::getImg($type, $conten, $size, $params);
+        
+        // Ако е ресурс
+        if (is_resource($im)) {
+            
+            // Връщаме png
+            imagepng($im);
+        }
+        
         header('Content-Type: image/png');
 
         shutdown();
+    }
+    
+    
+    /**
+     * Връща HTML 'img' линк за показване на баркод
+     * 
+     * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
+     * @param string $content - Съдържанието на баркода
+     * @param array  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг 
+     * 
+     * @param array - img таг с линка
+     */
+    static function getLink($type, $content, $size = NULL, $params = array())
+    {
+        // Вземаме линка
+        $attr['src']    = static::getUrl($type, $content, $size, $params);
+        
+        // Задаваме аттрибутите на тага
+        $attr['width']  = $size['width'];
+        $attr['height'] = $size['height'];
+        $attr['alt'] = $content;
+        $attr['class'] = $params['class'];
+        
+        // Създаваме линка
+        $link = ht::createElement('img', $attr);
+        
+        return $link;
+    }
+    
+    
+    /**
+     * Връща URL за показване на баркод
+     * 
+     * @param string $type    - Типа на баркода, който ще се генерира - Пример: QR, EAN13, EAN8 и т.н.
+     * @param string $content - Съдържанието на баркода
+     * @param array  $size    - Масив с широчината width и височината height на изображенията. Съща така може да приема и стринг
+     *  
+     * @param core_Et - Линк
+     */
+    static function getUrl($type, $content, $size = NULL, $params = array())
+    {
+        // Ако е зададен да е абсолют
+        if ($params['absolute']) {
+            
+            // Линка да е абсолютен
+            $linkType = 'absolute';
+        } else {
+            
+            // Линка да е релативен
+            $linkType = 'relative';
+        }
+        
+        // Масив с данните за криптиране
+        $cryptArr['type'] = $type;
+        $cryptArr['content'] = $content;
+        $cryptArr['size'] = $size;
+        $cryptArr['params'] = $params;
+        
+        // Криптираме данните
+        $id = core_Crypt::encodeVar($cryptArr, static::getCryptKey());
+        
+        // Връщаме линка
+        return toUrl(array('barcode_Generator', 'S', 't' => $id), $linkType);
+    }
+    
+    
+	/**
+     * Връща ключа за криптиране на отложение връзки
+     * 
+     * @return string - Ключ за кодиране
+     */
+    static function getCryptKey()
+    {
+        $key = sha1(EF_SALTH . self::KEY_SALTH);
+    }
+    
+    
+    /**
+     * Екшън за показване на баркод
+     */
+    function act_S()
+    {
+        // Параметрите
+        $t = Request::get('t');
+        
+        // Масив с параметрите
+        $arr = core_Crypt::decodeVar($t, static::getCryptKey());
+        
+        // Показваме изображението
+        static::printImg($arr['type'], $arr['content'], $arr['size'], $arr['params']);
     }
     
     
