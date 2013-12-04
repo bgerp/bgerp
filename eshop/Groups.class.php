@@ -44,7 +44,7 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,image,lang,state';
+    var $listFields = 'id,name,image,menuId,state';
     
     
     /**
@@ -156,7 +156,7 @@ class eshop_Groups extends core_Master
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none');
-        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню');
     }
 
 
@@ -165,18 +165,14 @@ class eshop_Groups extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $langsArr = cms_Content::getLangsArr();
-
-        if(($lg = $data->form->rec->lang) && !$langsArr[$lg]) {
-            $langsArr = array($lg => $lg) + $langsArr;
+        $cQuery = cms_Content::getQuery();
+        
+        $classId = core_Classes::fetchIdByName($mvc->className);
+        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+            $opt[$rec->id] = type_Varchar::escape($rec->menu);
         }
 
-        $data->form->setOptions('lang', $langsArr);
-
-        if(!$lg) {
-            $lang = cms_Content::getLang();
-            $data->form->setDefault('lang', $lang);
-        }
+        $data->form->setOptions('menuId', $opt);
     }
 
 
@@ -185,12 +181,12 @@ class eshop_Groups extends core_Master
      */
     function act_ShowAll()
     {
-        $lang    = cms_Content::getLang();
+        $menuId = Request::get('cMenuId', 'int');
 
         $data = new stdClass();
 
-        $this->prepareNavigation($data, $lang);   
-        $this->prepareAllGroups($data, $lang);  
+        $this->prepareNavigation($data, $menuId);   
+        $this->prepareAllGroups($data, $menuId);  
         $layout = $this->getLayout();
  
         $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -202,20 +198,20 @@ class eshop_Groups extends core_Master
 
     function act_Show()
     {
-        $lang    = cms_Content::getLang();
         $groupId = Request::get('id', 'int');
         $data = new stdClass();
 
-        $this->prepareNavigation($data, $lang, $groupId);
+        $this->prepareNavigation($data, NULL, $groupId);
         expect($rec = $this->fetch($groupId));
-
+        Mode::set('cMenuId', $rec->menuId);
+        
         $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
         
         $row = new stdClass();
 
         $row->title = type_Varchar::escape($rec->name);
         if($rec->image) {
-            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->title); //, $imgAttr = array(), $aAttr = array()));
+            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->title); 
         }
         $rt = cls::get('type_RichText');
         $row->description = $rt->toVerbal($rec->info); 
@@ -232,22 +228,31 @@ class eshop_Groups extends core_Master
     /**
      *
      */
-    function prepareAllGroups($data, $lang)
+    function prepareAllGroups($data, $menuId)
     {
         $query = self::getQuery();
-        $query->where("#state = 'active' AND #lang = '{$lang}'");  
+        $query->where("#state = 'active' AND #menuId = {$menuId}");  
         
         while($rec = $query->fetch()) {
             $rec->url = array('eshop_Groups', 'show', $rec->id);
             $data->recs[] = $rec;
         }
 
+        $cRec = cms_Content::fetch($menuId);
 
+        $data->title = type_Varchar::escape($cRec->url);
     }
 
+
     function on_AfterPrepareListToolbar($mvc, $data)
-    {
-        $data->toolbar->addBtn('Изглед', array('eshop_Groups', 'ShowAll'));
+    {   
+        $cQuery = cms_Content::getQuery();
+        
+        $classId = core_Classes::fetchIdByName($mvc->className);
+        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+            $data->toolbar->addBtn( type_Varchar::escape($rec->menu), 
+                array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id));
+        }
     }
 
     /**
@@ -255,7 +260,7 @@ class eshop_Groups extends core_Master
      */
     function renderAllGroups($data)
     {   
-        $all = new ET();
+        $all = new ET("<h1>{$data->title}</h1>");
         
         if(is_array($data->recs)) {
             foreach($data->recs as $rec) {
@@ -294,14 +299,21 @@ class eshop_Groups extends core_Master
     /**
      * Подготвя данните за навигацията
      */
-    function prepareNavigation(&$navData, $lang, $groupId = NULL, $productId = NULL)
+    function prepareNavigation(&$navData, $menuId, $groupId = NULL, $productId = NULL)
     {
         $query = $this->getQuery(); 
-        $query->where("#state = 'active' AND #lang = '{$lang}'");  
+        
+        $query->where("#state = 'active'");
+        
+        if($groupId) {
+            $menuId = self::fetch($groupId)->menuId;
+        }
+
+        $query->where("#menuId = {$menuId}");
  
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);
-        $l->url = array('eshop_Groups', 'ShowAll');
+        $l->url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $menuId);
         $l->title = tr('Всички продукти');;
         $l->level = 1;
         $navData->links[] = $l;
@@ -316,6 +328,13 @@ class eshop_Groups extends core_Master
             $l->title = type_Varchar::escape($rec->name);
             $l->level = 2;
             $l->selected = ($groupId == $rec->id);
+            
+            if($this->haveRightFor('edit', $rec)) {
+                $editSbf = sbf("img/16/edit.png", '');
+                $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+            }
+
+            $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id));
             
             $navData->links[] = $l;
 
@@ -342,7 +361,7 @@ class eshop_Groups extends core_Master
      */
     function getContentUrl($cMenuId)
     {
-        return array('eshop_Groups', 'ShowAll');
+        return array('eshop_Groups', 'ShowAll', 'cMenuId' => $cMenuId);
     }
 
 

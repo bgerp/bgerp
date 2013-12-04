@@ -392,7 +392,7 @@ class cms_Articles extends core_Master
 
 
     /**
-     * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editUrl} )
+     * $data->items = $array( $rec{$level, $title, $url, $isSelected, $icon, $editLink} )
      * $data->new = {$caption, $url}
      * 
      */
