@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class type_Order extends type_Int {
+class type_Order extends type_Varchar {
     
     
     /**
