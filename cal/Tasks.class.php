@@ -160,11 +160,11 @@ class cal_Tasks extends core_Master
     var $newBtnGroup = "1.3|Общи"; 
     
     static $view = array (
-    						'WeekHours',
-    						'WeekDay',
-    						'Months',
-    						'YearWeek',
-    						'Years',
+    						'WeekHours' => 1,
+    						'WeekDay' => 2,
+    						'Months' => 3,
+    						'YearWeek' => 4,
+    						'Years'=> 5,
     				
     				);
     
@@ -236,7 +236,7 @@ class cal_Tasks extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $blue = new color_Object("#2244cc");
-        $grey = new color_Object("#bbb");
+        $grey = new color_Object("#bbbbbb");
 
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
@@ -255,7 +255,7 @@ class cal_Tasks extends core_Master
         $grey->setGradient($blue, $rec->progress);
  
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-        
+
         // Ако имаме само начална дата на задачата
         if($rec->timeStart && !$rec->timeEnd){
         	// я парвим хипервръзка към календара- дневен изглед
@@ -1053,13 +1053,26 @@ class cal_Tasks extends core_Master
     	
     	$imgPlus = ht::createElement('img', array('src' => $iconPlus));
     	$imgMinus = ht::createElement('img', array('src' => $iconMinus));
-
-    	
+        
+    	$curIndex = static::$view[$ganttType];
+        $next = $curIndex + 1;
+        if ($next <= count (static::$view)) {
+       		$nextType = array_search($next, static::$view);
+       		$nextUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$nexType);
+        }
+        
+        $prev = $curIndex - 1;
+    	if ($prev >= 1) {
+       		$prevType = array_search($prev, static::$view);
+       		$prevUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevType);
+        }
+        
     	switch ($ganttType) {
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    		
+    	
+    	 	
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('месеци');
@@ -1069,11 +1082,12 @@ class cal_Tasks extends core_Master
 	    		// до последния ден на намерения месец за край
 	    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime). " 23:59:59");
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt'));
+    			
+//	    		/$urlPlus = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevUrl);
 	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekMonths'));
 	    		
-	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = " ";//ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
 	
 	    		$curDate = dt::timestamp2mysql(mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0])); 
 	    		$toDate = dt::getLastDayOfMonth($endTime). " 23:59:59"; 
@@ -1106,11 +1120,11 @@ class cal_Tasks extends core_Master
 	    		// до 23:59:59ч на намерения за край ден
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt'));
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekMonths'));
+	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prev));
+	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
 	    		
-	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
+	    		//$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgMinus, $nextUrl)->getContent();
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTime,$startTime); $i++) {
 		    		// оформяме заглавните части като показваме всеки един ден 
@@ -1136,8 +1150,8 @@ class cal_Tasks extends core_Master
 	    		// до края на намерения за край ден
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt'));
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekMonths'));
+	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prev));
+	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
 	    		
 	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
@@ -1172,8 +1186,8 @@ class cal_Tasks extends core_Master
 	    		// до последния ден на намерения за край месец
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt'));
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekMonths'));
+	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt','View' =>$prev));
+	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
 	    		
 	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
@@ -1209,8 +1223,8 @@ class cal_Tasks extends core_Master
 	    		// до неделята след намеренета за край дата
 	    		$otherParams['endTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'Years'));
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'Months'));
+	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$prev));
+	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
 	    		
 	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
