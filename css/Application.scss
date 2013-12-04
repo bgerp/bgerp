@@ -2571,6 +2571,27 @@ div.location.public{
 /*край на бъгфиксове*/
 
 
+/* Стилове за eshop */
+
+.eshop-group-button {
+    float:left; 
+    width:280px; 
+    height:160px;
+    margin:10px;
+    text-align:center;
+    .eshop-group-button-title{
+        margin-top:5px;
+        a{
+	        color:#333;
+	        &:hover{
+	            text-decoration:underline;
+	        }
+        } 
+    }
+}
+.narrow .eshop-group-button-title{
+	  margin-top:2px;
+}
 /*queries*/
 
 @media handheld , only screen and (max-width: 1000px) {
@@ -2636,6 +2657,11 @@ div.location.public{
 		margin-right:6px !important;
 		font-size:0.97em;
     }
+    .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
@@ -2652,6 +2678,11 @@ div.location.public{
     }
     .narrow select{
     	padding-left:4px;
+    }
+    .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
     }
 }
 
@@ -2676,6 +2707,11 @@ div.location.public{
     .narrow .single-thread .listTable .rich-text{
     	max-width:630px;
     }
+    .narrow .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 640px) { 
@@ -2691,6 +2727,11 @@ div.location.public{
 	.narrow #all{
 		border:none;
 	}
+	.narrow .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 600px) { 
@@ -2726,6 +2767,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:538px;
 	}
+	.narrow .eshop-group-button {
+	   width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+	}
 }
 
 @media handheld, only screen and (max-width: 533px) { 
@@ -2753,6 +2799,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:471px;
 	}
+	.narrow  .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 500px) { 
@@ -2777,6 +2828,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:438px;
 	}
+	.narrow  .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 480px) { 
@@ -2804,6 +2860,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:418px;
 	}
+	.narrow .eshop-group-button {
+       width:46%;
+       margin:0 2%;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 360px) {
@@ -2831,6 +2892,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:298px;
 	}
+	.narrow .eshop-group-button {
+       width:100%;
+       margin:2% 0;
+       font-size:0.9em;
+    }
 }
 
 
@@ -2859,6 +2925,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:258px;
 	}
+	.narrow .eshop-group-button {
+       width:100%;
+       margin:2% 0;
+       font-size:0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 240px) { 
@@ -2886,6 +2957,11 @@ div.location.public{
 	.narrow .chzn-container-single .chzn-search input {
 		max-width:178px;
 	}
+	.eshop-group-button {
+       width:100%;
+       margin:2% 0;
+       font-size:0.9em;
+    }
 }
 
 /*край на queries*/
@@ -3079,11 +3155,4 @@ div.location.public{
 @import "partials/sales";
 
 	
-/* Стилове за eshop */
 
-.eshop-group-button {
-	float:left; 
-	width:300px; 
-	height:160px;
-	text-align:center;
-}
