@@ -24,6 +24,8 @@ class core_Html
      * @see core_Html::mixedToHtml()
      */
     public static $dumpMaxDepth = 4;
+
+
     /**
      * Композира xHTML елемент
      */
@@ -689,7 +691,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        $tpl = ht::createElement('a', $attr, $title);
+        $tpl = ht::createElement($url ? 'a' : 'span', $attr, $title);
 
         return $tpl;
     }
