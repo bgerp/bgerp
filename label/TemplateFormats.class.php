@@ -507,7 +507,6 @@ class label_TemplateFormats extends core_Detail
                 
                 $attr = array();
                 if ($val) {
-                    $val = 'qloMfJ';
                     $thumb= new img_Thumb($val, $rec->formatParams['Width'], $rec->formatParams['Height']);
                         
                     if ($rec->formatParams['Rotation'] == 'yes') {
