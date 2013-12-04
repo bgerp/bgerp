@@ -16,25 +16,32 @@
 					<td>[#roles#]</td>
 				</tr>
 			<!--ET_END roles-->
-			<!--ET_BEGIN createdOn-->
-				<tr>
-					<td class='dt'>|Създаден на|*</td>
-					<td>[#createdOn#]</td>
-				</tr>
-			<!--ET_END createdOn-->
 			<!--ET_BEGIN password-->
 				<tr>
 					<td class='dt'>|Парола|*</td>
 					<td>[#password#]</td>
 				</tr>
 			<!--ET_END password-->
+			<!--ET_BEGIN createdOn-->
+				<tr>
+					<td class='dt'>|Създаден на|*</td>
+					<td>[#createdOn#]</td>
+				</tr>
+			<!--ET_END createdOn-->
 			<!--ET_BEGIN lastLoginInfo-->
 				[#lastLoginInfo#]
 				<tr>
 					<td class='dt'>|Последно|*</td>
-					<td>[#lastLoginTime#] |от|* [#lastLoginIp#]</td>
+					<td>[#lastLoginTime#]<!--ET_BEGIN lastLoginIp--> |от|* [#lastLoginIp#]<!--ET_END lastLoginIp--></td>
 				</tr>
 			<!--ET_END lastLoginInfo-->
+			<!--ET_BEGIN state-->
+				<tr>
+					<td class='dt'>|Състояние|*</td>
+					<td>[#state#]</td>
+				</tr>
+			<!--ET_END state-->
+
 		</table>
 	</div>
 </fieldset>

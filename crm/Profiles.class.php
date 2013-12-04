@@ -173,7 +173,7 @@ class crm_Profiles extends core_Master
             $data->User->row = core_Users::recToVerbal($data->User->rec);
             
             // Ако е текущия потребител
-            if (core_Users::getCurrent() == $data->User->rec->id) {
+            if ((core_Users::getCurrent() == $data->User->rec->id) || haveRole('admin')) {
                 
                 // URL за промяна на профила
                 $changePassUrl =  array('crm_Profiles', 'changePassword', 'ret_url'=>TRUE);
@@ -194,14 +194,19 @@ class crm_Profiles extends core_Master
                     $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
                     
                     // Създаме линка
-                    $data->User->row->editLink = ht::createLink($img, $url, FALSE,'title=' . tr('Редактиране на потребителски данни'));  
+                    $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на потребителски данни'));  
                 }
             } else {
-                
+
                 // Премахваме информацията, която не трябва да се вижда от другите
                 unset($data->User->row->password);
-                unset($data->User->row->lastLoginTime);
                 unset($data->User->row->lastLoginIp);
+            }
+
+            if($data->User->rec->state != 'active') {
+                $data->User->row->state = ht::createElement('span', array('class' => 'state-' . $data->User->rec->state, 'style' => 'padding:2px;'), $data->User->row->state);
+            } else {
+                unset($data->User->row->state);
             }
         }
         
