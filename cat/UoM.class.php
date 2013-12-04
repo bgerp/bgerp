@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'cat_UoM' - измервателни единици
+ * Клас 'cat_UoM' - мерни единици
  *
  * Unit of Measures
  *
@@ -46,7 +46,7 @@ class cat_UoM extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Измерителни единици';
+    var $title = 'Мерни единици';
     
     
     /**
