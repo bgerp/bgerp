@@ -32,5 +32,4 @@ class cms_SourceIntf
     {
         return $this->class->getWorkshopUrl($cMenuId);
     }
-
 }

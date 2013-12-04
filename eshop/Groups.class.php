@@ -20,7 +20,7 @@ class eshop_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи на продуктите";
+    var $title = "Групи в е-магазина";
     
     
     /**
@@ -28,7 +28,13 @@ class eshop_Groups extends core_Master
      */
     var $pageMenu = "Каталог";
     
-    
+
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'cms_SourceIntf';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -250,16 +256,18 @@ class eshop_Groups extends core_Master
     function renderAllGroups($data)
     {   
         $all = new ET();
-
-        foreach($data->recs as $rec) {
-            $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
-            if($rec->icon) {
-                $img = new img_Thumb($rec->icon, 280, 100, 'fileman');
-                $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'IMG');
+        
+        if(is_array($data->recs)) {
+            foreach($data->recs as $rec) {
+                $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
+                if($rec->icon) {
+                    $img = new img_Thumb($rec->icon, 280, 100, 'fileman');
+                    $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'IMG');
+                }
+                $title = ht::createLink(type_Varchar::escape($rec->name), $rec->url);
+                $tpl->replace($title, 'TITLE');
+                $all->append($tpl);
             }
-            $title = ht::createLink(type_Varchar::escape($rec->name), $rec->url);
-            $tpl->replace($title, 'TITLE');
-            $all->append($tpl);
         }
 
         return $all;
@@ -324,5 +332,29 @@ class eshop_Groups extends core_Master
             }
         }
     }
+
+
+    // Интерфейс
+     
+
+    /**
+     * Връща URL към себе си  
+     */
+    function getContentUrl($cMenuId)
+    {
+        return array('eshop_Groups', 'ShowAll');
+    }
+
+
+    /**
+     * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
+     */
+    function getWorkshopUrl($menuId)
+    {
+        $url = array('eshop_Groups', 'list');
+
+        return $url;
+    }
+
     
 }
