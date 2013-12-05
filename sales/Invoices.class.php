@@ -159,6 +159,12 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -234,9 +240,33 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-        $rec = $mvc->fetchRec($id);
-    	$query = $detailMvc->getQuery();
-        $query->where("#{$detailMvc->masterKey} = '{$id}'");
+        // Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+	/**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
+    }
+    
+    
+	/**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$query = $this->sales_InvoiceDetails->getQuery();
+        $query->where("#invoiceId = '{$id}'");
         $recs = $query->fetchAll();
         if(count($recs)){
 	        foreach ($recs as &$dRec){
@@ -250,7 +280,7 @@ class sales_Invoices extends core_Master
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
         $rec->discountAmount = $rec->_total->discount * $rec->rate;
         
-        $mvc->save($rec);
+        $this->save($rec);
     }
     
     
