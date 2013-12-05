@@ -103,7 +103,7 @@ class label_Templates extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-//    var $listFields = '';
+    var $listFields = 'id, title, template, createdOn, createdBy';
     
     
     /**
@@ -190,6 +190,6 @@ class label_Templates extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Добавяме CSS' а към шаблона
-        $row->template = $rec->css . $row->template;
+        $row->template = "<style>" . $rec->css . "</style>" . $row->template;
     }
 }

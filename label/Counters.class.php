@@ -16,6 +16,12 @@ class label_Counters extends core_Master
     
     
     /**
+     * Плейсхолдер за брояча
+     */
+    static $counterPlace = '%';
+    
+    
+    /**
      * Заглавие на модела
      */
     var $title = 'Броячи';
@@ -143,13 +149,81 @@ class label_Counters extends core_Master
     
     
     /**
-     * връща последователни числа в диапазона между минимално и максимално
-     * за което няма запис в Броячи->Записи и прави запис за него
+     * Към максималния брояч в модела добавя стъпката и връща резултата
      * 
-     * @param unknown_type $counterId
+     * @param integer $counterId - id на записа
+     * 
+     * @return integer - Нов номер
      */
     static function getCurrent($counterId)
     {
+        // Вземае записа
+        $cRec = static::fetch($counterId);
         
+        // Ако няма запис
+        if (!($maxVal = label_CounterItems::getMax($counterId))) {
+            
+            // Използваме минимална стойност за начална
+            $maxVal = $cRec->min;
+        }
+        
+        // Добавяме стъпката
+        $maxVal += $cRec->step;
+        
+        // Очакваме да не надвишаваме брояча
+        expect($maxVal <= $cRec->max,  "Броячът е изчерпан");
+        
+        // Връщаме стойността
+        return $maxVal;
+    }
+    
+    
+    /**
+     * Проверява в стринга има плейсхолдер за брояч, който да се замести
+     * 
+     * @param string $str - Стринга, който ще се проверява
+     * 
+     * @return boolean
+     */
+    static function haveCounterPlace($str)
+    {
+        // Ако в текста някъде се намира плейсхолдер за брояча
+        if (strpos($str, static::$counterPlace) !== FALSE) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Замества плейсхолдера за брояч със съответната стойност
+     * 
+     * @param string $str - Стринг, в който ще се замества
+     * @param integer $counterId - id на брояча
+     * @param integer $labelId - id на етикета
+     * 
+     * @return string - Новия стринг
+     */
+    static function placeCounter($str, $counterId, $labelId)
+    {
+        // Ако име плейсхолдер за брояч
+        if (static::haveCounterPlace($str)) {
+            
+            // Вземаем текущия брояч
+            $counter = static::getCurrent($counterId);
+            
+            // Упдейтваме последния брояч
+            $updated = label_CounterItems::updateCounter($counterId, $labelId, $counter);
+            
+            // Очакваме да няма грешка
+            expect($updated);
+            
+            // Заместваме в стринга
+            $str = str_replace(static::$counterPlace, $counter, $str);
+        }
+        
+        return $str;
     }
 }

@@ -466,10 +466,11 @@ class label_TemplateFormats extends core_Detail
      * @param integer $templateId - id на шаблона
      * @param string $place - Името на плейсхолдера
      * @param string $val - Вербалната стойност
+     * @param string $labelId - id на етикета
      * 
      * @return string - Вербалното представяне на стойността
      */
-    static function getVerbalTemplate($templateId, $place, $val)
+    static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL)
     {
         // Масив със записите
         static $recArr = array();
@@ -496,44 +497,76 @@ class label_TemplateFormats extends core_Detail
         // TODO cache
         if ($type == 'caption') {
             
-            if (!$verbalValArr[$val]) {
+            // Стринга, който ще се използва в масива за ключ
+            $valStr = $val;
+            
+            // Ако не е вземана стойността
+            if (!$verbalValArr[$valStr]) {
+                
+                // Инстанциня на класа
                 $Varchar = cls::get('type_Varchar');
-                $verbalValArr[$val] = $Varchar->toVerbal($val);
+                
+                // Добавяме в масива
+                $verbalValArr[$valStr] = $Varchar->toVerbal($val);
             }
             
             
         } elseif ($type == 'image') {
-            if (!$verbalValArr[$val]) {
+            
+            // Стринга, който ще се използва в масива за ключ
+            $valStr = $val . $rec->formatParams['Rotation'];
+            
+            // Ако не е вземана стойността
+            if (!$verbalValArr[$valStr]) {
                 
+                // Масив за стойности
                 $attr = array();
+                
+                // Ако има зададен стойност
                 if ($val) {
+                    
+                    // Вземаме умалено изборажение със зададените размер
                     $thumb= new img_Thumb($val, $rec->formatParams['Width'], $rec->formatParams['Height']);
-                        
+                    
+                    // Ако е зададена възможна ротация
                     if ($rec->formatParams['Rotation'] == 'yes') {
+                        
+                        // Ако е добре да се ротира изображението
                         if ($thumb->isGoodToRotate($rec->formatParams['Width'], $rec->formatParams['Height'])) {
+                            
+                            // Ротираме изображението
+                            // Променяме широчината и височината
                             $thumb->rotate();
+                            
+                            // Добавяме класа, че е ротиран
                             $attr['class'] = 'rotate';
                         }
                     }
                     
-                    $verbalValArr[$val] = $thumb->createImg($attr);
+                    // Добавяме вербалната стойност
+                    $verbalValArr[$valStr] = $thumb->createImg($attr);
                 }
             }
         } elseif ($type == 'counter') {
             
-            // TODO formatVal - % labe_CounterItems
-            
             // Вземаме формата
             $formatVal = $rec->formatParams['Format'];
+            
+            // Ако има шаблон за субституиране с брояч
+            if (label_Counters::haveCounterPlace($formatVal)) {
+                
+                // Заместваме брояча
+                $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId);
+            }
             
             // Типа на баркода
             $barcodeType = $rec->formatParams['BarcodeType'];
             
             // Стринг за уникалност
-            $val = $formatVal . '|' . $barcodeType;
+            $valStr = $formatVal . '|' . $barcodeType;
             
             // Ако не е вземана стойността
-            if (!$verbalValArr[$val]) {
+            if (!$verbalValArr[$valStr]) {
                 
                 // Нилираме стойностите
                 $attr = array();
@@ -594,11 +627,11 @@ class label_TemplateFormats extends core_Detail
                 }
                 
                 // Вземаме вербалната стойност
-                $verbalValArr[$val] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
+                $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
             }
         }
         
-        return $verbalValArr[$val];
+        return $verbalValArr[$valStr];
     }
     
     

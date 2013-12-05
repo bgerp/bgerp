@@ -25,8 +25,6 @@ class label_Wrapper extends plg_ProtoWrapper
     {
         $this->TAB('label_Labels', 'Етикети', 'label');
         $this->TAB('label_Templates', 'Шаблони', 'label');
-        $this->TAB('label_TemplateFormats', 'Параметри', 'label');
         $this->TAB('label_Counters', 'Брояч', 'label');
-        $this->TAB('label_CounterItems', 'Записи', 'label');
     }
 }
