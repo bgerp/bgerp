@@ -160,7 +160,7 @@ class cal_Tasks extends core_Master
     var $newBtnGroup = "1.3|Общи"; 
     
     static $view = array (
-    						'WeekHours' => 1,
+    						'WeekHour' => 1,
     						'WeekDay' => 2,
     						'Months' => 3,
     						'YearWeek' => 4,
@@ -236,7 +236,7 @@ class cal_Tasks extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $blue = new color_Object("#2244cc");
-        $grey = new color_Object("#bbbbbb");
+        $grey = new color_Object("#bbb");
 
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
@@ -607,13 +607,13 @@ class cal_Tasks extends core_Master
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
 	    	
-	    	$url = self::getGanttTimeTipe($data);
+	    	$ganttType = self::getGanttTimeType($data);
 	    	
 	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 	        
 	        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
 	        
-	        $tabs->TAB('Gantt', 'Гант', $url);
+	        $tabs->TAB('Gantt', 'Гант', array($mvc, 'list', 'Chart'=> 'Gantt', 'View' => $ganttType));
 
 	        if($chartType == 'Gantt') { 
 	        	
@@ -951,8 +951,8 @@ class cal_Tasks extends core_Master
 	    } 
 
 	    // други параметри
-	    $others = self::renderGanttTimeTipe();
-	    	
+	    $others = self::renderGanttTimeType($data);
+	   //bp($others);
 	    $params = $others->otherParams;
 	    $header = $others->headerInfo;
 
@@ -971,108 +971,109 @@ class cal_Tasks extends core_Master
      * Определяне на системното имен на гантовете
      * @param stdClass $data
      */
-    static function getGanttTimeTipe($data)
+    static function getGanttTimeType($data)
     {
-        // за всеки едиин запис от базата данни
-    	foreach($data->recs as $rec){ 
-    		
-    		if($rec->state == 'active' && $rec->timeStart){
-	    		// ако няма продължителност на задачата
-	    		if(!$rec->timeDuration) {
-	    			// продължителността е края - началото
-	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
-	    		} else {
-	    			$timeDuration = $rec->timeDuration;
-	    		}
-	    		
-	    		// ако нямаме край на задачата
-	    		if(!$rec->timeEnd){
-	    			// изчисляваме края, като начало + продължителност
-	    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
-	    		} else {
-	    			$timeEnd = $rec->timeEnd;
-	    		}
-	    		
-	    		// правим 2 масива с начални и крайни часове
-	    		if($rec->timeStart){
-	    			$start[] = dt::mysql2timestamp($rec->timeStart);
-	    			$end[] = dt::mysql2timestamp($timeEnd);
-	    		}
-    		}
-    	}
+    	$dateTasks = self::calcTasksMinStartMaxEndTime($data);
     	
     	// Масив [0] - датата
     	//       [1] - часа
-    	$startTime = explode(" ", dt::timestamp2Mysql(min($start)));
-    	$endTime = explode(" ", dt::timestamp2Mysql(max($end)));
+    	$startTasksTime = dt::timestamp2Mysql($dateTasks->minStartTaskTime);
+    	$endTasksTime = dt::timestamp2Mysql($dateTasks->maxEndTaskTime);
     	
     	// ако периода на таблицата е в рамките на една една седмица	
-    	if (dt::daysBetween($endTime[0],$startTime[0]) < 6) {
-    		//Mode::setPermanent('View', 'WeekHour');
-           $redUrl = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekHour', 'StartTime' => $startTime[0], 'EndTime' => $endTime[0]));
-    	
+    	if (dt::daysBetween($endTasksTime,$startTasksTime) < 6) {
+    		
+    		$type = 'WeekHour';
+    		
     	  // ако периода на таблицата е в рамките на седмица - месец
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 6  && dt::daysBetween($endTime[0],$startTime[0]) < 28) {
+    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 6  && dt::daysBetween($endTasksTime,$startTasksTime) < 28) {
        		
-    		$redUrl = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekDay', 'StartTime' => $startTime[0], 'EndTime' => $endTime[0]));
+    		$type = 'WeekDay';
     		
     	  // ако периода на таблицата е в рамките на месец - 3 месеца	
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 28 && dt::daysBetween($endTime[0],$startTime[0]) < 84) {
+    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 28 && dt::daysBetween($endTasksTime,$startTasksTime) < 84) {
     		
-    		$redUrl = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'Months', 'StartTime' => $startTime[0], 'EndTime' => $endTime[0]));
+    		$type = 'Months';
     		
     	  // ако периода на таблицата е в рамките на година - седмици	
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 84 && dt::daysBetween($endTime[0],$startTime[0]) < 168) { 
+    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 84 && dt::daysBetween($endTasksTime,$startTasksTime) < 168) { 
     	    
-    		$redUrl = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'YearWeek', 'StartTime' => $startTime[0], 'EndTime' => $endTime[0]));
+    		$type = 'YearWeek';
     		
     	  // ако периода на таблицата е по-голям от година
-    	} elseif (dt::daysBetween($endTime[0],$startTime[0]) >= 168) {
+    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 168) {
     		
-    		$redUrl = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'Years', 'StartTime' => $startTime[0], 'EndTime' => $endTime[0]));
+    		$type = 'Years';
     	}
     	
-    	return  $redUrl;
+    	return  $type;
+    }
+    
+    /**
+     * Прави линкове към по-голям и по-маък тип гант
+     * @param varchar $ganttType
+     */
+    static public function getNextGanttType ($ganttType)
+    {
+    	// текущия ни гант тайп
+        $ganttType = Request::get('View');
+        
+        // намираме го в масива
+    	$curIndex = static::$view[$ganttType];
+        
+    	// следващия ще е с индекс текущия +1
+    	$next = $curIndex + 1;
+        
+        if ($next <= count (static::$view)) {
+       		$nextType = array_search($next, static::$view);
+       		$nextUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$nextType);
+        }
+        
+        // предишния ще е с индекс текущия - 1
+        $prev = $curIndex - 1;
+    	
+        if ($prev >= 1) {
+       		$prevType = array_search($prev, static::$view);
+       		$prevUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevType);
+        }
+        
+        // връщаме 2-те URL-та
+        return (object) array('prevUrl' => $prevUrl, 'nextUrl' =>$nextUrl);
     }
     
     
-    static function renderGanttTimeTipe()
+    /**
+     * Изчисляване на необходимите параметри за изчертаването на ганта
+     * @param stdClass $data
+     */
+    static function renderGanttTimeType($data)
     {
     	$ganttType = Request::get('View');
-    	$startTime = Request::get('StartTime');
-    	$endTime = Request::get('EndTime');
+    	
+    	$url = self::getNextGanttType($ganttType);
+    	
+    	$dateTasks = self::calcTasksMinStartMaxEndTime($data);
+    	
+    	// Масив [0] - датата
+    	//       [1] - часа
+    	$startTasksTime = explode(" ", dt::timestamp2Mysql($dateTasks->minStartTaskTime));
+    	$endTasksTime = explode(" ", dt::timestamp2Mysql($dateTasks->maxEndTaskTime));
     	
     	// Масив [0] - година
     	//       [1] - месец
     	//       [2] - ден
-    	$startExplode =  explode("-", $startTime);
-    	$endExplode = explode("-", $endTime);
+    	$startExplode =  explode("-", $startTasksTime[0]);
+    	$endExplode = explode("-", $endTasksTime[0]);
     	
+    	// иконите на стрелките
     	$iconPlus = sbf("img/16/gantt-arr-down.png",'');
     	$iconMinus = sbf("img/16/gantt-arr-up.png",'');
-    	
-    	$imgPlus = ht::createElement('img', array('src' => $iconPlus));
-    	$imgMinus = ht::createElement('img', array('src' => $iconMinus));
-        
-    	$curIndex = static::$view[$ganttType];
-        $next = $curIndex + 1;
-        if ($next <= count (static::$view)) {
-       		$nextType = array_search($next, static::$view);
-       		$nextUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$nexType);
-        }
-        
-        $prev = $curIndex - 1;
-    	if ($prev >= 1) {
-       		$prevType = array_search($prev, static::$view);
-       		$prevUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevType);
-        }
         
     	switch ($ganttType) {
     		
     	// ако периода на таблицата е по-голям от година
     		case 'Years': 
-    	
-    	 	
+    	   	 	
 	    		// делението е година/месец
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('месеци');
@@ -1080,25 +1081,23 @@ class cal_Tasks extends core_Master
 	    		// таблицата започва от първия ден на стартовия месец
 	    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0]);
 	    		// до последния ден на намерения месец за край
-	    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTime). " 23:59:59");
-	    		
-    			
-//	    		/$urlPlus = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevUrl);
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' => 'WeekMonths'));
-	    		
-	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $prevUrl)->getContent();
-	    		$otherParams['biggerPeriod'] = " ";//ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
+	    		$otherParams['endTime'] = dt::mysql2timestamp(dt::getLastDayOfMonth($endTasksTime[0]). " 23:59:59");
+
+	    		// урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = " ";
 	
 	    		$curDate = dt::timestamp2mysql(mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0])); 
-	    		$toDate = dt::getLastDayOfMonth($endTime). " 23:59:59"; 
+	    		$toDate = dt::getLastDayOfMonth($endTasksTime[0]). " 23:59:59"; 
 	    		
 	    		// генерираме номерата на седмиците между началото и края
-	    		while ($curDate < $toDate){ 
-	    		   // bp(explode("-", $curDate));
+	    		while ($curDate < $toDate){
+	    		   
 	    			$w = date("Y", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
 	    		 	$res[$w]['subHeader'][] = date("m", dt::mysql2timestamp($curDate));
-	    		 	$curDate = dt::addMonths(1, $curDate); 
+	    		 	$curDate = dt::addMonths(1, $curDate);
+	    		 	
 	    		}
 	    		
 	    		foreach ($res as $headerArr) {
@@ -1115,20 +1114,18 @@ class cal_Tasks extends core_Master
 	    		$otherParams['subHeaderCaption'] = tr('часове');
 	    		
 	    		// таблицата започва от 00ч на намерения за начало ден
-	    		$otherParams['startTime'] = dt::mysql2timestamp($startTime);
+	    		$otherParams['startTime'] = dt::mysql2timestamp($startTasksTime[0]);
 	    		
 	    		// до 23:59:59ч на намерения за край ден
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
+
+	    		//урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = " ";
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
-	    		//$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prev));
-	    		//$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
-	    		
-	    		//$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['smallerPeriod'] = ht::createLink($imgMinus, $nextUrl)->getContent();
-	    		
-	    		for($i = 0; $i <= dt::daysBetween($endTime,$startTime); $i++) {
+	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTime)));
+	    			$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
 		    		
 		    		for ($j = 0; $j <=23; $j++) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
@@ -1150,14 +1147,12 @@ class cal_Tasks extends core_Master
 	    		// до края на намерения за край ден
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
 	    		
-	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prev));
-	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
+	    		// урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
-	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
-	    		
-	    		$curDate = $startTime. " 00:00:00"; 
-	    		$toDate = $endTime. " 23:59:59"; 
+	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
+	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
 	
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
@@ -1186,14 +1181,12 @@ class cal_Tasks extends core_Master
 	    		// до последния ден на намерения за край месец
 	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
 	    		
-	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt','View' =>$prev));
-	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
+	    		// урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
-	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
-	    		
-	    		$curDate = $startTime. " 00:00:00"; 
-	    		$toDate = $endTime. " 23:59:59"; 
+	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
+	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
 	
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
@@ -1223,11 +1216,9 @@ class cal_Tasks extends core_Master
 	    		// до неделята след намеренета за край дата
 	    		$otherParams['endTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
 	    		
-	    		$urlPlus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$prev));
-	    		$urlMinus = toUrl(array('cal_Tasks', 'list' , 'Chart' => 'Gantt',  'View' =>$next));
-	    		
-	    		$otherParams['smallerPeriod'] = ht::createElement('a', array('href' => $urlPlus), $imgPlus)->getContent();
-	    		$otherParams['biggerPeriod'] = ht::createElement('a', array('href' => $urlMinus), $imgMinus)->getContent();
+	    		// урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
 	    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday', mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
 	    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
@@ -1264,6 +1255,47 @@ class cal_Tasks extends core_Master
 
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
+    }
+    
+    
+    /**
+     * Изчислява мин начало и макс край на всички задачи
+     * @param stdClass $data
+     */
+    public static function calcTasksMinStartMaxEndTime ($data)
+    {
+    	// за всеки едиин запис от базата данни
+    	foreach($data->recs as $rec){ 
+    		
+    		if($rec->state == 'active' && $rec->timeStart){
+	    		// ако няма продължителност на задачата
+	    		if(!$rec->timeDuration) {
+	    			// продължителността е края - началото
+	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
+	    		} else {
+	    			$timeDuration = $rec->timeDuration;
+	    		}
+	    		
+	    		// ако нямаме край на задачата
+	    		if(!$rec->timeEnd){
+	    			// изчисляваме края, като начало + продължителност
+	    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
+	    		} else {
+	    			$timeEnd = $rec->timeEnd;
+	    		}
+	    		
+	    		// правим 2 масива с начални и крайни часове
+	    		if($rec->timeStart){
+	    			$start[] = dt::mysql2timestamp($rec->timeStart);
+	    			$end[] = dt::mysql2timestamp($timeEnd);
+	    		}
+    		}
+    	}
+    	
+    	$startTime = min($start);
+    	$endTime = max($end);
+    	
+    	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
     }
  
 }
