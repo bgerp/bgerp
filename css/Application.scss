@@ -3106,6 +3106,10 @@ div.location.public{
 			}
 		}
 	}
+	
+	.printing-page-break {
+	    page-break-after: always;
+	}
 }
 
 .external {
