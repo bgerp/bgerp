@@ -875,7 +875,7 @@ class cal_Tasks extends core_Master
      */
     static function getGantt ($data)
     {
-
+//       / bp($data);
 	    // масив с цветове
     	$colors = array( "#610b7d", 
 				    	"#1b7d23",
@@ -927,7 +927,7 @@ class cal_Tasks extends core_Master
 		    		                
 			    					'color' => $colors[$v % 22],
 			    					'hint' => $rec->title,
-			    					'url' => ''
+			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId))
 			    				
 			    	);
     		}
