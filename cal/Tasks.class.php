@@ -1068,6 +1068,9 @@ class cal_Tasks extends core_Master
     	// иконите на стрелките
     	$iconPlus = sbf("img/16/gantt-arr-down.png",'');
     	$iconMinus = sbf("img/16/gantt-arr-up.png",'');
+    	
+    	$imgPlus = ht::createElement('img', array('src' => $iconPlus));
+        $imgMinus = ht::createElement('img', array('src' => $iconMinus));
         
     	switch ($ganttType) {
     		
