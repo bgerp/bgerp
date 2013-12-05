@@ -20,8 +20,7 @@ class sales_Invoices extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, 
-                        acc_TransactionSourceIntf, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_TransactionSourceIntf, bgerp_DealIntf';
     
     
     /**
@@ -47,7 +46,7 @@ class sales_Invoices extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
-                    doc_SequencerPlg, doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
+                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
     
     
     /**
@@ -123,12 +122,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Име на полето съдържащо номер на фактурата
-     */
-    public $sequencerField = 'number';
-    
-    
-    /**
      * Икона за фактура
      */
     public $singleIcon = 'img/16/invoice.png';
@@ -143,7 +136,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent';
+    public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
     
     
     /**
@@ -172,7 +165,7 @@ class sales_Invoices extends core_Master
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory');
-        $this->FLD('number', 'varchar', 'caption=Номер, export=Csv');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
@@ -198,6 +191,7 @@ class sales_Invoices extends core_Master
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none');
+        $this->FLD('discountAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -251,8 +245,10 @@ class sales_Invoices extends core_Master
         }
     	
         price_Helper::fillRecs($recs, $rec, sales_InvoiceDetails::$map);
-        $rec->dealValue = $rec->total->amount * $rec->rate;
-        $rec->vatAmount = $rec->total->vat * $rec->rate;
+        
+        $rec->dealValue = $rec->_total->amount * $rec->rate;
+        $rec->vatAmount = $rec->_total->vat * $rec->rate;
+        $rec->discountAmount = $rec->_total->discount * $rec->rate;
         
         $mvc->save($rec);
     }
@@ -276,8 +272,11 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $form = $data->form;
+        $form = &$data->form;
         $form->rec->date = dt::today();
+        if(!haveRole('ceo,acc')){
+        	$form->setField('number', 'input=none');
+        }
         
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
@@ -287,8 +286,7 @@ class sales_Invoices extends core_Master
         }
         
         $type = ($t = Request::get('type')) ? $t : $form->rec->type;
-        
-	    if(!$type){
+        if(!$type){
 	        $form->setDefault('type', 'invoice');
 	    }
 	        
@@ -368,6 +366,15 @@ class sales_Invoices extends core_Master
 	        if($rec->type != 'invoice'){
 	        	$rec->dealValue = $rec->changeAmount * $rec->rate;
 			}
+			
+			
+			if(empty($rec->number)){
+				$rec->number = $mvc->getNexNumber();
+			} 
+			
+			if(!$mvc->isNumberInRange($rec->number)){
+				$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
+			}
         }
 
         acc_Periods::checkDocumentDate($form);
@@ -400,11 +407,11 @@ class sales_Invoices extends core_Master
 		    		$packQuantity = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
 		    		
 		    		$dRec = clone $product;
-		    		$dRec->invoiceId = $rec->id;
-		    		$dRec->classId = $product->classId;
-		    		$dRec->amount = $product->quantity * $product->price;
+		    		$dRec->invoiceId      = $rec->id;
+		    		$dRec->classId        = $product->classId;
+		    		$dRec->amount         = $product->quantity * $product->price;
 		    		$dRec->quantityInPack = $packQuantity;
-		    		$dRec->quantity = $product->quantity / $packQuantity;
+		    		$dRec->quantity       = $product->quantity / $packQuantity;
 		    		
 		    		$mvc->sales_InvoiceDetails->save($dRec);
 		    	}
@@ -439,7 +446,6 @@ class sales_Invoices extends core_Master
     
     /**
      * Валидиране на полето 'date' - дата на фактурата
-     * 
      * Предупреждение ако има фактура с по-нова дата (само при update!)
      */
     public function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
@@ -516,8 +522,8 @@ class sales_Invoices extends core_Master
         }
             
         if (!empty($rec->folderId)) {
-            $rec->contragentClassId  = doc_Folders::fetchCoverClassId($rec->folderId);
-            $rec->contragentId     = doc_Folders::fetchCoverId($rec->folderId);
+            $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
+            $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
     }
     
@@ -540,6 +546,8 @@ class sales_Invoices extends core_Master
     	
     	$tpl->replace($header, 'INVOICE_HEADER');
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	
+    	$tpl->replace(price_Helper::renderSummary($data->summary, TRUE), 'SUMMARY');
     }
     
     
@@ -554,27 +562,6 @@ class sales_Invoices extends core_Master
     	
     	// Номера се форматира в десеторазряден вид
     	$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-    	if($fields['-single']){
-    		$mvc::prepareAdditionalInfo($rec);
-    	}
-    }
-    
-    
-    /**
-     * Помощна функция за добавяне на допълнителна информация
-     * към $rec-a относно ДДС, то данъчната основа и други данни
-     */
-    private static function prepareAdditionalInfo(&$rec)
-    {
-    	if($rec->dealValue){
-	    	$rec->baseAmount = $rec->dealValue;
-	    	$rec->dealValue = round($rec->dealValue / $rec->rate, 2);
-	    	if($rec->vatRate == 'yes' || $rec->vatRate == 'no'){
-				$rec->vatPercent = $rec->vatAmount / $rec->baseAmount;
-			}
-			
-			$rec->total = $rec->baseAmount + $rec->vatAmount;
-    	}
     }
     
     
@@ -595,10 +582,6 @@ class sales_Invoices extends core_Master
 	    	if($rec->originId && $rec->type != 'invoice'){
 	    		unset($row->deliveryPlaceId, $row->deliveryId);
 	    	}
-    	
-    		$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
-    		$Double = cls::get('type_Double');
-    		$Double->params['decimals'] = 2;
     		
     		$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
     		
@@ -607,20 +590,11 @@ class sales_Invoices extends core_Master
     		} else {
 	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
-    		
+	    	
 	    	if($rec->dealValue){
-	    		$row->baseAmount = $Double->toVerbal($rec->baseAmount);
-	    		
-	    		$Percent = cls::get('type_Percent');
-	    		$parts = explode(".", $rec->vatPercent);
-	    		$Percent->params['decimals'] = count($parts[1]);
-	    		
-				$row->vatPercent = $Percent->toVerbal($rec->vatPercent);
-				$row->vatAmount = $Double->toVerbal($rec->vatAmount);
-				$row->total = $Double->toVerbal($rec->total / $rec->rate);
-				
 				$SpellNumber = cls::get('core_SpellNumber');
-				$row->amountVerbal = $SpellNumber->asCurrency($rec->total, 'bg', FALSE);
+				$total = ($rec->dealValue + $rec->vatAmount - $rec->discountAmount) / $rec->rate;
+				$row->amountVerbal = $SpellNumber->asCurrency($total, 'bg', FALSE);
 	    	}
 	    	
 	    	if($rec->accountId){
@@ -691,7 +665,17 @@ class sales_Invoices extends core_Master
 	    	if(haveRole('debug')){
 	    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
 	    	}
-    	}	 
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    static function on_AfterPrepareSingle($mvc, &$data)
+    {
+    	$rec = &$data->rec;
+    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     }
     
     
@@ -700,7 +684,7 @@ class sales_Invoices extends core_Master
      */
     private function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
-    	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение': 'Намаление';
+    	$caption = ($form->rec->type == 'debit_note') ? 'Увеличение' : 'Намаление';
         
     	$invArr = (array)$origin->fetch();
     	$invHandle = $origin->getHandle();
@@ -757,8 +741,7 @@ class sales_Invoices extends core_Master
 
 
     /**
-     * Данните на контрагент, записани в съществуваща фактура.
-     * 
+     * Данните на контрагент, записани в съществуваща фактура
      * Интерфейсен метод на @see doc_ContragentDataIntf.
      * 
      * @param int $id key(mvc=sales_Invoices)
@@ -936,7 +919,6 @@ class sales_Invoices extends core_Master
         }
         
         $cloneRec = clone $rec;
-        static::prepareAdditionalInfo($cloneRec);
         
         // Създаване / обновяване на перото за контрагента
         $contragentClass = doc_Folders::fetchCoverClassName($cloneRec->folderId);
@@ -953,18 +935,18 @@ class sales_Invoices extends core_Master
         
         if($cloneRec->vatAmount){
         	$entries[] = array(
-                'amount' => $cloneRec->vatAmount,  // равностойноста на сумата в основната валута
+                'amount' => currency_Currencies::round($cloneRec->vatAmount),  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
                     $debitAccId, // дебитната сметка
                         array($contragentClass, $contragentId),
                         array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
-                    'quantity' => $cloneRec->vatAmount,
+                    'quantity' => currency_Currencies::round($cloneRec->vatAmount),
                 ),
                 
                 'credit' => array(
                     $creditAccId, // кредитна сметка;
-                    'quantity' => $cloneRec->vatAmount,
+                    'quantity' => currency_Currencies::round($cloneRec->vatAmount),
                 )
     	    );
         }
@@ -1010,11 +992,12 @@ class sales_Invoices extends core_Master
     public function getDealInfo($id)
     {
         $rec = new sales_model_Invoice($id);
-        static::prepareAdditionalInfo($rec);
+        
+        $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         
         $result = new bgerp_iface_DealResponse();
         $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
-        $result->invoiced->amount   = $rec->total;
+        $result->invoiced->amount   = $total;
         $result->invoiced->currency = $rec->currencyId;
         $result->invoiced->rate 	= $rec->rate;
         $result->invoiced->valior   = $rec->date;
@@ -1068,5 +1051,39 @@ class sales_Invoices extends core_Master
     	expect($id = Request::get('id', 'int'));
     	$info = $this->getDealInfo($id);
     	bp($info->invoiced);
+    }
+    
+    
+    /**
+     * Дали подадения номер е в позволения диапазон за номера на фактури
+     * @param $number - номера на фактурата
+     */
+    private static function isNumberInRange($number)
+    {
+    	if(empty($number)) return FALSE;
+    	$conf = core_Packs::getConfig('sales');
+    	
+    	return ($conf->INV_MIN_NUMBER <= $number && $number <= $conf->INV_MAX_NUMBER);
+    }
+    
+    
+    /**
+     * Ф-я връщаща следващия номер на фактурата, ако той е в границите
+     * @return int - следващия номер на фактура
+     */
+    private function getNexNumber()
+    {
+    	$conf = core_Packs::getConfig('sales');
+    	
+    	$query = $this->getQuery();
+    	$query->XPR('maxNum', 'int', 'MAX(#number)');
+    	if(!$maxNum = $query->fetch()->maxNum){
+    		$maxNum = $conf->INV_MIN_NUMBER;
+    	}
+    	$nextNum = $maxNum + 1;
+    	
+    	if($nextNum > $conf->INV_MAX_NUMBER) return NULL;
+    	
+    	return $nextNum;
     }
 }

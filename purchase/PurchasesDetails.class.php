@@ -199,7 +199,7 @@ class purchase_PurchasesDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = &$data->recs;
-        $purchaseRec = clone $data->masterData->rec;
+        $purchaseRec = $data->masterData->rec;
         
         if (empty($recs)) return;
         price_Helper::fillRecs($recs, $purchaseRec);

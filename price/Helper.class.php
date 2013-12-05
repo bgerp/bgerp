@@ -100,7 +100,7 @@ abstract class price_Helper
 		}
 		
 		$arr['amount'] = currency_Currencies::round($arr['amount'], $currencyCode);
-		
+	
 		return (object)$arr;
 	}
 	
@@ -156,9 +156,108 @@ abstract class price_Helper
         	$amountVat       		+= $amountObj->vatAmount;
 		}
 		
-		$masterRec->total           = new stdClass();
-        $masterRec->total->amount   = currency_Currencies::round($amount, $rec->$map['currencyId']);
-        $masterRec->total->vat      = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
-        $masterRec->total->discount = currency_Currencies::round($discount, $rec->$map['currencyId']);
+		$masterRec->_total           = new stdClass();
+        $masterRec->_total->amount   = currency_Currencies::round($amount, $rec->$map['currencyId']);
+        $masterRec->_total->vat      = currency_Currencies::round($amountVat, $rec->$map['currencyId']);
+        $masterRec->_total->discount = currency_Currencies::round($discount, $rec->$map['currencyId']);
+	}
+	
+	
+	/**
+	 * Подготвя данните за съмаризиране ценовата информация на един документ
+	 * @param array $values - масив с стойности на сумата на всеки ред, ддс-то и отстъпката 
+	 * @param date $date - дата
+	 * @param doublr $currencyRate - курс
+	 * @param varchar(3) $currencyId - код на валута
+	 * @param enum $chargeVat - ддс режима
+	 * @param boolean $invoice - дали документа е фактура
+	 * 
+	 * @return stdClass $arr - Масив с нужната информация за показване:
+	 * 		->value      - Стойността
+	 * 		->discount   - Отстъпката
+	 * 		->neto 		 - Нето (Стойност - отстъпка) // Показва се ако има отстъпка
+	 * 		->baseAmount - Данъчната основа // само при фактура се показва
+	 * 		->vat        - % ДДС // само при фактура или ако ддс-то се начислява отделно
+	 * 		->vatAmount  - Стойност на ДДС-то // само при фактура или ако ддс-то се начислява отделно
+	 * 		->total      - Крайната стойност
+	 * 
+	 */
+	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE)
+	{
+		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
+		$values = (array)$values;
+		$arr['currencyId'] = $currencyId;                          // Валута на документа
+		
+		$baseCurrency = acc_Periods::getBaseCurrencyCode($date);   // Основната валута
+		$arr['value'] = $values['amount']; 						   // Стойноста е сумираната от показваното на всеки ред
+		
+		if($values['discount']){ 								// ако има отстъпка
+			$arr['discount'] = $values['discount'];
+			$arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
+			$arr['neto'] = $arr['value'] - $arr['discount']; 	// Стойността - отстъпката
+			$arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
+		}
+		
+		// Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
+		$arr['total'] = ($arr['neto']) ? $arr['neto'] : $arr['value']; 
+		
+		if($invoice){ // ако е фактура
+			$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
+			$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
+			$arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
+			$arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
+		} else { // ако не е фактура
+			$arr['vatAmount'] = $values['vat']; 		// ДДС-то
+			$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
+		}
+		
+		if(!$invoice && $chargeVat != 'no'){ 				 // ако документа не е фактура и не е с отделно ддс
+			unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
+		} else { // ако е фактура или е сотделно ддс
+			if($arr['total']){
+				$arr['vat'] = ($values['vat'] / $arr['total']) * 100; // % ддс
+				$arr['total'] = $arr['total'] + $values['vat']; 	  // Крайното е стойноста + ддс-то
+			}
+		}
+		
+		$arr['value'] = ($arr['value']) ? $arr['value'] : 0;
+		$arr['total'] = ($arr['total']) ? $arr['total'] : 0;
+		
+		return (object)$arr;
+	}
+	
+	
+	/**
+	 * Рендира таблицата със съмаризираната информация
+	 * @param stClass $obj - обект @see prepareSummary
+	 * @param boolean $multilang -дали кепшъните да са двуезични
+	 * @return core_ET
+	 */
+	public static function renderSummary($obj, $multilang = FALSE)
+	{
+		// Обръщане на стойностите във вербален вид
+		$Double = cls::get('type_Double');
+		$Double->params['decimals'] = 2;
+		
+		foreach ((array)$obj as $index => $el){
+			if(is_double($el)){
+				$obj->$index = $Double->toVerbal($el);
+			}
+		}
+		
+		if($obj->vat){
+			$obj->vat .= ' %';
+		}
+		
+		$tpl = getTplFromFile('price/tpl/BusinessDocSummary.shtml');
+		$tpl = $tpl->placeObject($obj);
+		if($multilang){
+			foreach (array('Subtotal', 'Discount', 'Neto', 'Tax base', 'Vat', 'Total') as $id => $cap){
+				if(($id == 1 || $id == 2) && empty($obj->discount)) continue;
+				$tpl->replace("/ {$cap}", "TRANS{$id}");
+			}
+		}
+		
+		return $tpl;
 	}
 }

@@ -82,11 +82,11 @@
                         </div>
     					<!--ET_END deliveryLocationId-->
     					
-                        <!--ET_BEGIN shipmentStoreId-->
+                        <!--ET_BEGIN storeId-->
                         <div>
                             |До склад|*: <b>[#storeId#] </b>
                         </div>
-                        <!--ET_END shipmentStoreId-->
+                        <!--ET_END storeId-->
                              
         
                         <!--ET_BEGIN note-->
@@ -118,25 +118,7 @@
                         <table>
                             <tr>
                                 <td>
-                                    <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
-							             <!--ET_BEGIN amountBase-->
-							             <tr>
-							                <td class='info-right'>|Общо без ДДС|* :</td>
-							                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-							                <td align='right'><b>[#amountBase#]</b></td>
-							             </tr>
-							             <!--ET_END amountBase-->
-							             <tr>
-							                <td class='info-right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
-							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td align='right'><b>[#amountVat#]</b></td>
-							             </tr>
-							             <tr>
-							                <td class='info-right'>|Общо|*:</td>
-							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td align='right'><b>[#amountDeal#]</b></td>
-							             </tr>
-							        </table>
+                                    [#SUMMARY#]
                                 </td>
                             </tr>
                             <tr>

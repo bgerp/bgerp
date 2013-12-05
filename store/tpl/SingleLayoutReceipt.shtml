@@ -60,7 +60,7 @@
             </table>
 			<div class="lines"></div>
 			<div class="details">
-            		[#store_ReceiptDetails#]
+            	[#store_ReceiptDetails#]
            	</div>
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
@@ -90,6 +90,14 @@
                         </div>
                         <!--ET_END locationId-->
                          
+                        <div>
+                        	|Тегло|*: <b>[#weight#]</b>
+                        </div>
+                        
+                        <div>
+                        	|Обем|*: <b>[#volume#]</b>
+                        </div>
+                        
         				<!--ET_BEGIN lineId-->
         				<div>
                             |Транс. линия|*: <br /><b>[#lineId#]</b>
@@ -105,21 +113,7 @@
                     </td>
        
                     <td class="topCell" align="right" valign="top">
-                        <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
-							 <tr>
-							      <td align='right' class = 'nowrap'>|Общо|* [#vatType#]:</td>
-							      <td align='center' class = 'nowrap'><span class='cCode'>[#currencyId#]</span></td>
-							      <td align='right' class = 'nowrap'><b>[#amountDelivered#]</b></td>
-							 </tr>
-							 <tr>
-							 	  <td align='right'>|Тегло|*: </td>
-							 	  <td align='right' class = 'nowrap' colspan='2'><b>[#weight#]</b></td>
-							 </tr>
-							 <tr>
-							 	<td align='right'>|Обем|*: </td>
-							 	<td align='right' class = 'nowrap' colspan='2'><b>[#volume#]</b></td>
-							 </tr>
-						</table>
+                        [#SUMMARY#]
                     </td>
                 </tr>           
                 </tbody>

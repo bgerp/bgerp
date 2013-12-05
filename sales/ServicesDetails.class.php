@@ -57,12 +57,6 @@ class sales_ServicesDetails extends core_Detail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, sales';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, sales';
@@ -96,25 +90,12 @@ class sales_ServicesDetails extends core_Detail
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
-        
-        // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        
-        // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
-        // няма стойност, приема се за единица.
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        
-        // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
-        
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        
-        // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
-        
-        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input=none');
-        
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }
 
@@ -187,7 +168,7 @@ class sales_ServicesDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = &$data->recs;
-        $orderRec = clone $data->masterData->rec;
+        $orderRec = $data->masterData->rec;
         
         if (empty($recs)) return;
         

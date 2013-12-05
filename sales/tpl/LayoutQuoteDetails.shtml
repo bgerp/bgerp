@@ -37,13 +37,7 @@
 			<!--ET_END discount-->
 			</td>
 			<td class='misc-info quote-col[#OPT#] nowrap' align='right' valign='top'>
-			[#amount#]
-			
-			<!--ET_BEGIN discAmount-->
-			<div class='discount'>
-			[#discAmount#]
-			</div>
-			<!--ET_END discAmount-->
+			<b>[#amount#]</b>
 			</td>
 		</tr>
 	<!--ET_END ROW-->
@@ -60,10 +54,7 @@
 		</div>
 		</td>
 		<td colspan='2' align='right' class='nowrap total-quote-td'>
-		<span class = '[#totalClass#]'>|Общо|*: &nbsp;[#total#]</span>
-		<!--ET_BEGIN totalDisc-->
-		<div class = 'discount'> |След ТО|*: &nbsp; <span class = 'newAmount'><b>[#totalDisc#]</b></span></div>
-		<!--ET_END totalDisc-->
+		[#SUMMARY#]
 		</td>
 	</tr>
 	<!--ET_END totalPlace-->

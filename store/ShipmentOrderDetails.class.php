@@ -220,7 +220,7 @@ class store_ShipmentOrderDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = &$data->recs;
-        $orderRec = clone $data->masterData->rec;
+        $orderRec = $data->masterData->rec;
         
         if (empty($recs)) return;
         

@@ -1,10 +1,8 @@
 [#SingleToolbar#]
-
 <div class='document'>
-	 
-		<!--ET_BEGIN blank-->
-			[#blank#]
-		<!--ET_END blank-->
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 	<!--ET_BEGIN header-->
 		<div class='header [#STATE_CLASS#]'>
 			<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
@@ -76,7 +74,7 @@
 		                       	
 		                        <!--ET_BEGIN deliveryPlaceId-->
 		                        <div>
-		                             |Място|*: <b>[#deliveryPlaceId#]</b>
+		                            |Място|*: <b>[#deliveryPlaceId#]</b>
 		                        </div>
 		        				<!--ET_END deliveryPlaceId-->
 		        				
@@ -85,24 +83,15 @@
 			                        <div class="richtext">[#note#]</div> 
 		                        <!--ET_END note-->     
 		                    </td>
-		                    <td class="topCell" valign="top" width="40%">
+		                    <td class="topCell" valign="top">
 		                        <!--ET_BEGIN paymentMethodId-->
 		                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
-		                       <div>|Валута|*:  <b>[#paymentCurrencyId#]</b> [#rate#]</div>
+		                       <div>|Валута|*:  <b>[#currencyId#]</b> [#currencyRate#]</div>
 		                    </td>
 		       
-		                    <td class="topCell expandable" align="right" valign="top" width="30%">
-		                     	<div>
-		                     		|Обща сума|* [#chargeVat#]:
-		                        	<span class='cCode'>[#paymentCurrencyId#]</span> <b>[#amount#]</b>
-		                        </div>
-		                        <!--ET_BEGIN discount-->
-		                        <div style='padding-top:4px'>
-			                        |Общо след ТО|* :
-			                        <span class='cCode'>[#discountCurrencyId#]</span> <b>[#discount#]</b>
-		                        </div>
-		                        <!--ET_END discount-->   
+		                    <td class="topCell noWrap" align="right" valign="top">
+		                     	[#SUMMARY#]
 		                    </td>
 		                </tr>           
 		                </tbody>

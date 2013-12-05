@@ -25,7 +25,7 @@
 	[#ListToolbar#]
 	<p id='condition-title'> |Условия на офертата|*</p>
 	<ol id='conditions'>
-		<!--ET_BEGIN rate--><li>|Валутен курс|* [#rate#]</li><!--ET_END rate-->
+		<!--ET_BEGIN currencyRate--><li>|Валутен курс|* [#currencyRate#]</li><!--ET_END currencyRate-->
 		<!--ET_BEGIN validFor-->
 			<li>|Офертата е валидна до|* [#validFor#] |след датата на издаване|* 
 			<!--ET_BEGIN expired-->
