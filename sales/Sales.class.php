@@ -625,7 +625,7 @@ class sales_Sales extends core_Master
 		$amountType = $mvc->getField('amountDeal')->type;
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
 		
-    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
@@ -1185,10 +1185,14 @@ class sales_Sales extends core_Master
      */
     function cron_CheckSalesPayments()
     {
+    	$conf = core_Packs::getConfig('sales');
+    	$now = dt::now();
+    	
     	// Проверяват се всички активирани и продажби с чакащо плащане
     	$query = $this->getQuery();
     	$query->where("#paymentState = 'pending'");
     	$query->where("#state = 'active'");
+    	$query->where("ADDDATE(#modifiedOn, INTERVAL {$conf->SALE_OVERDUE_CHECK_DELAY} SECOND) <= '{$now}'");
     	
     	while($rec = $query->fetch()){
     		if($rec->state == 'closed'){
