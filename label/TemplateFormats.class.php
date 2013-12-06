@@ -563,7 +563,7 @@ class label_TemplateFormats extends core_Detail
             $barcodeType = $rec->formatParams['BarcodeType'];
             
             // Стринг за уникалност
-            $valStr = $formatVal . '|' . $barcodeType;
+            $valStr = $formatVal . '|' . $barcodeType . '|' . $rec->formatParams['Showing'];
             
             // Ако не е вземана стойността
             if (!$verbalValArr[$valStr]) {
@@ -572,26 +572,51 @@ class label_TemplateFormats extends core_Detail
                 $attr = array();
                 $rotate = FALSE;
                 
-                // Масив с размерите
-                $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
-                
-                // Вземаме минималната височина и широчината
-                $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
-                
-                // Проверяваме размера след ротиране
-                barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
-                
-                // Ако е зададено да се ротира твърдо
-                if ($rec->formatParams['Rotation'] == 'yes') {
+                // Ако е зададено да се показва само стринга без баркода
+                if ($rec->formatParams['Showing'] == 'string') {
                     
-                    // TODO баркод и текст, само текст
+                    // Ако е зададено да се ротира твърдо
+                    if ($rec->formatParams['Rotation'] == 'yes') {
+                        
+                        // div, който ще се ротира
+                        $div = "<div class='rotate'>";
+                    } else {
+                        
+                        // div, без ротиране
+                        $div = "<div>";
+                    }
                     
-                    // Добавяме ъгъл на завъртане
-                    $attr['angle'] = 90;
+                    // Добавяме стойността
+                    $verbalValArr[$valStr] = $div . $formatVal . "</div>";
+                } else {
+                    // Масив с размерите
+                    $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
+                    
+                    // Вземаме минималната височина и широчината
+                    $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
+                    
+                    // Проверяваме размера след ротиране
+                    barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                    
+                    // Ако е зададено да се ротира твърдо
+                    if ($rec->formatParams['Rotation'] == 'yes') {
+                        
+                        // TODO баркод и текст, само текст
+                        
+                        // Добавяме ъгъл на завъртане
+                        $attr['angle'] = 90;
+                    }
+                    
+                    // Ако е зададено да се показва баркод и стринг
+                    if ($rec->formatParams['Showing'] == 'barcodeAndStr') {
+                        
+                        // Добавяме параметъра
+                        $attr['addText'] = array();
+                    }
+                    
+                    // Вземаме вербалната стойност
+                    $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
                 }
-                
-                // Вземаме вербалната стойност
-                $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
             }
         }
         
