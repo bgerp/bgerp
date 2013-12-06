@@ -459,6 +459,7 @@ class purchase_Purchases extends core_Master
     	}
     	
     	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	//bp($data->row);
     }
     
     
@@ -503,7 +504,6 @@ class purchase_Purchases extends core_Master
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
-    
     
 	/**
      * В кои корици може да се вкарва документа
