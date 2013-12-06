@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -26,7 +26,7 @@ class cat_type_Weight extends cat_type_Uom {
     	$this->params['unit'] = 'kg';
     	
     	$val = parent::fromVerbal_($val);
-    	//bp($val);
+    	
     	if($val === FALSE){
     		$this->error = "Моля въведете валидна мярка за тегло";
             

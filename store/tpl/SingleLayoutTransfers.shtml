@@ -75,8 +75,8 @@
                         </td>
                         <td>
                         <div style='float:right'>
-                        |Тегло|*: <b>[#weight#]</b><br/>
-                        |Обем|*: <b>[#volume#]</b>
+                        |Тегло|*: <b style='float:right'>[#weight#]</b><br/>
+                        |Обем|*: &nbsp;<b style='float:right'>[#volume#]</b>
                         </div>
                         </td>
                 </tr>           

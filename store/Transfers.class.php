@@ -139,7 +139,7 @@ class store_Transfers extends core_Master
         $this->FLD('fromStore', 'key(mvc=store_Stores,select=name)', 'caption=От склад,mandatory');
  		$this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
  		$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
+        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
@@ -194,8 +194,6 @@ class store_Transfers extends core_Master
     {
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
-	    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
-	    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
 	    	
 	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
 	    	if($fromStoreLocation){

@@ -169,7 +169,7 @@ class store_Receipts extends core_Master
         
         // Допълнително
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
+        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -475,9 +475,6 @@ class store_Receipts extends core_Master
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
     	}
-    	
-    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
-    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
     	
     	if(isset($fields['-single'])){
     		$mvc->prepareMyCompanyInfo($row, $rec);
