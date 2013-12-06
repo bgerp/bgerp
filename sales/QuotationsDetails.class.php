@@ -119,6 +119,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
     	$notOptional = $optional = array();
+    	$total = new stdClass();
     	$total->discAmount = 0;
     	
     	foreach ($recs as $id => $rec){
