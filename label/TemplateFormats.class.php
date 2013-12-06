@@ -345,7 +345,7 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле дали за избор дали да се ротира
                 $filedsArr['Rotation']['clsType'] = 'type_Enum';
-                $filedsArr['Rotation']['type'] = 'enum(yes=Допустима, no=Недопустима, rotate=Винаги)';
+                $filedsArr['Rotation']['type'] = 'enum(yes=Да, no=Не)';
                 $filedsArr['Rotation']['caption'] = 'Ротация';
             break;
             
@@ -575,55 +575,19 @@ class label_TemplateFormats extends core_Detail
                 // Масив с размерите
                 $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
                 
-                // Масив с обърнатите размери
-                $sizeRotate = array('height' => $rec->formatParams['Width'], 'width' => $rec->formatParams['Height']);
-                
                 // Вземаме минималната височина и широчината
                 $minWidthAndHeight = barcode_Generator::getMinWidthAndHeight($barcodeType, $formatVal);
                 
-                // Ако няма да се ротира
-                if ($rec->formatParams['Rotation'] == 'no') {
-                    
-                    // Очакваме размера на баркода да може да се вмести
-                    barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
-                } elseif ($rec->formatParams['Rotation'] == 'yes') {
+                // Проверяваме размера след ротиране
+                barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
+                
+                // Ако е зададено да се ротира твърдо
+                if ($rec->formatParams['Rotation'] == 'yes') {
                     
                     // TODO баркод и текст, само текст
                     
-                    // Ако ще се ротира
-                    try {
-                        
-                        // Проверяваме размера
-                        barcode_Generator::checkSizes($barcodeType, $size, $minWidthAndHeight);
-                    } catch (Exception $e) {
-                        
-                        // Ако възникне грешка със старите
-                        
-                        // Проверяваме с разменени размер
-                        barcode_Generator::checkSizes($barcodeType, $sizeRotate, $minWidthAndHeight);
-                        
-                        // Вдигаме флага за ротиране
-                        $rotate = TRUE;
-                    }
-                } elseif ($rec->formatParams['Rotation'] == 'rotate') {
-                    
-                    // Ако е зададено да се ротира твърдо
-                    
-                    // Проверяваме размера след ротиране
-                    barcode_Generator::checkSizes($barcodeType, $sizeRotate, $minWidthAndHeight);
-                    
-                    // Вдигаме флага
-                    $rotate = TRUE;
-                }
-                
-                // Ако ще се ротира
-                if ($rotate) {
-                    
-                    // Добавяме класа за ротиране
-                    $attr = array('class' => 'rotate');
-                    
-                    // Променяме масива с размерите
-                    $size = $sizeRotate;
+                    // Добавяме ъгъл на завъртане
+                    $attr['angle'] = 90;
                 }
                 
                 // Вземаме вербалната стойност
