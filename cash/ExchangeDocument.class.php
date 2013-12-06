@@ -125,6 +125,13 @@ class cash_ExchangeDocument extends core_Master
      */
     var $newBtnGroup = "4.8|Финанси";
     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'reason, peroFrom, peroTo';
+    
+    
 	/**
      * Описание на модела
      */
