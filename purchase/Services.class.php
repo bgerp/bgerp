@@ -180,7 +180,7 @@ class purchase_Services extends core_Master
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-         // Запомняне кои документи трябва да се обновят
+        // Запомняне кои документи трябва да се обновят
     	$mvc->updated[$id] = $id;
     }
     

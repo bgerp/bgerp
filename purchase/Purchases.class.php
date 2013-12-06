@@ -156,13 +156,13 @@ class purchase_Purchases extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->От обект,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->До склад');
         
         // Плащане
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова сметка');
