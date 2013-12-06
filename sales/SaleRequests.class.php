@@ -42,13 +42,7 @@ class sales_SaleRequests extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
-    					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, plg_Sorting, doc_plg_HidePrices';
-       
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = 'folderId, amount';
+    					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Sorting, doc_plg_HidePrices';
     
     
     /**
@@ -96,7 +90,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, folderId, amount, state, createdOn, createdBy';
+    public $listFields = 'id, folderId, amountDeal, state, createdOn, createdBy';
     
     
 	/**
@@ -116,12 +110,6 @@ class sales_SaleRequests extends core_Master
      */
     public $singleLayoutFile = 'sales/tpl/SingleSaleRequest.shtml';
     
-   
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'amount,discount';
-    
     
     /**
      * Описание на модела (таблицата)
@@ -136,8 +124,9 @@ class sales_SaleRequests extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat,fromOffer');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount');
-    	$this->FLD('discount', 'double(decimals=2)', 'caption=Общо с отстъпка,input=none');
+    	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Поръчано,input=none,summary=amount'); // Сумата на договорената стока
+        $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
+        $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none,caption=Данни');
     }
     
@@ -210,6 +199,14 @@ class sales_SaleRequests extends core_Master
     		$this->sales_SaleRequestDetails->save($item);
     	}
     	
+    	price_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
+    	$amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal -= $rec->_total->discount;
+        $rec->amountDeal = $amountDeal * $rec->currencyRate;
+        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $this->save($rec);
+        
     	if($cmd == 'active'){
     		$rec->state = 'active';
         	$this->invoke('AfterActivation', array($rec));
@@ -376,7 +373,7 @@ class sales_SaleRequests extends core_Master
     	
     	$result = new bgerp_iface_DealResponse();
     	$result->dealType          = bgerp_iface_DealResponse::TYPE_SALE;
-        $result->quoted->amount    = $rec->amount;
+        $result->quoted->amount    = $rec->amountDeal;
         $result->quoted->currency  = $rec->currencyId;
         $result->quoted->rate 	   = $rec->currencyRate;
         $result->quoted->vatType   = $rec->chargeVat;
@@ -492,17 +489,7 @@ class sales_SaleRequests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->state == 'draft'){
-	    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $rec->chargeVat);
-	    }
-	    	
-	    @$row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount / $rec->currencyRate);
-	    if($rec->discount){
-	    	$row->discount = $mvc->fields['discount']->type->toVerbal($rec->discount / $rec->currencyRate);
-	    	$row->discountCurrencyId = $row->currencyId;
-	    }
-	    	
-    	if($fields['-list']){
+	    if($fields['-list']){
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
@@ -513,66 +500,17 @@ class sales_SaleRequests extends core_Master
 	    		$row->id .= " " . ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE));
 	    	}
 	    	$row->id .= " {$id}";
-	    	
-	    	$row->amount = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $row->amount;
+	    	@$rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
+	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
     	}
 	    
 	    if($fields['-single']){
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}
-	    	
-	    	$row->chargeVat = ($rec->chargeVat == 'yes' || $rec->chargeVat == 'no') ? tr('с ДДС') : tr('без ДДС');
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
-    }
-    
-    
-    /**
-     * Изчислява в реално време общата сума на заявката, при активация тази
-     * сума ще се запише в модела
-     * @param stdClass $rec - запис от модела
-     * @return double $total - общата сума на заявката
-     */
-    private function calcTotal($rec, $vat)
-    {
-    	$detailQuery = $this->sales_SaleRequestDetails->getQuery();
-    	$detailQuery->where("#requestId = {$rec->id}");
-    	
-    	$discount = $total = 0;
-    	while ($d = $detailQuery->fetch()){
-    		if(($vat == 'yes' || $vat = 'no') && $d->classId){
-    			$productMan = cls::get($d->classId);
-    			$d->price *= 1 + $productMan->getVat($d->productId);
-    		}
-    		@$d->price /= $rec->currencyRate;
-    		$d->price = currency_Currencies::round($d->price, $rec->currencyId);
-    		
-    		$amount = $d->price * $d->quantity;
-    		if($d->discount){
-    			$discount += $amount * $d->discount;
-    		}
-    		
-    		$total += $amount;
-    	}
-    	
-    	$total *= $rec->currencyRate;
-    	$discount *= $rec->currencyRate;
-    	
-    	$afterDisc = ($discount != 0) ? $total - $discount : NULL;
-    	return array($total, $afterDisc);
-    }
-    
-    
-    /**
-	 * След активация се записва сумата на заявката
-	 */
-	public static function on_AfterActivation($mvc, &$rec)
-    {
-    	$vat = static::fetchField($rec->id, 'chargeVat');
-    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $vat);
-    	$mvc->save($rec);
     }
     
     

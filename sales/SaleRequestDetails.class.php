@@ -67,7 +67,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Помощен масив (@see price_Helper)
      */
-    protected static $map = array('priceFld' => 'price', 'quantityFld' => 'quantity', 'valior' => 'createdOn');
+    public static $map = array('priceFld' => 'price', 'quantityFld' => 'quantity', 'valior' => 'createdOn');
     
     
   	/**
