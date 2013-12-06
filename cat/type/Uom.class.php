@@ -67,7 +67,7 @@ class cat_type_Uom extends type_Varchar {
         }
       
         // Разделяме текста на число и име
-        preg_match("/(^[0-9 \.\,]+)([a-zа-я]*)/umi", $val, $matches);
+        preg_match("/(^[0-9 \.\,]+)([a-zа-я]*[\. ]*[a-zа-я]*)/umi", $val, $matches);
         
         // Първата намерена стойност е сумата на мярката
         $val = $matches[1];

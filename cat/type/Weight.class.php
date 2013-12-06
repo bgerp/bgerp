@@ -17,14 +17,21 @@
  */
 class cat_type_Weight extends cat_type_Uom {
     
+	
+	/**
+	 * Параметър по подразбиране
+	 */
+	function init($params = array())
+    {
+    	$this->params['unit'] = 'kg';
+    }
+    
     
     /**
      * Конвертира от вербална стойност
      */
     function fromVerbal_($val)
     {
-    	$this->params['unit'] = 'kg';
-    	
     	$val = parent::fromVerbal_($val);
     	
     	if($val === FALSE){
@@ -34,29 +41,5 @@ class cat_type_Weight extends cat_type_Uom {
     	}
     	
     	return $val;
-    }
-    
-    
-	/**
-     * Рендира HTML инпут поле
-     */
-    function renderInput_($name, $value = '', &$attr = array())
-    {
-    	if($value && empty($this->error)){
-    		$value = cat_UoM::smartConvert($value, 'kg', FALSE);
-    	}
-        
-        return ht::createTextInput($name, $value, $attr);
-    }
-    
-    
-    /**
-     * Форматира числото в удобна за четене форма
-     */
-    function toVerbal_($val)
-    {
-    	$this->params['unit'] = 'kg';
-    	
-    	return parent::toVerbal_($val);
     }
 }
