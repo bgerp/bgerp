@@ -230,8 +230,6 @@ class barcode_Generator extends core_Manager
         $attr['src']    = static::getUrl($type, $content, $size, $params);
         
         // Задаваме аттрибутите на тага
-        $attr['width']  = $size['width'];
-        $attr['height'] = $size['height'];
         $attr['alt'] = $content;
         $attr['class'] = $params['class'];
         
