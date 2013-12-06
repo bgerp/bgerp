@@ -175,7 +175,7 @@ class acc_OpenDeals extends core_Manager {
 						
 						if($docRec->bankAccountId){
 							// Ако касиера не е отговорник на посочената б. сметка
-							$operators = bank_OwnAccounts::fetchField($docRec->caseId, 'operators');
+							$operators = bank_OwnAccounts::fetchField($docRec->bankAccountId, 'operators');
 							if(keylist::isIn($cu, $operators)){
 								unset($data->rows[$id]);
 								continue;
@@ -184,7 +184,7 @@ class acc_OpenDeals extends core_Manager {
 						
 						if($docRec->shipmentStoreId){
 							// Ако касиера не е отговорник на посочената каса
-							if(store_Stores::fetchField($docRec->caseId, 'chiefId') != $cu){
+							if(store_Stores::fetchField($docRec->shipmentStoreId, 'chiefId') != $cu){
 								unset($data->rows[$id]);
 								continue;
 							}
