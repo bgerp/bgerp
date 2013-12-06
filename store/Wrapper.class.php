@@ -24,13 +24,14 @@ class store_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('store_Stores', 'Складове', 'ceo,store');
         $this->TAB('store_Transfers', 'Документи', 'store, ceo');
-		$this->TAB('store_Movements', 'Движения', 'ceo,store');
-        $this->TAB('store_Pallets', 'Палети', 'ceo,store');
-        $this->TAB('store_Racks', 'Стелажи', 'ceo,store');
-        $this->TAB('store_Zones', 'Зони', 'ceo,store');
+		$this->TAB('store_Movements', 'Движения', 'ceo,storeWorker');
+        $this->TAB('store_Pallets', 'Палети', 'ceo,storeWorker');
+        $this->TAB('store_Racks', 'Стелажи', 'ceo,storeWorker');
+        $this->TAB('store_Zones', 'Зони', 'ceo,storeWorker');
         $this->TAB('store_Products', 'Продукти', 'ceo,store');
+        $this->TAB('store_Stores', 'Складове', 'ceo,storeWorker');
+        $this->TAB(array('acc_OpenDeals', 'list', 'show' => 'store'), 'Сделки', 'store, ceo');
         
         $this->title = 'Склад';
     }
