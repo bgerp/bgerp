@@ -3,7 +3,7 @@
 
 
 /**
- * Клас  'cat_type_Dimension' 
+ * Клас  'cat_type_Size' 
  * Тип за Тегло, приема стойности от рода "5 кг" и ги конвертира до основната еденица
  *
  *
@@ -15,7 +15,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_type_Dimension extends cat_type_Uom {
+class cat_type_Size extends cat_type_Uom {
     
     
     /**
@@ -42,7 +42,9 @@ class cat_type_Dimension extends cat_type_Uom {
      */
     function renderInput_($name, $value = '', &$attr = array())
     {
-        $value = cat_UoM::smartConvert($value, 'm', FALSE);
+    	if($value && empty($this->error)){
+    		$value = cat_UoM::smartConvert($value, 'm', FALSE);
+    	}
         
         return ht::createTextInput($name, $value, $attr);
     }

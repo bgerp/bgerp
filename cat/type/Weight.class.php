@@ -26,7 +26,7 @@ class cat_type_Weight extends cat_type_Uom {
     	$this->params['unit'] = 'kg';
     	
     	$val = parent::fromVerbal_($val);
-    	
+    	//bp($val);
     	if($val === FALSE){
     		$this->error = "Моля въведете валидна мярка за тегло";
             
@@ -42,7 +42,9 @@ class cat_type_Weight extends cat_type_Uom {
      */
     function renderInput_($name, $value = '', &$attr = array())
     {
-        $value = cat_UoM::smartConvert($value, 'kg', FALSE);
+    	if($value && empty($this->error)){
+    		$value = cat_UoM::smartConvert($value, 'kg', FALSE);
+    	}
         
         return ht::createTextInput($name, $value, $attr);
     }

@@ -62,10 +62,10 @@ class cat_type_Uom extends type_Varchar {
         	
         	// Ако е въведено само число то се конвертира в основната мярка на мерната еденица
         	$val = cat_UoM::convertToBaseUnit($val, $typeUomId);
-            
+           
             return round($val);
         }
-        
+      
         // Разделяме текста на число и име
         preg_match("/(^[0-9 \.\,]+)([a-zа-я]*)/umi", $val, $matches);
         
@@ -83,7 +83,7 @@ class cat_type_Uom extends type_Varchar {
         
     	if(!$val) {
             $this->error = "Недопустими символи в число/израз";
-            
+           
             return FALSE;
         }
         
@@ -102,7 +102,7 @@ class cat_type_Uom extends type_Varchar {
         	// Разпознатата мярка трябва да е от същия вид като дефолт мярката
         	// Така ако е зададено 'kg' неможе да се въведе примерно 'секунда'
         	$this->error = "Моля посочете мярка производна на|* '{$this->params['unit']}'";
-            
+           
             return FALSE;
         }
         
@@ -119,7 +119,9 @@ class cat_type_Uom extends type_Varchar {
      */
     function renderInput_($name, $value = '', &$attr = array())
     {
-        $value = $this->toVerbal_($value);
+    	if($value && empty($this->error)){
+    		$value = $this->toVerbal_($value);
+    	}
         
         return ht::createTextInput($name, $value, $attr);
     }
