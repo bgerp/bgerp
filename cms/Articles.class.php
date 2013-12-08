@@ -207,8 +207,10 @@ class cms_Articles extends core_Master
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
-    { 
-        $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
+    {
+        if(trim($rec->body)) {
+            $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
+        }
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;

@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, plg_Vid';
     
     
     /**
@@ -51,15 +51,6 @@ class eshop_Groups extends core_Master
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'name';
-    
-    
-    /**
-     * Дали да се превежда, транслитерира singleField полето
-     * 
-     * translate - Превежда
-     * transliterate - Транслитерира
-     */
-    var $langSingleField = 'translate';
     
     
     /**
@@ -169,7 +160,7 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::fetchIdByName($mvc->className);
         while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
-            $opt[$rec->id] = type_Varchar::escape($rec->menu);
+            $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
 
         $data->form->setOptions('menuId', $opt);
@@ -181,16 +172,14 @@ class eshop_Groups extends core_Master
      */
     function act_ShowAll()
     {
-        $menuId = Request::get('cMenuId', 'int');
-        if($menuId) {
-            cms_Content::setLang(cms_Content::fetchField($menuId, 'lang'));
-        }
         $data = new stdClass();
+        expect($data->menuId = Request::get('cMenuId', 'int'));
+        cms_Content::setLang(cms_Content::fetchField($data->menuId, 'lang'));
 
-        $this->prepareNavigation($data, $menuId);   
-        $this->prepareAllGroups($data, $menuId);  
+        $this->prepareNavigation($data);   
+        $this->prepareAllGroups($data);  
+
         $layout = $this->getLayout();
- 
         $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->renderAllGroups($data), 'PAGE_CONTENT');
 
@@ -198,58 +187,80 @@ class eshop_Groups extends core_Master
     }
 
 
+    /**
+     * Екшън за единичен изглед на групата във витрината
+     */
     function act_Show()
     {
-        $groupId = Request::get('id', 'int');
         $data = new stdClass();
+        $data->groupId = Request::get('id', 'int');
+        $this->prepareGroup($data);
+        $this->prepareNavigation($data);
 
-        $this->prepareNavigation($data, NULL, $groupId);
-        expect($rec = $this->fetch($groupId));
-        Mode::set('cMenuId', $rec->menuId);
+        Mode::set('cMenuId', $data->rec->menuId);
         
-        if($rec->menuId) {
-            cms_Content::setLang(cms_Content::fetchField($rec->menuId, 'lang'));
-        }
-
-        $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
-        
-        $row = new stdClass();
-
-        $row->title = type_Varchar::escape($rec->name);
-        if($rec->image) {
-            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->title); 
-        }
-        $rt = cls::get('type_RichText');
-        $row->description = $rt->toVerbal($rec->info); 
-        $groupTpl->placeArray($row);
+        cms_Content::setLang(cms_Content::fetchField($data->rec->menuId, 'lang'));
 
         $layout = $this->getLayout();
-        $layout->replace($groupTpl, 'PAGE_CONTENT');
         $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
+        $layout->replace($this->renderGroup($data), 'PAGE_CONTENT');
         
         return $layout;
     }
 
 
     /**
-     *
+     * Подготвя данните за показването на страницата със всички групи
      */
-    function prepareAllGroups($data, $menuId)
+    function prepareAllGroups($data)
     {
         $query = self::getQuery();
-        $query->where("#state = 'active' AND #menuId = {$menuId}");  
+        $query->where("#state = 'active' AND #menuId = {$data->menuId}");  
         
         while($rec = $query->fetch()) {
-            $rec->url = array('eshop_Groups', 'show', $rec->id);
+            $rec->url = array('eshop_Groups', 'show', $rec->vid ? $rec->vid : $rec->id);
             $data->recs[] = $rec;
         }
 
-        $cRec = cms_Content::fetch($menuId);
+        $cRec = cms_Content::fetch($data->menuId);
 
         $data->title = type_Varchar::escape($cRec->url);
     }
 
 
+    /**
+     * Подготвя данните за показването на една група
+     */
+    function prepareGroup($data)
+    {    
+        expect($rec = $data->rec = $this->fetch($data->groupId));
+        
+        $rec->menuId = $rec->menuId;
+
+        $row = $data->row = new stdClass();
+
+        $row->name = $this->getVerbal($rec, 'name');
+
+        if($rec->image) {
+            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->name); 
+        }
+
+        $row->description = $this->getVerbal($rec, 'info');
+
+        $pQuery = eshop_Products::getQuery();
+
+        while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
+            $data->products->recs[] = $pRec;
+            $pRow = $data->products->rows[] = eshop_Products::recToVerbal($pRec, 'name,info,image');
+            $img = new img_Thumb($pRec->image, 120, 120);
+            $pRow->image = $img->createImg(array('width' => 120, 'height' => 120));
+        }
+    }
+
+
+    /**
+     * Добавя бутони за разглеждане във витрината на групите с продукти
+     */
     function on_AfterPrepareListToolbar($mvc, $data)
     {   
         $cQuery = cms_Content::getQuery();
@@ -273,15 +284,35 @@ class eshop_Groups extends core_Master
                 $tpl = new ET(getFileContent('eshop/tpl/GroupButton.shtml'));
                 if($rec->icon) {
                     $img = new img_Thumb($rec->icon, 280, 100, 'fileman');
-                    $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'IMG');
+                    $tpl->replace(ht::createLink($img->createImg(), $rec->url), 'img');
                 }
-                $title = ht::createLink(type_Varchar::escape($rec->name), $rec->url);
-                $tpl->replace($title, 'TITLE');
+                $name = ht::createLink($this->getVerbal($rec, 'name'), $rec->url);
+                $tpl->replace($name, 'name');
                 $all->append($tpl);
             }
         }
 
         return $all;
+    }
+
+
+    /**
+     *
+     */
+    function renderGroup($data)
+    {
+        $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
+        $groupTpl->placeArray($data->row);
+                
+        if(is_array($data->products->rows)) {
+            foreach($data->products->rows as $row) {
+                $pTpl = $groupTpl->getBlock('PRODUCT');
+                $pTpl->placeObject($row, NULL, 'PRODUCT');  
+                $pTpl->append2master();
+            }
+        }
+
+        return $groupTpl;
     }
 
 
@@ -305,11 +336,20 @@ class eshop_Groups extends core_Master
     /**
      * Подготвя данните за навигацията
      */
-    function prepareNavigation(&$navData, $menuId, $groupId = NULL, $productId = NULL)
+    function prepareNavigation($data)
     {
         $query = $this->getQuery(); 
         
         $query->where("#state = 'active'");
+        
+        $groupId   = $data->groupId;
+        $productId = $data->productId;
+        $menuId = $data->menuId;
+
+        if($productId) {
+            $pRec = eshop_Products::fetch("#id = {$productId} AND #state = 'active'");
+            $groupId = $pRec->groupId;
+        }
         
         if($groupId) {
             $menuId = self::fetch($groupId)->menuId;
@@ -322,39 +362,24 @@ class eshop_Groups extends core_Master
         $l->url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $menuId);
         $l->title = tr('Всички продукти');;
         $l->level = 1;
-        $navData->links[] = $l;
+        $data->links[] = $l;
 
-        if($productId) {
-            $pRec = eshop_Products::fetch("#id = {$productId} AND #state = 'active'");
-        }
  
         while($rec = $query->fetch()) {
             $l = new stdClass();
-            $l->url = array('eshop_Groups', 'Show', $rec->id);
-            $l->title = type_Varchar::escape($rec->name);
+            $l->url = array('eshop_Groups', 'Show', $rec->vid ? $rec->vid : $rec->id);
+            $l->title  = $this->getVerbal($rec, 'name');
             $l->level = 2;
             $l->selected = ($groupId == $rec->id);
             
             if($this->haveRightFor('edit', $rec)) {
                 $editSbf = sbf("img/16/edit.png", '');
                 $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+                $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => TRUE));
             }
 
-            $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id));
             
-            $navData->links[] = $l;
-
-            if($l->selected || ($pRec->groupId == $rec->id)) {
-                $pQuery = eshop_Products::getQuery();
-                while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$rec->id}")) {
-                    $p = new stdClass();
-                    $p->url = array('eshop_Products', 'Show', $pRec->id);
-                    $p->title = type_Varchar::escape($pRec->name);
-                    $p->level = 3;
-                    $p->selected = ($productId == $pRec->id);
-                    $navData->links[] = $p;
-                }
-            }
+            $data->links[] = $l;
         }
     }
 

@@ -1,1 +1,18 @@
-<h1>[#title#]</h1><div>[#image#]</div><div>[#description#]</div>
+<div class="eshop-group">
+	<h1 class="eshop-group-name">[#name#]</h1>
+	<div class="eshop-group-image">[#image#]</div>
+	<div class="eshop-group-description">[#description#]</div>
+</div>
+
+<!--ET_BEGIN PRODUCT-->
+[#PRODUCT#]
+<table class="eshop-product-list">
+	<tr>
+		<td rowspan='2' class="eshop-product-list-image">[#PRODUCT_image#]</td>
+		<td class="eshop-product-list-name">[#PRODUCT_name#]</td>
+	</tr>
+	<tr>
+		<td class="eshop-product-list-info">[#PRODUCT_info#]</td>
+	</tr>
+</table>
+<!--ET_END PRODUCT-->

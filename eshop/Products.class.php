@@ -46,16 +46,7 @@ class eshop_Products extends core_Master
      */
     var $searchFields = 'name';
     
-    
-    /**
-     * Дали да се превежда, транслитерира singleField полето
-     * 
-     * translate - Превежда
-     * transliterate - Транслитерира
-     */
-    var $langSingleField = 'translate';
-    
-    
+        
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -119,7 +110,7 @@ class eshop_Products extends core_Master
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'eshop,cat';
+    var $canWrite = 'eshop,ceo';
     
     
     /**
