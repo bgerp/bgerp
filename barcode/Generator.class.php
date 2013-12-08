@@ -65,6 +65,18 @@ class barcode_Generator extends core_Manager
     
     
     /**
+     * Размер на шрифта
+     */
+    static $fontSize = 14;
+    
+    
+    /**
+     * Път до шрифта
+     */
+    static $font = 'barcode/fonts/FreeSans.ttf';
+    
+    
+    /**
      * Връща всички баркодове, за които можем да генерираме изображение
      * 
      * @return array - 
@@ -95,7 +107,10 @@ class barcode_Generator extends core_Manager
      * За останалите:
      * $params['angle'] - Ъгъл на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
      * Ако е 90 или 270, баркода ще е вертикален. Ако е 180 баркода ще е обърнат надолу.
-     *
+     * $params['addText'] - Дали да се дабави текста под баркодата
+     * $params['addText']['font'] - Определен шрифт от системата
+     * $params['addText']['fontSiz'] - Размер на шрифта
+     * 
      * @param array $output - Масив, в който се записват данните след генерирането на баркода 
      * 
      * @return gd img $im
@@ -169,7 +184,99 @@ class barcode_Generator extends core_Manager
         
         // Ъгъл на завъртане на баркода
         if ($params['angle']) {
+            
+            // Завъртаме избображението
             $im = imagerotate($im, $params['angle'], $white);    
+        }
+
+        // Ако ще се добавя и текст
+        // На QR и datamatrix не се добавя
+        if (isset($params['addText']) && $type != 'qr' && $type != 'datamatrix') {
+            
+            // Ако не е зададен размер на шрифта
+            if (!($fontSize = $params['addText']['fontSize'])) {
+                
+                // Задава стойността
+                $fontSize = static::$fontSize;
+            }
+            
+            // Ако не е зададен фонт
+            if (!($font = $params['addText']['font'])) {
+                
+                // Задаваме стойността
+                $font = static::$font;
+            }
+            
+            // Фонт на шрифта
+            $font = core_App::getFullPath($font);
+            
+            // Вземаме размерите на шрифта
+            $box = imagettfbbox($fontSize, $params['angle'], $font, $output['hri']);
+            
+            // Ако няма завъртане или е нула
+            if (!$params['angle']) {
+                
+                // Отместване
+                $marginBottom = 2;
+                $marginTop = 4;
+                
+                // Височината на фонта
+                $f = abs($box[5]);
+                
+                // Дължина на квадрата - от край до край
+                $x1 = 0;
+                $x2 = $width;
+                
+                // Височина на квадрата
+                $y1 = $height-$f - $marginTop;
+                $y2 = $height+$f;
+                
+                // Тези отрязват квадрат, колкото е големината на текста
+//                $x1 = $width/2 - $box[2]/2;
+//                $x2 = $width/2 + $box[2]/2;
+                
+                // Начертаваме квадрат в долната част
+                imagefilledrectangle($im, $x1, $y1, $x2, $y2, $white);
+                
+                // X и Y координатите на текста
+                $textX = $width/2 - $box[2]/2;
+                $textY = $height - $marginBottom;
+                
+                // Добавяме надписа в празното квадратче
+                imagettftext($im, $fontSize, $params['angle'], $textX, $textY, $black, $font, $output['hri']);
+            } elseif ($params['angle'] == 90) {
+                
+                // Ако завъртаме на 90 градуса
+                
+                // Отстояние на текста
+                $marginRightDown = 2;
+                $marginRightUp = 4;
+                
+                // Височина на фонта
+                $f = abs($box[4]);
+                
+                // Височина на квадрата
+                $x1 = $height - $f - $marginRightUp;
+                $x2 = $height+$f;
+                
+                // Дължина на квадрата - от край до край
+                $y1 = 0;
+                $y2 = $width;
+                
+                // X и Y координатите на текста
+                $textX = $height - $marginRightDown;
+                $textY = $width/2 - $box[3]/2;
+                
+                // Начертаваме квадрат в долната част
+                imagefilledrectangle($im, $x1, $y1, $x2, $y2, $white);
+                
+                // Добавяме надписа в празното квадратче
+                imagettftext($im, $fontSize, $params['angle'], $textX, $textY, $black, $font, $output['hri']);  
+            } else {
+                
+                // В момента работи само със 2 завъртания
+                expect(FALSE, 'Могат да се добавят стрингове само към 0 и 90 градуса завъртане');
+            }
         }
         
         return $im;
@@ -230,8 +337,6 @@ class barcode_Generator extends core_Manager
         $attr['src']    = static::getUrl($type, $content, $size, $params);
         
         // Задаваме аттрибутите на тага
-        $attr['width']  = $size['width'];
-        $attr['height'] = $size['height'];
         $attr['alt'] = $content;
         $attr['class'] = $params['class'];
         

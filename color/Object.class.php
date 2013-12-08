@@ -50,26 +50,27 @@ class color_Object {
         // 123,120,100,99  (CMYK)
         // PMS 485C
         $value = trim(strtolower($value));
-        
-        if(is_numeric($value) && is_numeric($g) && is_numeric($b)) {
+    
+        if(is_numeric($value) && is_numeric($g) && is_numeric($b)) {  
             $this->r = $value;
             $this->g = $g;
             $this->b = $b;
             
             return;
         }
-        
-        if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
+       
+        if($this->hexToRgb($value, $this->r, $this->g, $this->b)) { 
             return;
         }
 
-        if(strlen($value) == 6) {
+        if(strlen($value) == 6 ) { 
             if($this->hexToRgb('#' . $value, $this->r, $this->g, $this->b)) {
                 return;
             }
         }
         
-        if($hexColor = $this->getNamedColor($value)) {
+        
+        if($hexColor = $this->getNamedColor($value)) { 
             if($this->hexToRgb($hexColor, $this->r, $this->g, $this->b)) {
                 return;
             }
@@ -86,7 +87,7 @@ class color_Object {
     {
         if($hexColor{0} == '#') $hexColor = substr($hexColor, 1);
         
-        if(preg_match("/[0-9a-f]{3}([0-9a-f]{3})/i", $hexColor)) {
+        if(preg_match("/[0-9a-f]{3}([0-9a-f]{3})/i", $hexColor) || preg_match("/[0-9a-f]{3}/i", $hexColor)) {
             if(strlen($hexColor) == 3) {
                 $r = hexdec($hexColor{0} . $hexColor{0});
                 $g = hexdec($hexColor{1} . $hexColor{1});
