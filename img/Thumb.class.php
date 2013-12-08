@@ -489,7 +489,7 @@ class img_Thumb
         
         $this->getSize();  
         setIfNot($attr['width'], $this->scaledWidth);
-        $attr['height'] = $this->scaledHeight;
+        setIfNot($attr['height'], $this->scaledHeight);
         
         setIfNot($attr['alt'], $this->verbalName);
 
