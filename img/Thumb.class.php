@@ -485,11 +485,13 @@ class img_Thumb
      */
     function createImg($attr = array())
     {
-        $attr['src']    = $this->getUrl();
+        setIfNot($attr['src'], $this->getUrl());
+        
         $this->getSize();  
-        $attr['width']  = $this->scaledWidth;
+        setIfNot($attr['width'], $this->scaledWidth);
         $attr['height'] = $this->scaledHeight;
-        $attr['alt'] = $this->verbalName;
+        
+        setIfNot($attr['alt'], $this->verbalName);
 
         $img = ht::createElement('img', $attr);
 
