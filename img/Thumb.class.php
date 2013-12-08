@@ -181,7 +181,11 @@ class img_Thumb
                     $this->imgAsString = $this->source;
                     break;
                 case 'fileman':
-                    $this->imgAsString = fileman_Files::getContent($this->source);
+                    try {
+                        $this->imgAsString = fileman_Files::getContent($this->source);
+                    } catch( core_exception_Expect $e) {
+                        // Нищо не правим, ако има грешка
+                    }
                     break;
                 case 'path':
                     $this->imgAsString = @file_get_contents($this->source);
@@ -222,7 +226,11 @@ class img_Thumb
                     $param = $this->source;
                     break;
                 case 'fileman':
-                    $param = fileman_Files::fetchByFh($this->source, 'md5');
+                    try {
+                        $param = fileman_Files::fetchByFh($this->source, 'md5');
+                    } catch (core_exception_Expect $e) {
+                        $param = str::getRand();
+                    }
                     break;
                 case 'path':
                     $param = md5_file($this->source);
@@ -295,9 +303,10 @@ class img_Thumb
     {
         // Ако не са зададени
         if(!$this->width || !$this->height) {
-            $gdRes = $this->getGdRes();
-            $this->width  = imagesx($gdRes);
-            $this->height = imagesy($gdRes);
+            if($gdRes = $this->getGdRes()) {
+                $this->width  = imagesx($gdRes);
+                $this->height = imagesy($gdRes);
+            }
         }
     }
     
@@ -435,7 +444,11 @@ class img_Thumb
             }
         }
         
-        $url  = $this->getThumbUrl();
+        if(!file_exists($path)) {
+            $url = sbf('img/1x1.gif', '');
+        } else {
+            $url  = $this->getThumbUrl();
+        }
 
         return $url;
     }
@@ -513,6 +526,11 @@ class img_Thumb
      */
     public static function scaleSize($width, $height, $maxWidth, $maxHeight, $allowEnlarge = FALSE)
     {
+        if($width == 0 || $height == 0) {
+
+            return array($maxWidth, $maxHeight, 1);
+        }
+
         $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
 
