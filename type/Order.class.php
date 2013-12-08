@@ -84,7 +84,9 @@ class type_Order extends type_Varchar {
         if($l2 > 0) {
             $res .= '.' . round($l2);
         }
-               
+        
+        $res = ltrim($res, '0');
+ 
         return $res;
     }
 }
