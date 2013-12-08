@@ -255,7 +255,7 @@ class eshop_Groups extends core_Master
             $data->products->recs[] = $pRec;
             $pRow = $data->products->rows[] = eshop_Products::recToVerbal($pRec, 'name,info,image');
             $img = new img_Thumb($pRec->image, 120, 120);
-            $pRow->image = $img->createImg(array('width' => 120, 'height' => 120));
+            $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(eshop_Products::haveRightFor('edit', $pRec)) {
                 $pRow->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE));
             }
@@ -313,15 +313,17 @@ class eshop_Groups extends core_Master
     function renderGroup($data)
     {
         $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
+        $groupTpl->setRemovableBlocks(array('PRODUCT'));
         $groupTpl->placeArray($data->row);
                 
         if(is_array($data->products->rows)) {
             foreach($data->products->rows as $row) {
                 $pTpl = $groupTpl->getBlock('PRODUCT');
-                $pTpl->placeObject($row, NULL, 'PRODUCT');  
+                $pTpl->placeObject($row, NULL, 'PROD');  
                 $pTpl->append2master(); 
             }
         }
+
 
         if($data->addProductUrl) {
             $groupTpl->append(ht::createBtn('Нов продукт', $data->addProductUrl,  NULL, NULL, array('style' => 'margin-top:5px; margin-bottom:5px;')));
