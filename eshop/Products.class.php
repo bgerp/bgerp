@@ -139,6 +139,6 @@ class eshop_Products extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,width=100%');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory');
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
     }
 }

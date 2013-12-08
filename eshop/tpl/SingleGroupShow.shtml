@@ -5,11 +5,10 @@
 </div>
 
 <!--ET_BEGIN PRODUCT-->
-[#PRODUCT#]
 <table class="eshop-product-list">
 	<tr>
 		<td rowspan='2' class="eshop-product-list-image">[#PRODUCT_image#]</td>
-		<td class="eshop-product-list-name">[#PRODUCT_name#]</td>
+		<td class="eshop-product-list-name">[#PRODUCT_name#] [#PRODUCT_editLink#]</td>
 	</tr>
 	<tr>
 		<td class="eshop-product-list-info">[#PRODUCT_info#]</td>
