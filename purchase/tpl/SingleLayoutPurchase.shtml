@@ -62,39 +62,39 @@
            	
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
-                <tbody><tr>
-                    <td class="topCell first" valign="top" width="30%">
-                        <!--ET_BEGIN deliveryTermId-->
-                    	<div>
-                            |Условие|*: <b>[#deliveryTermId#]</b>
-                       	</div>
-                       	<!--ET_END deliveryTermId-->
-                       	
-                        <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
-                        <!--ET_END deliveryTime-->
-    
-    					<!--ET_BEGIN deliveryLocationId-->
-    					<div>
-                            |От|*: <b>[#deliveryLocationId#]</b>
-                        </div>
-    					<!--ET_END deliveryLocationId-->
-    					
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <div>
-                            |До склад|*: <b>[#storeId#] </b>
-                        </div>
-                        <!--ET_END shipmentStoreId-->
-                             
-        
-                        <!--ET_BEGIN note-->
-	                        <hr />
-	                        <div class="richtext">[#note#]</div> 
-                        <!--ET_END note-->     
-                    </td>
-                    <td class="topCell" valign="top" width="40%">
+                <tbody>
+                <tr>
+                     <!--ET_BEGIN purchaseConditions-->
+	                     [#purchaseConditions#]
+	                    <td class="topCell first" valign="top">
+	                        <!--ET_BEGIN deliveryTermId-->
+	                        
+	                    	<div>
+	                            |Условие|*: <b>[#deliveryTermId#]</b>
+	                       	</div>
+	                       	<!--ET_END deliveryTermId-->
+	                       	
+	                        <!--ET_BEGIN deliveryTime-->
+	                        <div>
+	                            |Срок до|*: <b>[#deliveryTime#]</b>
+	                        </div>
+	                        <!--ET_END deliveryTime-->
+	    
+	    					<!--ET_BEGIN deliveryLocationId-->
+	    					<div>
+	                            |От|*: <b>[#deliveryLocationId#]</b>
+	                        </div>
+	    					<!--ET_END deliveryLocationId-->
+	    					
+	                        <!--ET_BEGIN storeId-->
+	                        <div>
+	                            |До склад|*: <b>[#storeId#] </b>
+	                        </div>
+	                        <!--ET_END storeId-->
+	                    </td>
+                   <!--ET_END purchaseConditions-->
+                   
+                    <td class="topCell" valign="top">
                         <!--ET_BEGIN paymentMethodId-->
                             <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
                         <!--ET_END paymentMethodId-->
@@ -114,35 +114,8 @@
                         <!--ET_END caseId-->
                     </td>
        
-                    <td class="topCell" align="right" valign="top" width="30%">
-                        <table>
-                            <tr>
-                                <td>
-                                    <table border='0'cellpadding='3px' width='100%' cellspacing='0px'>
-							             <!--ET_BEGIN amountBase-->
-							             <tr>
-							                <td class='info-right'>|Общо без ДДС|* :</td>
-							                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-							                <td align='right'><b>[#amountBase#]</b></td>
-							             </tr>
-							             <!--ET_END amountBase-->
-							             <tr>
-							                <td class='info-right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
-							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td align='right'><b>[#amountVat#]</b></td>
-							             </tr>
-							             <tr>
-							                <td class='info-right'>|Общо|*:</td>
-							                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-							                <td align='right'><b>[#amountDeal#]</b></td>
-							             </tr>
-							        </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td align="RIGHT"></td>
-                            </tr>
-                        </table>
+                    <td class="topCell" align="right" valign="top">
+                                    [#SUMMARY#] 
                     </td>
                 </tr>           
                 </tbody>

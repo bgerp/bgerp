@@ -13,7 +13,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -62,12 +62,12 @@ class cat_type_Uom extends type_Varchar {
         	
         	// Ако е въведено само число то се конвертира в основната мярка на мерната еденица
         	$val = cat_UoM::convertToBaseUnit($val, $typeUomId);
-            
-            return round($val);
+           
+            return $val;
         }
-        
+      
         // Разделяме текста на число и име
-        preg_match("/(^[0-9 \.\,]+)([a-zа-я]*)/umi", $val, $matches);
+        preg_match("/(^[0-9 \.\,]+)([a-zа-я]*[\. ]*[a-zа-я]*)/umi", $val, $matches);
         
         // Първата намерена стойност е сумата на мярката
         $val = $matches[1];
@@ -75,39 +75,46 @@ class cat_type_Uom extends type_Varchar {
         // Намерения текс се обръща във вид лесен за работа
         $ext = strtolower(str::utf2ascii($matches[2]));
         
-        // Разпознава се на коя мерна еденица отговаря посочената дума
-        $inputUom = cat_UoM::fetchBySinonim($ext);
-        
+        // Обръщане на стойността от вербална във вътрешна
         $Double = cls::get('type_Double');
         $val = $Double->fromVerbal($val);
         
     	if(!$val) {
             $this->error = "Недопустими символи в число/израз";
-            
+           
             return FALSE;
         }
         
-        if(empty($inputUom)){
+        // Ако има разпозната текстова част
+        if(strlen($ext)){
+	        // Разпознава се на коя мерна еденица отговаря посочената дума
+	        $inputUom = cat_UoM::fetchBySinonim($ext);
+	        if(empty($inputUom)){
+	        	
+	        	// Задължително трябва да има разпознаване
+	        	$this->error = "Неразпозната мярка|* '{$matches[2]}'";
+	            
+	            return FALSE;
+	        }
+	        
+	        // Извличат се производните мерки на дефолт мярката
+	        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUomId);
+	        if(empty($sameMeasures[$inputUom->id])){
+	        	
+	        	// Разпознатата мярка трябва да е от същия вид като дефолт мярката
+	        	// Така ако е зададено 'kg' неможе да се въведе примерно 'секунда'
+	        	$this->error = "Моля посочете мярка производна на|* '{$this->params['unit']}'";
+	           
+	            return FALSE;
+	        }
+	        
+	        // Въведената стойност се конвертира във основната си мярка
+        	$val = cat_UoM::convertToBaseUnit($val, $inputUom->id);
+        } else {
         	
-        	// Задължително трябва да има разпознаване
-        	$this->error = "Неразпозната мярка|* '{$matches[2]}'";
-            
-            return FALSE;
+        	// Ако няма разпозната текстова част
+        	$val = cat_UoM::convertToBaseUnit($val, $typeUomId);
         }
-        
-        // Извличат се производните мерки на дефолт мярката
-        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUomId);
-        if(empty($sameMeasures[$inputUom->id])){
-        	
-        	// Разпознатата мярка трябва да е от същия вид като дефолт мярката
-        	// Така ако е зададено 'kg' неможе да се въведе примерно 'секунда'
-        	$this->error = "Моля посочете мярка производна на|* '{$this->params['unit']}'";
-            
-            return FALSE;
-        }
-        
-        // Въведената стойност се конвертира във основната си мярка
-        $val = cat_UoM::convertToBaseUnit($val, $inputUom->id);
         
         // Връщане на стойността
         return $val;
@@ -115,14 +122,16 @@ class cat_type_Uom extends type_Varchar {
     
     
 	/**
-     * Рендира HTML инпут поле
+     * Рендиране на полето
      */
     function renderInput_($name, $value = '', &$attr = array())
-    {
-        $value = $this->toVerbal_($value);
-        
-        return ht::createTextInput($name, $value, $attr);
-    }
+	{
+		if($value && empty($this->error)){
+			$value = cat_UoM::smartConvert($value, $this->params['unit'], FALSE);
+	    }
+
+       return ht::createTextInput($name, $value, $attr);
+     }
     
     
     /**

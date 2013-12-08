@@ -49,7 +49,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, price, amount';
+    public $listFields = 'productId, packagingId, quantity, price, discount, amount';
     
     
     /**
@@ -73,7 +73,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'price,amount';
+    public $priceFields = 'price,amount,discount';
     
     
     /**
@@ -99,6 +99,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('price', 'double', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
 		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
+		$this->FLD('discount', 'percent', 'input=none,caption=Отстъпка');
 		
 		$this->setDbUnique('invoiceId, productId, packagingId');
 	}
@@ -142,7 +143,7 @@ class sales_InvoiceDetails extends core_Detail
     		$data->rows = array();
     		$data->rows[] = (object) array('reason' => $masterRec->reason,
     									   'amount' => $masterRec->changeAmount);
-    	}
+    	} 
     }
     
     
@@ -184,14 +185,19 @@ class sales_InvoiceDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = &$data->recs;
-        $invRec = clone $data->masterData->rec;
+        $invRec = &$data->masterData->rec;
         
         if (empty($recs)) return;
         foreach ($recs as &$rec){
         	$rec->price = $rec->price * $rec->quantityInPack;
+        	$haveDiscount = $haveDiscount || !empty($rec->discount);
         }
         
         price_Helper::fillRecs($recs, $invRec, static::$map);
+        
+    	if(!$haveDiscount) {
+            unset($data->listFields['discount']);
+        }
     }
     
     

@@ -517,7 +517,7 @@ class label_Labels extends core_Master
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $data->rows[$i]->$place = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace]);
+                $data->rows[$i]->$place = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace], $data->rec->id);
             }
         }
     }
@@ -623,7 +623,7 @@ class label_Labels extends core_Master
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='label-table'>";
+        $t = "<table class='label-table printing-page-break'>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {

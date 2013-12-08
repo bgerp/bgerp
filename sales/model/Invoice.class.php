@@ -133,6 +133,12 @@ class sales_model_Invoice extends core_Model
     
     
     /**
+     * @var double
+     */
+    public $discountAmount;
+    
+    
+    /**
      * @var string
      */
     public $vatDate;

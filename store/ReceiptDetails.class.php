@@ -192,7 +192,7 @@ class store_ReceiptDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = &$data->recs;
-        $receiptRec = clone $data->masterData->rec;
+        $receiptRec = $data->masterData->rec;
         
         if (empty($recs)) return;
         

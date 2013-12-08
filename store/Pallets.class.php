@@ -38,7 +38,7 @@ class store_Pallets extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,store';
+    var $canRead = 'ceo,storeWorker';
     
     
     /**
@@ -50,31 +50,31 @@ class store_Pallets extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,store';
+    var $canAdd = 'ceo,storeWorker';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,store';
+	var $canList = 'ceo,storeWorker';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,store';
+	var $canSingle = 'ceo,storeWorker';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,store';
+    var $canView = 'ceo,storeWorker';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,store';
+    var $canDelete = 'ceo,storeWorker';
     
     
     /**

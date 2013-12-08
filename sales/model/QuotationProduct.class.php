@@ -61,8 +61,8 @@ class sales_model_QuotationProduct
      */
     public function __construct(stdClass $rec)
     {
-    	$Class = cls::get($rec->productManId);
-    	$this->classId     = $rec->productManId;
+    	$Class = cls::get($rec->classId);
+    	$this->classId     = $rec->classId;
         $this->productId   = $rec->productId;
         $this->packagingId = NULL;
         $this->discount    = $rec->discount;

@@ -128,7 +128,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'valior, reason, creditQuantity, debitQuantity';
+    var $searchFields = 'reason, peroFrom, peroTo';
     
     
 	/**

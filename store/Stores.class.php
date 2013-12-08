@@ -71,7 +71,7 @@ class store_Stores extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,store';
+	var $canList = 'ceo,storeWorker';
 
 
 	/**
@@ -83,7 +83,7 @@ class store_Stores extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,acc';
+    var $canDelete = 'ceo,storeMaster';
     
     
     /**
@@ -101,7 +101,7 @@ class store_Stores extends core_Master
    /**
 	* Кой може да селектира?
 	*/
-	var $canSelect = 'ceo,store';
+	var $canSelect = 'ceo,storeWorker';
 	
 	
     /**
@@ -241,6 +241,7 @@ class store_Stores extends core_Master
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
 			$data->query->where("#chiefId = {$cu}");
+			$data->query->orLike('workersIds', "|$cu|");
 		}
 	}
 
@@ -258,4 +259,18 @@ class store_Stores extends core_Master
 			$data->form->setField('workersIds', array('maxColumns' => 2));
 		}
 	}
+	
+	
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'select' && $rec){
+    		$cu = core_Users::getCurrent();
+    		if($rec->chiefId == $cu || keylist::isIn($cu, $rec->workersIds)){
+    			$res = 'storeWorker';
+    		}
+    	}
+    }
 }

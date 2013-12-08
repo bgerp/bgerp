@@ -19,25 +19,25 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Заглавие
      */
-    var $title = 'Детайли на офертите';
+    public $title = 'Детайли на офертите';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'sales_QuotesDetails';
+    public $oldClassName = 'sales_QuotesDetails';
     
     
     /**
 	 * Мастър ключ към дъските
 	 */
-	var $masterKey = 'quotationId';
+	public $masterKey = 'quotationId';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,sales';
     
     
     /**
@@ -55,13 +55,13 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_AlignDecimals, doc_plg_HidePrices, plg_SaveAndNew';
     
     
     /**
      * Кой може да променя?
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
 	
     /**
@@ -73,15 +73,24 @@ class sales_QuotationsDetails extends core_Detail {
     /**
      * Кой таб да бъде отворен
      */
-    var $currentTab = 'Оферти';
+    public $currentTab = 'Оферти';
     
     
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'price,discount,amount,discAmount';
+    public $priceFields = 'price,discount,amount,discAmount';
     
     
+    /**
+     * Помощен масив (@see price_Helper)
+     */
+    protected static $map = array('priceFld'      => 'price', 
+    							  'quantityFld'   => 'quantity', 
+    							  'valior'        => 'date', 
+    							  'discAmountFld' => 'discAmountVat');
+  	
+  	
   	/**
      * Описание на модела (таблицата)
      */
@@ -89,10 +98,10 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('productManId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика, silent');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
-    	$this->FLD('price', 'double', 'caption=Ед. цена, input,width=8em');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
+    	$this->FLD('price', 'double(minDecimals=2)', 'caption=Ед. цена, input,width=8em');
+        $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка,width=8em');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,width=8em;');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
@@ -105,36 +114,53 @@ class sales_QuotationsDetails extends core_Detail {
      */
     static function on_AfterPrepareListRecs($mvc, $data)
     {
+    	if(!count($data->recs)) return;
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
-    	$hasVat = $masterRec->vat;
+    	$notOptional = $optional = array();
+    	$total = new stdClass();
+    	$total->discAmount = 0;
     	
-    	if($recs){
-	    	foreach($recs as $id => $rec){
-	    		
-	    		// Цената с добавено ДДС и конвертирана
-	    		if($hasVat != 'yes' && $hasVat != 'no') {
-	    			$rec->vatPercent = 0;
-	    		}
-	    		
-	    		$rec->price *= 1 + $rec->vatPercent;
-	    		$rec->price = $rec->price / $masterRec->rate;
-		    	$rec->price = currency_Currencies::round($rec->price, $masterRec->paymentCurrencyId);
-		    	
-		    	// Сумата с добавено ддс и конвертирана
-	    		if($rec->quantity){
-	    			$rec->amount = $rec->quantity * $rec->price;
-			    }
-	    		
-	    		// Отстъпката с добавено ДДС и конвертирана
-		    	if($rec->discount && $rec->quantity){
-		    		$disc = ($rec->amount * $rec->discount);
-    				$rec->discAmountVat = $rec->amount - $disc;
-		    	}
-		    	
-	    	}
+    	foreach ($recs as $id => $rec){
+    		if($rec->optional == 'no'){
+    			$notOptional[$id] = $rec;
+    		}  else {
+    			$optional[$id] = $rec;
+    		}
     	}
+    	
+    	// Подготовка за показване на задължителнтие продукти
+    	price_Helper::fillRecs($notOptional, $masterRec, static::$map);
+    	
+    	// Запомня се стойноста и ддс-то само на опционалните продукти
+    	$data->summary = price_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    	
+    	// Подготовка за показване на опционалните продукти
+    	price_Helper::fillRecs($optional, $masterRec, static::$map);
+    	$recs = $notOptional + $optional;
+    	
+    	// Изчисляване на цената с отстъпка
+    	foreach($recs as $id => $rec){
+            if($rec->optional == 'no'){
+    			$other = $mvc->checkUnique($recs, $rec->productId, $rec->classId, $rec->id);
+            	if($other) unset($data->summary);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Проверява дали има вариация на продукт
+     */
+    private function checkUnique($recs, $productId, $classId, $id, $isOptional = 'no')
+    {
+    	$other = array_values(array_filter($recs, function ($val) use ($productId, $classId, $id, $isOptional) {
+           				if($val->optional == $isOptional && $val->productId == $productId && $val->classId == $classId && $val->id != $id){
+            				return $val;
+            			}}));
+            			
+        return count($other);
     }
     
     
@@ -146,10 +172,10 @@ class sales_QuotationsDetails extends core_Detail {
     	$form = &$data->form;
         $rec = &$form->rec;
         $masterLink = sales_Quotations::getLink($form->rec->quotationId);
-        $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " " . "на артикул в" . " |*" . $masterLink;
+        $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " на артикул в|*" . $masterLink;
        
         $masterRec = $mvc->Master->fetch($form->rec->quotationId);
-        $productMan = cls::get($rec->productManId);
+        $productMan = cls::get($rec->classId);
         $products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
     	
         if($rec->productId){
@@ -162,15 +188,15 @@ class sales_QuotationsDetails extends core_Detail {
        $form->setDefault('optional', 'no');
 	   $form->setOptions('productId', $products);
        
-	   $form->fields['price']->unit = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';
+	   $form->fields['price']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
 	   
-	   if($form->rec->price && $masterRec->rate){
-       	 	if($masterRec->vat == 'yes'){
+	   if($form->rec->price && $masterRec->currencyRate){
+       	 	if($masterRec->chargeVat == 'yes'){
        	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
        	 	}
        	 	
-       		$rec->price = $rec->price / $masterRec->rate;
+       		$rec->price = $rec->price / $masterRec->currencyRate;
        }
        
        // Спецификациите немогат да са опционални
@@ -188,7 +214,7 @@ class sales_QuotationsDetails extends core_Detail {
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
 	    	
-	    	if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #productManId = {$rec->productManId} AND #productId = {$rec->productId}")){
+	    	if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}")){
 	    		if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
 	    			$form->setError('optional', "Неможе да добавите продукта като опционален, защото фигурира вече като задължителен!");
 	    			
@@ -201,7 +227,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    	}
 	    	
-	    	$ProductMan = cls::get($rec->productManId);
+	    	$ProductMan = cls::get($rec->classId);
 	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
 	    	}
@@ -213,20 +239,18 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    	
 	    	if(!$rec->price){
-	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->productManId, NULL, $rec->quantity, $masterRec->date);
+	    		$price = $ProductMan->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, NULL, $rec->quantity, $masterRec->date);
 	    		
 	    		if(!$price->price){
 	    			$form->setError('price', 'Проблем с изчислението на цената ! Моля задайте ръчно');
 	    		}
-	    		
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
-	    		if($masterRec->vat == 'yes'){
+	    		if($masterRec->chargeVat == 'yes'){
 	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
 	    		}
-       			
-	    		$rec->price = $rec->price * $masterRec->rate;
+	    		$rec->price = $rec->price * $masterRec->currencyRate;
 	    	}
 	    	
 	    	if($rec->optional == 'no' && !$rec->quantity){
@@ -253,7 +277,7 @@ class sales_QuotationsDetails extends core_Detail {
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
-            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('productManId' => $manId),
+            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
                     "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
             	unset($error);
             }
@@ -269,12 +293,7 @@ class sales_QuotationsDetails extends core_Detail {
      */
     static function on_AfterPrepareDetail($mvc, $res, $data)
     {
-    	if(!isset($data->noTotal)){
-    		// Изчисляваме общата сума (ако е възможно)
-	    	$mvc->calcTotal($data);
-    	}
-	     
-    	// Групираме резултатите по продукти и дали са опционални или не
+	    // Групираме резултатите по продукти и дали са опционални или не
     	$mvc->groupResultData($data);
     }
     
@@ -290,14 +309,9 @@ class sales_QuotationsDetails extends core_Detail {
     	if(!$data->rows) return;
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
-    		$polId = $data->recs[$i]->productManId;
+    		$polId = $data->recs[$i]->classId;
     		$optional = $data->recs[$i]->optional;
-    		
-    		if($optional == 'no'){
-    			$zebra = &$dZebra;
-    		} else {
-    			$zebra = &$oZebra;
-    		} 
+    		($optional == 'no') ? $zebra = &$dZebra : $zebra = &$oZebra;
     		
     		// Сездава се специален индекс на записа productId|optional, така
     		// резултатите са разделени по продукти и дали са опционални или не
@@ -328,69 +342,12 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
-     * Изчисляване на общата сума на всички задължителни продукти
-     * @var stdClass $data
-     */
-    private function calcTotal($data)
-    {
-    	if(!$data->rows) return;
-    	
-    	$avVat = TRUE;
-    	$total = $totalDisc = 0;
-    	$resArr = array_values($data->recs);
-    	foreach($resArr as $i => $rec){
-    		if($rec->optional == 'no'){
-    			$id = $rec->id;
-    			$productId = $rec->productId;
-    			$productManId = $rec->productManId;
-    			
-    			// За всеки елемент проверяваме дали се повтаря в масива
-    			$other = array_values(array_filter($resArr, function ($val) use ($productId, $productManId, $id) {
-           				if($val->optional == 'no' && $val->productId == $productId && $val->productManId == $productManId && $val->id != $id){
-            				return $val;
-            			}}));
-            			
-            	// Ако елемента се среща поне още веднъж спира се изчисляването на общата сума
-    			if(count($other)) return;
-    			
-    			if($rec->vatPercent != $other[0]->vatPercent){
-    				$avVat = FALSE;
-    			} 
-            			
-    			$total += $rec->amount;
-    			if($rec->discAmountVat){
-    				$totalDisc += $rec->amount - $rec->discAmountVat; 
-    			}
-    		}
-    	}
-    	
-    	if(!$total) return;
-    	if($totalDisc != 0){
-    		$afterDisc = $total - $totalDisc;
-    	}
-    	
-    	if($avVat){
-    		$totalvat = $resArr[0]->vatPercent * 100;
-    	}
-    	
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
-    	$sayWords = ($afterDisc) ? $afterDisc : $total;
-    	$SpellNumber = cls::get('core_SpellNumber');
-    	$data->total = (object) array('total' => $double->toVerbal($total),
-    								  'totalVat' => $double->toVerbal($totalvat), 
-    								  'totalDisc' => $double->toVerbal($afterDisc),
-    								  'sayWords' => $SpellNumber->asCurrency($sayWords, 'bg', FALSE),
-    								  'currencyTotalId' => $data->masterData->rec->paymentCurrencyId);
-    }
-    
-    
-    /**
      * Променяме рендирането на детайлите
      */
     function renderDetail_($data)
     {
     	$tpl = new ET("");
+    	$masterRec = $data->masterData->rec;
     	
     	// Шаблон за задължителните продукти
     	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
@@ -406,20 +363,19 @@ class sales_QuotationsDetails extends core_Detail {
 	    		list($pId, $optional, $polId) = explode("|", $index);
 	    		foreach($arr as $key => $row){
 	    			
-	    			// Взависимост дали е опционален продукта 
-	    			// го добавяме към определения шаблон
+	    			// Взависимост дали е опционален продукта го добавяме към определения шаблон
 	    			if($optional == 'no'){
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
 	    			} else {
 	    				$rowTpl = $oTpl->getBlock('ROW');
 	    				
-	    				// слага се 'opt' в класа на колоната да се отличава
-	    				$rowTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
+	    				// Слага се 'opt' в класа на колоната да се отличава
+	    				$rowTpl->replace("-opt{$masterRec->id}", 'OPT');
 	    				if($row->productId){
 	    					$rowTpl->replace('-opt-product', 'OPTP');
 	    				}
-	    				$oTpl->replace("-opt{$data->masterData->rec->id}", 'OPT');
+	    				$oTpl->replace("-opt{$masterRec->id}", 'OPT');
 	    				$id = &$oCount;
 		    			if($hasQuantityColOpt !== TRUE && ($row->quantity)){
 		    				$hasQuantityColOpt = TRUE;
@@ -434,22 +390,16 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
     	}
 
-    	if($data->total){
-    		if($data->total->totalDisc){
-    			$data->total->totalClass = 'oldAmount';
-    		} else {
-    			$data->total->total = "<b>{$data->total->total}</b>";
-    		}
+    	if($summary = $data->summary){
+    		$SpellNumber = cls::get('core_SpellNumber');
+    		$sayWords = $SpellNumber->asCurrency($data->summary->total);
     		
-    		$dTpl->placeObject($data->total);
+    		$dTpl->replace(price_Helper::renderSummary($summary), 'SUMMARY');
+    		$dTpl->replace($sayWords, 'sayWords');
     	}
     	
-    	if($data->masterData->rec->vat == 'yes'){
-    		$vatRow = ", " . tr('с') . " " . tr("ДДС");
-    	} elseif($data->masterData->rec->vat != 'no') {
-    		$vatRow = ", " . tr('без'). " " . tr("ДДС");
-    	} 
-    	$misc = $data->masterData->rec->paymentCurrencyId .  $vatRow;
+    	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
+    	$misc = $masterRec->currencyId . $vatRow;
     	
     	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     	$dTpl->append(tr('Оферирани'), 'TITLE');
@@ -465,7 +415,7 @@ class sales_QuotationsDetails extends core_Detail {
     	}
     	
     	if(!$hasQuantityColOpt){
-    		$tpl->append(".quote-col-opt{$data->masterData->rec->id} {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
+    		$tpl->append(".quote-col-opt{$masterRec->id} {display:none;} .product-id-opt-product {width:65%;}", 'STYLES');
     	}
     	
     	// Закачане на JS
@@ -482,7 +432,7 @@ class sales_QuotationsDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$ProductMan = cls::get($rec->productManId);
+    	$ProductMan = cls::get($rec->classId);
         $pInfo = $ProductMan->getProductInfo($rec->productId);
     	
         $double = cls::get('type_Double');
@@ -498,25 +448,15 @@ class sales_QuotationsDetails extends core_Detail {
     		$row->uomShort = cat_UoM::getShortName($uomId);
     	}
     	
-    	$row->price = $double->toVerbal($rec->price);
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
     	}
     	
     	if($rec->discount){
-    		$percent = cls::get('type_Percent');
+    		$Percent = cls::get('type_Percent');
 		    $parts = explode(".", $rec->discount * 100);
 		    $percent->params['decimals'] = count($parts[1]);
-		    $row->discount = $percent->toVerbal($rec->discount);
-    	}
-    	
-    	$row->discAmount = $double->toVerbal($rec->discAmountVat);
-    	
-    	if($rec->discAmountVat){
-    		$row->amount = "<span class='oldAmount'>{$row->amount}</span>";
-    		$row->discAmount = "<b>{$row->discAmount}</b>";
-    	} else {
-    		$row->amount = "<b>{$row->amount}</b>";
+		    $row->discount = $Percent->toVerbal($rec->discount);
     	}
     }
     
@@ -548,15 +488,15 @@ class sales_QuotationsDetails extends core_Detail {
     	$docId = $origin->that;
     
     	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
-    		$specId = techno_Specifications::forceRec($origin->instance, $origin->fetch());
+    		$specId  = techno_Specifications::forceRec($origin->instance, $origin->fetch());
     		$specRec = techno_Specifications::fetch($specId);
     	}
     	
-    	$productManId = techno_Specifications::getClassId();
-    	$ProductMan = cls::get($productManId);
+    	$classId = techno_Specifications::getClassId();
+    	$ProductMan = cls::get($classId);
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #productManId = {$productManId}");
+    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #classId = {$classId}");
     	
     	foreach ($quantities as $q) {
     		if(empty($q)) continue;
@@ -566,8 +506,8 @@ class sales_QuotationsDetails extends core_Detail {
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $specRec->id;
     		$dRec->quantity = $q;
-    		$dRec->productManId = $productManId;
-    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->productManId, NULL, $q, $rec->date);
+    		$dRec->productManId = $classId;
+    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $q, $rec->date);
     		
     		$dRec->price = $price->price;
     		$dRec->optional = 'no';
@@ -585,9 +525,9 @@ class sales_QuotationsDetails extends core_Detail {
     public static function on_AfterSave($mvc, &$id, $rec)
     {
     	// Нотифицираме продуктовия мениджър че продукта вече е използван
-    	$productMan = cls::get($rec->productManId);
-    	$productRec = $productMan->fetch($rec->productId);
+    	$ProductMan = cls::get($rec->classId);
+    	$productRec = $ProductMan->fetch($rec->productId);
     	$productRec->lastUsedOn = dt::now();
-    	$productMan->save_($productRec);
+    	$ProductMan->save_($productRec);
     }
 }

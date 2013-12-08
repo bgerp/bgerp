@@ -140,22 +140,22 @@ class sales_Quotations extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'validFor'          => 'lastDocUser|lastDoc|',
-    	'paymentMethodId'   => 'lastDocUser|lastDoc|clientCondition',
-        'paymentCurrencyId' => 'lastDocUser|lastDoc',
-        'vat'               => 'lastDocUser|lastDoc|defMethod',
-    	'others'            => 'lastDocUser|lastDoc',
-        'deliveryTermId'    => 'lastDocUser|lastDoc|clientCondition',
-        'deliveryPlaceId'   => 'lastDocUser|lastDoc|',
-        'company'           => 'lastDocUser|lastDoc|clientData',
-        'person' 			=> 'lastDocUser|lastDoc|clientData',
-        'email' 			=> 'lastDocUser|lastDoc|clientData',
-    	'tel' 				=> 'lastDocUser|lastDoc|clientData',
-        'fax' 				=> 'lastDocUser|lastDoc|clientData',
-        'country'			=> 'lastDocUser|lastDoc|clientData',
-        'pCode' 			=> 'lastDocUser|lastDoc|clientData',
-    	'place' 			=> 'lastDocUser|lastDoc|clientData',
-    	'address' 			=> 'lastDocUser|lastDoc|clientData',
+    	'validFor'        => 'lastDocUser|lastDoc|',
+    	'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
+        'currencyId'      => 'lastDocUser|lastDoc',
+        'chargeVat'       => 'lastDocUser|lastDoc|defMethod',
+    	'others'          => 'lastDocUser|lastDoc',
+        'deliveryTermId'  => 'clientCondition|lastDocUser|lastDoc',
+        'deliveryPlaceId' => 'lastDocUser|lastDoc|',
+        'company'         => 'lastDocUser|lastDoc|clientData',
+        'person' 		  => 'lastDocUser|lastDoc|clientData',
+        'email' 		  => 'lastDocUser|lastDoc|clientData',
+    	'tel' 			  => 'lastDocUser|lastDoc|clientData',
+        'fax' 			  => 'lastDocUser|lastDoc|clientData',
+        'country'		  => 'lastDocUser|lastDoc|clientData',
+        'pCode' 		  => 'lastDocUser|lastDoc|clientData',
+    	'place' 		  => 'lastDocUser|lastDoc|clientData',
+    	'address' 		  => 'lastDocUser|lastDoc|clientData',
     );
     
     
@@ -171,9 +171,9 @@ class sales_Quotations extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,salecondSysId=paymentMethod');
-        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em');
-        $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em');
-        $this->FLD('vat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=wat');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,oldFieldName=paymentCurrencyId');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,oldFieldName=rate');
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         
@@ -228,7 +228,7 @@ class sales_Quotations extends core_Master
         	$dQuery = $mvc->sales_QuotationsDetails->getQuery();
         	$dQuery->where("#quotationId = {$data->form->rec->id}");
         	if($dQuery->count()){
-        		$data->form->setReadOnly('vat');
+        		$data->form->setReadOnly('chargeVat');
         	}
        }
       
@@ -243,7 +243,7 @@ class sales_Quotations extends core_Master
        	  $data->form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, FALSE));
        }
        
-       $data->form->addAttr('paymentCurrencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+       $data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
     
     
@@ -271,12 +271,12 @@ class sales_Quotations extends core_Master
     	if($form->isSubmitted()){
 	    	$rec = &$form->rec;
 	    	
-		    if(!$rec->rate){
-			    $rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->paymentCurrencyId, NULL), 4);
+		    if(!$rec->currencyRate){
+			    $rec->currencyRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
 			}
 		
-	    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->paymentCurrencyId, NULL)){
-			    $form->setWarning('rate', 'Изходната сума има голяма разлика спрямо очакваното.
+	    	if(!currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
+			    $form->setWarning('currencyRate', 'Изходната сума има голяма разлика спрямо очакваното.
 			    					  Сигурни ли сте че искате да запишете документа');
 			}
 		}
@@ -345,8 +345,8 @@ class sales_Quotations extends core_Master
 			}
 			$row->contragentAdress .= trim(sprintf(" <br />%s %s<br />%s",$row->pcode, $row->place, $row->country)); 
 			
-			if($rec->rate == 1){
-				unset($row->rate);
+			if($rec->currencyRate == 1){
+				unset($row->currencyRate);
 			}
 			
 			if($rec->others){
@@ -547,9 +547,9 @@ class sales_Quotations extends core_Master
     	$dQuery = $this->sales_QuotationsDetails->getQuery();
     	$dQuery->EXT('state', 'sales_Quotations', 'externalKey=quotationId');
     	$dQuery->where("#quotationId = '{$id}'");
-    	$dQuery->groupBy('productId,productManId');
+    	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->productManId);
+    		$productMan = cls::get($dRec->classId);
     		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
     			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
     		}
@@ -578,9 +578,9 @@ class sales_Quotations extends core_Master
     	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
         $result->quoted->amount                  = $total;
-        $result->quoted->currency                = $rec->paymentCurrencyId;
-        $result->quoted->rate 					 = $rec->rate;
-        $result->quoted->vatType 				 = $rec->vat;  
+        $result->quoted->currency                = $rec->currencyId;
+        $result->quoted->rate 					 = $rec->currencyRate;
+        $result->quoted->vatType 				 = $rec->chargeVat;  
         if($rec->deliveryPlaceId){
         	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         }

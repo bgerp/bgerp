@@ -6,7 +6,7 @@
  * class dma_Setup
  *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с DMA
+ * мениджъри свързани със складовете
  *
  *
  * @category  bgerp
@@ -29,7 +29,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Стартов контролер за връзката в системното меню
      */
-    var $startCtr = 'store_Stores';
+    var $startCtr = 'store_Movements';
     
     
     /**
@@ -68,14 +68,14 @@ class store_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'store, storeWorker';
+    var $roles = 'storeWorker';
     
 
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.3, 'Логистика', 'Складове', 'store_Stores', 'default', "store, ceo"),
+            array(3.3, 'Логистика', 'Складове', 'store_Movements', 'default', "storeWorker,ceo"),
         );
     
     
@@ -84,8 +84,8 @@ class store_Setup extends core_ProtoSetup
      */
     function install()
     {
-        $html = parent::install();
-                   
+        $html = parent::install();      
+        
         core_Classes::add('store_ArrangeStrategyTop');
         core_Classes::add('store_ArrangeStrategyBottom');
         core_Classes::add('store_ArrangeStrategyMain');
@@ -95,8 +95,10 @@ class store_Setup extends core_ProtoSetup
     	}
     	
         // Добавяне на роля за старши складажия
-        $html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b></li>" : '';
-        return $html;
+        $html .= core_Roles::addRole('store', 'storeWorker') ? "<li style='color:green'>Добавена е роля <b>store</b> наследяваща <b>storeWorker</b></li>" : '';
+    	$html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b> наследяваща <b>store</b></li>" : '';
+
+    	return $html;
     }
     
     

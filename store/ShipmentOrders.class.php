@@ -158,6 +158,7 @@ class store_ShipmentOrders extends core_Master
         
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount');
+        $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
@@ -170,7 +171,7 @@ class store_ShipmentOrders extends core_Master
         
         // Допълнително
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_uom(unit=cub.m)', 'input=none,caption=Обем');
+        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -210,9 +211,11 @@ class store_ShipmentOrders extends core_Master
     	$rec->volume = $measures->volume;
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
+        $amount = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amount -= $rec->_total->discount;
         $rec->amountDelivered = $amount * $rec->currencyRate;
-        $rec->amountDeliveredVat = $rec->total->vat * $rec->currencyRate;
+        $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
         
         $this->save($rec);
     }
@@ -326,6 +329,8 @@ class store_ShipmentOrders extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
     }
     
     
@@ -334,25 +339,22 @@ class store_ShipmentOrders extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-    	if($data->rec->chargeVat == 'yes' || $data->rec->chargeVat == 'no'){
-    		$data->row->VAT = " " . tr('с ДДС');
-    	}
-    	
+    	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
     	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
     	
     	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
     	
-    	if($data->rec->state == 'active' && sales_Invoices::haveRightFor('add')){
-    		$originId = doc_Threads::getFirstContainerId($data->rec->threadId);
+    	if($rec->state == 'active' && sales_Invoices::haveRightFor('add')){
+    		$originId = doc_Threads::getFirstContainerId($rec->threadId);
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
 	    }
-	    	
-    	$data->row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($data->rec->valior);
+	    
+	    $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
 	}
     
     
@@ -475,18 +477,7 @@ class store_ShipmentOrders extends core_Master
     		}
     	}
     	
-    	$row->weight = cat_UoM::smartConvert($rec->weight, 'kg');
-    	$row->volume = cat_UoM::smartConvert($rec->volume, 'cub.m');
-    	
     	if(isset($fields['-single'])){
-    		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
-    			$row->vatType = tr('с ДДС');
-    			$row->vatCurrencyId = $row->currencyId;
-    		} else {
-    			$row->vatType = tr('без ДДС');
-    			unset($row->amountDeliveredVat);
-    		}
-    		
     		$mvc->prepareMyCompanyInfo($row, $rec);
     	}
     }

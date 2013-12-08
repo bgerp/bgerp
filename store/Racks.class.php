@@ -38,43 +38,43 @@ class store_Racks extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,store';
+    var $canRead = 'ceo,storeWorker';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,store';
+    var $canEdit = 'ceo,storeWorker';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,store';
+    var $canAdd = 'ceo,storeWorker';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,store';
+	var $canList = 'ceo,storeWorker';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,store';
+	var $canSingle = 'ceo,storeWorker';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo,store';
+    var $canView = 'ceo,storeWorker';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,store';
+    var $canDelete = 'ceo,storeWorker';
     
     
     /**

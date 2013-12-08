@@ -148,10 +148,8 @@ class sales_SalesDetails extends core_Detail
         $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         
-        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма
-        // packagingId)
+        // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double', 'caption=Цена,input');
-        
         $this->FLD('discount', 'percent', 'caption=Отстъпка');
     }
     
@@ -254,7 +252,7 @@ class sales_SalesDetails extends core_Detail
     {
         if (empty($data->recs)) return;
     	$recs = &$data->recs;
-        $salesRec = clone $data->masterData->rec;
+        $salesRec = $data->masterData->rec;
         
         price_Helper::fillRecs($recs, $salesRec);
     }

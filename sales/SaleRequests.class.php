@@ -23,13 +23,13 @@ class sales_SaleRequests extends core_Master
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'sales_SaleRequest';
+    public $oldClassName = 'sales_SaleRequest';
     
     
     /**
      * Абревиатура
      */
-    var $abbr = 'Sreq';
+    public $abbr = 'Sreq';
     
     
     /**
@@ -42,25 +42,19 @@ class sales_SaleRequests extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'sales_Wrapper, plg_Printing, doc_DocumentPlg, doc_ActivatePlg,
-    					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Search, plg_Sorting, doc_plg_HidePrices';
-       
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    var $searchFields = 'folderId, amount';
+    					bgerp_plg_Blank, acc_plg_DocumentSummary, plg_Sorting, doc_plg_HidePrices';
     
     
     /**
      * Поле за търсене по дата
      */
-    var $filterDateField = 'createdOn';
+    public $filterDateField = 'createdOn';
     
     
     /**
      * Поле за валута
      */
-    var $filterCurrencyField = 'paymentCurrencyId';
+    public $filterCurrencyField = 'currencyId';
     
     
     /**
@@ -84,19 +78,19 @@ class sales_SaleRequests extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,sales';
+    public $canList = 'ceo,sales';
 
 
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,sales'; 
+    public $canSingle = 'ceo,sales'; 
 
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, folderId, amount, state, createdOn, createdBy';
+    public $listFields = 'id, folderId, amountDeal, state, createdOn, createdBy';
     
     
 	/**
@@ -114,13 +108,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    var $singleLayoutFile = 'sales/tpl/SingleSaleRequest.shtml';
-    
-   
-    /**
-     * Полета свързани с цени
-     */
-    var $priceFields = 'amount,discount';
+    public $singleLayoutFile = 'sales/tpl/SingleSaleRequest.shtml';
     
     
     /**
@@ -131,13 +119,14 @@ class sales_SaleRequests extends core_Master
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,fromOffer');
         $this->FLD('contragentId', 'int', 'input=hidden,fromOffer');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,fromOffer');
-        $this->FLD('paymentCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer');
-        $this->FLD('rate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer');
-        $this->FLD('vat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=wat,fromOffer');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer,oldFieldName=paymentCurrencyId');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer,oldFieldName=rate');
+        $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat,fromOffer');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,fromOffer');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,fromOffer');
-    	$this->FLD('amount', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount');
-    	$this->FLD('discount', 'double(decimals=2)', 'caption=Общо с отстъпка,input=none');
+    	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Поръчано,input=none,summary=amount'); // Сумата на договорената стока
+        $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
+        $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none,caption=Данни');
     }
     
@@ -205,12 +194,19 @@ class sales_SaleRequests extends core_Master
     	$this->sales_SaleRequestDetails->delete("#requestId = {$rec->id}");
     	
     	$items = $this->prepareProducts($dRec);
-    	
     	foreach ($items as $item){
     		$item->requestId = $rec->id;
     		$this->sales_SaleRequestDetails->save($item);
     	}
     	
+    	price_Helper::fillRecs($items, $rec, sales_SaleRequestDetails::$map);
+    	$amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal -= $rec->_total->discount;
+        $rec->amountDeal = $amountDeal * $rec->currencyRate;
+        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
+        $this->save($rec);
+        
     	if($cmd == 'active'){
     		$rec->state = 'active';
         	$this->invoke('AfterActivation', array($rec));
@@ -221,8 +217,7 @@ class sales_SaleRequests extends core_Master
     
     
     /**
-     * Подготовка на продуктите от формата с вече уточнените
-     * к-ва във подходящ вид
+     * Подготовка на продуктите от формата с вече уточнените к-ва в подходящ вид
      * @param array $products - продуктите върнати от формата
      * @param double $amount - сума на заявката
      * @return array $items - масив от продукти готови за запис
@@ -232,14 +227,14 @@ class sales_SaleRequests extends core_Master
     	$items = array();
     	$products = (array)$products;
     	foreach ($products as $index => $quantity){
-    		list($productId, $productManId, $optional) = explode("|", $index);
+    		list($productId, $classId, $optional) = explode("|", $index);
     		
     		// При опционален продукт без к-во се продължава
     		if($optional == 'yes' && empty($quantity)) continue;
     		
     		// Намира се кой детайл отговаря на този продукт
-    		$obj = (object)$this->findDetail($productId, $productManId, $quantity, $optional);
-            $items[] = (object)array('productManId'  => $obj->productManId,
+    		$obj = (object)$this->findDetail($productId, $classId, $quantity, $optional);
+            $items[] = (object)array('classId'   => $obj->classId,
         					         'productId' => $obj->productId,
         					 		 'discount'  => $obj->discount,
         					 		 'quantity'  => $obj->quantity,
@@ -253,26 +248,25 @@ class sales_SaleRequests extends core_Master
     /**
      * Помощна ф-я за намиране на записа съответстващ на избраното к-во
      * @param int $productId - ид на продукт
-     * @param int $productManId - продуктов мениджър
+     * @param int $classId - продуктов мениджър
      * @param int $quantity - к-во
      * @param enum(yes/no) $optional - дали продукта е опционален
      * @return stdClass $val - обект съответсващ на детайл
      */
-    private function findDetail($productId, $productManId, $quantity, $optional)
+    private function findDetail($productId, $classId, $quantity, $optional)
     {
     	// Първо се проверява имали запис за този продукт с това к-во
     	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $productManId, $quantity, $optional) {
-           				if($val->optional == $optional && $val->productId == $productId && $val->productManId == $productManId && ($val->quantity == $quantity && $quantity)){
+    		function ($val) use ($productId, $classId, $quantity, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->classId == $classId && ($val->quantity == $quantity && $quantity)){
             				return $val;
             			}}));
             			
-        // Ако к-то е ръчно въведено, се връща първия запис
-        // съответстващ на първото срещане на продукта
+        // Ако к-то е ръчно въведено, се връща първия запис съответстващ на първото срещане на продукта
         if(!$val){
         	$val = array_values( array_filter(static::$cache, 
-    		function ($val) use ($productId, $productManId, $optional) {
-           				if($val->optional == $optional && $val->productId == $productId && $val->productManId == $productManId){
+    		function ($val) use ($productId, $classId, $optional) {
+           				if($val->optional == $optional && $val->productId == $productId && $val->classId == $classId){
             				return $val;
             			}}));
             			
@@ -300,11 +294,11 @@ class sales_SaleRequests extends core_Master
     	
     	foreach ($filteredProducts as $index => $product){
     		if($product->optional == 'yes') {
-    			$product->title = "|Опционални|*->{$product->title}";
+    			$product->title = "Опционални->{$product->title}";
     			$product->options = array('' => '&nbsp;') + $product->options;
     			$mandatory = '';
     		} else {
-    			$product->title = "|Оферирани|*->{$product->title}";
+    			$product->title = "Оферирани->{$product->title}";
 	    		if(count($product->options) > 1) {
 	    			$product->options = array('' => '&nbsp;') + $product->options;
 	    			$mandatory = 'mandatory';
@@ -350,9 +344,9 @@ class sales_SaleRequests extends core_Master
     	$query->orderBy('optional', 'ASC');
     	static::$cache = $query->fetchAll();
     	while ($rec = $query->fetch()){
-    		$index = "{$rec->productId}|{$rec->productManId}|{$rec->optional}";
+    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}";
     		if(!array_key_exists($index, $products)){
-    			$title = cls::get($rec->productManId)->getTitleById($rec->productId);
+    			$title = cls::get($rec->classId)->getTitleById($rec->productId);
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}
     		if($rec->optional == 'yes'){
@@ -378,16 +372,16 @@ class sales_SaleRequests extends core_Master
     	$details = $query->fetchAll();
     	
     	$result = new bgerp_iface_DealResponse();
-    	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        $result->quoted->amount                = $rec->amount;
-        $result->quoted->currency              = $rec->paymentCurrencyId;
-        $result->quoted->rate 				   = $rec->rate;
-        $result->quoted->vatType			   = $rec->vat;
+    	$result->dealType          = bgerp_iface_DealResponse::TYPE_SALE;
+        $result->quoted->amount    = $rec->amountDeal;
+        $result->quoted->currency  = $rec->currencyId;
+        $result->quoted->rate 	   = $rec->currencyRate;
+        $result->quoted->vatType   = $rec->chargeVat;
         if($rec->deliveryPlaceId){
-        	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
+        	$result->quoted->delivery->location = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
         }
-        $result->quoted->delivery->term        = $rec->deliveryTermId;
-        $result->quoted->payment->method       = $rec->paymentMethodId;
+        $result->quoted->delivery->term  = $rec->deliveryTermId;
+        $result->quoted->payment->method = $rec->paymentMethodId;
     	
     	foreach ($details as $dRec) {
             $result->quoted->products[] = new sales_model_QuotationProduct($dRec);
@@ -466,6 +460,7 @@ class sales_SaleRequests extends core_Master
     static function on_AfterPrepareSingle($mvc, &$data)
     {	
     	$rec = &$data->rec;
+    	$row = &$data->row;
     	
     	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
@@ -473,18 +468,19 @@ class sales_SaleRequests extends core_Master
         if ($address && !empty($ownCompanyData->address)) {
             $address .= '<br/>' . $ownCompanyData->address;
         }
-    	$data->row->MyCompany      = $ownCompanyData->company;
-        $data->row->MyCountry      = $ownCompanyData->country;
-        $data->row->MyAddress      = $address;
-        $data->row->MyCompanyVatNo = $ownCompanyData->vatNo;
         
-        $contragentClass = doc_Folders::fetchCoverClassId($data->rec->folderId);
-        $contragenId = doc_Folders::fetchCoverId($data->rec->folderId);
-        $contragent = new core_ObjectReference($contragentClass, $contragenId);
+    	$row->MyCompany      = $ownCompanyData->company;
+        $row->MyCountry      = $ownCompanyData->country;
+        $row->MyAddress      = $address;
+        $row->MyCompanyVatNo = $ownCompanyData->vatNo;
+        
+        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
         $cdata = sales_Sales::normalizeContragentData($contragent->getContragentData());
-        $data->row->contragentName = $cdata->contragentName;
-        $data->row->contragentCountry = $cdata->contragentCountry;
-        $data->row->contragentAddress = $cdata->contragentAddress;
+        $row->contragentCountry = $cdata->contragentCountry;
+        $row->contragentAddress = $cdata->contragentAddress;
+        
+        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     }
     
     
@@ -493,17 +489,7 @@ class sales_SaleRequests extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->state == 'draft'){
-	    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $rec->vat);
-	    }
-	    	
-	    $row->amount = $mvc->fields['amount']->type->toVerbal($rec->amount / $rec->rate);
-	    if($rec->discount){
-	    	$row->discount = $mvc->fields['discount']->type->toVerbal($rec->discount / $rec->rate);
-	    	$row->discountCurrencyId = $row->paymentCurrencyId;
-	    }
-	    	
-    	if($fields['-list']){
+	    if($fields['-list']){
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
@@ -514,66 +500,17 @@ class sales_SaleRequests extends core_Master
 	    		$row->id .= " " . ht::createLink($img, array('sales_SaleRequests', 'CreateFromOffer', $rec->id, 'originId' => $rec->originId, 'ret_url' => TRUE, 'edit' => TRUE));
 	    	}
 	    	$row->id .= " {$id}";
-	    	
-	    	$row->amount = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->paymentCurrencyId}</span>" . $row->amount;
+	    	@$rec->amountDeal = $rec->amountDeal / $rec->currencyRate;
+	    	$row->amountDeal = "<span class='cCode' style='float:left;margin-right:3px'>{$rec->currencyId}</span>" . $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal);
     	}
 	    
 	    if($fields['-single']){
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
 	    	}
-	    	
-	    	$row->chargeVat = ($rec->vat == 'yes' || $rec->vat == 'no') ? tr('с ДДС') : tr('без ДДС');
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    }
-    }
-    
-    
-    /**
-     * Изчислява в реално време общата сума на заявката, при активация тази
-     * сума ще се запише в модела
-     * @param stdClass $rec - запис от модела
-     * @return double $total - общата сума на заявката
-     */
-    private function calcTotal($rec, $vat)
-    {
-    	$detailQuery = $this->sales_SaleRequestDetails->getQuery();
-    	$detailQuery->where("#requestId = {$rec->id}");
-    	
-    	$discount = $total = 0;
-    	while ($d = $detailQuery->fetch()){
-    		if($vat == 'yes' || $vat = 'no'){
-    			$productMan = cls::get($d->productManId);
-    			$d->price *= 1 + $productMan->getVat($d->productId);
-    		}
-    		$d->price /= $rec->rate;
-    		$d->price = currency_Currencies::round($d->price, $rec->paymentCurrencyId);
-    		
-    		$amount = $d->price * $d->quantity;
-    		if($d->discount){
-    			$discount += $amount * $d->discount;
-    		}
-    		
-    		$total += $amount;
-    	}
-    	
-    	$total *= $rec->rate;
-    	$discount *= $rec->rate;
-    	
-    	$afterDisc = ($discount != 0) ? $total - $discount : NULL;
-    	return array($total, $afterDisc);
-    }
-    
-    
-    /**
-	 * След активация се записва сумата на заявката
-	 */
-	public static function on_AfterActivation($mvc, &$rec)
-    {
-    	$vat = static::fetchField($rec->id, 'vat');
-    	list($rec->amount, $rec->discount) = $mvc->calcTotal($rec, $vat);
-    	$mvc->save($rec);
     }
     
     
@@ -598,5 +535,14 @@ class sales_SaleRequests extends core_Master
     	if($data->rec->state == 'draft') {
 	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', $data->rec->id ,'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
     }
 }

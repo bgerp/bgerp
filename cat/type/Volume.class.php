@@ -3,27 +3,27 @@
 
 
 /**
- * Клас  'cat_type_Weight' 
+ * Клас  'cat_type_Volume' 
  * Тип за Тегло, приема стойности от рода "5 кг" и ги конвертира до основната еденица
  *
  *
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
  */
-class cat_type_Weight extends cat_type_Uom {
+class cat_type_Volume extends cat_type_Uom {
     
-	
+    
 	/**
 	 * Параметър по подразбиране
 	 */
 	function init($params = array())
     {
-    	$this->params['unit'] = 'kg';
+    	$this->params['unit'] = 'cub.m';
     }
     
     
@@ -35,7 +35,7 @@ class cat_type_Weight extends cat_type_Uom {
     	$val = parent::fromVerbal_($val);
     	
     	if($val === FALSE){
-    		$this->error = "Моля въведете валидна мярка за тегло";
+    		$this->error = "Моля въведете валидна мярка за обем";
             
             return FALSE;
     	}

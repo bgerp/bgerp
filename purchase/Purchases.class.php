@@ -148,20 +148,21 @@ class purchase_Purchases extends core_Master
         $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
         $this->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
         $this->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е фактурирана
-        $this->FLD('amountVat', 'double(decimals=2)', 'input=none'); // ДДС-то
+        $this->FLD('amountVat', 'double(decimals=2)', 'input=none');
+        $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
         // Контрагент
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
         // Доставка
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->От обект,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->До склад');
         
         // Плащане
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова сметка');
@@ -262,6 +263,16 @@ class purchase_Purchases extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
+    }
+    
+    
+	/**
+     * След подготовка на сингъла
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$rec = &$data->rec;
+    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     }
     
     
@@ -378,7 +389,7 @@ class purchase_Purchases extends core_Master
     	$amountType = $mvc->getField('amountDeal')->type;
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
 		
-    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'Vat') as $amnt) {
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
@@ -392,23 +403,8 @@ class purchase_Purchases extends core_Master
 	    }
 	    
 	    if($fields['-single']){
-	    	if($rec->chargeVat == 'no'){
-	        	$row->baseCurrencyId = $row->currencyId;
-	        	$row->amountBase = $amountType->toVerbal(($rec->amountDeal - $rec->amountVat)  / $rec->currencyRate);
-		    }
-	    	
-	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
-		    if($rec->chargeVat == 'yes' || $rec->chargeVat == 'no'){
-	        	$vat = acc_Periods::fetchByDate($rec->valior)->vatRate;
-	        	$row->vat = $mvc->getField('amountDeal')->type->toVerbal($vat * 100);
-	        } else {
-	        	unset($row->chargeVat);
-	        }
-	    	
-	        if ($rec->chargeVat == 'freed' || $rec->chargeVat == 'export') {
-	            $row->chargeVat = '';
-	        }
-	    	
+		    $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+		    
 	    	$mvc->prepareMyCompanyInfo($row, $rec);
 	    	
 	    	if ($rec->currencyRate != 1) {
@@ -461,6 +457,9 @@ class purchase_Purchases extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	//bp($data->row);
     }
     
     
@@ -505,7 +504,6 @@ class purchase_Purchases extends core_Master
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
-    
     
 	/**
      * В кои корици може да се вкарва документа
@@ -676,9 +674,11 @@ class purchase_Purchases extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amoundDeal = ($rec->chargeVat == 'no') ? $rec->total->amount + $rec->total->vat : $rec->total->amount;
-        $rec->amountDeal = $amoundDeal * $rec->currencyRate;
-        $rec->amountVat  = $rec->total->vat * $rec->currencyRate;
+        $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal -= $rec->_total->discount;
+        $rec->amountDeal = $amountDeal * $rec->currencyRate;
+        $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
+        $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
         
         $this->save($rec);
     }

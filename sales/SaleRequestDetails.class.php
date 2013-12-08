@@ -19,19 +19,19 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Заглавие
      */
-    var $title = 'Детайли на заявките за продажба';
+    public $title = 'Детайли на заявките за продажба';
     
     
     /**
 	 * Мастър ключ към заявката
 	 */
-	var $masterKey = 'requestId';
+	public $masterKey = 'requestId';
     
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -49,7 +49,7 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canList = 'no_one';
+    public $canList = 'no_one';
     
 	
     /**
@@ -61,7 +61,13 @@ class sales_SaleRequestDetails extends core_Detail {
     /**
      * Полета свързани с цени
      */
-    var $priceFields = 'price,discount,amount';
+    public $priceFields = 'price,discount,amount';
+    
+    
+    /**
+     * Помощен масив (@see price_Helper)
+     */
+    public static $map = array('priceFld' => 'price', 'quantityFld' => 'quantity', 'valior' => 'createdOn');
     
     
   	/**
@@ -71,7 +77,7 @@ class sales_SaleRequestDetails extends core_Detail {
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
-        $this->FLD('productManId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=classId');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
     	$this->FLD('quantity', 'double', 'caption=К-во,width=8em');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена,width=8em');
         $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка,width=8em');
@@ -86,6 +92,19 @@ class sales_SaleRequestDetails extends core_Detail {
         $data->query->orderBy('id', 'ASC');
     }
         
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    static function on_AfterPrepareListRecs($mvc, $data)
+    {
+    	if(!count($data->recs)) return;
+    	$recs = &$data->recs;
+    	$masterRec = $data->masterData->rec;
+    	
+    	price_Helper::fillRecs($data->recs, $masterRec, static::$map);
+    }
+    
     
     /**
      * Скриване на колоната за отстъпка ако няма отстъпки
@@ -111,28 +130,18 @@ class sales_SaleRequestDetails extends core_Detail {
      */
     public static function on_AfterRecToVerbal(core_Manager $mvc, &$row, $rec)
     { 
-    	$productMan = cls::get($rec->productManId);
+    	$productMan = cls::get($rec->classId);
     	$masterRec = $mvc->Master->fetch($rec->requestId);
     	
     	$row->productId = $productMan->getTitleById($rec->productId);
     	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
     		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId));
     	}
-
-    	$applyVat = $mvc->Master->fetchField($rec->requestId, 'vat');
-    	if($applyVat == 'yes' || $applyVat == 'no'){
-    		$vat = $productMan->getVat($rec->productId);
-    		$rec->price = $rec->price * (1 + $vat);
-    	}
-    	
-    	$rec->price /= $masterRec->rate;
-    	$rec->price = currency_Currencies::round($rec->price, $masterRec->paymentCurrencyId);
     	
     	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
     	$row->uomId = cat_UoM::getTitleById($measureId);
     	
     	$row->amount = $mvc->fields['price']->type->toVerbal($rec->price * $rec->quantity);
     	$row->amount = "<div style='text-align:right'>{$row->amount}</div>";
-    	$row->price = $mvc->fields['price']->type->toVerbal($rec->price);
     }
 }

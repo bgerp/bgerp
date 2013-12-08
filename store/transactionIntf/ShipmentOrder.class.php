@@ -138,15 +138,17 @@ class store_transactionIntf_ShipmentOrder
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         
         foreach ($rec->details as $detailRec) {
+        	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	
             $entries[] = array(
-                'amount' => currency_Currencies::round($detailRec->amount * $currencyRate), // В основна валута
+            	
+                'amount' => currency_Currencies::round($amount), // В основна валута
                 
                 'debit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($detailRec->amount, $currencyCode), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount / $currencyRate, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(

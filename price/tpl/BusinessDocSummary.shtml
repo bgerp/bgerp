@@ -1,0 +1,51 @@
+<table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
+     <tr>
+      <td width='10%'></td>
+      <td align='right'>|Стойност|* [#TRANS0#] :</td>
+      <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+      <td align='right'> <b>[#value#]</b></td>
+     </tr>
+     <!--ET_BEGIN discount-->
+     <tr class='nowrap'>
+      <td></td>
+     	<td align='right'>|Отстъпка|* [#TRANS1#] :</td>
+     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+     	<td align='right'><b>[#discount#]</b></td>
+     </tr>
+     <!--ET_END discount-->
+     <!--ET_BEGIN neto-->
+     <tr class='nowrap'>
+      <td></td>
+     	<td align='right'>|Нето|* [#TRANS2#] :</td>
+     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+     	<td align='right'><b>[#neto#]</b></td>
+     </tr>
+     <!--ET_END neto-->
+     
+     <!--ET_BEGIN baseAmount-->
+     <tr class='nowrap'>
+      <td></td>
+     	<td align='right'>|Данъчна основа|* [#TRANS3#] :</td>
+     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+     	<td align='right'><b>[#baseAmount#]</b></td>
+     </tr>
+     <!--ET_END baseAmount-->
+      
+     <tr>
+     	<td colspan='4' style='padding:0px'><hr /></td>
+     </tr>
+     <!--ET_BEGIN vatAmount-->
+     <tr class='nowrap'>
+        <td></td>
+    	<td align='right'>|ДДС|* [#TRANS4#] &nbsp;<b>[#vat#]</b> :</td>
+    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+    	<td align='right'><b>[#vatAmount#]</b></td>
+     </tr>
+     <!--ET_END vatAmount-->
+     <tr class='nowrap'>
+      <td></td>
+    	<td align='right'>|Общо|* [#TRANS5#] :</td>
+    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+    	<td align='right'><b>[#total#]</b></td>
+     </tr>
+</table>

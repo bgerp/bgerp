@@ -76,9 +76,9 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
         $this->FLD('netWeight', 'cat_type_Weight', 'input,caption=Тегло->Нето');
         $this->FLD('tareWeight', 'cat_type_Weight', 'input,caption=Тегло->Тара');
-        $this->FLD('sizeWidth', 'cat_type_Dimension', 'input,caption=Габарит->Ширина');
-        $this->FLD('sizeHeight', 'cat_type_Dimension', 'input,caption=Габарит->Височина');
-        $this->FLD('sizeDepth', 'cat_type_Dimension', 'input,caption=Габарит->Дълбочина');
+        $this->FLD('sizeWidth', 'cat_type_Size', 'input,caption=Габарит->Ширина');
+        $this->FLD('sizeHeight', 'cat_type_Size', 'input,caption=Габарит->Височина');
+        $this->FLD('sizeDepth', 'cat_type_Size', 'input,caption=Габарит->Дълбочина');
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Код->EAN');
         $this->FLD('customCode', 'varchar(64)', 'input,caption=Код->Вътрешен');
         

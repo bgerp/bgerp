@@ -3,8 +3,8 @@
 
 
 /**
- * Клас  'cat_type_Weight' 
- * Тип за Тегло, приема стойности от рода "5 кг" и ги конвертира до основната еденица
+ * Клас  'cat_type_Size' 
+ * Тип за Размер, приема стойности от рода "5 м" и ги конвертира до основната еденица
  *
  *
  * @category  bgerp
@@ -15,15 +15,15 @@
  * @since     v 0.1
  * @link
  */
-class cat_type_Weight extends cat_type_Uom {
+class cat_type_Size extends cat_type_Uom {
     
-	
+    
 	/**
 	 * Параметър по подразбиране
 	 */
 	function init($params = array())
     {
-    	$this->params['unit'] = 'kg';
+    	$this->params['unit'] = 'm';
     }
     
     
@@ -32,10 +32,12 @@ class cat_type_Weight extends cat_type_Uom {
      */
     function fromVerbal_($val)
     {
+    	$this->params['unit'] = 'm';
+    	
     	$val = parent::fromVerbal_($val);
     	
     	if($val === FALSE){
-    		$this->error = "Моля въведете валидна мярка за тегло";
+    		$this->error = "Моля въведете валидна мярка за размер";
             
             return FALSE;
     	}

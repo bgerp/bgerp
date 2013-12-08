@@ -108,4 +108,55 @@ class label_CounterItems extends core_Detail
         $this->FLD('labelId', 'key(mvc=label_Labels, select=title)', 'caption=Етикет, mandatory');
         $this->FLD('number', 'int', 'caption=Номер');
     }
+    
+    
+    /**
+     * Връща най - голямата стойност за брояча
+     * 
+     * @param id $counterId - id на брояча
+     */
+    static function getMax($counterId)
+    {
+        // Вземаме най - голямата стойност на номера за съответния брояч
+        $query = static::getQuery();
+        $query->XPR('maxVal', 'int', 'MAX(#number)');
+        $query->groupBy('counterId');
+        $query->where(array("#counterId = '[#1#]'", $counterId));
+        
+        $rec = $query->fetch();
+        
+        // Връщаме максималната стойност
+        return $rec->maxVal;
+    }
+    
+    
+    /**
+     * Обновяваме брояча
+     * 
+     * @param integer $counterId - id на брояча
+     * @param integer $labelId - id на етикета
+     * @param integer $number - Стойността на брояча
+     * 
+     * @return integer - id на записа
+     */
+    static function updateCounter($counterId, $labelId, $number)
+    {
+        // Вземаме записа
+        $rec = static::fetch(array("#counterId = '[#1#]' AND #labelId = '[#2#]'", $counterId, $labelId));
+        
+        // Ако няма запис
+        if (!$rec) {
+            
+            // Създаваме нов
+            $rec = new stdClass();
+            $rec->counterId = $counterId;
+            $rec->labelId = $labelId;
+        }
+        
+        // Добавяме номера
+        $rec->number = $number;
+        
+        // Записваме
+        return static::save($rec);
+    }
 }
