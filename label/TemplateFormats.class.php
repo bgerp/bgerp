@@ -277,20 +277,24 @@ class label_TemplateFormats extends core_Detail
     static function getAddededPlaceHolders($templateId)
     {
         // Масива, който ще връщаме
-        $placesArr = array();
+        static $placesArr = array();
         
-        // Вземамем всички плейсхолдери за шаблона
-        $query = static::getQuery();
-        $query->where(array("#templateId = '[#1#]'", $templateId));
-        
-        // Обхождаме резултатите
-        while ($rec = $query->fetch()) {
+        // Ако не е сетнат
+        if (!$placesArr[$templateId]) {
             
-            // Добавяме в масива
-            $placesArr[$rec->placeHolder] = $rec->placeHolder;
+            // Вземамем всички плейсхолдери за шаблона
+            $query = static::getQuery();
+            $query->where(array("#templateId = '[#1#]'", $templateId));
+            
+            // Обхождаме резултатите
+            while ($rec = $query->fetch()) {
+                
+                // Добавяме в масива
+                $placesArr[$templateId][$rec->placeHolder] = $rec->placeHolder;
+            }
         }
         
-        return $placesArr;
+        return $placesArr[$templateId];
     }
     
     
@@ -729,6 +733,35 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме в полето
             $row->formatParams .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
+        }
+       
+        // Инстанция на мастера
+        $Master = $mvc->Master;
+        
+        // Ключа към мастер
+        $masterKey = $mvc->masterKey;
+        
+        // id на мастер
+        $masterId = $rec->$masterKey;
+        
+        // Ако са сетнати
+        if ($Master && $masterKey && $masterId) {
+            
+            // Вземаме шаблона
+            $tpl = $Master->getTemplate($masterId);
+            
+            // Масив с плейсхолдерите
+            $placesArr = $tpl->getPlaceHolders();
+            
+            // Ключовете и стойностите да са равни
+            $placesArr = arr::make($placesArr, TRUE);
+        }
+        
+        // Ако не се съдържа в шаблона
+        if (!$placesArr[$rec->placeHolder]) {
+            
+            // Добавяме клас за грешка
+            $row->ROW_ATTR['class'] .= ' row-error';
         }
     }
     

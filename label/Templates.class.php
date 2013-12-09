@@ -167,6 +167,12 @@ class label_Templates extends core_Master
      */
     static function getTemplate($id)
     {
+        // Масив с шаблоните
+        static $tplArr = array();
+        
+        // Ако преди е бил извлечен
+        if ($tplArr[$id]) return $tplArr[$id];
+        
         // Шаблона
         $template = static::fetchField($id, 'template');
         
@@ -176,7 +182,10 @@ class label_Templates extends core_Master
         // Добавяме стиловете
         $tpl->append(static::fetchField($id, 'css'), 'STYLES');
         
-        return $tpl;
+        // Добавяме в масива
+        $tplArr[$id] = $tpl;
+        
+        return $tplArr[$id];
     }
     
     
