@@ -110,6 +110,7 @@ class barcode_Generator extends core_Manager
      * $params['addText'] - Дали да се дабави текста под баркодата
      * $params['addText']['font'] - Определен шрифт от системата
      * $params['addText']['fontSiz'] - Размер на шрифта
+     * $params['addText']['bgOnlyText'] - Фона (background) на текста, да е колко дължината му
      * 
      * @param array $output - Масив, в който се записват данните след генерирането на баркода 
      * 
@@ -221,9 +222,13 @@ class barcode_Generator extends core_Manager
             $y1 = $height-$f - $marginTop;
             $y2 = $height+$f;
             
-            // Тези отрязват квадрат, колкото е големината на текста
-//                $x1 = $width/2 - $box[2]/2;
-//                $x2 = $width/2 + $box[2]/2;
+            // Ако е зададено да се отрязва само колкото е дълъг текста
+            if ($params['addText']['bgOnlyText']) {
+                
+                // Тези отрязват квадрат, колкото е големината на текста
+                $x1 = $width/2 - abs($box[2])/2;
+                $x2 = $width/2 + abs($box[2])/2;
+            }
             
             // Начертаваме квадрат в долната част
             imagefilledrectangle($im, $x1, $y1, $x2, $y2, $white);
