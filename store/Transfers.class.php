@@ -358,7 +358,7 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec, '-single');
+    	$row = $this->recToVerbal($rec, 'toAdress,weight,volume,-single');
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
@@ -377,7 +377,6 @@ class store_Transfers extends core_Master
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
     	$query->orderBy("#createdOn", 'DESC');
-    	
     	$i = 1;
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;
