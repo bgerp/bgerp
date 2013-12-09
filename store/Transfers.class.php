@@ -1,7 +1,6 @@
 <?php
 /**
- * Клас 'store_Transfers'
- * Документ за междускладови трансфери
+ * Клас 'store_Transfers' - Документ за междускладови трансфери
  *
  * 
  *
@@ -74,12 +73,6 @@ class store_Transfers extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
 
 
     /**

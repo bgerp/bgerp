@@ -133,8 +133,11 @@ class sales_QuotationsDetails extends core_Detail {
     	// Подготовка за показване на задължителнтие продукти
     	price_Helper::fillRecs($notOptional, $masterRec, static::$map);
     	
-    	// Запомня се стойноста и ддс-то само на опционалните продукти
-    	$data->summary = price_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    	if(empty($data->noTotal)){
+    		
+    		// Запомня се стойноста и ддс-то само на опционалните продукти
+    		$data->summary = price_Helper::prepareSummary($masterRec->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    	}
     	
     	// Подготовка за показване на опционалните продукти
     	price_Helper::fillRecs($optional, $masterRec, static::$map);

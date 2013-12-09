@@ -776,7 +776,10 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
-    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    	
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    	}
     }
     
     
@@ -1061,7 +1064,9 @@ class sales_Sales extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	if($data->summary){
+    		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	}
     }
     
     

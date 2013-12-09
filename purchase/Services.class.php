@@ -317,7 +317,9 @@ class purchase_Services extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	if($data->summary){
+    		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
+    	}
     }
     
     
@@ -341,7 +343,9 @@ class purchase_Services extends core_Master
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
 	    }
 	    
-	    $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+	    if(empty($data->noTotal)){
+	    	 $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+	    }
 	}
     
     

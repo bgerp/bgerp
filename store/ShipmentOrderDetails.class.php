@@ -238,11 +238,6 @@ class store_ShipmentOrderDetails extends core_Detail
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
-        // Определяме кой вижда ценовата информация
-        if (!store_ShipmentOrders::haveRightFor('viewprices', $data->masterData->rec)) {
-            $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
-        }
-    
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
     
