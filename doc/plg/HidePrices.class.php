@@ -62,7 +62,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, $data)
     {
-    	if(haveRole('manager,ceo,officer') || haveRole('price')) return;
+    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
     	$mvc->hidePriceFields($data);
     }
     
@@ -73,7 +73,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-    	if(haveRole('manager,ceo,officer') || haveRole('price')) return;
+    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
     	$mvc->hidePriceFields($data);
     }
     
