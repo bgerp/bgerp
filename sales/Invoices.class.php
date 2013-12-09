@@ -60,12 +60,6 @@ class sales_Invoices extends core_Master
      */
     public $rowToolsField = 'tools';
     
-     
-    /**
-     * Поле за хипервръзка към единичния изглед
-     */
-    public $rowToolsSingleField = 'number';
-    
     
     /**
      * Детайла, на модела
@@ -97,6 +91,12 @@ class sales_Invoices extends core_Master
 	public $canSingle = 'ceo,sales';
     
     
+	/**
+	 * Поле за единичния изглед
+	 */
+	public $rowToolsSingleField = 'number';
+	
+	
     /**
      * Кой има право да добавя?
      */
@@ -106,7 +106,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'number,folderId';
+    public $searchFields = 'number,folderId';
     
     
     /**
@@ -397,7 +397,6 @@ class sales_Invoices extends core_Master
 	        	$rec->dealValue = $rec->changeAmount * $rec->rate;
 			}
 			
-			
 			if(empty($rec->number)){
 				$rec->number = $mvc->getNexNumber();
 			} 
@@ -582,26 +581,14 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
-     */
-    static function on_BeforeRecToVerbal($mvc, &$row, &$rec, $fields = array())
-    {
-    	if(!is_object($rec)){
-    		$rec = new stdClass();
-    	}
-    	
-    	// Номера се форматира в десеторазряден вид
-    	$rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
     	}
     	
     	if($fields['-single']){
@@ -885,6 +872,7 @@ class sales_Invoices extends core_Master
     {
         $self = cls::get(get_called_class());
         $number = $self->fetchField($id, 'number');
+        
         return $self->abbr . $number;
     } 
     
