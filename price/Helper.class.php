@@ -220,8 +220,8 @@ abstract class price_Helper
 			}
 		}
 		
-		$arr['value'] = ($arr['value']) ? $arr['value'] : 0;
-		$arr['total'] = ($arr['total']) ? $arr['total'] : 0;
+		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0.00</span>";
+		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0.00</span>";
 		
 		return (object)$arr;
 	}
