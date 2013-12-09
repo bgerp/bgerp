@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @TODO      Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията от bagdealing.
@@ -47,7 +47,7 @@ class store_Stores extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,store';
+    var $canRead = 'ceo,storeWorker';
     
     
     /**
@@ -63,12 +63,6 @@ class store_Stores extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,store';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,storeWorker';
@@ -77,7 +71,7 @@ class store_Stores extends core_Master
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,store';
+	var $canSingle = 'ceo,storeWorker';
     
     
     /**
@@ -102,12 +96,6 @@ class store_Stores extends core_Master
 	* Кой може да селектира?
 	*/
 	var $canSelect = 'ceo,storeWorker';
-	
-	
-    /**
-     * Брой записи на страница
-     */
-    var $listItemsPerPage = 300;
     
     
     /**
@@ -129,7 +117,7 @@ class store_Stores extends core_Master
     
     
     /**
-     * var $rowToolsField = 'tools';
+     * В коя номенкалтура, автоматично да влизат записите
      */
     var $autoList = 'stores';
     
@@ -154,7 +142,7 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('chiefId', 'user(roles=store|ceo)', 'caption=Отговорник,mandatory');
-        $this->FLD('workersIds', 'userList(roles=store|storeWorker)', 'caption=Товарачи');
+        $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
