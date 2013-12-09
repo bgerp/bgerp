@@ -143,10 +143,10 @@ class label_Labels extends core_Master
         $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре');
         $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, title=Поле на листа отляво');
         
-        $this->FLD('columnsCnt', 'int', 'caption=Колони в един лист->Брой, title=Брой колони в един лист');
+        $this->FLD('columnsCnt', 'int', 'caption=Колони в един лист->Брой, title=Брой колони в един лист, mandatory');
         $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, title=Разстояние на колоните в един лист');
         
-        $this->FLD('linesCnt', 'int', 'caption=Редове->Брой, title=Брой редове в един лист');
+        $this->FLD('linesCnt', 'int', 'caption=Редове->Брой, title=Брой редове в един лист, mandatory');
         $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, title=Разстояние на редовете в един лист');
         
         $this->setDbUnique('title');
