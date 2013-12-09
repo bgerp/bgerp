@@ -914,12 +914,12 @@ class cal_Tasks extends core_Master
 	    		}
 	    	            
 	    		// масив с шернатите потребители
-	    		$sharedUsers[$rec->sharedUsers] = $rec->sharedUsers;
+	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
 	    		
 		    	// масива със задачите
 		    	$resTask[]=array( 
 			    					'taskId' => $rec->id,
-			    					'rowId' =>  array(0),
+			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
 		    						'timeline' => array (
 		    											'0' => array(
 		                								'duration' => $timeDuration,  
@@ -932,33 +932,54 @@ class cal_Tasks extends core_Master
 			    	);
     		}
     	} 
-	      
-	    // малко обработка на масива с шернатите потребители
-	    foreach($sharedUsers as $u){
-	    	$resUsers[] = keylist::toArray($u);
-	    }
-
-	    foreach($resUsers as $k=>$userProfile){ 
-	    	foreach($userProfile as $id=>$value){ 
-	    			
-	    		$uS[$k]['name'] = crm_Profiles::createLink($value)->getContent();
-	    		$uS[$k]['id'] = $id;
-	    			
-	    			//$resUsers[$k]['name'] = crm_Profiles::createLink($value);
-	    			//$resUsers[$k]['id'] = $id;
-	    			//$resUsers[$k][$id] = crm_Profiles::createLink($value);
-	    	}
-	    } 
-
+    	
+    	// правим масив с ресурсите или в нашия случай това са потребителитя
+    	foreach($sharedUsers as $key=>$users){
+    		if(count($users) >=2 ) {
+    			unset ($sharedUsers[$key]);
+    		}
+    		
+    		// има 2 полета ид = номера на потребителя
+    		// и линк към профила му
+    		foreach($users as $id=>$resors){ 
+	    		$resorses[$id]['name'] = crm_Profiles::createLink($resors)->getContent();
+	    		$resorses[$id]['id'] = $resors;
+    		}
+    	}
+    	
+    	// номерирваме ги да почват от 0
+    	foreach($resorses as $res) {
+    		$resUser[] = $res;
+    	}
+    	
+    	// правим помощен масив = на "rowId" от "resTasks"
+    	for($i = 0; $i < count($resTask); $i++) { $j = 0;
+    		$rowArr[] = $resTask[$i]['rowId'];
+    	}
+    	
+    	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
+    	foreach($rowArr as $k => $v){
+    		
+    		foreach($v as $a=>$t){
+    			foreach($resUser as $key=>$value){
+    				if($t == $value['id']) {
+    					$resTask[$k]['rowId'][$a] = $key; 
+    				}
+    
+    			}
+    		}
+    	}
+    	
 	    // други параметри
 	    $others = self::renderGanttTimeType($data);
-	   //bp($others);
+
 	    $params = $others->otherParams;
 	    $header = $others->headerInfo;
 
 	    // връщаме един обект от всички масиви
-	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $uS, 'otherParams' => $params);
-// /bp($res, $resTask);
+	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
+	    //bp($resTask);
+
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
 	
