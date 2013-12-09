@@ -140,14 +140,14 @@ class label_Labels extends core_Master
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
         
-        $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре');
-        $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, title=Поле на листа отляво');
+        $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре, unit=mm');
+        $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, title=Поле на листа отляво, unit=mm');
         
         $this->FLD('columnsCnt', 'int', 'caption=Колони в един лист->Брой, title=Брой колони в един лист, mandatory');
-        $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, title=Разстояние на колоните в един лист');
+        $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, title=Разстояние на колоните в един лист, unit=mm');
         
         $this->FLD('linesCnt', 'int', 'caption=Редове->Брой, title=Брой редове в един лист, mandatory');
-        $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, title=Разстояние на редовете в един лист');
+        $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, title=Разстояние на редовете в един лист, unit=mm');
         
         $this->setDbUnique('title');
     }
