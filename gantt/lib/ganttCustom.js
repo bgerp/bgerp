@@ -159,12 +159,13 @@ function ganttRender(elem,ganttData) {
 			var hint = val['hint'];
 			var color = val['color'];
 			var url = val['url'];
-	
+			var resouceCounter = 0;
 			//ако има задача за повече от 1 ресурс, да се изчертава за всеки един от тях
 			jQuery.each( rowId, function( currentRow, valRow ) {
 				
-				//дебъг хинт
-				var hint = taskid + " " + " row:" + valRow ;
+				//брояч за ресурси
+				resouceCounter++;
+				
 				//брой отделни части от задачата
 				var taskParts = val['timeline'].length;
 				
@@ -225,7 +226,7 @@ function ganttRender(elem,ganttData) {
 						
 						//ако представянето на задачата е поне 3пх да се показва
 						if(widthTask > 3){
-							var zIndex = parseInt(10000 - widthTask);
+							var zIndex = parseInt(100000000 - widthTask);
 							//добавяме необходимите атрибути и свойства
 							$(addedAnchor).css('left', parseInt(offsetInPx));
 							$(addedAnchor).css('top', parseInt(offsetFromTop));
@@ -238,8 +239,8 @@ function ganttRender(elem,ganttData) {
 							$(addedAnchor).attr('target', '_blank');
 							
 							//за да имаме уникално id за всяка задача, дори и да е за няколко ресурса
-							if(rowId.length > 1){
-								$(addedAnchor).attr('id', taskid + "-"+ i);
+							if(resouceCounter > 1){
+								$(addedAnchor).attr('id', taskid + "("+ resouceCounter + ")");
 							}else{
 								$(addedAnchor).attr('id', taskid);
 							}
@@ -254,7 +255,7 @@ function ganttRender(elem,ganttData) {
 							if(widthTask > minWidthForTextDisplay){
 								$(addedAnchor).text(taskid);
 							}
-							
+
 							//графиката на задачата става наследник на див-а, който e релативен елеменент
 							$(currentTable).append( $( addedAnchor ) );
 						}
