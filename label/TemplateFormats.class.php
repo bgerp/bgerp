@@ -118,7 +118,7 @@ class label_TemplateFormats extends core_Detail
     {
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
         $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory');
-        $this->FLD('type', 'enum(' . static::$typeEnumOpt . ')', 'caption=Тип, silent');
+        $this->FLD('type', 'enum(' . static::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory');
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
         
         $this->setDbUnique('templateId, placeHolder');
@@ -165,7 +165,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов надпис', $captionUrl,
-                'id=btnAddCaption', 'ef_icon = img/16/star_2.png,title=Създаване на нов надпис'
+                'id=btnAddCaption', 'ef_icon = img/16/star_2.png, title=Създаване на нов надпис'
             );
             
             // URL за добавяне на шаблон за брояч
@@ -173,7 +173,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нов брояч', $counterUrl,
-                'id=btnAddCounter', 'ef_icon = img/16/star_2.png,title=Създаване на нов брояч'
+                'id=btnAddCounter', 'ef_icon = img/16/star_2.png, title=Създаване на нов брояч'
             );
             
             // URL за добавяне  шаблон за изображение
@@ -181,7 +181,7 @@ class label_TemplateFormats extends core_Detail
             
             // Добавяме бутона
             $data->toolbar->addBtn('Нова картинка', $imageUrl,
-                'id=btnAddImage', 'ef_icon = img/16/star_2.png,title=Създаване на нова картинка'
+                'id=btnAddImage', 'ef_icon = img/16/star_2.png, title=Създаване на нова картинка'
             );
         }
     }
@@ -395,19 +395,23 @@ class label_TemplateFormats extends core_Detail
                 // Вземаем всички баркодове, които можем да генерираме
                 $barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
                 
-                // Вземаем enum представянето
-                $barcodeStr = type_Enum::fromArray($barcodesArr);
+                // Добавяме празен елемент
+                $barcodesArr = array('' => '') + $barcodesArr;
                 
-                // Поле за избор на баркод
-                $filedsArr['BarcodeType']['clsType'] = 'type_Enum';
-                $filedsArr['BarcodeType']['type'] = 'enum(' . $barcodeStr . ')';
-                $filedsArr['BarcodeType']['caption'] = 'Тип баркод';
+                // Вземаем enum представянето
+//                $barcodeStr = type_Enum::fromArray($barcodesArr);
                 
                 // Поле за показване на баркод
                 $filedsArr['Showing']['clsType'] = 'type_Enum';
                 $filedsArr['Showing']['type'] = 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)';
                 $filedsArr['Showing']['caption'] = 'Показване';
                 $filedsArr['Showing']['title'] = 'Показване на баркод';
+                
+                // Поле за избор на баркод
+                $filedsArr['BarcodeType']['clsType'] = 'type_Enum';
+//                $filedsArr['BarcodeType']['type'] = 'enum(' . $barcodeStr . ')';
+                $filedsArr['BarcodeType']['type'] = cls::get(('type_Enum'), array('options' => $barcodesArr));
+                $filedsArr['BarcodeType']['caption'] = 'Тип баркод';
                 
                 // Поле за широчина
                 $filedsArr['Width']['clsType'] = 'type_Int';
@@ -425,11 +429,13 @@ class label_TemplateFormats extends core_Detail
                 $filedsArr['Format']['clsType'] = 'type_Varchar';
                 $filedsArr['Format']['type'] = 'varchar';
                 $filedsArr['Format']['caption'] = 'Формат';
+                $filedsArr['Format']['mandatory'] = 'mandatory';
                 
                 // Поле дали за избор дали да се ротира
                 $filedsArr['Rotation']['clsType'] = 'type_Enum';
                 $filedsArr['Rotation']['type'] = 'enum(yes=Да, no=Не)';
                 $filedsArr['Rotation']['caption'] = 'Ротация';
+                $filedsArr['Rotation']['mandatory'] = 'mandatory';
             break;
             
             case 'image':
@@ -439,17 +445,20 @@ class label_TemplateFormats extends core_Detail
                 $filedsArr['Width']['type'] = 'int';
                 $filedsArr['Width']['caption'] = 'Широчина';
                 $filedsArr['Width']['unit'] = 'mm';
+                $filedsArr['Width']['mandatory'] = 'mandatory';
                 
                 // Поле за височина
                 $filedsArr['Height']['clsType'] = 'type_Int';
                 $filedsArr['Height']['type'] = 'int';
                 $filedsArr['Height']['caption'] = 'Височина';
                 $filedsArr['Height']['unit'] = 'mm';
+                $filedsArr['Height']['mandatory'] = 'mandatory';
                 
                 // Поле дали за избор дали да се ротира
                 $filedsArr['Rotation']['clsType'] = 'type_Enum';
                 $filedsArr['Rotation']['type'] = 'enum(yes=Допустима, no=Недопустима)';
                 $filedsArr['Rotation']['caption'] = 'Ротация';
+                $filedsArr['Rotation']['mandatory'] = 'mandatory';
             break;
             
             default:
@@ -744,6 +753,13 @@ class label_TemplateFormats extends core_Detail
             
             // Вербалната стойност
             $verbalVal = $inst->toVerbal($rec->formatParams[$name]);
+            
+            // Ако няма подадена стойност
+            if (!$verbalVal) {
+                
+                // Задаваме стринга
+                $verbalVal = tr('Няма стойност');
+            }
             
             // Добавяме в полето
             $row->formatParams .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
