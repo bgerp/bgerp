@@ -1005,6 +1005,9 @@ table.listTable {
 	.document h2 {
 		margin-top: 3px;
     }
+    > tbody > tr.row-error >td {
+        color:#900;
+    } 
 }
 .narrow table.listTable{
 	margin-bottom:12px;
