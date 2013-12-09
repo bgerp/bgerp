@@ -103,7 +103,7 @@ class cal_Calendar extends core_Master
 				    	"DarkSlateBlue",
 				    	"#7b237d", 
 				    	"DarkMagenta ",
-    	                "#610b7d", 
+				    	"#610b7d", 
 				    	"#1b7d23",
 				    	"#4a4e7d",
 				    	"#7d6e23", 
@@ -144,7 +144,7 @@ class cal_Calendar extends core_Master
     function description()
     {
         // Уникален ключ за събитието
-        $this->FLD('key', 'varchar(32)', 'caption=Ключ');
+        $this->FLD('key', 'varchar(40)', 'caption=Ключ');
 
         // Дата на събититието
         $this->FLD('time', new type_Datetime(array('cellAttr' => 'class="portal-date"', 'format' => 'smartTime')), 'caption=Време');
