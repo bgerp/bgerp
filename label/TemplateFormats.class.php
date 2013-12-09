@@ -226,6 +226,71 @@ class label_TemplateFormats extends core_Detail
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
         }
+        
+        // Инстанция на мастера
+        $Master = $mvc->Master;
+        
+        // Ключа към мастер
+        $masterKey = $mvc->masterKey;
+        
+        // id на мастер
+        $masterId = $data->form->rec->$masterKey;
+        
+        // Ако са сетнати
+        if ($Master && $masterKey && $masterId) {
+            
+            // Вземаме шаблона
+            $tpl = $Master->getTemplate($masterId);
+            
+            // Масив с плейсхолдерите
+            $placesArr = $tpl->getPlaceHolders();
+            
+            // Ключовете и стойностите да са равни
+            $placesArr = arr::make($placesArr, TRUE);
+            
+            // Вземаме плейсхолдерите, за които има запис
+            $savedPlacesArr = static::getAddededPlaceHolders($masterId);
+            
+            // Вземаме неизползваните
+            $diffArr = array_diff($placesArr, $savedPlacesArr);
+            
+            // Добавяме предложение за пътищата
+            $data->form->appendSuggestions('placeHolder', $diffArr);
+            
+            // Ако има неизползван
+            if ($diffArr) {
+                
+                // По подразбиране да е избран първия
+                $data->form->setDefault('placeHolder', key($diffArr));
+            }
+        }
+    }
+    
+    
+    /**
+     * Връща масив с добаваните плейсхолдери за дадания шаблон
+     * 
+     * @param integer $templateId - id на шаблона
+     * 
+     * @return array - Масив с добавените стойности
+     */
+    static function getAddededPlaceHolders($templateId)
+    {
+        // Масива, който ще връщаме
+        $placesArr = array();
+        
+        // Вземамем всички плейсхолдери за шаблона
+        $query = static::getQuery();
+        $query->where(array("#templateId = '[#1#]'", $templateId));
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $placesArr[$rec->placeHolder] = $rec->placeHolder;
+        }
+        
+        return $placesArr;
     }
     
     
