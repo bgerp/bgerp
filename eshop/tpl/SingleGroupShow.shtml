@@ -5,13 +5,14 @@
 </div>
 
 <!--ET_BEGIN PRODUCT-->
-<table class="eshop-product-list">
-	<tr>
-		<td rowspan='2' class="eshop-product-list-image">[#PROD_image#]</td>
-		<td class="eshop-product-list-name">[#PROD_name#] [#PROD_editLink#]</td>
-	</tr>
-	<tr>
-		<td class="eshop-product-list-info">[#PROD_info#]</td>
-	</tr>
-</table>
+
+	<div class='eshop-product-list'>
+		[#PROD_image#]
+		<div class='eshop-product-list-name'>[#PROD_name#] [#PROD_editLink#]</div>
+	    [#PROD_info#]
+	    <div class='clearfix21'></div>
+	
+	</div>
+  
+
 <!--ET_END PRODUCT-->

@@ -2617,31 +2617,38 @@ div.location.public{
 .eshop-group-image {
 	margin-bottom:10px;
 }
+
 .eshop-group {
 	margin-top:-5px;
 }
+
 .eshop-product-list {
 	margin-top:10px;
-	background-color: #eee;
-	width:100%;
+	background-color:#eee;
 	border:solid 1px #ccc;
-	.eshop-product-list-image {
-		padding:0px;
-		width:120px;
-		height:120px;
-		vertical-align:top;
+	clear:both;
+    padding:10px;
+    border-radius:3px;
+    box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+    .richtext{
+        line-height:1.35em;
+    }
+	.eshop-product-image{
+	    float:left;
+	    width:120px;
+	    height:120px;
+	    margin:0 12px 0px 0;
 	}
 	.eshop-product-list-name {
 		font-weight: bold;
-		padding:5px;
+		padding: 0 5px 8px 5px;
 		height:1%;
 	}
-	.eshop-product-list-info {
-			padding:5px;
-			vertical-align:top;
+	&:hover{
+	    border:solid 1px #579DF3;
 	}
-
 }
+
 
 /*queries*/
 
