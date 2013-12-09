@@ -341,9 +341,9 @@ class store_ShipmentOrderDetails extends core_Detail
     {
         $showPrices = Request::get('showPrices', 'int');
     	if(Mode::is('printing') && empty($showPrices)) {
-            unset($data->listFields['price'], 
+            unset($data->listFields['packPrice'], 
             	  $data->listFields['amount'], 
-            	  $data->listFields['discount']);
+            	  $data->listFields['discount'], $data->summary);
         }
     }
 }

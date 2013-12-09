@@ -35,7 +35,7 @@ class store_Transfers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc2, store_DocumentWrapper';
 
     
@@ -73,12 +73,6 @@ class store_Transfers extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
-
-
-    /**
-     * Кой може да го види?
-     */
-    public $canViewprices = 'ceo,acc';
     
     
     /**
@@ -96,7 +90,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-   public $listFields = 'id, valior, fromStore, toStore, folderId, volume, weight,createdOn, createdBy';
+    public $listFields = 'id, valior, fromStore, toStore, folderId, volume, weight, createdOn, createdBy';
 
 
     /**
@@ -150,10 +144,6 @@ class store_Transfers extends core_Master
 
     /**
      * След промяна в детайлите на обект от този клас
-     *
-     * @param core_Manager $mvc
-     * @param int $id ид на мастър записа, чиито детайли са били променени
-     * @param core_Manager $detailMvc мениджър на детайлите, които са били променени
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
@@ -185,6 +175,14 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(!$rec->weight) {
+    		$row->weight = "<span class='quiet'>0</span>";
+    	}
+    		
+    	if(!$rec->volume) {
+    		$row->volume = "<span class='quiet'>0</span>";
+    	}
+    	
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	
@@ -230,7 +228,7 @@ class store_Transfers extends core_Master
 
 
     /**
-     * СР не може да бъде начало на нишка; може да се създава само в съществуващи нишки
+     * СT не може да бъде начало на нишка; може да се създава само в съществуващи нишки
      * @param $folderId int ид на папката
      * @return boolean
      */

@@ -210,11 +210,6 @@ class store_ReceiptDetails extends core_Detail
         // Скриваме полето "мярка"
         $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
         
-        // Определяме кой вижда ценовата информация
-        if (!$mvc->Master->haveRightFor('viewprices', $data->masterData->rec)) {
-            $data->listFields = array_diff_key($data->listFields, arr::make('price, discount, amount', TRUE));
-        }
-    
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
     
@@ -312,7 +307,7 @@ class store_ReceiptDetails extends core_Detail
     {
         $showPrices = Request::get('showPrices', 'int');
     	if(Mode::is('printing') && empty($showPrices)) {
-            unset($data->listFields['price'], 
+            unset($data->listFields['packPrice'], 
             	  $data->listFields['amount'], 
             	  $data->listFields['discount']);
         }
