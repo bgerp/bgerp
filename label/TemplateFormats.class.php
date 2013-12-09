@@ -254,14 +254,28 @@ class label_TemplateFormats extends core_Detail
             // Вземаме неизползваните
             $diffArr = array_diff($placesArr, $savedPlacesArr);
             
+            // Ако редактираме запис
+            if ($data->form->rec->id) {
+                
+                // Добавяме в масива
+                $diffArr[$data->form->rec->placeHolder] = $data->form->rec->placeHolder;
+            }
+        
             // Добавяме предложение за пътищата
             $data->form->appendSuggestions('placeHolder', $diffArr);
             
             // Ако има неизползван
             if ($diffArr) {
                 
-                // По подразбиране да е избран първия
-                $data->form->setDefault('placeHolder', key($diffArr));
+                // Ако редактираме запис
+                if ($data->form->rec->id) {
+                    // По подразбиране да е избран първия
+                    $data->form->setDefault('placeHolder', $data->form->rec->placeHolder);
+                    
+                } else {
+                    // По подразбиране да е избран първия
+                    $data->form->setDefault('placeHolder', key($diffArr));
+                }
             }
         }
     }
