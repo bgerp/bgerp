@@ -66,7 +66,7 @@ class label_Setup
         
         // Добавяме меню
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label");
+        $html .= $Menu->addItem(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo");
         
         return $html;
     }

@@ -54,49 +54,49 @@ class label_Counters extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'label';
+    var $canRead = 'label, admin, ceo';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label';
+    var $canEdit = 'label, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label';
+    var $canAdd = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'label';
+    var $canView = 'label, admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'label';
+    var $canList = 'label, admin, ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'label';
+	var $canSingle = 'label, admin, ceo';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'label';
+    var $canReject = 'label, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label';
+    var $canDelete = 'label, admin, ceo';
     
     
     /**
