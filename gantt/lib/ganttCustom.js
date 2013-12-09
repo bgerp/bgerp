@@ -159,13 +159,12 @@ function ganttRender(elem,ganttData) {
 			var hint = val['hint'];
 			var color = val['color'];
 			var url = val['url'];
-			
-			//дебъг хинт
-			var hint = taskid + " " + hint + " row:" + rowId ;
-			
+	
 			//ако има задача за повече от 1 ресурс, да се изчертава за всеки един от тях
-			for ( var i = 0; i < rowId.length; i = i + 1 ) {
+			jQuery.each( rowId, function( currentRow, valRow ) {
 				
+				//дебъг хинт
+				var hint = taskid + " " + " row:" + valRow ;
 				//брой отделни части от задачата
 				var taskParts = val['timeline'].length;
 				
@@ -182,7 +181,6 @@ function ganttRender(elem,ganttData) {
 					//ако задачата се пада извън таблицата
 					if(startTime >= end || startTime + duration <= start){
 						duration = 0;
-						
 						
 					}else{
 					
@@ -215,7 +213,7 @@ function ganttRender(elem,ganttData) {
 					if(duration){
 						
 						//разстояние до задачата отгоре
-						var offsetFromTop = (rowId[i] * tdHeight) + headerHeight;
+						var offsetFromTop = (valRow * tdHeight) + headerHeight;
 						//разстояние до задачата отляво
 						var offsetInPx =  (startTime - start) / secPerPX ;
 						//ширина на задачата
@@ -262,7 +260,7 @@ function ganttRender(elem,ganttData) {
 						}
 					}
 				}
-			}
+			});
 		});
 	}
 }
