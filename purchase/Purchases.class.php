@@ -249,7 +249,7 @@ class purchase_Purchases extends core_Master
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
     		
-	    	if (store_Receipts::canAddToThread($data->rec->threadId)) {
+	    	if (store_Receipts::canAddToThread($data->rec->threadId) && haveRole('store')) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21,warning=Искатели да създадете нова Складова разписка ?');
 	        }

@@ -754,7 +754,7 @@ class sales_Sales extends core_Master
 	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов Протокол за доставка на услуги ?');
 	        }
 	        
-	    	if ($rec->isInstantShipment == 'no' && store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	    	if ($rec->isInstantShipment == 'no' && store_ShipmentOrders::canAddToThread($rec->threadId) && haveRole('store')) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искатели да създадете ново Експедиционно нареждане ?');
 	        }
