@@ -227,6 +227,11 @@ function ganttRender(elem,ganttData) {
 						//ако представянето на задачата е поне 3пх да се показва
 						if(widthTask > 3){
 							var zIndex = parseInt(100000000 - widthTask);
+							
+							if(zIndex < 0){
+								zIndex = 1;
+							}
+							
 							//добавяме необходимите атрибути и свойства
 							$(addedAnchor).css('left', parseInt(offsetInPx));
 							$(addedAnchor).css('top', parseInt(offsetFromTop));
