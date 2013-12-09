@@ -178,12 +178,12 @@ class cal_Calendar extends core_Master
     /**
      * Обновява събитията в календара
      *
-     * @param $events   array   Масив със събития
-     * @param $fromDate date    Начало на периода за който се отнасят събитията
-     * @param $fromDate date    Край на периода за който се отнасят събитията
-     * @param $prefix   string  Префикс на ключовете за събитията от този източник
+     * @param  array     $events      Масив със събития
+     * @param  date      $fromDate    Начало на периода за който се отнасят събитията
+     * @param  date      $fromDate    Край на периода за който се отнасят събитията
+     * @param  string    $prefix      Префикс на ключовете за събитията от този източник
      * 
-     * @return $status array Статус на операцията, който съдържа:
+     * @return array                  Статус на операцията, който съдържа:
      *      о ['updated'] броя на обновените събития
      * 
      */
