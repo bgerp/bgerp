@@ -901,74 +901,75 @@ class cal_Tasks extends core_Master
 	    				"#666",
 	    				"#c0c",
     	                );
-         
-	    // за всеки едиин запис от базата данни
-    	foreach($data->recs as $v=>$rec){ 
-    		if($rec->state == 'active' && $rec->timeStart){
-    			// ако няма продължителност на задачата
-	    		if(!$rec->timeDuration ) {
-	    			// продължителността на задачата е края - началото
-	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
-	    		} else {
-	    			$timeDuration = $rec->timeDuration;
-	    		}
-	    	            
-	    		// масив с шернатите потребители
-	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
-	    		
-		    	// масива със задачите
-		    	$resTask[]=array( 
-			    					'taskId' => $rec->id,
-			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
-		    						'timeline' => array (
-		    											'0' => array(
-		                								'duration' => $timeDuration,  
-		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
-		    		                
-			    					'color' => $colors[$v % 22],
-			    					'hint' => $rec->title,
-			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId))
-			    				
-			    	);
-    		}
-    	} 
-    	
-    	// правим масив с ресурсите или в нашия случай това са потребителитя
-    	foreach($sharedUsers as $key=>$users){
-    		if(count($users) >=2 ) {
-    			unset ($sharedUsers[$key]);
-    		}
-    		
-    		// има 2 полета ид = номера на потребителя
-    		// и линк към профила му
-    		foreach($users as $id=>$resors){ 
-	    		$resorses[$id]['name'] = crm_Profiles::createLink($resors)->getContent();
-	    		$resorses[$id]['id'] = $resors;
-    		}
-    	}
-    	
-    	// номерирваме ги да почват от 0
-    	foreach($resorses as $res) {
-    		$resUser[] = $res;
-    	}
-    	
-    	// правим помощен масив = на "rowId" от "resTasks"
-    	for($i = 0; $i < count($resTask); $i++) { $j = 0;
-    		$rowArr[] = $resTask[$i]['rowId'];
-    	}
-    	
-    	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
-    	foreach($rowArr as $k => $v){
-    		
-    		foreach($v as $a=>$t){
-    			foreach($resUser as $key=>$value){
-    				if($t == $value['id']) {
-    					$resTask[$k]['rowId'][$a] = $key; 
-    				}
-    
-    			}
-    		}
-    	}
+        if($data->recs){
+    	    // за всеки едиин запис от базата данни
+        	foreach($data->recs as $v=>$rec){ 
+        		if($rec->state == 'active' && $rec->timeStart){
+        			// ако няма продължителност на задачата
+    	    		if(!$rec->timeDuration ) {
+    	    			// продължителността на задачата е края - началото
+    	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
+    	    		} else {
+    	    			$timeDuration = $rec->timeDuration;
+    	    		}
+    	    	            
+    	    		// масив с шернатите потребители
+    	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
+    	    		
+    		    	// масива със задачите
+    		    	$resTask[]=array( 
+    			    					'taskId' => $rec->id,
+    			    					'rowId' =>  keylist::toArray($rec->sharedUsers),
+    		    						'timeline' => array (
+    		    											'0' => array(
+    		                								'duration' => $timeDuration,  
+    		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
+    		    		                
+    			    					'color' => $colors[$v % 22],
+    			    					'hint' => $rec->title,
+    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId))
+    			    				
+    			    	);
+        		}
+        	} 
+        	
+        	// правим масив с ресурсите или в нашия случай това са потребителитя
+        	foreach($sharedUsers as $key=>$users){
+        		if(count($users) >=2 ) {
+        			unset ($sharedUsers[$key]);
+        		}
+        		
+        		// има 2 полета ид = номера на потребителя
+        		// и линк към профила му
+        		foreach($users as $id=>$resors){ 
+    	    		$resorses[$id]['name'] = crm_Profiles::createLink($resors)->getContent();
+    	    		$resorses[$id]['id'] = $resors;
+        		}
+        	}
+        	
+        	// номерирваме ги да почват от 0
+        	foreach($resorses as $res) {
+        		$resUser[] = $res;
+        	}
+        	
+        	// правим помощен масив = на "rowId" от "resTasks"
+        	for($i = 0; $i < count($resTask); $i++) { $j = 0;
+        		$rowArr[] = $resTask[$i]['rowId'];
+        	}
+        	
+        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
+        	foreach($rowArr as $k => $v){
+        		
+        		foreach($v as $a=>$t){
+        			foreach($resUser as $key=>$value){
+        				if($t == $value['id']) {
+        					$resTask[$k]['rowId'][$a] = $key; 
+        				}
+        
+        			}
+        		}
+        	}
+        }
     	
 	    // други параметри
 	    $others = self::renderGanttTimeType($data);
@@ -1287,7 +1288,8 @@ class cal_Tasks extends core_Master
      * @param stdClass $data
      */
     public static function calcTasksMinStartMaxEndTime ($data)
-    {
+    {   
+      if($data->recs){
     	// за всеки едиин запис от базата данни
     	foreach($data->recs as $rec){ 
     		
@@ -1320,6 +1322,7 @@ class cal_Tasks extends core_Master
     	$endTime = max($end);
     	
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
+      }
     }
  
 }
