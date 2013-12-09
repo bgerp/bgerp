@@ -393,14 +393,13 @@ class store_Receipts extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Задаване на стойности на полетата на формата по подразбиране
         $form = &$data->form;
         $rec  = &$form->rec;
         
         $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+        $form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
-        $rec->storeId = store_Stores::getCurrent('id', FALSE);
         
         // Поле за избор на локация - само локациите на контрагента по покупката
         $form->getField('locationId')->type->options = 
