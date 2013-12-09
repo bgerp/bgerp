@@ -44,55 +44,49 @@ class purchase_Services extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,purchase';
+    public $canRead = 'ceo, purchase';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,purchase';
+	public $canList = 'ceo, purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,purchase';
+	public $canSingle = 'ceo, purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,purchase';
+    public $canEdit = 'ceo, purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,purchase';
+    public $canAdd = 'ceo, purchase';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo,purchase';
-
-
-    /**
-     * Кой може да го види?
-     */
-    public $canViewprices = 'ceo,acc';
+    public $canView = 'ceo, purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,purchase';
+    public $canDelete = 'ceo, purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canConto = 'ceo,purchase';
+    public $canConto = 'ceo, purchase';
     
     
     /**

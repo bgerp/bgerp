@@ -75,12 +75,6 @@ class sales_Services extends core_Master
      * Кой може да го види?
      */
     public $canView = 'ceo,sales';
-
-
-    /**
-     * Кой може да го види?
-     */
-    public $canViewprices = 'ceo,acc';
     
     
     /**

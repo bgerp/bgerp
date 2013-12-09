@@ -264,12 +264,8 @@ class sales_Sales extends core_Master
     
     /**
      * Определяне на документа-източник (пораждащия документ)
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $origin
-     * @param stdClass $rec
      */
-    public static function getOrigin_($rec)
+    public function getOrigin_($rec)
     {
         $rec = static::fetchRec($rec);
         
@@ -288,7 +284,7 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if (!$origin = static::getOrigin($rec)) {
+        if (!$origin = $mvc->getOrigin($rec)) {
             return;
         }
     
@@ -400,29 +396,31 @@ class sales_Sales extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Задаване на стойности на полетата на формата по подразбиране
-        self::setDefaultsFromOrigin($mvc, $data->form);
-        self::setDefaults($mvc, $data->form);
+        $form = &$data->form;
+        
+    	// Задаване на стойности на полетата на формата по подразбиране
+        self::setDefaultsFromOrigin($mvc, $form);
+        self::setDefaults($mvc, $form);
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($data->form->rec->id) && !empty($data->form->rec->originId)) {
+        if (empty($form->rec->id) && !empty($form->rec->originId)) {
             // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
             // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
             // е нужно в последствие.
             
-            if ($mvc->validate($data->form)) {
-                if (self::save($data->form->rec)) {
-                    redirect(array($mvc, 'single', $data->form->rec->id));
+            if ($mvc->validate($form)) {
+                if (self::save($form->rec)) {
+                    redirect(array($mvc, 'single', $form->rec->id));
                 }
             }
         }
         
-        if ($data->form->rec->id){
+        if ($form->rec->id){
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
-        	if($mvc->sales_SalesDetails->fetch("#saleId = {$data->form->rec->id}")){
-        		$data->form->setReadOnly('chargeVat');
+        	if($mvc->sales_SalesDetails->fetch("#saleId = {$form->rec->id}")){
+        		$form->setReadOnly('chargeVat');
         	}
         }
         
@@ -430,11 +428,11 @@ class sales_Sales extends core_Master
         $maxMonths =  $conf->SALE_MAX_FUTURE_PRICE / type_Time::SECONDS_IN_MONTH;
 		$minMonths =  $conf->SALE_MAX_PAST_PRICE / type_Time::SECONDS_IN_MONTH;
         
-        $priceAtDateFld = &$data->form->fields['pricesAtDate']->type;
+        $priceAtDateFld = &$form->fields['pricesAtDate']->type;
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
         
-        $data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
     
     
@@ -489,7 +487,7 @@ class sales_Sales extends core_Master
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('deliveryLocationId')->type->options = 
-            array(''=>'') +
+            array('' => '') +
             crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
         
         // Начисляване на ДДС по подразбиране
@@ -589,27 +587,32 @@ class sales_Sales extends core_Master
             return;
         }
         
+        $rec = &$form->rec;
+        
         // Ако не е въведен валутен курс, използва се курса към датата на документа 
-        if (empty($form->rec->currencyRate)) {
-            $form->rec->currencyRate = 
-                currency_CurrencyRates::getRate($form->rec->valior, $form->rec->currencyId, NULL);
+        if (empty($rec->currencyRate)) {
+            $rec->currencyRate = 
+                currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
         }
 
-        if ($form->rec->isInstantShipment == 'yes') {
-            $invalid = empty($form->rec->shipmentStoreId);
-            $invalid = $invalid ||
-                store_Stores::fetchField($form->rec->shipmentStoreId, 'chiefId') != core_Users::getCurrent();
-            if ($invalid) {
-                $form->setError('isInstantShipment', 'Само отговорика на склада може да експедира на момента от него');
-            }
+        $cu = core_Users::getCurrent();
+        if ($rec->isInstantShipment == 'yes') {
+        	if(empty($rec->shipmentStoreId)){
+        		
+        		$form->setError('shipmentStoreId', 'Не е избран склад');
+        	} elseif(store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') != $cu) {
+        		
+        		$form->setError('isInstantShipment', 'Само отговорика на склада може да експедира на момента от него');
+        	}
         }
 
-        if ($form->rec->isInstantPayment == 'yes') {
-            $invalid = empty($form->rec->caseId);
-            $invalid = $invalid ||
-                cash_Cases::fetchField($form->rec->caseId, 'cashier') != core_Users::getCurrent();
-            if ($invalid) {
-                $form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
+        if ($rec->isInstantPayment == 'yes') {
+            if(empty($rec->caseId)){
+            	
+            	$form->setError('caseId', 'Не е избрана каса');
+            } elseif(cash_Cases::fetchField($rec->caseId, 'cashier') != $cu){
+            	
+            	$form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
             }
         }
         
@@ -646,11 +649,11 @@ class sales_Sales extends core_Master
 		    
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	if ($rec->isInstantPayment == 'yes') {
-	            $row->caseId .= ' (на момента)';
+	            $row->caseId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
 	        }
 	        
 	        if ($rec->isInstantShipment == 'yes') {
-	            $row->shipmentStoreId .= ' (на момента)';
+	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
 	        }
 	        
 		    $mvc->prepareMyCompanyInfo($row, $rec);
@@ -707,7 +710,7 @@ class sales_Sales extends core_Master
 						$data->query->orWhere("#amountPaid = #amountDeal");
 						break;
 					case 'overdue':
-						$data->query->orWhere("#paymentState ='overdue'");
+						$data->query->orWhere("#paymentState = 'overdue'");
 						break;
 					case 'delivered':
 						$data->query->orWhere("#amountDelivered = #amountDeal");
@@ -745,22 +748,27 @@ class sales_Sales extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
+    		
+    		// Ако доставеното - платеното е точно
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
 	    	
-    		if ($rec->isInstantShipment == 'no' && sales_Services::canAddToThread($data->rec->threadId)) {
-    			$serviceUrl =  array('sales_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+    		// Ако протокол може да се добавя към треда и не се експедира на момента
+    		if ($rec->isInstantShipment == 'no' && sales_Services::canAddToThread($rec->threadId)) {
+    			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов Протокол за доставка на услуги ?');
 	        }
 	        
+	        // Ако ЕН може да се добавя към треда и не се експедира на момента
 	    	if ($rec->isInstantShipment == 'no' && store_ShipmentOrders::canAddToThread($rec->threadId) && haveRole('store')) {
-	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
+	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искатели да създадете ново Експедиционно нареждане ?');
 	        }
 	        
-	    	if($data->rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $data->rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
+	        // Ако експедирането е на момента се добавя бутон за нова фактура
+	    	if($rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искатели да създадете нова фактура ?');
 		    }
     	}
     	
@@ -1040,6 +1048,8 @@ class sales_Sales extends core_Master
     		$state = $rec->state;
     		$rec = $mvc->fetch($id);
     		$rec->state = $state;
+    		
+    		// Записване на продажбата като отворена сделка
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
@@ -1079,6 +1089,7 @@ class sales_Sales extends core_Master
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата продажба") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
+        
         return $tpl->getContent();
     }
     
@@ -1111,6 +1122,7 @@ class sales_Sales extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	// Крон метод за затваряне на остарели продажби
     	$rec = new stdClass();
         $rec->systemId = "Close sales";
         $rec->description = "Затваря приключените продажби";
@@ -1121,6 +1133,7 @@ class sales_Sales extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
+        // Проверка по крон дали продажбата е пресрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsSaleOverdue";
         $rec2->description = "Проверява дали продажбата е пресрочена";
@@ -1201,6 +1214,7 @@ class sales_Sales extends core_Master
     	
     	while($rec = $query->fetch()){
     		if($rec->state == 'closed'){
+    			
     			// Ако състоянието е затворено, то приема че продажбата е платена
     			$rec->paymentState = 'paid';
     			$this->save($rec);

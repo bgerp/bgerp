@@ -505,6 +505,8 @@ class purchase_Purchases extends core_Master
     		$state = $rec->state;
     		$rec = $mvc->fetch($id);
     		$rec->state = $state;
+    		
+    		// Записване на покупката като отворена сделка
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     }
