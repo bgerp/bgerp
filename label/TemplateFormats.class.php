@@ -506,7 +506,11 @@ class label_TemplateFormats extends core_Detail
             // Добавяме в масива името на полето
             $resArr[$placeHolderField]['caption'] = "Шаблони->" . $placeHolder;
             
+            // Името на плейсхолдер
             $resArr[$placeHolderField]['name'] = $placeHolder;
+            
+            // Полето да е silent
+            $resArr[$placeHolderField]['silent'] = 'silent';
             
             // Ако типа е image
             if ($rec->type == 'image') {
