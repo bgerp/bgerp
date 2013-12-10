@@ -578,6 +578,8 @@ class sales_Invoices extends core_Master
     	
     	if($data->summary){
     		$tpl->replace(price_Helper::renderSummary($data->summary, TRUE), 'SUMMARY');
+    	} else {
+    		unset($data->row->amountVerbal);
     	}
     }
     
@@ -926,21 +928,6 @@ class sales_Invoices extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetchRec($id));
-        
-        if (empty($rec->folderId)) {
-            return FALSE;
-        }
-        
-        $origin = static::getOrigin($rec);
-        $aggregateInfo = $origin->getAggregateDealInfo();
-        if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
-        	$debitAccId  = '411';
-        	$creditAccId = '4532';
-        } else {
-        	$debitAccId  = '401';
-        	$creditAccId = '4531';
-        }
-        
         $cloneRec = clone $rec;
         
         // Създаване / обновяване на перото за контрагента
@@ -953,8 +940,19 @@ class sales_Invoices extends core_Master
         	'entries' => array(),
         );
         
-        if(isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
-        $entries= array();
+        if(isset($cloneRec->docType) && isset($cloneRec->docId) || $rec->type != 'invoice') return $result;
+        
+        $entries = array();
+        
+    	$origin = static::getOrigin($rec);
+        $aggregateInfo = $origin->getAggregateDealInfo();
+        if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
+        	$debitAccId  = '411';
+        	$creditAccId = '4532';
+        } else {
+        	$debitAccId  = '401';
+        	$creditAccId = '4531';
+        }
         
         if($cloneRec->vatAmount){
         	$entries[] = array(
