@@ -1134,7 +1134,7 @@ class cal_Tasks extends core_Master
 	    		   
 	    			$w = date("Y", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] = "&nbsp;" . dt::getMonth(date("m", dt::mysql2timestamp($curDate)), $format = 'M') . "&nbsp;";
+	    		 	$res[$w]['subHeader'][] = dt::getMonth(date("m", dt::mysql2timestamp($curDate)), $format = 'M');
 	    		 	$curDate = dt::addMonths(1, $curDate);
 	    		 	
 	    		}
