@@ -88,6 +88,12 @@ class label_Labels extends core_Master
     
     
     /**
+     * Роли за мастера на етикетите
+     */
+    var $canMasterlabel = 'masterLabel, admin, ceo';
+    
+    
+    /**
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
@@ -740,6 +746,27 @@ class label_Labels extends core_Master
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
         }
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param label_Labels $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако състоянието не е чернова
+        if ($rec && $rec->state != 'draft' && $action == 'edit') {
+            
+            // Потреибители, които имат роля за masterLabel могат да редактират
+            $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+        }
+    }
+    
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
