@@ -51,6 +51,22 @@ class core_String
         
         return $text;
     }
+
+
+
+    /**
+     * Превръща UTF-9 в каноничен стринг, съдържащ само латински букви и числа
+     * Всички символи, които не могат да се конвертират, се заместват с втория аргумент
+     */
+    public static function canonize($str, $substitute = '-')
+    {
+        $cStr = str::utf2ascii($str);
+
+        $cStr = trim(preg_replace('/[^a-zA-Z0-9]+/', $substitute, " {$cStr} "), '-');
+        
+        return $cStr;
+    }
+
     
 
     /**

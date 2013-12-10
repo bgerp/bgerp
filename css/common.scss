@@ -702,6 +702,15 @@ a.button:hover, input:hover[type=button] , input:hover[type=submit], button:hove
     background-color:#ffb; 
 }
 
+a.header:target  {
+   color:blue;
+}
+
+a.header:hover {
+	color:inherit;
+}
+
+
 .narrow .toolbar .button{
 	border-right:1px solid #999;
 	margin-right:2px !important;

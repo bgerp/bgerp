@@ -83,8 +83,6 @@ class core_ET extends core_BaseClass
      */
     function core_ET($content = "")
     {
-        static $cache;
-        
         if ($content instanceof core_ET) {
             $this->content = $content->content;
             $this->places = $content->places;
@@ -94,28 +92,15 @@ class core_ET extends core_BaseClass
             $this->removableBlocks = $content->removableBlocks;
             $this->removablePlaces = $content->removablePlaces;
         } else {
-            $md5 = md5($content);
-            
-            if($c = $cache[$md5]) {
-                $this->content = $c->content;
-                $this->removableBlocks = $c->removableBlocks;
-                $this->removablePlaces = $c->removablePlaces;
-            } else {
-                $this->content = $content;
-                $rmPlaces = $this->getPlaceHolders();
-                $this->setRemovableBlocks($rmPlaces);
+            $this->content = $content;
+            $rmPlaces = $this->getPlaceHolders();
+            $this->setRemovableBlocks($rmPlaces);
                 
-                // Взема началните плейсхолдери, за да могат непопълнените да бъдат изтрити
-                
-                if(count($rmPlaces)) {
-                    foreach($rmPlaces as $place) {
-                        $this->removablePlaces[$place] = $place;
-                    }
+            // Взема началните плейсхолдери, за да могат непопълнените да бъдат изтрити
+            if(count($rmPlaces)) {
+                foreach($rmPlaces as $place) {
+                    $this->removablePlaces[$place] = $place;
                 }
-                $cache[$md5] = new stdClass();
-                $cache[$md5]->content = $this->content;
-                $cache[$md5]->removableBlocks = $this->removableBlocks;
-                $cache[$md5]->removablePlaces = $this->removablePlaces;
             }
         }
         

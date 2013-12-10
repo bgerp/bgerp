@@ -59,10 +59,8 @@ class plg_Vid extends core_Plugin
         if(!$recVid) {
 
             $recVid = $mvc->getRecTitle($rec);
-
-            $recVid = str::utf2ascii($recVid);
-
-            $recVid = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', " {$recVid} "), '-');
+            
+            $recVid = str::canonize($recVid);
         }
         
         $mdPart = max(4, round(EF_VID_LEN / 8));
@@ -96,14 +94,20 @@ class plg_Vid extends core_Plugin
      */
     function on_BeforeAction($mvc, $action)
     {
-        $vid = Request::get('id'); 
+        $vid = Request::get('id');
+
         if($vid && !is_numeric($vid)) {
+
             $id = $mvc->fetchField(array("#vid = '[#1#]'", $vid), 'id');
+
             if(!$id) {
                 $id = FALSE;
             }
+            
             Request::push(array('id' => $id));
         }
     }
+
+
 
 }
