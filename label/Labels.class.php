@@ -725,6 +725,23 @@ class label_Labels extends core_Master
     
     
     /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     * 
+     * @param label_Labels $mvc
+     * @param object $res
+     * @param object $data
+     */
+    function on_AfterPrepareRetUrl($mvc, &$res, &$data)
+    {
+        // Ако е субмитната формата и сме натиснали бутона "Запис и нов"
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+            
+            // Променяма да сочи към single'a
+            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+        }
+    }
+    
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
