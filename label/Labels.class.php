@@ -762,8 +762,15 @@ class label_Labels extends core_Master
         // Ако състоянието не е чернова
         if ($rec && $rec->state != 'draft' && $action == 'edit') {
             
-            // Потреибители, които имат роля за masterLabel могат да редактират
-            $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+            if ($rec->state == 'rejected') {
+                
+                // Оттеглените да не могат да се редактират
+                $requiredRoles = 'no_one';
+            } else {
+                
+                // Потреибители, които имат роля за masterLabel могат да редактират
+                $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+            }
         }
     }
     
