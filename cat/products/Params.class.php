@@ -101,7 +101,7 @@ class cat_products_Params extends cat_products_Detail
                 $row = $rows[$i];
                 $paramRec = cat_Params::fetch($rec->paramId);
                 if($paramRec->type != 'enum'){
-                	$Type = cls::get("type_{$paramRec->type}");
+                	$Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
             		$row->paramValue = $Type->toVerbal($rec->paramValue);
                 }
             	if($paramRec->type != 'percent'){

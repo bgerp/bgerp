@@ -252,6 +252,7 @@ class techno_GeneralProducts extends core_Master {
 	    }
 	    
 	    (!$packagingId) ? $res->packagings = array() : $res = NULL;
+	    
 	   	return $res;
     }
     
@@ -263,12 +264,26 @@ class techno_GeneralProducts extends core_Master {
      */
     public function getVat($id, $date = NULL)
     {
-    	$vatId = cat_Params::fetchIdBySysId('vat');
-    	$vat = $this->Params->fetch("#generalProductId = {$id} AND #paramId = {$vatId}");
+    	$vat = $this->getParam($id, 'vat');
     	if($vat) return $vat;
     	
     	$period = acc_Periods::fetchByDate($date);
+    	
     	return $period->vatRate;
+    }
+    
+    
+    /**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function getParam($id, $sysId)
+    {
+    	expect($paramId = cat_Params::fetchIdBySysId($sysId));
+    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
+    	
+    	return $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
     }
     
     

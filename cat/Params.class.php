@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджира динамичните параметри на категориите
+ * Мениджира динамичните параметри на продуктите
  *
  *
  * @category  bgerp
@@ -22,12 +22,6 @@ class cat_Params extends core_Manager
      * Заглавие
      */
     var $title = "Параметри";
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $pageMenu = "Каталог";
     
     
     /**
@@ -67,12 +61,6 @@ class cat_Params extends core_Manager
     
     
     /**
-     * Кой може да го види?
-     */
-    var $canView = 'powerUser';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'cat,ceo';
@@ -91,12 +79,27 @@ class cat_Params extends core_Manager
     
     
     /**
+     * Масив за съответствие на типовете на параметрите с тези в системата
+     */
+    public static $typeMap = array('double'  => 'type_Double',
+    							   'weight'  => 'cat_type_Weight',
+        						   'size'    => 'cat_type_Size',
+        						   'volume'  => 'cat_type_Volume',
+        						   'date'    => 'type_Date',
+        						   'varchar' => 'type_Varchar',
+        						   'percent' => 'type_Percent',
+        						   'enum'    => 'type_Enum',
+        						   'int'     => 'type_Int',
+    );
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим)', 'caption=Тип');
+        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
@@ -108,7 +111,7 @@ class cat_Params extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Изчисляване на typeExt
      */
     static function on_CalcTypeExt($mvc, $rec)
     {
@@ -129,7 +132,7 @@ class cat_Params extends core_Manager
         	$rec = &$form->rec;
         	if($rec->options){
         		$vArr = arr::make($rec->options);
-        		$Type = cls::get(($rec->type == 'cat_type_Uom') ? 'cat_type_Uom' : "type_{$rec->type}");
+        		$Type = cls::get(static::$typeMap[$rec->type]);
         		foreach($vArr as $option){
         			if($rec->type != 'enum' && !$Type->fromVerbal($option)){
         				$form->setError('options', "Някоя от зададените стойности не е от типа {$rec->type}");
@@ -146,12 +149,6 @@ class cat_Params extends core_Manager
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
@@ -221,8 +218,8 @@ class cat_Params extends core_Manager
             $options = array('' => '') + array_combine($options, $options);
             $os = array($optType => $options);
         }
-
-	    expect($Type = cls::get("type_{$rec->type}", $os), "Няма тип \"type_{$rec->type}\" в системата");
+		
+	    expect($Type = cls::get(static::$typeMap[$rec->type]));
     	
 	    return $Type;
     }
@@ -242,6 +239,22 @@ class cat_Params extends core_Manager
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
+    	
+    	// @TODO Миграция да се махне след като се разнесе
+    	$newWId = static::fetchIdBySysId('weight');
+    	$oldW1 = static::fetchIdBySysId('weightGr');
+    	$oldW2 = static::fetchIdBySysId('weightKg');
+    	
+    	if($oldW1 && $oldW2){
+	    	$query = cat_products_Params::getQuery();
+	    	$query->where("#paramId = {$oldW1} || #paramId = {$oldW2}");
+	    	while($rec = $query->fetch()){
+	    		$rec->paramId = $newWId;
+	    		cat_products_Params::save($rec);
+	    	}
+	    	
+	    	static::delete("#sysId = 'weightGr' || #sysId = 'weightKg'");
+    	}
     	
     	return $res;
     }

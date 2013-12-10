@@ -203,6 +203,17 @@ class techno_plg_SpecificationProduct extends core_Plugin
     }
     
     
+	/**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function on_AfterGetParam($mvc, &$res, $id, $sysId)
+    {
+    	return NULL;
+    }
+    
+    
     /**
      * Преди да се подготвят опциите на кориците, ако
      * тя е Продукти, ограничаваме само до тези, които

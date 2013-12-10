@@ -83,8 +83,6 @@ class techno_GeneralProductsParameters extends core_Manager
     		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
 	    	expect($productId = $form->rec->generalProductId);
 			$options = static::getRemainingOptions($productId);
-			expect(count($options));
-	        
 	        if(!$data->form->rec->id){
 	        	$options = array('' => '') + $options;
 	        }
@@ -213,7 +211,7 @@ class techno_GeneralProductsParameters extends core_Manager
     {
     	$paramRec = cat_Params::fetch($rec->paramId);
         if($paramRec->type != 'enum'){
-               $Type = cls::get("type_{$paramRec->type}");
+               $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
                if($paramRec->type == 'double'){
                	   $Type->params['decimals'] = strlen(substr(strrchr($rec->value, "."), 1));
                }

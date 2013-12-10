@@ -78,4 +78,15 @@ class techno_ProductsIntf
     {
         return $this->class->renderShortView($data);
     }
+    
+    
+    /**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function getParam($id, $sysId)
+    {
+    	return $this->class->getParam($id, $sysId);
+    }
 }

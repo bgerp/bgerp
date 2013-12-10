@@ -100,4 +100,15 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getByProperty($properties);
     }
+    
+    
+    /**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $productId - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function getParam($productId, $sysId)
+    {
+    	return $this->class->getParam($productId, $sysId);
+    }
 }

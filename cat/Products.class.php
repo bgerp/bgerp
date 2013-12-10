@@ -105,12 +105,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Кой може да го види?
-     */
-    var $canView = 'powerUser';
-    
-    
-    /**
      * Кой може да го разгледа?
      */
     var $canList = 'powerUser';
@@ -876,5 +870,18 @@ class cat_Products extends core_Master {
     	core_Cache::set('cat_Products', "productsMeta", $cache, 2880, array('cat_Products'));
     	
     	return $cache;
+    }
+    
+    
+    /**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function getParam($id, $sysId)
+    {
+    	expect(static::fetch($id));
+    	
+    	return cat_products_Params::fetchParamValue($id, $sysId);
     }
 }

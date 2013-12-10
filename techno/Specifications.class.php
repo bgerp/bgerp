@@ -26,7 +26,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Спецификации";
+    public $title = "Спецификации";
     
     
     /**
@@ -38,79 +38,79 @@ class techno_Specifications extends core_Manager {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Спецификация";
+    public $singleTitle = "Спецификация";
     
     
     /**
      * Кой може да оттегля
      */
-    var $canReject = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/specification.png';
+    public $singleIcon = 'img/16/specification.png';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, folderId, docClassId';
+    public $searchFields = 'title, folderId, docClassId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,title,folderId,docClassId,common,createdOn,createdBy';
+    public $listFields = 'id,title,folderId,docClassId,common,createdOn,createdBy';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo,techno';
+    public $canRead = 'ceo,techno';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canWrite = 'no_one';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,techno';
+	public $canList = 'ceo,techno';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,techno';
+	public $canSingle = 'ceo,techno';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 	
 	
     /**
      * Брой записи на страница
      */
-    var $listItemsPerPage = '40';
+    public $listItemsPerPage = '40';
     
     
     /**
@@ -223,6 +223,7 @@ class techno_Specifications extends core_Manager {
     {
     	$rec = static::fetchRec($id);
     	$TechnoClass = cls::get($rec->docClassId);
+    	
     	return $TechnoClass->getVat($rec->docId);
     }
     
@@ -266,6 +267,7 @@ class techno_Specifications extends core_Manager {
     	// Ако продукта няма цена, връщаме цената от последно
     	// продадената спецификация на този клиент (ако има)
     	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    	
     	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
 	}
     
@@ -306,6 +308,7 @@ class techno_Specifications extends core_Manager {
     {
     	$rec = static::fetch($id);
     	$TechnoClass = cls::get($rec->docClassId);
+    	
     	return $TechnoClass->getProductInfo($rec->docId, $packagingId);
     }
     
@@ -317,6 +320,7 @@ class techno_Specifications extends core_Manager {
     {
     	$rec = static::fetch($productId);
     	$TechnoClass = cls::get($rec->docClassId);
+    	
     	return $TechnoClass->getPacks($rec->docId);
     }
     
@@ -435,6 +439,20 @@ class techno_Specifications extends core_Manager {
     {
         $rec = $this->fetchRec($objectId);
     	return ht::createLink($rec->title, array(cls::get($rec->docClassId), 'single', $rec->docId));
+    }
+    
+    
+	/**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function getParam($id, $sysId)
+    {
+    	expect($rec = static::fetchRec($id));
+    	$TechnoClass = cls::get($rec->docClassId);
+    	
+    	return $TechnoClass->getParam($rec->docId, $sysId);
     }
     
     
