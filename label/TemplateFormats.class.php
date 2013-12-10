@@ -439,7 +439,7 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'image':
-                barcode_Generator::
+                
                 // Поле за широчина
                 $filedsArr['Width']['clsType'] = 'type_Int';
                 $filedsArr['Width']['type'] = 'int';
