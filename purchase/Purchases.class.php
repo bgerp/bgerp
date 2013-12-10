@@ -159,7 +159,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->От обект,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->До склад');
+        $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->До склад,oldClassName=storeId');
         
         // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
@@ -192,10 +192,6 @@ class purchase_Purchases extends core_Master
         $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
         $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
-        
-        if (empty($form->rec->folderId)) {
-            expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
-        }
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
@@ -545,7 +541,7 @@ class purchase_Purchases extends core_Master
         $result->agreed->vatType 				= $rec->chargeVat;
         $result->agreed->delivery->location     = $rec->deliveryLocationId;
         $result->agreed->delivery->term         = $rec->deliveryTermId;
-        $result->agreed->delivery->storeId      = $rec->storeId;
+        $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
         $result->agreed->payment->method        = $rec->paymentMethodId;
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;

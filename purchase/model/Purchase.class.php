@@ -98,7 +98,7 @@ class purchase_model_Purchase extends core_Model
     /**
      * @var int
      */
-    public $storeId;
+    public $shipmentStoreId;
 
     
     /*
