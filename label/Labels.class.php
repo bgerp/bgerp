@@ -759,17 +759,22 @@ class label_Labels extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        // Ако състоянието не е чернова
-        if ($rec && $rec->state != 'draft' && $action == 'edit') {
+        // Ако има запис
+        if ($rec) {
             
-            if ($rec->state == 'rejected') {
+            // Ако редактираме
+            if ($action == 'edit') {
                 
-                // Оттеглените да не могат да се редактират
-                $requiredRoles = 'no_one';
-            } else {
-                
-                // Потреибители, които имат роля за masterLabel могат да редактират
-                $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+                // Ако е оттеглено
+                if ($rec->state == 'rejected') {
+                    
+                    // Оттеглените да не могат да се редактират
+                    $requiredRoles = 'no_one';
+                } elseif ($rec->state != 'draft') {
+                    
+                    // Потреибители, които имат роля за masterLabel могат да редактират
+                    $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+                }
             }
         }
     }
