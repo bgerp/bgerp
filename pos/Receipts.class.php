@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf, bgerp_DealAggregatorIntf';
+    var $interfaces = 'acc_TransactionSourceIntf, bgerp_DealAggregatorIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
     
     
     /**
@@ -429,106 +429,6 @@ class pos_Receipts extends core_Master {
 			}
 		}
 	}
-	
-	
-	/**
-   	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
-   	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 */
-    public static function getTransaction($id)
-    {
-    	expect($rec = static::fetchRec($id));
-    	
-    	if ($rec->id) {
-    	    $products = static::getProducts($rec->id);
-    	} else {
-    	    $products = array();
-    	}
-    	
-    	$posRec   = pos_Points::fetch($rec->pointId);
-    	$totalVat = 0;
-    	
-    	$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-    	$currencyCode = currency_Currencies::getCodeById($currencyId);
-    	
-    	foreach ($products as $product) {
-    		$totalQuantity = $product->quantity * $product->quantityInPack;
-    		$totalAmount = $totalQuantity * $product->price;
-    		$totalVat += $product->vatPrice;
-    		$amount = currency_CurrencyRates::convertAmount($totalAmount, $rec->createdOn, $currencyCode);
-	    	
-    		$storable = sales_TransactionSourceImpl::isStorable($product->classId, $product->productId);
-    		$creditAccId = ($storable) ? '7012' : '703';
-    		
-    		// Първо Отчитаме прихода от продажбата
-    		$entries[] = array(
-	        'amount' => $amount, // Стойност на продукта за цялото количество, в основна валута
-	        'debit' => array(
-	            '501',  // Сметка "501. Каси"
-	                array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
-	                array('currency_Currencies', $currencyId),     // Перо 3 - Валута
-	            'quantity' => $amount), // "брой пари" във валутата на продажбата
-	        
-	        'credit' => array(
-	            $creditAccId, // Сметка "7012. Приходи от POS продажби" или "703. приходи от продажба на услуги"
-	              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-	            'quantity' => $totalQuantity), // Количество продукт в основната му мярка
-	    	);
-	    	
-	    	// Само складируемите продукти се изписват от склада
-	    	if($storable){
-	    		// После отчитаме експедиране от склада
-	    		$entries[] = array(
-			        'debit' => array(
-			            '7012', // Сметка "7012. Приходи от POS продажби"
-			            	array('cat_Products', $product->productId), // Перо 1 - Продукт
-		            	'quantity' => $totalQuantity), // Количество продукт в основната му мярка
-			        
-			        'credit' => array(
-			            '321', // Сметка "321. Стандартни продукти"
-			              	array('store_Stores', $posRec->storeId), // Перо 1 - Склад
-			              	array('cat_Products', $product->productId), // Перо 1 - Продукт
-		                'quantity' => $totalQuantity), // Количество продукт в основната му мярка
-		    	);
-	    	}
-    	}
-    	
-    	$entries[] = array(
-            'amount' => $totalVat,  // равностойноста на сумата в основната валута
-            
-            'debit' => array(
-                '501',  // Сметка "501. Каси"
-            		array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
-            		array('currency_Currencies', $currencyId), 
-            	'quantity' => $totalVat, 
-            ),
-            
-            'credit' => array(
-                '4532', // кредитна сметка
-                'quantity' => $totalVat,
-            )
-	    );
-    	
-    	$transaction = (object)array(
-            'reason'  => 'Касова бележка #' . $rec->id,
-            'valior'  => $rec->createdOn,
-            'entries' => $entries, 
-        );
-      
-      return $transaction;
-    }
-    
-    
-	/**
-     * Финализиране на транзакцията
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-        
-        return self::save($rec);
-    }
     
 	
     /**

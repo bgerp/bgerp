@@ -277,12 +277,12 @@ class pos_ReceiptDetails extends core_Detail {
 	    		case 'sale':
 	    			$mvc->getProductInfo($rec);
 	    			if(!$rec->productId) {
-	    				$form->setError('ean', 'Няма такъв продукт в системата!');
+	    				$form->setError('ean', 'Няма такъв продукт в системата или той не е продаваем !');
 	    				return;
 	    			}
 	    			
 	    			if(!$rec->price) {
-	    				$form->setError('ean', 'Продуктът няма цена в системата!');
+	    				$form->setError('ean', 'Продуктът няма цена в системата !');
 	    				return;
 	    			}
 	    			
@@ -425,10 +425,16 @@ class pos_ReceiptDetails extends core_Detail {
     function getProductInfo(&$rec)
     {
     	if(!$product = cat_Products::getByCode($rec->ean)) {
+    		
     		return $rec->productid = NULL;
     	}
     	
     	$info = cat_Products::getProductInfo($product->productId, $product->packagingId);
+    	if(empty($info->meta['canSell'])){
+    		
+    		return $rec->productid = NULL;
+    	}
+    	
     	if($info->packagingRec){
     		$rec->value = $info->packagingRec->packagingId;
     		$perPack = $info->packagingRec->quantity;
