@@ -417,13 +417,13 @@ class label_TemplateFormats extends core_Detail
                 $filedsArr['Width']['clsType'] = 'type_Int';
                 $filedsArr['Width']['type'] = 'int';
                 $filedsArr['Width']['caption'] = 'Широчина';
-                $filedsArr['Width']['unit'] = 'mm';
+                $filedsArr['Width']['unit'] = 'px';
                 
                 // Поле за височина
                 $filedsArr['Height']['clsType'] = 'type_Int';
                 $filedsArr['Height']['type'] = 'int';
                 $filedsArr['Height']['caption'] = 'Височина';
-                $filedsArr['Height']['unit'] = 'mm';
+                $filedsArr['Height']['unit'] = 'px';
                 
                 // Поле за формат
                 $filedsArr['Format']['clsType'] = 'type_Varchar';
@@ -439,19 +439,19 @@ class label_TemplateFormats extends core_Detail
             break;
             
             case 'image':
-                
+                barcode_Generator::
                 // Поле за широчина
                 $filedsArr['Width']['clsType'] = 'type_Int';
                 $filedsArr['Width']['type'] = 'int';
                 $filedsArr['Width']['caption'] = 'Широчина';
-                $filedsArr['Width']['unit'] = 'mm';
+                $filedsArr['Width']['unit'] = 'px';
                 $filedsArr['Width']['mandatory'] = 'mandatory';
                 
                 // Поле за височина
                 $filedsArr['Height']['clsType'] = 'type_Int';
                 $filedsArr['Height']['type'] = 'int';
                 $filedsArr['Height']['caption'] = 'Височина';
-                $filedsArr['Height']['unit'] = 'mm';
+                $filedsArr['Height']['unit'] = 'px';
                 $filedsArr['Height']['mandatory'] = 'mandatory';
                 
                 // Поле дали за избор дали да се ротира
