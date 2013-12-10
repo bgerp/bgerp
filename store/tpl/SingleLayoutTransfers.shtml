@@ -19,7 +19,7 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell custom-header-bg" width="33%" height='20px'>|От склад|*</td>
+                    <td class="cell custom-header-bg" width="33%" height='20px'><b>|От склад|*</b></td>
                     <td class="cell" align="center" width="34%" rowspan='2'>
                         <font style="font-size:16pt;"><b>|Междускладов Трансфер|*</b> </font><br>
                         
@@ -33,7 +33,7 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell custom-header-bg" width="33%" valign="top">|До склад|*</td>
+                    <td class="cell custom-header-bg" width="33%" valign="top"><b>|До склад|*</b></td>
                     </tr>
                     <tr>
                     <td class="cell">

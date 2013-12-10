@@ -675,6 +675,7 @@ class store_ShipmentOrders extends core_Master
     	if($rec->locationId){
     		$row->address .= ", " . crm_Locations::getAddress($rec->locationId);
     	} else {
+    		//@TODO да оправя слагането на запетаята
     		$row->address .= ", " . $oldRow->contragentCountry . (($oldRow->contragentAddress) ? ", " . $oldRow->contragentAddress : '');
     	}
     	

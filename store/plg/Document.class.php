@@ -4,7 +4,6 @@
 
 /**
  * Клас 'store_plg_Document'
- *
  * Плъгин даващ възможност на даден документ да бъде складов документ
  *
  *
@@ -49,23 +48,36 @@ class store_plg_Document extends core_Plugin
 		$obj->weight = 0;
 		
 		foreach ($products as $p){
-			$pInfo = cls::get($p->classId)->getProductInfo($p->productId, $p->packagingId);
+			$ProductMan = cls::get($p->classId);
+			$pInfo = $ProductMan->getProductInfo($p->productId, $p->packagingId);
+			
+			// Ако има изчислен обем
 			if($obj->volume !== NULL){
+				
+				// При опаковка обема е широчината по дължината по височината
 				if($pack = $pInfo->packagingRec){
 					$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
-					(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 				} else {
-					$obj->volume = NULL;
+					
+					// При без опаковка, се проверява имали зададен параметър обем 
+					$volume = $ProductMan->getParam($p->productId, 'volume');
 				}
+				
+				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 			}
 			
 			if($obj->weight !== NULL){
+				
+				// При опаковка обема е нетото + тарата
 				if($pack = $pInfo->packagingRec){
 					$weight = $pack->netWeight + $pack->tareWeight;
-					(!$volume) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 				} else {
-					$obj->weight = NULL;
+					
+					// При без опаковка, се проверява имали зададен параметър тегло 
+					$weight = $ProductMan->getParam($p->productId, 'weight');
 				}
+				
+				(!$volume) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 			}
 		}
 		
