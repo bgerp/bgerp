@@ -511,9 +511,11 @@ class cal_Tasks extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+    	$chartType = Request::get('Chart');
+    	
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action == 'list'){
+        if($data->action == 'list' || $chartType == 'Gantt'){
             if($data->listFilter->rec->selectedUsers != 'all_users') {
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -562,9 +564,13 @@ class cal_Tasks extends core_Master
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
         
-	  	if($data->listFilter->rec->Chart == 'Gantt'){
-	  		$data->listFilter->rec->selectedUsers = 'all_users';
-	  	}
+	  	/*if($data->listFilter->rec->Chart == 'Gantt'){
+	  		if(!$data->listFilter->rec->selectedUsers) {
+            	$data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+	  		}
+        
+	  		//$data->listFilter->rec->selectedUsers = 'all_users';
+	  	}*/
 	  	
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -587,6 +593,7 @@ class cal_Tasks extends core_Master
      */
     static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
+    	
         if(Mode::is('listTasks', 'by') || Mode::is('listTasks', 'to')) {
             
            // return FALSE;
@@ -600,7 +607,7 @@ class cal_Tasks extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {   
     	$currUrl = getCurrentUrl();
     	
@@ -618,6 +625,7 @@ class cal_Tasks extends core_Master
 	        if($chartType == 'Gantt') { 
 	        	
 	        	$tpl = static::getGantt($data);
+	        	
 	        }
 	        
 	        $tpl = $tabs->renderHtml($tpl, $chartType);
@@ -629,11 +637,9 @@ class cal_Tasks extends core_Master
     }
     
     
-    function on_AfterRenderWrapping($mvc, &$tpl)
+    static function on_AfterRenderWrapping($mvc, &$tpl)
     {
     	jquery_Jquery::enable($tpl);
-    	
-    	$tpl->push('cal/tpl/style.css', 'CSS');
     }
     
     
@@ -1128,7 +1134,7 @@ class cal_Tasks extends core_Master
 	    		   
 	    			$w = date("Y", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] = "&nbsp;" . dt::getMonth(date("m", dt::mysql2timestamp($curDate)), $format = 'M') . "&nbsp;";
+	    		 	$res[$w]['subHeader'][] = dt::getMonth(date("m", dt::mysql2timestamp($curDate)), $format = 'M');
 	    		 	$curDate = dt::addMonths(1, $curDate);
 	    		 	
 	    		}
