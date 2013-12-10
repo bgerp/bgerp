@@ -333,6 +333,12 @@ div.folder-cover{
 	}
 	.groupList{
 		font-size:0.95em;
+		div.rowtools{
+		  display:inline-block;
+		  width:auto;
+		  top:1px;
+		  position:relative;
+		}
 	}
 	.label {
 		color: #777777;
