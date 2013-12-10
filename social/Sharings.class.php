@@ -82,19 +82,20 @@ class social_Sharings extends core_Master
      */
     static function getButtons()
     {
-    	// Взимаме всяко tpl, в което сме 
-    	// сложили прейсхолдер [#social_Sharings::getButtons#]
-    	$tpl = new ET('');
-    	
     	// Правим заявка към базата
     	$query = static::getQuery();
 		$socialNetworks = $query->fetchAll("#state = 'active'");
-        
+
+        if(!count($socialNetworks)) return;
+
         $selfUrl     = substr(rawurlencode(toUrl(getCurrentUrl(), 'absolute')), 4);
 
-        //bp($selfUrl);
         $selfTitle   = rawurlencode(Mode::get('SOC_TITLE'));
         $selfSummary = toUrl(str::truncate(rawurlencode(Mode::get('SOC_SUMMARY')), 200), 'absolute');
+    	
+        // Взимаме всяко tpl, в което сме 
+    	// сложили прейсхолдер [#social_Sharings::getButtons#]
+    	$tpl = new ET('');
 
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
@@ -167,9 +168,7 @@ class social_Sharings extends core_Master
 		}
 		
         $str = $tpl->getContent();
-        
-        expect(is_string($str), $str);
-
+       
 		// Връщаме тулбар за споделяне в социалните мреци
 		return "<div class='soc-sharing-holder noSelect'>" . $str . "</div>";
     }
