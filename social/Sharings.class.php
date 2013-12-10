@@ -156,19 +156,22 @@ class social_Sharings extends core_Master
 									'#', 
                                     NULL, 
                                     array(
-                                        "class"=>"soc-sharing", 
-                                        "title" => tr('Споделете в '). $socialNetwork->name,
+                                        "class"   => "soc-sharing", 
+                                        "title"   => tr('Споделете в ') . $socialNetwork->name,
                                         "onclick" => "window.open('http' + '{$url}')"));
 				
 			$link = (string) $link;
 
-				
 			// Добавяме го към шаблона
 			$tpl->append($link);
 		}
 		
+        $str = $tpl->getContent();
+        
+        expect(is_string($str), $str);
+
 		// Връщаме тулбар за споделяне в социалните мреци
-		return "<div class='soc-sharing-holder noSelect'>".$tpl."</div>";
+		return "<div class='soc-sharing-holder noSelect'>" . $str . "</div>";
     }
     
     
