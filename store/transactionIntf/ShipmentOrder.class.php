@@ -29,15 +29,18 @@ class store_transactionIntf_ShipmentOrder
      *
      * 1. Задължаване на с/ката на клиента
      *
-     *    Dt: 411    - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 - Приходи от продажби към Клиенти   (Стоки и Продукти)
+     *    Dt: 411    - Вземания от клиенти                        (Клиент, Валута)
+     *    
+     *    Ct: 701 - Приходи от продажби на Стоки и Продукти     (Клиент, Стоки и Продукти)
+     *    	  708 - Приходи от продажби на Суровини и Материали (Клиент, Стоки и Продукти)
      * 
      * 2. Експедиране на стоката от склада
      *
-     *    Dt: 7011 - Приходи от продажби към Клиенти (Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
-     *
-     *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия 
+     *    Dt: 701 - Приходи от продажби на Стоки и Продукти (Клиент, Стоки и Продукти)
+     *    
+     *    Ct: 321  - Стоки и Продукти                     (Склад, Стоки и Продукти)
+     *		  302  - Суровини и Материали                 (Склад, Суровини и материали)
+     * 
      *
      * @param int|object $id първичен ключ или запис на продажба
      * @return object NULL означава, че документа няма отношение към счетоводството, няма да генерира
@@ -71,6 +74,9 @@ class store_transactionIntf_ShipmentOrder
     }
     
     
+    /**
+     * Финализиране на транзакцията
+     */
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
@@ -123,8 +129,10 @@ class store_transactionIntf_ShipmentOrder
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
      *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 - Приходи от продажби към Контрагенти  (Клиенти, Стоки и Продукти)
      *    
+     *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Стоки и Продукти)
+     *    	  706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
+     * 
      * @param stdClass $rec
      * @return array
      */
@@ -140,20 +148,22 @@ class store_transactionIntf_ShipmentOrder
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
-        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '7011' : '706';
+        	
+        	// Вложимите кредит 706, другите 701
+        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
             
         	$entries[] = array(
                 'amount' => currency_Currencies::round($amount), // В основна валута
                 
                 'debit' => array(
-                    '411', // Сметка "411. Вземания от клиенти"
+                    '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
                     'quantity' => currency_Currencies::round($amount / $currencyRate, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
-                     $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
+                     $creditAccId, 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     	array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
@@ -170,8 +180,11 @@ class store_transactionIntf_ShipmentOrder
      * 
      * Експедиране на стоката от склада
      *
-     *    Dt: 7011 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
+     *    Dt: 701 - Приходи от продажби на Стоки и Продукти 	(Клиент, Стоки и Продукти) 
+     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Суровини и материали)
+     *    
+     *    Ct: 321  - Стоки и Продукти                 			(Склад, Стоки и Продукти)
+     *    	  302  - Суровини и материали             			(Склад, Суровини и материали)
      *    
      * @param stdClass $rec
      * @return array
@@ -183,18 +196,21 @@ class store_transactionIntf_ShipmentOrder
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
-        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '7011' : '706';
+        	
+        	// Вложимите кредит 706, другите 701
+        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
+        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
         	
         	$entries[] = array(
 	             'debit' => array(
-	                    $debitAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
+	                    $debitAccId, 
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
         					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
 	                'credit' => array(
-	                    '321', // Сметка "321. Стоки и Продукти"
+	                    $creditAccId, 
 	                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
 	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка

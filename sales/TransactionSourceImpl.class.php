@@ -29,22 +29,28 @@ class sales_TransactionSourceImpl
      *
      * 1. Задължаване на с/ката на клиента
      *
-     *    Dt: 411    - Вземания от клиенти               (Клиент, Валута)
-     *    	Ct: 7011 - Приходи от продажби по Документи  (Стоки и Продукти)
-     *    	CR: 703  - Приходи от продажби на услуги     (Клиент, Услуга)
+     *    Dt: 411. Вземания от клиенти  (Клиент, Валута)
+     *    
+     *    Ct: 701. Приходи от продажби на Стоки и Продукти       (Стоки и Продукти)
+     *    	  703. Приходи от продажби на услуги                 (Клиент, Услуга)
+     *    	  706. Приходи от продажби на Суровини и Материали   (Клиент, Суровини и Материали)
+     * 
      * 
      * 2. Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби по Документи (Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
+     *    Dt: 701. Приходи от продажби на Стоки и Продукти  (Стоки и Продукти)
+     *    
+     *    Ct: 321. Стоки и Продукти       (Склад, Стоки и Продукти)
+     *    	  302. Суровини и Материали   (Склад, Суровини и Материали)
      *
-     *    Цените, по които се изписват продуктите от с/ка 321 са според зададената стратегия 
+     *
      *
      * 3. Получаване на плащане (в някой случаи)
      *
-     *    Dt: 501 - Каси                  (Каса, Валута) или
-     *        503 - Разпл. с/ки           (Сметка, Валута)
-     *    Ct: 411 - Вземания от клиенти   (Клиент, Валута)
+     *    Dt: 501. Каси                  (Каса, Валута)
+     *        503. Разпл. с/ки           (Сметка, Валута)
+     *        
+     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
      *    
      * Такава транзакция се записва в журнала само при условие, че продабата е от текущата каса
      * и от текущия склад. В противен случай счетоводна транзакция не се прави. Вместо това,
@@ -97,6 +103,9 @@ class sales_TransactionSourceImpl
     }
     
     
+    /**
+     * Финализиране на транзакцията
+     */
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
@@ -199,8 +208,10 @@ class sales_TransactionSourceImpl
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      * 
-     *    Dt: 411  - Вземания от клиенти               (Клиент, Валута)
-     *    Ct: 7011 или Ct: 703 - Приходи от продажби към Контрагенти (Клиент, Стоки и Продукти) / Приходи от продажби на услуги (Клиент, Услуга)
+     *    Dt: 411. Вземания от клиенти                   (Клиент, Валута)
+     *    
+     *    Ct: 701. Приходи от продажби към Контрагенти   (Клиент, Стоки и Продукти)
+     *    	  703. Приходи от продажби на услуги         (Клиент, Услуга)
      *    
      * @param stdClass $rec
      * @return array
@@ -209,20 +220,16 @@ class sales_TransactionSourceImpl
     {
         $entries = array();
         
-        // Изчисляваме курса на валутата на продажбата към базовата валута
-        $currencyRate = $this->getCurrencyRate($rec);
-        
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
-        	
-        	// Ако артикула е складируем кредитира се 7011, иначе 703
-        	if(static::isStorable($detailRec->classId, $detailRec->productId)){
-        		$creditAccId = '7011';
-        	} else {
-        		$creditAccId = '703';
-        	}
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
+    		$storable = isset($pInfo->meta['canStore']);
+    		$convertable = isset($pInfo->meta['canConvert']);
+    		
+    		// Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
+    		$creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
         	
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
             
@@ -230,14 +237,14 @@ class sales_TransactionSourceImpl
                 'amount' => currency_Currencies::round($amount), // В основна валута
                 
                 'debit' => array(
-                    '411', // Сметка "411. Вземания от клиенти"
+                    '411', 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти" // Сметка "703". Приходи от продажби на услуги
+                    $creditAccId,
                     	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
@@ -252,9 +259,10 @@ class sales_TransactionSourceImpl
     /**
      * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
      * 
-     *    Dt: 501 - Каси                  (Каса, Валута) или
-     *        503 - Разпл. с/ки           (Сметка, Валута)
-     *    Ct: 411 - Вземания от клиенти   (Клиент, Валута)
+     *    Dt: 501. Каси                  (Каса, Валута)
+     *        503. Разпл. с/ки           (Сметка, Валута)
+     *        
+     *    Ct: 411. Вземания от клиенти   (Клиент, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -262,9 +270,6 @@ class sales_TransactionSourceImpl
     protected function getPaymentPart($rec)
     {
         $entries = array();
-        
-        // Изчисляваме курса на валутата на продажбата към базовата валута
-        $currencyRate = $this->getCurrencyRate($rec);
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
@@ -281,14 +286,14 @@ class sales_TransactionSourceImpl
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
             );
         }
@@ -302,8 +307,10 @@ class sales_TransactionSourceImpl
      * 
      * Експедиране на стоката от склада (в някой случаи)
      *
-     *    Dt: 7011 - Приходи от продажби пкъм Контрагенти (Клиент, Стоки и Продукти)
-     *    Ct: 321  - Стоки и Продукти                 (Склад, Стоки и Продукти)
+     *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Стоки и Продукти)
+     *    
+     *    Ct: 321. Стоки и Продукти                           (Склад, Стоки и Продукти)
+     *        302. Суровини и Материали                       (Склад, Суровини и Материали)
      *    
      * @param stdClass $rec
      * @return array
@@ -315,19 +322,23 @@ class sales_TransactionSourceImpl
         expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
-        	
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
+        	$convertable = isset($pInfo->meta['canConvert']);
+    		
         	// Само складируемите продукти се изписват от склада
-        	if(static::isStorable($detailRec->classId, $detailRec->productId)){
+        	if(isset($pInfo->meta['canStore'])){
+        		$creditAccId = ($convertable) ? '302' : '321';
+        		
         		$entries[] = array(
 	                'debit' => array(
-	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
+	                    '701',
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
         					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
 	                'credit' => array(
-	                    '321', // Сметка "321. Стоки и Продукти"
+	                    $creditAccId,
 	                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
 	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
@@ -337,32 +348,5 @@ class sales_TransactionSourceImpl
         }
         
         return $entries;
-    }
-    
-    
-    /**
-     * Курс на валутата на продажбата към базовата валута за периода, в който попада продажбата
-     * 
-     * @param stdClass $rec запис за продажба
-     * @return float
-     */
-    protected function getCurrencyRate($rec)
-    {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
-    }
-    
-    
-    /**
-     * Дали един артикул е складируем
-     * @param mixed $classId - продуктовия клас
-     * @param int $productId - ид на продукта
-     * @return boolean - складируем ли е продукта
-     */
-    public static function isStorable($classId, $productId)
-    {
-    	expect($Class = cls::get($classId));
-    	expect($pInfo = $Class->getProductInfo($productId));
-    	
-    	return isset($pInfo->meta['canStore']);
     }
 }
