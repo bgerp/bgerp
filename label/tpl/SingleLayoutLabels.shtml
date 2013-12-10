@@ -11,6 +11,10 @@
                     <td class="title-style" width="150px">|Отпечатъци|*</td>
                     <td> [#printedCnt#]</td>
                 </tr>
+                <tr>
+                    <td class="title-style" width="150px">|Шаблон|*</td>
+                    <td> [#templateId#]</td>
+                </tr>
                  <tr>
                     <td class="title-style">|Параметри|*</td>
                     <td> [#params#]</td>
@@ -53,6 +57,32 @@
                 <tr>
                     <td class="title-style">|Разстояние|*</td>
                     <td> [#linesDist#]</td>
+                </tr>
+            </table>
+            <table class="styled-table" width="99%">
+                <tr>
+                    <th colspan='2'>|Създадено|*</th>
+                </tr>
+                <tr>
+                    <td class="title-style"  width="150px">|На|*</td>
+                    <td>[#createdOn#]</td>
+                </tr>
+                <tr>
+                    <td class="title-style">|От|*</td>
+                    <td> [#createdBy#]</td>
+                </tr>
+            </table>
+            <table class="styled-table" width="99%">
+                <tr>
+                    <th colspan='2'>|Модифицирано|*</th>
+                </tr>
+                <tr>
+                    <td class="title-style"  width="150px">|На|*</td>
+                    <td>[#modifiedOn#]</td>
+                </tr>
+                <tr>
+                    <td class="title-style">|От|*</td>
+                    <td> [#modifiedBy#]</td>
                 </tr>
             </table>
      </div>

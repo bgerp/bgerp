@@ -102,38 +102,32 @@ class label_Labels extends core_Master
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected';
+//    var $loadList = ' plg_Search';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected, plg_Modified';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-//    var $listFields = '';
+    var $listFields = 'title, templateId, printedCnt';
     
     
     /**
      * 
      */
-//    var $rowToolsField = 'id';
+    var $rowToolsField = 'title';
 
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-//    var $rowToolsSingleField = 'id';
+    var $rowToolsSingleField = 'title';
     
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
 //    var $searchFields = '';
-    
-    
-    /**
-     * Детайла, на модела
-     */
-//    var $details = '';
     
     
 	/**
