@@ -102,8 +102,7 @@ class label_Labels extends core_Master
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = ' plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected, plg_Modified';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected, plg_Modified, plg_Search';
     
     
     /**
@@ -127,7 +126,7 @@ class label_Labels extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-//    var $searchFields = '';
+    var $searchFields = 'title, templateId';
     
     
 	/**
@@ -792,6 +791,32 @@ class label_Labels extends core_Master
                 }
             }
         }
+    }
+    
+    
+ 	/**
+ 	 * Изпълнява се след подготовката на формата за филтриране
+ 	 * 
+ 	 * @param unknown_type $mvc
+ 	 * @param unknown_type $data
+ 	 */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Формата
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'search';
+        
+        // Инпутваме полетата
+        $form->input(NULL, 'silent');
     }
     
     
