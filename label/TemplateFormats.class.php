@@ -2,7 +2,8 @@
 
 
 /**
- * 
+ * Детайл на шаблоните за етикетите.
+ * Съдържа типа на плейсхолдерите в шаблона
  *
  * @category  bgerp
  * @package   label
@@ -36,13 +37,13 @@ class label_TemplateFormats extends core_Detail
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label, admin, ceo';
+    var $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label, admin, ceo';
+    var $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
@@ -60,7 +61,7 @@ class label_TemplateFormats extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label, admin, ceo';
+    var $canDelete = 'labelMaster, admin, ceo';
     
     
     /**

@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Шаблони за създаване на етикети
  * 
  * @category  bgerp
  * @package   label
@@ -54,13 +54,13 @@ class label_Templates extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label, admin, ceo';
+    var $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label, admin, ceo';
+    var $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
@@ -84,13 +84,13 @@ class label_Templates extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'label, admin, ceo';
+    var $canReject = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label, admin, ceo';
+    var $canDelete = 'labelMaster, admin, ceo';
     
     
     /**

@@ -2,7 +2,8 @@
 
 
 /**
- * 
+ * Детайл на броячите.
+ * Показва кой брояч в кой етикет е използван и до кой номер е стигнал
  *
  * @category  bgerp
  * @package   label
@@ -36,13 +37,13 @@ class label_CounterItems extends core_Detail
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label, admin, ceo';
+    var $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label, admin, ceo';
+    var $canAdd = 'no_one';
     
     
     /**
@@ -60,7 +61,7 @@ class label_CounterItems extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label, admin, ceo';
+    var $canDelete = 'no_one';
     
     
     /**

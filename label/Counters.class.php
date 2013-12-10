@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Броячи за етикетите
  * 
  * @category  bgerp
  * @package   label
@@ -46,12 +46,6 @@ class label_Counters extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-//    var $cloneFields = '';
-    
-    
-    /**
      * Кой има право да чете?
      */
     var $canRead = 'label, admin, ceo';
@@ -60,13 +54,13 @@ class label_Counters extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'label, admin, ceo';
+    var $canEdit = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'label, admin, ceo';
+    var $canAdd = 'labelMaster, admin, ceo';
     
     
     /**
@@ -96,7 +90,7 @@ class label_Counters extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label, admin, ceo';
+    var $canDelete = 'labelMaster, admin, ceo';
     
     
     /**

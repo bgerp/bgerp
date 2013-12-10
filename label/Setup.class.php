@@ -64,6 +64,9 @@ class label_Setup
         // Добавяме роля
         $html .= core_Roles::addRole('label') ? "<li style='color:green'>Добавена е роля <b>label</b></li>" : '';
         
+        // Добавяме роля за master
+        $html .= core_Roles::addRole('labelMaster', 'label') ? "<li style='color:green'>Добавена е роля <b>labelMaster</b></li>" : '';
+        
         // Добавяме меню
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo");
