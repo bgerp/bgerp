@@ -590,7 +590,7 @@ class label_TemplateFormats extends core_Detail
         // Типа
         $type = $rec->type;
         
-        // TODO cache
+        // В заивисимост от типа
         if ($type == 'caption') {
             
             // Стринга, който ще се използва в масива за ключ
@@ -696,8 +696,6 @@ class label_TemplateFormats extends core_Detail
                     
                     // Ако е зададено да се ротира твърдо
                     if ($rec->formatParams['Rotation'] == 'yes') {
-                        
-                        // TODO баркод и текст, само текст
                         
                         // Добавяме ъгъл на завъртане
                         $attr['angle'] = 90;
