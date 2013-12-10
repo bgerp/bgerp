@@ -629,6 +629,14 @@ class cal_Tasks extends core_Master
     }
     
     
+    function on_AfterRenderWrapping($mvc, &$tpl)
+    {
+    	jquery_Jquery::enable($tpl);
+    	
+    	$tpl->push('cal/tpl/style.css', 'CSS');
+    }
+    
+    
     /**
      * Обновява информацията за задачата в календара
      */
@@ -1120,7 +1128,7 @@ class cal_Tasks extends core_Master
 	    		   
 	    			$w = date("Y", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] = date("m", dt::mysql2timestamp($curDate));
+	    		 	$res[$w]['subHeader'][] = "&nbsp;" . dt::getMonth(date("m", dt::mysql2timestamp($curDate)), $format = 'M') . "&nbsp;";
 	    		 	$curDate = dt::addMonths(1, $curDate);
 	    		 	
 	    		}
@@ -1149,8 +1157,9 @@ class cal_Tasks extends core_Master
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
+	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
 		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
 		    		
 		    		for ($j = 0; $j <=23; $j++) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
@@ -1181,10 +1190,10 @@ class cal_Tasks extends core_Master
 	
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
-	    		    
+	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$w = date("W", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] =	date("d.m. ", dt::mysql2timestamp($curDate));
+	    		 	$res[$w]['subHeader'][] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
@@ -1215,11 +1224,11 @@ class cal_Tasks extends core_Master
 	
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
-	    		    
+	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] =	date("d.m. ", dt::mysql2timestamp($curDate));
+	    		 	$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
@@ -1257,7 +1266,7 @@ class cal_Tasks extends core_Master
 	    			// годината
 	    		 	$res[$w]['mainHeader'] = $w;
 	    		 	// номера на седмицата
-	    		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = date("W", dt::mysql2timestamp($curDate));
+	    		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = "&nbsp;" . date("W", dt::mysql2timestamp($curDate)) . "&nbsp;";
 	    		 	// обикаляме по седмиците
 	    		 	$curDate = dt::addDays(7, $curDate);
 	    		}
@@ -1277,7 +1286,6 @@ class cal_Tasks extends core_Master
     		
     		break; 
     	}
-
     	
     	return (object) array('otherParams' => $otherParams, 'headerInfo' => $headerInfo);
     }
