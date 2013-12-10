@@ -133,15 +133,16 @@ class store_transactionIntf_ShipmentOrder
         $entries = array();
         
         // Изчисляваме курса на валутата на продажбата към базовата валута
-        $currencyRate = $this->getCurrencyRate($rec);
+        $currencyRate = $rec->currencyRate;
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
-        	
-            $entries[] = array(
-            	
+        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
+        	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '7011' : '706';
+            
+        	$entries[] = array(
                 'amount' => currency_Currencies::round($amount), // В основна валута
                 
                 'debit' => array(
@@ -152,7 +153,7 @@ class store_transactionIntf_ShipmentOrder
                 ),
                 
                 'credit' => array(
-                     '7011', // Сметка "7011. Приходи от продажби по Документи"
+                     $creditAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     	array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
@@ -180,11 +181,13 @@ class store_transactionIntf_ShipmentOrder
         $entries = array();
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
-            
         foreach ($rec->details as $detailRec) {
+        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
+        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '7011' : '706';
+        	
         	$entries[] = array(
 	             'debit' => array(
-	                    '7011', // Сметка "7011. Приходи от продажби към Контрагенти"
+	                    $debitAccId, // Сметка "7011. Приходи от продажби към Контрагенти"
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
         					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
@@ -200,17 +203,5 @@ class store_transactionIntf_ShipmentOrder
         }
         
         return $entries;
-    }
-    
-    
-    /**
-     * Курс на валутата на продажбата към базовата валута за периода, в който попада продажбата
-     * 
-     * @param stdClass $rec запис за продажба
-     * @return float
-     */
-    protected function getCurrencyRate($rec)
-    {
-        return currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
     }
 }

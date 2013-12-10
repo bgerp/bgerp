@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_TransferFolderCoverIntf extends doc_FolderIntf
+class store_iface_TransferFolderCoverIntf extends doc_FolderIntf
 {
 
 }

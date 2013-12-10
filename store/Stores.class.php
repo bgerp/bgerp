@@ -23,7 +23,7 @@ class store_Stores extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'store_AccRegIntf, acc_RegisterIntf, store_TransferFolderCoverIntf';
+    var $interfaces = 'store_AccRegIntf, acc_RegisterIntf, store_iface_TransferFolderCoverIntf';
     
     
     /**
@@ -144,7 +144,7 @@ class store_Stores extends core_Master
         $this->FLD('chiefId', 'user(roles=store|ceo)', 'caption=Отговорник,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
-        $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
+        $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
     
     

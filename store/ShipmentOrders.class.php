@@ -31,7 +31,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
                           acc_TransactionSourceIntf=store_transactionIntf_ShipmentOrder, bgerp_DealIntf';
     
     

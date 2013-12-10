@@ -398,7 +398,7 @@ class store_Movements extends core_Manager
                         case "Автоматично" :
                             // Генерира автоматично палет място от стратегията
                             $storeRec = store_Stores::fetch($selectedStoreId);
-                            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+                            $strategy = cls::getInterface('store_iface_ArrangeStrategyIntf', $storeRec->strategy);
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {
@@ -452,7 +452,7 @@ class store_Movements extends core_Manager
                         case "Автоматично" :
                             // Генерира автоматично палет място от стратегията
                             $storeRec = store_Stores::fetch($selectedStoreId);
-                            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+                            $strategy = cls::getInterface('store_iface_ArrangeStrategyIntf', $storeRec->strategy);
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {

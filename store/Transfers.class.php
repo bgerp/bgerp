@@ -29,7 +29,7 @@ class store_Transfers extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf';
     
     
     /**
@@ -236,7 +236,7 @@ class store_Transfers extends core_Master
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     	
-        return cls::haveInterface('store_TransferFolderCoverIntf', $folderClass);
+        return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
     }
         
     
@@ -291,7 +291,7 @@ class store_Transfers extends core_Master
      */
     public static function getAllowedFolders()
     {
-    	return array('store_TransferFolderCoverIntf');
+    	return array('store_iface_TransferFolderCoverIntf');
     }
     
     

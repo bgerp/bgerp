@@ -20,7 +20,7 @@ class store_ArrangeStrategyBottom
     /**
      * Какви интерфeйси поддържа този мениджър
      */
-    var $interfaces = 'store_ArrangeStrategyIntf';
+    var $interfaces = 'store_iface_ArrangeStrategyIntf';
     
     
     /**

@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class store_ArrangeStrategyIntf
+class store_iface_ArrangeStrategyIntf
 {
     
     

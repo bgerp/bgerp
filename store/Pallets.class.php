@@ -595,7 +595,7 @@ class store_Pallets extends core_Manager
                 
                 // Генерира автоматично палет място от стратегията
                 $storeRec = store_Stores::fetch($selectedStoreId);
-                $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+                $strategy = cls::getInterface('store_iface_ArrangeStrategyIntf', $storeRec->strategy);
                 $palletPlaceAuto = $strategy->getAutoPalletPlace($rec->productId);
                 
                 // Всички палет места за заети или групата на продукта не е допустима
