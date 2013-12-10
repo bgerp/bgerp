@@ -136,9 +136,9 @@ class label_Counters extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Име, mandatory, width=100%');
-        $this->FLD('min', 'int', 'caption=Минимално');
-        $this->FLD('max', 'int', 'caption=Максимално');
-        $this->FLD('step', 'int', 'caption=Стъпка');
+        $this->FLD('min', 'int(min=0)', 'caption=Минимално, mandatory');
+        $this->FLD('max', 'int(min=1)', 'caption=Максимално, mandatory');
+        $this->FLD('step', 'int', 'caption=Стъпка, mandatory');
     }
     
     
@@ -220,5 +220,26 @@ class label_Counters extends core_Master
         }
         
         return $str;
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param label_Counter $mvc
+     * @param core_Form $form
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // Ако формата е изпратена успешно
+        if ($form->isSubmitted()) {
+            
+            // Ако максимума не е по - голяма от минимума
+            if ($form->rec->max <= $form->rec->min) {
+                
+                // Сетваме грешка
+                $form->setError('max', 'Максимума трябва да е над минимума');
+            }
+        }
     }
 }

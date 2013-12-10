@@ -67,7 +67,7 @@ class label_CounterItems extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_Created';
+    var $loadList = 'label_Wrapper, plg_Created, plg_Modified';
     
     
     /**

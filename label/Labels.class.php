@@ -212,7 +212,7 @@ class label_Labels extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
-     * @param label_TemplateFormats $mvc
+     * @param label_Labels $mvc
      * @param core_Form $form
      */
     static function on_AfterInputEditForm($mvc, &$form)
