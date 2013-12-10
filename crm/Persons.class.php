@@ -2150,4 +2150,27 @@ class crm_Persons extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Връща пълния конкатениран адрес на контрагента
+     * @param int $id - ид на контрагент
+     * @return param $adress - адреса
+     */
+    public function getFullAdress($id)
+    {
+    	$adress = '';
+    	expect($rec = $this->fetch($id));
+    	if($rec->country){
+    		$adress .= crm_Persons::getVerbal($rec, 'country');
+    	}
+    	
+    	foreach (array('pCode', 'place', 'address') as $fld){
+    		if($rec->$fld){
+    			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;
+    		}
+    	}
+    	
+    	return trim($adress);
+    }
 }

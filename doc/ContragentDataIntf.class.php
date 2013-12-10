@@ -43,10 +43,26 @@ class doc_ContragentDataIntf
      * $obj->pAddress   - Персонален адрес
      * $obj->pEmail     - Персонален имейл
      * $obj->salutation - Обръщение
+     * 
+     * $obj->fullAdress - Конкатенирания пълен адрес
      */
     function getContragentData($id)
     {
-        return $this->class->getContragentData($id);
+        $obj = $this->class->getContragentData1($id);
+        //$obj->fullAdress = $this->class->getFullAdress($id);
+        
+        return $obj;
+    }
+    
+    
+	/**
+     * Връща пълния адрес на контрагента
+     * @param int $id - ид на контрагент
+     * @return param $adress - адреса
+     */
+    function getFullAdress($id)
+    {
+        return $this->class->getFullAdress($id);
     }
     
     
