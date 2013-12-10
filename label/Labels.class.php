@@ -822,10 +822,14 @@ class label_Labels extends core_Master
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        
-//        $data->toolbar->removeBtn('btnPrint');
+        // Да не се показва бутона за принтиране
+        $data->toolbar->removeBtn('btnPrint');
     }
 }
