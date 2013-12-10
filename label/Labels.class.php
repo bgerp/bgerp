@@ -94,6 +94,12 @@ class label_Labels extends core_Master
     
     
     /**
+     * Кой има право да принтира етикети
+     */
+    var $canPrint = 'label, admin, ceo';
+    
+    
+    /**
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
@@ -362,16 +368,20 @@ class label_Labels extends core_Master
     {
         $data->toolbar->removeBtn('btnPrint');
         
-        // URL за избор на брой отпечатвания
-	    $url = array(
-            $mvc,
-            'selectPrintCnt',
-            $data->rec->id,
-            'ret_url' => TRUE
-        );
-        
-        // Бутон за избор на брой отпечатвания
-        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        // Ако имаме права за принтиране
+        if ($mvc->haveRightFor('print', $data->rec->id)) {
+            
+            // URL за избор на брой отпечатвания
+    	    $url = array(
+                $mvc,
+                'selectPrintCnt',
+                $data->rec->id,
+                'ret_url' => TRUE
+            );
+            
+            // Бутон за избор на брой отпечатвания
+            $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        }
     }
     
     
@@ -380,8 +390,8 @@ class label_Labels extends core_Master
      */
     function act_SelectPrintCnt()
     {
-        // Права за работа с екшън-а
-        $this->requireRightFor('single');
+        // Права за принтиране
+        $this->requireRightFor('print');
         
         // id на записа
         $id = Request::get('id', 'int');
@@ -392,8 +402,8 @@ class label_Labels extends core_Master
         // Очакваме да има запис
         expect($rec);
         
-        // Очакваме да имаме права към сингъла за този запис
-        $this->requireRightFor('single', $rec);
+        // Очакваме да имаме права за принтиране
+        $this->requireRightFor('print', $rec);
         
         // Вземаме формата към този модел
         $form = $this->getForm();
@@ -459,8 +469,8 @@ class label_Labels extends core_Master
      */
     function act_Print()
     {
-        // Права за работа с екшън-а
-        $this->requireRightFor('single');
+        // Права за принтиране
+        $this->requireRightFor('print');
         
         // id на записа
         $id = Request::get('id', 'int');
@@ -474,8 +484,8 @@ class label_Labels extends core_Master
         // Очакваме да има запис
         expect($rec);
         
-        // Очакваме да имаме права за сингъл за записа
-        $this->requireRightFor('single', $rec);
+        // Очакваме да имаме права за принтиране
+        $this->requireRightFor('print', $rec);
         
         // Данни
         $data = new stdClass();
@@ -774,6 +784,17 @@ class label_Labels extends core_Master
                     
                     // Потреибители, които имат роля за masterLabel могат да редактират
                     $requiredRoles = $mvc->getRequiredRoles('Masterlabel');
+                }
+            }
+            
+            // Ако принтираме
+            if ($action == 'print') {
+                
+                // Ако е оттеглено
+                if ($rec->state == 'rejected') {
+                    
+                    // Оттеглените да не могат да се принтират
+                    $requiredRoles = 'no_one';
                 }
             }
         }
