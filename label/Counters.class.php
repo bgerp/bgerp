@@ -161,14 +161,15 @@ class label_Counters extends core_Master
         $cRec = static::fetch($counterId);
         
         // Ако няма запис
-        if (!($maxVal = label_CounterItems::getMax($counterId))) {
+        if ($maxVal = label_CounterItems::getMax($counterId)) {
+            
+            // Добавяме стъпката
+            $maxVal += $cRec->step;
+        } else {
             
             // Използваме минимална стойност за начална
             $maxVal = $cRec->min;
         }
-        
-        // Добавяме стъпката
-        $maxVal += $cRec->step;
         
         // Очакваме да не надвишаваме брояча
         expect($maxVal <= $cRec->max,  "Броячът е изчерпан");
