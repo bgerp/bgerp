@@ -130,6 +130,18 @@
 	left:-2px;
 }
 
+.holiday{
+    color: red; 
+}
+
+.saturday{
+    color: #006030;
+}
+
+.sunday{
+    color: green;   
+}
+
 @media print{
 	.task{
 		box-shadow:none;
