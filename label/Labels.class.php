@@ -2,7 +2,7 @@
 
 
 /**
- * 
+ * Модел за създаване на етикети за печатане
  * 
  * @category  bgerp
  * @package   label
@@ -37,12 +37,6 @@ class label_Labels extends core_Master
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'label/tpl/SingleLayoutLabels.shtml';
-    
-    
-    /**
-     * Полета, които ще се клонират
-     */
-//    var $cloneFields = '';
     
     
     /**
@@ -97,7 +91,7 @@ class label_Labels extends core_Master
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created';
     
     
     /**
@@ -140,14 +134,14 @@ class label_Labels extends core_Master
         $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
         $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
         
-        $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, title=Поле на листа отгоре, unit=mm');
-        $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, title=Поле на листа отляво, unit=mm');
+        $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
+        $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
         
-        $this->FLD('columnsCnt', 'int', 'caption=Колони в един лист->Брой, title=Брой колони в един лист, mandatory');
-        $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, title=Разстояние на колоните в един лист, unit=mm');
+        $this->FLD('columnsCnt', 'int(min=1)', 'caption=Колони в един лист->Брой, value=1, title=Брой колони в един лист, mandatory, notNull');
+        $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
         
-        $this->FLD('linesCnt', 'int', 'caption=Редове->Брой, title=Брой редове в един лист, mandatory');
-        $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, title=Разстояние на редовете в един лист, unit=mm');
+        $this->FLD('linesCnt', 'int(min=1)', 'caption=Редове->Брой, value=1, title=Брой редове в един лист, mandatory, notNull');
+        $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
         
         $this->setDbUnique('title');
     }
@@ -161,7 +155,7 @@ class label_Labels extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Ако формата не е субмитната и нея редактираме
+        // Ако формата не е субмитната и не я редактираме
         if (!$data->form->isSubmitted() && !$data->form->rec->id) {
             
             // id на шаблона
@@ -172,6 +166,21 @@ class label_Labels extends core_Master
                 
                 // Редиректваме към екшъна за избор на шаблон
                 return Redirect(array($mvc, 'selectTemplate'));
+            }
+            
+            // id на текущия потребител
+            $userId = core_Users::getCurrent();
+            
+            // Ако има последен запис
+            if ($lastRec = static::getLastRec($userId, $templateId)) {
+                
+                // Използваме данните за полетата от него
+                $data->form->rec->fieldUp = $lastRec->fieldUp;
+                $data->form->rec->fieldLeft = $lastRec->fieldLeft;
+                $data->form->rec->columnsCnt = $lastRec->columnsCnt;
+                $data->form->rec->columnsDist = $lastRec->columnsDist;
+                $data->form->rec->linesCnt = $lastRec->linesCnt;
+                $data->form->rec->linesDist = $lastRec->linesDist;
             }
         }
         
@@ -672,6 +681,47 @@ class label_Labels extends core_Master
         $t .= '</table>';
         
         return new ET($t);
+    }
+    
+    
+    /**
+     * Връща последния запис за етикет създаден от потребителя.
+     * Ако няма, тогава връща последния етикет създаден от шаблона.
+     * 
+     * @param integer $userId - id на потребителя
+     * @param integer $templateId - id на шаблона
+     * 
+     * @return object - Запис от модела
+     */
+    static function getLastRec($userId = NULL, $templateId = NULL)
+    {
+        // Ако не е подадени id на потребител
+        if (!$userId) {
+            
+            // Вземаме на текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме последния етикет създаден от потребителя
+        $query = static::getQuery();
+        $query->where("#createdBy = {$userId}");
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
+        
+        // Ако има запис, връщаме го
+        if ($rec = $query->fetch()) return $rec;
+        
+        // Ако има id на шаблона
+        if ($templateId) {
+            
+            // Вземаме последния етикет създаден от този шаблон
+            $query = static::getQuery();
+            $query->where("#templateId = {$templateId}");
+            $query->orderBy('createdOn', 'DESC');
+            $query->limit(1);
+        }
+        
+        return $query->fetch();
     }
     
     
