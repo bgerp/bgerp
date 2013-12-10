@@ -168,11 +168,8 @@ class label_Labels extends core_Master
                 return Redirect(array($mvc, 'selectTemplate'));
             }
             
-            // id на текущия потребител
-            $userId = core_Users::getCurrent();
-            
             // Ако има последен запис
-            if ($lastRec = static::getLastRec($userId, $templateId)) {
+            if ($lastRec = static::getLastRec($templateId)) {
                 
                 // Използваме данните за полетата от него
                 $data->form->rec->fieldUp = $lastRec->fieldUp;
@@ -685,15 +682,15 @@ class label_Labels extends core_Master
     
     
     /**
-     * Връща последния запис за етикет създаден от потребителя.
+     * Връща последния запис за етикет създаден от същия шаблон и потребител.
      * Ако няма, тогава връща последния етикет създаден от шаблона.
      * 
-     * @param integer $userId - id на потребителя
      * @param integer $templateId - id на шаблона
+     * @param integer $userId - id на потребителя
      * 
      * @return object - Запис от модела
      */
-    static function getLastRec($userId = NULL, $templateId = NULL)
+    static function getLastRec($templateId, $userId = NULL)
     {
         // Ако не е подадени id на потребител
         if (!$userId) {
@@ -702,9 +699,10 @@ class label_Labels extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        // Вземаме последния етикет създаден от потребителя
+        // Вземаме последния етикет създаден от потребителя с този шаблон
         $query = static::getQuery();
         $query->where("#createdBy = {$userId}");
+        $query->where("#templateId = {$templateId}");
         $query->where("#state != 'rejected'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit(1);
@@ -712,16 +710,12 @@ class label_Labels extends core_Master
         // Ако има запис, връщаме го
         if ($rec = $query->fetch()) return $rec;
         
-        // Ако има id на шаблона
-        if ($templateId) {
-            
-            // Вземаме последния етикет създаден от този шаблон
-            $query = static::getQuery();
-            $query->where("#templateId = {$templateId}");
-            $query->where("#state != 'rejected'");
-            $query->orderBy('createdOn', 'DESC');
-            $query->limit(1);
-        }
+        // Вземаме последния етикет създаден от този шаблон
+        $query = static::getQuery();
+        $query->where("#templateId = {$templateId}");
+        $query->where("#state != 'rejected'");
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
         
         return $query->fetch();
     }
