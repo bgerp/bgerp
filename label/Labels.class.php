@@ -413,6 +413,9 @@ class label_Labels extends core_Master
             // Увеличаваме броя на отпечатванията в модела
             $rec->printedCnt += $form->rec->printCnt;
             
+            // Активираме етикета
+            $rec->state = 'active';
+            
             // Записваме
             $this->save($rec);
             
