@@ -760,6 +760,9 @@ class type_Richtext extends type_Blob
          
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
+            list($url1, $url2) = explode('#', $url, 2);
+            $url2 = str::canonize($url2);
+            $url = $url1 . '#' . $url2;
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
@@ -916,7 +919,8 @@ class type_Richtext extends type_Blob
         $level = $matches[1];
         
         if(!Mode::is('text', 'plain')) {
-            $res = "<h{$level}>{$text}</h{$level}>";
+            $name = str::canonize($text);
+            $res = "<a name=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}><a>";
         } else {
             $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
         }
