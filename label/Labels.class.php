@@ -84,14 +84,14 @@ class label_Labels extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'label, admin, ceo';
+    var $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_State, plg_Printing, plg_Created, plg_Rejected';
     
     
     /**
@@ -705,6 +705,7 @@ class label_Labels extends core_Master
         // Вземаме последния етикет създаден от потребителя
         $query = static::getQuery();
         $query->where("#createdBy = {$userId}");
+        $query->where("#state != 'rejected'");
         $query->orderBy('createdOn', 'DESC');
         $query->limit(1);
         
@@ -717,6 +718,7 @@ class label_Labels extends core_Master
             // Вземаме последния етикет създаден от този шаблон
             $query = static::getQuery();
             $query->where("#templateId = {$templateId}");
+            $query->where("#state != 'rejected'");
             $query->orderBy('createdOn', 'DESC');
             $query->limit(1);
         }
