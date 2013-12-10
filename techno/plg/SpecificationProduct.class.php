@@ -210,7 +210,9 @@ class techno_plg_SpecificationProduct extends core_Plugin
      */
     public function on_AfterGetParam($mvc, &$res, $id, $sysId)
     {
-    	return NULL;
+    	if(!$res){
+    		return NULL;
+    	}
     }
     
     

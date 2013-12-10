@@ -438,7 +438,8 @@ class techno_Specifications extends core_Manager {
     function getLinkToObj($objectId)
     {
         $rec = $this->fetchRec($objectId);
-    	return ht::createLink($rec->title, array(cls::get($rec->docClassId), 'single', $rec->docId));
+    	
+        return ht::createLink($rec->title, array(cls::get($rec->docClassId), 'single', $rec->docId));
     }
     
     

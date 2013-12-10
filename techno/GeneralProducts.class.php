@@ -199,7 +199,7 @@ class techno_GeneralProducts extends core_Master {
     	$data->rec = $this->fetch($id);
     	$data->row = $this->recToVerbal($data->rec, 'title,description,-single,-short');
     	$data->details = $this->techno_GeneralProductsDetails->prepareDetails($id);
-    	$data->params =  $this->Params->prepareParams($id, TRUE);
+    	$data->params = $this->Params->prepareParams($id, TRUE);
     	
     	return $data;
     }
@@ -281,7 +281,6 @@ class techno_GeneralProducts extends core_Master {
     public function getParam($id, $sysId)
     {
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
-    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
     	
     	return $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
     }
