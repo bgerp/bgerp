@@ -551,6 +551,16 @@ class label_Labels extends core_Master
         // Ако не са сетнати да са единици
         setIfNot($data->pageLayout->columnsCnt, 1);
         setIfNot($data->pageLayout->linesCnt, 1);
+        
+        // Отместване на цялата страница
+        $data->pageLayout->up = (int) ($data->rec->fieldUp - $data->rec->linesDist) . 'mm';
+        $data->pageLayout->left = (int) ($data->rec->fieldLeft - $data->rec->columnsDist) . 'mm';
+
+        // Отместване на колона
+        $data->pageLayout->columnsDist = (int) $data->rec->columnsDist . 'mm';
+        
+        // Отместване на ред 
+        $data->pageLayout->linesDist = (int) $data->rec->linesDist . 'mm';
     }
     
     
@@ -592,7 +602,7 @@ class label_Labels extends core_Master
             $tpl->replace($template, $n);
             
             // Ако сме на последния запис в страницата или изобщо на последния запис
-            if (($rowId == $data->cnt - 1) || ($n == $itemsPerPage - 1)) {
+            if (($rowId == ($data->cnt - 1)) || ($n == ($itemsPerPage - 1))) {
                 
                 // Добавяме към главния шаблон
                 $allTpl->append($tpl);
@@ -619,14 +629,27 @@ class label_Labels extends core_Master
         // Брой редове
         $lines = $data->pageLayout->linesCnt;
         
+        // Отместване редове
+        $linesDist = $data->pageLayout->linesDist;
+        
+        // Отместване колони
+        $columnsDist = $data->pageLayout->columnsDist;
+        
         // Брояч
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='label-table printing-page-break'>";
+        $t = "<table class='label-table printing-page-break' style='border-collapse: separate; border-spacing: {$columnsDist} {$linesDist}; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {
+            
+            // Ако е последен ред
+            if ($i == ($lines - 1)) {
+                
+                // Да няма отместване отдолу
+                $bottom = 0;
+            }
             
             // Добавям ред
             $t .= '<tr>';
