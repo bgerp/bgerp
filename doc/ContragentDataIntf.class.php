@@ -42,16 +42,10 @@ class doc_ContragentDataIntf
      * $obj->pFax       - Персонален
      * $obj->pAddress   - Персонален адрес
      * $obj->pEmail     - Персонален имейл
-     * $obj->salutation - Обръщение
-     * 
-     * $obj->fullAdress - Конкатенирания пълен адрес
      */
     function getContragentData($id)
     {
-        $obj = $this->class->getContragentData1($id);
-        //$obj->fullAdress = $this->class->getFullAdress($id);
-        
-        return $obj;
+        return $this->class->getContragentData($id);
     }
     
     
