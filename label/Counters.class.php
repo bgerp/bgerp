@@ -103,19 +103,19 @@ class label_Counters extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-//    var $listFields = '';
+    var $listFields = 'name, min, max, step, createdOn, createdBy';
     
     
     /**
      * 
      */
-//    var $rowToolsField = 'id';
+    var $rowToolsField = 'name';
 
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-//    var $rowToolsSingleField = 'id';
+    var $rowToolsSingleField = 'name';
     
 
     /**
