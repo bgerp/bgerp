@@ -147,6 +147,12 @@ class label_Counters extends core_Master
         // Вземае записа
         $cRec = static::fetch($counterId);
         
+        // Ако брояча е оттеглен
+        expect($cRec->state != 'rejected', "Брояча е оттеглен");
+        
+        // Ако брояча е затворен
+        expect($cRec->state != 'closed', "Броячът е изчерпан");
+        
         // Флага, указващ дали има други стойности за брояча
         $haveCounter = FALSE;
         
