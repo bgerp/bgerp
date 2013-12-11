@@ -60,7 +60,7 @@ class acc_journal_Transaction
         
         $this->entries = array();
         
-        expect(isset($data->entries) && is_array($data->entries));
+        acc_journal_Exception::expect(isset($data->entries) && is_array($data->entries), 'Няма ентрита');
         
         foreach ($data->entries as $entryData) {
             $this->add()->initFromTransactionSource($entryData);
