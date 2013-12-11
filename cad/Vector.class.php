@@ -23,7 +23,7 @@ class cad_Vector {
         }
     }
 
-    function getA($x, $y)
+    private function getA($x, $y)
     {
         if($x == 0 && $y == 0) {
 
