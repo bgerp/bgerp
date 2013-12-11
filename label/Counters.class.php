@@ -270,10 +270,10 @@ class label_Counters extends core_Master
             // Ако редактираме
             if ($action == 'edit') {
                 
-                // Ако е оттеглено
-                if ($rec->state == 'rejected') {
+                // Ако е чернова
+                if ($rec->state != 'draft') {
                     
-                    // Оттеглените да не могат да се редактират
+                    // Само чернова да могат да се редактират
                     $requiredRoles = 'no_one';
                 }
             }
