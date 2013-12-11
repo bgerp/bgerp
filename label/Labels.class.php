@@ -135,18 +135,20 @@ class label_Labels extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
-        $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
-        $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
-        $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
         
         $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
         $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
         
-        $this->FLD('columnsCnt', 'int(min=1)', 'caption=Колони в един лист->Брой, value=1, title=Брой колони в един лист, mandatory, notNull');
-        $this->FLD('columnsDist', 'int', 'caption=Колони в един лист->Разстояние, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
+        $this->FLD('columnsCnt', 'int(min=1, max=10)', 'caption=Колони в един лист->Брой, value=1, title=Брой колони в един лист, mandatory, notNull');
+        $this->FLD('columnsDist', 'int(min=-20, max=200)', 'caption=Колони в един лист->Разстояние, value=0, title=Разстояние на колоните в един лист, unit=mm, notNull');
         
-        $this->FLD('linesCnt', 'int(min=1)', 'caption=Редове->Брой, value=1, title=Брой редове в един лист, mandatory, notNull');
-        $this->FLD('linesDist', 'int', 'caption=Редове->Разстояние, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
+        $this->FLD('linesCnt', 'int(min=1, max=50)', 'caption=Редове->Брой, value=1, title=Брой редове в един лист, mandatory, notNull');
+        $this->FLD('linesDist', 'int(min=-20, max=200)', 'caption=Редове->Разстояние, value=0, title=Разстояние на редовете в един лист, unit=mm, notNull');
+        
+        $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон, silent, input=hidden');
+        
+        $this->FLD('params', 'blob(serialize,compress)', 'caption=Параметри, input=none');
+        $this->FLD('printedCnt', 'int', 'caption=Отпечатъци, title=Брой отпечатани етикети, input=none');
         
         $this->setDbUnique('title');
     }
