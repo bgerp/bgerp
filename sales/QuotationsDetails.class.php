@@ -509,9 +509,8 @@ class sales_QuotationsDetails extends core_Detail {
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $specRec->id;
     		$dRec->quantity = $q;
-    		$dRec->productManId = $classId;
+    		$dRec->classId = $classId;
     		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $q, $rec->date);
-    		
     		$dRec->price = $price->price;
     		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
