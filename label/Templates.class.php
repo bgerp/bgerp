@@ -58,6 +58,12 @@ class label_Templates extends core_Master
     
     
     /**
+     * Кой има право да създва етикет?
+     */
+    var $canCreatelabel = 'label, admin, ceo';
+    
+    
+    /**
      * Кой има право да го види?
      */
     var $canView = 'label, admin, ceo';
@@ -143,7 +149,7 @@ class label_Templates extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         // Ако имаме права за добавяне на етикет
-        if (label_Labels::haveRightFor('add')) {
+        if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
         
         	// Добавяме бутон за нов етикет
             $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png');
@@ -319,6 +325,17 @@ class label_Templates extends core_Master
                     // Активните да не могат да се оттеглят
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+        
+        // Ако ще добавяме нов етикет
+        if ($action == 'createlabel') {
+            
+            // Ако състоянието е оттеглено
+            if ($rec && $rec->state == 'rejected') {
+                
+                // Никой да не може да създава
+                $requiredRoles = 'no_one';
             }
         }
     }

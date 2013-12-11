@@ -767,6 +767,16 @@ class label_Labels extends core_Master
         // Ако има запис
         if ($rec) {
             
+            // Ако ще добавяме нов
+            if ($action == 'add') {
+                
+                // Вземаме записите
+                $templateRec = label_Templates::fetch($rec->templateId);
+                
+                // Вземаме правата за създаване на етикет
+                $requiredRoles = label_Templates::getRequiredRoles('createlabel', $templateRec);
+            }
+             
             // Ако редактираме
             if ($action == 'edit') {
                 
