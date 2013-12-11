@@ -183,6 +183,40 @@ class label_Templates extends core_Master
     
     
     /**
+     * Проверява подадения плейсхолдер дали се съдържа в шаблона
+     * 
+     * @param integer $id - id на записа
+     * @param string $placeHolder - Име на плейсхолдера
+     * 
+     * @return boolean
+     */
+    static function isPlaceExistInTemplate($id, $placeHolder)
+    {
+        // Вземаме шаблона
+        $tpl = self::getTemplate($id);
+        
+        // Масив с шаблоните
+        static $placesArr = array();
+        
+        // Ако не е генериран преди
+        if (!$placesArr[$id]) {
+            
+            // Масив с плейсхолдерите
+            $placesArrAll = $tpl->getPlaceHolders();
+            
+            // Ключовете и стойностите да са равни
+            $placesArr[$id] = arr::make($placesArrAll, TRUE);
+        }
+        
+        // Ако не се съдържа в шаблона
+        if ($placesArr[$id][$placeHolder]) {
+            
+            return TRUE;
+        }
+    }
+    
+    
+    /**
      * 
      * 
      * @param unknown_type $mvc
