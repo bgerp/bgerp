@@ -381,7 +381,7 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле за максимален брой символи
                 $filedsArr['MaxLength']['clsType'] = 'type_Int';
-                $filedsArr['MaxLength']['type'] = 'int';
+                $filedsArr['MaxLength']['type'] = 'int(min=1, max=500)';
                 $filedsArr['MaxLength']['caption'] = 'Макс. символи';
             break;
             
@@ -416,13 +416,13 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле за широчина
                 $filedsArr['Width']['clsType'] = 'type_Int';
-                $filedsArr['Width']['type'] = 'int';
+                $filedsArr['Width']['type'] = 'int(min=1, max=5000)';
                 $filedsArr['Width']['caption'] = 'Широчина';
                 $filedsArr['Width']['unit'] = 'px';
                 
                 // Поле за височина
                 $filedsArr['Height']['clsType'] = 'type_Int';
-                $filedsArr['Height']['type'] = 'int';
+                $filedsArr['Height']['type'] = 'int(min=1, max=5000)';
                 $filedsArr['Height']['caption'] = 'Височина';
                 $filedsArr['Height']['unit'] = 'px';
                 
@@ -443,14 +443,14 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле за широчина
                 $filedsArr['Width']['clsType'] = 'type_Int';
-                $filedsArr['Width']['type'] = 'int';
+                $filedsArr['Width']['type'] = 'int(min=1, max=5000)';
                 $filedsArr['Width']['caption'] = 'Широчина';
                 $filedsArr['Width']['unit'] = 'px';
                 $filedsArr['Width']['mandatory'] = 'mandatory';
                 
                 // Поле за височина
                 $filedsArr['Height']['clsType'] = 'type_Int';
-                $filedsArr['Height']['type'] = 'int';
+                $filedsArr['Height']['type'] = 'int(min=1, max=5000)';
                 $filedsArr['Height']['caption'] = 'Височина';
                 $filedsArr['Height']['unit'] = 'px';
                 $filedsArr['Height']['mandatory'] = 'mandatory';
