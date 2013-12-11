@@ -1,7 +1,7 @@
 <div class='singleView'>
     [#SingleToolbar#]
 
-<h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Етикети|* 
+<h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Етикет|* 
     <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b>
 </div></h3>
 
