@@ -296,8 +296,30 @@ class cad_SvgCanvas extends core_BaseClass {
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/g';
 	}
+	
+	
+	/**
+	 * Отваряне на дефиниции
+	 */
+	function openDefinitions($attr = array())
+	{
+        $defs = $this->content[] = new stdClass();
+        $defs->name = 'defs';
+        $defs->attr = $attr;
+        $defs->haveBody = TRUE;
+	}
 
-
+	
+	/**
+	 * Затваряне на дефиниции
+	 */
+	function closeDefinitions()
+	{
+	 $groupEnd = $this->content[] = new stdClass();
+	 $groupEnd->name = '/defs';
+	}
+	
+	
     /**
      * Връща XML текста на SVG чертежа
      */
