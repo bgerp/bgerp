@@ -404,7 +404,7 @@ class label_Labels extends core_Master
         $form = $this->getForm();
         
         // Добавяме функционално поле
-        $form->FNC('printCnt', 'int', 'caption=Брой, mandatory');
+        $form->FNC('printCnt', 'int(min=1, max=200)', 'caption=Брой, mandatory');
         
         // За вкавране на silent записите
         $form->input(NULL, TRUE);
