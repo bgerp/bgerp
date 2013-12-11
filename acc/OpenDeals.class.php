@@ -25,49 +25,43 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Отворени сделки';
+    public $title = 'Отворени сделки';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'cash_OpenDeals';
+    public $oldClassName = 'cash_OpenDeals';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Отворена сделка";
+    public $singleTitle = "Отворена сделка";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, inCharge=Отговорник, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Search, plg_Sorting, plg_Rejected';
-    
-    
-    /**
-     * Брой записи на страница
-     */
-    public $listItemsPerPage = 20;
+    public $loadList = 'plg_Search, plg_Sorting, plg_Rejected';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, cash, bank, store';
+	public $canList = 'ceo, cash, bank, store';
 	
 	
 	/**
 	 * Кой може да създава
 	 */
-	var $canAdd = 'no_one';
+	public $canAdd = 'no_one';
 	
 	
 	/**
@@ -146,54 +140,6 @@ class acc_OpenDeals extends core_Manager {
     		$data->listFields = array('newDoc' => $tmp) + $data->listFields;
     	}
     }
-    
-    
-    /**
-	 * След подготовка на вербалните записи
-	 */
-	function on_AfterPrepareListRows($mvc, $res, $data)
-	{
-		// Показване само на сделките до които има достъп касиера
-		if(!haveRole('ceo')){
-			if($data->recs){
-				$cu = core_Users::getCurrent();
-				foreach ($data->recs as $id => $rec){
-					$Class = cls::get($rec->docClass);
-					$docRec = $Class->fetch($rec->docId);
-					
-					// Ако касиера няма достъп до треда
-					if(!doc_Threads::haveRightFor('single', $docRec->threadId)){
-						unset($data->rows[$id]);
-					} else {
-						if($docRec->caseId){
-							// Ако касиера не е отговорник на посочената каса
-							if(cash_Cases::fetchField($docRec->caseId, 'cashier') != $cu){
-								unset($data->rows[$id]);
-								continue;
-							}
-						}
-						
-						if($docRec->bankAccountId){
-							// Ако касиера не е отговорник на посочената б. сметка
-							$operators = bank_OwnAccounts::fetchField($docRec->bankAccountId, 'operators');
-							if(keylist::isIn($cu, $operators)){
-								unset($data->rows[$id]);
-								continue;
-							}
-						}
-						
-						if($docRec->shipmentStoreId){
-							// Ако касиера не е отговорник на посочената каса
-							if(store_Stores::fetchField($docRec->shipmentStoreId, 'chiefId') != $cu){
-								unset($data->rows[$id]);
-								continue;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 	
 	
 	/**
@@ -243,37 +189,47 @@ class acc_OpenDeals extends core_Manager {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-list']){
-	    	$docClass = cls::get($rec->docClass);
-	    	$docRec = $docClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate');
-	    	$row->client = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
-	    	
-	    	$row->docId = $docClass->getHandle($rec->docId);
-	    	if($docClass->haveRightFor('single', $rec->docId)){
-	    		$icon = $docClass->getIcon($rec->docId);
-	    		$attr['class'] = 'linkWithIcon';
-	            $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-	    		$row->docId = ht::createLink($row->docId, array($docClass, 'single', $rec->docId), NULL, $attr);
-	    	}
-	    	
-	    	if(empty($rec->amountDeal)){
-	    		$row->amountDeal = 0;
-	    	} else {
-	    		$row->amountDeal = $mvc->fields['amountDeal']->type->toVerbal($rec->amountDeal / $docRec->currencyRate);
-	    	}
-	    	
-    		if(empty($rec->amountPaid)){
-	    		$row->amountPaid = 0;
-	    	} else {
-	    		$row->amountPaid = $mvc->fields['amountPaid']->type->toVerbal($rec->amountPaid / $docRec->currencyRate);
-	    	}
+	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+    		
+    		// Извличане на записа на документа и папката
+    		$DocClass = cls::get($rec->docClass);
+	    	$docRec = $DocClass->fetch($rec->docId, 'folderId,currencyId,containerId,currencyRate');
+	    	$folderRec = doc_Folders::fetch($docRec->folderId);
 	    	
 	    	$row->currencyId = $docRec->currencyId;
+	    	$row->inCharge = doc_Folders::recToVerbal($folderRec)->inCharge;
+	    	$row->client = doc_Folders::recToVerbal($folderRec)->title;
+	    	$row->docId = $DocClass->getHandle($rec->docId);
 	    	
-	    	if($rec->state == 'active'){
-	    		$row->newDoc = $mvc->getNewDocBtns($docRec->containerId, $docClass);
+    		// Обръщане на сумите в валутата на документа
+	    	foreach (array('Deal', 'Paid') as $name){
+	    		$field = "amount{$name}";
+		    	if(empty($rec->$field)){
+		    		$row->$field = "<span class='quiet'>0.00</span>";
+		    	} else {
+		    		$row->$field = $mvc->fields[$field]->type->toVerbal($rec->$field / $docRec->currencyRate);
+		    	}
 	    	}
 	    	
-	    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
+	    	$attr['class'] = 'linkWithIcon';
+	    	if($DocClass->haveRightFor('single', $rec->docId)){
+	    		
+	    		// Ако потребителя има достъп до документа, той излиза като линк
+	    		$icon = $DocClass->getIcon($rec->docId);
+	    		$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	    		$row->docId = ht::createLink($row->docId, array($DocClass, 'single', $rec->docId), NULL, $attr);
+	    	
+	    		// Ако документа е активен и потребителя има достъп до него, може да генерира документи
+		    	if($rec->state == 'active'){
+		    		$row->newDoc = $mvc->getNewDocBtns($docRec->containerId, $DocClass);
+		    	}
+	    	} else {
+	    		
+	    		// Ако няма достъп, докумнта излиза с катинарче
+	    		$icon = ht::createElement('img', array('src' => sbf('img/16/lock.png', '')));
+	    		$row->docId = $icon . " " . "<span style='color:#777'>" . $row->docId . "";
+	    		unset($row->amountDeal, $row->amountPaid, $row->currencyId);
+	    	}
     	}
     }
     
