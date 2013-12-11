@@ -40,12 +40,6 @@ class label_Templates extends core_Master
     
     
     /**
-     * Полета, които ще се клонират
-     */
-//    var $cloneFields = '';
-    
-    
-    /**
      * Кой има право да чете?
      */
     var $canRead = 'label, admin, ceo';
@@ -96,32 +90,31 @@ class label_Templates extends core_Master
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, template, createdOn, createdBy';
+    var $listFields = 'title, template, createdOn, createdBy';
     
     
     /**
      * 
      */
-//    var $rowToolsField = 'id';
+    var $rowToolsField = 'title';
 
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-//    var $rowToolsSingleField = 'id';
+    var $rowToolsSingleField = 'title';
     
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-//    var $searchFields = '';
+    var $searchFields = 'title, template, css';
     
     
     /**
@@ -200,5 +193,31 @@ class label_Templates extends core_Master
     {
         // Добавяме CSS' а към шаблона
         $row->template = "<style>" . $rec->css . "</style>" . $row->template;
+    }
+    
+    
+ 	/**
+ 	 * Изпълнява се след подготовката на формата за филтриране
+ 	 * 
+ 	 * @param unknown_type $mvc
+ 	 * @param unknown_type $data
+ 	 */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Формата
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'search';
+        
+        // Инпутваме полетата
+        $form->input(NULL, 'silent');
     }
 }
