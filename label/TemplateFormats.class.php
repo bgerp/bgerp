@@ -267,6 +267,12 @@ class label_TemplateFormats extends core_Detail
                     // По подразбиране да е избран първия
                     $data->form->setDefault('placeHolder', $data->form->rec->placeHolder);
                     
+                    // Ако плейсхолдера се съдържа в шаблона
+                    if (label_Templates::isPlaceExistInTemplate($masterId, $data->form->rec->placeHolder)) {
+                        
+                        // Да не може да се променя името на плейсхолдера
+                        $data->form->setReadOnly('placeHolder');
+                    }
                 } else {
                     // По подразбиране да е избран първия
                     $data->form->setDefault('placeHolder', key($diffArr));
