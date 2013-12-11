@@ -355,5 +355,8 @@ class label_Counters extends core_Master
     {
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
+        
+        // Подреждаме по дата на създаване
+        $data->query->orderBy('#createdOn=DESC');
     }
 }

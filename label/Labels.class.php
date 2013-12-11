@@ -870,5 +870,8 @@ class label_Labels extends core_Master
     {
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
+        
+        // Подреждаме по дата на модифициране
+        $data->query->orderBy('#modifiedOn=DESC');
     }
 }
