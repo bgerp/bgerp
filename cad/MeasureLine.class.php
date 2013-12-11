@@ -23,15 +23,11 @@ class cad_MeasureLine {
      */
     static function addParams(&$form)
     {
-        $form->FLD('A0x', 'float', 'caption=Ax');
-        $form->FLD('A0y', 'float', 'caption=Ay');
-        $form->FLD('B0x', 'float', 'caption=Bx');
-        $form->FLD('B0y', 'float', 'caption=By');
+        $form->FLD('Ax', 'float', 'caption=Ax');
+        $form->FLD('Ay', 'float', 'caption=Ay');
+        $form->FLD('Bx', 'float', 'caption=Bx');
+        $form->FLD('By', 'float', 'caption=By');
         $form->FLD('dist', 'float', 'caption=Разстояние');
-        $form->FLD('direction', 'enum(N=Север,S=Юг,E=Изток,W=Запад)', 'caption=Позиция');
-        $form->FLD('stroke', 'color_Type', 'caption=Молив->Цвят');
-        $form->FLD('strokeWidth', 'float', 'caption=Молив->Размер,suggestions=0.1|0.2|0.3|0.4|0.5|0.6|0.7|0.8|0.9|1');
-
     }
 
 
@@ -42,103 +38,95 @@ class cad_MeasureLine {
     { 
         extract($p);
         
+        $strokeWidth = 0.1;
+        $lineColor = 'blue';
+        // разстояние след линията
+        $offset = 8;
+        
+        $canvas->openGroup();
         if(!$notStartNewPath) {
+            
             $canvas->startPath(
                 array(
-                'stroke' => $stroke,
+                'fill' => 'none',
+                'stroke' => $lineColor,
                 'stroke-width' => $strokeWidth)
                 );
         }
+        
+        
+        
+        
+        $A = new cad_Vector($Ax, $Ay);
+        $B = new cad_Vector($Bx, $By);
+        
+        $AB = new cad_Vector($B->x - $A->x, $B->y -$A->y);
+        $angle = $AB->a;
+        
+        $angle2 = $angle - pi()/2;
+        
+        $A1 = $A->add(new cad_Vector($angle2, $dist, 'polar'));
+        $B1 = $B->add(new cad_Vector($angle2, $dist, 'polar'));
        
-        //A0 и Б0 - нач. точки
-        //А1 и Б1 - точки, при кои правим линията по дължината
-        //А2 и Б2 - точки за отстъпа след линията
+        $A2 = $A1->add(new cad_Vector($angle2, $offset, 'polar'));
+        $B2 = $B1->add(new cad_Vector($angle2, $offset,  'polar'));
         
-        //примерен отстъп
-        $offset = 6;
+        //A - A2
+        $canvas->moveTo($A->x, $A->y, TRUE);
+        $canvas->lineTo($A2->x, $A2->y, TRUE);
         
-        if($direction == 'S'){
-            //ако ще показваме под нач. точки
-            $A1y = $A0y + $dist;
-            $B1y = $B0y + $dist;
-            
-            $A1x = $A2x = $A0x;
-            $B1x = $B2x = $B0x;
-            
-            $A2y = $A1y + $offset;
-            $B2y = $B1y + $offset;
-         
-        } else if($direction == 'N'){
-            //ако ще показваме над нач. точки
-            $A1y = $A0y - $dist;
-            $B1y = $B0y - $dist;
-            
-            $A1x = $A2x = $A0x;
-            $B1x = $B2x = $B0x;
-            
-            $A2y = $A1y - $offset;
-            $B2y = $B1y - $offset;
+       
+        $canvas->startPath( array(
+                'stroke' => $lineColor,
+                'stroke-width' => $strokeWidth)
+                );
         
-        } else if($direction == 'W'){
-            //ако ще показваме в ляво от нач. точки
-            $A1x = $A0x - $dist;
-            $B1x = $B0x - $dist;
-            $A1y = $A2y = $A0y;
-            $B1y = $B2y = $B0y;
-            $A2x = $A1x - $offset;
-            $B2x = $B1x - $offset;
+        //B - B2
+        $canvas->moveTo($B->x, $B->y, TRUE);
+        $canvas->lineTo($B2->x, $B2->y, TRUE);
         
-        } else{
-            //ако ще показваме в дясно от нач. точки
-            $A1x = $A0x + $dist;
-            $B1x = $B0x + $dist;
-            
-            $A1y = $A2y = $A0y;
-            $B1y = $B2y = $B0y;
-            
-            $A2x = $A1x + $offset;
-            $B2x = $B1x + $offset;
-        }
         
-        //черта между А1 и Б1
-        $canvas->moveTo($A1x, $A1y, TRUE);
-        $canvas->lineTo($B1x, $B1y, TRUE);
+        $canvas->startPath( array(
+          'stroke' => $lineColor,
+          'stroke-width' => $strokeWidth)
+        );
         
-        //черта от А0 до А2 
-        $canvas->moveTo($A0x, $A0y, TRUE);
-        $canvas->lineTo($A2x, $A2y, TRUE);
-      
-        //черта от Б0 до Б2
-        $canvas->moveTo($B0x, $B0y, TRUE);
-        $canvas->lineTo($B2x, $B2y ,TRUE);
+       //A1 - B1
+        $canvas->moveTo($A1->x, $A1->y, TRUE);
+        $canvas->lineTo($B1->x, $B1->y, TRUE);
         
-        //построяване на стрелките
-        if($direction == 'W' || $direction == 'E'){
-            //едната стрелка
-            $canvas->moveTo($A1x, $A1y, TRUE);
-            $canvas->lineTo(2, 5, FALSE);
-            $canvas->moveTo($A1x, $A1y, TRUE);
-            $canvas->lineTo(-2, 5, FALSE);
-            
-            //другата стрелка
-            $canvas->moveTo($B1x, $B1y, TRUE);
-            $canvas->lineTo(-2, -5, FALSE);
-            $canvas->moveTo($B1x, $B1y, TRUE);
-            $canvas->lineTo(2, -5, FALSE);
-
-        } else{
-            //едната стрелка
-            $canvas->moveTo($A1x, $A1y, TRUE);
-            $canvas->lineTo(5, 2, FALSE);
-            $canvas->moveTo($A1x, $A1y, TRUE);
-            $canvas->lineTo(5, -2, FALSE);
-            
-            //другата стрелка
-            $canvas->moveTo($B1x, $B1y, TRUE);
-            $canvas->lineTo(-5, 2, FALSE);
-            $canvas->moveTo($B1x, $B1y, TRUE);
-            $canvas->lineTo(-5, -2, FALSE);
-            
-        }
+        $canvas->startPath( array(
+          'stroke' => $lineColor,
+          'stroke-width' => $strokeWidth)
+        );
+        
+        //генериране на едната стрелка
+        $arrow = new cad_Vector($angle - deg2rad(30), 5, 'polar');
+        $arrow2 = new cad_Vector($angle + deg2rad(30), 5, 'polar');
+        
+        $Ar1 = $A1->add($arrow);
+        $Ar2 = $A1->add($arrow2);
+        
+        $canvas->moveTo($A1->x, $A1->y, TRUE);
+        $canvas->lineTo($Ar1->x, $Ar1->y, TRUE);
+        
+        $canvas->moveTo($A1->x, $A1->y, TRUE);
+        $canvas->lineTo($Ar2->x, $Ar2->y, TRUE);
+        
+        //генериране на другата стрелка
+        $arrow = new cad_Vector($angle + pi() - deg2rad(30), 5, 'polar');
+        $arrow2 = new cad_Vector($angle + pi() + deg2rad(30), 5, 'polar');
+        
+        $Ar1 = $B1->add($arrow);
+        $Ar2 = $B1->add($arrow2);
+        
+        $canvas->moveTo($B1->x, $B1->y, TRUE);
+        $canvas->lineTo($Ar1->x, $Ar1->y, TRUE);
+        
+        $canvas->moveTo($B1->x, $B1->y, TRUE);
+        $canvas->lineTo($Ar2->x, $Ar2->y, TRUE);
+       
+        $canvas->closeGroup();
+  
     }
 }
