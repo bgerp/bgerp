@@ -96,7 +96,6 @@ class label_Counters extends core_Master
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
     var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Rejected';
     
     
@@ -116,12 +115,6 @@ class label_Counters extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
-    
-
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-//    var $searchFields = '';
     
     
     /**
