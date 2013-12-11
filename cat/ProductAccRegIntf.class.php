@@ -88,6 +88,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     }
     
     
+	/**
+     * Връща цената по себестойност на продукта
+     * @return double
+     */
+    function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    {
+        return $this->class->getSelfValue($productId, $packagingId, $quantity, $date);
+    }
+    
+    
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore

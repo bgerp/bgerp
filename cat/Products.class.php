@@ -803,6 +803,19 @@ class cat_Products extends core_Master {
     }
     
     
+    /**
+     * Връща цената по себестойност на продукта
+     * @return double
+     */
+    public function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    {
+    	// Ценоразпис себестойност
+    	$listId = price_ListRules::PRICE_LIST_COST;
+    	
+    	return price_ListRules::getPrice($listId, $productId, $packagingId, $date);
+    }
+    
+    
 	/**
      * Връща масив със всички опаковки, в които може да участва един продукт
      */

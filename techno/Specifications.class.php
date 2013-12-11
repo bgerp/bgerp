@@ -239,7 +239,7 @@ class techno_Specifications extends core_Manager {
      * $rec->price  - цена
      * $rec->discount - отстъпка
      */
-    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL)
+    public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
     	$rec = $this->fetch($id);
     	$TechnoClass = cls::get($rec->docClassId);
@@ -253,13 +253,8 @@ class techno_Specifications extends core_Manager {
     		
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    		if(!$quantity){
-    			$quantity = 1;
-    		}
-    		$calcPrice = ($priceInfo->tax * (1 + $maxCharge) 
+    		$price->price = ($priceInfo->tax * (1 + $maxCharge) 
     					+ $quantity * $priceInfo->price * (1 + $minCharge)) / $quantity;
-    		
-    		$price->price = currency_CurrencyRates::convertAmount($calcPrice, NULL, $data->currencyId, NULL);
     		
     		return $price;
     	}
@@ -270,6 +265,28 @@ class techno_Specifications extends core_Manager {
     	
     	return $LastPricePolicy->getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId, $quantity, $datetime);
 	}
+    
+    
+	/**
+     * Връща цената по себестойност на продукта
+     * @TODO себестойността да идва от заданието
+     * @return double
+     */
+    public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
+    {
+    	$rec = $this->fetch($productId);
+    	$TechnoClass = cls::get($rec->docClassId);
+    	$priceInfo = $TechnoClass->getPriceInfo($rec->docId, $packagingId, $quantity, $date);
+    	
+    	if($priceInfo->price){
+    		$price = ($priceInfo->tax  + $quantity * $priceInfo->price) / $quantity;
+    		
+    		// Цената по себестойност е тази с 0-ви максимални и минимални надценки
+    		return $price;
+    	}
+    	
+    	return NULL;
+    }
     
     
     /**
