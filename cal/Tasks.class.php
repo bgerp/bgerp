@@ -160,11 +160,13 @@ class cal_Tasks extends core_Master
     var $newBtnGroup = "1.3|Общи"; 
     
     static $view = array (
-    						'WeekHour' => 1,
-    						'WeekDay' => 2,
-    						'Months' => 3,
-    						'YearWeek' => 4,
-    						'Years'=> 5,
+						    'WeekHour' => 1,
+						    'WeekHour4' => 2,
+    						'WeekHour6' => 3,
+    						'WeekDay' => 4,
+    						'Months' => 5,
+    						'YearWeek' => 6,
+    						'Years'=> 7,
     				
     				);
     
@@ -511,11 +513,10 @@ class cal_Tasks extends core_Master
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	$chartType = Request::get('Chart');
-    	
+    	$chart = Request::get('Chart');
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action == 'list' || $chartType == 'Gantt'){
+        if($data->action == 'list' && ($chart == "List" || $chart == "Gantt")){
             if($data->listFilter->rec->selectedUsers != 'all_users') {
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -555,23 +556,17 @@ class cal_Tasks extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
+        $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
           
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->input('selectedUsers, Chart', 'silent');
+        $data->listFilter->input('selectedUsers, Chart, View', 'silent');
 
-        if(!$data->listFilter->rec->selectedUsers) {
+        if(!$data->listFilter->rec->selectedUsers) { 
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
         
-	  	/*if($data->listFilter->rec->Chart == 'Gantt'){
-	  		if(!$data->listFilter->rec->selectedUsers) {
-            	$data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
-	  		}
-        
-	  		//$data->listFilter->rec->selectedUsers = 'all_users';
-	  	}*/
-	  	
+	   	
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
@@ -610,7 +605,7 @@ class cal_Tasks extends core_Master
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {   
     	$currUrl = getCurrentUrl();
-    	
+//bp($currUrl, getRetUrl());
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
 	    	
@@ -1016,13 +1011,23 @@ class cal_Tasks extends core_Master
     	$startTasksTime = dt::timestamp2Mysql($dateTasks->minStartTaskTime);
     	$endTasksTime = dt::timestamp2Mysql($dateTasks->maxEndTaskTime);
     	
-    	// ако периода на таблицата е в рамките на една една седмица	
-    	if (dt::daysBetween($endTasksTime,$startTasksTime) < 6) {
+    	// ако периода на таблицата е в рамките на една една седмица
+   		if (dt::daysBetween($endTasksTime,$startTasksTime) < 3) {
     		
     		$type = 'WeekHour';
     		
     	  // ако периода на таблицата е в рамките на седмица - месец
-    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 6  && dt::daysBetween($endTasksTime,$startTasksTime) < 28) {
+    	}elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 3  && dt::daysBetween($endTasksTime,$startTasksTime) < 5) {
+    		
+    		$type = 'WeekHour4';
+    		
+    	  // ако периода на таблицата е в рамките на седмица - месец
+    	}elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 5  && dt::daysBetween($endTasksTime,$startTasksTime) < 7) {
+    		
+    		$type = 'WeekHour6';
+    		
+    	  // ако периода на таблицата е в рамките на седмица - месец
+    	} elseif (dt::daysBetween($endTasksTime,$startTasksTime) >= 7  && dt::daysBetween($endTasksTime,$startTasksTime) < 28) {
        		
     		$type = 'WeekDay';
     		
@@ -1141,6 +1146,66 @@ class cal_Tasks extends core_Master
 	    		
 	    		foreach ($res as $headerArr) {
 	    			$headerInfo[] = $headerArr;
+	    		}
+    		
+    		break;
+    		
+    		// ако периода на таблицата е в рамките на една една седмица
+    		case 'WeekHour4' :
+    		
+	    		// делението е ден/час
+	    		$otherParams['mainHeaderCaption'] = tr('ден');
+	    		$otherParams['subHeaderCaption'] = tr('часове');
+	    		
+	    		// таблицата започва от 00ч на намерения за начало ден
+	    		$otherParams['startTime'] = dt::mysql2timestamp($startTasksTime[0]);
+	    		
+	    		// до 23:59:59ч на намерения за край ден
+	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
+
+	    		//урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
+	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
+		    		// оформяме заглавните части като показваме всеки един ден 
+	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+		    		
+		    		for ($j = 0; $j <=23; $j = $j +4) {
+		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
+		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
+		    		}
+	    		}
+    		
+    		break;
+    		
+    		// ако периода на таблицата е в рамките на една една седмица
+    		case 'WeekHour6' :
+    		
+	    		// делението е ден/час
+	    		$otherParams['mainHeaderCaption'] = tr('ден');
+	    		$otherParams['subHeaderCaption'] = tr('часове');
+	    		
+	    		// таблицата започва от 00ч на намерения за начало ден
+	    		$otherParams['startTime'] = dt::mysql2timestamp($startTasksTime[0]);
+	    		
+	    		// до 23:59:59ч на намерения за край ден
+	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
+
+	    		//урл-тата на стрелките
+	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
+	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
+	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
+		    		// оформяме заглавните части като показваме всеки един ден 
+	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+		    		
+		    		for ($j = 0; $j <=23; $j = $j + 6) {
+		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
+		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
+		    		}
 	    		}
     		
     		break;
