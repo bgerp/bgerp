@@ -264,11 +264,12 @@ class label_TemplateFormats extends core_Detail
                 
                 // Ако редактираме запис
                 if ($data->form->rec->id) {
+                    
                     // По подразбиране да е избран първия
                     $data->form->setDefault('placeHolder', $data->form->rec->placeHolder);
                     
                     // Ако плейсхолдера се съдържа в шаблона
-                    if (label_Templates::isPlaceExistInTemplate($masterId, $data->form->rec->placeHolder)) {
+                    if ($Master->isPlaceExistInTemplate($masterId, $data->form->rec->placeHolder)) {
                         
                         // Да не може да се променя името на плейсхолдера
                         $data->form->setReadOnly('placeHolder');
@@ -848,7 +849,7 @@ class label_TemplateFormats extends core_Detail
                     if ($masterRec->state == 'active') {
                         
                         // Ако плейсхолдера се съдържа в шаблона
-                        if (label_Templates::isPlaceExistInTemplate($rec->$masterKey, $rec->placeHolder)) {
+                        if ($Master->isPlaceExistInTemplate($rec->$masterKey, $rec->placeHolder)) {
                             
                             // Никой да не може да изтрие детайла
                             $requiredRoles = 'no_one';
