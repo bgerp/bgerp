@@ -249,4 +249,43 @@ class label_Templates extends core_Master
             return $id;
         }
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param label_Labels $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако има запис
+        if ($rec) {
+            
+            // Ако редактираме
+            if ($action == 'edit') {
+                
+                // Ако е оттеглено
+                if ($rec->state == 'rejected') {
+                    
+                    // Оттеглените да не могат да се редактират
+                    $requiredRoles = 'no_one';
+                }
+            }
+            
+            // Ако оттегляме
+            if ($action == 'reject') {
+                
+                // Ако е активно
+                if ($rec->state == 'active') {
+                    
+                    // Активните да не могат да се оттеглят
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
 }
