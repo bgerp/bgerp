@@ -84,13 +84,13 @@ class label_Templates extends core_Master
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'labelMaster, admin, ceo';
+    var $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Search, plg_Rejected';
     
     
     /**
@@ -219,5 +219,34 @@ class label_Templates extends core_Master
         
         // Инпутваме полетата
         $form->input(NULL, 'silent');
+    }
+    
+    
+    /**
+     * Активира шаблона
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @retunr integer - id на записа
+     */
+    public static function activateTemplate($id)
+    {
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Очакваме да не е оттеглен
+        expect($rec->state != 'rejected');
+        
+        // Ако състоянието е 'draft'
+        if ($rec->state != 'active') {
+            
+            // Сменяме състоянито на активно
+            $rec->state = 'active';
+            
+            // Записваме
+            $id = static::save($rec);
+            
+            return $id;
+        }
     }
 }

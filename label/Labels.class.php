@@ -834,4 +834,18 @@ class label_Labels extends core_Master
         // Да не се показва бутона за принтиране
         $data->toolbar->removeBtn('btnPrint');
     }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param label_Labels $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        // Активираме шаблона
+        label_Templates::activateTemplate($rec->templateId);
+    }
 }
