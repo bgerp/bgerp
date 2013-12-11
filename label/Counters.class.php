@@ -84,20 +84,20 @@ class label_Counters extends core_Master
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'label, admin, ceo';
+    var $canReject = 'labelMaster, admin, ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'labelMaster, admin, ceo';
+    var $canDelete = 'no_one';
     
     
     /**
      * Плъгини за зареждане
      */
 //    var $loadList = 'plg_Printing, bgerp_plg_Blank, plg_Search';
-    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State';
+    var $loadList = 'label_Wrapper, plg_RowTools, plg_Created, plg_State, plg_Rejected';
     
     
     /**
