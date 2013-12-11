@@ -174,38 +174,39 @@ class sales_QuotationsDetails extends core_Detail {
     {
     	$form = &$data->form;
         $rec = &$form->rec;
+        $masterRec = $data->masterRec;
         $masterLink = sales_Quotations::getLink($form->rec->quotationId);
         $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " на артикул в|*" . $masterLink;
-       
-        $masterRec = $mvc->Master->fetch($form->rec->quotationId);
         $productMan = cls::get($rec->classId);
-        $products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
-    	
+        
         if($rec->productId){
+        	
         	// При редакция единствения възможен продукт е редактируемия
-	   		$productName = $products[$rec->productId];
+	   		$productName = $productMan->getTitleById($rec->productId);
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
-	   }
+	    } else {
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+	    }
 	   
-       $form->setDefault('optional', 'no');
-	   $form->setOptions('productId', $products);
+        $form->setDefault('optional', 'no');
+	    $form->setOptions('productId', $products);
        
-	   $form->fields['price']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+	    $form->fields['price']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
 	   
-	   if($form->rec->price && $masterRec->currencyRate){
+	    if($form->rec->price && $masterRec->currencyRate){
        	 	if($masterRec->chargeVat == 'yes'){
        	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
        	 	}
        	 	
        		$rec->price = $rec->price / $masterRec->currencyRate;
-       }
+        }
        
-       // Спецификациите немогат да са опционални
-       if(!$productMan instanceof cat_Products){
+        // Спецификациите немогат да са опционални
+        if(!$productMan instanceof cat_Products){
        		$form->setField('optional', 'input=none');
-       }
+        }
     }
     
     
