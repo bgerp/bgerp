@@ -43,7 +43,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, inCharge=Отговорник, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, state=Състояние, newDoc=Създаване';
     
     
     /**
@@ -197,8 +197,8 @@ class acc_OpenDeals extends core_Manager {
 	    	$folderRec = doc_Folders::fetch($docRec->folderId);
 	    	
 	    	$row->currencyId = $docRec->currencyId;
-	    	$row->inCharge = doc_Folders::recToVerbal($folderRec)->inCharge;
-	    	$row->client = doc_Folders::recToVerbal($folderRec)->title;
+	    	$inCharge = doc_Folders::recToVerbal($folderRec)->inCharge;
+	    	$row->client = $inCharge. " » " . doc_Folders::recToVerbal($folderRec)->title;
 	    	$row->docId = $DocClass->getHandle($rec->docId);
 	    	
     		// Обръщане на сумите в валутата на документа
