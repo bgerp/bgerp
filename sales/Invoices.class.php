@@ -144,7 +144,6 @@ class sales_Invoices extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'contragentName'      => 'lastDocUser|lastDoc|defMethod',
     	'place'               => 'lastDocUser|lastDoc',
     	'responsible'         => 'lastDocUser|lastDoc',
     	'contragentCountryId' => 'lastDocUser|lastDoc|clientData',
@@ -308,6 +307,10 @@ class sales_Invoices extends core_Master
         	$form->setField('number', 'input=none');
         }
         
+        $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
+        $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $form->rec->contragentName = $coverClass::getTitleById($coverId);
+        
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
         	$numType = 'bglocal_EgnType';
@@ -350,10 +353,7 @@ class sales_Invoices extends core_Master
 	        $form->setDefault('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
 			if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
 				$form->setDefault('accountId', $ownAcc);
-			} 
-
-			$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
-        	$coverId = doc_Folders::fetchCoverId($form->rec->folderId);
+			}
 			$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
 			$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
 	    }
@@ -739,20 +739,6 @@ class sales_Invoices extends core_Master
 		
 		$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
 	}
-    
-    
-    /**
-     * Определяне на името на контрагента по подразбиране
-     */
-    public function getDefaultContragentName($rec)
-    {
-    	// Извличаме данните на контрагент по подразбиране
-        $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
-        $coverId = doc_Folders::fetchCoverId($rec->folderId);
-        $contragentData = $coverClass::getContragentData($coverId);
-        
-        return ($coverClass == 'crm_Companies') ? $contragentData->company : $contragentData->person;
-    }
     
     
     /**

@@ -39,19 +39,16 @@
                     <td class="cell">
                     <!--ET_BEGIN contragent-->
                         <b>[#contragentName#]</b><br>
-                        <!--ET_BEGIN contragentCountry-->
-                            <b>[#contragentCountry#]</b><br>
-                        <!--ET_END contragentCountry-->
+                        <br>
                         <!--ET_BEGIN contragentAddress-->
                             [#contragentAddress#]<br>
                         <!--ET_END contragentAddress-->
-                        [#locationId#]
 					<!--ET_END contragent-->
 					</td>
 					<td class="cell">
                     <!--ET_BEGIN supplier-->
                         <b>[#MyCompany#]</b><br>
-                        <b>[#MyCountry#]</b><br>
+                        <br>
                         [#MyAddress#] <br>
                     <!--ET_END supplier-->
                     </td>
@@ -60,7 +57,7 @@
             </table>
 			<div class="lines"></div>
 			<div class="details">
-            		[#purchase_ServicesDetails#]
+            	[#purchase_ServicesDetails#]
            	</div>
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">

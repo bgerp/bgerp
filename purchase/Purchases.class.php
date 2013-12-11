@@ -404,7 +404,7 @@ class purchase_Purchases extends core_Master
 	    if($fields['-single']){
 		    $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 		    
-	    	$mvc->prepareMyCompanyInfo($row, $rec);
+	    	$mvc->prepareHeaderInfo($row, $rec);
 	    	
 	    	if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
@@ -415,36 +415,24 @@ class purchase_Purchases extends core_Master
 
 
 	/**
-     * Подготвя вербалните данни на моята фирма
+     * Подготвя данните на хедъра на документа
      */
-    private function prepareMyCompanyInfo(&$row, $rec)
+    private function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
         $row->MyCompany = $ownCompanyData->company;
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyAddress = $address;
+        $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
     	}
-    	 
     	$row->uicId = $uic;
     	
     	// Данните на клиента
-        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
-        
-        $cdata = static::normalizeContragentData($contragent->getContragentData());
-        
-        foreach((array)$cdata as $name => $value){
-        	$row->$name = $value;
-        }
+        $ContragentClass = cls::get($rec->contragentClassId);
+    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
     
@@ -460,35 +448,6 @@ class purchase_Purchases extends core_Master
     	if($data->summary){
     		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
     	}
-    }
-    
-    
-    /**
-     * Нормализиране на контрагент данните
-     */
-    public static function normalizeContragentData($contragentData)
-    {
-        $rec = new stdClass();
-    
-        $rec->contragentCountryId = $contragentData->countryId;
-        $rec->contragentCountry   = $contragentData->country;
-    
-        if (!empty($contragentData->company)) {
-            // Случай 1 или 2: има данни за фирма
-            $rec->contragentAddress = trim(
-                sprintf("%s %s\n%s",
-                    $contragentData->place,
-                    $contragentData->pCode,
-                    $contragentData->address
-                )
-            );
-            $rec->contragentVatNo = $contragentData->vatNo;
-        } elseif (!empty($contragentData->person)) {
-            // Случай 3: само данни за физическо лице
-            $rec->contragentAddress = $contragentData->pAddress;
-        }
-    
-        return $rec;
     }
     
     

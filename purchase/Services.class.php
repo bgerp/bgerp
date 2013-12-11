@@ -272,33 +272,22 @@ class purchase_Services extends core_Master
 	/**
      * Подготвя вербалните данни на моята фирма
      */
-    private function prepareMyCompanyInfo(&$row, $rec)
+    private function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
         $row->MyCompany = $ownCompanyData->company;
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyAddress = $address;
+        $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
     	}
-    	 
     	$row->uicId = $uic;
     	
     	// Данните на клиента
-        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
-        $cdata = static::normalizeContragentData($contragent->getContragentData());
-        
-        foreach((array)$cdata as $name => $value){
-        	$row->$name = $value;
-        }
+        $ContragentClass = cls::get($rec->contragentClassId);
+    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
     
@@ -341,35 +330,6 @@ class purchase_Services extends core_Master
 	    	 $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
 	    }
 	}
-    
-    
-    /**
-     * Нормализиране на контрагент данните
-     */
-    public static function normalizeContragentData($contragentData)
-    {
-        $rec = new stdClass();
-        
-        $rec->contragentCountryId = $contragentData->countryId;
-        $rec->contragentCountry   = $contragentData->country;
-        
-        if (!empty($contragentData->company)) {
-            // Случай 1 или 2: има данни за фирма
-            $rec->contragentAddress = trim(
-                sprintf("%s %s\n%s",
-                    $contragentData->place,
-                    $contragentData->pCode,
-                    $contragentData->address
-                )
-            );
-            $rec->contragentVatNo = $contragentData->vatNo;
-        } elseif (!empty($contragentData->person)) {
-            // Случай 3: само данни за физическо лице
-            $rec->contragentAddress = $contragentData->pAddress;
-        }
-
-        return $rec;
-    }
     
     
     /**
@@ -434,7 +394,7 @@ class purchase_Services extends core_Master
     	}
     	
     	if(isset($fields['-single'])){
-    		$mvc->prepareMyCompanyInfo($row, $rec);
+    		$mvc->prepareHeaderInfo($row, $rec);
     	}
     }
 

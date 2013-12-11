@@ -325,66 +325,24 @@ class sales_Sales extends core_Master
 
     
 	/**
-     * Подготвя вербалните данни на моята фирма
+     * Подготвя данните на хедъра на документа
      */
-    private function prepareMyCompanyInfo(&$row, $rec)
+    private function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
         $row->MyCompany = $ownCompanyData->company;
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyAddress = $address;
+        $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
     	}
-    	 
     	$row->uicId = $uic;
     	
     	// Данните на клиента
-        $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
-        
-        $cdata = static::normalizeContragentData($contragent->getContragentData());
-        
-        foreach((array)$cdata as $name => $value){
-        	$row->$name = $value;
-        }
-    }
-    
-    
-    /**
-     * Нормализира контрагент данните
-     */
-    public static function normalizeContragentData($contragentData)
-    {
-        $rec = new stdClass();
-        
-        $rec->contragentCountryId = $contragentData->countryId;
-        $rec->contragentCountry   = $contragentData->country;
-        
-        if (!empty($contragentData->company)) {
-            // Случай 1 или 2: има данни за фирма
-            $rec->contragentAddress = trim(
-                sprintf("%s %s\n%s",
-                    $contragentData->place,
-                    $contragentData->pCode,
-                    $contragentData->address
-                )
-            );
-            $rec->contragentVatNo = $contragentData->vatNo;
-            
-        } elseif (!empty($contragentData->person)) {
-        	// Случай 3: само данни за физическо лице
-            $rec->contragentAddress = $contragentData->pAddress;
-        }
-
-        return $rec;
+        $ContragentClass = cls::get($rec->contragentClassId);
+    	$row->contragentName = $ContragentClass->getTitleById($rec->contragentId);
+        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
     }
     
     
@@ -474,12 +432,25 @@ class sales_Sales extends core_Master
     {
         $form->setDefault('valior', dt::now());
         
-        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
-        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
-        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
+        if(empty($form->rec->id)){
+        	$form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
+	        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
+	        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         
-        if (empty($form->rec->folderId)) {
-            expect($form->rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
+	        // Моментни експедиция и плащане по подразбиране
+	        if(!$storeId = store_Stores::getCurrent('id', FALSE)){
+	        	$form->setField('isInstantShipment', 'input=hidden');
+	        	$form->rec->isInstantShipment = 'no';
+	        } else {
+	        	$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
+	        }
+	        	
+	        if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
+	        	$form->setField('isInstantPayment', 'input=hidden');
+	        	$form->rec->isInstantPayment = 'no';
+	        } else {
+	        	$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
+	        }
         }
         
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
@@ -495,21 +466,6 @@ class sales_Sales extends core_Master
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
                 'yes' : 'no'
         );
-        
-        // Моментни експедиция и плащане по подразбиране
-        if(!$storeId = store_Stores::getCurrent('id', FALSE)){
-        	$form->setField('isInstantShipment', 'input=hidden');
-        	$form->rec->isInstantShipment = 'no';
-        } else {
-        	$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
-        }
-        	
-        if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
-        	$form->setField('isInstantPayment', 'input=hidden');
-        	$form->rec->isInstantPayment = 'no';
-        } else {
-        	$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
-        }
     }
 
     
@@ -656,7 +612,7 @@ class sales_Sales extends core_Master
 	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
 	        }
 	        
-		    $mvc->prepareMyCompanyInfo($row, $rec);
+		    $mvc->prepareHeaderInfo($row, $rec);
 	        
 	        if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
