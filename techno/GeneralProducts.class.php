@@ -92,7 +92,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.7|Търговия";
+    var $newBtnGroup = "3.1|Производство";
     
     
     /**
