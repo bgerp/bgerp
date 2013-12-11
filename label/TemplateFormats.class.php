@@ -83,21 +83,15 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Кои полета ще извличаме, преди изтриване на заявката
+     * 
      */
-//    var $fetchFieldsBeforeDelete = '';
+    var $listFields = 'placeHolder, type, formatParams';
     
     
     /**
      * 
      */
-//    var $listFields = 'id, name, description, maintainers';
-    
-    
-    /**
-     * 
-     */
-//    var $currentTab = '';
+    var $rowToolsField = 'placeHolder';
     
     
     /**
