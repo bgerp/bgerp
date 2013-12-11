@@ -326,7 +326,7 @@ class label_Labels extends core_Master
         $form = $this->getForm();
         
         // Добавяме функционално поле
-        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
+        $form->FNC('selectTemplateId', 'key(mvc=label_Templates, select=title, where=#state !\\= \\\'rejected\\\')', 'caption=Шаблон');
         
         // Въвеждаме полето
         $form->input('selectTemplateId');
