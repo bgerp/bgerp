@@ -147,6 +147,9 @@ class label_Counters extends core_Master
         // Вземае записа
         $cRec = static::fetch($counterId);
         
+        // Флага, указващ дали има други стойности за брояча
+        $haveCounter = FALSE;
+        
         // Ако няма запис
         if ($maxVal = label_CounterItems::getMax($counterId)) {
             
@@ -169,12 +172,34 @@ class label_Counters extends core_Master
         // Ако стъпката е отрицателна
         if ($cRec->step < 0) {
             
-            // Очакваме да не надвишаваме брояча
-            expect($maxVal >= $cRec->min,  "Броячът е изчерпан");
+            // Ако не сме достигнали минимума
+            if ($maxVal >= $cRec->min) {
+                
+                // Вдигаме флага
+                $haveCounter = TRUE;
+            }
+            
         } else {
             
-            // Очакваме да не надвишаваме брояча
-            expect($maxVal <= $cRec->max,  "Броячът е изчерпан");
+            // Ако не сме достигнали максимума
+            if ($maxVal <= $cRec->max) {
+                
+                // Вдигаме флага
+                $haveCounter = TRUE;
+            }
+        }
+        
+        // Ако брояча е изчерпан
+        if (!$haveCounter) {
+            
+            // Затваряме брояча
+            $cRec->state = 'closed';
+            
+            // Записваме
+            static::save($cRec);
+            
+            // Сетваме грешка
+            expect(FALSE,  "Броячът е изчерпан");
         }
         
         // Връщаме стойността

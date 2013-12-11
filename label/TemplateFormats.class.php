@@ -391,7 +391,7 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле за избор на брояч
                 $filedsArr['CounterId']['clsType'] = 'type_Key';
-                $filedsArr['CounterId']['type'] = 'key(mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\')';
+                $filedsArr['CounterId']['type'] = 'key(mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')';
                 $filedsArr['CounterId']['caption'] = 'Брояч';
                 
                 // Вземаем всички баркодове, които можем да генерираме
