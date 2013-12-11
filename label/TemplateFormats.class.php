@@ -807,4 +807,49 @@ class label_TemplateFormats extends core_Detail
         // Създаваме, кофа, където ще държим всички прикачени файлове
         $res .= $Bucket->createBucket(static::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'user');
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param label_Labels $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако има запис
+        if ($rec) {
+            
+            // Ако ще изтривамеа
+            if ($action == 'delete') {
+                
+                // Вземаме мастера
+                $Master = $mvc->Master;
+                
+                // Вземамем ключа към мастер
+                $masterKey = $mvc->masterKey;
+                
+                // Ако има запис за мастер
+                if ($Master && $masterKey && $rec->$masterKey) {
+                    
+                    // Вземаме записа
+                    $masterRec = $Master->fetch($rec->$masterKey);
+                    
+                    // Ако е активиран мастер
+                    if ($masterRec->state == 'active') {
+                        
+                        // Ако плейсхолдера се съдържа в шаблона
+                        if (label_Templates::isPlaceExistInTemplate($rec->$masterKey, $rec->placeHolder)) {
+                            
+                            // Никой да не може да изтрие детайла
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
