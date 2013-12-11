@@ -277,7 +277,7 @@ class label_Templates extends core_Master
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
         
-        // Ако състоянието е 'draft'
+        // Ако състоянието не е 'active'
         if ($rec->state != 'active') {
             
             // Сменяме състоянито на активно
@@ -285,6 +285,9 @@ class label_Templates extends core_Master
             
             // Записваме
             $id = static::save($rec);
+            
+            // Активираме използваните броячи в шаблона
+            label_TemplateFormats::activateCounters($rec->id);
             
             return $id;
         }

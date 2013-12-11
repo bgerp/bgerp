@@ -279,4 +279,36 @@ class label_Counters extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Активира шаблона
+     * 
+     * @param integer $id - id на записа
+     * 
+     * @return integer - id на записа
+     */
+    public static function activateCounter($id)
+    {
+        // Ако няма
+        if (!$id) return ;
+        
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Очакваме да не е оттеглен
+        expect($rec->state != 'rejected');
+        
+        // Ако състоянието е 'draft'
+        if ($rec->state == 'draft') {
+            
+            // Сменяме състоянито на активно
+            $rec->state = 'active';
+            
+            // Записваме
+            $id = static::save($rec);
+            
+            return $id;
+        }
+    }
 }

@@ -244,7 +244,7 @@ class label_TemplateFormats extends core_Detail
             $placesArr = arr::make($placesArr, TRUE);
             
             // Вземаме плейсхолдерите, за които има запис
-            $savedPlacesArr = static::getAddededPlaceHolders($masterId);
+            $savedPlacesArr = (array)static::getAddededPlaceHolders($masterId);
             
             // Вземаме неизползваните
             $diffArr = array_diff($placesArr, $savedPlacesArr);
@@ -857,6 +857,25 @@ class label_TemplateFormats extends core_Detail
                     }
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Активира използваните броячи в шаблоните
+     * 
+     * @param integer $templateId - id на шаблона
+     */
+    static function activateCounters($templateId)
+    {
+        // Вземаме всички броячи използвани в този шаблон
+        $query = static::getQuery();
+        $query->where("#templateId = '{$templateId}' AND #type = 'counter'");
+        
+        while($rec = $query->fetch()) {
+            
+            // Активираме броячите
+            label_Counters::activateCounter($rec->formatParams['CounterId']);
         }
     }
 }
