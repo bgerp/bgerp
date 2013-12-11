@@ -99,7 +99,7 @@ class cad_SvgCanvas extends core_BaseClass {
         $args = func_get_args();
 
         foreach($args as $val) {
-            $res[] = round($this->pixPerMm * $val);
+            $res[] = round($this->pixPerMm * (double)$val);
         }
 
         return $res;
