@@ -208,7 +208,7 @@ class label_Templates extends core_Master
             $placesArr[$id] = arr::make($placesArrAll, TRUE);
         }
         
-        // Ако не се съдържа в шаблона
+        // Ако плейсхолдера се съдържа в шаблона
         if ($placesArr[$id][$placeHolder]) {
             
             return TRUE;
