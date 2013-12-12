@@ -231,8 +231,17 @@ class label_Templates extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Добавяме CSS' а към шаблона
-        $row->template = "<style>" . $rec->css . "</style>" . $row->template;
+        // Вземаме пакета
+        $conf = core_Packs::getConfig('csstoinline');
+        
+        // Класа
+        $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+        
+        // Инстанция на класа
+        $inst = cls::get($CssToInline);
+        
+        // Стартираме процеса
+        $row->template =  $inst->convert($rec->template, $rec->css);
     }
     
     
