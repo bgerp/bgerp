@@ -102,6 +102,7 @@ class hr_Departments extends core_Master
             'StructureChart' => 'Графика',
         );
 
+        
     /**
      * Описание на модела
      */

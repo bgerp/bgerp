@@ -189,8 +189,8 @@ class hr_WorkingCycles extends core_Master
 	    		4 => 'd',
 	 		);
 	 		
-	 		$month = Request::get('cal_month', 'int');
-	        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+	 		$month = Request::get('cal_month', 'int'); 
+	        $month = str_pad($month, 2, 0, STR_PAD_LEFT);
 	        $year  = Request::get('cal_year', 'int');
 
 	        if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {
@@ -241,9 +241,9 @@ class hr_WorkingCycles extends core_Master
 	        	$d[$i] = new stdClass(); 
 	    		
 	        	$start = explode("-", $startingOn);
-	        	if($month < $start[1]){
+	        	if($month < $start[1] && $year == $start[0]){
 	        		$d[$i]->html = "";
-	        	}else{
+	        	}else{ 
 	    			$d[$i]->html = "<span style='float: left;'>" . $shiftMap[static::getShiftDay($cycleDetails, $date, $startingOn)] . "</span>";
 	        	}
 	    		if(core_Lg::getCurrent() == 'en'){
@@ -293,7 +293,7 @@ class hr_WorkingCycles extends core_Master
     function renderGrafic($data)
     {
     	$prepareRecs = static::prepareGrafic($data);
-    	
+    	//bp($prepareRecs);
 		$tpl = new ET(getTplFromFile('hr/tpl/SingleLayoutShift.shtml'));
 		jquery_Jquery::enable($tpl);
 		$tpl->push('hr/tpl/style.css', 'CSS');
