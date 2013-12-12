@@ -953,6 +953,15 @@ class doc_Threads extends core_Manager
             }
         }
         
+
+        if($action == 'restore') {
+            if($rec->state == 'rejected') {
+                $res = $mvc->getRequiredRoles('single', $rec, $userId);
+            } else {
+                $res = 'no_one';
+            }
+        }
+
         if($action == 'move') {
             $res = $mvc->getRequiredRoles('single', $rec, $userId);
         }
