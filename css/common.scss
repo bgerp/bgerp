@@ -1314,8 +1314,8 @@ div.hFormField {
 	vertical-align: top !important;
 }
 
-.narrow .vertical .formTitle{
-	font-size:  1.2em; 
+.narrow .vertical .formTitle {
+	font-size: 1.2em; 
     font-family: Verdana;
     background-image: none; 
 }
@@ -1430,15 +1430,15 @@ table.keylist {
 	width: 100%;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     outline: none;
-	td{
+	td {
 		padding: 0.3em 0.1em 0 0.1em;
 	}
 	.inner-keylist {
 		width: 100%;
-		tr{
+		tr {
 			height: 1.6em !important;
 		}
-		td{
+		td {
 			padding: 0.2em 0.1em 0.1em 0.1em;
 		}
 	}
@@ -1764,7 +1764,7 @@ div.alphabet div.tab-page {
 		background: $gray3;
 		border: 1px solid $gray4;
 		border-bottom: none;
-		color:#999;
+		color: #999;
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
@@ -1801,9 +1801,10 @@ div.alphabet div.tab-page {
 	}
 }
 
-.thread-opened div.alphabet  .tab.selected {
+.thread-opened div.alphabet .tab.selected {
 	background-color: #E0FFE0 !important;
 }
+
 .narrow .single-thread .document div.alphabet div.tab-row {
 	padding-bottom: 1px
 }
@@ -2012,7 +2013,7 @@ div.richtext pre code {
 	margin: 0px 0 1px;
 }
 
-div.code{
+div.code {
     background: rgba(255,255,230,0.5);
 }
 
@@ -2027,6 +2028,7 @@ div.richtextHide {
 p.richtext {
 	border: solid 1px red;
 }
+
 .narrow .richtext {
 	font-size: 0.9em;
 }
@@ -2156,23 +2158,22 @@ div.richtext ol ol {
     background-image: url('../img/Help-icon.png');
 }
 
-.narrow .richtext-question, .narrow .richtext-info,.narrow .richtext-error,.narrow .richtext-success,
-.narrow .richtext-warning,.narrow .richtext-tip,.narrow .richtext-text {
+.narrow .richtext-question, .narrow .richtext-info, .narrow .richtext-error, .narrow .richtext-success,
+.narrow .richtext-warning, .narrow .richtext-tip, .narrow .richtext-text {
 	margin-left: 0px;
 	margin-right: 0;
 	font-size: 0.9em;
 }
 
-.richtext-question a, .richtext-info a, .richtext-error a,.richtext-success a,
-.richtext-warning a,.richtext-tip a,.richtext-text a {
-		text-decoration: underline;
-		font-weight: bold;
-		color: inherit;
-		&:hover{
-			text-decoration: none;
-		}
-		
+.richtext-question a, .richtext-info a, .richtext-error a, .richtext-success a,
+.richtext-warning a, .richtext-tip a, .richtext-text a {
+	text-decoration: underline;
+	font-weight: bold;
+	color: inherit;
+	&:hover{
+		text-decoration: none;
 	}
+}
 /*край на richtext message-box*/
 
 
@@ -2257,9 +2258,9 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document  a, .state-rejected .document  span,  .state-rejected .richtext div, .state-rejected .cCode ,.state-rejected .antetka,
+.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
 .state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
-	color:#999 !important;
+	color: #999 !important;
 	text-decoration: line-through !important;
 }
 
@@ -2301,7 +2302,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 /*край на състояния*/
 
 
-.core_Cron  .listTable td p { 
+.core_Cron .listTable td p { 
 	margin: 5px; 
 	font-family: monospace;
 	font-size: 0.85em;
