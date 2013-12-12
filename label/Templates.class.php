@@ -172,17 +172,11 @@ class label_Templates extends core_Master
         // Ако преди е бил извлечен
         if ($tplArr[$id]) return $tplArr[$id];
         
-        // Шаблона
-        $template = static::fetchField($id, 'template');
+        // Вземаме записа
+        $rec = static::fetch($id);
         
-        // Шаблона
-        $tpl = new ET($template);
-        
-        // Добавяме стиловете
-        $tpl->append(static::fetchField($id, 'css'), 'STYLES');
-        
-        // Добавяме в масива
-        $tplArr[$id] = $tpl;
+        // Вкарваме CSS-а, като инлай в шаблона
+        $tplArr[$id] = new ET(static::templateWithInlineCSS($rec->template, $rec->css));
         
         return $tplArr[$id];
     }
@@ -223,14 +217,18 @@ class label_Templates extends core_Master
     
     
     /**
+     * Вкарва CSS'a в шаблона, като инлайн стил
      * 
+     * @param string $template - HTML
+     * @param string $css - CSS
      * 
-     * @param unknown_type $mvc
-     * @param unknown_type $row
-     * @param unknown_type $rec
+     * @return string
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function templateWithInlineCSS($template, $css)
     {
+        // Вкарваме темплейта в блок, който после ще отрежим
+        $template = '<div id="begin">' . $template . '<div id="end">'; 
+        
         // Вземаме пакета
         $conf = core_Packs::getConfig('csstoinline');
         
@@ -241,7 +239,29 @@ class label_Templates extends core_Master
         $inst = cls::get($CssToInline);
         
         // Стартираме процеса
-        $row->template =  $inst->convert($rec->template, $rec->css);
+        $template =  $inst->convert($template, $css);
+        
+        // Вземамема само шаблона, без допълнителните добавки
+        $template = str::cut($template, '<div id="begin">', '<div id="end">');
+        
+        // Очакваме да не е NULL
+        expect($template !== NULL);
+        
+        return $template;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $row
+     * @param unknown_type $rec
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // Вземаме шаблона с вкарания css
+        $row->template = static::templateWithInlineCSS($row->template, $rec->css);
     }
     
     
