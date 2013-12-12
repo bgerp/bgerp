@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
+    var $loadList = 'plg_RowTools, cal_Wrapper, cal_ViewTasks, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
     
 
     /**
@@ -516,7 +516,7 @@ class cal_Tasks extends core_Master
     	$chart = Request::get('Chart');
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action == 'list' && ($chart == "List" || $chart == "Gantt")){
+        if($data->action === 'list'){
             if($data->listFilter->rec->selectedUsers != 'all_users') {
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -562,7 +562,7 @@ class cal_Tasks extends core_Master
         
         $data->listFilter->input('selectedUsers, Chart, View', 'silent');
 
-        if(!$data->listFilter->rec->selectedUsers) { 
+        if(!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
         
@@ -614,9 +614,11 @@ class cal_Tasks extends core_Master
 	    	
 	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 	        
+	    	$currUrl['Act'] = 'list';
 	    	$currUrl['Chart'] = 'List';
 	        $tabs->TAB('List', 'Таблица', $currUrl);
 	        
+	        $currUrl['Act'] = 'list';
 	        $currUrl['Chart'] = 'Gantt';
 	        $currUrl['View'] = $ganttType;
 	        $tabs->TAB('Gantt', 'Гант', $currUrl);
