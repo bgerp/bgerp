@@ -528,7 +528,7 @@ class label_TemplateFormats extends core_Detail
                 $resArr[$placeHolderField]['clsType'] = 'type_Varchar';
                 
                 // Ако е зададена максимална дължина
-                if ($maxLength = $rec->formatParams['MaxLength']) {
+                if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
                     
                     // Задаваме стрингов тип с максимална дължина
                     $resArr[$placeHolderField]['type'] = "varchar({$maxLength})";

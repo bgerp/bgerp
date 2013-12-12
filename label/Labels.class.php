@@ -299,8 +299,12 @@ class label_Labels extends core_Master
             // Инстанция на класа
             $inst = cls::get($otherParams['clsType']);
             
-            // Вербалната стойност
-            $verbalVal = $inst->toVerbal($rec->params[$name]);
+            // Ако е масив
+            if (is_array($rec->params)) {
+                
+                // Вербалната стойност
+                $verbalVal = $inst->toVerbal($rec->params[$name]);
+            }
             
             // Добавяме в полето
             $row->params .= '<div>' . $fieldName . ': ' . $verbalVal . '</div>';
