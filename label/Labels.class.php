@@ -530,6 +530,13 @@ class label_Labels extends core_Master
         // Докато достигнем броя на принтиранията
         for ($i = 0; $i < $data->cnt; $i++) {
             
+            // Ако не е сетнат
+            if (!isset($data->rows[$i])) {
+                
+                // Задаваме масива
+                $data->rows[$i] = array();
+            }
+            
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
                 
@@ -611,7 +618,7 @@ class label_Labels extends core_Master
                 // Рендираме изгледа за една страница
                 $tpl = static::renderPageLayout($data);
             }
-
+            
             // Вземаме шаблона
             $template = clone($data->row->Template);
             
