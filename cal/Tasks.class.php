@@ -595,6 +595,7 @@ class cal_Tasks extends core_Master
         }
     }
     
+    
 	/**
      * Добавя след таблицата
      *
@@ -605,7 +606,7 @@ class cal_Tasks extends core_Master
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {   
     	$currUrl = getCurrentUrl();
-//bp($currUrl, getRetUrl());
+
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
 	    	
@@ -613,9 +614,12 @@ class cal_Tasks extends core_Master
 	    	
 	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 	        
-	        $tabs->TAB('List', 'Таблица', array($mvc, 'list', 'Chart'=> 'List'));
+	    	$currUrl['Chart'] = 'List';
+	        $tabs->TAB('List', 'Таблица', $currUrl);
 	        
-	        $tabs->TAB('Gantt', 'Гант', array($mvc, 'list', 'Chart'=> 'Gantt', 'View' => $ganttType));
+	        $currUrl['Chart'] = 'Gantt';
+	        $currUrl['View'] = $ganttType;
+	        $tabs->TAB('Gantt', 'Гант', $currUrl);
 
 	        if($chartType == 'Gantt') { 
 	        	
