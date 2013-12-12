@@ -15,10 +15,13 @@
                     <td class="title-style" width="150px">|Шаблон|*</td>
                     <td> [#templateId#]</td>
                 </tr>
-                 <tr>
-                    <td class="title-style">|Параметри|*</td>
-                    <td> [#params#]</td>
-                </tr>
+                
+                <!--ET_BEGIN params-->
+	                <tr>
+	                    <td class="title-style">|Параметри|*</td>
+	                    <td> [#params#]</td>
+	                </tr>
+                <!--ET_END params-->
             </table>
             <table class="styled-table" width="99%">
                 <tr>
@@ -26,11 +29,11 @@
                 </tr>
                 <tr>
                     <td class="title-style" width="150px">|Отгоре|*</td>
-                    <td>[#fieldUp#]</td>
+                    <td>[#fieldUp#] |mm|*</td>
                 </tr>
                 <tr>
                     <td class="title-style">|Отляво|*</td>
-                    <td>[#fieldLeft#]</td>
+                    <td>[#fieldLeft#] |mm|*</td>
                 </tr>
             </table>
             <table class="styled-table" width="99%">
@@ -43,7 +46,7 @@
                 </tr>
                 <tr>
                     <td class="title-style">|Разстояние|*</td>
-                    <td>[#columnsDist#]</td>
+                    <td>[#columnsDist#] |mm|*</td>
                 </tr>
                </table>
             <table class="styled-table" width="99%">
@@ -56,7 +59,7 @@
                 </tr>
                 <tr>
                     <td class="title-style">|Разстояние|*</td>
-                    <td> [#linesDist#]</td>
+                    <td> [#linesDist#] |mm|*</td>
                 </tr>
             </table>
             <table class="styled-table" width="99%">
