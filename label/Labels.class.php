@@ -365,50 +365,31 @@ class label_Labels extends core_Master
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
+        // Премахваме бутона за принтиране
         $data->toolbar->removeBtn('btnPrint');
-        
-        // Ако имаме права за принтиране
-        if ($mvc->haveRightFor('print', $data->rec->id)) {
-            
-            // URL за избор на брой отпечатвания
-    	    $url = array(
-                $mvc,
-                'selectPrintCnt',
-                $data->rec->id,
-                'ret_url' => TRUE
-            );
-            
-            // Бутон за избор на брой отпечатвания
-            $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-        }
     }
     
     
     /**
-     * Екшън за задаване на брой на отпечатвания
+     * Връща форма за принтиране
+     * 
+     * @param integer $id - id на документа
+     * 
+     * @return core_Form - Форма за печатане
      */
-    function act_SelectPrintCnt()
+    private function getPrintForm($id)
     {
-        // Права за принтиране
-        $this->requireRightFor('print');
-        
-        // id на записа
-        $id = Request::get('id', 'int');
-        
         // Вземаме записа
         $rec = $this->fetch($id);
         
         // Очакваме да има запис
         expect($rec);
         
-        // Очакваме да имаме права за принтиране
-        $this->requireRightFor('print', $rec);
-        
         // Вземаме формата към този модел
         $form = $this->getForm();
         
         // Добавяме функционално поле
-        $form->FNC('printCnt', 'int(min=1, max=200)', 'caption=Брой, mandatory');
+        $form->FNC('printCnt', 'int(min=1, max=200)', 'caption=Брой отпечатвания, mandatory, title=Брой отпечатвания, width=100%');
         
         // За вкавране на silent записите
         $form->input(NULL, TRUE);
@@ -423,7 +404,7 @@ class label_Labels extends core_Master
         $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
         
         // Ако формата е изпратена без грешки
-        if($form->isSubmitted()) {
+        if($form->isSubmitted() && ($form->cmd == 'print')) {
             
             // Увеличаваме броя на отпечатванията в модела
             $rec->printedCnt += $form->rec->printCnt;
@@ -445,21 +426,55 @@ class label_Labels extends core_Master
             );
             
             // Редиректваме към екшъна за добавяне
-            return new Redirect($printUrl);
+            return Redirect($printUrl);
         }
         
-        // Заглавие на шаблона
-        $form->title = "Брой отпечатвания";
+        // Хоризонтално подравняване
+        $form->view = 'horizontal';
         
         // Задаваме да се показват само полетата, които ни интересуват
         $form->showFields = 'printCnt';
         
         // Добавяме бутоните на формата
-        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        $form->toolbar->addSbBtn('Печат', 'print', 'id=btnPrint, ef_icon=img/16/printer.png, title=Печат на етикет');
         
-        // Рендираме опаковката
-        return $this->renderWrapping($form->renderHtml());
+        // Връщаме формата
+        return $form;
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     * 
+     * @param label_Labels $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        // Ако имамем права за принтиране
+        if ($mvc->haveRightFor('print', $data->rec)) {
+            
+            // Показва формата за принтиране
+            $data->row->printForm = $mvc->getPrintForm($data->rec->id);
+        }
+    }
+    
+    
+    /**
+     * Преди рендиране на сингъла
+     * 
+     * @param label_Labels $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_BeforeRenderSingle($mvc, &$res, $data)
+    {
+        if ($data->row->printForm) {
+            
+            // Рендираме формата
+            $data->row->printForm = $data->row->printForm->renderHtml();
+        }
     }
     
     

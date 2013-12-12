@@ -4,7 +4,11 @@
 <h3><div style="padding:5px;" class=" [#STATE_CLASS#]">|Етикет|* 
     <b style="color:green;display:inline-block;word-break:break-all">[#title#]</b>
 </div></h3>
-
+	
+	<div class="print-label-form">
+		[#printForm#]
+	</div>
+	
     <div class='scrolling-holder'>
             <table class="styled-table" width="99%">
                 <tr>
