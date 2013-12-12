@@ -1013,7 +1013,7 @@ table.listTable {
 	.document h2 {
 		margin-top: 3px;
     }
-    > tbody > tr.row-error >td {
+    > tbody > tr.row-error > td {
         color: #900;
     } 
 }
@@ -1403,7 +1403,7 @@ div.hFormField {
 	margin-bottom: 10px;
 }
 
-.narrow .horizontal .formFields>div {
+.narrow .horizontal .formFields > div {
 	margin-bottom: 10px;
 }
 /*край на хоризонтални форми*/
