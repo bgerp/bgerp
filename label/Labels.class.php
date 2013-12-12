@@ -518,6 +518,13 @@ class label_Labels extends core_Master
         // Подготвяме данните за страниците
         static::preparePageLayout($data);
         
+        // Ако няма стойност
+        if (!$data->row) {
+            
+            // Създаваме обект
+            $data->row = new stdClass();
+        }
+        
         // Вземаме шаблона
         $data->row->Template = label_Templates::getTemplate($data->rec->templateId);
         
@@ -534,7 +541,7 @@ class label_Labels extends core_Master
             if (!isset($data->rows[$i])) {
                 
                 // Задаваме масива
-                $data->rows[$i] = array();
+                $data->rows[$i] = new stdClass();
             }
             
             // Обхождаме масива с шаблоните
@@ -559,6 +566,13 @@ class label_Labels extends core_Master
     {
         // Ако някоя от необходимите стойности не е сетната
         if (!$data->rec->columnsCnt || !$data->rec->linesCnt || !$data->cnt) return FALSE;
+        
+        // Ако не е сетнат
+        if (!$data->pageLayout) {
+        
+            // Създаваме обекта
+            $data->pageLayout = new stdClass();
+        }
         
         // Колко етикети ще има на страница
         $data->pageLayout->itemsPerPage = $data->rec->columnsCnt * $data->rec->linesCnt;
