@@ -675,8 +675,12 @@ class purchase_Purchases extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'activate' && isset($rec)){
-    		if(!$mvc->purchase_PurchasesDetails->fetch("#requestId = {$rec->id}")){
+    	if($action == 'activate'){
+    		if(isset($rec)){
+    			if(!$mvc->purchase_PurchasesDetails->fetch("#requestId = {$rec->id}")){
+    				$res = 'no_one';
+    			}
+    		} else {
     			$res = 'no_one';
     		}
     	}
