@@ -221,7 +221,7 @@ class acc_OpenDeals extends core_Manager {
 	    	
 	    		// Ако документа е активен и потребителя има достъп до него, може да генерира документи
 		    	if($rec->state == 'active'){
-		    		$row->newDoc = $mvc->getNewDocBtns($docRec->containerId, $DocClass);
+		    		$row->newDoc = $mvc->getNewDocBtns($docRec->id, $docRec->containerId, $DocClass);
 		    	}
 	    	} else {
 	    		
@@ -240,7 +240,7 @@ class acc_OpenDeals extends core_Manager {
      * @param core_Master $docClass - инстанция на класа
      * @return html $btns
      */
-    private function getNewDocBtns($originId, core_Master $docClass)
+    private function getNewDocBtns($id, $originId, core_Master $docClass)
     {
     	$btns = "";
     	switch(Request::get('show')){
@@ -258,13 +258,17 @@ class acc_OpenDeals extends core_Manager {
 	    		break;
 	    	case 'store':
 	    		if($docClass instanceof purchase_Purchases){
-	    			
-	    			// Ако документа е Покупка, бутона генерира Складова разписка
-	    			$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/view.png,title=Нова складова разписка');
+	    			if($docClass->hasStorableProducts($id)){
+	    				
+		    			// Ако документа е Покупка със скалдируеми артикули, бутона генерира Складова разписка
+		    			$btns = ht::createBtn('СР', array('store_Receipts', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Нова складова разписка');
+	    			}
 	    		} elseif($docClass instanceof sales_Sales){
-	    			
-	    			// Ако документа е Продажба, бутона генерира Експедиционно нареждане
-	    			$btns = ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/view.png,title=Ново експедиционно нареждане');
+	    			if($docClass->hasStorableProducts($id)){
+	    				
+	    				// Ако документа е Продажба със скалдируеми артикули, бутона генерира Експедиционно нареждане
+	    				$btns = ht::createBtn('ЕН', array('store_ShipmentOrders', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/shipment.png,title=Ново експедиционно нареждане');
+	    			}
 	    		}
 	    		break;
 	    }
