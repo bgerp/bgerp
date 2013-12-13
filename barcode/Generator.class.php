@@ -448,7 +448,7 @@ class barcode_Generator extends core_Manager
             break;
             
             case 'qr':
-                
+                $width = $height;
             break;
             
             default:
