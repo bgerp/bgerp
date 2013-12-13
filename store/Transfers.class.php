@@ -376,7 +376,9 @@ class store_Transfers extends core_Master
     	$masterRec = $data->masterData->rec;
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
+    	$query->where("#state = 'active'");
     	$query->orderBy("#createdOn", 'DESC');
+    	
     	$i = 1;
     	while($dRec = $query->fetch()){
     		$dRec->rowNumb = $i;

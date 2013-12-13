@@ -380,12 +380,12 @@ class store_ShipmentOrders extends core_Master
             	
             /* @var $dealInfo bgerp_iface_DealResponse */
             $dealInfo = $origin->getAggregateDealInfo();
-            $form->rec->currencyId = $dealInfo->agreed->currency;
+            $form->rec->currencyId   = $dealInfo->agreed->currency;
             $form->rec->currencyRate = $dealInfo->agreed->rate;
-            $form->rec->locationId = $dealInfo->agreed->delivery->location;
+            $form->rec->locationId   = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
-            $form->rec->chargeVat = $dealInfo->agreed->vatType;
-            $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
+            $form->rec->chargeVat    = $dealInfo->agreed->vatType;
+            $form->rec->storeId      = $dealInfo->agreed->delivery->storeId;
             
             // ... и стойностите по подразбиране са достатъчни за валидиране
             // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
@@ -632,12 +632,8 @@ class store_ShipmentOrders extends core_Master
     	$row->rowNumb = $rec->rowNumb;
     	
     	$row->address = $oldRow->contragentName;
-    	if($rec->locationId){
-    		$row->address .= ", " . crm_Locations::getAddress($rec->locationId);
-    	} else {
-    		//@TODO да оправя слагането на запетаята
-    		$row->address .= ", " . $oldRow->contragentCountry . (($oldRow->contragentAddress) ? ", " . $oldRow->contragentAddress : '');
-    	}
+    	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
+    	trim($row->address, ', ');
     	
     	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
     	$row->docId = $this->getDocLink($rec->id);
@@ -654,6 +650,7 @@ class store_ShipmentOrders extends core_Master
     	$masterRec = $data->masterData->rec;
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
+    	$query->where("#state = 'active'");
     	$query->orderBy("#createdOn", 'DESC');
     	
     	$i = 1;
