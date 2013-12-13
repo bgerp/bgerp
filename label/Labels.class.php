@@ -198,11 +198,8 @@ class label_Labels extends core_Master
             expect($templateId);
         }
         
-        // Вземаме масив с полетата
-        $fieldsArr = label_TemplateFormats::getFieldArrForTemplate($templateId);
-        
-        // Показваме полетата
-        $data->form->addFncFields($fieldsArr);
+        // Добавяме полетата от детайла на шаблона
+        label_TemplateFormats::addFieldForTemplate($data->form, $templateId);
         
         // Вземаме данните от предишния запис
         $dataArr = $data->form->rec->params;
@@ -240,11 +237,14 @@ class label_Labels extends core_Master
                 $oldDataArr = $rec->params;
             }
             
-            // Вземаме масив с полетата
-            $fieldsArr = label_TemplateFormats::getFieldArrForTemplate($form->rec->templateId);
+            // Форма за функционалните полета
+            $fncForm = cls::get('core_Form');
+            
+            // Вземаме функционалните полета за типа
+            label_TemplateFormats::addFieldForTemplate($fncForm, $form->rec->templateId);
             
             // Обхождаме масива
-            foreach ((array)$fieldsArr as $fieldName => $dummy) {
+            foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 
                 // Ако има масив за старите данни и новта стойност е NULL
                 if ($oldDataArr && ($form->rec->$fieldName === NULL)) {
@@ -279,31 +279,41 @@ class label_Labels extends core_Master
         // Ако не е сетнат за този шаблон
         if(!$fieldsArr[$rec->templateId]) {
             
-            // Вземаме полетата
-            $fieldsArr[$rec->templateId] = label_TemplateFormats::getFieldArrForTemplate($rec->templateId);
+            // Форма за функционалните полета
+            $fncForm = cls::get('core_Form');
+            
+            // Вземаме функционалните полета за тип
+            label_TemplateFormats::addFieldForTemplate($fncForm, $rec->templateId);
+            
+            // Добавяме в масива
+            $fieldsArr[$rec->templateId] = $fncForm->fields;
         }
         
         // Нулираме стойността
         $row->params = '';
         
         // Обхождаме масива с полетата
-        foreach((array)$fieldsArr[$rec->templateId] as $name => $otherParams) {
+        foreach((array)$fieldsArr[$rec->templateId] as $name => $field) {
             
             // Името на полето
-            $fieldName = $otherParams['name'];
+            $fieldName = $field->caption;
+            
+            // Ако е зададено няколко части от името
+            if(($pos = mb_strrpos($fieldName, '->')) !== FALSE) {
+                
+                // Вземаме последната част от името
+                $fieldName =  mb_substr($fieldName, $pos + 2);
+            }
             
             // Ескейпваме
             $fieldName = type_Varchar::escape($fieldName);
             $fieldName = core_Type::escape($fieldName);
             
-            // Инстанция на класа
-            $inst = cls::get($otherParams['clsType']);
-            
             // Ако е масив
             if (is_array($rec->params)) {
                 
                 // Вербалната стойност
-                $verbalVal = $inst->toVerbal($rec->params[$name]);
+                $verbalVal = $field->type->toVerbal($rec->params[$name]);
             }
             
             // Добавяме в полето

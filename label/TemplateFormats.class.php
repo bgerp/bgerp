@@ -375,7 +375,6 @@ class label_TemplateFormats extends core_Detail
         
         // В зависимост от типа
         switch ($type) {
-            
             // Ако е плейсхолдер
             case 'caption':
                 // Максимална дължина на символите
@@ -433,22 +432,18 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Връща масив с полета за създаване за записите към masterId
+     * Добавя функционални полета към подадената форма, за всички детайли към мастер
      * 
-     * @param integer $masterId - id на мастера
-     * 
-     * @return array - Двумерен масив с името и параметрите на тип
+     * @param core_Form $form - Формата
+     * @param integer $masterId - id на мастер 
      */
-    static function getFieldArrForTemplate($masterId)
+    static function addFieldForTemplate(&$form, $masterId)
     {
+        // Очакваме да е инстанция на core_Form
+        expect($form instanceof core_Form);
+        
         // Инстанция на класа
         $me = cls::get(get_called_class());
-        
-        // Масив с типовете на полето
-        $typeArr = arr::make(static::$typeEnumOpt, TRUE);
-        
-        // Резултатния масив
-        $resArr =array();
         
         // Вземаме всички записи за съответния master, без броячите
         $query = $me->getQuery();
@@ -465,42 +460,31 @@ class label_TemplateFormats extends core_Detail
             // Името на полето
             $placeHolderField = static::getPlaceholderFieldName($placeHolder);
             
-            // Добавяме в масива името на полето
-            $resArr[$placeHolderField]['caption'] = "Шаблони->" . $placeHolder;
+            // Заглавието на полета
+            $caption = "Шаблони->" . $placeHolder;
             
-            // Името на плейсхолдер
-            $resArr[$placeHolderField]['name'] = $placeHolder;
-            
-            // Полето да е silent
-            $resArr[$placeHolderField]['silent'] = 'silent';
-            
-            // Ако типа е image
+            // Ако е image
             if ($rec->type == 'image') {
                 
-                $resArr[$placeHolderField]['clsType'] = 'fileman_FileType';
-                
-                // Добавяме кофа за качване на файл
-                $resArr[$placeHolderField]['type'] = 'fileman_FileType(bucket=' . static::$bucket . ')';
+                // Добавяме поле за качване на изображение
+                $form->FNC($placeHolderField, 'fileman_FileType(bucket=' . static::$bucket . ')', "caption={$caption}, input=input");
             } elseif ($rec->type == 'caption') {
-                
-                // Ако тупа е надпис
-                
-                $resArr[$placeHolderField]['clsType'] = 'type_Varchar';
                 
                 // Ако е зададена максимална дължина
                 if (is_array($rec->formatParams) && ($maxLength = $rec->formatParams['MaxLength'])) {
                     
                     // Задаваме стрингов тип с максимална дължина
-                    $resArr[$placeHolderField]['type'] = "varchar({$maxLength})";
+                    $type = "varchar({$maxLength})";
                 } else {
                     
-                    // Задаваме стрингов ти
-                    $resArr[$placeHolderField]['type'] = 'varchar';
+                    // Типа без максимална дължина
+                    $type = 'varchar';
                 }
+                
+                // Максимална дължина на символите
+                $form->FNC($placeHolderField, $type, "caption={$caption}, input=input");
             }
         }
-        
-        return $resArr;
     }
     
     
