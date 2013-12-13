@@ -455,6 +455,14 @@ class sales_SalesDetails extends core_Detail
     {
         $ProductManager = cls::get($rec->classId);
         $row->productId = $ProductManager->getTitleById($rec->productId);
+        if($ProductManager instanceof techno_Specifications){
+        	
+        	//@TODO да махна изискването да има дебъг
+        	if(haveRole('debug') && mp_Jobs::haveRightFor('add') && !Mode::is('printing') && !Mode::is('text', 'xhtml')){
+        		$img = ht::createElement('img', array('src' => sbf('img/16/clipboard_text.png', '')));
+        		$row->productId .= "<span style='margin-left:5px'>" . ht::createLink($img, array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), NULL, 'title=Ново задание') . "</span>";
+        	}
+    	}
     }
     
     

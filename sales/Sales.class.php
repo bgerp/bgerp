@@ -199,7 +199,7 @@ class sales_Sales extends core_Master
         // Наш персонал
         $this->FLD('initiatorId', 'user(roles=user,allowEmpty)', 'caption=Наш персонал->Инициатор');
         $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Търговец');
-
+        
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
@@ -235,8 +235,9 @@ class sales_Sales extends core_Master
     	
     	$query = $this->sales_SalesDetails->getQuery();
         $query->where("#saleId = '{$id}'");
+        $recs = $query->fetchAll();
         
-        price_Helper::fillRecs($query->fetchAll(), $rec);
+        price_Helper::fillRecs($recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
         $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
@@ -602,7 +603,6 @@ class sales_Sales extends core_Master
 	    }
 	    
 	    if($fields['-single']){
-		    
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	if ($rec->isInstantPayment == 'yes') {
 	            $row->caseId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
@@ -704,7 +704,7 @@ class sales_Sales extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
-    		
+	    	
     		// Ако доставеното - платеното е точно
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
@@ -1151,6 +1151,25 @@ class sales_Sales extends core_Master
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Връща всички спецификации в продажбата
+     * @param int $id
+     * @return array $options
+     */
+    public function getSpecifications($id)
+    {
+    	$SpecClassId = techno_Specifications::getClassId();
+    	$dQuery = $this->sales_SalesDetails->getQuery();
+    	$dQuery->where("#saleId = {$id}");
+    	$dQuery->where("#classId = {$SpecClassId}");
+    	while($dRec = $dQuery->fetch()){
+    		$res[$dRec->productId] = techno_Specifications::getTitleById($dRec->productId);
+    	}
+    	
+    	return $res;
     }
     
     

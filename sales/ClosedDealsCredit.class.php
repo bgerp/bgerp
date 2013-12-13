@@ -103,7 +103,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     {
     	$res = parent::canAddToThread($threadId);
     	if($res){
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    		$firstDoc = doc_Threads::getFirstDocument($threadId);
     		$info = static::getDealInfo($firstDoc);
     		$res = $info->dealType == bgerp_iface_DealResponse::TYPE_SALE;
     		if($res){
