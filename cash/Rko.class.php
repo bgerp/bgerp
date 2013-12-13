@@ -40,7 +40,7 @@ class cash_Rko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, number, reason, valior, amount, currencyId, state, createdOn, createdBy";
+    var $listFields = "number, valior, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
     
     
     /**
@@ -289,6 +289,9 @@ class cash_Rko extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    	}	
     	
     	if($fields['-single']){
     		

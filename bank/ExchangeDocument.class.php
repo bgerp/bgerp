@@ -38,7 +38,7 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, number=Номер, reason, valior, creditQuantity=Обменени->Сума, creditCurrency=Обменени->Валута, debitQuantity=Получени->Сума, debitCurrency=Получени->Валута, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, number=Номер, valior, reason, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
     
     
     /**
@@ -249,7 +249,10 @@ class bank_ExchangeDocument extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
-	    	
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    	}	
+    	
 	    $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
     	$debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
 	    $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);
