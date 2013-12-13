@@ -25,7 +25,7 @@ class cal_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, cal_Wrapper, cal_ViewTasks, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
+    var $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, doc_SharablePlg, plg_Search, change_Plugin';
     
 
     /**
@@ -1055,6 +1055,7 @@ class cal_Tasks extends core_Master
     	
     	return  $type;
     }
+    
     
     /**
      * Прави линкове към по-голям и по-маък тип гант
