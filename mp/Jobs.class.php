@@ -123,12 +123,12 @@ class mp_Jobs extends core_Master
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richText(rows=3)', 'caption=Забележки');
-    	
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Място');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
+    	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активирано, rejected=Отказано)', 
             'caption=Статус, input=none'
@@ -180,7 +180,7 @@ class mp_Jobs extends core_Master
 	        
         	if($jobRec = $mvc->getLastJob($specId, 'draft')){
         		$link = ht::createLink($mvc->getHandle($jobRec->id), array($mvc, 'single', $jobRec->id));
-    			$form->setWarning('specId', "Тази спецификация има вече задание чернова за |* {$link}");
+    			$form->setWarning('specId', "Тази спецификация има вече задание чернова|* {$link}");
     		}
         } else {
         	$form->setReadOnly('specId');
@@ -251,6 +251,10 @@ class mp_Jobs extends core_Master
     	
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+    		
+    		$pInfo = $Driver->getProductInfo();
+    		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
+    		
     		$dData = $Driver->prepareData();
     		$row->origin = $Driver->renderJobView($dData);
     	}
