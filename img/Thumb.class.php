@@ -275,8 +275,8 @@ class img_Thumb
         $originalRatio = abs(1-$original[2]);
         $rotatedRatio = abs(1-$rotated[2]);
         
-        if ($originalRatio && $originalRatio < $rotatedRatio) {
-//            bp($originalRatio, $rotatedRatio);
+        if ($originalRatio && $originalRatio > $rotatedRatio) {
+            
             return TRUE;
         }
     }
