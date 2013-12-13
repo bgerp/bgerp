@@ -206,11 +206,8 @@ class label_TemplateFormats extends core_Detail
         // Задаваме да не може да се променя
         $data->form->setReadonly('type');
         
-        // Вземаме масив с полетата
-        $fieldsArr = static::getFieldsArrForType($type);
-        
-        // Показваме полетата
-        $data->form->addFncFields($fieldsArr);
+        // Добавяме функционалните полета за съответния тип
+        static::addFieldsForType($data->form, $type);
         
         // Вземаме данните от предишния запис
         $dataArr = $data->form->rec->formatParams;
@@ -338,11 +335,14 @@ class label_TemplateFormats extends core_Detail
                 $oldDataArr = $rec->formatParams;
             }
             
-            // Масив с полетата за този тип
-            $fieldsArr = static::getFieldsArrForType($type);
+            // Форма за функционалните полета
+            $fncForm = cls::get('core_Form');
+            
+            // Вземаме функционалните полета за типа
+            static::addFieldsForType($fncForm, $type);
             
             // Обхождаме масива
-            foreach ((array)$fieldsArr as $fieldName => $dummy) {
+            foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 
                 // Ако има масив за старите данни и новта стойност е NULL
                 if ($oldDataArr && ($form->rec->$fieldName === NULL)) {
@@ -363,36 +363,29 @@ class label_TemplateFormats extends core_Detail
     
     
     /**
-     * Връща масив с полета за създаване в зависимост от типа
+     * Добавя функционални полета към подадената форма, за съответния тип
      * 
-     * @param string $type - Името на типа, за което ще се търси
-     * 
-     * @return array - Двумерен масив с името и параметрите на тип
+     * @param core_Form $form - Формата
+     * @param string $type - Типа 
      */
-    static function getFieldsArrForType($type)
+    static function addFieldsForType(&$form, $type)
     {
-        // Масива, който ще връщаме
-        $filedsArr = array();
+        // Очакваме да е инстанция на core_Form
+        expect($form instanceof core_Form);
         
         // В зависимост от типа
         switch ($type) {
             
             // Ако е плейсхолдер
             case 'caption':
-                
-                // Поле за максимален брой символи
-                $filedsArr['MaxLength']['clsType'] = 'type_Int';
-                $filedsArr['MaxLength']['type'] = 'int(min=1, max=500)';
-                $filedsArr['MaxLength']['caption'] = 'Макс. символи';
+                // Максимална дължина на символите
+                $form->FNC('MaxLength', 'int(min=1, max=500)', 'caption=Макс. символи, input=input');
             break;
             
             // Ако е брояч
             case 'counter':
-                
-                // Поле за избор на брояч
-                $filedsArr['CounterId']['clsType'] = 'type_Key';
-                $filedsArr['CounterId']['type'] = 'key(mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')';
-                $filedsArr['CounterId']['caption'] = 'Брояч';
+                // Кой брояч да се използва
+                $form->FNC('CounterId', 'key(allowEmpty, mvc=label_Counters, select=name, where=#state !\\= \\\'rejected\\\' AND #state !\\= \\\'closed\\\')', 'caption=Брояч, input=input');
                 
                 // Вземаем всички баркодове, които можем да генерираме
                 $barcodesArr = barcode_Generator::getAllowedBarcodeTypesArr();
@@ -400,71 +393,42 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме празен елемент
                 $barcodesArr = array('' => '') + $barcodesArr;
                 
-                // Поле за показване на баркод
-                $filedsArr['Showing']['clsType'] = 'type_Enum';
-                $filedsArr['Showing']['type'] = 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)';
-                $filedsArr['Showing']['caption'] = 'Показване';
-                $filedsArr['Showing']['title'] = 'Показване на баркод';
+                // Вид показване на баркода
+                $form->FNC('Showing', 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)', 'title=Показване на баркод, caption=Показване, input=input');
                 
-                // Поле за избор на баркод
-                $filedsArr['BarcodeType']['clsType'] = 'type_Enum';
-                $filedsArr['BarcodeType']['type'] = cls::get(('type_Enum'), array('options' => $barcodesArr));
-                $filedsArr['BarcodeType']['caption'] = 'Тип баркод';
+                // Вид баркод
+                $form->FNC('BarcodeType', cls::get(('type_Enum'), array('options' => $barcodesArr)), 'caption=Тип баркод, input=input');
                 
-                // Поле за широчина
-                $filedsArr['Width']['clsType'] = 'type_Int';
-                $filedsArr['Width']['type'] = 'int(min=1, max=5000)';
-                $filedsArr['Width']['caption'] = 'Широчина';
-                $filedsArr['Width']['unit'] = 'px';
+                // Широчина на баркода
+                $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px');
                 
-                // Поле за височина
-                $filedsArr['Height']['clsType'] = 'type_Int';
-                $filedsArr['Height']['type'] = 'int(min=1, max=5000)';
-                $filedsArr['Height']['caption'] = 'Височина';
-                $filedsArr['Height']['unit'] = 'px';
+                // Височина на баркода
+                $form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px');
                 
-                // Поле за формат
-                $filedsArr['Format']['clsType'] = 'type_Varchar';
-                $filedsArr['Format']['type'] = 'varchar';
-                $filedsArr['Format']['caption'] = 'Формат';
-                $filedsArr['Format']['mandatory'] = 'mandatory';
+                // Формат на баркода
+                $form->FNC('Format', 'varchar', 'caption=Формат, input=input, mandatory');
                 
-                // Поле дали за избор дали да се ротира
-                $filedsArr['Rotation']['clsType'] = 'type_Enum';
-                $filedsArr['Rotation']['type'] = 'enum(yes=Да, no=Не)';
-                $filedsArr['Rotation']['caption'] = 'Ротация';
-                $filedsArr['Rotation']['mandatory'] = 'mandatory';
+                // Дали да се ротира или не
+                $form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory');
             break;
             
             case 'image':
+                // Широчина на изображението
+                $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px, mandatory');
                 
-                // Поле за широчина
-                $filedsArr['Width']['clsType'] = 'type_Int';
-                $filedsArr['Width']['type'] = 'int(min=1, max=5000)';
-                $filedsArr['Width']['caption'] = 'Широчина';
-                $filedsArr['Width']['unit'] = 'px';
-                $filedsArr['Width']['mandatory'] = 'mandatory';
+                // Височина на изображението
+                $form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px, mandatory');
                 
-                // Поле за височина
-                $filedsArr['Height']['clsType'] = 'type_Int';
-                $filedsArr['Height']['type'] = 'int(min=1, max=5000)';
-                $filedsArr['Height']['caption'] = 'Височина';
-                $filedsArr['Height']['unit'] = 'px';
-                $filedsArr['Height']['mandatory'] = 'mandatory';
-                
-                // Поле дали за избор дали да се ротира
-                $filedsArr['Rotation']['clsType'] = 'type_Enum';
-                $filedsArr['Rotation']['type'] = 'enum(yes=Допустима, no=Недопустима)';
-                $filedsArr['Rotation']['caption'] = 'Ротация';
-                $filedsArr['Rotation']['mandatory'] = 'mandatory';
+                // Дали е допустима ротацията
+                $form->FNC('Rotation', 'enum(yes=Допустима, no=Недопустима)', 'caption=Ротация, input=input, mandatory');
             break;
             
             default:
+                
+                // Очакваме валиден тип
                 expect(FALSE, $type);
             break;
         }
-        
-        return $filedsArr;
     }
     
     
@@ -649,6 +613,9 @@ class label_TemplateFormats extends core_Detail
             // Ако има шаблон за субституиране с брояч
             if (label_Counters::haveCounterPlace($formatVal)) {
                 
+                // Очакваме да има избран брояч
+                expect($rec->formatParams['CounterId'], 'Не е избран брояч');
+                
                 // Заместваме брояча
                 $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId);
             }
@@ -683,6 +650,10 @@ class label_TemplateFormats extends core_Detail
                     // Добавяме стойността
                     $verbalValArr[$valStr] = $div . $formatVal . "</div>";
                 } else {
+                    
+                    // Очакваме да има въведен баркод тип
+                    expect($barcodeType, 'Трябва да се избере типа на баркода');
+                    
                     // Масив с размерите
                     $size = array('width' => $rec->formatParams['Width'], 'height' => $rec->formatParams['Height']);
                     
@@ -731,34 +702,33 @@ class label_TemplateFormats extends core_Detail
         // Ако не е сетнат за този шаблон
         if(!$fieldsArr[$rec->type]) {
             
-            // Вземаме полетата
-            $fieldsArr[$rec->type] = static::getFieldsArrForType($rec->type);
+            // Форма за функционалните полета
+            $fncForm = cls::get('core_Form');
+            
+            // Вземаме функционалните полета за тип
+            static::addFieldsForType($fncForm, $rec->type);
+            
+            // Добавяме в масива
+            $fieldsArr[$rec->type] = $fncForm->fields;
         }
         
         // Нулираме стойността
         $row->formatParams = '';
         
         // Обхождаме масива с полетата
-        foreach((array)$fieldsArr[$rec->type] as $name => $otherParams) {
+        foreach((array)$fieldsArr[$rec->type] as $name => $field) {
             
             // Името на полето
-            $fieldName = $otherParams['caption'];
-            
-            // Ескейпваме
-            $fieldName = type_Varchar::escape($fieldName);
-            $fieldName = core_Type::escape($fieldName);
-            
-            // Инстанция на класа
-            $inst = cls::get($otherParams['clsType']);
+            $fieldName = $field->caption;
             
             // Вербалната стойност
-            $verbalVal = $inst->toVerbal($rec->formatParams[$name]);
+            $verbalVal = $field->type->toVerbal($rec->formatParams[$name]);
             
             // Ако няма подадена стойност
             if (!$verbalVal) {
                 
                 // Задаваме стринга
-                $verbalVal = tr('Няма стойност');
+                $verbalVal = '*' . tr('Няма стойност') . '*';
             }
             
             // Добавяме в полето
