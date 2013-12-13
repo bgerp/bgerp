@@ -1,0 +1,74 @@
+[#SingleToolbar#]
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	<!--ET_BEGIN header-->
+	<div class='header [#STATE_CLASS#]'>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+	</div>
+	<!--ET_END header-->
+	
+	<table border = 1 id = 'jobTable'>
+		<tr>
+			<td class='job-head'>|Данни на заданието|*</td>
+		</tr>
+		<tr>
+			<td colspan = '2'>
+				<table class='styled-table'>
+					<tr>
+						<td>|Падеж|*:</td>
+						<td><b>[#dueDate#]</b></td>
+					</tr>
+					<tr>
+						<td>|Количество|*:</td>
+						<td align='right'><b>[#quantity#]</b></td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td class='job-head'>|Описание на изделието|*</td>
+		</tr>
+		<tr>
+			<td id = 'jobSpec'>[#origin#]</td>
+		</tr>
+		<tr>
+			<td class='job-head'>|Бележки|*</td>
+		</tr>
+		<tr>
+			<td>&nbsp;[#notes#]&nbsp;</td>
+		</tr>
+		<tr>
+			<td class='job-head'>|Логистика|*</td>
+		</tr>
+		<tr>
+			<td>
+				<table class='styled-table'>
+				
+					<!--ET_BEGIN deliveryTermId-->
+					<tr>
+						<td>|Доставка|*:</td>
+						<td>[#deliveryTermId#]</td>
+					</tr>
+					<!--ET_END deliveryTermId-->
+					
+					<!--ET_BEGIN deliveryDate-->
+					<tr>
+						<td>|Срок|*:</td>
+						<td>[#deliveryDate#]</td>
+					</tr>
+					<!--ET_END deliveryDate-->
+					
+					<!--ET_BEGIN deliveryPlace-->
+					<tr>
+						<td>|Място|*</td>
+						<td>[#deliveryPlace#]</td>
+					</tr>
+					<!--ET_END deliveryPlace-->
+					
+				</table>
+			</td>
+		</tr>
+	</table>
+</div>

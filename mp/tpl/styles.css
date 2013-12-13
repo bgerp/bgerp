@@ -1,0 +1,23 @@
+.document td.job-head{
+	background-color:#EEE;
+	font-weight:bold;
+}
+
+.document #jobSpec{
+	padding: 5px !important;
+}
+
+.document #jobSpec div.general-product{
+	border:1px solid #EEE;
+	padding:10px;
+}
+
+.document #jobTable{
+	border-color:#EEE;
+	border-collapse:collapse;
+}
+
+.document #jobTable td{
+	border-color:#EEE;
+	padding:0.3em;
+}

@@ -8,101 +8,315 @@
  *
  * @category  bgerp
  * @package   mp
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
  */
-class mp_Jobs extends core_Manager
+class mp_Jobs extends core_Master
 {
+    
+    
+	/**
+     * Интерфейси, поддържани от този мениджър
+     */
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Задания за производство';
+    public $title = 'Задания за производство';
+    
+    
+    /**
+     * Единично заглавие
+     */
+    public $singleTitle = 'Задание за производство';
+    
+    
+    /**
+     * Абревиатура
+     */
+    public $abbr = 'Job';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, mp_Wrapper, doc_ActivatePlg, plg_Search';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,mp';
+    public $canRead = 'ceo, mp';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,mp';
+    public $canEdit = 'ceo, mp';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,mp';
+    public $canAdd = 'ceo, mp';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,mp';
+	public $canList = 'ceo, mp';
 
-
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,mp';
+	public $canSingle = 'ceo, mp';
     
     
-    /**
-     * Кой може да го види?
+	/**
+	 * Полета за търсене
+	 */
+	public $searchFields = 'originId, folderId';
+	
+	
+	/**
+     * Икона на единичния изглед
      */
-    var $canView = 'ceo,mp';
+    public $singleIcon = 'img/16/clipboard_text.png';
     
     
-    /**
-     * Кой може да го изтрие?
+	/**
+     * Дали може да бъде само в началото на нишка
      */
-    var $canDelete = 'ceo,mp';
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт';
+    public $listFields = 'tools=Пулт, originId=Спецификация, folderId, dueDate, quantity, state, createdOn, createdBy';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
+     * Шаблон за единичен изглед
+     */
+    public $singleLayoutFile = 'mp/tpl/SingleLayoutJob.shtml';
+    
+    
+	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
+    	$this->FLD('specId', 'key(mvc=techno_Specifications,select=title)', 'caption=Спецификация,mandatory,silent');
+    	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
+    	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
+    	$this->FLD('notes', 'richText(rows=3)', 'caption=Забележки');
+    	
+    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
+    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Място');
+    	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
+    	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
+    	$this->FLD('state', 
+            'enum(draft=Чернова, active=Активирано, rejected=Отказано)', 
+            'caption=Статус, input=none'
+        );
+    }
+    
+    
+	/**
+	 *  Подготовка на филтър формата
+	 */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		$data->listFilter->view = 'horizontal';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->showFields = 'search';
+		
+        // Активиране на филтъра
+        $data->listFilter->input();
+    }
+    
+    
+	 /**
+      * Добавя ключови думи за пълнотекстово търсене
+      */
+    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if($rec->originId){
+    		// Извличане на ключовите думи от документа
+	     	$object = doc_Containers::getDocument($rec->originId);
+	    	$title = $object->getTitleById();
+	     	
+	    	$res = plg_Search::normalizeText($title);
+	    	$res = " " . $res;
+    	}
     }
     
     
     /**
-     * Екшън по подразбиране.
-     * Извежда картинка, че страницата е в процес на разработка
+     * Преди показване на форма за добавяне/промяна
      */
-    function act_Default()
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        requireRole('mp, admin');
+    	$form = &$data->form;
+        //$form->setDefault('dueDate', dt::now());
+    	
+        if(empty($form->rec->specId)){
+	        $specId = $mvc->getSpecByOrigin($form);
+	        $form->setReadOnly('specId', $specId);
+	        
+        	if($jobRec = $mvc->getLastJob($specId, 'draft')){
+        		$link = ht::createLink($mvc->getHandle($jobRec->id), array($mvc, 'single', $jobRec->id));
+    			$form->setWarning('specId', "Тази спецификация има вече задание чернова за |* {$link}");
+    		}
+        } else {
+        	$form->setReadOnly('specId');
+        }
+    	
+    	$locations = crm_Locations::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
+    	$form->setOptions('deliveryPlace', array('' => '') + $locations);
+    }
+    
+    
+    /**
+     * Връща ид-то на спецификацията по зададените параметри в урл-то
+     * @param core_Form $form
+     * @return int
+     */
+    private function getSpecByOrigin(&$form)
+    {
+    	expect($docClass = Request::get('originClass', 'int'));
+	    expect($docId = Request::get('originDocId', 'int'));
+	    $origin = new core_ObjectReference($docClass, $docId);
+	       
+	    if($origin->instance instanceof sales_SalesDetails){
+	        $sRec = $origin->fetch();
+	        $Class = cls::get($sRec->classId);
+	        	
+	        expect($Class instanceof techno_Specifications);
+	        $specId = $sRec->productId;
+	        $form->setDefault('quantity', $sRec->packQuantity);
+	        	
+	    } elseif($origin->haveInterface('techno_ProductsIntf')){
+	        $specId = techno_Specifications::fetchByDoc($docClass, $docId)->id;
+	    } else {
+	        expect(FALSE);
+	    }
+	    
+	    return $specId;
+    }
+    
+    
+    /**
+     * Връща последното задание за дадена спецификация 
+     * @param int $specId - ид на спецификация
+     * @param string $state - състояние на заданието
+     * @return stdClass - заданието
+     */
+    public function getLastJob($specId, $state = 'active')
+    {
+    	$query = static::getQuery();
+    	$query->where("#state = 'draft'");
+    	$query->where("#specId = {$specId}");
+    	$query->orderBy("#createdOn", "DESC");
+    	
+    	return $query->fetch();
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$Driver = techno_Specifications::getDriver($rec->specId);
+    	
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->originId = $Driver->getHyperLink();
+    	}
+    	
+    	if($fields['-single']){
+    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+    		$dData = $Driver->prepareData();
+    		$row->origin = $Driver->renderJobView($dData);
+    	}
+    }
+    
+    
+	/**
+     * Пушваме css и js файла
+     */
+    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {	
+    	$tpl->push('mp/tpl/styles.css', 'CSS');
+    }
+    
+    
+	/**
+     * При нова продажба, се ънсетва threadId-то, ако има
+     */
+    static function on_AfterPrepareDocumentLocation($mvc, $form)
+    {   
+    	if($form->rec->threadId && !$form->rec->id){
+		     unset($form->rec->threadId);
+		}
+    }
+    
+    
+	/**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    function getDocumentRow($id)
+    {
+    	$rec = $this->fetch($id);
+        $row = new stdClass();
+        $row->title = "Задание за производство №{$id}";
+        $row->authorId = $rec->createdBy;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+		$row->recTitle = "Задание за производство №{$id}";
+		
+        return $row;
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
+    }
+    
+    
+	/**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+        if((Request::get('originClass', 'int') && Request::get('originDocId', 'int')) || Request::get('specId', 'int')){
+        	return TRUE;
+        }
         
-    	$text = tr('В процес на разработка');
-    	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";
-
-        return $this->renderWrapping($underConstructionImg);
+    	return FALSE;
     }
 }
