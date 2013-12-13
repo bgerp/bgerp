@@ -400,9 +400,6 @@ class label_TemplateFormats extends core_Detail
                 // Добавяме празен елемент
                 $barcodesArr = array('' => '') + $barcodesArr;
                 
-                // Вземаем enum представянето
-//                $barcodeStr = type_Enum::fromArray($barcodesArr);
-                
                 // Поле за показване на баркод
                 $filedsArr['Showing']['clsType'] = 'type_Enum';
                 $filedsArr['Showing']['type'] = 'enum(barcodeAndStr=Баркод и стринг, string=Стринг, barcode=Баркод)';
@@ -411,7 +408,6 @@ class label_TemplateFormats extends core_Detail
                 
                 // Поле за избор на баркод
                 $filedsArr['BarcodeType']['clsType'] = 'type_Enum';
-//                $filedsArr['BarcodeType']['type'] = 'enum(' . $barcodeStr . ')';
                 $filedsArr['BarcodeType']['type'] = cls::get(('type_Enum'), array('options' => $barcodesArr));
                 $filedsArr['BarcodeType']['caption'] = 'Тип баркод';
                 
