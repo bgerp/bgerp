@@ -26,7 +26,7 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'purchase_Offers';
+    var $startCtr = 'purchase_Purchases';
     
     
     /**
@@ -63,7 +63,7 @@ class purchase_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.3, 'Логистика', 'Доставки', 'purchase_Offers', 'default', "purchase, ceo"),
+            array(3.3, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', "purchase, ceo"),
         );
 
 
