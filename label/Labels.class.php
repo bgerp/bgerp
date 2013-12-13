@@ -90,7 +90,7 @@ class label_Labels extends core_Master
     /**
      * Роли за мастера на етикетите
      */
-    var $canMasterlabel = 'masterLabel, admin, ceo';
+    var $canMasterlabel = 'labelMaster, admin, ceo';
     
     
     /**
