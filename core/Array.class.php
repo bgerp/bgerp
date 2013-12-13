@@ -303,4 +303,25 @@ class core_Array
         
         return $str;
     }
+    
+    
+    /**
+     * Преобразува от масив с индекси името и стойност вербалното представане към enum
+     * 
+     * @param array $arr - Масив с данни
+     * 
+     * @return string
+     */
+    static function fromArray($arr)
+    {
+        // Обхождаме масива
+        foreach ((array)$arr as $name => $verbalName) {
+            
+            // Генерираме стринг
+            $resStr .= ($resStr) ? ',' : '';
+            $resStr .= $name . '=' . $verbalName;
+        }
+        
+        return $resStr;
+    }
 }
