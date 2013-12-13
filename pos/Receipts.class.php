@@ -428,6 +428,10 @@ class pos_Receipts extends core_Master {
 				$res = 'no_one';
 			}
 		}
+		
+		if($action == 'correction'){
+			$res = 'no_one';
+		}
 	}
     
 	
