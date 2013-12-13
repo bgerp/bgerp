@@ -98,23 +98,4 @@ class type_Enum extends core_Type {
         
         return key($this->options);
     }
-    
-    
-    /**
-     * Преобразува от масив с индекси името и стойност вербалното представане към enum
-     * 
-     * @param unknown_type $arr
-     */
-    static function fromArray($arr)
-    {
-        // Обхождаме масива
-        foreach ((array)$arr as $name => $verbalName) {
-            
-            // Генерираме стринг
-            $resStr .= ($resStr) ? ',' : '';
-            $resStr .= $name . '=' . $verbalName;
-        }
-        
-        return $resStr;
-    }
 }

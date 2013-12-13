@@ -6,18 +6,18 @@
  ****************************************************************/
  
  /*общи функции и параметри*/
-$blue:#048;
-$dark-blue:#036;
-$red:#c00;
-$quiet-gray:#888;
-$history-bg:#fefec2;
-$gray1:#eee; /*светло-сиво за фон*/
-$gray2:#e0e0e0; /*като фона на th на таблиците*/
-$gray3:#ddd; /*като mainmenu и бутони*/
-$gray4:#bbb; /*като фона на известията в мобилен и стандартен бордър*/
-$violet:#9999ff; /*лилаво от формите*/
-$beige:#ffffcc; /*бледо жълто от формите*/
-$orange:#f90; /*оранжево като при ховър на менюто*/
+$blue: #048;
+$dark-blue: #036;
+$red: #c00;
+$quiet-gray: #888;
+$history-bg: #fefec2;
+$gray1: #eee; /*светло-сиво за фон*/
+$gray2: #e0e0e0; /*като фона на th на таблиците*/
+$gray3: #ddd; /*като mainmenu и бутони*/
+$gray4: #bbb; /*като фона на известията в мобилен и стандартен бордър*/
+$violet: #9999ff; /*лилаво от формите*/
+$beige: #ffffcc; /*бледо жълто от формите*/
+$orange: #f90; /*оранжево като при ховър на менюто*/
 
 
 @mixin border-radius($radius) {
@@ -40,39 +40,39 @@ $orange:#f90; /*оранжево като при ховър на менюто*/
 }
 
 @mixin btn-style() {
-	padding-left:22px !important;  
-	background-repeat:no-repeat !important;
+	padding-left: 22px !important;  
+	background-repeat: no-repeat !important;
 	background-position: 3px center;
 }
 
-@mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col){
-	-moz-box-shadow:$sh-top $sh-left $sh-dist $sh-col;
+@mixin shadow($sh-top, $sh-left, $sh-dist, $sh-col) {
+	-moz-box-shadow: $sh-top $sh-left $sh-dist $sh-col;
 	-webkit-box-shadow: $sh-top $sh-left $sh-dist $sh-col;
-	box-shadow:$sh-top $sh-left $sh-dist $sh-col;
+	box-shadow: $sh-top $sh-left $sh-dist $sh-col;
 }
 
-@mixin shadow4($sh-top, $sh-left, $sh-dist, $sh-blur, $sh-col){
-	-moz-box-shadow:$sh-top $sh-left $sh-dist $sh-blur $sh-col;
+@mixin shadow4($sh-top, $sh-left, $sh-dist, $sh-blur, $sh-col) {
+	-moz-box-shadow: $sh-top $sh-left $sh-dist $sh-blur $sh-col;
 	-webkit-box-shadow: $sh-top $sh-left $sh-dist $sh-blur $sh-col;
-	box-shadow:$sh-top $sh-left $sh-dist $sh-blur $sh-col;
+	box-shadow: $sh-top $sh-left $sh-dist $sh-blur $sh-col;
 }
 
-@mixin no-shadow(){
+@mixin no-shadow() {
 	-moz-box-shadow: none;
 	-webkit-box-shadow: none;
     box-shadow: none;
 }
 
-@mixin richtext-message(){
-	font-family:Courier New,mono;
+@mixin richtext-message() {
+	font-family: Courier New,mono;
 	border: 1px dotted;
     margin: 0px 30px;
-    padding:7px 10px 5px 55px;
-    min-height:37px;
+    padding: 7px 10px 5px 55px;
+    min-height: 37px;
     background-repeat: no-repeat;
     background-position: 9px 7px;
     @include border-radius(5px);
-    position:relative;
+    position: relative;
 }
  /*край на общи функции и параметри*/
 
@@ -248,10 +248,10 @@ samp {
 /**
  * Tab-size default
  */
-textarea, code, pre, samp, kbd{
+textarea, code, pre, samp, kbd {
 	-moz-tab-size: 4;
-	-o-tab-size:   4;
-	tab-size:      4;
+	-o-tab-size: 4;
+	tab-size: 4;
 }
 
 
@@ -480,73 +480,71 @@ textarea {
 
 table {
     border-collapse: collapse;
-    border-spacing:0;
+    border-spacing: 0;
 }
 
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
- input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
-	height:1.5em;
-}
-
-select{
+ input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
 	height: 1.5em;
 }
 
-.wide .chzn-container .chzn-single{
-	height:1.3em !important;
-	padding-top:2px !important;
+select {
+	height: 1.5em;
 }
 
-.narrow .chzn-container .chzn-single{
-	height:1.33em !important;
+.wide .chzn-container .chzn-single {
+	height: 1.3em !important;
+	padding-top: 2px !important;
 }
 
+.narrow .chzn-container .chzn-single {
+	height: 1.33em !important;
+}
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
 
 
 /*reseting webkit differences*/
-
 @media screen and (-webkit-min-device-pixel-ratio:0) {
     select {
 	    -webkit-appearance: none;
-	    background-image:url('../img/16/darrow.png') !important;
-	    background-repeat:no-repeat !important;
-	 	background-position:center right !important;
-	    padding-right:1em;
-	    -webkit-border-radius:0;
+	    background-image: url('../img/16/darrow.png') !important;
+	    background-repeat: no-repeat !important;
+	 	background-position: center right !important;
+	    padding-right: 1em;
+	    -webkit-border-radius: 0;
     }
     .wide select {
-      padding-top:2px;
+      padding-top: 2px;
     }
-     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"]{
+     input[type="text"], input[type="color"], input[type="number"], input[type="tel"], input[type="email"], input[type="search"], input[type="url"], input[type="password"] {
 		-webkit-appearance: none;
-		border-radius:0;
-		margin:0;
+		border-radius: 0;
+		margin: 0;
 	}
 	.wide input[type="text"], .wide input[type="color"],.wide  input[type="number"],.wide input[type="tel"], 
-	.wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"]{
-		padding-top:2px;
+	.wide input[type="email"], .wide input[type="search"], .wide input[type="url"], .wide input[type="password"] {
+		padding-top: 2px;
 	}
-	textarea{
-		-webkit-border-radius:0;
+	textarea {
+		-webkit-border-radius: 0;
 		-webkit-appearance: none;
 	}
-	.wide .chzn-container .chzn-single{
-		height:1.3em !important;
+	.wide .chzn-container .chzn-single {
+		height: 1.3em !important;
 	}
-	.narrow .chzn-container .chzn-single{
-		height:1.3em !important;
+	.narrow .chzn-container .chzn-single {
+		height: 1.3em !important;
 	}
 }
 
 /*our reset and common classes*/
-body{
+body {
 	background-color: $gray3;
-	font-family:Helvetica,Arial,Verdana,Sans-serif;
-	font-size:16px; 
+	font-family: Helvetica,Arial,Verdana,Sans-serif;
+	font-size: 16px; 
 }
 
-body.narrow{
+body.narrow {
 	font-size:18px;
 }
 
@@ -559,82 +557,82 @@ legend img {
 }
 
 .wide input.contactData, .wide textarea.contactData, .wide select.contactData {
-	width:400px;
+	width: 400px;
 }
 
 .narrow input.contactData {
-	width:100%;
+	width: 100%;
 }
 
-select{
-	margin-left:0;
+select {
+	margin-left: 0;
 }
 
-select option{
-	background-color:inherit;
+select option {
+	background-color: inherit;
 }
 
-input{
-	padding-left:0.2em;
-	padding-right:0.2em;
+input {
+	padding-left: 0.2em;
+	padding-right: 0.2em;
 }
 
-textarea{
-	padding:0.1em;
-	font-family:monospace;
+textarea {
+	padding: 0.1em;
+	font-family: monospace;
 }
 
-select, input, textarea{
-	background:#fff;
-	-ms-box-sizing:border-box;
-	box-sizing:border-box;
-	-webkit-box-sizing:border-box;
-	-moz-box-sizing:border-box;
+select, input, textarea {
+	background: #fff;
+	-ms-box-sizing: border-box;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
 	border: solid 1px $violet;
 	font-size: 1.07em;
-	color:#222;
+	color: #222;
 }
 
 select.combo {  
 	position: absolute; 
-    visibility:hidden;
-    overflow:hidden;
+    visibility: hidden;
+    overflow: hidden;
 }
 
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
-	box-shadow:none;
-	margin:3px 3px 3px 4px;
-	background-color:transparent;
-	outline:none;
+	box-shadow: none;
+	margin: 3px 3px 3px 4px;
+	background-color: transparent;
+	outline: none;
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
-  color:$quiet-gray;
+  color: $quiet-gray;
   margin-bottom: 2px;
-  background-color:transparent !important;
+  background-color: transparent !important;
   display: inline-block;
 }
 
 input[type=radio]:checked + label, input[type=checkbox]:checked + label {
-   color:#000;
+   color: #000;
    text-shadow: 1px 1px 1px #aaa;
 }
 
-.top-table{
-	border-collapse:separate;
-	border-spacing:2px;
+.top-table {
+	border-collapse: separate;
+	border-spacing: 2px;
 }
 
 .readonly {
-	background:$gray3;
-	border:solid 1px #aaa;
-	min-width:100px;
+	background: $gray3;
+	border: solid 1px #aaa;
+	min-width: 100px;
 }
 
-.calendar, .calendar table{
+.calendar, .calendar table {
 	border-collapse: separate !important;
-	table-layout:fixed;
+	table-layout: fixed;
 }
 
 tr.zebra0 { 
@@ -642,15 +640,15 @@ tr.zebra0 {
 }
 
 tr.zebra1 {
-    background-color:transparent;
+    background-color: transparent;
 }
 
 .wide input[type=submit], .wide input[type=button] {
-	cursor:pointer;
+	cursor: pointer;
 }
 
-.narrow input[type=submit]{
-	background-image:none;
+.narrow input[type=submit] {
+	background-image: none;
 }
 
 .clearfix21:after {
@@ -661,196 +659,197 @@ tr.zebra1 {
     visibility: hidden;
 }
 
-.fright{
-	float:right;
+.fright {
+	float: right;
 }
 
-.fleft{
-	float:left;
+.fleft {
+	float: left;
 }
 /*end of our common styles*/
 
 /* BUTTONS */
 a.button, input[type="button"], input[type="submit"], button {
 	margin-right: 0.5em;
-	margin-left:0;
-	margin-top:1px;
-    color:$dark-blue;
-    font-weight:bold;
-    text-decoration:none;
-    cursor:pointer;
+	margin-left: 0;
+	margin-top: 1px;
+    color: $dark-blue;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
     font-size: 0.8em;
-    padding:0.34em 0.5em;
+    padding: 0.34em 0.5em;
     font-family: Arial,sans-serif;
-    overflow:visible;
-    display:inline-block;
-    background-color:$gray3; 
-    border:1px solid $gray4; 
+    overflow: visible;
+    display: inline-block;
+    background-color: $gray3; 
+    border: 1px solid $gray4; 
     @include border-radius(3px);
     -webkit-appearance: none;	  
 }
 
-.narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button{ 
-	border:1px solid #999; 
-	padding:0.3em 0.4em;
+.narrow a.button, .narrow input[type=button], .narrow input[type=submit], .narrow button { 
+	border: 1px solid #999; 
+	padding: 0.3em 0.4em;
     font-family: Tahoma, Arial, sans-serif;
-    margin-top:0;
-    margin-bottom:0;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
-a.button:hover, input:hover[type=button] , input:hover[type=submit], button:hover{
-    background-color:#ffb; 
+a.button:hover, input:hover[type=button] , input:hover[type=submit], button:hover {
+    background-color: #ffb; 
 }
 
 a.header:target  {
-   color:blue;
+   color: blue;
 }
 
 a.header:hover {
-	color:inherit;
+	color: inherit;
 }
 
 
-.narrow .toolbar .button{
-	border-right:1px solid #999;
-	margin-right:2px !important;
-	margin-bottom:2px !important;
+.narrow .toolbar .button {
+	border-right: 1px solid #999;
+	margin-right: 2px !important;
+	margin-bottom: 2px !important;
 	@include border-radius(3px);
 }
 
 .btn-disabled { 
-	color:$gray4 !important;
-	cursor:default !important;
+	color: $gray4 !important;
+	cursor: default !important;
 }
 
 .wide .noicon {
     padding-right: 3px !important; /* IE6 */
     padding-left: 3px !important; /* IE6 */
 }
+
 .narrow .picker-search-button {
-	height:2em !important;
-	position:relative;
-	top:-2px;
+	height: 2em !important;
+	position: relative;
+	top: -2px;
 }
 
 @-moz-document url-prefix() {	
 	.picker-search-button {
-		position:relative;
-		top:-2px;
+		position: relative;
+		top: -2px;
 	}
 }
 .wide .btn-with-selected {
-    background-image:url('../img/16/checked.png');
+    background-image: url('../img/16/checked.png');
     @include btn-style();
 }
 
 .wide .btn-with-selected-disabled {
-    background-image:url('../img/16/unchecked.png');
+    background-image: url('../img/16/unchecked.png');
     @include btn-style();
 }
 
 .btn-with-selected-disabled:hover {
-	background-color:$gray3 !important;
+	background-color: $gray3 !important;
 }
 
-.btn-with-selected-disabled{
-	color:#999 !important;
-	cursor:default !important;
+.btn-with-selected-disabled {
+	color: #999 !important;
+	cursor: default !important;
 }
 
 .btn-with-selected-disabled:hover {
-	background-color:$gray3 !important;
+	background-color: $gray3 !important;
 }
 
 .wide .btn-bin {
-    float:right;
-    background-image:url('../img/16/bin_closed.png');
+    float: right;
+    background-image: url('../img/16/bin_closed.png');
     @include btn-style();
 }
 
 .wide .btn-reject { 
-    background-image:url('../img/16/reject.png');
+    background-image: url('../img/16/reject.png');
     @include btn-style();
 	float: right;
 }
 
 .wide .btn-settings { 
-	background-image:url('../img/16/settings.png');
+	background-image: url('../img/16/settings.png');
 	@include btn-style();
 }
 
-.wide h2 .btn-settings{
+.wide h2 .btn-settings {
 	font-size: 0.55em;
 	top: -0.2em;
 	position: relative;
 }
 
-table .linkWithIcon{
-	margin-bottom:2px;
+table .linkWithIcon {
+	margin-bottom: 2px;
 }
 
-.toolbar .linkWithIcon{
+.toolbar .linkWithIcon {
 	margin-bottom:0;	
 }
 
 .linkWithIcon{
-	padding-left:22px !important;  
-	background-repeat:no-repeat !important;
+	padding-left: 22px !important;  
+	background-repeat: no-repeat !important;
 	background-position: 3px center;
-	&.sick{
-		background-image:url('../img/16/sick.png');
+	&.sick {
+		background-image: url('../img/16/sick.png');
 	}
-	&.trip{
-		background-image:url('../img/16/working-travel.png');
+	&.trip {
+		background-image: url('../img/16/working-travel.png');
 	}
-	&.leave{
-		background-image:url('../img/16/leaves.png');
+	&.leave {
+		background-image: url('../img/16/leaves.png');
 	}
-	&.home{
-		background-image:url('../img/16/house_blue.png');
+	&.home {
+		background-image: url('../img/16/house_blue.png');
 	}
-	&.office{
-		background-image:url('../img/16/company-building-icon.png');
+	&.office {
+		background-image: url('../img/16/company-building-icon.png');
 	}
-	&.work{
-		background-image:url('../img/16/clock_green.png');
+	&.work {
+		background-image: url('../img/16/clock_green.png');
 	}
-	&.after-work{
-		background-image:url('../img/16/clock_red.png');
+	&.after-work {
+		background-image: url('../img/16/clock_red.png');
 	}
-	&.birthday{
-		background-image:url('../img/16/birthday.png');
+	&.birthday {
+		background-image: url('../img/16/birthday.png');
 	}
-	&.nameday{
-		background-image:url('../img/16/orthodox.png');
+	&.nameday {
+		background-image: url('../img/16/orthodox.png');
 	}
 }
 
-.more-btn{
-	float:left;
-	margin-top:0;
-	margin-bottom:0;
-	background-position:center center;
-	background-image:url(../img/16/toggle-expand.png) !important;
-	background-repeat:no-repeat !important;
-	padding-left:0.3em !important;
-	padding-right:0.3em !important;
-	width:1.9em;
+.more-btn {
+	float: left;
+	margin-top: 0;
+	margin-bottom: 0;
+	background-position: center center;
+	background-image: url(../img/16/toggle-expand.png) !important;
+	background-repeat: no-repeat !important;
+	padding-left: 0.3em !important;
+	padding-right: 0.3em !important;
+	width: 1.9em;
 }
 
-.narrow .more-btn{
-	float:none;
+.narrow .more-btn {
+	float: none;
 }
 
-.more-btn.show-btn{
-	background-image:url(../img/16/toggle2.png) !important;
+.more-btn.show-btn {
+	background-image: url(../img/16/toggle2.png) !important;
 }
 
 .docBgIcon {
-	padding-left:22px !important;  
-	background-repeat:no-repeat !important;
+	padding-left: 22px !important;  
+	background-repeat: no-repeat !important;
 	background-position: 3px center;
- 	padding:0.1em;
+ 	padding: 0.1em;
 }
 
 .wide .icon { 
@@ -861,44 +860,44 @@ table .linkWithIcon{
 	background-position: left center;
 }
 
-.addRoute{
-   	display:inline-block;
-   	width:16px;
-   	height:16px;
-   	padding-left:5px !important;
-	position:relative;
-	top:2px;
+.addRoute {
+   	display: inline-block;
+   	width: 16px;
+   	height: 16px;
+   	padding-left: 5px !important;
+	position: relative;
+	top: 2px;
 }
 
 /*бутони с инструменти*/
 div.rowtools { 
-	display:inline;
-	width:100%; 
+	display: inline;
+	width: 100%; 
 }
  
 .rowtools .r {
-	vertical-align:middle;
-	display:table-cell;
-	text-align:right;
+	vertical-align: middle;
+	display: table-cell;
+	text-align: right;
 }
  
 .rowtools .l {
-	vertical-align:middle;
-	display:table-cell;
-	text-align:left;
+	vertical-align: middle;
+	display: table-cell;
+	text-align: left;
 	img {
-		vertical-align:middle;
-		margin-right:5px;
-		border:none;
+		vertical-align: middle;
+		margin-right: 5px;
+		border: none;
 	}
 }
 
-th .rowtools .r, th .rowtools .l{
-	vertical-align:baseline;	
+th .rowtools .r, th .rowtools .l {
+	vertical-align: baseline;	
 }
 
 .rowtools .nw {
-	white-space:nowrap;
+	white-space: nowrap;
 }
 /*край на бутони*/
 
@@ -918,15 +917,15 @@ a {
       color: #6600cc;
     }
     &:hover{
-    	text-decoration:underline;
+    	text-decoration: underline;
     }
   }
 }
 
-.login-links{
-	font-weight:bold;
-	border-bottom:solid 1px #ccc;
-	padding:2px;
+.login-links {
+	font-weight: bold;
+	border-bottom: solid 1px #ccc;
+	padding: 2px;
 }
 /* край на общи стилове за линковете */
 
@@ -937,47 +936,47 @@ a.profile {
 	@include border-radius(2px);
 	&.ceo {
 		color: #0000cc;
-		&.inactive{
-			color:#333399;
+		&.inactive {
+			color: #333399;
 		}
-		&.active{
+		&.active {
 			color: #0000ff;
 		}
 	}
 	&.manager {
 		color: #a000b0;
-		&.inactive{
+		&.inactive {
 			color: #773387;
 		}
-		&.active{
-			color:#bb00cb;
+		&.active {
+			color: #bb00cb;
 		}
 	}
 	&.officer {
 		color: #00aa00;
-		&.inactive{
-			color:#447744;
+		&.inactive {
+			color: #447744;
 		}
-		&.active{
-			color:#00cc00;
+		&.active {
+			color: #00cc00;
 		}
 	}
 	&.executive {
 		color: #aa6600;
-		&.inactive{
-			color:#886622;
+		&.inactive {
+			color: #886622;
 		}
-		&.active{
-			color:#dd8800;
+		&.active {
+			color: #dd8800;
 		}
 	}
 	&.contractor {
 		color: #cc0000;
-		&.inactive{
-			color:#993333;
+		&.inactive {
+			color: #993333;
 		}
-		&.active{
-			color:#ff0000;
+		&.active {
+			color: #ff0000;
 		}
 	}
 }
@@ -986,26 +985,26 @@ a.profile {
 
 /* Стилове за елемента 'list Table' */
 table.listTable { 
-    margin:0px 0 15px 0;
+    margin: 0px 0 15px 0;
     border: 1px solid $gray4;
-    > tbody > tr:hover  {
-	    background-color:$beige;
+    > tbody > tr:hover {
+	    background-color: $beige;
 	}
 	> thead > tr > th {
 	    border: 1px solid $gray4;
 	    padding: 4px 3px 2px;
-	    background-color:$gray2;
-	    font-weight:bold;
-	    vertical-align:middle;
-	    line-height:normal;
+	    background-color: $gray2;
+	    font-weight: bold;
+	    vertical-align: middle;
+	    line-height: normal;
 	}
 	> tbody > tr > td {
 	    border: 1px solid $gray4;
 	    padding: 4px 3px 2px;
-	    line-height:normal; 
-	    font-family:Arial,Verdana;
-		vertical-align:middle;
-		max-width:400px;
+	    line-height: normal; 
+	    font-family: Arial,Verdana;
+		vertical-align: middle;
+		max-width: 400px;
 		word-wrap: break-word;
 	}
     .toolbar {
@@ -1014,17 +1013,17 @@ table.listTable {
 	.document h2 {
 		margin-top: 3px;
     }
-    > tbody > tr.row-error >td {
-        color:#900;
+    > tbody > tr.row-error > td {
+        color: #900;
     } 
 }
-.narrow table.listTable{
-	margin-bottom:12px;
+.narrow table.listTable {
+	margin-bottom: 12px;
 }
 
 .listTitle {
-	margin-bottom:12px;
-	font-size:1.2em;
+	margin-bottom: 12px;
+	font-size: 1.2em;
 }
 /* край на стилове за елемента 'list Table' */
 
@@ -1032,152 +1031,152 @@ table.listTable {
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
 .formError {
-    border:solid 1px red; 
-    background-color:#ff6;
-    font-size:0.9em;
-    padding:10px; 
-    margin-bottom:10px;
+    border: solid 1px red; 
+    background-color: #ff6;
+    font-size: 0.9em;
+    padding: 10px; 
+    margin-bottom: 10px;
   	@include border-radius(5px);
  }
  
- .wide .formError{
-    text-align:left;
-    min-width:300px;
+ .wide .formError {
+    text-align: left;
+    min-width: 300px;
  }
  
  .narrow .formError {
- 	width:auto;
- 	margin:4px;
-    padding:5px; 
-    font-family:Arial,Verdana;
-    ul{
+ 	width: auto;
+ 	margin: 4px;
+    padding: 5px; 
+    font-family: Arial,Verdana;
+    ul {
     	margin-left: 10px;
     }
 }
 
-.formError li.ignored{
-    color:#aaa;
+.formError li.ignored {
+    color: #aaa;
 }
 
 .inputError {
-    border:solid 1px red;
+    border: solid 1px red;
 }
 
 .inputWarning {
-    border:solid 1px $orange;
+    border: solid 1px $orange;
 }
 
-.formInfo, .formWarning  {
-    margin-bottom:10px;
+.formInfo, .formWarning {
+    margin-bottom: 10px;
 }
 
 .warningMsg {
-    background:yellow;
-    padding:5px;
-    border:dotted 1px green;
-    color:green;
+    background: yellow;
+    padding: 5px;
+    border: dotted 1px green;
+    color: green;
 }
 
 .errorMsg {
-    background:yellow;
-    padding:5px; 
-    border:dotted 1px red; 
-    color:red;
+    background: yellow;
+    padding: 5px; 
+    border: dotted 1px red; 
+    color: red;
 }
 
-.narrow .formInfo, .narrow .formFields, .narrow .formWarning{
-    margin-bottom:3px;
+.narrow .formInfo, .narrow .formFields, .narrow .formWarning {
+    margin-bottom: 3px;
 }
 
 .narrow .formError ul {
-    padding-left:1em;
+    padding-left: 1em;
 }
 
 /* край на грешки и предупреждения*/
 
 /*общи стилове за елементите на формите*/
-.formFields{
-	margin-bottom:10px;
+.formFields {
+	margin-bottom: 10px;
 }
 
 .formFields > table {
-	width:100%;
+	width: 100%;
 }
 
 .wide .formFields > table {
-	margin:5px 0 0px;
+	margin: 5px 0 0px;
 }
 
-.form-filter-btn{
-	margin-top:5px;
-	margin-bottom:15px;
+.form-filter-btn {
+	margin-top: 5px;
+	margin-bottom: 15px;
 }
 
-.narrow .form-filter-btn{
-	margin-left:0;
+.narrow .form-filter-btn {
+	margin-left: 0;
 }
 
 .wide .listTopContainer .formTable { 
 	@include no-shadow();
-	border-collapse:separate;
+	border-collapse: separate;
 }
 
-.narrow .listTopContainer .formTable{
-	border-collapse:separate;
+.narrow .listTopContainer .formTable {
+	border-collapse: separate;
 }
 
-.wide .groupList{
-	line-height:1.4em;	
+.wide .groupList {
+	line-height: 1.4em;	
 }
 
-.groupList .listTable{
-	margin-bottom:0;
+.groupList .listTable {
+	margin-bottom: 0;
 }
 
-.right-align{
-	min-width:120px; 
-	text-align:right;
-	line-height:18px;
-	padding-right:15px;
-	color:#888;
+.right-align {
+	min-width: 120px; 
+	text-align: right;
+	line-height: 18px;
+	padding-right: 15px;
+	color: #888;
 }
 
 div.hFormField { 
-	float:left;
-	margin-right:0.3em;
-	margin-bottom:0.3em;
+	float: left;
+	margin-right: 0.3em;
+	margin-bottom: 0.3em;
 }
 
-.narrow div.hFormField{
-	float:none;
-	margin:0;
+.narrow div.hFormField {
+	float:none ;
+	margin: 0;
 }
 
 .formFields > table > tbody > tr > td {
-	padding-bottom:7px !important;
+	padding-bottom: 7px !important;
 }
 
-.narrow .formFields table > tbody > tr > td{
-	padding-bottom:3px !important;
+.narrow .formFields table > tbody > tr > td {
+	padding-bottom: 3px !important;
 }
 
-.formFields > table .richedit-toolbar{
-	margin-bottom:5px;
+.formFields > table .richedit-toolbar {
+	margin-bottom: 5px;
 }
 
 .narrow .formAll {
-    display:table;
+    display: table;
 }
 
 .formFieldCaption { 
 	padding: 0.4em 0.4em 0.3em;
 	white-space: nowrap;
-	width:1px;
-	vertical-align:top;
+	width: 1px;
+	vertical-align: top;
 }
 
 .formFields input, textarea, select { 
-	margin-top:0px;
+	margin-top: 0px;
     -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset ;
 }
@@ -1186,57 +1185,56 @@ div.hFormField {
     outline: none;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) inset, 0px 0px 7px rgba( 153, 153, 255, 0.7);
 }
-
 /*общи стилове за елементите на формите*/
 
+
 /*тулбар*/
-
-.wide .toolbar > div:first-child{
-	display:block;
-	margin-bottom:8px;
+.wide .toolbar > div:first-child {
+	display: block;
+	margin-bottom: 8px;
 }
 
-.narrow .toolbar-first{
-	display:inline;
+.narrow .toolbar-first {
+	display: inline;
 }
 
-.wide .toolbarHide{
-	margin-top:-2px;
-	margin-bottom:8px;
+.wide .toolbarHide {
+	margin-top: -2px;
+	margin-bottom: 8px;
 }
 
-.narrow .toolbarHide{
-	display:inline;
+.narrow .toolbarHide {
+	display: inline;
 }
 
 .formToolbar input { 
-    margin-right:10px;
+    margin-right: 10px;
 }
 
 .wide .listToolbar {
-	margin-top:13px;
+	margin-top: 13px;
 }
 
-.narrow .listFilter{
+.narrow .listFilter {
 	margin-left: -3px;
 }
 
-.narrow .tab-page .listFilter{
-	margin-left:0;
+.narrow .tab-page .listFilter {
+	margin-left: 0;
 }
 
 .listSummary {
-	padding-bottom:5px; 
-	float:right;
+	padding-bottom: 5px; 
+	float: right;
 }
 
-.listPager{
-	padding-bottom:5px; 
-	clear:both;
+.listPager {
+	padding-bottom: 5px; 
+	clear: both;
 }
 
 .listTopContainer {
-	width:100%;
+	width: 100%;
 }
 
 .narrow .ListToolbar, .narrow .SingleToolbar { 
@@ -1245,36 +1243,36 @@ div.hFormField {
 
 .wide .doc_Containers .toolbar {
 	margin-top: 3px;
-	margin-bottom:3px;
+	margin-bottom: 3px;
 }
 
-.narrow .toolbar{
-	margin:10px 0 10px 0px;
+.narrow .toolbar {
+	margin: 10px 0 10px 0px;
 }
 
-.narrow table.listTable .toolbar{
+.narrow table.listTable .toolbar {
 	padding: 4px 4px 3px;
-	margin:0 0 3px 0;
+	margin: 0 0 3px 0;
 }
 
-.wide .doc_Search{
-	.listFilter{
-		padding-bottom:0;
+.wide .doc_Search {
+	.listFilter {
+		padding-bottom: 0;
 	}
 }
 
-.narrow .doc_Search{
- 	.pages{
- 		padding-top:3px;
- 		margin-bottom:13px;
+.narrow .doc_Search {
+ 	.pages {
+ 		padding-top: 3px;
+ 		margin-bottom: 13px;
  	}
- 	.listTable{
+ 	.listTable {
  		margin-top:10px;
  	}
 }
 
-.toolbar #btnDelete{
-	margin-right:0;
+.toolbar #btnDelete {
+	margin-right: 0;
 }
 
 .wide form[method="post"] input[type="submit"] {
@@ -1284,82 +1282,82 @@ div.hFormField {
 }
 
 .wide form[method=post]  input[type=button], .wide form[method=post]  a.button { 
-	border:solid 1px $quiet-gray;
-	background-color:#999;
-	color:white;
+	border: solid 1px $quiet-gray;
+	background-color: #999;
+	color: white;
 }
 
 .narrow form[method=post] input[type=submit]:first-child { 
-	background-color:$violet;
-	color:white;
+	background-color: $violet;
+	color: white;
 }
 /*край на тулбар*/
 
 
 /*вертикални форми*/
 .vertical .formTitle { 
-    padding:10px;
-    font-size:1.2em;
-    color:white;
+    padding: 10px;
+    font-size: 1.2em;
+    color: white;
     background-color: $violet;
 	border: solid 1px #88e;
 	border-bottom: none;
 	padding: 8px;
-	vertical-align:middle !important;
+	vertical-align: middle !important;
 	@include border-radius4(5px, 5px, 0, 0);
-	img{
-		vertical-align:middle !important;
+	img {
+		vertical-align: middle !important;
 	}
 }
 
-#all .vertical .formTitle img{
-	vertical-align:top !important;
+#all .vertical .formTitle img {
+	vertical-align: top !important;
 }
 
-.narrow .vertical .formTitle{
-	font-size:  1.2em; 
+.narrow .vertical .formTitle {
+	font-size: 1.2em; 
     font-family: Verdana;
-    background-image:none; 
+    background-image: none; 
 }
 
 .vertical .formGroup {
-    padding:5px;
+    padding: 5px;
     margin: 10px 0 5px;
     background-color: $violet;
-	color:white;
+	color: white;
     border-radius: 3px;
 }
 
 .vertical .formAll { 
-    background-color:blue;
-    color:white;
+    background-color: blue;
+    color: white;
 }
 
 .vertical .formSection {	
 	border-left: solid 1px $gray4;
 	border-right: solid 1px $gray4;
-	background-image:url('../img/yellow.png'); 
-	background-color:#ffffee;
-	padding:15px;
-    padding-bottom:0px;
-    color:black;
-    vertical-align:top;
+	background-image: url('../img/yellow.png'); 
+	background-color: #ffffee;
+	padding: 15px;
+    padding-bottom: 0px;
+    color: black;
+    vertical-align: top;
 }
 
 .narrow .vertical .formSection {
 	padding: 3px;
-	background-image:none;
+	background-image: none;
 }
 
 .wide .vertical .formTable {
 	@include border-radius(5px);
     @include shadow4(2px,2px,8px,3px,#aab);
-    margin-bottom:20px;
-    border-collapse:separate;
+    margin-bottom: 20px;
+    border-collapse: separate;
 }
 
 .narrow .vertical .formTable {
-	 border-collapse:separate;
+	 border-collapse: separate;
 }
 
 .vertical .formToolbar {
@@ -1367,60 +1365,60 @@ div.hFormField {
 	@include border-radius4(0px, 0px, 5px, 5px);
 	border: solid 1px $gray4;
 	border-top: none;
-	background-image:url('../img/formToolbarBg.jpg');
+	background-image: url('../img/formToolbarBg.jpg');
 }
 
 .narrow .vertical .formToolbar {
 	background-image: none;
 	border: solid 1px $gray4;
 	border-top: none;
-	padding:0 6px 3px 6px !important;
+	padding: 0 6px 3px 6px !important;
     background-color: #ffffee;
     input {
-	    margin-right:5px;
+	    margin-right: 5px;
 	}
-	.toolbar{
-		margin-top:0;
+	.toolbar {
+		margin-top: 0;
 	}
 }
 
-.vertical .formTable select{
-	margin-right:3px;
+.vertical .formTable select {
+	margin-right: 3px;
 }
 /*край на вертикални форми*/
 
 
 /*хоризонтални форми*/
 .wide .horizontal .formToolbar { 
-	float:left;
-	margin-bottom:13px;
-	margin-top:-1px;
+	float: left;
+	margin-bottom: 13px;
+	margin-top: -1px;
 }
 
 .wide .horizontal .formFields {
-	float:left; 
+	float: left; 
 }
 
-.narrow .horizontal{
-	margin-bottom:10px;
+.narrow .horizontal {
+	margin-bottom: 10px;
 }
 
-.narrow .horizontal .formFields>div {
+.narrow .horizontal .formFields > div {
 	margin-bottom: 10px;
 }
 /*край на хоризонтални форми*/
 
 
 /*Загвавие, състоящо се от пътека*/
-.wide .path-title{
-	font-size:0.9em;
-	margin-top:2px;
-	display:inline;
+.wide .path-title {
+	font-size: 0.9em;
+	margin-top: 2px;
+	display: inline;
 }
 
-.narrow .path-title{
-	font-size:0.9em;
-	display:inline;
+.narrow .path-title {
+	font-size: 0.9em;
+	display: inline;
 }
 /*Загвавие, състоящо се от пътека*/
 
@@ -1428,126 +1426,127 @@ div.hFormField {
  * Опциите на keylist (и enum) не заемат цялата ширина на контейнера, а се подравняват
  * вляво
  */
-table.keylist{
-	width:100%;
+table.keylist {
+	width: 100%;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    outline:none;
-	td{
-		padding:0.3em 0.1em 0 0.1em;
+    outline: none;
+	td {
+		padding: 0.3em 0.1em 0 0.1em;
 	}
-	.inner-keylist{
-		width:100%;
-		tr{
-			height:1.6em !important;
+	.inner-keylist {
+		width: 100%;
+		tr {
+			height: 1.6em !important;
 		}
-		td{
-			padding:0.2em 0.1em 0.1em 0.1em;
+		td {
+			padding: 0.2em 0.1em 0.1em 0.1em;
 		}
 	}
 }
 
 .narrow table.keylist td {
-	font-size:0.9em;
-	padding-top:0.1em;
-	padding-bottom:0 !important;
+	font-size: 0.9em;
+	padding-top: 0.1em;
+	padding-bottom: 0 !important;
 	
 }
 
-td.keylist-group{
-	padding:0 !important;
+td.keylist-group {
+	padding: 0 !important;
 }
 
 td.keylist-group > div {
     padding: 4px !important;
-    font-size:0.95em;
-    background-color:#eeeeff;
-    border:1px solid #e0e0f0;
-    margin-top:1px;
+    font-size: 0.95em;
+    background-color: #eeeeff;
+    border: 1px solid #e0e0f0;
+    margin-top: 1px;
     color: #333;
-    cursor:pointer; 
-    img{
-    	display:none;
-    	margin-right:5px;
-    	top:2px;
-    	position:relative;
+    cursor: pointer; 
+    img {
+    	display: none;
+    	margin-right: 5px;
+    	top: 2px;
+    	position: relative;
     } 
 }
 
 .opened td.keylist-group > div {
-	.plus{
-		display:none;
+	.plus {
+		display: none;
 	}
-	.minus{
-		display:inline-block;
+	.minus {
+		display: inline-block;
 	}
 }
 
-.closed td.keylist-group > div{
-	.minus{
-		display:none;
+.closed td.keylist-group > div {
+	.minus {
+		display: none;
 	}
-	.plus{
-		display:inline-block;
+	.plus {
+		display: inline-block;
 	}
 }
 
 .inner-keylist .hiddenElement {
-   display:none;
+   display: none;
 }
 /*край на стилове за показване на формите */
  
  
 /* Стилове за странициране 'hlp_Pager' */
-.pages{
-	clear:both;
-	margin:16px 2px 8px 2px;
+.pages {
+	clear: both;
+	margin: 16px 2px 8px 2px;
 }
 
-.narrow .portal .pages{
-	clear:both;
-	margin:13px 0 5px;
-}
-.top-pager .pages{
-	margin:2px 2px 16px 2px;
+.narrow .portal .pages {
+	clear: both;
+	margin: 13px 0 5px;
 }
 
-.narrow .pages{
-	margin:16px 2px 16px 2px;
+.top-pager .pages {
+	margin: 2px 2px 16px 2px;
 }
 
-.core_Packs .pages{
-	margin:2px 2px 16px 2px;
+.narrow .pages {
+	margin: 16px 2px 16px 2px;
+}
+
+.core_Packs .pages {
+	margin: 2px 2px 16px 2px;
 }
 
 a.pager {
-    font-weight:bold;
-    font-size:1.05em;
+    font-weight: bold;
+    font-size: 1.05em;
     padding: 2px;
-    margin-left:-2px;
-    margin-right:4px;
-    border:solid  1px transparent; 
+    margin-left: -2px;
+    margin-right :4px;
+    border: solid  1px transparent; 
     @include border-radius(4px);
-    cursor:pointer;
+    cursor: pointer;
     &:hover {
-	    border:solid  1px #aaaaaa; 
+	    border: solid  1px #aaaaaa; 
 		@include border-radius(4px);
-	    padding:2px;   
-	    background-color:$gray1;    
+	    padding: 2px;   
+	    background-color: $gray1;    
 	    text-decoration: none;
 	}
 	&.pagerSelected { 
-	    border:solid 1px #aaaaaa;
+	    border: solid 1px #aaaaaa;
 	    @include border-radius(4px);
-	    padding:2px;
-	    background-color:$beige;
-	    font-weight:bold;
+	    padding: 2px;
+	    background-color: $beige;
+	    font-weight: bold;
 	}
 }
 
 .narrow a.pager { 
 	font-size: 0.95em;
-	margin:0.2em;
-	margin-left:0;
+	margin: 0.2em;
+	margin-left: 0;
 }
 /*край на стилове за странициране 'hlp_Pager' */
 
@@ -1599,20 +1598,20 @@ div.tab-control div.tab-row .tab {
 	}
 }
 
-.narrow div.tab-control div.tab-row .tab.selected{
-		padding: 4px 5px 6px 5px;
+.narrow div.tab-control div.tab-row .tab.selected {
+    padding: 4px 5px 6px 5px;
 }
 
-.narrow div.alphabet div.tab-row .tab{
-	font-size:0.6em;
+.narrow div.alphabet div.tab-row .tab {
+	font-size: 0.6em;
 }
 
-.narrow div.tab-control div.tab-row .tab:first-child{
-	margin-left:10px;
+.narrow div.tab-control div.tab-row .tab:first-child {
+	margin-left: 10px;
 }
 
-.narrow div.tab-control.alphabet div.tab-row .tab:first-child{
-	margin-left:2px;
+.narrow div.tab-control.alphabet div.tab-row .tab:first-child {
+	margin-left: 2px;
 }
 	
 div.tab-control div.tab-page {
@@ -1627,16 +1626,16 @@ div.tab-control div.tab-page {
 }
 
 .narrow div.tab-control div.tab-page {
-	padding:0.5em;
+	padding: 0.5em;
 }
 
-.narrow div.alphabet{
-	margin-left:-2px;
-	padding-bottom:0;
+.narrow div.alphabet {
+	margin-left: -2px;
+	padding-bottom: 0;
 }
 
 .narrow div.tab-control.alphabet div.tab-page {
-	padding:0.1em;
+	padding: 0.1em;
 }
 /* край на стилове за елемента 'tab' */
 
@@ -1644,9 +1643,9 @@ div.tab-control div.tab-page {
 /*таб alphabet*/
 div.alphabet div.tab-row .tab {
 	background: $gray3;
-	line-height:1.1em;
+	line-height: 1.1em;
 	padding: 5px;
-	font-size:0.7em;
+	font-size: 0.7em;
 	border: 1px solid #aaa;
 	text-align: center;
 	margin: 2px 4px 5px 0;
@@ -1655,7 +1654,7 @@ div.alphabet div.tab-row .tab {
 	float: left;
 	&:hover {
 		margin-top: -1px;
-		margin-bottom:8px;
+		margin-bottom: 8px;
 		background-color: $beige !important;
 	}
 	&:hover a {
@@ -1680,83 +1679,83 @@ div.alphabet div.tab-page {
 
 .narrow div.alphabet  div.tab-row {
 	width: 340px;
-	float:left;
-	padding-bottom:5px;
+	float: left;
+	padding-bottom: 5px;
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
 .single-thread .document div.alphabet {
-	padding-bottom:0;
-	.tab-page{
-		padding:0px 0px 0px !important;
+	padding-bottom: 0;
+	.tab-page {
+		padding: 0px 0px 0px !important;
 		clear: both;
 		border-top: 1px solid #ccc;
-		box-shadow:0 -1px 1px rgba(0,0,0,0.1);
+		box-shadow: 0 -1px 1px rgba(0,0,0,0.1);
 		position: relative;
 		top: 1px;
 		@include border-radius4(5px,5px,0px,0px);
-		overflow:hidden;
+		overflow: hidden;
 		z-index: 2;
-			.detail-info{
-				padding:0px;
-				margin-top:0px;
-				font-size:0.85em;
-				background-color:$history-bg !important;
-				.listTable td{
-					background-color:$history-bg !important;
-				}
+		.detail-info {
+			padding: 0px;
+			margin-top: 0px;
+			font-size: 0.85em;
+			background-color: $history-bg !important;
+			.listTable td {
+				background-color: $history-bg !important;
 			}
-			.listTable{
-				width: 100%
+		}
+		.listTable {
+			width: 100%
+		}
+		 .listTable td {
+			border: 1px dotted $gray4 !important;
+			text-align: center;
+			padding: 2px;
+		}
+		.listTable tr:last-child td {
+			&:first-child {
+				border-radius: 0 0 0 5px;
 			}
-			 .listTable td{
-				border:1px dotted $gray4 !important;
-				text-align:center;
-				padding:2px;
+			&:last-child{
+				border-radius: 0 0 5px 0;
 			}
-			.listTable tr:last-child td{
-				&:first-child{
-					border-radius:0 0 0 5px;
-				}
-				&:last-child{
-					border-radius:0 0 5px 0;
-				}
+		}
+		.stateIndicator,.inline-date {
+			display: inline-block;
+		}
+		.stateIndicator {
+			&.state-active {
+				background-color: #FED;
 			}
-			.stateIndicator,.inline-date{
-				display:inline-block;
+			&.state-stopped {
+				background-color: #FEADAD;
 			}
-			.stateIndicator{
-				&.state-active{
-					background-color:#FED;
-				}
-				&.state-stopped{
-					background-color: #FEADAD;
-				}
-				&.state-closed{
-					background-color: $gray3;
-				}
+			&.state-closed {
+				background-color: $gray3;
 			}
-			.listTable th{
-				background-color:$history-bg !important;
-				border-left:1px solid transparent !important;
-				border-right:1px solid transparent !important;
-				border-top:1px solid transparent !important;
-				border-bottom:1px dotted $gray4 !important;
-				color:#333;
-				padding:5px 0;
-				&:first-child{
-					border-left:1px solid $gray4 !important;
-				}
-				&:last-child{
-					border-right:1px solid $gray4 !important;
-				}
+		}
+		.listTable th {
+			background-color: $history-bg !important;
+			border-left: 1px solid transparent !important;
+			border-right: 1px solid transparent !important;
+			border-top: 1px solid transparent !important;
+			border-bottom: 1px dotted $gray4 !important;
+			color: #333;
+			padding: 5px 0;
+			&:first-child {
+				border-left: 1px solid $gray4 !important;
 			}
+			&:last-child {
+				border-right: 1px solid $gray4 !important;
+			}
+		}
 	}
-	.detail-info{
-			border:none !important;
+	.detail-info {
+			border: none !important;
 	}
 	div.tab-row .tab {
-		font-size:0.8em;
+		font-size: 0.8em;
 		font-family: arial;
 		@include no-shadow();
 		display: inline;
@@ -1765,34 +1764,34 @@ div.alphabet div.tab-page {
 		background: $gray3;
 		border: 1px solid $gray4;
 		border-bottom: none;
-		color:#999;
+		color: #999;
 		z-index: 1;
 		white-space: nowrap;
 		position: relative;
 		padding:0;
 		@include border-radius4(5px, 5px, 0px, 0px);
-		a{
-			display:inline-block;
-			color:#048;
+		a {
+			display: inline-block;
+			color: #048;
 			padding: 4px 5px 4px 5px;
 			@include border-radius4(5px, 5px, 0px, 0px);
 		}
-		span{
-			display:inline-block;
+		span {
+			display: inline-block;
 			padding: 4px 5px 4px 5px;
 		}
-		&:hover a{
-			background-color:$beige !important;
-			color:#048 !important;
+		&:hover a {
+			background-color: $beige !important;
+			color: #048 !important;
 		}
-		&:hover span{
-			background-color:$gray3 !important;
+		&:hover span {
+			background-color: $gray3 !important;
 		}
 		&.selected {
 			margin: 1px -8px -3px 10px;
 			background: $history-bg !important;
 			border: 1px solid #ccc;
-			box-shadow:0 -1px 1px rgba(0,0,0,0.2);
+			box-shadow: 0 -1px 1px rgba(0,0,0,0.2);
 			border-bottom: none;
 			z-index: 3;
 			padding: 0px 0 1px !important;
@@ -1802,19 +1801,20 @@ div.alphabet div.tab-page {
 	}
 }
 
-.thread-opened div.alphabet  .tab.selected{
-	background-color:#E0FFE0 !important;
-}
-.narrow .single-thread .document div.alphabet div.tab-row{
-	padding-bottom:1px
+.thread-opened div.alphabet .tab.selected {
+	background-color: #E0FFE0 !important;
 }
 
-.narrow .single-thread .document div.alphabet div.tab-row .tab select{
-	margin:4px;
+.narrow .single-thread .document div.alphabet div.tab-row {
+	padding-bottom: 1px
 }
 
-.narrow .single-thread .document div.alphabet .listTable{
-	font-size:0.9em;
+.narrow .single-thread .document div.alphabet div.tab-row .tab select {
+	margin: 4px;
+}
+
+.narrow .single-thread .document div.alphabet .listTable {
+	font-size: 0.9em;
 }
 
 .badge {
@@ -1826,16 +1826,16 @@ div.alphabet div.tab-page {
   padding: 1px 7px 2px; 
  }
 
-.index-category{
-	padding:3px; 
-	background-color:$gray3;
+.index-category {
+	padding: 3px; 
+	background-color: $gray3;
 }
 
-.index-subcategory{
-	font-size:0.9em; 
-	margin-bottom:10px; 
-	display:inline-block !important; 
-	margin-right:10px;
+.index-subcategory {
+	font-size: 0.9em; 
+	margin-bottom: 10px; 
+	display: inline-block !important; 
+	margin-right: 10px;
 }
 
 /* Стилове за елемента 'RichEdit' */
@@ -1846,19 +1846,19 @@ span.richEdit div.richedit-toolbar {
     padding: 5px; 
     font-size: 0.85em; 
     text-align: left;
-	color:#333;
-    font-size:0.9em;
-    padding-top:10px; 
-    margin-top:-4px;
-	white-space:nowrap;
+	color: #333;
+    font-size: 0.9em;
+    padding-top: 10px; 
+    margin-top: -4px;
+	white-space: nowrap;
 }
 
-.narrow span.richEdit div.richedit-toolbar{
-	padding-top:8px;
-	font-size:0.8em;
-    padding-bottom:6px; 
+.narrow span.richEdit div.richedit-toolbar {
+	padding-top: 8px;
+	font-size: 0.8em;
+    padding-bottom: 6px; 
 	font-family: Verdana, Geneva, sans-serif;
-	margin-top:0px;
+	margin-top: 0px;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
 	-moz-user-select: none;
@@ -1869,45 +1869,45 @@ span.richEdit div.richedit-toolbar {
 }
 
 div.richEdit {
-	display:table;
-	width:100%;
+	display: table;
+	width: 100%;
 }
 
 .richEdit textarea {
-	margin-bottom:0px;
-	overflow:auto;
+	margin-bottom: 0px;
+	overflow: auto;
 	border-bottom: 1px solid transparent; 
-	width:100%;
+	width: 100%;
 }
 
 .narrow .richEdit textarea { 
 	border-bottom: 1px solid white; 
-	width:600px; 
+	width: 600px; 
 }
 
-.narrow .richedit-toolbar{
-	position:relative;
+.narrow .richedit-toolbar {
+	position: relative;
 }
 
-.narrow #richtext-emoticons{
-	position:absolute;
-	left:5px;
-	top:-20px;
-	display:none;
+.narrow #richtext-emoticons {
+	position: absolute;
+	left: 5px;
+	top: -20px;
+	display: none;
 }
 
-.narrow #richtext-emoticons2{
-	position:absolute;
-	left:24px;
-	top:-20px;
-	display:none;
+.narrow #richtext-emoticons2 {
+	position: absolute;
+	left: 24px;
+	top: -20px;
+	display: none;
 }
 
-.narrow #richtext-emoticons3{
-	position:absolute;
-	left:11.5em;
-	top:-20px;
-	display:none;
+.narrow #richtext-emoticons3 {
+	position: absolute;
+	left: 11.5em;
+	top: -20px;
+	display: none;
 }
 
 a.rtbutton {
@@ -1918,7 +1918,7 @@ a.rtbutton {
 }
 
 a.rtbutton1 {
-	padding-right:3px;
+	padding-right: 3px;
     cursor: pointer;
 }
 
@@ -1930,135 +1930,136 @@ a.rtbutton:hover {
 
 
 /*richtext*/
-.richtext{
-	color:#333;
+.richtext {
+	color: #333;
 	font-family: sans-serif;
 	line-height: 1.4em;
 }
 
 pre.rich-text {
     font-family: Courier New,monospace;
-    padding:10px;
+    padding: 10px;
     zoom: 1;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-	background:rgba(245,245,255,0.5);
-    color:#000;
-    line-height:120%;
-    border:solid 1px $gray3;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background: rgba(245,245,255,0.5);
+    color: #000;
+    line-height: 120%;
+    border: solid 1px $gray3;
 }
 
-pre.rich-text{
+pre.rich-text {
 	overflow: auto; 
-	font-size:0.97em;
+	font-size: 0.97em;
 }
 
-.narrow pre.rich-text{
-	font-size:0.9em;
-	white-space:pre-wrap;
-	margin-left:-10px;
-	margin-right:-10px;
-	padding-bottom:5px;
+.narrow pre.rich-text {
+	font-size: 0.9em;
+	white-space: pre-wrap;
+	margin-left: -10px;
+	margin-right: -10px;
+	padding-bottom: 5px;
 }
 
-.narrow pre.rich-text code::-webkit-scrollbar{
+.narrow pre.rich-text code::-webkit-scrollbar {
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow pre.rich-text code::-webkit-scrollbar-thumb{
+.narrow pre.rich-text code::-webkit-scrollbar-thumb {
 	border-radius: 8px;
 	background-color: rgba(0, 0, 0, .2);
 }
 
-div.richtext pre .code{
-	border:1px solid $gray3;
-	background:transparent;
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-	background:rgba(245,245,255,0.5);
+div.richtext pre .code {
+	border: 1px solid $gray3;
+	background: transparent;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background: rgba(245,245,255,0.5);
 	margin: 10px 0px;
-	padding:10px;
-	white-space:pre;
-	word-wrap:normal;
+	padding: 10px;
+	white-space: pre;
+	word-wrap: normal;
 }
 
-div.richtext pre code{
-	white-space:pre;
-	word-wrap:normal;
-	padding:0;
-	font-size:0.97em;
-	overflow:auto;
-	background:transparent !important;
+div.richtext pre code {
+	white-space: pre;
+	word-wrap: normal;
+	padding: 0;
+	font-size: 0.97em;
+	overflow: auto;
+	background: transparent !important;
 }
 
-.printing .richtext .code{
-	white-space:pre-wrap !important;
+.printing .richtext .code {
+	white-space: pre-wrap !important;
 }
 
 .richtext .oneLineCode {
 	font-family: Courier New,monospace;
-	font-size:0.96em;
-	line-height:normal;
-	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
-	background:rgba(245,245,255,0.5);
+	font-size: 0.96em;
+	line-height: normal;
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#50F1F1FF,endColorstr=#50F1F1FF); 
+	background: rgba(245,245,255,0.5);
 	border: 1px solid $gray3;
 	border-radius: 3px 3px 3px 3px;
 	margin: 0px 2px 1px;
 	padding: 0px 5px 0px;	
-	display:inline-block;
+	display: inline-block;
 }
 
-.narrow .richtext .oneLineCode{
+.narrow .richtext .oneLineCode {
 	padding: 0px 5px;
-	margin:0px 0 1px;
+	margin: 0px 0 1px;
 }
 
-div.code{
+div.code {
     background: rgba(255,255,230,0.5);
 }
 
 div.richtextHide {
-	display:none;
-	margin-left:4px;
-	border-left:dotted 1px #ccc;
-	padding:10px; 
+	display: none;
+	margin-left: 4px;
+	border-left: dotted 1px #ccc;
+	padding: 10px; 
 }
 
 /*richtext elements*/
 p.richtext {
 	border: solid 1px red;
 }
-.narrow .richtext{
-	font-size:0.9em;
+
+.narrow .richtext {
+	font-size: 0.9em;
 }
 
 .richtext h1, .richtext h2, .richtext h3 {
-	margin-top:0px;
-	margin-bottom:5px;
-	line-height:normal;
+	margin-top: 0px;
+	margin-bottom: 5px;
+	line-height: normal;
 }
 
-.narrow .richtext h1{
-	font-size:1.4em;
+.narrow .richtext h1 {
+	font-size: 1.4em;
 }
 
 .narrow .richtext h2{
-	font-size:1.25em;
+	font-size: 1.25em;
 }
 
-.narrow .richtext h3{
-	font-size:1.1em;
+.narrow .richtext h3 {
+	font-size: 1.1em;
 }
 
 div.richtext li {
-    margin:0px;
-    padding:0px;
-    margin-left:1.5em;
-    padding-top:0.2em;
+    margin: 0px;
+    padding: 0px;
+    margin-left: 1.5em;
+    padding-top: 0.2em;
 }
 
 div.richtext ul { 
-	margin:0;
+	margin: 0;
 	list-style-type: circle;
 }
 
@@ -2067,7 +2068,7 @@ div.richtext ul ul {
 }
 
 div.richtext ol {
-	margin:0;
+	margin: 0;
 	list-style-type: decimal;
 }
 
@@ -2075,16 +2076,16 @@ div.richtext ol ol {
 	list-style-type: lower-alpha;
 }
 
-.richtext-quote{
+.richtext-quote {
 	font-size: 0.9em;
 	color: #444;
-	white-space:pre-line;
+	white-space: pre-line;
 	padding: 2px 0 0 15px;
 	border-left: 5px solid $gray2;
 }
 
-.narrow .richtext-quote{
-	padding-left:5px;
+.narrow .richtext-quote {
+	padding-left: 5px;
 }
 
 .quote-title {
@@ -2092,137 +2093,136 @@ div.richtext ol ol {
 	margin-bottom: 0.1em;
 }
 
-.outLinkIcon{
-	width:16px;
-	height:16px;
-	vertical-align:middle;
-	margin:0 2px 0 5px;
-	display:inline-block;
+.outLinkIcon {
+	width: 16px;
+	height: 16px;
+	vertical-align: middle;
+	margin: 0 2px 0 5px;
+	display: inline-block;
 }
 
 /*richtext message-box*/
-.richtext-text{
-	background-color:rgba(255,255,128,0.3); 
-	padding:10px;
+.richtext-text {
+	background-color: rgba(255,255,128,0.3); 
+	padding: 10px;
 	margin: 10px 0px; 
-	border:solid 1px #ccc;
-	font-family:Courier New,mono;
+	border: solid 1px #ccc;
+	font-family: Courier New,mono;
 }
 
-.richtext-info{
+.richtext-info {
 	@include richtext-message();
     color: #00529B;
-    border-color:lighten(#00529B, 30%);
+    border-color: lighten(#00529B, 30%);
     background-color: #BDE5F8;
     background-image: url('../img/info_blue.png');
 }
 
-.richtext-tip{
+.richtext-tip {
 	@include richtext-message();
-	color:#c9841a;
-	border-color:lighten(#c9841a, 30%);
-    background-color:#FEFED8;
+	color: #c9841a;
+	border-color: lighten(#c9841a, 30%);
+    background-color: #FEFED8;
     background-image: url('../img/App-tip-icon2.png');
 }
 
-.richtext-warning{
+.richtext-warning {
 	@include richtext-message();
     color: #9F6000;
-    border-color:lighten(#9F6000, 30%);
+    border-color: lighten(#9F6000, 30%);
     background-color: #ffdc7a;
     background-image: url('../img/dialog_warning.png');
 }
 
-.richtext-success{
+.richtext-success {
 	@include richtext-message();
     color: #4F8A10;
-    border-color:lighten(#4F8A10, 30%);
+    border-color: lighten(#4F8A10, 30%);
     background-color: #DFF2BF;
-    background-image:url('../img/ok.png');
+    background-image: url('../img/ok.png');
 }
 
-.richtext-error{
+.richtext-error {
 	@include richtext-message();
     color: #D8000C;
-    border-color:lighten(#D8000C, 30%);
+    border-color: lighten(#D8000C, 30%);
     background-color: #FFBABA;
     background-image: url('../img/dialog_error.png');
 }
 
-.richtext-question{
+.richtext-question {
 	@include richtext-message();
     color: #132c5c;
-    border-color:lighten(#132c5c, 30%);
+    border-color: lighten(#132c5c, 30%);
     background-color: #92aee6;
     background-image: url('../img/Help-icon.png');
 }
 
-.narrow .richtext-question, .narrow .richtext-info,.narrow .richtext-error,.narrow .richtext-success,
-.narrow .richtext-warning,.narrow .richtext-tip,.narrow .richtext-text{
-	margin-left:0px;
-	margin-right:0;
-	font-size:0.9em;
+.narrow .richtext-question, .narrow .richtext-info, .narrow .richtext-error, .narrow .richtext-success,
+.narrow .richtext-warning, .narrow .richtext-tip, .narrow .richtext-text {
+	margin-left: 0px;
+	margin-right: 0;
+	font-size: 0.9em;
 }
 
-.richtext-question a, .richtext-info a, .richtext-error a,.richtext-success a,
-.richtext-warning a,.richtext-tip a,.richtext-text a{
-		text-decoration:underline;
-		font-weight:bold;
-		color:inherit;
-		&:hover{
-			text-decoration: none;
-		}
-		
+.richtext-question a, .richtext-info a, .richtext-error a, .richtext-success a,
+.richtext-warning a, .richtext-tip a, .richtext-text a {
+	text-decoration: underline;
+	font-weight: bold;
+	color: inherit;
+	&:hover{
+		text-decoration: none;
 	}
+}
 /*край на richtext message-box*/
 
 
 /*нотификации*/
 div.notification-info {
 	display: table;
-	border:solid 1px $orange;
-	background-color:$beige;
-	text-align:center;
-	font-weight:bold;
-    margin:10px; 
-	margin-top:0px; 
-    padding:10px;
+	border: solid 1px $orange;
+	background-color: $beige;
+	text-align: center;
+	font-weight: bold;
+    margin: 10px; 
+	margin-top: 0px; 
+    padding: 10px;
     font-size: 1.3em; 
     @include border-radius(15px);
 }
 
 .narrow div.notification-info {
 	display: table;
-	margin:5px 0;
-	border:solid 1px $orange;
-	background-color:$beige;
-	padding:5px;
+	margin: 5px 0;
+	border: solid 1px $orange;
+	background-color: $beige;
+	padding: 5px;
 	font-size: 1.5em; 
 	@include border-radius(0px);
 }
 
 div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
     display: table;
-	border:solid 1px $orange;
-	background-color:$beige;
-	text-align:center;
-	font-weight:bold;
-    margin:10px auto 0; 
-    padding:10px; 
+	border: solid 1px $orange;
+	background-color: $beige;
+	text-align: center;
+	font-weight: bold;
+    margin: 10px auto 0; 
+    padding: 10px; 
     font-size: 1.3em; 
     @include border-radius(15px);
 }
 
 .narrow div.statuses-notice, .narrow div.statuses-success, 
 .narrow div.statuses-warning, .narrow div.statuses-error {
-	margin:5px 0;
-	padding:5px;
+	margin: 5px 0;
+	padding: 5px;
 	font-size: 1.5em; 
 	@include border-radius(0px);
 }
 
 div.statuses-success , div.statuses-error, div.statuses-warning{
-	background-color:$beige;	
+	background-color: $beige;	
 }
 /*край на нотификации*/
 
@@ -2258,28 +2258,27 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 }
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document  a, .state-rejected .document  span,  .state-rejected .richtext div, .state-rejected .cCode ,.state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font
-{
-	color:#999 !important;
-	text-decoration:line-through !important;
+.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
+.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
+	color: #999 !important;
+	text-decoration: line-through !important;
 }
 
-.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b{
-	color:#444 !important;
+.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b {
+	color: #444 !important;
 }
 
-.state-rejected .document img, .state-rejected .anchor-arrow{
-	opacity:0.5;
+.state-rejected .document img, .state-rejected .anchor-arrow {
+	opacity: 0.5;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
 }
 
-.state-rejected .linkWithIcon.state-rejected{
-	background-color:transparent;
+.state-rejected .linkWithIcon.state-rejected {
+	background-color: transparent;
 }
 
 .state-free { 
-    background-color:#33CCF5;
+    background-color: #33CCF5;
 }
 
 .state-hidden {
@@ -2290,7 +2289,7 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
  	background-color: #cc9933;
 }
 
-.state-wakeup{
+.state-wakeup {
 	background-color: #259641;
 }
 
@@ -2303,18 +2302,18 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 /*край на състояния*/
 
 
-.core_Cron  .listTable td p { 
-	margin:5px; 
-	font-family:monospace;
-	font-size:0.85em;
+.core_Cron .listTable td p { 
+	margin: 5px; 
+	font-family: monospace;
+	font-size: 0.85em;
 }
 
 .anchor-arrow {
-	width:16px;
-	height:16px;
-	display:inline-block;
-	background-image:url('../img/16/anchor-image.png');
-	margin:0 5px;
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	background-image: url('../img/16/anchor-image.png');
+	margin: 0 5px;
 }
 
 /*цветове*/
@@ -2349,140 +2348,140 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 
 
 /*стилове за пакети*/
-.elem-holder{
-	position:relative;
-	display:block;
-	width:385px;
-	padding:9px;
-	margin-right:20px;
-	margin-bottom:20px;
-	float:left;
-	height:85px;
-	background:#fcfae8;
-	box-shadow:1px 1px 6px rgba(0,0,0,0.4);
-	.pack-title{
+.elem-holder {
+	position: relative;
+	display: block;
+	width: 385px;
+	padding: 9px;
+	margin-right: 20px;
+	margin-bottom: 20px;
+	float: left;
+	height: 85px;
+	background: #fcfae8;
+	box-shadow: 1px 1px 6px rgba(0,0,0,0.4);
+	.pack-title {
 		display: inline-block;
-		&:hover{
-			text-decoration:underline;
+		&:hover {
+			text-decoration: underline;
 		}
 	}
-	.deinstall-pack{
-			position:absolute;
-			right:5px;
-			top:5px;
-			width:20px;
-			height:16px;
-			padding:0 !important;
-			opacity:0.9;
+	.deinstall-pack {
+			position: absolute;
+			right: 5px;
+			top: 5px;
+			width: 20px;
+			height: 16px;
+			padding: 0 !important;
+			opacity: 0.9;
 			&:hover{
-				opacity:1;
+				opacity: 1;
 			}
 	}
-	small{
-		display:block;
+	small {
+		display: block;
 		margin: 0.5em 0;
-		font-size:0.9em;
-		line-height:1.2em;
-		height:2.4em;
+		font-size: 0.9em;
+		line-height: 1.2em;
+		height: 2.4em;
 	}
-	b{
+	b {
 		margin-top: 3px;
-		font-size:1.2em;
+		font-size: 1.2em;
 	}
-	.elem-img{
-		width:84px;
-		height:85px;
-		float:left;
-		margin-right:7px;
-		img{
-			width:84px;
-			height:85px;
+	.elem-img {
+		width: 84px;
+		height: 85px;
+		float: left;
+		margin-right: 7px;
+		img {
+			width: 84px;
+			height: 85px;
 		}
 	}
-	.btns{
-		display:block;
-		float:right;
-		color:#999;
-		margin-right:-0.5em;
-		font-size:0.8em;
-		a{
-			display:inline-block;
+	.btns {
+		display: block;
+		float: right;
+		color: #999;
+		margin-right: -0.5em;
+		font-size: 0.8em;
+		a {
+			display: inline-block;
 			margin: 0 0.5em;
-			&:hover{
-				text-decoration:underline;
+			&:hover {
+				text-decoration: underline;
 			}
 		}
 	}
 }
 
-.narrow .elem-holder{
-	width:265px;
-	small{
-		font-size:0.8em;
-		line-height:1.15em;
+.narrow .elem-holder {
+	width: 265px;
+	small {
+		font-size: 0.8em;
+		line-height: 1.15em;
 		margin: 0em 0.1em 0.3em 0;
 		height: 3em;
 	}
-	b{
-		font-size:1.1em;
+	b {
+		font-size: 1.1em;
 	}
-	.btns{
-		a{
-			font-size:0.9em;
-			display:inline-block;
-			padding:0 0.5em 0.2em;
-			margin:0;
+	.btns {
+		a {
+			font-size: 0.9em;
+			display: inline-block;
+			padding: 0 0.5em 0.2em;
+			margin: 0;
 		}
 	}
-	.pack-title{
-		margin-top:0;
+	.pack-title {
+		margin-top: 0;
 	}
-	.elem-img{
-		width:64px;
-		height:65px;
-		float:left;
-		margin-right:7px;
-		img{
-			width:64px;
-			height:65px;
+	.elem-img {
+		width: 64px;
+		height: 65px;
+		float: left;
+		margin-right: 7px;
+		img {
+			width: 64px;
+			height: 65px;
 		}
 	}
 }
 
-.narrow select[name='pack']{
-	min-width:290px;
+.narrow select[name='pack'] {
+	min-width: 290px;
 }
 /*край на стилове за пакети*/
 
 
 /* Стилове за diff между html текстове */
 	span.del { 
-		background-color:#fcc;
-        text-decoration:line-through;
-        color:#777;
+		background-color: #fcc;
+        text-decoration: line-through;
+        color: #777;
 	}
 	span.ins { 
-        background-color:#cfc;
+        background-color: #cfc;
 	}
 	span.cng { 
-		background-color:#ffa;
-		border-bottom:dotted 1px #cc9;
+		background-color: #ffa;
+		border-bottom: dotted 1px #cc9;
 	}
 /* Край на стилове за diff */
 
 /* Стилове за core_Packs */
 	.const-default-value {
-		color:#669;
+		color: #669;
 	}
 
-	.const-default-value option{
-		color:black;
+	.const-default-value option {
+		color: black;
 	}
 /* Край на стилове за core_Packs */
 
-.checkBrowser{
-	width:1px;
-	height:1px;
-	display:block;
-	overflow:hidden;
+.checkBrowser {
+	width: 1px;
+	height: 1px;
+	display: block;
+	overflow: hidden;
 }
