@@ -239,13 +239,13 @@ class barcode_Generator extends core_Manager
             
             // Добавяме надписа в празното квадратче
             imagettftext($im, $fontSize, 0, $textX, $textY, $black, $font, $output['hri']);
+        }
         
-            // Ъгъл на завъртане на баркода
-            if ($params['angle']) {
-                
-                // Завъртаме избображението
-                $im = imagerotate($im, $params['angle'], $white);
-            }
+        // Ъгъл на завъртане на баркода
+        if ($params['angle']) {
+            
+            // Завъртаме избображението
+            $im = imagerotate($im, $params['angle'], $white);
         }
         
         return $im;
