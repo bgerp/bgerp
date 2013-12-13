@@ -157,6 +157,10 @@ abstract class acc_ClosedDeals extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
+    	// Първия документ в треда трябва да е активиран
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	if($firstDoc->fetchField('state') != 'active') return FALSE;
+		
     	$res = static::getDealInfo($threadId);
     	
     	// Дали вече има такъв документ в нишката
