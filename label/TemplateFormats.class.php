@@ -491,6 +491,11 @@ class label_TemplateFormats extends core_Detail
     /**
      * Връщаме името на полето
      * 
+     * Това име ще се използва за име на FNC поле във формата.
+     * Връща шаблона с първа главна бъква.
+     * Това е с цел за да няма дублирано име на поле във формата.
+     * Може да се дублира с FLD полетата.
+     * 
      * @param string $placeHolder - Името на плейсхолдера
      * 
      * @param string - Новото име на плейсхолдера
@@ -498,7 +503,7 @@ class label_TemplateFormats extends core_Detail
     static function getPlaceholderFieldName($placeHolder)
     {
         
-        return 'Field' . $placeHolder;
+        return ucfirst($placeHolder);
     }
     
     
