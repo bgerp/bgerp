@@ -190,7 +190,7 @@ class acc_Articles extends core_Master
         
         if ($rec->originId) {
             $doc = doc_Containers::getDocument($rec->originId);
-            $row->reason = $doc->getLink();
+            $row->reason = ht::createLink($row->reason, array($doc->instance, 'single', $doc->that));
         }
     }
     
@@ -385,12 +385,12 @@ class acc_Articles extends core_Master
         $mvc = cls::get($journlRec->docType);
         
         $articleRec = (object)array(
-            'reason'      => tr('Сторниране на') . " " . $journlRec->reason . ' / ' . $mvc->getVerbal($journlRec, 'valior'),
+            'reason'      => tr('Сторниране на') . " " . $journlRec->reason . ' / ' . acc_Journal::recToVerbal($journlRec, 'valior')->valior,
             'valior'      => dt::now(),
             'totalAmount' => $journlRec->totalAmount,
             'state'       => 'draft',
         );
-        
+       
         $journalDetailsQuery = acc_JournalDetails::getQuery();
         $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
         
@@ -401,7 +401,7 @@ class acc_Articles extends core_Master
             $articleRec->threadId = $mvcRec->threadId;
             $articleRec->originId = $mvcRec->containerId;
         } else {
-            $articleRec->folderId = doc_UnsortedFolders::forceCoverAndFolder('Сторно');
+            $articleRec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => 'Сторно'));
         }
         
         if (!$articleId = static::save($articleRec)) {
