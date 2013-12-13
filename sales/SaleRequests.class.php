@@ -108,7 +108,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    public $singleLayoutFile = 'sales/tpl/SingleSaleRequest.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutSaleRequest.shtml';
     
     
     /**
@@ -475,11 +475,9 @@ class sales_SaleRequests extends core_Master
         $row->MyCompanyVatNo = $ownCompanyData->vatNo;
         
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-        $cdata = sales_Sales::normalizeContragentData($contragent->getContragentData());
-        $row->contragentCountry = $cdata->contragentCountry;
-        $row->contragentAddress = $cdata->contragentAddress;
+        $row->contragentAddress = $contragent->getFullAdress();
         
-        $row->contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
+        $row->contragentName = $contragent->getTitleById();
     	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     }
     

@@ -39,9 +39,6 @@
 			                    <td class="cell">
 			                    	<!--ET_BEGIN contragent-->
 				                        <b>[#contragentName#]</b><br>
-				                        <!--ET_BEGIN contragentCountry-->
-				                            <b>[#contragentCountry#]</b><br>
-				                        <!--ET_END contragentCountry-->
 				                        <!--ET_BEGIN contragentAddress-->
 				                            [#contragentAddress#]<br>
 				                        <!--ET_END contragentAddress-->
