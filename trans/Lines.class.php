@@ -35,8 +35,8 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing, plg_LastUsedKeys,
-                    doc_DocumentPlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, doc_ActivatePlg, plg_Search';
+    public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, doc_ActivatePlg';
 
     
     /**
@@ -179,8 +179,8 @@ class trans_Lines extends core_Master
     	
     	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
     	$this->save($rec);
-    	
     	$msg = ($rec->state == 'active') ? tr('Линията е отворена успешно') : tr('Линията е затворена успешно');
+    	
     	return Redirect(array($this, 'single', $rec->id), FALSE, $msg);
     }
     
@@ -212,7 +212,8 @@ class trans_Lines extends core_Master
     private function getDefaultTitle($rec)
     {
     	$vehicle = ($rec->vehicleId) ? trans_Vehicles::getTitleById($rec->vehicleId) : NULL;
-	    return $rec->start . "/" . $rec->destination . (($vehicle) ? "/" . $vehicle : '');
+	    
+    	return $rec->start . "/" . $rec->destination . (($vehicle) ? "/" . $vehicle : '');
     }
     
     
@@ -224,8 +225,8 @@ class trans_Lines extends core_Master
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . " №<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})";
     	}
-    	$attr['class'] = "linkWithIcon";
     	
+    	$attr['class'] = "linkWithIcon";
     	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
     		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
     	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
@@ -347,6 +348,7 @@ class trans_Lines extends core_Master
     		$this->save($rec);
     	}
     	
+    	
     	// Намират се затворените линии, които не са повторени и
     	// имат повторение и не са повторени
     	$query2->where("#state = 'closed'");
@@ -366,6 +368,21 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Изпълнява се преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	// Специално поле, кеото го има само ако се създава от крон
+    	if($rec->_createdBy){
+    		
+    		// doc_DocumentPlg слага за createdBy '-1', така запазваме на
+    		// новата линия, за createdBy този, който е създал първата
+    		$rec->createdBy = $rec->_createdBy;
+    	}
+    }
+    
+    
+    /**
      * Създава нова линия възоснова на стара
      * @param stdClass $rec - старата линия
      * @return stdClass $newRec - Новата линия
@@ -375,7 +392,7 @@ class trans_Lines extends core_Master
     	$newRec = new stdClass();
     	$newRec->destination 	   = $rec->destination;
     	$newRec->repeat            = $rec->repeat;
-    	$newRec->createdBy         = $rec->createdBy;
+    	$newRec->_createdBy        = $rec->createdBy;
     	$newRec->folderId          = $rec->folderId;
     	$newRec->vehicleId 		   = $rec->vehicleId;
     	$newRec->forwarderId 	   = $rec->forwarderId;
