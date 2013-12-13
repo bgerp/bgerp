@@ -11,14 +11,18 @@
 							<td class='dt'>|Рег. номер|*:</td>
 							<td> [#number#]</td>
 						</tr>
+						<!--ET_BEGIN load-->
 						<tr>
 							<td class='dt'>|Товароносимост|*:</td>
 							<td> <b>[#load#]</b></td>
 						</tr>
+						<!--ET_END load-->
+						<!--ET_BEGIN description-->
 						<tr>
 							<td class='dt'>|Описание|*:</td>
 							<td>[#description#]</td>
 						</tr>
+						<!--ET_END description-->
 						<!--ET_BEGIN creation-->
 						<tr>
 						[#creation#]
