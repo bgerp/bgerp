@@ -207,16 +207,19 @@ class doc_FolderPlg extends core_Plugin
                 $rec = $mvc->fetch($rec->id);
             } else {
                 $res = $mvc->isUnique($rec, $fields, $exRec);
-                
-                if($exRec) {
+               
+                if($exRec) { 
                     $rec = $exRec;
-                } elseif(!$rec) {
+                } elseif(!$rec) { 
                     $rec = new stdClass();
                 }
+                
+                expect(is_object($rec));
             }
             
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
             if($bForce && (!$rec->folderId || !doc_Folders::fetch($rec->folderId))) {
+            	
                 $rec->folderId = doc_Folders::createNew($mvc);
                 $mvc->save($rec);
             }
