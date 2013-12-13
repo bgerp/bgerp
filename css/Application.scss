@@ -152,25 +152,27 @@ tr.noHover td:hover {
 	padding-top: 5px;
 }
 
-.narrow a.mainMenu {
+.narrow .mainMenu {
+	display: block;
     padding: 3px; 
+    margin-top: 2px;
+    margin-bottom: 5px;
     background-color: #ddd;
 }
 
-.narrow a.subMenu {
+.narrow a.subMenu, .narrow span.subMenu {
     font-size: 0.9em; 
-    margin-bottom: 10px; 
+    margin-top: 1px;
+    margin-bottom: 4px; 
     display: inline-block !important; 
-    margin-right: 10px;
-}
-
-.narrow a.subMenu-first {
-    margin-left: 6px; 
+    margin-right: 2px;
+    margin-left: 8px;
 }
 
 #mainMenu {
 	background-color: $gray3;
 	padding: 5px;
+	display:block;
 	border-bottom: solid 2px $blue;
 	line-height: normal;
 }
@@ -255,8 +257,10 @@ tr.noHover td:hover {
 	border: solid 2px transparent;
 }
 
-.narrow #subMenu a {
+.narrow #subMenu .menuItem {
 	padding: 0 1px;
+	display:inline-block;
+	margin-bottom:2px;
 }
 
 #subMenu a.selected:hover { 
