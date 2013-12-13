@@ -32,7 +32,7 @@ class techno_GeneralProductsParameters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'techno_Wrapper,plg_RowTools';
+    var $loadList = 'techno_Wrapper, plg_RowTools';
     
     
     /**

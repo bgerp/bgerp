@@ -4,7 +4,6 @@
 
 /**
  * "Спецификация" - нестандартен продукт или услуга
- * изготвена според изискванията на даден клиент
  *
  *
  * @category  bgerp
@@ -32,7 +31,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search,plg_Rejected';
+    public $loadList = 'techno_Wrapper, plg_Printing, plg_Search, plg_Rejected';
 
     
     /**
@@ -62,7 +61,7 @@ class techno_Specifications extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title,folderId,docClassId,common,createdOn,createdBy';
+    public $listFields = 'id, title, folderId, docClassId, common, createdOn, createdBy';
     
     
     /**
@@ -105,12 +104,6 @@ class techno_Specifications extends core_Manager {
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-	
-	
-    /**
-     * Брой записи на страница
-     */
-    public $listItemsPerPage = '40';
     
     
     /**
@@ -182,9 +175,13 @@ class techno_Specifications extends core_Manager {
     	$query->orWhere("#common = 'yes'");
     	$query->where("#state = 'active'");
     	while($rec = $query->fetch()){
-    		$DocClass = cls::get($rec->docClassId);
-    		if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    		$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
+    		try{
+    			$DocClass = cls::get($rec->docClassId);
+    			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
+    			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
+    		} catch(Exception $e){
+    			continue;
+    		}
     	}
     	
     	return $products;
@@ -199,7 +196,7 @@ class techno_Specifications extends core_Manager {
     	if($fields['-list']){
 	    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	$DocClass = cls::get($rec->docClassId);
-	    	$docThreadId = $DocClass::fetchField($rec->docId, 'threadId');
+	    	$docThreadId = $DocClass->fetchField($rec->docId, 'threadId');
 	    	
 	    	if(doc_Threads::haveRightFor('single', $docThreadId)){
 	    		$icon = $DocClass->getIcon($rec->id);
@@ -215,16 +212,28 @@ class techno_Specifications extends core_Manager {
     
     
     /**
+     * Връща класа на драйвера на спецификацията
+     * @param int $id - ид на спецификация
+     * @return core_ObjectReference - използвания драйвър
+     */
+    public static function getDriver($id)
+    {
+    	$rec = static::fetchRec($id);
+    	
+    	return new core_ObjectReference($rec->docClassId, $rec->docId);
+    }
+    
+    
+    /**
      * Връща ДДС-то на продукта
      * @param int $id - ид на спецификацията
      * @param date $date - дата
      */
     public static function getVat($id, $date = NULL)
     {
-    	$rec = static::fetchRec($id);
-    	$TechnoClass = cls::get($rec->docClassId);
+    	$TechnoClass = static::getDriver($id);
     	
-    	return $TechnoClass->getVat($rec->docId);
+    	return $TechnoClass->getVat();
     }
     
     
@@ -241,9 +250,8 @@ class techno_Specifications extends core_Manager {
      */
     public function getPriceInfo($customerClass, $customerId, $id, $productManId, $packagingId = NULL, $quantity = 1, $datetime = NULL)
     {
-    	$rec = $this->fetch($id);
-    	$TechnoClass = cls::get($rec->docClassId);
-    	$priceInfo = $TechnoClass->getPriceInfo($rec->docId, $packagingId, $quantity, $datetime);
+    	$TechnoClass = static::getDriver($id);
+    	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $datetime);
     	
     	if($priceInfo->price){
     		$price = new stdClass();
@@ -274,9 +282,8 @@ class techno_Specifications extends core_Manager {
      */
     public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
-    	$rec = $this->fetch($productId);
-    	$TechnoClass = cls::get($rec->docClassId);
-    	$priceInfo = $TechnoClass->getPriceInfo($rec->docId, $packagingId, $quantity, $date);
+    	$TechnoClass = static::getDriver($productId);
+    	$priceInfo = $TechnoClass->getPriceInfo($packagingId, $quantity, $date);
     	
     	if($priceInfo->price){
     		$price = ($priceInfo->tax  + $quantity * $priceInfo->price) / $quantity;
@@ -300,14 +307,13 @@ class techno_Specifications extends core_Manager {
      */
      public static function getTitleById($id, $escaped = TRUE, $full = FALSE)
      {
-    	$rec = static::fetch($id);
-	    $TechnoClass = cls::get($rec->docClassId);
-	    
+	    $TechnoClass = static::getDriver($id);
+     	
      	if(!$full) {
-    		return $TechnoClass->getTitleById($rec->docId, $escaped);
+    		return $TechnoClass->getTitleById($escaped);
     	}
     	
-    	$data = $TechnoClass->prepareData($rec->docId);
+    	$data = $TechnoClass->prepareData();
     	
 	    return $TechnoClass->renderShortView($data);
      }
@@ -323,10 +329,9 @@ class techno_Specifications extends core_Manager {
      */
     public static function getProductInfo($id, $packagingId = NULL)
     {
-    	$rec = static::fetch($id);
-    	$TechnoClass = cls::get($rec->docClassId);
+    	$TechnoClass = static::getDriver($id);
     	
-    	return $TechnoClass->getProductInfo($rec->docId, $packagingId);
+    	return $TechnoClass->getProductInfo($packagingId);
     }
     
     
@@ -335,10 +340,9 @@ class techno_Specifications extends core_Manager {
      */
 	public static function getPacks($productId)
     {
-    	$rec = static::fetch($productId);
-    	$TechnoClass = cls::get($rec->docClassId);
+    	$TechnoClass = static::getDriver($productId);
     	
-    	return $TechnoClass->getPacks($rec->docId);
+    	return $TechnoClass->getPacks();
     }
     
     
@@ -353,15 +357,15 @@ class techno_Specifications extends core_Manager {
     	$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
     	$classId = $mvc::getClassId();
     	$arr = array(
-    		'id' => static::fetchField("#docClassId = {$classId} AND #docId = {$rec->id}", 'id'),
-    		'title' => $rec->title,
+    		'id'         => static::fetchField("#docClassId = {$classId} AND #docId = {$rec->id}", 'id'),
+    		'title'      => $rec->title,
     		'docClassId' => $classId,
-    		'docId' => $rec->id,
-    		'folderId' => $rec->folderId,
-    		'state' => ($rec->state != 'rejected') ? 'active' : 'rejected',
-    		'createdOn' => dt::now(),
-    		'createdBy' => core_Users::getCurrent(),
-    		'common' => !cls::haveInterface('doc_ContragentDataIntf', $coverClass) ? "yes" : "no",
+    		'docId'      => $rec->id,
+    		'folderId'   => $rec->folderId,
+    		'state'      => ($rec->state != 'rejected') ? 'active' : 'rejected',
+    		'createdOn'  => dt::now(),
+    		'createdBy'  => core_Users::getCurrent(),
+    		'common'     => !cls::haveInterface('doc_ContragentDataIntf', $coverClass) ? "yes" : "no",
     	);
     	
     	return static::save((object)$arr);
@@ -467,19 +471,18 @@ class techno_Specifications extends core_Manager {
      */
     public function getParam($id, $sysId)
     {
-    	expect($rec = static::fetchRec($id));
-    	$TechnoClass = cls::get($rec->docClassId);
+    	$TechnoClass = static::getDriver($id);
     	
-    	return $TechnoClass->getParam($rec->docId, $sysId);
+    	return $TechnoClass->getParam($sysId);
     }
     
     
-   /**
-	* Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
-	*
-	* @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
-	* @param boolean $inUse true - обекта е перо; false - обекта не е перо
-	*/
+    /**
+	 * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
+	 *
+	 * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	 * @param boolean $inUse true - обекта е перо; false - обекта не е перо
+	 */
     function itemInUse($objectId, $inUse)
     {
         /* TODO */

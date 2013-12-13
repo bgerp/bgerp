@@ -128,6 +128,10 @@ class techno_plg_SpecificationProduct extends core_Plugin
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
+    	$hasPrice = $mvc->getPriceInfo($rec->id)->price;
+    	
+    	$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
+    	$contragentFolder = cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     	
     	// Само активиран документ може да се копира
     	if($mvc->haveRightFor('add') && $rec->state == 'active'){
@@ -137,16 +141,22 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	// Само не оттеглените спецификации, които имат цена и са продаваеми
     	// могат да пораждат оферта директно
     	if(sales_Quotations::haveRightFor('add') && $rec->state != 'rejected' && strpos($rec->meta, 'canSell') !== false){
-    		$coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
     		
     		// Ако офертата е в папка на контрагент и може да се изчисли цена
-    		if(cls::haveInterface('doc_ContragentDataIntf', $coverClass) && $mvc->getPriceInfo($rec->id)->price){
-    			$qId = sales_Quotations::fetchField(("#originId = {$rec->containerId} AND #state='draft'"), 'id');
-	    		if($qId){
-	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
-	    		} else {
-	    			$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията');
-	    		}
+    		if($contragentFolder && $hasPrice){
+	    		$qId = sales_Quotations::fetchField(("#originId = {$rec->containerId} AND #state='draft'"), 'id');
+		    	if($qId){
+		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта,warning=Искатели да редактирате съществуващата оферта на спецификацията ?');
+		    	} else {
+		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията,warning=Искатели да създадете нова оферта за спецификацията ?');
+		    	}
+    		} 
+    	}
+    	
+    	if($rec->state == 'active'){
+    		//@TODO да махна изискването да има дебъг
+    		if(haveRole('debug') && $hasPrice && !$contragentFolder){
+    			$data->toolbar->addBtn('Задание', array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), 'warning=Искатели да създадете ново задание за производство,ef_icon=img/16/clipboard_text.png,title=Ново задание за производство');
     		}
     	}
     }
@@ -189,6 +199,19 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	}
     	
     	return $res = FALSE;
+    }
+    
+    
+    /**
+     * Връща стойноства на даден параметър на продукта, ако я има
+     * @param int $id - ид на продукт
+     * @param string $sysId - sysId на параметър
+     */
+    public function on_AfterRenderJobView($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		return tr("Драйвера няма изглед за задание");
+    	}
     }
     
     

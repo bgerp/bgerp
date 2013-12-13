@@ -129,9 +129,7 @@ class techno_GeneralProducts extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-    	}
+    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     	
     	if($fields['-single'] && !$fields['-short']){
 	    	if($rec->image){
@@ -155,6 +153,17 @@ class techno_GeneralProducts extends core_Master {
 	     		$file = fileman_Files::fetchByFh($rec->image);
 	     		$row->image = thumbnail_Thumbnail::getImg($file->fileHnd, $size);
 	     	}
+    	}
+    }
+    
+    
+	/**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('plain', 'xhtml')){
+    		$tpl->removeBlock('header');
     	}
     }
     
@@ -195,10 +204,17 @@ class techno_GeneralProducts extends core_Master {
      */
     public function prepareData($id)
     {
+    	$fields = $this->selectFields();
+    	
     	$data = new stdClass();
     	$data->rec = $this->fetch($id);
-    	$data->row = $this->recToVerbal($data->rec, 'title,description,-single,-short');
+    	$fields['-single'] = TRUE;
+    	$data->row = $this->recToVerbal($data->rec, $fields);
+    	
+    	// Извличане на детайлите (компонентите)
     	$data->details = $this->techno_GeneralProductsDetails->prepareDetails($id);
+    	
+    	// Извличане на параметрите на изделието
     	$data->params = $this->Params->prepareParams($id, TRUE);
     	
     	return $data;
@@ -210,7 +226,7 @@ class techno_GeneralProducts extends core_Master {
      * @param int $id - ид на продукт
      * @return core_ET $tpl - краткия изглед на продукта
      */
-	public function renderShortView($data)
+	public function renderShortView($id, $data)
     {
     	// Зареждане на щаблона за краткото представяне
     	$tpl = getTplFromFile('techno/tpl/SingleLayoutGeneralProductsShort.shtml');
@@ -336,5 +352,29 @@ class techno_GeneralProducts extends core_Master {
     	 $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
     	 $data->listFilter->showFields = 'search';
     	 $data->listFilter->input();
+    }
+    
+    
+    /**
+     * Рендира изгледа на спецификацията за заданието
+     */
+    public function renderJobView_($id, $data)
+    {
+    	// Зареждане на щаблона за краткото представяне
+    	$tpl = getTplFromFile('techno/tpl/SingleLayoutGeneralProductJob.shtml');
+    	$tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
+    	$tpl->placeObject($data->row);
+    	
+    	if(count($data->details)){
+    		$detailsLayout = $this->techno_GeneralProductsDetails->renderShortView($data->details);
+    		$tpl->replace($detailsLayout, 'DETAILS');
+    	}
+    	
+    	if(count($data->params)){
+    		$paramsLayout = $this->Params->renderParams($data->params);
+    		$tpl->replace($paramsLayout, 'PARAMS');
+    	}
+    	
+    	return $tpl;
     }
 }

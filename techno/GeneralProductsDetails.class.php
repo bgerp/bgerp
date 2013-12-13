@@ -41,12 +41,6 @@ class techno_GeneralProductsDetails extends core_Detail {
     
     
     /**
-	 *  Брой елементи на страница 
-	 */
-	var $listItemsPerPage = "20";
-    
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'RowNumb';
@@ -223,7 +217,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     
     
     /**
-     * Променяме рендирането на детайлите
+     * Rendirane na detajlite
      */
     function renderDetail_($data)
     {
@@ -246,34 +240,32 @@ class techno_GeneralProductsDetails extends core_Detail {
 	    	}
     	}
     	
-    	$tpl->replace($this->renderListToolbar($data), 'ListToolbar');
+    	if($data->toolbar){
+    		$tpl->replace($this->renderListToolbar($data), 'ListToolbar');
+    	}
+    	
     	return $tpl;
     }
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * След подготовка на детайлите
      */
     static function on_AfterPrepareDetail(core_Mvc $mvc, $res, &$data)
     {	
         if(isset($data->noTotal)) return;
-    	if(count($data->recs)){
-        	$total = $taxes = 0;
-        	foreach ($data->recs as $rec){
-        		$total += $rec->amount;
-        		$taxes += $rec->bTaxes;
-        	}
+    	$price = $mvc->getTotalPrice($data->masterData->rec->id);
+        if(!$price->price) return;
         	
-        	$Double = cls::get('type_Double');
-	    	$Double->params['decimals'] = 2;
+        $Double = cls::get('type_Double');
+	    $Double->params['decimals'] = 2;
 	    	
-	    	$data->total = (object)array('totalAmount' => $Double->toVerbal($total), 'totalTaxes' => ($taxes) ? $Double->toVerbal($taxes) : NULL);
-    		$cCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
-	    	$data->total->currencyId = $cCode;
-    		if($taxes){
-	    		$data->total->taxCurrencyId = $cCode;
-	    	}
-        }
+	    $data->total = (object)array('totalAmount' => $Double->toVerbal($price->price), 'totalTaxes' => ($price->taxes) ? $Double->toVerbal($price->taxes) : NULL);
+    	$cCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
+	    $data->total->currencyId = $cCode;
+    	if($price->taxes){
+	    	$data->total->taxCurrencyId = $cCode;
+	    }
     }
     
     
@@ -300,8 +292,12 @@ class techno_GeneralProductsDetails extends core_Detail {
     	$query = $this->getQuery();
     	$query->where("#generalProductId = {$generalProductId}");
     	$query->where("#componentId != -1");
+    	while($rec = $query->fetch()){
+    		$recs[$rec->id] = $rec;
+    		$rows[$rec->id] = $this->recToVerbal($rec);
+    	}
     	
-    	return $query->fetchAll();
+    	return (object)array('recs' => $recs, 'rows' => $rows);
     }
     
     
@@ -310,13 +306,12 @@ class techno_GeneralProductsDetails extends core_Detail {
      * @param array $array - записи
      * @return core_ET - шаблон
      */
-	public function renderShortView($array)
+	public function renderShortView($data)
     {
     	$tpl = getTplFromFile('techno/tpl/GeneralProductsDetails.shtml')->getBlock('SHORT');
     	
-    	if(count($array)){
-    		foreach ($array as $rec){
-    			$row = $this->recToVerbal($rec, 'componentId,cQuantity,cMeasureId');
+    	if(count($data->rows)){
+    		foreach ($data->rows as $row){
     			$block = clone $tpl->getBlock('COMPONENT');
     			$block->placeObject($row);
     			$block->removeBlocks();
@@ -325,16 +320,6 @@ class techno_GeneralProductsDetails extends core_Detail {
     	}
     	
     	return $tpl;
-    }
-    
-    
-    /**
-     * Връща краткото представяне на документа
-     * @param int $generalProductId - ид на продукта
-     */
-    public function getShortLayout($array)
-    {
-    	
     }
     
     

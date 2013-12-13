@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'techno_ProductsIntf' - Интерфейс за нестандартни арткули
+ * Клас 'techno_ProductsIntf' - Интерфейс за нестандартни артикули
  *
  *
  * @category  bgerp
@@ -10,7 +10,7 @@
  * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Интерфейс за нестандартни арткули
+ * @title     Интерфейс за нестандартни артикули
  */
 class techno_ProductsIntf
 {
@@ -88,5 +88,16 @@ class techno_ProductsIntf
     public function getParam($id, $sysId)
     {
     	return $this->class->getParam($id, $sysId);
+    }
+    
+    
+    /**
+     * Връща изгледа на драйвера за показване в Задание за производство
+     * @param int $id - ид на продукт
+     * @return core_ET - изгледа
+     */
+    public function renderJobView($id, $data)
+    {
+    	return $this->class->renderShortView($id, $data);
     }
 }
