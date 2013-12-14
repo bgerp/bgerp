@@ -496,7 +496,11 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
+        if(self::getLang() !== 'bg') {
+            $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
+        } else {
+            $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
+        }
         $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
 
         return $footer;
