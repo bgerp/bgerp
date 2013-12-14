@@ -928,9 +928,4 @@ class label_Labels extends core_Master
         // Подреждаме по дата на модифициране
         $data->query->orderBy('#modifiedOn=DESC');
     }
-    
-    
-    function on_Input($mvc, $res, $fields=NULL, $silent=NULL) {
-        bp();
-    }
 }
