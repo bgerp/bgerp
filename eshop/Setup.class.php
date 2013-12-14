@@ -29,7 +29,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'eshop_Products';
+    var $startCtr = 'eshop_Groups';
     
     
     /**

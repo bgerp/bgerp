@@ -206,7 +206,7 @@ class cms_Articles extends core_Master
     /**
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     { 
         if(trim($rec->body) && $fields['-list']) {
             $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');

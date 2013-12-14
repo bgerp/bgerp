@@ -20,7 +20,7 @@ class eshop_Products extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Продуктови раздели";
+    var $title = "Продукти в онлайн магазина";
     
     
     /**
