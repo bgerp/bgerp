@@ -62,7 +62,7 @@ class color_Type extends type_Varchar {
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = "", &$attr = array())
+    function renderInput_($name, $value = '', &$attr = array())
     {
         $attr['name'] = $name;
         
@@ -73,7 +73,8 @@ class color_Type extends type_Varchar {
         } else {
             $value = $attr['value'];
         }
-        
+
+ 
         return $this->createInput($name, $value, $attr);
     }
     

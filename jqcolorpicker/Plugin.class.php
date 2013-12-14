@@ -33,13 +33,15 @@ class jqcolorpicker_Plugin extends core_Plugin {
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) return;
-        
+
         $options = $invoker->options;
         
         if(!count($options)) {
             $options = $this->getDefaultOpt();
         }
         
+        if(!$value) $value = each($options)[1];
+
         if($value) {
             $cObj = new color_Object($value);
             
@@ -49,7 +51,7 @@ class jqcolorpicker_Plugin extends core_Plugin {
             
             $selected = substr($hCol, 1);
         }
-        
+ 
         $tpl = ht::createSelect($name, $options, $selected, $attr);
         
         $JQuery = cls::get('jquery_Jquery');
