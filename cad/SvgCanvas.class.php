@@ -37,7 +37,7 @@ class cad_SvgCanvas extends core_BaseClass {
 
      */
 
-	function __construct($width = 210, $height = 297, $pixPerMm = 10, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
+	function __construct($width = 210, $height = 297, $pixPerMm = 1000, $paddingTop = 10, $paddingRight = 10, $paddingBottom = 10, $paddingLeft = 10)
     {   
         // Отношение между милиметри и svg пиксели
         $this->pixPerMm = $pixPerMm;
@@ -233,7 +233,7 @@ class cad_SvgCanvas extends core_BaseClass {
         $BC = $C->add($B->neg());
         $BA = $AB->neg();
         
-        $m = abs($r * tan((-$AB->a + $BC->a)/2));
+        $m = abs($r * tan(($BC->a - $AB->a)/2));
  
         $M = $B->add(new cad_Vector($BA->a, $m, 'polar'));
         $N = $B->add(new cad_Vector($BC->a, $m, 'polar'));
@@ -258,6 +258,52 @@ class cad_SvgCanvas extends core_BaseClass {
             $this->lineTo($C->x, $C->y, TRUE);
         }
         
+    }
+
+
+    function arcTo($x1, $y1, $r, $absolute = FALSE) 
+    {
+        // Вземаме абсолютните координати на началната
+        list($x0, $y0)  = $this->getCP();
+
+        // Правим координатите абсолютни
+        if(!$absolute) {
+            $x1 += $x0;
+            $y1 += $y0;
+        }
+
+        $A = new cad_Vector($x0, $y0);
+        $B = new cad_Vector($x1, $y1);
+        $AB = $B->add($A->neg());
+        
+        $M = $A->add(new cad_Vector($AB->a, $AB->r/2, 'polar'));
+
+        $m = sqrt($r * $r - $AB->r/2 * $AB->r/2);
+
+        $C = $M->add( new cad_Vector($AB->a - pi()/2, $m, 'polar'));
+
+        $CA = $A->add($C->neg());
+        $CB = $B->add($C->neg());
+ 
+        if($CA->a > $CB->a) {
+            for($a = $CA->a; $a >= $CB->a; $a -= pi()/100) {
+                
+                $X = $C->add( new cad_Vector($a, $r, 'polar'));
+                $this->lineTo($X->x, $X->y, TRUE);
+
+            }
+        } else {
+            for($a = $CA->a; $a <= $CB->a; $a += pi()/1000) {
+                
+                $X = $C->add( new cad_Vector($a, $r, 'polar'));
+                $this->lineTo($X->x, $X->y, TRUE);
+
+            }
+
+        }
+
+        $this->lineTo($x1, $y1, TRUE);
+
     }
 
 

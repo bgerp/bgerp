@@ -64,7 +64,8 @@ class cad_Setup {
             'cad_RoundTo',
             'cad_Rectangle',
             'cad_Test',
-            'cad_MeasureLine'
+            'cad_MeasureLine',
+            'cad_ArcTo'
             );
 
         foreach($shapes as $cls) {
