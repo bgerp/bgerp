@@ -464,7 +464,7 @@ class cal_Tasks extends core_Master
         		$data->toolbar->buttons['Активиране']->error = "Има колизия във времената на задачата";
         	}
         }
-        
+      
     }
 
 
@@ -642,7 +642,7 @@ class cal_Tasks extends core_Master
     {
     	jquery_Jquery::enable($tpl);
     }
-    
+ 
     
     /**
      * Обновява информацията за задачата в календара
@@ -1323,11 +1323,20 @@ class cal_Tasks extends core_Master
 	    		$otherParams['mainHeaderCaption'] = tr('година');
 	    		$otherParams['subHeaderCaption'] = tr('седмица');
 	    		
-	    		// таблицата започва от понеделника преди намерената стартова дата
-	    		$otherParams['startTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]))));
-	    		// до неделята след намеренета за край дата
-	    		$otherParams['endTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
+	    		if(date("N", mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])) != 1 ) {
+		    		// таблицата започва от понеделника преди намерената стартова дата
+		    		$otherParams['startTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]))));
+		    		
+	    		} else {
+	    			$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
+	    		}
 	    		
+	    		if(date("N", mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0])) != 7 ) {
+	    			// до неделята след намеренета за край дата
+		    		$otherParams['endTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('Sunday',mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
+	    		} else {
+	    			$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
+	    		}
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
@@ -1409,6 +1418,11 @@ class cal_Tasks extends core_Master
     	
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
+    }
+    
+    public static function act_Test()
+    {
+    	
     }
  
 }
