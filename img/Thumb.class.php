@@ -109,7 +109,7 @@ class img_Thumb
     /**
      * Какви параметри има този клас
      */
-    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality';
+    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality, rotateSide';
 
 
     /**
@@ -125,7 +125,8 @@ class img_Thumb
                             $allowEnlarge = FALSE, 
                             $expirationTime = NULL,
                             $isAbsolute = NULL,
-                            $quality = NULL)
+                            $quality = NULL,
+                            $rotateSide = NULL)
     {
         
         if(is_array($source)) {
@@ -240,7 +241,7 @@ class img_Thumb
             }
 
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->maxWidth . '|' .
-                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' .  EF_SALT);
+                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' . $this->rotateSide . EF_SALT);
         }
 
         return $this->hash;
@@ -319,7 +320,7 @@ class img_Thumb
         $this->setWidthAndHeight();
 
         if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
-            list($this->scaledWidth, $this->scaledHeight, $this->ratio) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge);
+            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge, (boolean)$this->rotateSide);
         }
 
         return array($this->width, $this->height);
@@ -452,8 +453,27 @@ class img_Thumb
 
         return $url;
     }
-
-
+    
+    
+    /**
+     * В зависимото от страната за ротиране връща ъгъла
+     * 
+     * @return integer - Ъгъл на завъртане
+     */
+    function getAngle()
+    {
+        if ($this->rotateSide == 'left') {
+            $angle = 90;
+        } elseif ($this->rotateSide == 'right') {
+            $angle = 270;
+        } else {
+            $angle = 0;
+        }
+        
+        return $angle;
+    }
+    
+    
     /**
      * създава и записва thumb изображението
      */
@@ -464,10 +484,21 @@ class img_Thumb
             $path = $this->getThumbPath();
 
             $this->getSize();
-
-            // Склаираме, само ако имаме пропорция, различна от 1
-            if($this->ratio != 1) {
-                $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight);  
+            
+            // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
+            if($this->ratio != 1 || $this->rotation) {
+                
+                if($this->rotation) {
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth);
+                    
+                    $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
+                    
+                    $angle = $this->getAngle();
+                    
+                    $newGdRes = imagerotate($newGdRes, $angle, $white);
+                } else {
+                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight);
+                }
             } elseif($this->sourceType == 'gdRes') {
                 $newGdRes = $gdRes;
             }
@@ -520,11 +551,12 @@ class img_Thumb
      * @param int   $height     Височина на изходното изображение
      * @param int   $maxWidth   Максимална широчина
      * @param int   $maxHeight  Максимална широчина
-     * @param bool  $notEnlarge Трябва ли да се увеличава входния правоъгълник?
+     * @param bool  $allowEnlarge Трябва ли да се увеличава входния правоъгълник?
+     * @param bool  $allowRotate Трябва ли да се ротира
      *
      * @return array            ($newWidth, $newHeight, $ratio)
      */
-    public static function scaleSize($width, $height, $maxWidth, $maxHeight, $allowEnlarge = FALSE)
+    public static function scaleSize($width, $height, $maxWidth, $maxHeight, $allowEnlarge = FALSE, $allowRotate = FALSE)
     {
         if($width == 0 || $height == 0) {
 
@@ -540,10 +572,21 @@ class img_Thumb
             $ratio  = min($wRatio, $hRatio, 1);
         }
 
+        if($allowRotate) {
+            list($rW, $rH, $rR) = self::scaleSize($height, $width, $maxWidth, $maxHeight, $allowEnlarge);
+            
+            if($rR > $ratio) {
+                $ratio = $rR;
+                $tempWidth = $width;
+                $width = $height;
+                $height = $tempWidth;
+                $rotate = TRUE;
+            }
+        }
         $newHeight = ceil($ratio * $height);
         $newWidth = ceil($ratio * $width);
 
-        return array($newWidth, $newHeight, $ratio);
+        return array($newWidth, $newHeight, $ratio, $rotate);
     }
 
 
