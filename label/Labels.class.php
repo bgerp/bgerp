@@ -134,7 +134,7 @@ class label_Labels extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=100%, silent');
         
         $this->FLD('fieldUp', 'int', 'caption=Поле->Отгоре, value=0, title=Поле на листа отгоре, unit=mm, notNull');
         $this->FLD('fieldLeft', 'int', 'caption=Поле->Отляво, value=0, title=Поле на листа отляво, unit=mm, notNull');
@@ -221,6 +221,10 @@ class label_Labels extends core_Master
      */
     static function on_AfterInputEditForm($mvc, &$form)
     {
+        // Инпутваме пак формата, за да може да вкараме silent полетата,
+        // които идват от шаблона 
+        $form->input(NULL, TRUE);
+        
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
             
@@ -923,5 +927,10 @@ class label_Labels extends core_Master
         
         // Подреждаме по дата на модифициране
         $data->query->orderBy('#modifiedOn=DESC');
+    }
+    
+    
+    function on_Input($mvc, $res, $fields=NULL, $silent=NULL) {
+        bp();
     }
 }

@@ -482,7 +482,7 @@ class label_TemplateFormats extends core_Detail
                 }
                 
                 // Максимална дължина на символите
-                $form->FNC($placeHolderField, $type, "caption={$caption}, input=input");
+                $form->FNC($placeHolderField, $type, "caption={$caption}, input=input, silent");
             }
         }
     }
