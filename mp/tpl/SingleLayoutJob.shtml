@@ -70,5 +70,15 @@
 				</table>
 			</td>
 		</tr>
+		<!--ET_BEGIN ADDITIONAL-->
+		<tr>
+			<td class='job-head'>|Допълнително|*</td>
+		</tr>
+		<tr>
+			<td>
+				[#ADDITIONAL#]
+			</td>
+		</tr>
+		<!--ET_END ADDITIONAL-->
 	</table>
 </div>

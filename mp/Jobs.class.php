@@ -172,22 +172,70 @@ class mp_Jobs extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-        //$form->setDefault('dueDate', dt::now());
+    	$rec = &$form->rec;
     	
-        if(empty($form->rec->specId)){
+        if(empty($rec->specId)){
 	        $specId = $mvc->getSpecByOrigin($form);
-	        $form->setReadOnly('specId', $specId);
+	        $rec->specId = $specId;
+	        $form->setReadOnly('specId');
 	        
         	if($jobRec = $mvc->getLastJob($specId, 'draft')){
         		$link = ht::createLink($mvc->getHandle($jobRec->id), array($mvc, 'single', $jobRec->id));
     			$form->setWarning('specId', "Тази спецификация има вече задание чернова|* {$link}");
     		}
-        } else {
+        }
+        
+    	if($rec->id){
         	$form->setReadOnly('specId');
         }
-    	
+        
+        $Driver = techno_Specifications::getDriver($rec->specId);
+        $mvc->prepareAdditionalFields($form, $Driver->getAdditionalParams(), $rec->data);
+        
     	$locations = crm_Locations::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
     	$form->setOptions('deliveryPlace', array('' => '') + $locations);
+    }
+    
+    
+    /**
+     * Подготвя полетата за допълнитлени данни на формата взависимост от драйвъра
+     * @param core_Form $form - формата
+     * @param array $array - масив върнат от драйвера (@see techno_ProductsIntf::getAdditionalParams)
+     */
+    private function prepareAdditionalFields(&$form, $array, $rData)
+    {
+    	if(count($array)){
+    		foreach ($array as $name => $obj){
+    			$form->FNC($name, $obj->type, "caption=Допълнително->{$obj->name},input,additional");
+    			if(isset($rData[$name])){
+    				$form->setDefault($name, $rData[$name]);
+    			}
+    		}
+    	}
+    }
+    
+    
+	/**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		// Преобразува допълнителната информация във вид удобен за съхраняване
+    		$data = array();
+    		$dataFlds = $form->selectFields('#additional');
+    		if(count($dataFlds)){
+    			foreach ((array)$dataFlds as $k => $v){
+    				if(isset($rec->$k) && strlen($rec->$k)){
+    					$data[$k] = $rec->$k;
+    				}
+    			}
+    			
+    			$rec->data = $data;
+    		}
+    	}
     }
     
     
@@ -213,6 +261,8 @@ class mp_Jobs extends core_Master
 	    } elseif($origin->haveInterface('techno_ProductsIntf')){
 	        $specId = techno_Specifications::fetchByDoc($docClass, $docId)->id;
 	    } else {
+	    	
+	    	// Небива да се стига до тук
 	        expect(FALSE);
 	    }
 	    
@@ -267,6 +317,8 @@ class mp_Jobs extends core_Master
     static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	$tpl->push('mp/tpl/styles.css', 'CSS');
+    	$Driver = techno_Specifications::getDriver($data->rec->specId);
+    	$tpl->replace($Driver->renderAdditionalParams($data->rec->data), 'ADDITIONAL');
     }
     
     
