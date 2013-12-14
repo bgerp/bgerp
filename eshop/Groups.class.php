@@ -74,7 +74,7 @@ class eshop_Groups extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'eshop,ceo';
     
     
     /**
@@ -98,31 +98,31 @@ class eshop_Groups extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'powerUser';
+	var $canList = 'eshop,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'powerUser';
+	var $canSingle = 'eshop,ceo';
 	
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'eshop,cat';
+    var $canWrite = 'eshop,ceo';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'powerUser';
+    var $canView = 'eshop,ceo';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'eshop,ceo';
+    var $canDelete = 'no_one';
 
 
     /**
