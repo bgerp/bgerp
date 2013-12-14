@@ -279,7 +279,13 @@ class acc_journal_EntrySide
         }
         
         if (isset($this->amount) && isset($this->quantity)) {
-            return $this->amount / $this->quantity;
+        	if($this->quantity){
+        		return $this->amount / $this->quantity;
+        	} else {
+        		
+        		// Зада няма деление на нула, ако к-то е нула
+        		return 0;
+        	}
         }
         
         return NULL;
