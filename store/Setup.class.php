@@ -1,9 +1,10 @@
 <?php
-
+// Кои сч. сметки ще се използват за синхронизиране със склада
+defIfNot('STORE_ACC_ACCOUNTS', '');
 
 
 /**
- * class dma_Setup
+ * class store_Setup
  *
  * Инсталиране/Деинсталиране на
  * мениджъри свързани със складовете
@@ -12,12 +13,18 @@
  * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Setup extends core_ProtoSetup
 {
+    
+	
+	/**
+	 * Систем ид-та на счетоводните сметки за синхронизация
+	 */
+    protected static $accAccount = array('321', '301');
     
     
     /**
@@ -80,6 +87,14 @@ class store_Setup extends core_ProtoSetup
     
     
     /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'STORE_ACC_ACCOUNTS' => array("acc_type_Accounts", 'caption=Продукти->Сч. сметки за синхронизиране'),
+	);
+	
+	
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -97,7 +112,22 @@ class store_Setup extends core_ProtoSetup
         // Добавяне на роля за старши складажия
         $html .= core_Roles::addRole('store', 'storeWorker') ? "<li style='color:green'>Добавена е роля <b>store</b> наследяваща <b>storeWorker</b></li>" : '';
     	$html .= core_Roles::addRole('storeMaster', 'store') ? "<li style='color:green'>Добавена е роля <b>storeMaster</b> наследяваща <b>store</b></li>" : '';
-
+		
+    	
+    	// Ако няма посочени от потребителя сметки а синхронизация
+    	$config = core_Packs::getConfig('store');
+    	if(strlen($config->STORE_ACC_ACCOUNTS) === 0){
+    		$accArray = array();
+    		foreach (static::$accAccount as $accSysId){
+    			$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
+    			$accArray[$accId] = $accSysId;
+    		}
+    		
+    		// Записват се ид-та на дефолт сметките за синхронизация
+    		core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
+    		$html .= "<li style='color:green'>Дефолт счетодовни сметки за синхронизация на продуктите<b>" . implode(',', $accArray) . "</b></li>";
+    	}
+    	
     	return $html;
     }
     
