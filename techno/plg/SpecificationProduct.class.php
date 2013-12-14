@@ -216,6 +216,37 @@ class techno_plg_SpecificationProduct extends core_Plugin
     
     
     /**
+     * Връща масив с допълнителни параметри, специфични за технолога. Те ще се използват в заданията
+     * 
+     * @return array[]   - масив от обекти от вида
+     * 		rec->name - име на параметъра
+     * 		rec->type - тип в системата
+     */
+    public function on_AfterGetAdditionalParams($mvc, &$res)
+    {
+    	if(!$res){
+    		return NULL;
+    	}
+    }
+    
+    
+    /**
+     * Рендира допълнителните параметри
+     * @param array $data  - масив от обекти от вида
+     * 		rec->name  - име на параметъра
+     * 		rec->type  - тип в системата
+     * 		rec->value - стойност
+     * @return core_ET $tpl - шаблона
+     */
+    public function on_AfterRenderAdditionalParams($mvc, &$res, $id, $data)
+    {
+    	if(!$res){
+    		return new ET("");
+    	}
+    }
+    
+    
+    /**
      * Връща в кои опаковки може да се добавя един продукт
      */
     function on_AfterGetPacks($mvc, &$res, $productId)
