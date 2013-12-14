@@ -106,6 +106,12 @@ class label_TemplateFormats extends core_Detail
     static $bucket = 'label';
     
     
+    /**
+     * Активен таб
+     */
+    var $currentTab = 'Шаблони';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */

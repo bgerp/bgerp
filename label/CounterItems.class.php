@@ -77,27 +77,9 @@ class label_CounterItems extends core_Detail
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     * Активен таб
      */
-//    var $rowToolsSingleField = 'id';
-    
-    
-    /**
-     * Кои полета ще извличаме, преди изтриване на заявката
-     */
-//    var $fetchFieldsBeforeDelete = '';
-    
-    
-    /**
-     * 
-     */
-//    var $listFields = 'id, name, description, maintainers';
-    
-    
-    /**
-     * 
-     */
-//    var $currentTab = '';
+    var $currentTab = 'Брояч';
     
     
 	/**
