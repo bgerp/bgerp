@@ -568,16 +568,8 @@ class label_TemplateFormats extends core_Detail
                     // Ако е зададена възможна ротация
                     if ($rec->formatParams['Rotation'] == 'yes') {
                         
-                        // Ако е добре да се ротира изображението
-                        if ($thumb->isGoodToRotate($rec->formatParams['Width'], $rec->formatParams['Height'])) {
-                            
-                            // Ротираме изображението
-                            // Променяме широчината и височината
-                            $thumb->rotate();
-                            
-                            // Добавяме класа, че е ротиран
-                            $attr['class'] = 'rotate';
-                        }
+                        // Задаваме да се ротира на ляво
+                        $thumb->rotateSide = 'left';
                     }
                     
                     // Добавяме вербалната стойност
