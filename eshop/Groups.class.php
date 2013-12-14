@@ -44,19 +44,13 @@ class eshop_Groups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,image,menuId,state';
+    var $listFields = 'id,name,menuId,state';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'name';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'name';
     
     
     /**
@@ -164,6 +158,17 @@ class eshop_Groups extends core_Master
         }
 
         $data->form->setOptions('menuId', $opt);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на вербалните стойности за всеки запис
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        if($fields['-list']) {
+            $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
+        }
     }
 
 

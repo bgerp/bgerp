@@ -45,13 +45,7 @@ class blogm_Articles extends core_Master {
 	 */
 	var $listFields ='id, title, categories, author, language, createdOn, createdBy, modifiedOn, modifiedBy';
 	
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'title';
-
-    
+        
 	/**
 	 *  Брой статии на страница 
 	 */
@@ -158,6 +152,10 @@ class blogm_Articles extends core_Master {
             } else {
                 $row->commentsCnt .= '&nbsp;' . tr('коментара');
             }
+        }
+
+        if($fields['-list']) { 
+            $row->title = ht::createLink($row->title, array('blogm_Articles', 'Article', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
         }
 
 	}
