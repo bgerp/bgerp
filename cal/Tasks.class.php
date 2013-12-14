@@ -1063,6 +1063,9 @@ class cal_Tasks extends core_Master
      */
     static public function getNextGanttType ($ganttType)
     {
+    
+    	$currUrl = getCurrentUrl();
+
     	// текущия ни гант тайп
         $ganttType = Request::get('View');
         
@@ -1074,7 +1077,11 @@ class cal_Tasks extends core_Master
         
         if ($next <= count (static::$view)) {
        		$nextType = array_search($next, static::$view);
-       		$nextUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$nextType);
+       		$currUrl['Act'] = 'list';
+	        $currUrl['Chart'] = 'Gantt';
+	        $currUrl['View'] = $nextType;
+	       
+       		$nextUrl = $currUrl;
         }
         
         // предишния ще е с индекс текущия - 1
@@ -1082,7 +1089,10 @@ class cal_Tasks extends core_Master
     	
         if ($prev >= 1) {
        		$prevType = array_search($prev, static::$view);
-       		$prevUrl = array('cal_Tasks', 'list' , 'Chart' => 'Gantt', 'View' =>$prevType);
+       		$currUrl['Act'] = 'list';
+	        $currUrl['Chart'] = 'Gantt';
+	        $currUrl['View'] = $prevType;
+       		$prevUrl = $currUrl;
         }
         
         // връщаме 2-те URL-та
