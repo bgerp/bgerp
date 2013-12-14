@@ -238,10 +238,11 @@ class label_Counters extends core_Master
      * @param string $str - Стринг, в който ще се замества
      * @param integer $counterId - id на брояча
      * @param integer $labelId - id на етикета
+     * @param boolean $updateCounter - Ако е FALSE не се обновява брояча
      * 
      * @return string - Новия стринг
      */
-    static function placeCounter($str, $counterId, $labelId)
+    static function placeCounter($str, $counterId, $labelId, $updateCounter=TRUE)
     {
         // Ако име плейсхолдер за брояч
         if (static::haveCounterPlace($str)) {
@@ -249,8 +250,16 @@ class label_Counters extends core_Master
             // Вземаем текущия брояч
             $counter = static::getCurrent($counterId);
             
-            // Упдейтваме последния брояч
-            $updated = label_CounterItems::updateCounter($counterId, $labelId, $counter);
+            // Ако е зададено да не се обновява
+            if ($updateCounter === FALSE) {
+                
+                // Вземаме последната стойност
+                $updated = $counter;
+            } else {
+                
+                // Упдейтваме последния брояч
+                $updated = label_CounterItems::updateCounter($counterId, $labelId, $counter);
+            }
             
             // Очакваме да няма грешка
             expect($updated);
