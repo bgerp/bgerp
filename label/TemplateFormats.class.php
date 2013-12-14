@@ -325,35 +325,24 @@ class label_TemplateFormats extends core_Detail
             // Вземаме типа
             $type = $form->rec->type;
             
-            // Ако редактираме записа
-            if ($form->rec->id) {
-                
-                // Вземаме записа
-                $rec = $mvc->fetch($form->rec->id);
-                
-                // Вземаме старите стойности
-                $oldDataArr = $rec->formatParams;
-            }
-            
             // Форма за функционалните полета
             $fncForm = cls::get('core_Form');
             
             // Вземаме функционалните полета за типа
             static::addFieldsForType($fncForm, $type);
             
+            // Ако типа е брояч и няма въведен формат и има брояч
+            if ($type == 'counter' && !$form->rec->Format && $form->rec->CounterId) {
+                
+                // Стойността по подразбиране
+                $form->rec->Format = '%';
+            }
+            
             // Обхождаме масива
             foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 
-                // Ако има масив за старите данни и новта стойност е NULL
-                if ($oldDataArr && ($form->rec->$fieldName === NULL)) {
-                    
-                    // Използваме старта стойност
-                    $dataArr[$fieldName] = $oldDataArr[$fieldName];
-                } else {
-                    
-                    // Добавяме данните от формата
-                    $dataArr[$fieldName] = $form->rec->$fieldName;
-                }
+                // Добавяме данните от формата
+                $dataArr[$fieldName] = $form->rec->$fieldName;
             }
             
             // Добавяме целия масив към формата
@@ -405,7 +394,7 @@ class label_TemplateFormats extends core_Detail
                 $form->FNC('Height', 'int(min=1, max=5000)', 'caption=Височина, input=input, unit=px');
                 
                 // Формат на баркода
-                $form->FNC('Format', 'varchar', 'caption=Формат, input=input, mandatory');
+                $form->FNC('Format', 'varchar', 'caption=Формат, input=input');
                 
                 // Дали да се ротира или не
                 $form->FNC('Rotation', 'enum(yes=Да, no=Не)', 'caption=Ротация, input=input, mandatory');
