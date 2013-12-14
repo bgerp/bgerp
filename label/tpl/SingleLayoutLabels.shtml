@@ -9,6 +9,10 @@
 		[#printForm#]
 	</div>
 	
+	<div class="preview-label">
+		[#PreviewLabel#]
+	</div>
+	
     <div class='scrolling-holder'>
             <table class="styled-table" width="99%">
                 <tr>
@@ -19,13 +23,6 @@
                     <td class="title-style" width="150px">|Шаблон|*</td>
                     <td> [#templateId#]</td>
                 </tr>
-                
-                <!--ET_BEGIN params-->
-	                <tr>
-	                    <td class="title-style">|Параметри|*</td>
-	                    <td> [#params#]</td>
-	                </tr>
-                <!--ET_END params-->
             </table>
             <table class="styled-table" width="99%">
                 <tr>

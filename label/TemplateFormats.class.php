@@ -514,10 +514,11 @@ class label_TemplateFormats extends core_Detail
      * @param string $place - Името на плейсхолдера
      * @param string $val - Вербалната стойност
      * @param string $labelId - id на етикета
+     * @param boolean $updateTempData - Ако е FALSE, при вземане на данните да не се обновяват стойностите им в модела
      * 
      * @return string - Вербалното представяне на стойността
      */
-    static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL)
+    static function getVerbalTemplate($templateId, $place, $val, $labelId = NULL, $updateTempData=TRUE)
     {
         // Масив със записите
         static $recArr = array();
@@ -545,7 +546,7 @@ class label_TemplateFormats extends core_Detail
         if ($type == 'caption') {
             
             // Стринга, който ще се използва в масива за ключ
-            $valStr = $val;
+            $valStr = $val . '|' . $updateTempData;
             
             // Ако не е вземана стойността
             if (!$verbalValArr[$valStr]) {
@@ -561,7 +562,7 @@ class label_TemplateFormats extends core_Detail
         } elseif ($type == 'image') {
             
             // Стринга, който ще се използва в масива за ключ
-            $valStr = $val . $rec->formatParams['Rotation'];
+            $valStr = $val . $rec->formatParams['Rotation'] . '|' . $updateTempData;
             
             // Ако не е вземана стойността
             if (!$verbalValArr[$valStr]) {
@@ -606,14 +607,14 @@ class label_TemplateFormats extends core_Detail
                 expect($rec->formatParams['CounterId'], 'Не е избран брояч');
                 
                 // Заместваме брояча
-                $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId);
+                $formatVal = label_Counters::placeCounter($formatVal, $rec->formatParams['CounterId'], $labelId, $updateTempData);
             }
             
             // Типа на баркода
             $barcodeType = $rec->formatParams['BarcodeType'];
             
             // Стринг за уникалност
-            $valStr = $formatVal . '|' . $barcodeType . '|' . $rec->formatParams['Showing'];
+            $valStr = $formatVal . '|' . $barcodeType . '|' . $rec->formatParams['Showing'] . '|' . $updateTempData;
             
             // Ако не е вземана стойността
             if (!$verbalValArr[$valStr]) {

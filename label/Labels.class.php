@@ -472,6 +472,19 @@ class label_Labels extends core_Master
             // Показва формата за принтиране
             $data->row->printForm = $mvc->getPrintForm($data->rec->id);
         }
+        
+        // Данни
+        $previewLabelData = new stdClass();
+        $previewLabelData->cnt = 1;
+        $previewLabelData->rec = $data->rec;
+        $previewLabelData->id = $data->rec->id;
+        $previewLabelData->updateTempData = FALSE;
+        
+        // Подгогвяме етикетите
+        $mvc->prepareLabel($previewLabelData);
+        
+        // Добавяме към данните
+        $data->PreviewLabel = $previewLabelData;
     }
     
     
@@ -489,6 +502,9 @@ class label_Labels extends core_Master
             // Рендираме формата
             $data->row->printForm = $data->row->printForm->renderHtml();
         }
+        
+        // Рендираме етикетите
+        $data->row->PreviewLabel = $mvc->renderLabel($data->PreviewLabel);
     }
     
     
@@ -584,7 +600,7 @@ class label_Labels extends core_Master
                 $fPlace = label_TemplateFormats::getPlaceholderFieldName($place);
                 
                 // Вземаме вербалната стойност
-                $data->rows[$i]->$place = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace], $data->rec->id);
+                $data->rows[$i]->$place = label_TemplateFormats::getVerbalTemplate($data->rec->templateId, $place, $params[$fPlace], $data->rec->id, $data->updateTempData);
             }
         }
     }
