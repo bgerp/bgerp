@@ -100,4 +100,42 @@ class techno_ProductsIntf
     {
     	return $this->class->renderShortView($id, $data);
     }
+    
+    
+	/**
+     * Връща информация за теглото на продукта
+     * @param int $id - ид на продукт
+     * @return stdClass - Обект
+     */
+    public function getWeight($id)
+    {
+    	return $this->class->getWeight($id);
+    }
+    
+    
+    /**
+     * Връща масив с допълнителни параметри, специфични за технолога. Те ще се
+     * използват в заданията
+     * @return array[]   - масив от обекти от вида
+     * 		rec->name - име на параметъра
+     * 		rec->type - тип в системата
+     */
+    public function getAdditionalParams()
+    {
+    	return $this->class->getAdditionalParams();
+    }
+    
+    
+    /**
+     * Рендира допълнителните параметри
+     * @param array[]  - масив от обекти от вида
+     * 		rec->name  - име на параметъра
+     * 		rec->type  - тип в системата
+     * 		rec->value - стойност
+     * $paramInfo[$name]->type
+     */
+	public function renderAdditionalParams($id, $data)
+    {
+    	return $this->class->renderAdditionalParams($data);
+    }
 }
