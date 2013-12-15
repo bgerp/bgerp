@@ -40,6 +40,11 @@ class cms_Page extends page_Html {
         $this->push('cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
+        $this->push('Cache-Control: public', 'HTTP_HEADER');
+        $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + (haveRole('powerUser') ? 10 : 3600)) . ' GMT', 'HTTP_HEADER');
+        $this->push('-Pragma', 'HTTP_HEADER');
+        $this->push('-Server', 'HTTP_HEADER');
+
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');

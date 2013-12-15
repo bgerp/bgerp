@@ -34,9 +34,13 @@ class page_Internal extends page_Html {
         
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
-        $this->push('css/internalTheme.css','CSS');
+
         $this->push('js/efCommon.js', 'JS');
         
+        $this->push('Cache-Control: no-cache, no-store, must-revalidate', 'HTTP_HEADER');
+        $this->push('Pragma: no-cache', 'HTTP_HEADER');
+        $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
+
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
          
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');

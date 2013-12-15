@@ -9,6 +9,7 @@
 		[#PAGE_CONTENT#] 
 		
 		<!--ET_BEGIN SOCIAL-->
+		[#SOCIAL#]
 		[#social_Sharings::getButtons#]
 		<!--ET_END SOCIAL-->
 		
