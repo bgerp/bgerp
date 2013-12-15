@@ -70,6 +70,7 @@ class cms_Setup extends core_ProtoSetup
 
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
 
+            'CMS_GOOGLE_WMT_ID' => array ('identifier(64)', 'caption=Google Webmaster Tools->Id'),
 	);
 
 	
