@@ -302,7 +302,7 @@ class core_App
 
         // Хедъри за управлението на кеша в браузъра
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
-        header("Cache-Control: max-age=3153600");
+        header("Cache-Control: public, max-age=3153600");
 
         if (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript') {
             $gzip = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
@@ -358,7 +358,7 @@ class core_App
             header("Content-Length: {$size}");
             header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
-            header('Expires: 0'); // Proxies.
+            header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
             header('Connection: close');
             // Изпращаме съдържанието на изходния буфер
             ob_end_flush();
@@ -1080,7 +1080,7 @@ class core_App
         file_put_contents(EF_TEMP_PATH . '/err.log.html', $errHtml . date("Y-m-d H:i:s") . "\n\n");
         
         // Сигнал за външния свят, че нещо не е наред
-        header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', TRUE, 500);
+        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', TRUE, 500);
 
         header('Content-Type: text/html; charset=UTF-8');
 
