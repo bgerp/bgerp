@@ -59,10 +59,22 @@ class page_Html extends core_ET {
     {
         // Дали линковете да са абсолютни
         $absolute = (boolean)(Mode::is('text', 'xhtml'));
+
+        $headers = $invoker->getArray('HTTP_HEADER');
+
+        if(is_array($headers)) {
+            foreach($headers as $hdr) {
+                if($hdr{0} == '-') {
+                    header_remove(substr($hdr, 1));
+                } else {
+                    header($hdr, TRUE);
+                }
+            }
+        }
         
         $css = $invoker->getArray('CSS');
         
-        if(count($css)) {
+        if(is_array($css)) {
             foreach($css as $file) {
                 if(!preg_match('#^[^/]*//#', $file)) {
                     $file = sbf($file, '', $absolute);
@@ -74,7 +86,7 @@ class page_Html extends core_ET {
         
         $js = $invoker->getArray('JS');
         
-        if(count($js)) {
+        if(is_array($js)) {
             foreach($js as $file) {
                 if(!preg_match('#^[^/]*//#', $file)) {
                     $file = sbf($file, '', $absolute);

@@ -4,6 +4,11 @@
 
 Options -Indexes
 
+<IfModule mod_headers.c>
+    Header unset Server
+    Header unset X-Powered-By
+</IfModule>
+
 # Very important for URL rewriting
 <IfModule mod_rewrite.c> 
 RewriteEngine on

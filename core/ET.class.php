@@ -645,7 +645,7 @@ class core_ET extends core_BaseClass
      * Отпечатва текстовото съдържание на шаблона
      */
     function output($content = '', $place = "CONTENT")
-    {
+    {   
         echo $this->getContent($content, $place, TRUE, TRUE);
     }
     

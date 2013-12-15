@@ -63,12 +63,8 @@ class core_Session {
      */
     function core_Session($name = "SID")
     {
-        // HTTP header-и непозволяващи кеширането на документ-а
-        $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";     // Date in the past
-        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";     // always modified
-        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";     // HTTP/1.1
-        $this->_headers["Pragma"] = "no-cache";     // HTTP/1.0
         ini_set('session.gc_maxlifetime', 7200);
+        
         session_name($name);
         //$this->_started = FALSE;
         
@@ -231,9 +227,8 @@ class core_Session {
     }
     
     /*
-    * P R I V A T E   M E M B E R S
-    */
-    
+     * P R I V A T E   M E M B E R S
+     */
     
     /**
      * @access private
@@ -248,13 +243,8 @@ class core_Session {
             ini_set('session.use_only_cookies', 1);
             @session_start();
             
-//            if(!$this->_resumed) {
             $_SESSION['session_is_valid'] = time();
-//            }
-            
-            foreach($this->_headers as $hdrName=>$hdrValue) {
-                header("$hdrName: $hdrValue");
-            }
+
             
             $this->_started = TRUE;
         }

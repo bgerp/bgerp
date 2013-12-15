@@ -691,7 +691,7 @@ class core_Html
             unset($attr['ef_icon']);
         }
 
-        $tpl = ht::createElement($url ? 'a' : 'span', $attr, $title);
+        $tpl = ht::createElement($url ? 'a' : 'span', $attr, $title, TRUE);
 
         return $tpl;
     }
