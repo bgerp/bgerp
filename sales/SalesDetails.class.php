@@ -178,7 +178,7 @@ class sales_SalesDetails extends core_Detail
      */
     public function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -194,7 +194,7 @@ class sales_SalesDetails extends core_Detail
      */
     public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -355,7 +355,7 @@ class sales_SalesDetails extends core_Detail
         }
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
-            
+           
     		if(empty($rec->id)){
     			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
@@ -393,7 +393,7 @@ class sales_SalesDetails extends core_Detail
             
             // Определяне на цена, количество и отстъпка за опаковка
             
-            if (empty($rec->packPrice)) {
+            if (!isset($rec->packPrice)) {
                 // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
                 // няма нужда от конвертиране.
                 
@@ -437,7 +437,7 @@ class sales_SalesDetails extends core_Detail
                 // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
-            
+            //bp($rec);
             // Записваме основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
         }

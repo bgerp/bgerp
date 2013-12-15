@@ -117,7 +117,7 @@ class store_ReceiptDetails extends core_Detail
      */
     public function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
     
@@ -130,7 +130,7 @@ class store_ReceiptDetails extends core_Detail
      */
     public function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
     

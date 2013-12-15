@@ -108,7 +108,7 @@ class label_Labels extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'title, templateId, printedCnt';
+    var $listFields = 'title, templateId, printedCnt, createdOn, createdBy, modifiedOn, modifiedBy';
     
     
     /**

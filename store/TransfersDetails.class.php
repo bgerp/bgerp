@@ -56,12 +56,6 @@ class store_TransfersDetails extends core_Detail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, store';
@@ -177,11 +171,11 @@ class store_TransfersDetails extends core_Detail
         $ProductManager = cls::get($rec->classId);
         
     	if (empty($rec->id)) {
-        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
-            $data->form->setOptions('productId', $ProductManager::getByProperty('canStore'));
+        	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
+            $form->setOptions('productId', $ProductManager::getByProperty('canStore'));
         	
         } else {
-            $data->form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
+            $form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
         }
     }
     
@@ -235,7 +229,7 @@ class store_TransfersDetails extends core_Detail
             	$productMan = cls::get($manId);
             	$products = $productMan::getByProperty('canStore');
                 if(!count($products)){
-                	$error = "error=Няма продаваеми {$productMan->title}";
+                	$error = "error=Няма складируеми {$productMan->title}";
                 }
                 
                 $data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
