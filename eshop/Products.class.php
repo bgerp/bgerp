@@ -38,7 +38,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name';
+    var $listFields = 'id,name,groupId,state';
     
     
     /**
@@ -46,13 +46,7 @@ class eshop_Products extends core_Master
      */
     var $searchFields = 'name';
     
-        
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    var $rowToolsSingleField = 'name';
-    
-    
+            
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -136,9 +130,18 @@ class eshop_Products extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,width=100%');
+        $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
+    }
+
+
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        if($fields['-list']) {
+           // $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
+           $row->groupId = ht::createLink($row->groupId, array('eshop_Groups', 'Show', $rec->groupId), NULL, 'ef_icon=img/16/monitor.png');
+        }
     }
 }

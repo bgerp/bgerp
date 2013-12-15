@@ -136,7 +136,7 @@ class eshop_Groups extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,width=100%');
+        $this->FLD('name', 'varchar(64)', 'caption=Група, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
