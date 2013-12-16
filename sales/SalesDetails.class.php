@@ -401,6 +401,7 @@ class sales_SalesDetails extends core_Detail
                 // да сигнализираме на потребителя, че полето за цена е задължително и да не 
                 // допускаме записи без цени.
                 
+            	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
                 $policyInfo = $ProductMan->getPriceInfo(
                     $masterRec->contragentClassId, 
                     $masterRec->contragentId, 
@@ -408,11 +409,11 @@ class sales_SalesDetails extends core_Detail
                     $rec->classId,
                     $rec->packagingId,
                     $rec->packQuantity,
-                    ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior
+                    $priceAtDate
                 );
             
                 if (empty($policyInfo->price)) {
-                    $form->setError('price', 'Продукта няма цена в избраната ценова политика');
+                    $form->setError('price', "Артикула няма цена към дата '{$priceAtDate}'");
                 }
                 
                 $rec->price = $policyInfo->price;

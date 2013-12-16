@@ -319,7 +319,7 @@ class purchase_PurchasesDetails extends core_Detail
             } else {
                 // Покупка на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+                    $form->setError('packagingId', "Артикула няма цена към дата '{$masterRec->date}'");
                     return;
                 }
                 
