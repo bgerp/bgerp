@@ -48,11 +48,6 @@ class cms_Page extends page_Html {
 
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
-        $cmsConf = core_Packs::getConfig('cms');
-        if($cmsConf->CMS_GOOGLE_WMT_ID) {
-            $this->prepend("\n<meta name=\"google-site-verification\" content=\"" . $cmsConf->CMS_GOOGLE_WMT_ID . "\" />", 'HEAD');
-        }
-
         $this->replace(new ET(getFileContent('cms/tpl/Page.shtml')), 'PAGE_CONTENT');
         
         // Скрипт за генериране на min-height, според устройството
