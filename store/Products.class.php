@@ -8,19 +8,13 @@
  *
  * @category  bgerp
  * @package   store
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Products extends core_Manager
 {
-    
-    
-    /**
-     * Поддържани интерфейси
-     */
-    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
     
     
     /**
@@ -66,12 +60,6 @@ class store_Products extends core_Manager
     
     
     /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,store';
@@ -81,6 +69,12 @@ class store_Products extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, tools=Пулт, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets';
+    
+    
+    /**
+     * Полета за търсене
+     */
+    var $searchField = 'name';
     
     
     /**
@@ -94,12 +88,27 @@ class store_Products extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'key(mvc=cat_Products, select=name)', 'caption=Име,remember=info');
-        $this->FLD('storeId', 'varchar(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('productId', 'int', 'caption=Име,remember=info,oldFieldName=name');
+        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'int', 'caption=Количество->Общо');
-        $this->FNC('quantityNotOnPallets', 'int', 'caption=Количество->Непалетирано');
-        $this->FLD('quantityOnPallets', 'int', 'caption=Количество->На палети');
+        $this->FNC('quantityNotOnPallets', 'int', 'caption=Количество->Непалетирано,input=hidden');
+        $this->FLD('quantityOnPallets', 'int', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
+        $this->FNC('name', 'varchar(255)', 'caption=Пълно име');
+    }
+    
+    
+    /**
+     * Изчисляване на заглавието спрямо продуктовия мениджър
+     */
+    public function on_CalcName(core_Mvc $mvc, $rec)
+    {
+    	if(empty($rec->productId) || empty($rec->classId)){
+    		return;
+    	}
+    	
+    	return $rec->name = cls::get($rec->classId)->getTitleById($rec->productId);
     }
     
     
@@ -108,13 +117,11 @@ class store_Products extends core_Manager
      *
      * @param core_Mvc $mvc
      * @param stdClass $data
-     * @
      */
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
+        $selectedStoreName = store_Stores::getCurrent('name');
         
         $data->title = "|Продукти в СКЛАД|* \"{$selectedStoreName}\"";
     }
@@ -124,8 +131,8 @@ class store_Products extends core_Manager
      * Извличане записите само от избрания склад
      *
      * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
+     * @param stdClass $res
+     * @param stdClass $data
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
@@ -134,6 +141,20 @@ class store_Products extends core_Manager
     }
     
     
+	/**
+      * Добавя ключови думи за пълнотекстово търсене
+      */
+     function on_AfterGetSearchKeywords7($mvc, &$res, $rec)
+     {
+    	// Извличане на ключовите, вслучая името на продукта
+     	$object = new core_ObjectReference($rec->classId, $rec->productId);
+    	$keywords = $object->getTitleById();
+    	
+     	$res = plg_Search::normalizeText($keywords);
+    	$res = " " . $res;
+     }
+     
+     
     /**
      * При добавяне/редакция на палетите - данни по подразбиране
      *
@@ -143,11 +164,17 @@ class store_Products extends core_Manager
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        // storeId
-        $selectedStoreId = store_Stores::getCurrent();
-        $data->form->setReadOnly('storeId', $selectedStoreId);
+        $form = &$data->form;
+        $rec = &$form->rec;
+        expect($ProductManager = cls::get($rec->classId));
         
-        $data->form->showFields = 'storeId,name,quantity';
+    	if (empty($rec->id)) {
+            $form->setOptions('productId', $ProductManager::getByProperty('canStore'));
+        } else {
+            $form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
+        }
+        
+        $form->setReadOnly('storeId', store_Stores::getCurrent());
     }
     
     
@@ -160,8 +187,8 @@ class store_Products extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $measureId = cat_Products::fetchField("#id = {$rec->name}", 'measureId');
-        $measureShortName = cat_UoM::getShortName($measureId);
+        $pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+        $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
         
         if (haveRole('ceo,store')) {
             $row->makePallets = Ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id));
@@ -196,68 +223,34 @@ class store_Products extends core_Manager
                 $condProductId = "#id = '{$recFilter->productIdFilter}'";
             }
             
-            // query
             if ($condProductId) $data->query->where($condProductId);
         }
     }
     
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
+	
+	/**
+     * След подготовка на лист тулбара
      */
-    static function getItemRec($objectId)
+    public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $self = cls::get(__CLASS__);
-        $result = NULL;
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
+    	if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
+            $masterRec = $data->masterData->rec;
+            $addUrl = $data->toolbar->buttons['btnAdd']->url;
+            
+            foreach ($productManagers as $manId => $manName) {
+            	$productMan = cls::get($manId);
+            	$products = $productMan::getByProperty('canStore');
+                if(!count($products)){
+                	$error = "error=Няма складируеми {$productMan->title}";
+                }
+                
+                $data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
+                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+            	unset($error);
+            }
+            
+            unset($data->toolbar->buttons['btnAdd']);
         }
-        
-        return $result;
     }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */
-
 }
