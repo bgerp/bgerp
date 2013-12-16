@@ -260,7 +260,7 @@ class crm_Locations extends core_Master {
     		$cRec = $contragentCls->fetch($rec->contragentId);
     		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $rec->id);
     		$Sales = cls::get('sales_Sales');
-    		$data->toolbar->addBtn($Sales->singleTitle, $url,  NULL, 'ef_icon=img/16/view.png');
+    		$data->toolbar->addBtn($Sales->singleTitle, $url,  'warning=Искатели да създадете нова продажба', 'ef_icon=img/16/view.png');
     	}
     	
     	if($rec->address && $rec->place && $rec->countryId){
