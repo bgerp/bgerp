@@ -393,6 +393,9 @@ class label_TemplateFormats extends core_Detail
                 // Вид баркод
                 $form->FNC('BarcodeType', cls::get(('type_Enum'), array('options' => $barcodesArr)), 'caption=Тип баркод, input=input');
                 
+                // Съотношението на баркода
+                $form->FNC('Ratio', 'enum(1=1,2=2,3=3,4=4)', 'caption=Съотношение, input=input');
+                
                 // Широчина на баркода
                 $form->FNC('Width', 'int(min=1, max=5000)', 'caption=Широчина, input=input, unit=px');
                 
@@ -653,6 +656,9 @@ class label_TemplateFormats extends core_Detail
                         // Добавяме параметъра
                         $attr['addText'] = array();
                     }
+                    
+                    // Добавяме съотношението
+                    $attr['ratio'] = $rec->formatParams['Ratio'];
                     
                     // Вземаме вербалната стойност
                     $verbalValArr[$valStr] = barcode_Generator::getLink($barcodeType, $formatVal, $size, $attr);
