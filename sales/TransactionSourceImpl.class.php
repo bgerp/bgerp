@@ -224,7 +224,8 @@ class sales_TransactionSourceImpl
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
+        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	
     		$storable = isset($pInfo->meta['canStore']);
     		$convertable = isset($pInfo->meta['canConvert']);
     		
@@ -322,7 +323,7 @@ class sales_TransactionSourceImpl
         expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
+        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	$convertable = isset($pInfo->meta['canConvert']);
     		
         	// Само складируемите продукти се изписват от склада
