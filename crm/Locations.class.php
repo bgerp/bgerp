@@ -419,7 +419,7 @@ class crm_Locations extends core_Master {
     
     /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
-     * @param unknown_type $id
+     * @param int $id
      */
     public static function getAddress($id)
     {
@@ -443,6 +443,9 @@ class crm_Locations extends core_Master {
     	if(!$rec->address){
     		$string .= $row->address;
     	}
+    	
+    	$Varchar = cls::get('varchar');
+    	$sting = $Varchar->toVerbal($string);
     	
     	return trim($string, ", ");
     }

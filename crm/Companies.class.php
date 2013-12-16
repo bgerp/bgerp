@@ -1385,6 +1385,9 @@ class crm_Companies extends core_Master
     		}
     	}
     	
+    	$Varchar = cls::get('varchar');
+    	$adress = $Varchar->toVerbal($adress);
+    	
     	return trim($adress);
     }
 }
