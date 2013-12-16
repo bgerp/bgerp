@@ -154,6 +154,21 @@ class distro_Files extends core_Detail
                     $requiredRoles = 'no_one';
                 }
             }
+            
+            // Ако все още има права
+            if ($requiredRoles != 'no_one') {
+                
+                // Ако има дата на модифициране
+                if ($rec->modifiedOn) {
+                    
+                    // Ако е бил променен преди разрешеното от нас
+                    if (!fileman_Repositories::checkLastModified(dt::mysql2timestamp($rec->modifiedOn))) {
+                        
+                        // Да не може да се променя
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
         }
     }
     
@@ -792,6 +807,16 @@ class distro_Files extends core_Detail
                 // Вземаме масив с файловете само в главната директрия
                 $fileNameArr = $reposFileArr['/'];
                 
+                // Ако има масив
+                if ($fileNameArr) {
+                    
+                    // Вземаме ключовете
+                    $fileNameArrKeys = array_keys((array)$fileNameArr);
+                    
+                    // Създаваме масив с ключовете и стойностите
+                    $fileNameArr = array_combine((array)$fileNameArrKeys, (array)$fileNameArrKeys);
+                }
+                
                 // Всички файлове в това хранилище
                 $filesArrInThisRepo = $orArr[$repoId];
                 
@@ -976,7 +1001,7 @@ class distro_Files extends core_Detail
                 $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
                 
                 // Ако имаме права за редактиране
-                if ($mvc->haveRightFor('edit')) {
+                if ($mvc->haveRightFor('edit', $data->recs[$id])) {
                     
                     // Линк за изтриване от хранилището
                     $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
