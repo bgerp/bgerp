@@ -872,7 +872,6 @@ class distro_Files extends core_Detail
                                 // Прескачаме
                                 continue;
                             }
-                            
                         } else {
                             // Ако няма запис
                             // Създаваме такъв
