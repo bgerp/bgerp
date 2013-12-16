@@ -82,6 +82,7 @@ class cms_Setup extends core_ProtoSetup
         	'cms_Feeds',
          	'cms_GalleryGroups',
             'cms_GalleryImages',
+            'cms_Includes'
          );
 
          

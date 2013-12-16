@@ -44,7 +44,9 @@ class cms_Page extends page_Html {
         $this->push('Cache-Control: public', 'HTTP_HEADER');
         $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + (haveRole('powerUser') ? 10 : 3600)) . ' GMT', 'HTTP_HEADER');
         $this->push('-Pragma', 'HTTP_HEADER');
-        $this->push('-Server', 'HTTP_HEADER');
+        
+        // Добавяне на включвания външен код
+        cms_Includes::insert($this);
 
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
