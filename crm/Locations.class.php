@@ -444,7 +444,7 @@ class crm_Locations extends core_Master {
     		$string .= $row->address;
     	}
     	
-    	$Varchar = cls::get('varchar');
+    	$Varchar = cls::get('type_Varchar');
     	$sting = $Varchar->toVerbal($string);
     	
     	return trim($string, ", ");
