@@ -408,7 +408,7 @@ class sales_SalesDetails extends core_Detail
                     $rec->classId,
                     $rec->packagingId,
                     $rec->packQuantity,
-                    ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->date
+                    ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior
                 );
             
                 if (empty($policyInfo->price)) {
