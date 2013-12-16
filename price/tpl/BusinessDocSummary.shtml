@@ -1,5 +1,5 @@
 <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
-     <tr>
+     <tr class='nowrap'>
       <td width='10%'></td>
       <td align='right'>|Стойност|* [#TRANS0#] :</td>
       <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
