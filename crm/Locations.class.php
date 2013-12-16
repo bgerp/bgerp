@@ -378,9 +378,9 @@ class crm_Locations extends core_Master {
         $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
         
         foreach ($locationRecs as &$rec) {
-            $rec = $rec->title;
+            $rec = static::getTitleById($rec->id);
         }
-
+	
         if(!$intKeys && count($locationRecs)){
         	$locationRecs = array_combine($locationRecs, $locationRecs);
         }
