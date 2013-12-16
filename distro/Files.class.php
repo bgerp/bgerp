@@ -60,7 +60,7 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'powerUser';
     
     
     /**
@@ -142,7 +142,7 @@ class distro_Files extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit') {
+        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
             
             // Ако има master
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
@@ -986,6 +986,9 @@ class distro_Files extends core_Detail
             // Обхождаме масива с id'та
             foreach ((array)$idsArr as $id) {
                 
+                // Нулираме
+                $delLink = $editLink = NULL;
+                
                 // Името на файла
                 // Ако има манипулатор, да е линка към сингъла
                 $file = ($data->rows[$id]->sourceFh) ? $data->rows[$id]->sourceFh : $data->rows[$id]->name;
@@ -999,17 +1002,34 @@ class distro_Files extends core_Detail
                 // Данни за модифициране
                 $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
                 
-                // Ако имаме права за редактиране
-                if ($mvc->haveRightFor('edit', $data->recs[$id])) {
+                // Ако имаме права за изтриване
+                if ($mvc->haveRightFor('delete', $data->recs[$id])) {
                     
                     // Линк за изтриване от хранилището
                     $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
                                        tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => tr('Изтриване')));
+                }
+                
+                // Ако имаме права за редактиране
+                if ($mvc->haveRightFor('edit', $data->recs[$id])) {
+                    
                     // Линк за редактиране
                     $editLink = ht::createLink($editImg, array($mvc, 'edit', $id, 'ret_url' => TRUE),
                                        NULL, array('title' => tr('Редактиране')));
-                    // Добавяме линковете
-                    $data->rowReposAndFilesArr[$repoId][$id]->tools = $editLink . $delLink;
+                }
+                
+                // Ако има линк за редактиране
+                if ($editLink) {
+                    
+                    // Добавяме линка
+                    $data->rowReposAndFilesArr[$repoId][$id]->tools = $editLink;
+                }
+                
+                // Ако има линк за изтриване
+                if ($delLink) {
+                    
+                    // Добавяме линка
+                    $data->rowReposAndFilesArr[$repoId][$id]->tools .= $delLink;
                 }
             }
         }
