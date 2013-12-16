@@ -22,6 +22,12 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Колко секунди след последното модифициране на файла да може да се ползва
+     */
+    const DONT_USE_MODIFIED_SECS = 5;
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Път до хранилище";
@@ -885,7 +891,7 @@ class fileman_Repositories extends core_Master
                 if (!static::isForIgnore($rec->ignore, $fileName)) {
                     
                     // Добавяме в резултатите пътя и името на файла
-                    $res[$path][$fileName] = TRUE;
+                    $res[$path][$fileName] = $iterator->current()->getMTime();
                 }
             }
             
@@ -1211,7 +1217,7 @@ class fileman_Repositories extends core_Master
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
-
+        
         // Обхождаме масива
         foreach ((array)$foldersArr as $path => $filesArr) {
             
@@ -1230,7 +1236,7 @@ class fileman_Repositories extends core_Master
             } else {
                 
                 // Обхождаме файловете
-                foreach ((array)$filesArr as $file => $dummy) {
+                foreach ((array)$filesArr as $file => $modifiedTime) {
                     
                     // Тримваме, за да премахнем последния 
                     $filePathEntry = rtrim($pathEntry, '->');
@@ -1238,8 +1244,16 @@ class fileman_Repositories extends core_Master
                     // Вземаме пътя до файла
                     $filePathEntry = $filePathEntry . '->' . $file;
                     
-                    // URL за абсорбиране на файла
-                    $urlPath = static::getAbsorbUrl($id, $file, $path);
+                    // Ако е бил модифициран преди последното позволено време за абсорбиране
+                    if (static::checkLastModified($modifiedTime)) {
+                        
+                        // URL за абсорбиране на файла
+                        $urlPath = static::getAbsorbUrl($id, $file, $path);
+                    } else {
+                        
+                         // Да няма URL за абсорбиране на файла
+                        $urlPath = FALSE;
+                    }
                     
                     // Добавяме в дървото
                     $tableInst->addNode($filePathEntry, $urlPath, TRUE);
@@ -1272,6 +1286,20 @@ class fileman_Repositories extends core_Master
         // Относителен път до файла в хранилището
         $file = Request::get('file');
         
+        // Вземамем записа
+        $rec = static::fetch($id);
+        
+        // Вземаем пътя до файла
+        $path = static::getFullPath($rec->basePath, $rec->subPath);
+        $path = static::getFullPath($path, $subPath);
+        $path = static::getFullPath($path, $file);
+        
+        // Времето на последна модификация на файла
+        $lastModified = fileman::getModificationTimeFromFilePath($path);  
+        
+        // Очакваме да е била преди зададеното от нас
+        expect(static::checkLastModified($lastModified), "Файлът току що е бил променян");
+        
         // Абсорбираме файла и вземаме манипулатора му
         $fh = static::absorbFileFromId($id, $file, $subPath);
         
@@ -1280,6 +1308,26 @@ class fileman_Repositories extends core_Master
         
         // Редиректваме към сингъла
         return Redirect($singleUrl);
+    }
+    
+    
+    /**
+     * Проверява дали датата на последната модификация е била преди разрешеното време
+     * 
+     * @param timestamp $lastModified - Времето с което искаме да сравняваме
+     * 
+     * @return boolean
+     */
+    static function checkLastModified($lastModified)
+    {
+        // От текущото време изваждаме последно секундите за модифициране
+        $modifiedToUseTime = dt::mysql2timestamp(dt::now()) - static::DONT_USE_MODIFIED_SECS;
+        
+        // Ако последната модификация е била преди разрешената от нас
+        if ($lastModified < $modifiedToUseTime) {
+            
+            return TRUE;
+        }
     }
     
     
