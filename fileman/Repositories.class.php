@@ -46,6 +46,12 @@ class fileman_Repositories extends core_Master
     
     
     /**
+     * Път към картинка 16x16
+     */
+    var $singleIcon = 'img/16/repository.png';
+    
+    
+    /**
      * 
      */
     var $canSingle = 'admin';
