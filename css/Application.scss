@@ -2327,10 +2327,6 @@ div.location.public {
 	}
 }
 
-.blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar {
-	border-bottom: none !important;
-}
-
 .blast-overflow {
 	max-width: 850px; 
 	overflow: auto; 
@@ -2596,6 +2592,11 @@ div.location.public {
 	background-repeat: no-repeat;
 	background-position: 5px center;
     background-image: url('../cms/img/rss24.png');
+}
+
+
+.blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
+    border-bottom: none !important;
 }
 /*край на бъгфиксове*/
 
