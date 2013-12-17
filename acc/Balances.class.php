@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,6 +19,7 @@ class acc_Balances extends core_Master
      * Константа за начало на счетоводното време
      */
     const TIME_BEGIN = '1970-01-01 02:00:00';
+    
     
     /**
      * Заглавие
@@ -31,7 +32,6 @@ class acc_Balances extends core_Master
      */
     var $loadList = 'plg_RowTools, acc_Wrapper,Accounts=acc_Accounts,plg_Sorting, plg_Printing, plg_AutoFilter';
                     
-    
     
     /**
      * Детайла, на модела
@@ -80,6 +80,7 @@ class acc_Balances extends core_Master
      */
     var $canAdd = 'no_one';
     
+    
     /**
      * @var acc_Accounts
      */
@@ -106,7 +107,7 @@ class acc_Balances extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Предефиниране на единичния изглед
      */
     function act_Single()
     {
@@ -117,6 +118,10 @@ class acc_Balances extends core_Master
         return parent::act_Single();
     }
     
+    
+    /**
+     * След подготовка на записите за листовия изглед
+     */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
         if (empty($data->rows)) {
@@ -127,9 +132,6 @@ class acc_Balances extends core_Master
             $data->rows[$i]->periodId = ht::createLink(
                 $row->periodId, array($mvc, 'single', $data->recs[$i]->id)
             );
-
-            //$data->rows[$i]->periodId->append('&nbsp;');
-            //$data->rows[$i]->periodId->append(ht::createBtn('>>>', array('acc_Balances', 'calc', $data->recs[$i]->id)));
         }
     }
     
@@ -162,6 +164,9 @@ class acc_Balances extends core_Master
     }
     
     
+    /**
+     * След подготовка на тулбара за единичен изглед
+     */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if (!empty($mvc->accountRec)) {
@@ -203,7 +208,9 @@ class acc_Balances extends core_Master
     
 
     /**
-     * @todo Чака за документация...
+     * Връща ид-то на базовия баланс
+     * @param $periodRec - запис на период
+     * @return int $id - ид на базовия баланс
      */
     private function getBaseBalanceId($periodRec)
     {
@@ -219,6 +226,78 @@ class acc_Balances extends core_Master
     }
 
 
+    /**
+     * Извиква се след изчислението на края на баланса, извлича информацията
+     * за моментното състояние на склада
+     */
+    private function extractStoreData()
+    {
+    	// Извличане на данните за склада от баланса
+    	$all = $this->prepareStoreData();
+    	
+    	// Синхронизиране на складовите продукти с тези от баланса
+    	store_Products::sync($all);
+    }
+    
+    
+    /**
+     * Извлича информацията нужна за ъпдейт на склада
+     */
+    private function prepareStoredata()
+    {
+    	$all = array();
+    	$query = static::getQuery();
+    	$query->orderBy('#lastCalculate', 'DESC');
+    	$balanceRec = $query->fetch();
+    	
+    	// Извличане на сметките по които ще се ситематизират данните
+    	$conf = core_Packs::getConfig('store');
+    	$storeAccs = keylist::toArray($conf->STORE_ACC_ACCOUNTS);
+    	
+    	// Филриране да се показват само записите от зададените сметки
+    	$dQuery = acc_BalanceDetails::getQuery();
+    	foreach ($storeAccs as $sysId){
+    		$dQuery->orWhere("#accountId = {$sysId}");
+    	}
+    	
+    	$dQuery->where("#balanceId = {$balanceRec->id}");
+    	
+    	while($rec = $dQuery->fetch()){
+    		if($rec->ent1Id){
+    			
+    			// Перо 'Склад'
+	    		$storeItem = acc_Items::fetch($rec->ent1Id);
+	    		
+	    		// Перо 'Артикул'
+	    		$pItem = acc_Items::fetch($rec->ent2Id);
+	    		
+	    		// Съмаризиране на информацията за артикул / склад
+	    		$index = $storeItem->objectId . "|" . $pItem->classId . "|" . $pItem->objectId;
+	    		if(empty($all[$index])){
+	    			
+	    			// Ако няма такъв продукт в масива, се записва
+	    			$all[$index] = $rec->blQuantity;
+	    		} else {
+	    			
+	    			// Ако го има добавяме количеството на записа
+	    			$all[$index] += $rec->blQuantity;
+	    		}
+    		}
+    	}
+    	
+    	// Връщане на групираните крайни суми
+    	return $all;
+    }
+    
+    
+    public function act_Test()
+    {
+    	$this->cron_Recalc();
+    	$this->extractStoreData();
+    	
+    	return followRetUrl();
+    }
+    
     /**
      * Изчисляване на баланс
      */
@@ -289,6 +368,5 @@ class acc_Balances extends core_Master
                 }
             }
         }
-
     }
 }
