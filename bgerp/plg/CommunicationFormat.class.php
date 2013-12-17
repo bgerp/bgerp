@@ -25,7 +25,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
@@ -114,10 +114,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	    
         	    case 'fax' :
 		        case 'факс' :
+        			$icon = sbf("img/16/fax2.png",'');
         				       
 	                if(!haveRole('officer')) break;
-	
-			    	$icon = sbf("img/16/fax2.png",'');
 	                
 			    	// ако сме в тесен режим и имаме възможност за изпращане на факсове
 			    	if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
