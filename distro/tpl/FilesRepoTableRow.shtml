@@ -1,11 +1,11 @@
-<tr>
-	<td>[#tools#]</td>
+<tr class='nowrap'>
+	<td align='center'>[#tools#]</td>
 	<td>[#file#]</td>
-	<td>[#modified#]</td>
+	<td align='center'>[#modified#]</td>
 </tr>
 
 <!--ET_BEGIN fileInfo-->
 	<tr>
-		<td colspan='3'>[#fileInfo#]</td>
+		<td colspan='3'><i style='font-size:0.9em;'>[#fileInfo#]</i></td>
 	</tr>
 <!--ET_END fileInfo-->
