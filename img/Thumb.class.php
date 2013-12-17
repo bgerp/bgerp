@@ -109,7 +109,7 @@ class img_Thumb
     /**
      * Какви параметри има този клас
      */
-    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality, rotateSide';
+    static $argumentList = 'source, maxWidth, maxHeight, sourceType, verbalName, format, timeout, allowEnlarge, expirationTime, isAbsolute, quality, allowRotateToSide';
 
 
     /**
@@ -126,7 +126,7 @@ class img_Thumb
                             $expirationTime = NULL,
                             $isAbsolute = NULL,
                             $quality = NULL,
-                            $rotateSide = NULL)
+                            $allowRotateToSide = NULL)
     {
         
         if(is_array($source)) {
@@ -241,7 +241,7 @@ class img_Thumb
             }
 
             $this->hash = md5($param .  '|' . $this->sourceType  . '|' . $this->maxWidth . '|' .
-                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' . $this->rotateSide . EF_SALT);
+                $this->maxHeight . '|' . $this->allowEnlarge . '|' . $this->quality . '|' . $this->allowRotateToSide . EF_SALT);
         }
 
         return $this->hash;
@@ -320,7 +320,7 @@ class img_Thumb
         $this->setWidthAndHeight();
 
         if(!$this->scaledWidth || $this->scaledHeight || $this->ratio) {
-            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge, (boolean)$this->rotateSide);
+            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->maxWidth, $this->maxHeight, $this->allowEnlarge, (boolean)$this->allowRotateToSide);
         }
 
         return array($this->width, $this->height);
@@ -462,9 +462,9 @@ class img_Thumb
      */
     function getAngle()
     {
-        if ($this->rotateSide == 'left') {
+        if ($this->allowRotateToSide == 'left') {
             $angle = 90;
-        } elseif ($this->rotateSide == 'right') {
+        } elseif ($this->allowRotateToSide == 'right') {
             $angle = 270;
         } else {
             $angle = 0;
