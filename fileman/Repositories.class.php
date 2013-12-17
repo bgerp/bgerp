@@ -130,6 +130,7 @@ class fileman_Repositories extends core_Master
         $this->FLD('ignore', 'text', 'caption=Игнориране, width=100%');
         $this->FNC('fullPath', 'varchar', 'caption=Път, width=100%');
         $this->FNC('access', 'text', 'caption=Достъп, width=100%');
+        $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     }
     
     
