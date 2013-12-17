@@ -41,15 +41,7 @@ class bgerp_data_Translations
         return $res;
     }
     
-    
-    public static function on_BeforeImportRec($mvc, $rec)
-    {
-    	if (isset($rec->csv_createdBy)) {
-    		
-    		$rec->createdBy = -1;
-    	}
-    }
-    
+
     /**
      * Добавя съдържанието на преводите, които са зададени в EF_LANGUAGES
      * Добавя за всички езици без `en` и `bg`
