@@ -58,7 +58,7 @@ var VKI_attach, VKI_close;
     this.VKI_altgr = this.VKI_altgrlock = false;
     this.VKI_dead = false;
     this.VKI_deadkeysOn = false;
-    this.VKI_kt = "Bulgarian Ph";  // Default keyboard layout
+    this.VKI_kt = "UK";  // Default keyboard layout
     this.VKI_clearPasswords = false;  // Clear password fields on focus
     this.VKI_imageURI = "keyboard/keyboard.png";
     this.VKI_clickless = 2000;  // 0 = disabled, > 0 = delay in ms

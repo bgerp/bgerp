@@ -51,7 +51,7 @@ class keyboard_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'VKI_version' => array ('enum(1=1.28, 2=1.36)', 'mandatory, caption=Версията на програмата->Версия')
+           'VKI_version' => array ('enum(1.28)', 'mandatory, caption=Версията на програмата->Версия')
     
              );
     

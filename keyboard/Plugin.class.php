@@ -27,10 +27,8 @@ class keyboard_Plugin extends core_Plugin {
     	
         if($this->doNotUse($invoker)) return;
         
-        if($conf->VKI_version == '1.28') {
-            if(strpos($attr['ondblclick'], 'showKeyboard') === FALSE) {
-                $attr['ondblclick'] .= "; showKeyboard(this, event.clientX);";
-            }
+        if(strpos($attr['ondblclick'], 'showKeyboard') === FALSE) {
+            $attr['ondblclick'] .= "; showKeyboard(this, event.clientX);";
         }
     }
     
@@ -44,12 +42,8 @@ class keyboard_Plugin extends core_Plugin {
     	
         if($this->doNotUse($invoker)) return;
         
-        if($conf->VKI_version == '1.28') {
-            $tpl->push("keyboard/1.28/keyboard.js", 'JS');
-            $tpl->push("keyboard/1.28/keyboard.css", 'CSS');
-        } else {
-            $tpl->push("keyboard/" . $conf->VKI_version . "/keyboard.js", 'JS');
-        }
+        $tpl->push("keyboard/{$conf->VKI_version}/keyboard.js", 'JS');
+        $tpl->push("keyboard/{$conf->VKI_version}/keyboard.css", 'CSS');
         
         if(cls::isSubclass($invoker, 'type_Richtext')) {
             $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . " height=15 width=28 border=0 align=top></a>", 'LEFT_TOOLBAR');
