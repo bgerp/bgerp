@@ -293,7 +293,7 @@ class eshop_Groups extends core_Master
         $classId = core_Classes::fetchIdByName($mvc->className);
         while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
             $data->toolbar->addBtn( type_Varchar::escape($rec->menu), 
-                array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id));
+                array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id, 'PU' => 1));
         }
     }
 
@@ -390,7 +390,7 @@ class eshop_Groups extends core_Master
  
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);
-        $l->url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $menuId);
+        $l->url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $menuId, 'PU' => haveRole('powerUser') ? 1 : NULL);
         $l->title = tr('Всички продукти');;
         $l->level = 1;
         $data->links[] = $l;
