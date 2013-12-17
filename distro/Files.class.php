@@ -783,7 +783,7 @@ class distro_Files extends core_Detail
                 foreach ((array)$repoArrFromRec as $repoId) {
                     
                     // Добавяме в масива
-                    $orArr[$repoId][$rec->name] = $rec->name;
+                    $orArr[$repoId][$rec->name] = dt::mysql2timestamp($rec->modifiedOn);
                 }
             }
             
@@ -805,20 +805,65 @@ class distro_Files extends core_Detail
                 }
                 
                 // Вземаме масив с файловете само в главната директрия
-                $fileNameArr = $reposFileArr['/'];
-                
-                // Ако има масив
-                if ($fileNameArr) {
-                    
-                    // Вземаме ключовете
-                    $fileNameArrKeys = array_keys((array)$fileNameArr);
-                    
-                    // Създаваме масив с ключовете и стойностите
-                    $fileNameArr = array_combine((array)$fileNameArrKeys, (array)$fileNameArrKeys);
-                }
+                $fileNameArr = (array)$reposFileArr['/'];
                 
                 // Всички файлове в това хранилище
-                $filesArrInThisRepo = $orArr[$repoId];
+                $filesArrInThisRepo = (array)$orArr[$repoId];
+                
+                // Ако има масив
+                if ($fileNameArr && count($fileNameArr)) {
+                    
+                    // Обхождаме масива
+                    foreach ($fileNameArr as $fileName => $modifiedTime) {
+                        
+                        // Проверяваме времето на последна модификация
+                        if (!fileman_Repositories::checkLastModified($modifiedTime)) {
+                            
+                            // Ако е в рамките на зададено от нас
+                            // Премахваме от масивите
+                            unset($fileNameArr[$fileName]);
+                            unset($filesArrInThisRepo[$fileName]);
+                        }
+                    }
+                    
+                    // Ако има файлове в масива
+                    if (count($fileNameArr)) {
+                        
+                        // Вземаме ключовете
+                        $fileNameArrKeys = array_keys((array)$fileNameArr);
+                        
+                        // Създаваме масив с ключовете и стойностите
+                        $fileNameArr = array_combine((array)$fileNameArrKeys, (array)$fileNameArrKeys);
+                    }
+                }
+                
+            
+                // Ако има масив
+                if ($filesArrInThisRepo && count($filesArrInThisRepo)) {
+                    
+                    // Обхождаме масива
+                    foreach ($filesArrInThisRepo as $fileName => $modifiedTime) {
+                        
+                        // Проверяваме времето на последна модификация
+                        if (!fileman_Repositories::checkLastModified($modifiedTime)) {
+                            
+                            // Ако е в рамките на зададено от нас
+                            // Премахваме от масивите
+                            unset($fileNameArr[$fileName]);
+                            unset($filesArrInThisRepo[$fileName]);
+                        }
+                    }
+                    
+                    // Ако има файлове в масива
+                    if (count($filesArrInThisRepo)) {
+                        
+                        // Вземаме ключовете
+                        $filesArrInThisRepoKeys = array_keys((array)$filesArrInThisRepo);
+                        
+                        // Създаваме масив с ключовете и стойностите
+                        $filesArrInThisRepo = array_combine((array)$filesArrInThisRepoKeys, (array)$filesArrInThisRepoKeys);
+                    }
+                }
                 
                 // Вземама масива с различията
                 $diffArr = type_Keylist::getDiffArr($filesArrInThisRepo, $fileNameArr);
