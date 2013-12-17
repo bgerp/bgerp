@@ -67,7 +67,7 @@ class barcode_Generator extends core_Manager
     /**
      * Размер на шрифта
      */
-    static $fontSize = 14;
+    static $fontSize = 11;
     
     
     /**
@@ -155,12 +155,16 @@ class barcode_Generator extends core_Manager
             $size = self::getSizeFromText($type, $size);
         }
         
+        // Вземаем размерите в зависимост от съотношението
+        $size['width'] = static::getNewSize($size['width'], $params['ratio']);
+        $size['height'] = static::getNewSize($size['height'], $params['ratio']);
+        
         // Проверява размерите дали са въведени коректно
         self::checkSizes($type, $size, $minWidthAndHeightArr);
         
         // Съотношението за определяна на размерите на баркода
         $ratioArr = self::getBarcodeRatio($type, $size, $minWidthAndHeightArr);
-
+        
         // Размера на изображението в коет ще е баркода
         $width = $size['width'];
         $height = $size['height'];
@@ -179,7 +183,7 @@ class barcode_Generator extends core_Manager
         
         // Генерираме баркода
         $output = Barcode::gd($im, $black, $width/2, $height/2, 0, $type, $conten, $ratioArr['width'], $ratioArr['height']);  
-
+        
         // Съобщение за грешка, ако не може да се генерира баркода
         expect($output, 'Не може да се генерира баркода.');
         
@@ -193,6 +197,9 @@ class barcode_Generator extends core_Manager
                 // Задава стойността
                 $fontSize = static::$fontSize;
             }
+            
+            // Вземаме размера на шрифта в зависимост от съоношението
+            $fontSize = static::getNewSize($fontSize, $params['ratio']);
             
             // Ако не е зададен фонт
             if (!($font = $params['addText']['font'])) {
@@ -252,6 +259,25 @@ class barcode_Generator extends core_Manager
     }
     
     
+    /**
+     * Връща новия размер в зависимост от съотношението
+     * 
+     * @param number $size - Размер
+     * @param integer $ratio - Съотношение
+     */
+    static function getNewSize($size, $ratio)
+    {
+        // Ако има размер и не е 1
+        if ($ratio && $ratio != 1) {
+            
+            // Умножаваме размера по съотношението
+            $size *= $ratio;
+        }
+
+        return $size;
+    }
+    
+    
 	/**
      * Показва баркод изображението
      * 
@@ -308,6 +334,29 @@ class barcode_Generator extends core_Manager
         // Задаваме аттрибутите на тага
         $attr['alt'] = $content;
         $attr['class'] = $params['class'];
+        
+        // Ако е зададен определен ъгъл
+        switch ($params['angle']) {
+            
+            // Ако е 0 или 180
+            case 0:
+            case 180:
+                $attr['width'] = $size['width'];
+                $attr['height'] = $size['height'];
+            break;
+            
+            // Ако е 90 или 270
+            // Да се разменят местата на размерите
+            case 90:
+            case 270:
+                $attr['width'] = $size['height'];
+                $attr['height'] = $size['width'];
+            break;
+            
+            default:
+                ;
+            break;
+        }
         
         // Създаваме линка
         $link = ht::createElement('img', $attr);
