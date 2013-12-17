@@ -140,6 +140,9 @@ class change_Plugin extends core_Plugin
             // Ако сме променили версията
             if ((string)$form->rec->version != (string)$rec->version) {
                 
+                // Нулираме флага
+                $form->rec->NoChange = FALSE;
+                
                 // Подверсията
                 $subVersion = 0;
                 
@@ -162,29 +165,33 @@ class change_Plugin extends core_Plugin
                 $subVersion = $rec->subVersion;
             }
             
-            // Увеличаваме подверсията
-            $subVersion++;
-            
-            // Добавяме подверсията
-            $form->rec->subVersion = $subVersion;
-            
-            // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
-            $mvc->invoke('AfterInputChanges', array($rec, $form->rec));
-            
-            // Записваме промени
-            $mvc->save($form->rec);
-            
-            // Записваме лога на промените
-            $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $form->rec);
-            
-            // Извикваме фунцкия, след като запишем
-            $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
-            
-            // Ако има избрана версия
-            if ($versionArr['first']) {
+            // Ако не е зададено да не се променя
+            if (!$form->rec->NoChange) {
                 
-                // Добавяме последната версия в избраните
-                change_Log::addVersion($classId, $rec->id, $form->rec->version, $form->rec->subVersion);
+                // Увеличаваме подверсията
+                $subVersion++;
+            
+                // Добавяме подверсията
+                $form->rec->subVersion = $subVersion;
+                
+                // Извикваме фунцкията, за да дадем възможност за добавяне от други хора
+                $mvc->invoke('AfterInputChanges', array($rec, $form->rec));
+                
+                // Записваме промени
+                $mvc->save($form->rec);
+            
+                // Записваме лога на промените
+                $savedRecsArr = change_Log::create($mvc->className, $fieldsArrLogSave, $rec, $form->rec);
+                
+                // Извикваме фунцкия, след като запишем
+                $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
+                
+                // Ако има избрана версия
+                if ($versionArr['first']) {
+                    
+                    // Добавяме последната версия в избраните
+                    change_Log::addVersion($classId, $rec->id, $form->rec->version, $form->rec->subVersion);
+                }
             }
             
             // Редиректваме
@@ -452,9 +459,6 @@ class change_Plugin extends core_Plugin
                     // Вземаме всички, полета които могат да се променят
                     $allowedFieldsArr = static::getAllowedFields($form, $mvc->changableFields);
                     
-                    // Масив с полетата, които не са се променили
-                    $noChangeArr = array();
-                    
                     // Обхождаме полетта
                     foreach ((array)$allowedFieldsArr as $field) {
                         
@@ -463,18 +467,14 @@ class change_Plugin extends core_Plugin
                             
                             // Вдигаме флага
                             $haveChange = TRUE;
-                        } else {
-                            
-                            // Добавяме в масива
-                            $noChangeArr[] = $field;
                         }
                     }
                     
                     // Ако няма промени
                     if (!$haveChange) {
                         
-                        // Сетваме грешка
-                        $form->setError($noChangeArr, 'Нямате промяна');
+                        // Вдигаме флага
+                        $form->rec->NoChange = TRUE;
                     }
                 }
             }
