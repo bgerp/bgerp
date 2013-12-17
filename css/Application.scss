@@ -2600,18 +2600,23 @@ div.location.public {
 
 
 /* Стилове за eshop */
+.eshop-group-holder{
+    margin-bottom: 25px;
+}
+
 .eshop-group-button {
     float: left; 
     width: 280px; 
     height: 160px;
     margin: 10px;
     text-align: center;
+    
     .eshop-group-button-title {
         margin-top: 5px;
         a{
 	       color: #333;
 	       &:hover{
-	           text-decoration:underline;
+	           text-decoration: underline;
 	       }
         } 
     }
@@ -2627,6 +2632,10 @@ div.location.public {
 
 .eshop-group {
 	margin-top: -5px;
+}
+
+.eshop-group-description{
+	margin: 25px 0;
 }
 
 .eshop-product-list {

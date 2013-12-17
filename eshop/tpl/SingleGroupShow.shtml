@@ -1,18 +1,18 @@
-<div class="eshop-group">
-	<h1 class="eshop-group-name">[#name#]</h1>
-	<div class="eshop-group-image">[#image#]</div>
-	<div class="eshop-group-description">[#description#]</div>
-</div>
+<div class='eshop-group-holder'>
 
-<!--ET_BEGIN PRODUCT-->
-
-	<div class='eshop-product-list'>
-		[#PROD_image#]
-		<div class='eshop-product-list-name'>[#PROD_name#] [#PROD_editLink#]</div>
-	    [#PROD_info#]
-	    <div class='clearfix21'></div>
-	
+	<div class="eshop-group">
+		<h1 class="eshop-group-name">[#name#]</h1>
+		<div class="eshop-group-image">[#image#]</div>
+		<div class="eshop-group-description">[#description#]</div>
 	</div>
-  
+	
+	<!--ET_BEGIN PRODUCT-->
+		<div class='eshop-product-list'>
+			[#PROD_image#]
+			<div class='eshop-product-list-name'>[#PROD_name#] [#PROD_editLink#]</div>
+		    [#PROD_info#]
+		    <div class='clearfix21'></div>
+		</div>
+	<!--ET_END PRODUCT-->
 
-<!--ET_END PRODUCT-->
+</div>

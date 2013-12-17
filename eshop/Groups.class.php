@@ -340,7 +340,7 @@ class eshop_Groups extends core_Master
 
 
         if($data->addProductUrl) {
-            $groupTpl->append(ht::createBtn('Нов продукт', $data->addProductUrl,  NULL, NULL, array('style' => 'margin-top:5px; margin-bottom:5px;')));
+            $groupTpl->append(ht::createBtn('Нов продукт', $data->addProductUrl,  NULL, NULL, array('style' => 'margin-bottom:15px;')));
         }
 
         return $groupTpl;
