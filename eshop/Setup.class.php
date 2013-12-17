@@ -1,6 +1,16 @@
 <?php
 
 
+/**
+ * Колко секунди да се кешира съдържанието за не PowerUsers
+ */
+defIfNot('ESHOP_BROWSER_CACHE_EXPIRES', 3600);
+
+
+/**
+ *
+ */
+
 
 /**
  * class cat_Setup
@@ -66,7 +76,14 @@ class eshop_Setup extends core_ProtoSetup
             array(3.50, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
-        
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+            'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
+	);
+
+    
     /**
      * Инсталиране на пакета
      */

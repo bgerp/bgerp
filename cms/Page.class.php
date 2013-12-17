@@ -41,9 +41,16 @@ class cms_Page extends page_Html {
         $this->push('cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
-        $this->push('Cache-Control: public', 'HTTP_HEADER');
-        $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + (haveRole('powerUser') ? 10 : 3600)) . ' GMT', 'HTTP_HEADER');
-        $this->push('-Pragma', 'HTTP_HEADER');
+        // Евентуално се кешират страници за не PowerUsers
+        if(($expires = Mode::get('BrowserCacheExpires')) && !haveRole('powerUser')) {
+            $this->push('Cache-Control: public', 'HTTP_HEADER');
+            $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + $expires) . ' GMT', 'HTTP_HEADER');
+            $this->push('-Pragma', 'HTTP_HEADER');
+        } else {
+            $this->push('Cache-Control: no-cache, no-store, must-revalidate', 'HTTP_HEADER');
+            $this->push('Pragma: no-cache', 'HTTP_HEADER');
+            $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
+        }
         
         // Добавяне на включвания външен код
         cms_Includes::insert($this);

@@ -167,7 +167,7 @@ class eshop_Groups extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($fields['-list']) {
-            $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
+            $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL), NULL, 'ef_icon=img/16/monitor.png');
         }
     }
 
@@ -187,6 +187,10 @@ class eshop_Groups extends core_Master
         $layout = $this->getLayout();
         $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->renderAllGroups($data), 'PAGE_CONTENT');
+        
+        // Страницата да се кешира в браузъра
+        $conf = core_Packs::getConfig('eshop');
+        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
 
         return $layout;
     }
@@ -209,7 +213,12 @@ class eshop_Groups extends core_Master
         $layout = $this->getLayout();
         $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->replace($this->renderGroup($data), 'PAGE_CONTENT');
+
         
+        // Страницата да се кешира в браузъра
+        $conf = core_Packs::getConfig('eshop');
+        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
+
         return $layout;
     }
 
@@ -223,7 +232,7 @@ class eshop_Groups extends core_Master
         $query->where("#state = 'active' AND #menuId = {$data->menuId}");  
         
         while($rec = $query->fetch()) {
-            $rec->url = array('eshop_Groups', 'show', $rec->vid ? $rec->vid : $rec->id);
+            $rec->url = array('eshop_Groups', 'show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
             $data->recs[] = $rec;
         }
 
@@ -391,7 +400,7 @@ class eshop_Groups extends core_Master
  
         while($rec = $query->fetch()) {
             $l = new stdClass();
-            $l->url = array('eshop_Groups', 'Show', $rec->vid ? $rec->vid : $rec->id);
+            $l->url = array('eshop_Groups', 'Show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
             $l->title  = $this->getVerbal($rec, 'name');
             $l->level = 2;
             $l->selected = ($groupId == $rec->id);

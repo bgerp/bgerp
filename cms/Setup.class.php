@@ -19,6 +19,11 @@ defIfNot('CMS_LANGS', '');
 
 
 /**
+ * Колко секунди да се кешира съдържанието за не PowerUsers
+ */
+defIfNot('CMS_BROWSER_CACHE_EXPIRES', 3600);
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -69,6 +74,8 @@ class cms_Setup extends core_ProtoSetup
             'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
 
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
+
+            'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
 	);
 
 	

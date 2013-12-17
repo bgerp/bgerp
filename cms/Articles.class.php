@@ -209,7 +209,7 @@ class cms_Articles extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     { 
         if(trim($rec->body) && $fields['-list']) {
-            $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
+            $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL), NULL, 'ef_icon=img/16/monitor.png');
         }
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
@@ -345,7 +345,7 @@ class cms_Articles extends core_Master
             }
 
             if(trim($rec1->body)) {
-                $l->url = array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id);
+                $l->url = array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
             } 
             
             $l->title = $title;
@@ -388,6 +388,9 @@ class cms_Articles extends core_Master
                 vislog_History::add($rec->title);
             }
         }
+        
+        // Страницата да се кешира в браузъра за 1 час
+        Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
 
         return $content; 
     }
@@ -548,7 +551,7 @@ class cms_Articles extends core_Master
         $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
 
         if($rec) {
-            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id));
+            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL));
         } else {
             return NULL ;
         }
