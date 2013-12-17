@@ -458,6 +458,7 @@ class email_FaxSent extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+        // Ако изпращаме
         if ($action == 'send') {
             
             // Ако няма клас, който да имплементира интерфейса email_SentFaxIntf
