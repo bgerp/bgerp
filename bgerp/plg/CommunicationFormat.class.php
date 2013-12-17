@@ -25,7 +25,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*(((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationTelFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
@@ -37,6 +37,14 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
     }
     
+    //drdata_address
+    //(f|telefax|fax|faks)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])
+    
+    //old
+    //(((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)([ ]*[0-9\(\)\/\+\- ]+[ ]*))
+    
+    //new
+    //(Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)[\.?\:? *][^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])
     
     /**
      * Обработваме всички елементи в richText-а,
@@ -47,7 +55,10 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      * @param array $match
      */
     function catchCommunicationTelFormat($match)
-    {   
+    {  
+       
+    	// ако не може да мачнем телефон, просто не правим
+    	// никакви обработки
         if(!trim($match[3])) return;
         
         // намираме мястото, което ще заместваме
@@ -55,7 +66,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         
         // елемент съдържащ: телефонен номер или потребителско име/номер
         $matchElement = trim(mb_strtolower($match[2]));
-              
+          
         // в зависимост от услугата, правим различни линкове
         switch ($matchElement) {
         	
@@ -66,102 +77,108 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	case 'phone' :
         	case 'mobile' :
         	case 'mob' :
+        	case 'тел.' :
         		
-        		$PhonesVerbal = cls::get('drdata_PhoneType');
         		
-        		// парсирваме всеки телефон
-        		$parsTel = $PhonesVerbal->toArray($match[3]);
-        		
-                if(!count($parsTel)) break;
+	        	$PhonesVerbal = cls::get('drdata_PhoneType');
+	        		
+	        	// парсирваме всеки телефон
+	        	$parsTel = $PhonesVerbal->toArray($match[3]);
+	        	
+	            if(!count($parsTel)) break;
+	
+	        	foreach($parsTel as $t){
+		        	// ако той е мобилен
+		        	if(strstr($t->area, 'Cellular')){
+			        	// му задаваме една икона
+			        	$icon = sbf("img/16/mobile2.png", '');
+		        	// ако не е
+		        	} else { 
+			        	// му задаваме друга икона
+			        	$icon = sbf("img/16/telephone2.png", ''); 
+		        	}
+	        	}
+	        	
+	        	// ако сме в тесен режим
+	        	if (Mode::is('screenMode', 'narrow')) {	
+	        		// ако мачнатия елемент прилича на телефон
+	        		// го обработваме като телефон
+	        		$this->mvc->_htmlBoard[$place] =  "<span class='communication'>" . $PhonesVerbal->toVerbal($match[3]) . "</span>";
 
-        		foreach($parsTel as $t){
-        			// ако той е мобилен
-        			if(strstr($t->area, 'Cellular')){
-        				// му задаваме една икона
-        				$icon = sbf("img/16/mobile2.png", '');
-        			  // ако не е
-        			} else { 
-        				// му задаваме друга икона
-        				$icon = sbf("img/16/telephone2.png", ''); 
-        			}
+        		} else {
+        			$this->mvc->_htmlBoard[$place] = $match[0];
         		}
         		
-        		// ако мачнатия елемент прилича на телефон
-        		if($PhonesVerbal->toVerbal($match[3])){
-        			
-        			// го обработваме като телефон
-        			$this->mvc->_htmlBoard[$place] =  "<span class='communication'>" . $PhonesVerbal->toVerbal($match[3]) . "</span>";
-        		}
         	    break;
+        	    
         	    
         	    case 'fax' :
 		        case 'факс' :
-        		
-                if(!haveRole('officer')) break;
-
-		    	$icon = sbf("img/16/fax2.png",'');
-                
-		    	$PhonesVerbal = cls::get('drdata_PhoneType');
-        		$Email = cls::get('type_Email');
-        		
-        		// ако мачнатия елемент прилича на телефон
-        		// го парсирваме
-        		if($tArr = $PhonesVerbal->toArray($match[3])){
-        			// за всеки един алемент
-        			foreach($tArr as $t){ 
-	        			// номера започва с +
-        				$value = '+';
-	                    // ако имаме намерен код на страната го добавяме
-		                if($t->countryCode) {
-		                    $value .= '' . $t->countryCode;
-		                }
-		                // ако имаме намерен код на областта го добавяме
-		                if($t->areaCode) {
-		                    $value .= '' . $t->areaCode;
-		                }
-		                // накрая слагаме и номера
-		                if($t->number) {
-		                    $value .= '' . $t->number;
-		                }
-		                // ще показваме, оригинално въведения номер
-		                $toVerbal = $t->original;
-        			}
-        			// слагаме му домейн
-        			$domain = '@fax.man';
-        			// за да може да го изпратим като имейл
-        			$email = $value.$domain;
-
-        			// правим линк за изпращане на имейл през системата
-        			$href = "<span class='communication'>" . $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])). "</span>";
-        			
-        			// и го връщаме
-        			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
-        		}
+        				       
+	                if(!haveRole('officer')) break;
+	
+			    	$icon = sbf("img/16/fax2.png",'');
+	                
+			    	// ако сме в тесен режим и имаме възможност за изпращане на факсове
+			    	if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
+				    	
+			    		$PhonesVerbal = cls::get('drdata_PhoneType');
+		        		$Email = cls::get('type_Email');
+		        		
+		        		// ако мачнатия елемент прилича на телефон
+		        		// го парсирваме
+		        		if($tArr = $PhonesVerbal->toArray($match[3])){
+		        			// за всеки един алемент
+		        			foreach($tArr as $t){ 
+			        			// номера започва с +
+		        				$value = '+';
+			                    // ако имаме намерен код на страната го добавяме
+				                if($t->countryCode) {
+				                    $value .= '' . $t->countryCode;
+				                }
+				                // ако имаме намерен код на областта го добавяме
+				                if($t->areaCode) {
+				                    $value .= '' . $t->areaCode;
+				                }
+				                // накрая слагаме и номера
+				                if($t->number) {
+				                    $value .= '' . $t->number;
+				                }
+				                // ще показваме, оригинално въведения номер
+				                $toVerbal = $t->original;
+		        			}
+		        			// слагаме му домейн
+		        			$domain = '@fax.man';
+		        			// за да може да го изпратим като имейл
+		        			$email = $value.$domain;
+		
+		        			// правим линк за изпращане на имейл през системата
+		        			$href = "<span class='communication'>" . $Email->addHyperlink($email, $PhonesVerbal->toVerbal($match[3])). "</span>";
+		        			
+		        			// и го връщаме
+		        			$this->mvc->_htmlBoard[$place] = str_replace($email, $toVerbal, $href);
+		        		}
+		        } else {
+		        	
+		        	$this->mvc->_htmlBoard[$place] = $match[0];
+		        }
 
 		        break;
         }
-        	
-        $Email = cls::get('type_Email');
-	    
-    	// Ако мачнатият елемент е валиден имейл за системата
-	    if($Email->isValidEmail($match[3])){
-	    	 
-	    	// оставяме връзката на имейла : изпращана на имейл от системата
-	    	$communicationFormat = str_replace($match[3], $Email->toVerbal($match[3]), $match[0]);
-	    	
-	    	// и правим линк името на услугата
-	    	// посочваме мястото където ще за заменят линковете
-        	$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />[#{$place}#]", $communicationFormat);
-	    } else {
-	    	
-	    	// линк е мачнатия елемент, не името на услугата
-	    	// посочваме мястото където ще за заменят линковете
-        	//$communicationFormat = str_replace($match[3], "[#{$place}#]", $match[0]);
-        	
-        	// добавяме иконата пред името на услугата
+
+        if (Mode::is('screenMode', 'narrow')) {
+	      		    	
+			// линк е мачнатия елемент, не името на услугата
+		    // посочваме мястото където ще за заменят линковете
+	        $communicationFormat = str_replace($match[3], "[#{$place}#]", $match[0]);
+	
+	        // добавяме иконата пред името на услугата
+	        $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
+		  
+        } else  {
         	$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
-	    }
-    	
+        }
+
         return $communicationFormat;
     }
     
