@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals';
     
     
     /**
@@ -83,19 +83,20 @@ class store_Products extends core_Manager
     var $rowToolsField = 'tools';
     
     
+    //var $listItemsPerPage = 400;
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('productId', 'int', 'caption=Име,remember=info,oldFieldName=name');
+        $this->FLD('productId', 'int', 'caption=Име,remember=info');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('quantity', 'int', 'caption=Количество->Общо');
-        $this->FNC('quantityNotOnPallets', 'int', 'caption=Количество->Непалетирано,input=hidden');
-        $this->FLD('quantityOnPallets', 'int', 'caption=Количество->На палети,input=hidden');
+        $this->FLD('quantity', 'double', 'caption=Количество->Общо');
+        $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden');
+        $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
-        $this->FNC('name', 'varchar(255)', 'caption=Пълно име');
+        $this->FNC('name', 'varchar(255)', 'caption=Продукт');
         
         $this->setDbUnique('productId, classId, storeId');
     }
@@ -139,22 +140,12 @@ class store_Products extends core_Manager
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$selectedStoreId}");
+        if(!haveRole('debug')){
+        	$data->query->where("#storeId = {$selectedStoreId}");
+        } else {
+        	$data->query->orderBy('storeId', 'DESC');
+        }
     }
-    
-    
-	/**
-      * Добавя ключови думи за пълнотекстово търсене
-      */
-     function on_AfterGetSearchKeywords7($mvc, &$res, $rec)
-     {
-    	// Извличане на ключовите, вслучая името на продукта
-     	$object = new core_ObjectReference($rec->classId, $rec->productId);
-    	$keywords = $object->getTitleById();
-    	
-     	$res = plg_Search::normalizeText($keywords);
-    	$res = " " . $res;
-     }
      
      
     /**
@@ -181,38 +172,56 @@ class store_Products extends core_Manager
     
     
     /**
-     * Изпълнява се след конвертирането на $rec във вербални стойности
+     * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    function on_AfterPrepareListRows($mvc, $data)
     {
-        $pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-        $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+        $recs = &$data->recs;
+        $rows = &$data->rows;
         
-        if (haveRole('ceo,store')) {
-            $row->makePallets = Ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id));
+        // Ако няма никакви записи - нищо не правим
+        if(!count($recs)) return;
+	        foreach($rows as $id => &$row){
+	        	$rec = &$recs[$id];
+	        	
+	        	$ProductMan = cls::get($rec->classId);
+		    	$pInfo = $ProductMan->getProductInfo($rec->productId);
+		        $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+	        	
+		        if (haveRole('ceo,store')) {
+	            $row->makePallets = Ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id));
+	        }
+        
+	        $row->name = ht::createLink($row->name, array($ProductMan, 'single', $rec->productId));
+	        
+	        $row->quantity .= ' ' . $measureShortName;
+	        if($rec->quantityOnPallets){
+	        	 $row->quantityOnPallets .= ' ' . $measureShortName;
+	        }
+       
+        	$row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets . ' ' . $measureShortName;
         }
-        
-        $row->quantity .= ' ' . $measureShortName;
-        $row->quantityOnPallets .= ' ' . $measureShortName;
-        $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets . ' ' . $measureShortName;
     }
     
     
     /**
      * Филтър
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        //@TODO за тестване да го махне после
+        if(haveRole('debug')){
+        	//$data->listFilter->toolbar->addBtn('CLEAR', array('acc_Balances', 'test1', 'ret_url' => TRUE), NULL, 'ef_icon = img/16/bug.png');
+        	//$data->listFilter->toolbar->addBtn('ТЕСТ', array('acc_Balances', 'test', 'ret_url' => TRUE), NULL, 'ef_icon = img/16/bug.png');
+        }
         
         $data->listFilter->showFields = 'search';
         
@@ -254,5 +263,22 @@ class store_Products extends core_Manager
             
             unset($data->toolbar->buttons['btnAdd']);
         }
+    }
+    
+    
+    /**
+     * Синхронизиране на запис от счетоводството с модела
+     * @param stdClass $rec
+     */
+    public static function sync($rec)
+    {
+    	expect($rec->storeId && $rec->classId && $rec->productId && isset($rec->quantity));
+    	$exRec = static::fetch("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$rec->storeId}");
+    	if($exRec){
+    		$exRec->quantity = $rec->quantity;
+    		$rec = $exRec;
+    	}
+    	
+    	static::save($rec);
     }
 }

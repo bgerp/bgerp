@@ -282,7 +282,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    			}
 	    			
 	    			if(!$rec->price) {
-	    				$form->setError('ean', 'Продуктът няма цена в системата !');
+	    				$form->setError('ean', "Артикула няма цена !");
 	    				return;
 	    			}
 	    			

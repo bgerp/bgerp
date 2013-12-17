@@ -2171,6 +2171,9 @@ class crm_Persons extends core_Master
     		}
     	}
     	
+    	$Varchar = cls::get('type_Varchar');
+    	$adress = $Varchar->toVerbal($adress);
+    	
     	return trim($adress);
     }
 }

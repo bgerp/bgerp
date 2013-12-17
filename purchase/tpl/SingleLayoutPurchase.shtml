@@ -65,8 +65,7 @@
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
 	                        <!--ET_BEGIN deliveryTermId-->
-	                        
-	                    	<div>
+	                        <div>
 	                            |Условие|*: <b>[#deliveryTermId#]</b>
 	                       	</div>
 	                       	<!--ET_END deliveryTermId-->
@@ -83,11 +82,11 @@
 	                        </div>
 	    					<!--ET_END deliveryLocationId-->
 	    					
-	                        <!--ET_BEGIN storeId-->
+	                        <!--ET_BEGIN shipmentStoreId-->
 	                        <div>
-	                            |До склад|*: <b>[#storeId#] </b>
+	                            |До склад|*: <b>[#shipmentStoreId#] </b>
 	                        </div>
-	                        <!--ET_END storeId-->
+	                        <!--ET_END shipmentStoreId-->
 	                    </td>
                    <!--ET_END purchaseConditions-->
                    

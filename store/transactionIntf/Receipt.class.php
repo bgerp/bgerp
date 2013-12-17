@@ -132,7 +132,7 @@ class store_transactionIntf_Receipt
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
+        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	
         	// Ако е вложим дебит 302 иначе 321

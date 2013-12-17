@@ -184,10 +184,9 @@ class acc_plg_Contable extends core_Plugin
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
-             
-            $isContable = $this->hasContableTransaction($mvc, $rec);
+            
             $canActivate = $mvc->canActivate($rec);
-            if (($isContable && !$canActivate) || !$isContable){
+            if (($rec->isContable && !$canActivate) || !$rec->isContable){
             	$requiredRoles = 'no_one';
             }
             

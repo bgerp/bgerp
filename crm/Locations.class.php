@@ -260,7 +260,7 @@ class crm_Locations extends core_Master {
     		$cRec = $contragentCls->fetch($rec->contragentId);
     		$url = array('sales_Sales', 'add','folderId' => $cRec->folderId, 'deliveryLocationId' => $rec->id);
     		$Sales = cls::get('sales_Sales');
-    		$data->toolbar->addBtn($Sales->singleTitle, $url,  NULL, 'ef_icon=img/16/view.png');
+    		$data->toolbar->addBtn($Sales->singleTitle, $url,  'warning=Искатели да създадете нова продажба', 'ef_icon=img/16/view.png');
     	}
     	
     	if($rec->address && $rec->place && $rec->countryId){
@@ -378,9 +378,9 @@ class crm_Locations extends core_Master {
         $locationRecs = static::getContragentLocations($contragentClassId, $contragentId);
         
         foreach ($locationRecs as &$rec) {
-            $rec = $rec->title;
+            $rec = static::getTitleById($rec->id);
         }
-
+	
         if(!$intKeys && count($locationRecs)){
         	$locationRecs = array_combine($locationRecs, $locationRecs);
         }
@@ -419,7 +419,7 @@ class crm_Locations extends core_Master {
     
     /**
      * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
-     * @param unknown_type $id
+     * @param int $id
      */
     public static function getAddress($id)
     {
@@ -443,6 +443,9 @@ class crm_Locations extends core_Master {
     	if(!$rec->address){
     		$string .= $row->address;
     	}
+    	
+    	$Varchar = cls::get('type_Varchar');
+    	$sting = $Varchar->toVerbal($string);
     	
     	return trim($string, ", ");
     }

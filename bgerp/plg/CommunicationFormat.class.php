@@ -25,42 +25,37 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        // Ако намери съвпадение на регулярния израз изпълнява функцията
        // намира телефонните номера
-       $html = preg_replace_callback("/^\s*((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)(([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*(((Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)\.?\:? *)([ ]*[0-9\(\)\/\+\- ]+[ ]*))/umi", array($this, 'catchCommunicationTelFormat'), $html);
        
        // намира всичко което съдържа: букви, цифри, @, -, – и .
        $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
        
        // валидация на ICQ номер
-       $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(-*[1-9][-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(-*[1-9][-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationICQFormat'), $html);
        
        // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
-       $html = preg_replace_callback("/^\s*((Имейл|Eмайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationFormat'), $html);
+       $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
     }
     
     
     /**
      * Обработваме всички елементи в richText-а,
-     * които са от вида на "Skype: скайп_име" или "ICQ номер на icq потребител"
+     * които приличат на телефонен номер или факс
      * и започват на нов ред.
      * Заместваме ги с линк към съответната услуга
      * 
      * @param array $match
      */
-    function catchCommunicationFormat($match)
+    function catchCommunicationTelFormat($match)
     {   
         if(!trim($match[3])) return;
-
+        
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         
         // елемент съдържащ: телефонен номер или потребителско име/номер
         $matchElement = trim(mb_strtolower($match[2]));
-        
-        
-        // Намираме иконата в sbf папката
-        $nameIcon = str::utf2ascii($matchElement);
-	    $icon = sbf("img/16/{$nameIcon}.png",'');
-        
+              
         // в зависимост от услугата, правим различни линкове
         switch ($matchElement) {
         	
@@ -72,8 +67,6 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	case 'mobile' :
         	case 'mob' :
         		
-                $icon = sbf("img/16/telephone2.png", '');
-
         		$PhonesVerbal = cls::get('drdata_PhoneType');
         		
         		// парсирваме всеки телефон
@@ -101,39 +94,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         		}
         	    break;
         	    
-        	case 'msnim' :
-        		$icon = sbf("img/16/msn.png",'');
-
-        	case 'msn' :
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>";
-        		break;
-
-        	case 'xmpp' :
-        	case 'jabber' :
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>";
-        	    break;
-        		 
-	        case 'skype' : 
-		        $skypeUser = trim($match[3]);
-        	
-        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
-		        break;
-		        
-	        case 'aim' : 
-		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>";
-		        break;
-		        
-	        case 'yim' :
-		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>";
-		        break;
-		 		        
-		    case 'icq' :
-		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
-		            href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
-		        break;
-		        
-		    case 'fax' :
-		    case 'факс' :
+        	    case 'fax' :
+		        case 'факс' :
         		
                 if(!haveRole('officer')) break;
 
@@ -177,19 +139,86 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         		}
 
 		        break;
-		        
-		        case 'email' :
-		        case 'e-mail' :
-		        case 'mail' :
-                case 'Имейл':
-                case 'Eмайл':
-                case 'Е-майл':
-		        case '@' :
-		        	$icon = sbf("img/16/email.png",''); 
-		        	
-		        	break;
         }
+        	
+        $Email = cls::get('type_Email');
+	    
+    	// Ако мачнатият елемент е валиден имейл за системата
+	    if($Email->isValidEmail($match[3])){
+	    	 
+	    	// оставяме връзката на имейла : изпращана на имейл от системата
+	    	$communicationFormat = str_replace($match[3], $Email->toVerbal($match[3]), $match[0]);
+	    	
+	    	// и правим линк името на услугата
+	    	// посочваме мястото където ще за заменят линковете
+        	$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />[#{$place}#]", $communicationFormat);
+	    } else {
+	    	
+	    	// линк е мачнатия елемент, не името на услугата
+	    	// посочваме мястото където ще за заменят линковете
+        	//$communicationFormat = str_replace($match[3], "[#{$place}#]", $match[0]);
+        	
+        	// добавяме иконата пред името на услугата
+        	$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
+	    }
+    	
+        return $communicationFormat;
+    }
+    
+    
+    /**
+     * Обработваме всички елементи в richText-а,
+     * които са от вида на "Skype: скайп_име" 
+     * и започват на нов ред.
+     * Заместваме ги с линк към съответната услуга
+     * 
+     * @param array $match
+     */
+    function catchCommunicationFormat($match)
+    {   
+        if(!trim($match[3])) return;
+
+        // намираме мястото, което ще заместваме
+        $place = $this->mvc->getPlace();
         
+        // елемент съдържащ: телефонен номер или потребителско име/номер
+        $matchElement = trim(mb_strtolower($match[2]));
+        
+        
+        // Намираме иконата в sbf папката
+        $nameIcon = str::utf2ascii($matchElement);
+	    $icon = sbf("img/16/{$nameIcon}.png",'');
+        
+        // в зависимост от услугата, правим различни линкове
+        switch ($matchElement) {
+        	        	    
+        	case 'msnim' :
+        		$icon = sbf("img/16/msn.png",'');
+
+        	case 'msn' :
+        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='msnim:chat?contact={$match[3]}' title='MSN'>{$match[1]}</a></span>";
+        		break;
+
+        	case 'xmpp' :
+        	case 'jabber' :
+        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='xmpp:{$match[3]}' title='{$match[2]}'>{$match[1]}</a></span>";
+        	    break;
+        		 
+	        case 'skype' : 
+		        $skypeUser = trim($match[3]);
+        	
+        		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='skype:{$skypeUser}?call' title='Skype'>{$match[3]}</a></span>";
+		        break;
+		        
+	        case 'aim' : 
+		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='aim:goim?screenname={$match[3]}' title='AOL Instant Messenger (AIM)'>{$match[1]}</a></span>";
+		        break;
+		        
+	        case 'yim' :
+		        $this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' href='ymsgr:sendIM?{$match[3]}' title='Yahoo! Messenger'>{$match[1]}</a></span>";
+		        break;
+		 		        
+        }        
     	$Email = cls::get('type_Email');
 	    
     	// Ако мачнатият елемент е валиден имейл за системата
@@ -210,6 +239,84 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         	// добавяме иконата пред името на услугата
         	$communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
 	    }
+    	
+        return $communicationFormat;
+    }
+    
+    
+    /**
+     * Обработваме всички елементи в richText-а,
+     * които са от вида на "ICQ номер на icq потребител"
+     * и започват на нов ред.
+     * Заместваме ги с линк към съответната услуга
+     * 
+     * @param array $match
+     */
+    function catchCommunicationICQFormat($match)
+    {  
+        if(!trim($match[3])) return;
+
+        // намираме мястото, което ще заместваме
+        $place = $this->mvc->getPlace();
+        
+        // елемент съдържащ: телефонен номер или потребителско име/номер
+        $matchElement = trim(mb_strtolower($match[2]));
+        
+        // Намираме иконата в sbf папката
+        $nameIcon = str::utf2ascii($matchElement);
+	    $icon = sbf("img/16/{$nameIcon}.png",'');
+
+		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
+		href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
+		
+	    // линк е мачнатия елемент, не името на услугата
+	    // посочваме мястото където ще за заменят линковете
+        $communicationFormat = str_replace($match[3], "[#{$place}#]", $match[0]);
+        	
+        // добавяме иконата пред името на услугата
+        $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $communicationFormat);
+    	
+        return $communicationFormat;
+    }
+    
+    
+    /**
+     * Обработваме всички елементи в richText-а,
+     * които съдършат дума за имейл
+     * и започват на нов ред.
+     * Добавяме икона пред реда
+     * 
+     * @param array $match
+     */
+    function catchCommunicationEmailFormat($match)
+    {   
+        if(!trim($match[2]))  return;
+
+        // намираме мястото, което ще заместваме
+        $place = $this->mvc->getPlace();
+        
+        // елемент съдържащ: телефонен номер или потребителско име/номер
+        $matchElement = trim(mb_strtolower($match[2]));
+     
+        // в зависимост от услугата, правим различни линкове
+        switch ($matchElement) {   
+        	        	
+		        case 'email' :
+		        case 'e-mail' :
+		        case 'mail' :
+                case 'имейл':
+                case 'емайл':
+                case 'е-майл':
+		        case '@' :
+		        	
+		        	$icon = sbf("img/16/email.png",''); 
+		        	
+		        	break;
+        }
+         	    
+        // добавяме иконата пред името на услугата
+        $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
+
     	
         return $communicationFormat;
     }
