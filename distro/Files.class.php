@@ -1091,7 +1091,7 @@ class distro_Files extends core_Detail
      * @param unknown_type $tpl
      * @param unknown_type $data
      */
-    function on_BeforeRenderListTable($mvc, $tpl, $data)
+    function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         // Вземаме таблицата
         $tpl = $mvc->renderReposAndFiles($data);
