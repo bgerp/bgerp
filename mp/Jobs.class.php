@@ -375,4 +375,22 @@ class mp_Jobs extends core_Master
         
     	return FALSE;
     }
+    
+    
+    /**
+	 * Връща масив от използваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
+     */
+    function getUsedDocs_($jobId)
+    {
+    	$specId = static::fetchField($jobId, 'specId');
+    	$Driver = techno_Specifications::getDriver($specId);
+    	$res[] = (object)array('class' => $Driver->instance, 'id' => $Driver->that);
+    
+    	return $res;
+    }
 }
