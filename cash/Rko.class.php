@@ -98,15 +98,9 @@ class cash_Rko extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'cash, ceo';
-    
-    
-    /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc,ceo';
+    var $canConto = 'cash, ceo';
     
     
     /**
@@ -207,6 +201,14 @@ class cash_Rko extends core_Master
     	$folderId = $data->form->rec->folderId;
     	$form = &$data->form;
     	
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+        $form->setDefault('contragentClassId', $contragentClassId);
+        
+        $options = acc_Operations::getPossibleOperations(get_called_class());
+        $options = acc_Operations::filter($options, $contragentClassId);
+        
     	// Използваме помощната функция за намиране името на контрагента
     	if($origin = $mvc->getOrigin($form->rec)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
@@ -215,6 +217,13 @@ class cash_Rko extends core_Master
     		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 	if($amount <= 0) {
     		 		$amount = 0;
+    		 	}
+    		 	
+    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
+    		 	foreach ($options as $index => $op){
+    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
+    		 			unset($options[$index]);
+    		 		}
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
@@ -226,16 +235,10 @@ class cash_Rko extends core_Master
     	// Поставяме стойности по подразбиране
     	$form->setDefault('valior', dt::today());
     	
-    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
-    	$form->setDefault('contragentId', $contragentId);
-        $form->setDefault('contragentClassId', $contragentClassId);
-    	
     	if($contragentClassId == crm_Companies::getClassId()){
     		$form->setSuggestions('beneficiary', crm_Companies::getPersonOptions($contragentId, FALSE));
     	}
         
-        $options = acc_Operations::getPossibleOperations(get_called_class());
         $form->setOptions('operationSysId', $options);
         $form->setReadOnly('peroCase', cash_Cases::getCurrent());
         $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));

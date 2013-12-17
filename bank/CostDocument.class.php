@@ -97,15 +97,9 @@ class bank_CostDocument extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'bank, ceo';
-    
-    
-    /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, bank, ceo';
+    var $canConto = 'bank, ceo';
     
     
     /**
@@ -181,9 +175,16 @@ class bank_CostDocument extends core_Master
     static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
-    	
     	$today = dt::verbal2mysql();
     	
+    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+    	$form->setDefault('contragentId', $contragentId);
+        $form->setDefault('contragentClassId', $contragentClassId);
+    	
+        $options = acc_Operations::getPossibleOperations(get_called_class());
+        $options = acc_Operations::filter($options, $contragentClassId);
+        
     	if($origin = $mvc->getOrigin($form->rec)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
@@ -191,6 +192,13 @@ class bank_CostDocument extends core_Master
     		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 	if($amount <= 0) {
     		 		$amount = 0;
+    		 	}
+    		 	
+    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
+    		 	foreach ($options as $index => $op){
+    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
+    		 			unset($options[$index]);
+    		 		}
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
@@ -202,18 +210,8 @@ class bank_CostDocument extends core_Master
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
-    	
-    	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
-    	$form->setDefault('contragentId', $contragentId);
-        $form->setDefault('contragentClassId', $contragentClassId);
-    	
-        $options = acc_Operations::getPossibleOperations(get_called_class());
-        $options = acc_Operations::filter($options, $contragentClassId);
-        $form->setOptions('operationSysId', $options);
-    
-        // Използваме помощната функция за намиране името на контрагента
-        $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
+    	$form->setOptions('operationSysId', $options);
+    	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
 	

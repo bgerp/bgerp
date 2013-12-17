@@ -857,6 +857,14 @@ class sales_Sales extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
+        // Кои са позволените операции за последващите платежни документи
+        $result->allowedPaymentOperations = array('customer2caseAdvance',
+        										  'customer2bankAdvance',
+        										  'customer2case',
+        										  'customer2bank',
+        										  'case2customer',
+        										  'bank2customer');
+        
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
