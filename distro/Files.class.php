@@ -1038,6 +1038,9 @@ class distro_Files extends core_Detail
                 // Ако има манипулатор, да е линка към сингъла
                 $file = ($data->rows[$id]->sourceFh) ? $data->rows[$id]->sourceFh : $data->rows[$id]->name;
                 
+                // Ако няма създаден обект, създаваме такъв
+                if (!$data->rowReposAndFilesArr[$repoId][$id]) $data->rowReposAndFilesArr[$repoId][$id] = new stdClass();
+                
                 // Добавяме файла в масива
                 $data->rowReposAndFilesArr[$repoId][$id]->file = $file;
                 
