@@ -27,13 +27,13 @@ class cat_Params extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options';
+    var $listFields = 'id,typeExt,type,options,lastUsedOn';
     
     
     /**
@@ -103,6 +103,7 @@ class cat_Params extends core_Manager
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
+        $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         
         $this->setDbUnique('name, suffix');
@@ -153,9 +154,9 @@ class cat_Params extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'delete' && $rec->id) {
-            if($rec->sysId || cat_products_Params::fetch("#paramId = $rec->id")) {
+           if($rec->sysId || $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';
-            }
+           }
         }
     }
     
@@ -209,8 +210,10 @@ class cat_Params extends core_Manager
     {
     	expect($Class = cls::get($className));
     	expect($rec = $Class::fetch($id));
+    	
         if($rec->options) {
             $optType = ($rec->type == 'enum') ? 'options' : 'suggestions';
+            
             $options = explode(',', $rec->options);
             foreach($options as $i => &$opt){
                 $opt = type_Varchar::escape($opt);
@@ -219,7 +222,7 @@ class cat_Params extends core_Manager
             $os = array($optType => $options);
         }
 		
-	    expect($Type = cls::get(static::$typeMap[$rec->type]));
+	    expect($Type = cls::get(static::$typeMap[$rec->type], $os));
     	
 	    return $Type;
     }
