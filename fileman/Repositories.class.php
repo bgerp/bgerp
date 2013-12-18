@@ -808,10 +808,13 @@ class fileman_Repositories extends core_Master
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
      * @param integer $depth - Дълбочината на папката, до която ще се търси
+     * @param boolean $useMTimeFromFile - Да се използва датата на последно модифициране на файловете
      * 
-     * @return array - Масив с всички папки и файловете в тях
+     * @return array - Двумерен масив с всички папки и файловете в тях
+     * mTime - Дата на модифициране на директорията
+     * files - Файлове в директорията
      */
-    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE)
+    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE, $useMTimeFromFile=FALSE)
     {
         // Очакваме да е число
         expect(is_numeric($repositoryId));
@@ -890,14 +893,31 @@ class fileman_Repositories extends core_Master
                     
                     // Създаваме масив с директрояита
                     $res[$path] = array();
+                    
+                    // Добавяме времето
+                    $res[$path]['mTime'] = $iterator->current()->getMTime();
                 }
             } else {
                 
                 // Ако няма да се игнорира файла
                 if (!static::isForIgnore($rec->ignore, $fileName)) {
                     
+                    // Вземаме времето
+                    $mTime = $iterator->current()->getMTime();
+                    
                     // Добавяме в резултатите пътя и името на файла
-                    $res[$path][$fileName] = $iterator->current()->getMTime();
+                    $res[$path]['files'][$fileName] = $mTime;
+                    
+                    // Ако е зададено да се използва времето на последна променя на файла
+                    if ($useMTimeFromFile) {
+                        
+                        // Ако времето на промяна на файла е след промяната на директорията
+                        if ($mTime > $res[$path]['mTime']) {
+                            
+                            // Добавяме времето
+                            $res[$path]['mTime'] = $mTime;
+                        }
+                    }
                 }
             }
             
@@ -1218,7 +1238,7 @@ class fileman_Repositories extends core_Master
     {
         try {
             // Вземаме съдържанието
-            $foldersArr = static::retriveFiles($data->rec->id, $subPath);
+            $foldersArr = static::retriveFiles($data->rec->id, $subPath, FALSE, FALSE, TRUE);
         } catch (Exception $e) {
             
             // Връщаме грешката
@@ -1233,6 +1253,8 @@ class fileman_Repositories extends core_Master
         
         // Обхождаме масива
         foreach ((array)$foldersArr as $path => $filesArr) {
+            
+            $filesArr = (array)$filesArr['files'];
             
             // Заместваме разделителите за поддиректория с разделителя за дърво
             $pathEntry = str_replace(array('/', '\\'), "->", $path);
