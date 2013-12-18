@@ -623,4 +623,18 @@ class sales_Services extends core_Master
         
         return $transaction;
     }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашият протокол за продажба на услуги") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
+    }
 }

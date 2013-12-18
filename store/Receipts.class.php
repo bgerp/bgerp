@@ -662,4 +662,18 @@ class store_Receipts extends core_Master
     	
     	return $table->get($data->receipts, $fields);
     }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата складова разписка") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
+    }
 }
