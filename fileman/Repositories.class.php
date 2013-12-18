@@ -816,14 +816,22 @@ class fileman_Repositories extends core_Master
      */
     static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE, $useMTimeFromFile=FALSE)
     {
-        // Очакваме да е число
-        expect(is_numeric($repositoryId));
+        // Ако е обект
+        if (is_object($repositoryId)) {
+            
+            // Използваме записа
+            $rec = $repositoryId;
+        } else {
+            
+            // Очакваме да е число
+            expect(is_numeric($repositoryId));
+            
+            // Вземаме записа
+            $rec = static::fetch($repositoryId);
+        }
         
         // Масива, който ще връщаме
         $res = array();
-        
-        // Вземаме записа
-        $rec = static::fetch($repositoryId);
         
         // Вземаме пътя до поддиректорията на съответното репозитори
         $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
@@ -1007,6 +1015,9 @@ class fileman_Repositories extends core_Master
                 
                 // Тримваме текста
                 $ignore = trim($ignore);
+                
+                // Ако няма стринг за игнориране прескачаме
+                if (!$ignore) continue;
                 
                 // Заместваме символите с генерираните числа
                 $ignoreText = str_replace(array('^', '$', '*', '-'),
@@ -1221,6 +1232,13 @@ class fileman_Repositories extends core_Master
         // Избраните филтри
         $filterRec = $data->listFilter->rec;
         
+        // Ако се търси
+        if ($filterRec->search) {
+            
+            // Добавяме да се игнорират всички файлове, които не съдържат филтъра на латиница
+            $data->rec->ignore .= "\n" . '-' . str::utf2ascii($filterRec->search);
+        }
+        
         // Подготвяме дървото с файловете
         $mvc->prepareFileTree($data);
     }
@@ -1238,7 +1256,7 @@ class fileman_Repositories extends core_Master
     {
         try {
             // Вземаме съдържанието
-            $foldersArr = static::retriveFiles($data->rec->id, $subPath, FALSE, FALSE, TRUE);
+            $foldersArr = static::retriveFiles($data->rec, $subPath, FALSE, FALSE, TRUE);
         } catch (Exception $e) {
             
             // Връщаме грешката
