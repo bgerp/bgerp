@@ -66,13 +66,7 @@ class distro_Files extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'distro_Wrapper, plg_Modified, plg_LastUsedKeys';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    var $lastUsedKeys = 'groupId, repos';
+    var $loadList = 'distro_Wrapper, plg_Modified';
     
     
     /**
