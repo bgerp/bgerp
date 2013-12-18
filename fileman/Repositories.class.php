@@ -1187,31 +1187,38 @@ class fileman_Repositories extends core_Master
     
     
     /**
-     * След подготовка на единичния изглед
+     * След подготовка на сингъла
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        // Вземаме файловете в дървовидна структура
-        $treeTpl = static::getFileTree($data->rec->id);
+        // Подготвяме формата за филтриране
+        $mvc->prepareSingleFilter($data);
         
-        // Добавя към шаблона
-        $tpl->append($treeTpl, 'FileTree');
+        // Избраните филтри
+        $filterRec = $data->listFilter->rec;
+        
+        // Подготвяме дървото с файловете
+        $mvc->prepareFileTree($data);
     }
     
     
-	/**
-     * Връща в дървовидна структура съдържанието на хранилището
+    /**
+     * Извиква се след подготвяне на данните за файловото дърво
      * 
-     * @param integer $id - Хранилище
-     * @param string $subPath - Подпапка в хранилището
-     * 
-     * @return core_Et $res
+     * @param fileman_Repositories $mvc
+     * @param object $res
+     * @param object $data
+     * @param string $subPath
      */
-    static function getFileTree($id, $subPath='', $useEmptyFolders=FALSE)
+    function on_AfterPrepareFileTree($mvc, &$res, $data, $subPath='')
     {
         try {
             // Вземаме съдържанието
-            $foldersArr = static::retriveFiles($id, $subPath);
+            $foldersArr = static::retriveFiles($data->rec->id, $subPath);
         } catch (Exception $e) {
             
             // Връщаме грешката
@@ -1219,7 +1226,7 @@ class fileman_Repositories extends core_Master
         }
         
         // Сортираме масива за да може папките да са на първо място
-        asort($foldersArr);
+        krsort($foldersArr);
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
@@ -1234,7 +1241,7 @@ class fileman_Repositories extends core_Master
             if (!count($filesArr)) {
                 
                 // Ако е зададено да се показват ипразните директории
-                if ($useEmptyFolders) {
+                if ($data->useEmptyFolders) {
                     
                     // Добавяме директорията
                     $tableInst->addNode($pathEntry, FALSE, TRUE);
@@ -1254,7 +1261,7 @@ class fileman_Repositories extends core_Master
                     if (static::checkLastModified($modifiedTime)) {
                         
                         // URL за абсорбиране на файла
-                        $urlPath = static::getAbsorbUrl($id, $file, $path);
+                        $urlPath = static::getAbsorbUrl($data->rec->id, $file, $path);
                     } else {
                         
                          // Да няма URL за абсорбиране на файла
@@ -1270,11 +1277,40 @@ class fileman_Repositories extends core_Master
         // Името
         $tableInst->name = 'file';
         
-        // Рендираме изгледа
-        $res = $tableInst->renderHtml(NULL);
+        // Добавяме масива
+        $data->fileTree = $tableInst;
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     * 
+     * @param fileman_Repositories $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Към шаблона добавя дървото с файла
+        $tpl->append($mvc->renderFileTree($data), 'FileTree');
         
-        // Връщаме шаблона
-        return $res;
+        // Рендираме филтъра
+        $tpl->append($mvc->renderSingleFilter($data), 'ListFilter');
+    }
+    
+    
+	/**
+     * Връща в дървовидна структура съдържанието на хранилището
+     * 
+     * @param integer $id - Хранилище
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return core_Et $res
+     */
+    function on_AfterRenderFileTree($mvc, &$res, $data)
+    {
+        // Рендираме изгледа
+        $res = $data->fileTree->renderHtml(NULL);
     }
     
     
@@ -1581,6 +1617,66 @@ class fileman_Repositories extends core_Master
             
             // Ако се създаде, връщаме истина
             return TRUE;
+        }
+    }
+    
+    
+    /**
+     * Подготвя формата за филтриране
+     * 
+     * @param stdClass $data
+     */
+    function prepareSingleFilter_($data)
+    {
+        // Ако не е подговено преди
+        if (!$data->listFilter) {
+            
+            $formParams = array(
+                'method' => 'GET',
+            );
+            
+            $data->listFilter = $this->getForm($formParams);
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('search', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC('sort', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
+        			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
+    
+		$data->listFilter->showFields = 'search, sort';
+		$data->listFilter->view = 'horizontal';
+		
+        // Активиране на филтъра
+        $data->listFilter->input('search, sort', 'silent');
+    
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
+	/**
+     * Рендира формата за филтриране на сингъл изглед
+     * 
+     * @param stdClass $data
+     */
+    function renderSingleFilter_($data)
+    {
+        // Ако има полета, които да се покажат
+        if (count($data->listFilter->showFields)) {
+            
+            // Добавяме филтъра
+            return new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
         }
     }
 }
