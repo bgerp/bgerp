@@ -290,7 +290,7 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
         $from = array("[bQuote]", "[/bQuote]");
         if(!Mode::is('text', 'plain')) {
-            $to = array("<pre class='richtext-quote'>", "</pre>");
+            $to = array("<div class='richtext-quote'>", "</div>");
         } else {
             $to = array("", "");
         }
@@ -617,7 +617,7 @@ class type_Richtext extends type_Blob
         } else {
             
             // Добавяме в цитата, ако не сме в текстов режим
-            $quote = "<pre class='richtext-quote'>" . $quote . "</pre>";
+            $quote = "<div class='richtext-quote'>" . $quote . "</div>";
         }
         
         // Ако има манипулатор на документа
