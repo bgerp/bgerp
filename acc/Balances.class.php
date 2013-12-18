@@ -290,14 +290,6 @@ class acc_Balances extends core_Master
     }
     
     
-    public function act_Test()
-    {
-    	$this->cron_Recalc();
-    	$this->extractStoreData();
-    	
-    	return followRetUrl();
-    }
-    
     /**
      * Изчисляване на баланс
      */
@@ -368,5 +360,7 @@ class acc_Balances extends core_Master
                 }
             }
         }
+        
+        $this->extractStoreData();
     }
 }
