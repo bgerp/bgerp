@@ -77,7 +77,7 @@ class acc_type_Accounts extends type_Keylist
     private function filterSuggestions($list, &$suggestions)
     {
     	$arr = explode('|', $list);
-    	expect(count($arr) <= 3, 'Най-много могат да са зададени 3 итнерфейса');
+    	expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
     	foreach ($arr as $index => $el){
     		expect($arr[$index] = core_Interfaces::fetchField("#name = '{$el}'", 'id'), "Няма интерфейс '{$el}'");
     	}
