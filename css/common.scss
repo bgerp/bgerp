@@ -2179,6 +2179,11 @@ div.richtext ol ol {
 	}
 }
 
+.richtext .richtext-info:last-of-type, .richtext .richtext-tip:last-of-type, .richtext .richtext-warning:last-of-type, .richtext .richtext-error:last-of-type,
+.richtext .richtext-success:last-of-type, .richtext .richtext-success:last-of-type, .richtext .richtext-question:last-of-type {
+    margin-bottom: -15px;
+}
+
 /*край на richtext message-box*/
 
 
