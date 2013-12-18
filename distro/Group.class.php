@@ -518,4 +518,24 @@ class distro_Group extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * След добавяне/изтриване в детайла
+     * 
+     * @param distro_Group $mvc
+     * @param integer $id
+     * @param core_Detail $Detail
+     */
+    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    {
+        // Вземаме записа за мастера на детайла
+        $rec = $mvc->fetch($id);
+        
+        // Променяме времето на последно използване
+        $rec->lastUsedOn = dt::verbal2mysql();
+        
+        // Записваме
+        $mvc->save($rec);
+    }
 }
