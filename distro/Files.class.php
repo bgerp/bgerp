@@ -102,13 +102,7 @@ class distro_Files extends core_Detail
     /**
      * 
      */
-//    var $listFields = 'id, name, description, maintainers';
-    
-    
-    /**
-     * 
-     */
-//    var $currentTab = '';
+    var $currentTab = 'Групи';
     
     
     /**
