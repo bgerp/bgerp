@@ -437,23 +437,23 @@ class sales_Sales extends core_Master
         	$form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
 	        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 	        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
-        
-	        // Моментни експедиция и плащане по подразбиране
-	        if(!$storeId = store_Stores::getCurrent('id', FALSE)){
-	        	$form->setField('isInstantShipment', 'input=hidden');
-	        	$form->rec->isInstantShipment = 'no';
-	        } else {
-	        	$form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
-	        }
-	        	
-	        if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
-	        	$form->setField('isInstantPayment', 'input=hidden');
-	        	$form->rec->isInstantPayment = 'no';
-	        } else {
-	        	$form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
-	        }
         }
         
+    	// Моментни експедиция и плащане по подразбиране
+	    if(!$storeId = store_Stores::getCurrent('id', FALSE)){
+	        $form->setField('isInstantShipment', 'input=hidden');
+	        $form->rec->isInstantShipment = 'no';
+	    } else {
+	        $form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
+	    }
+	        	
+	    if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
+	        $form->setField('isInstantPayment', 'input=hidden');
+	        $form->rec->isInstantPayment = 'no';
+	    } else {
+	        $form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
+	    }
+	        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
