@@ -1233,10 +1233,10 @@ class fileman_Repositories extends core_Master
         $filterRec = $data->listFilter->rec;
         
         // Ако се търси
-        if ($filterRec->search) {
+        if ($filterRec->searchName) {
             
             // Добавяме да се игнорират всички файлове, които не съдържат филтъра на латиница
-            $data->rec->ignore .= "\n" . '-' . str::utf2ascii($filterRec->search);
+            $data->rec->ignore .= "\n" . '-' . str::utf2ascii($filterRec->searchName);
         }
         
         // Подготвяме дървото с файловете
@@ -1260,7 +1260,9 @@ class fileman_Repositories extends core_Master
         } catch (Exception $e) {
             
             // Връщаме грешката
-            return tr('Възникна грешка при показване на съдържанието на хранилището');
+            $data->fileTree = tr('Възникна грешка при показване на съдържанието на хранилището');
+            
+            return ;
         }
         
         // Сортираме масива за да може папките да са на първо място
@@ -1351,6 +1353,13 @@ class fileman_Repositories extends core_Master
     {
         // Рендираме изгледа
         $res = $data->fileTree->renderHtml(NULL);
+        
+        // Ако няма файлове
+        if (!$res) {
+            
+            // Добаваме съобщението
+            $res = new ET(tr('Няма файлове'));
+        }
     }
     
     
@@ -1691,15 +1700,15 @@ class fileman_Repositories extends core_Master
     function on_AfterPrepareSingleFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
-        $data->listFilter->FNC('sort', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
+        $data->listFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC('orderBy', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
         			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
     
-		$data->listFilter->showFields = 'search, sort';
+		$data->listFilter->showFields = 'searchName, orderBy';
 		$data->listFilter->view = 'horizontal';
 		
         // Активиране на филтъра
-        $data->listFilter->input('search, sort', 'silent');
+        $data->listFilter->input('searchName, orderBy', 'silent');
     
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
