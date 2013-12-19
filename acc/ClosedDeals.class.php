@@ -235,7 +235,6 @@ abstract class acc_ClosedDeals extends core_Master
     	if($rec->state == 'active'){
     		$DocClass = cls::get($rec->docClassId);
 	    	$firstRec = $DocClass->fetch($rec->docId);
-	    	$firstRec->brState = $firstRec->state;
 	    	$firstRec->state = 'closed';
 	    	
 	    	$DocClass->save($firstRec);
@@ -253,7 +252,7 @@ abstract class acc_ClosedDeals extends core_Master
     	if($rec->brState == 'active'){
     		$DocClass = cls::get($rec->docClassId);
 		    $firstRec = $DocClass->fetch($rec->docId);
-		    $firstRec->state = $firstRec->brState;
+		    $firstRec->state = 'active';
 		    
 		    $DocClass->save($firstRec);
     	}
