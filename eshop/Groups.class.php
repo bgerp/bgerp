@@ -185,8 +185,8 @@ class eshop_Groups extends core_Master
         $this->prepareAllGroups($data);  
 
         $layout = $this->getLayout();
-        $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
-        $layout->replace($this->renderAllGroups($data), 'PAGE_CONTENT');
+        $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+        $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
         
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
@@ -211,8 +211,8 @@ class eshop_Groups extends core_Master
         cms_Content::setLang(cms_Content::fetchField($data->rec->menuId, 'lang'));
 
         $layout = $this->getLayout();
-        $layout->replace(cms_Articles::renderNavigation($data), 'NAVIGATION');
-        $layout->replace($this->renderGroup($data), 'PAGE_CONTENT');
+        $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+        $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
 
         
         // Страницата да се кешира в браузъра

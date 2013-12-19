@@ -52,9 +52,6 @@ class cms_Page extends page_Html {
             $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
         }
         
-        // Добавяне на включвания външен код
-        cms_Includes::insert($this);
-
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
         $this->replace(new ET(getFileContent('cms/tpl/Page.shtml')), 'PAGE_CONTENT');
@@ -114,6 +111,9 @@ class cms_Page extends page_Html {
             Mode::setPermanent('NotificationType_' . $Nid, NULL);
        
         }
+
+        // Добавяне на включвания външен код
+        cms_Includes::insert($invoker);
     }
 
 
