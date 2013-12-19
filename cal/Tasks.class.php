@@ -956,8 +956,9 @@ class cal_Tasks extends core_Master
         		
         		// има 2 полета ид = номера на потребителя
         		// и линк към профила му
-        		foreach($users as $id=>$resors){ 
-    	    		$resorses[$id]['name'] = crm_Profiles::createLink($resors)->getContent();
+        		foreach($users as $id => $resors){
+                    $link = crm_Profiles::createLink($resors);
+    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
     	    		$resorses[$id]['id'] = $resors;
         		}
         	}
