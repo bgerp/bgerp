@@ -317,6 +317,8 @@ class eshop_Groups extends core_Master
             }
         }
 
+        $all->prepend(tr('Всички продукти') . ' « ', 'PAGE_TITLE');
+
         return $all;
     }
 
@@ -338,6 +340,7 @@ class eshop_Groups extends core_Master
             }
         }
 
+        $groupTpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
 
         if($data->addProductUrl) {
             $groupTpl->append(ht::createBtn('Нов продукт', $data->addProductUrl,  NULL, NULL, array('style' => 'margin-bottom:15px;')));

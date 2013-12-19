@@ -2607,31 +2607,38 @@ div.location.public {
 }
 
 .eshop-group-button {
+    border-left:solid 1px transparent;
     float: left; 
     width: 280px; 
-    height: 160px;
+    height: 140px;
     margin: 10px;
     text-align: center;
     .eshop-group-button-title {
         margin-top: 5px;
-        a{
-	       color: #333;
-	       &:hover{
-	           text-decoration: underline;
-	       }
+        a{	
+		   padding-left:3px;
+		   border-left:solid 2px transparent;
+	       color: #048;
         } 
     }
+	
 }
 
-.eshop-group-button-img a img{
-	opacity:0.8;
+.eshop-group-button:hover  .eshop-group-button-title a {
+	color:#c60;
+}
+
+ 
+
+.eshop-group-button img{
+	opacity:0.9;
 	 -webkit-transition: all 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
      -moz-transition: all 0.3s linear;  /* Firefox 4-15 */
        -o-transition: all 0.3s linear;  /* Opera 10.50–12.00 */
           transition: all 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
 }
 
-.eshop-group-button-img a:hover img{
+.eshop-group-button:hover img{
 	opacity:1;
 }
 
