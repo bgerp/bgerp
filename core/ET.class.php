@@ -669,12 +669,13 @@ class core_ET extends core_BaseClass
             redirect($redirectArr[0]);
         }
         
-        if ($removeBlocks) {
-            if (is_array($this->places)) {
-                foreach ($this->places as $place => $dummy) {
-                    $this->content = str_replace($this->toPlace($place), '', $this->content);
-                }
+        if (is_array($this->places)) {
+            foreach ($this->places as $place => $dummy) {
+                $this->content = str_replace($this->toPlace($place), '', $this->content);
             }
+        }
+        
+        if ($removeBlocks) {
             $this->removeBlocks($removeBlocks);
         }
         
