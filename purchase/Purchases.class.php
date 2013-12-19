@@ -187,6 +187,21 @@ class purchase_Purchases extends core_Master
     }
     
     
+	/**
+     * Екшън за приключване на продажба
+     */
+    function act_Close()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
+    	$rec->state = 'closed';
+    	$this->save($rec);
+    	
+    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
+    }
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна
      */

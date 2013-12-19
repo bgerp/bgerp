@@ -760,9 +760,9 @@ class sales_Sales extends core_Master
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
-    	
     	$rec->state = 'closed';
     	$this->save($rec);
+    	
     	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
     }
     
