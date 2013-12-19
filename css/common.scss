@@ -500,6 +500,7 @@ select {
 .narrow .chzn-container .chzn-single {
 	height: 1.33em !important;
 }
+
 /*височини на някои от елементите, за да няма разминавания при някои устройства*/
 
 
@@ -2077,11 +2078,14 @@ div.richtext ol ol {
 }
 
 .richtext-quote {
-	font-size: 0.9em;
 	color: #444;
-	white-space: pre-line;
 	padding: 2px 0 0 15px;
 	border-left: 5px solid $gray2;
+	font-family: Courier New, monospace, serif;
+}
+
+.richtext > .richtext-quote {
+	font-size: 0.9em;
 }
 
 .narrow .richtext-quote {
@@ -2174,6 +2178,12 @@ div.richtext ol ol {
 		text-decoration: none;
 	}
 }
+
+.richtext .richtext-info:last-of-type, .richtext .richtext-tip:last-of-type, .richtext .richtext-warning:last-of-type, .richtext .richtext-error:last-of-type,
+.richtext .richtext-success:last-of-type, .richtext .richtext-success:last-of-type, .richtext .richtext-question:last-of-type {
+    margin-bottom: -15px;
+}
+
 /*край на richtext message-box*/
 
 

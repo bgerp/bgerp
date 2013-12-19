@@ -655,8 +655,10 @@ class core_ET extends core_BaseClass
      */
     function getContent($content = NULL, $place = "CONTENT", $output = FALSE, $removeBlocks = TRUE)
     {
+        $copy = clone($this);
+
         if ($content) {
-            $this->replace($content, $place);
+            $copy->replace($content, $place);
         }
         
         if ($output) {
@@ -665,17 +667,16 @@ class core_ET extends core_BaseClass
         
         $redirectArr = $this->getArray('_REDIRECT_');
         
-        if ($redirectArr[0])
-        redirect($redirectArr[0]);
-        
-        //   -
-        if (is_array($this->places)) {
-            foreach ($this->places as $place => $dummy) {
-                $this->content = str_replace($this->toPlace($place), '', $this->content);
-            }
+        if ($redirectArr[0]) {
+            redirect($redirectArr[0]);
         }
         
         if ($removeBlocks) {
+            if (is_array($this->places)) {
+                foreach ($this->places as $place => $dummy) {
+                    $this->content = str_replace($this->toPlace($place), '', $this->content);
+                }
+            }
             $this->removeBlocks($removeBlocks);
         }
         
