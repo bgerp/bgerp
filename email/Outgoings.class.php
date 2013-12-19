@@ -497,27 +497,21 @@ class email_Outgoings extends core_Master
         // Ако има права за ипзващне на факс
         if (email_FaxSent::haveRightFor('send')) {
             
-            //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
-            $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
-
-            //Ако има поне един клас, който да имплементира интерфейса
-            if ($clsCount) {
+            // id
+            $id = Request::get('id', 'int');
+            
+            // Вземаме URL' то
+            $retUrl = getRetUrl();
+            
+            // Ако няма
+            if (!$retUrl) {
                 
-                // id
-                $id = Request::get('id', 'int');
-                
-                // Вземаме URL' то
-                $retUrl = getRetUrl();
-                
-                // Ако няма
-                if (!$retUrl) {
-                    
-                    // Връщаме към сингъла на имейла
-                    $retUrl = array('email_Outgoings', 'single', $id);
-                }
-                // Добавяме бутона за факс
-                $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => $retUrl), 'ef_icon = img/16/fax.png');      
+                // URL за връщаме към сингъла на имейла
+                $retUrl = array('email_Outgoings', 'single', $id);
             }
+            
+            // Добавяме бутона за факс
+            $form->toolbar->addBtn('Факс', array('email_FaxSent', 'send', $id, 'ret_url' => $retUrl), 'ef_icon = img/16/fax.png');      
         }
         
         // Добавяме бутона отказ

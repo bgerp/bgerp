@@ -44,7 +44,13 @@ class cat_products_Params extends cat_products_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper,plg_RowTools';
+    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'paramId';
     
     
     /**

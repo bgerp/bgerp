@@ -578,7 +578,7 @@ class label_TemplateFormats extends core_Detail
                     if ($rec->formatParams['Rotation'] == 'yes') {
                         
                         // Задаваме да се ротира на ляво
-                        $thumb->rotateSide = 'left';
+                        $thumb->allowRotateToSide = 'left';
                     }
                     
                     // Добавяме вербалната стойност

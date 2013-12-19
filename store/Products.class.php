@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals,plg_State';
     
     
     /**
@@ -38,7 +38,7 @@ class store_Products extends core_Manager
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,store';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -56,19 +56,19 @@ class store_Products extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,store';
+    var $canAdd = 'no_one';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,store';
+    var $canDelete = 'no_one';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, tools=Пулт, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets';
+    var $listFields = 'id, tools=Пулт, name, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, state';
     
     
     /**
@@ -83,7 +83,6 @@ class store_Products extends core_Manager
     var $rowToolsField = 'tools';
     
     
-    //var $listItemsPerPage = 400;
     /**
      * Описание на модела (таблицата)
      */
@@ -97,6 +96,8 @@ class store_Products extends core_Manager
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FNC('name', 'varchar(255)', 'caption=Продукт');
+        $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Последен ъпдейт,input=none');
+        $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, classId, storeId');
     }
@@ -112,6 +113,19 @@ class store_Products extends core_Manager
     	}
     	
     	return $rec->name = cls::get($rec->classId)->getTitleById($rec->productId);
+    }
+    
+    
+	/**
+     * Изчисляване на заглавието спрямо продуктовия мениджър
+     */
+    public function on_CalcQuantityNotOnPallets(core_Mvc $mvc, $rec)
+    {
+    	if(empty($rec->quantity)){
+    		return;
+    	}
+    	
+    	return $rec->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
     }
     
     
@@ -131,6 +145,15 @@ class store_Products extends core_Manager
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		$res = " " . plg_Search::normalizeText($rec->name);
+	}
+	
+	
+    /**
      * Извличане записите само от избрания склад
      *
      * @param core_Mvc $mvc
@@ -140,11 +163,8 @@ class store_Products extends core_Manager
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
-        if(!haveRole('debug')){
-        	$data->query->where("#storeId = {$selectedStoreId}");
-        } else {
-        	$data->query->orderBy('storeId', 'DESC');
-        }
+        $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('state');
     }
      
      
@@ -170,7 +190,7 @@ class store_Products extends core_Manager
         $form->setReadOnly('storeId', store_Stores::getCurrent());
     }
     
-    
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -192,18 +212,20 @@ class store_Products extends core_Manager
 		    	$pInfo = $ProductMan->getProductInfo($rec->productId);
 		        $measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
 	        	
-		        if (haveRole('ceo,store')) {
-	            $row->makePallets = Ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id));
-	        }
-        
-	        $row->name = ht::createLink($row->name, array($ProductMan, 'single', $rec->productId));
+		        if($rec->quantityNotOnPallets > 0){
+		        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+		        }
 	        
-	        $row->quantity .= ' ' . $measureShortName;
-	        if($rec->quantityOnPallets){
-	        	 $row->quantityOnPallets .= ' ' . $measureShortName;
-	        }
-       
-        	$row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets . ' ' . $measureShortName;
+		        $row->name = ht::createLink($row->name, array($ProductMan, 'single', $rec->productId));
+		        
+		        $row->quantity .= ' ' . $measureShortName;
+		        if($rec->quantityOnPallets){
+		        	 $row->quantityOnPallets .= ' ' . $measureShortName;
+		        }
+	       
+	        	$row->quantityNotOnPallets .= ' ' . $measureShortName;
+	        	
+	        	$row->TR_CLASS = 'active';
         }
     }
     
@@ -216,13 +238,6 @@ class store_Products extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        //@TODO за тестване да го махне после
-        if(haveRole('debug')){
-        	//$data->listFilter->toolbar->addBtn('CLEAR', array('acc_Balances', 'test1', 'ret_url' => TRUE), NULL, 'ef_icon = img/16/bug.png');
-        	//$data->listFilter->toolbar->addBtn('ТЕСТ', array('acc_Balances', 'test', 'ret_url' => TRUE), NULL, 'ef_icon = img/16/bug.png');
-        }
-        
         $data->listFilter->showFields = 'search';
         
         // Активиране на филтъра
@@ -238,47 +253,61 @@ class store_Products extends core_Manager
         }
     }
     
-	
-	/**
-     * След подготовка на лист тулбара
-     */
-    public static function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-            $masterRec = $data->masterData->rec;
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            
-            foreach ($productManagers as $manId => $manName) {
-            	$productMan = cls::get($manId);
-            	$products = $productMan::getByProperty('canStore');
-                if(!count($products)){
-                	$error = "error=Няма складируеми {$productMan->title}";
-                }
-                
-                $data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
-                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-            	unset($error);
-            }
-            
-            unset($data->toolbar->buttons['btnAdd']);
-        }
-    }
-    
     
     /**
      * Синхронизиране на запис от счетоводството с модела
      * @param stdClass $rec
      */
-    public static function sync($rec)
+    public static function sync($all)
     {
-    	expect($rec->storeId && $rec->classId && $rec->productId && isset($rec->quantity));
-    	$exRec = static::fetch("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$rec->storeId}");
-    	if($exRec){
-    		$exRec->quantity = $rec->quantity;
-    		$rec = $exRec;
+    	// Датата на синхронизацията
+    	$date = dt::now();
+    	
+    	// За всеки запис извлечен от счетоводството
+    	foreach ($all as $index => $amount){
+    		
+    		// Задаване на стойности на записа
+    		list($storeId, $classId, $productId) = explode('|', $index);
+    		$rec = (object)array('storeId'   => $storeId,
+    							 'classId'   => $classId,
+    							 'productId' => $productId,
+    							 'quantity'  => $amount,
+    		);
+    		
+    		// Ако има съществуващ запис се обновява количеството му
+	    	$exRec = static::fetch("#productId = {$productId} AND #classId = {$classId} AND #storeId = {$storeId}");
+	    	if($exRec){
+	    		$exRec->quantity = $rec->quantity;
+	    		$rec = $exRec;
+	    	}
+	    	
+	    	// Обновяване на датата за ъпдейт, и състоянието на продукта
+	    	$rec->lastUpdated = $date;
+	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
+	    	
+	    	static::save($rec);
     	}
     	
-    	static::save($rec);
+    	// Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
+    	static::updateMissingProducts($date);
+    }
+    
+    
+    /**
+     * Ф-я която ъпдейтва всички записи, които присъстват в модела, но липсват
+     * в баланса. Техните
+     * @param date $date
+     */
+    private static function updateMissingProducts($date)
+    {
+    	$query = static::getQuery();
+    	$query->where("#lastUpdated != '{$date}'");
+    	while($rec = $query->fetch()){
+    		$rec->state       = 'closed';
+    		$rec->quantity    = 0;
+    		$rec->lastUpdated = $date;
+    		
+    		static::save($rec);
+    	}
     }
 }

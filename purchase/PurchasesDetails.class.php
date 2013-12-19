@@ -220,6 +220,8 @@ class purchase_PurchasesDetails extends core_Detail
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
+                $ProductManager = cls::get($rec->classId);
+        		$row->productId = $ProductManager->getTitleById($rec->productId);
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
     
@@ -371,16 +373,6 @@ class purchase_PurchasesDetails extends core_Detail
             // Записване основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
         }
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-        $ProductManager = cls::get($rec->classId);
-        $row->productId = $ProductManager->getTitleById($rec->productId);
     }
     
     

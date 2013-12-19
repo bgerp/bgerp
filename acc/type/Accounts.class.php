@@ -3,13 +3,16 @@
 
 
 /**
- * Клас acc_type_Accounts
+ * Клас acc_type_Accounts, за избиране на счетоводни сметки
+ * 
+ * Ако е зададен параметър 'root' - може да се избират само
+ * сметките започващи с този номер
  *
  *
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2013 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,7 +21,7 @@ class acc_type_Accounts extends type_Keylist
     
     
     /**
-     * @todo Чака за документация...
+     * Максимум предложения
      */
     const MAX_SUGGESTIONS = 1000;
     
@@ -32,6 +35,8 @@ class acc_type_Accounts extends type_Keylist
         
         setIfNot($params['params']['select'], 'title');
         setIfNot($params['params']['root'], '');
+        setIfNot($params['params']['regInterfaces'], '');
+        
         setIfNot($params['params']['maxSuggestions'], self::MAX_SUGGESTIONS);
         
         parent::init($params);
@@ -51,8 +56,16 @@ class acc_type_Accounts extends type_Keylist
         $mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
         $select = $this->params['select'];
+        $regInterfaces = $this->params['regInterfaces'];
         
-        $this->suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+        $suggestions = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
+    	
+        // Ако има зададени интерфейси на аналитичностите
+        if($regInterfaces){
+    		acc_type_Account::filterSuggestions($regInterfaces, $suggestions);
+    	}
+    	
+    	$this->suggestions = $suggestions;
     }
     
     

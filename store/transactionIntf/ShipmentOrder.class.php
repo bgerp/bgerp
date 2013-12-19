@@ -144,6 +144,7 @@ class store_transactionIntf_ShipmentOrder
         $currencyRate = $rec->currencyRate;
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
+        price_Helper::fillRecs($rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
@@ -153,13 +154,13 @@ class store_transactionIntf_ShipmentOrder
         	$creditAccId = (isset($pInfo->meta['canConvert'])) ? '706' : '701';
             
         	$entries[] = array(
-                'amount' => currency_Currencies::round($amount), // В основна валута
+                'amount' => currency_Currencies::round($amount * $currencyRate), // В основна валута
                 
                 'debit' => array(
                     '411',
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),     		// Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $currencyRate, $currencyCode), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(

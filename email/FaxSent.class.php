@@ -91,36 +91,33 @@ class email_FaxSent extends core_Manager
     
     
     /**
-     * 
+     * Екшън за изпращане на факс
      */
     function act_Send()
     {
+        // Проверяваме дали има права за изпращане
         $this->requireRightFor('send');
         
-        //Броя на класовете, които имплементират интерфейса email_SentFaxIntf
-        $clsCount = core_Classes::getInterfaceCount('email_SentFaxIntf');
-
-        //Ако нито един клас не имплементира интерфейса
-        if (!$clsCount) {
-            core_Statuses::add(tr('Нямате инсталирана факс услуга|*.'), 'warning');   
-            
-            redirect(getRetUrl());
-        }
-
-        $this->requireRightFor('send');
-        
+        // Създаваме обект за данни
         $data = new stdClass();
         
         // Създаване и подготвяне на формата
         $this->prepareSendForm($data);
-
+        
+        // Очакваме до този момент във формата да няма грешки
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
         // от която се извиква екшън-а act_Manage
         $retUrl = getRetUrl();
         
-        // Очакваме до този момент във формата да няма грешки
-        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        // Ако няма URL
+        if (!$retUrl) {
+            
+            // Създаваме го
+            $retUrl = array('email_Outgoings', 'single', $data->form->rec->id);
+        }
         
         // Зареждаме формата
         $data->form->input();
@@ -312,7 +309,7 @@ class email_FaxSent extends core_Manager
         // Ако има права за ипзващане на имейл
         if (email_Outgoings::haveRightFor('send')) {
 
-            // показваме бутона за изпращане на имейл
+            // Показваме бутона за изпращане на имейл
             $data->form->toolbar->addBtn('Имейл', array('email_Outgoings', 'send', $id, 'ret_url'=>getRetUrl()), 'ef_icon = img/16/email_go.png');    
         }
         
@@ -334,9 +331,6 @@ class email_FaxSent extends core_Manager
     {
         expect($data->rec = email_Outgoings::fetch($data->form->rec->id));
 
-        // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
-        doc_Threads::requireRightFor('single', $data->rec->threadId);
-        
         $Email = cls::get('email_Outgoings');
         
         // Добавяне на предложения на свързаните документи
@@ -450,5 +444,40 @@ class email_FaxSent extends core_Manager
         }
         
         return $toFaxArr;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако изпращаме
+        if ($action == 'send') {
+            
+            // Ако няма клас, който да имплементира интерфейса email_SentFaxIntf
+            if (!core_Classes::getInterfaceCount('email_SentFaxIntf')) {
+                
+                // Никой да не може да променя
+                $requiredRoles = 'no_one';
+            }
+            
+            // Ако все още има права и има запис
+            if (!$requiredRoles != 'no_one' && $rec->threadId) {
+                
+                // Ако няма права за сингъла към нишката
+                if (!doc_Threads::haveRightFor('single', $rec->threadId)) {
+                    
+                    // Да не може да се изпраща
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }

@@ -982,8 +982,9 @@ pre.document {
 
 .topCell {
 	border: 1px solid #000;
+	max-width: 400px !important;
 	div {
-		padding-bottom:2px;
+		padding-bottom: 2px;
 	}
 }
 
@@ -2326,10 +2327,6 @@ div.location.public {
 	}
 }
 
-.blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar {
-	border-bottom: none !important;
-}
-
 .blast-overflow {
 	max-width: 850px; 
 	overflow: auto; 
@@ -2596,6 +2593,11 @@ div.location.public {
 	background-position: 5px center;
     background-image: url('../cms/img/rss24.png');
 }
+
+
+.blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
+    border-bottom: none !important;
+}
 /*край на бъгфиксове*/
 
 
@@ -2610,7 +2612,6 @@ div.location.public {
     height: 160px;
     margin: 10px;
     text-align: center;
-    
     .eshop-group-button-title {
         margin-top: 5px;
         a{
@@ -2620,6 +2621,18 @@ div.location.public {
 	       }
         } 
     }
+}
+
+.eshop-group-button-img a img{
+	opacity:0.8;
+	 -webkit-transition: all 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
+     -moz-transition: all 0.3s linear;  /* Firefox 4-15 */
+       -o-transition: all 0.3s linear;  /* Opera 10.50–12.00 */
+          transition: all 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+}
+
+.eshop-group-button-img a:hover img{
+	opacity:1;
 }
 
 .narrow .eshop-group-button-title {

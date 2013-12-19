@@ -485,7 +485,7 @@ class purchase_Purchases extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new purchase_model_Purchase(self::fetchRec($id));
+    	$rec = new purchase_model_Purchase(self::fetchRec($id));
         
         // Извличаме продуктите на покупката
         $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
@@ -493,7 +493,15 @@ class purchase_Purchases extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
-       
+        
+        // Кои са позволените операции за последващите платежни документи
+        $result->allowedPaymentOperations = array('case2supplierAdvance',
+        										  'bank2supplierAdvance',
+        										  'bank2supplier',
+        										  'case2supplier',
+        										  'supplier2bank',
+        										  'supplier2case');
+        
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate                   = $rec->currencyRate;

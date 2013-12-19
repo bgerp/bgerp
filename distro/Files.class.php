@@ -60,7 +60,7 @@ class distro_Files extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'powerUser';
     
     
     /**
@@ -102,13 +102,7 @@ class distro_Files extends core_Detail
     /**
      * 
      */
-//    var $listFields = 'id, name, description, maintainers';
-    
-    
-    /**
-     * 
-     */
-//    var $currentTab = '';
+    var $currentTab = 'Групи';
     
     
     /**
@@ -142,7 +136,7 @@ class distro_Files extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако ще добавяме/редактираме записа
-        if ($action == 'add' || $action == 'edit') {
+        if ($action == 'add' || $action == 'edit' || $action == 'delete') {
             
             // Ако има master
             if (($masterKey = $mvc->masterKey) && ($rec->$masterKey)) {
@@ -152,6 +146,21 @@ class distro_Files extends core_Detail
                     
                     // Да не може да добавя
                     $requiredRoles = 'no_one';
+                }
+            }
+            
+            // Ако все още има права
+            if ($requiredRoles != 'no_one') {
+                
+                // Ако има дата на модифициране
+                if ($rec->modifiedOn) {
+                    
+                    // Ако е бил променен преди разрешеното от нас
+                    if (!fileman_Repositories::checkLastModified(dt::mysql2timestamp($rec->modifiedOn))) {
+                        
+                        // Да не може да се променя
+                        $requiredRoles = 'no_one';
+                    }
                 }
             }
         }
@@ -768,7 +777,7 @@ class distro_Files extends core_Detail
                 foreach ((array)$repoArrFromRec as $repoId) {
                     
                     // Добавяме в масива
-                    $orArr[$repoId][$rec->name] = $rec->name;
+                    $orArr[$repoId][$rec->name] = dt::mysql2timestamp($rec->modifiedOn);
                 }
             }
             
@@ -790,10 +799,65 @@ class distro_Files extends core_Detail
                 }
                 
                 // Вземаме масив с файловете само в главната директрия
-                $fileNameArr = $reposFileArr['/'];
+                $fileNameArr = (array)$reposFileArr['/'];
                 
                 // Всички файлове в това хранилище
-                $filesArrInThisRepo = $orArr[$repoId];
+                $filesArrInThisRepo = (array)$orArr[$repoId];
+                
+                // Ако има масив
+                if ($fileNameArr && count($fileNameArr)) {
+                    
+                    // Обхождаме масива
+                    foreach ($fileNameArr as $fileName => $modifiedTime) {
+                        
+                        // Проверяваме времето на последна модификация
+                        if (!fileman_Repositories::checkLastModified($modifiedTime)) {
+                            
+                            // Ако е в рамките на зададено от нас
+                            // Премахваме от масивите
+                            unset($fileNameArr[$fileName]);
+                            unset($filesArrInThisRepo[$fileName]);
+                        }
+                    }
+                    
+                    // Ако има файлове в масива
+                    if (count($fileNameArr)) {
+                        
+                        // Вземаме ключовете
+                        $fileNameArrKeys = array_keys((array)$fileNameArr);
+                        
+                        // Създаваме масив с ключовете и стойностите
+                        $fileNameArr = array_combine((array)$fileNameArrKeys, (array)$fileNameArrKeys);
+                    }
+                }
+                
+            
+                // Ако има масив
+                if ($filesArrInThisRepo && count($filesArrInThisRepo)) {
+                    
+                    // Обхождаме масива
+                    foreach ($filesArrInThisRepo as $fileName => $modifiedTime) {
+                        
+                        // Проверяваме времето на последна модификация
+                        if (!fileman_Repositories::checkLastModified($modifiedTime)) {
+                            
+                            // Ако е в рамките на зададено от нас
+                            // Премахваме от масивите
+                            unset($fileNameArr[$fileName]);
+                            unset($filesArrInThisRepo[$fileName]);
+                        }
+                    }
+                    
+                    // Ако има файлове в масива
+                    if (count($filesArrInThisRepo)) {
+                        
+                        // Вземаме ключовете
+                        $filesArrInThisRepoKeys = array_keys((array)$filesArrInThisRepo);
+                        
+                        // Създаваме масив с ключовете и стойностите
+                        $filesArrInThisRepo = array_combine((array)$filesArrInThisRepoKeys, (array)$filesArrInThisRepoKeys);
+                    }
+                }
                 
                 // Вземама масива с различията
                 $diffArr = type_Keylist::getDiffArr($filesArrInThisRepo, $fileNameArr);
@@ -847,7 +911,6 @@ class distro_Files extends core_Detail
                                 // Прескачаме
                                 continue;
                             }
-                            
                         } else {
                             // Ако няма запис
                             // Създаваме такъв
@@ -962,9 +1025,15 @@ class distro_Files extends core_Detail
             // Обхождаме масива с id'та
             foreach ((array)$idsArr as $id) {
                 
+                // Нулираме
+                $delLink = $editLink = NULL;
+                
                 // Името на файла
                 // Ако има манипулатор, да е линка към сингъла
                 $file = ($data->rows[$id]->sourceFh) ? $data->rows[$id]->sourceFh : $data->rows[$id]->name;
+                
+                // Ако няма създаден обект, създаваме такъв
+                if (!$data->rowReposAndFilesArr[$repoId][$id]) $data->rowReposAndFilesArr[$repoId][$id] = new stdClass();
                 
                 // Добавяме файла в масива
                 $data->rowReposAndFilesArr[$repoId][$id]->file = $file;
@@ -975,17 +1044,34 @@ class distro_Files extends core_Detail
                 // Данни за модифициране
                 $data->rowReposAndFilesArr[$repoId][$id]->modified = $data->rows[$id]->modifiedOn . tr(' |от|* ') . $data->rows[$id]->modifiedBy;
                 
-                // Ако имаме права за редактиране
-                if ($mvc->haveRightFor('edit')) {
+                // Ако имаме права за изтриване
+                if ($mvc->haveRightFor('delete', $data->recs[$id])) {
                     
                     // Линк за изтриване от хранилището
                     $delLink = ht::createLink($delImg, array($mvc, 'removeFromRepo', $id, 'repoId' => $repoId, 'ret_url' => TRUE),
                                        tr('Наистина ли желаете да изтриете файла от хранилището?'), array('title' => tr('Изтриване')));
+                }
+                
+                // Ако имаме права за редактиране
+                if ($mvc->haveRightFor('edit', $data->recs[$id])) {
+                    
                     // Линк за редактиране
                     $editLink = ht::createLink($editImg, array($mvc, 'edit', $id, 'ret_url' => TRUE),
                                        NULL, array('title' => tr('Редактиране')));
-                    // Добавяме линковете
-                    $data->rowReposAndFilesArr[$repoId][$id]->tools = $editLink . $delLink;
+                }
+                
+                // Ако има линк за редактиране
+                if ($editLink) {
+                    
+                    // Добавяме линка
+                    $data->rowReposAndFilesArr[$repoId][$id]->tools = $editLink;
+                }
+                
+                // Ако има линк за изтриване
+                if ($delLink) {
+                    
+                    // Добавяме линка
+                    $data->rowReposAndFilesArr[$repoId][$id]->tools .= $delLink;
                 }
             }
         }
@@ -999,7 +1085,7 @@ class distro_Files extends core_Detail
      * @param unknown_type $tpl
      * @param unknown_type $data
      */
-    function on_BeforeRenderListTable($mvc, $tpl, $data)
+    function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         // Вземаме таблицата
         $tpl = $mvc->renderReposAndFiles($data);

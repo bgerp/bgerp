@@ -130,6 +130,7 @@ class store_transactionIntf_Receipt
         $currencyRate = $this->getCurrencyRate($rec);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
+        price_Helper::fillRecs($rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
@@ -146,13 +147,13 @@ class store_transactionIntf_Receipt
             );
         	
         	$entries[] = array(
-        		 'amount' => currency_Currencies::round($amount),
+        		 'amount' => currency_Currencies::round($amount * $rec->currencyRate),
         		 'debit'  => $debit,
 	             'credit' => array(
 	                   '401', 
                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                        array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $currencyRate, $currencyCode), // "брой пари" във валутата на покупката
+                    'quantity' => currency_Currencies::round($amount, $currencyCode), // "брой пари" във валутата на покупката
 	             ),
 	        );
         }

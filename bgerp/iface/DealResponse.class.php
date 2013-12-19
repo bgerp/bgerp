@@ -24,6 +24,12 @@ class bgerp_iface_DealResponse
 
     
     /**
+     * Кои са позволените операциина последващите платежни документи
+     */
+    public $allowedPaymentOperations = array();
+    
+    
+    /**
      * Информация за запитване
      * 
      * @var bgerp_iface_DealAspect

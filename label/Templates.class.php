@@ -30,7 +30,7 @@ class label_Templates extends core_Master
     /**
      * Път към картинка 16x16
      */
-//    var $singleIcon = 'img/16/.png';
+    var $singleIcon = 'img/16/template.png';
     
     
     /**

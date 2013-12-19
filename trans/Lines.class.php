@@ -123,7 +123,7 @@ class trans_Lines extends core_Master
     public function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие,width=100%');
-    	$this->FLD('start', 'dateTime', 'caption=Начало, mandatory');
+    	$this->FLD('start', 'datetime', 'caption=Начало, mandatory');
     	$this->FLD('destination', 'varchar(255)', 'caption=Дестинация,mandatory');
     	$this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Повторение');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');

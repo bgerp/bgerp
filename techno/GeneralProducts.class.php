@@ -47,6 +47,12 @@ class techno_GeneralProducts extends core_Master {
     var $rowToolsSingleField = 'title';
     
     
+   /**
+     * Абревиатура
+     */
+    var $abbr = "Gp";
+    
+    
     /**
      * Шаблон за показване на кратката версия на изделието
      */

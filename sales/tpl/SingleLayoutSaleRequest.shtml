@@ -77,7 +77,7 @@
 		        				
 		                        <!--ET_BEGIN note-->
 			                        <hr />
-			                        <div class="richtext">[#note#]</div> 
+			                        [#note#]
 		                        <!--ET_END note-->     
 		                    </td>
 		                    <td class="topCell" valign="top">

@@ -96,9 +96,7 @@ class distro_Group extends core_Master
     /**
      * Плъгини за зареждане
      */
-//    var $loadList = 'distro_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-//        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
-    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search';
+    var $loadList = 'distro_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_RowTools, plg_Search, plg_Printing, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**
@@ -118,18 +116,6 @@ class distro_Group extends core_Master
      */
     var $newBtnGroup = "1.29|Общи"; 
     
-    
-    /**
-     * Полета, които ще се показват в листов изглед
-     */
-//    var $listFields = '';
-    
-    
-    /**
-     * 
-     */
-//    var $rowToolsField = 'id';
-
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
@@ -531,5 +517,25 @@ class distro_Group extends core_Master
                 continue;
             }
         }
+    }
+    
+    
+    /**
+     * След добавяне/изтриване в детайла
+     * 
+     * @param distro_Group $mvc
+     * @param integer $id
+     * @param core_Detail $Detail
+     */
+    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    {
+        // Вземаме записа за мастера на детайла
+        $rec = $mvc->fetch($id);
+        
+        // Променяме времето на последно използване
+        $rec->lastUsedOn = dt::verbal2mysql();
+        
+        // Записваме
+        $mvc->save($rec);
     }
 }

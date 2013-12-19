@@ -122,7 +122,7 @@ class mp_Jobs extends core_Master
     	$this->FLD('specId', 'key(mvc=techno_Specifications,select=title)', 'caption=Спецификация,mandatory,silent');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
-    	$this->FLD('notes', 'richText(rows=3)', 'caption=Забележки');
+    	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Място');
@@ -374,5 +374,23 @@ class mp_Jobs extends core_Master
         }
         
     	return FALSE;
+    }
+    
+    
+    /**
+	 * Връща масив от използваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
+     */
+    function getUsedDocs_($jobId)
+    {
+    	$specId = static::fetchField($jobId, 'specId');
+    	$Driver = techno_Specifications::getDriver($specId);
+    	$res[] = (object)array('class' => $Driver->instance, 'id' => $Driver->that);
+    
+    	return $res;
     }
 }

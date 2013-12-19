@@ -222,6 +222,7 @@ class sales_TransactionSourceImpl
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+        price_Helper::fillRecs($rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
@@ -235,13 +236,13 @@ class sales_TransactionSourceImpl
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
             
         	$entries[] = array(
-                'amount' => currency_Currencies::round($amount), // В основна валута
+                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
                 
                 'debit' => array(
                     '411', 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
@@ -274,9 +275,9 @@ class sales_TransactionSourceImpl
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
-            
+        price_Helper::fillRecs($rec->details, $rec);  
+        
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	
@@ -287,14 +288,14 @@ class sales_TransactionSourceImpl
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
                 ),
             );
         }

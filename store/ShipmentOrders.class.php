@@ -672,4 +672,18 @@ class store_ShipmentOrders extends core_Master
     	
     	return $table->get($data->shipmentOrders, $fields);
     }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашето експедиционно нареждане") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
+    }
 }

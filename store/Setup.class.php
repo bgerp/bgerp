@@ -87,10 +87,10 @@ class store_Setup extends core_ProtoSetup
     
     
     /**
-	 * Описание на конфигурационните константи
+	 * Описание на конфигурационните константи 
 	 */
 	var $configDescription = array(
-			'STORE_ACC_ACCOUNTS' => array("acc_type_Accounts", 'caption=Продукти->Сч. сметки за синхронизиране'),
+			'STORE_ACC_ACCOUNTS' => array("acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)", 'caption=Складова синхронизация със счетоводството->Сметки'),
 	);
 	
 	

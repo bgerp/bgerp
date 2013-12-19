@@ -30,7 +30,9 @@ class acc_plg_Contable extends core_Plugin
         
         // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
         // запис. Използва се при определяне на правата за контиране.
-        $mvc->FLD('isContable', 'enum(no,yes)', 'input=none,notNull,default=no');
+        if(empty($mvc->fields['isContable'])){
+        	$mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,default=no');
+        }
     }
     
     
@@ -73,12 +75,30 @@ class acc_plg_Contable extends core_Plugin
         }
         
         try {
-            $rec->isContable = ($transaction = $mvc->getValidatedTransaction($rec)) !== FALSE;
+        	// Дали документа може да се активира
+        	$canActivate = $mvc->canActivate($rec);
+        	
+        	// Извличане на транзакцията
+        	$transaction = $mvc->getValidatedTransaction($rec);
+        	
+        	// Ако има валидна транзакция
+        	if($transaction !== FALSE){
+        		
+        		// Ако транзакцията е празна и документа може да се активира
+        		if($transaction->isEmpty() && $canActivate){
+        			$rec->isContable = 'activate';
+        		} elseif(!$transaction->isEmpty() && $canActivate) {
+        			$rec->isContable = 'yes';
+        		} else {
+        			$rec->isContable = 'no';
+        		}
+        	} else {
+        		$rec->isContable = 'no';
+            }
+            
         } catch (acc_journal_Exception $ex) {
-            $rec->isContable = FALSE;
+            $rec->isContable = 'no';
         }
-        
-        $rec->isContable = $rec->isContable ? 'yes' : 'no';
     }
     
 
@@ -106,14 +126,8 @@ class acc_plg_Contable extends core_Plugin
         	} else {
         		$error = ",error=Неможе да се контира в несъществуващ сч. период";
         	}
-
-        	$transaction = $mvc->getValidatedTransaction($rec);
-            if($transaction->isEmpty()){
-            	$caption = ($mvc->canActivate($rec)) ? 'Активиране' : 'Контиране';
-            } else {
-            	$caption = 'Контиране';
-            }
-        	
+			
+        	$caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
             $contoUrl = array(
 	           'acc_Journal',
 	           'conto',
@@ -185,8 +199,7 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
             
-            $canActivate = $mvc->canActivate($rec);
-            if (($rec->isContable && !$canActivate) || !$rec->isContable){
+            if ($rec->isContable == 'no'){
             	$requiredRoles = 'no_one';
             }
             
@@ -340,13 +353,15 @@ class acc_plg_Contable extends core_Plugin
 	    	} elseif(count($mvc->details)){
 	    		$hasDetail = FALSE;
 	    		
-	    		// Ако класа има поне един запис в детаил, той може да се активира
-	    		foreach ($mvc->details as $name){
-	    			$Details = $mvc->{$name};
-					if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
-						$hasDetail = TRUE;
-						break;
-					}
+	    		if($rec->id){
+		    		// Ако класа има поне един запис в детаил, той може да се активира
+		    		foreach ($mvc->details as $name){
+		    			$Details = $mvc->{$name};
+						if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
+							$hasDetail = TRUE;
+							break;
+						}
+		    		}
 	    		}
 	    		$res = $hasDetail;
 	    	} else {

@@ -586,11 +586,13 @@ class purchase_Services extends core_Master
         
         $detailsRec = $rec->getDetails('purchase_ServicesDetails');
         if(count($detailsRec)){
+        	price_Helper::fillRecs($detailsRec, $rec);
+        	
 	        foreach ($detailsRec as $dRec) {
 	        	$amount = ($dRec->discount) ?  $dRec->amount * (1 - $dRec->discount) : $dRec->amount;
 	        	
 	        	$entries[] = array(
-	                'amount' => currency_Currencies::round($amount), // В основна валута
+	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
 	                
 	                'debit' => array(
 	                    '602', // Сметка "602. Разходи за външни услуги"
@@ -602,7 +604,7 @@ class purchase_Services extends core_Master
 	                    '401', // Сметка "401. Задължения към доставчици (Доставчик, Валути)"
                        		array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                        		array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    	'quantity' => currency_Currencies::round($amount / $rec->currencyRate, $rec->currencyId), // "брой пари" във валутата на покупката
+                    	'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на покупката
 	                ),
             	);
 	        }
@@ -615,5 +617,19 @@ class purchase_Services extends core_Master
         );
         
         return $transaction;
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашият протокол за покупка на услуги") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
     }
 }
