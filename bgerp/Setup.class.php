@@ -13,6 +13,9 @@ defIfNot(BGERP_COMPANY_LOGO_EN, '');
 defIfNot(BGERP_COMPANY_LOGO, '');
 
 
+defIfNot(BGERP_COMMUNICATION_FORMAT, 'tel,fax,mob,email,icq,social,web');
+
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
@@ -61,6 +64,15 @@ class bgerp_Setup {
        'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на английски (750х100 px)->Изображение'),
 
        'BGERP_COMPANY_LOGO'   => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка на български (750х100 px)->Изображение'),
+    
+       'BGERP_COMMUNICATION_FORMAT'   => array ('set(tel=Телефон,
+                                                     fax=Факс,
+                                                     mob=Мобилен телефон,
+                                                     email=Имейл,
+                                                     icq=ICQ,
+                                                     social=AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype,
+                                                     web=Уеб адреси
+                                                     )', 'caption=Форматиране на комуникационни услуги->Услуги'),
     
     );
     

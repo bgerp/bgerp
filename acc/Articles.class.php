@@ -32,7 +32,7 @@ class acc_Articles extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing,
+    var $loadList = 'plg_RowTools, plg_Printing, doc_plg_HidePrices,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, bgerp_plg_Blank, plg_Search';
     
@@ -134,6 +134,12 @@ class acc_Articles extends core_Master
     
     
     /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'totalAmount';
+    
+    
+    /**
      * Групиране на документите
      */
     var $newBtnGroup = "6.1|Счетоводни";
@@ -158,7 +164,7 @@ class acc_Articles extends core_Master
     {
         $valior = self::getVerbal($rec, 'valior');
         
-        return "{$rec->id}&nbsp;/&nbsp;{$valior}";
+        return "<b>{$rec->id}</b>&nbsp;/&nbsp;{$valior}";
     }
     
     
