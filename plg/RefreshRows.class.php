@@ -30,9 +30,11 @@ class plg_RefreshRows extends core_Plugin
         $ajaxMode = Request::get('ajax_mode');
         
         if ($ajaxMode) {
-            
+
+            $tpl->removePlaces();
+
             $status = $tpl->getContent();
-            
+
             $statusHash = md5($status);
             
             $savedName = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
@@ -51,7 +53,7 @@ class plg_RefreshRows extends core_Plugin
                 echo json_encode($res);
             }
             
-            die;
+            shutdown();
         } else {
             $params = getCurrentUrl();
             $params['ajax_mode'] = 1;
