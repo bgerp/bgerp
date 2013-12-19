@@ -2612,7 +2612,6 @@ div.location.public {
     height: 160px;
     margin: 10px;
     text-align: center;
-    
     .eshop-group-button-title {
         margin-top: 5px;
         a{
@@ -2622,6 +2621,18 @@ div.location.public {
 	       }
         } 
     }
+}
+
+.eshop-group-button-img a img{
+	opacity:0.8;
+	 -webkit-transition: all 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
+     -moz-transition: all 0.3s linear;  /* Firefox 4-15 */
+       -o-transition: all 0.3s linear;  /* Opera 10.50–12.00 */
+          transition: all 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+}
+
+.eshop-group-button-img a:hover img{
+	opacity:1;
 }
 
 .narrow .eshop-group-button-title {
