@@ -76,7 +76,7 @@ class acc_plg_Contable extends core_Plugin
         
         try {
         	// Дали документа може да се активира
-        	$canActivate = ($rec->id) ? $mvc->canActivate($rec) : NULL;
+        	$canActivate = $mvc->canActivate($rec);
         	
         	// Извличане на транзакцията
         	$transaction = $mvc->getValidatedTransaction($rec);
@@ -353,13 +353,15 @@ class acc_plg_Contable extends core_Plugin
 	    	} elseif(count($mvc->details)){
 	    		$hasDetail = FALSE;
 	    		
-	    		// Ако класа има поне един запис в детаил, той може да се активира
-	    		foreach ($mvc->details as $name){
-	    			$Details = $mvc->{$name};
-					if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
-						$hasDetail = TRUE;
-						break;
-					}
+	    		if($rec->id){
+		    		// Ако класа има поне един запис в детаил, той може да се активира
+		    		foreach ($mvc->details as $name){
+		    			$Details = $mvc->{$name};
+						if($Details->fetch("#{$Details->masterKey} = {$rec->id}")){
+							$hasDetail = TRUE;
+							break;
+						}
+		    		}
 	    		}
 	    		$res = $hasDetail;
 	    	} else {
