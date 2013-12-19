@@ -654,11 +654,9 @@ class core_ET extends core_BaseClass
      * Връща текстовото представяне на шаблона, след всички възможни субституции
      */
     function getContent($content = NULL, $place = "CONTENT", $output = FALSE, $removeBlocks = TRUE)
-    {
-        $copy = clone($this);
-
+    { 
         if ($content) {
-            $copy->replace($content, $place);
+            $this->replace($content, $place);
         }
         
         if ($output) {
