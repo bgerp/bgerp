@@ -118,6 +118,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Опашка от записи за записване в on_Shutdown
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -141,21 +147,44 @@ class store_Transfers extends core_Master
     }
 
 
-
     /**
      * След промяна в детайлите на обект от този клас
      */
     public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
-    	$rec = $mvc->fetch($id);
-    	$dQuery = $detailMvc->getQuery();
+    	// Запомняне кои документи трябва да се обновят
+    	$mvc->updated[$id] = $id;
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(count($mvc->updated)){
+        	foreach ($mvc->updated as $id) {
+	        	$mvc->updateMaster($id);
+	        }
+        }
+    }
+    
+    
+	/**
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
+     */
+    public function updateMaster($id)
+    {
+    	$rec = $this->fetch($id);
+    	$dQuery = $this->store_TransfersDetails->getQuery();
     	$dQuery->where("#transferId = {$id}");
-    	$measures = $mvc->getMeasures($dQuery->fetchAll());
+    	$measures = $this->getMeasures($dQuery->fetchAll());
     	
     	$rec->weight = $measures->weight;
     	$rec->volume = $measures->volume;
     	
-    	$mvc->save($rec);
+    	$this->save($rec);
     }
     
     
