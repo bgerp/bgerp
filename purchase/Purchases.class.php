@@ -53,31 +53,31 @@ class purchase_Purchases extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,purchase';
+    public $canRead = 'ceo, purchase';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,purchase';
+	public $canList = 'ceo, purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,purchase';
+	public $canSingle = 'ceo, purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,purchase';
+    public $canEdit = 'ceo, purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,purchase';
+    public $canAdd = 'ceo, purchase';
 
     
     /**
@@ -125,9 +125,10 @@ class purchase_Purchases extends core_Master
     	'paymentMethodId'    => 'clientCondition|lastDocUser|lastDoc',
     	'currencyId'         => 'lastDocUser|lastDoc|defMethod',
     	'bankAccountId'      => 'lastDocUser|lastDoc',
-    	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
+    	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc',
     );
     
     
@@ -197,7 +198,7 @@ class purchase_Purchases extends core_Master
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
         if (empty($data->form->rec->makeInvoice)) {
-            $form->setDefault('makeInvoice', $mvc::getDefaultMakeInvoice($data->form->rec));
+            $form->setDefault('makeInvoice', 'yes');
         }
         
         // Поле за избор на локация - само локациите на контрагента по покупката
@@ -212,11 +213,12 @@ class purchase_Purchases extends core_Master
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
         	if($mvc->purchase_PurchasesDetails->fetch("#requestId = {$form->rec->id}")){
-        		$data->form->setReadOnly('chargeVat');
+        		$form->setReadOnly('chargeVat');
         	}
         }
         
-        $data->form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     }
 
     
@@ -281,28 +283,6 @@ class purchase_Purchases extends core_Master
     static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Покупка|* №" . $rec->id);
-    }
-    
-    
-    /**
-     * Определяне на валутата по подразбиране при нова продажба.
-     */
-    public static function getDefaultCurrencyId($rec)
-    {
-        return $currencyBaseCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-    }
-    
-    
-    /**
-     * Определяне ст-ст по подразбиране на полето makeInvoice
-     *
-     * @param stdClass $rec
-     * @return string ('yes' | 'no' | 'monthend')
-     *
-     */
-    public static function getDefaultMakeInvoice($rec)
-    {
-        return $makeInvoice = 'yes';
     }
     
     
