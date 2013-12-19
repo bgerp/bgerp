@@ -373,8 +373,19 @@ class core_Lg extends core_Manager
         
         return $str;
     }
-    
-    
+ 
+ 	
+	public static function on_BeforeImportRec($mvc, $rec)
+    {
+    	$rec->kstring = str::convertToFixedKey($rec->kstring, 32, 4);
+		
+		if (isset($rec->csv_createdBy)) {
+    		
+    		$rec->createdBy = -1;
+    	}
+    }
+
+   
     /**
      * Проверява подадения език, дали е добър за използване
      * 
