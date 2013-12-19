@@ -34,7 +34,7 @@ class purchase_Purchases extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg,
-				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues,
+				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
@@ -114,6 +114,12 @@ class purchase_Purchases extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.2|Логистика";
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
     
     
     /**

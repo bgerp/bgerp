@@ -34,7 +34,7 @@ class purchase_PurchasesDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, plg_AlignDecimals,Policy=purchase_PurchaseLastPricePolicy';
+    public $loadList = 'plg_RowTools, plg_Created, purchase_Wrapper, plg_RowNumbering, doc_plg_HidePrices, plg_AlignDecimals,Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**
@@ -83,6 +83,12 @@ class purchase_PurchasesDetails extends core_Detail
      * Активен таб
      */
     public $currentTab = 'Покупки';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'price,amount,discount,packPrice';
     
     
     /**
