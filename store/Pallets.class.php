@@ -394,7 +394,7 @@ class store_Pallets extends core_Manager
             $data->form->setOptions('zone', $zones);
             $data->form->setDefault('productId', $productId);
             $data->form->setDefault('palletsCnt', 1);
-            $data->form->setDefault('quantity', 50000);
+            $data->form->setDefault('quantity', 1000);
         }
         
         $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, dimensions, zone, palletPlaceHowto';
