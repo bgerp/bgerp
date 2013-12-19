@@ -38,7 +38,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering,plg_AlignDecimals,
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering,plg_AlignDecimals, doc_plg_HidePrices,
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
     
     
@@ -85,17 +85,17 @@ class acc_ArticleDetails extends core_Detail
     
     
     /**
-     * Кой може да го види?
-     */
-    var $canView = 'ceo,acc';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'ceo,accMaster';
 
-
+	
+    /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'debitQuantity, debitPrice, creditQuantity, creditPrice, amount';
+    
+    
     /**
      * Описание на модела
      */
