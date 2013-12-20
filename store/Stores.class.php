@@ -145,6 +145,7 @@ class store_Stores extends core_Master
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
+    	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
     }
     
     

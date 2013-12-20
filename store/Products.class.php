@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals,plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals, plg_State, plg_LastUsedKeys';
     
     
     /**
@@ -69,6 +69,12 @@ class store_Products extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, tools=Пулт, name, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, state';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'storeId';
     
     
     /**
