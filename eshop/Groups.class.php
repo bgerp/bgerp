@@ -245,7 +245,7 @@ class eshop_Groups extends core_Master
     /**
      * Подготвя данните за показването на една група
      */
-    function prepareGroup($data)
+    function prepareGroup_($data)
     {    
         expect($rec = $data->rec = $this->fetch($data->groupId));
         
@@ -300,7 +300,7 @@ class eshop_Groups extends core_Master
     /**
      *
      */
-    function renderAllGroups($data)
+    function renderAllGroups_($data)
     {   
         $all = new ET("<h1>{$data->title}</h1>");
         
@@ -326,7 +326,7 @@ class eshop_Groups extends core_Master
     /**
      *
      */
-    function renderGroup($data)
+    function renderGroup_($data)
     {
         $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
@@ -354,23 +354,24 @@ class eshop_Groups extends core_Master
     {
         Mode::set('wrapper', 'cms_Page');
         
-        $conf = core_Packs::getConfig('cms');
-		$ThemeClass = cls::get($conf->CMS_THEME);
-        
-		if(Mode::is('screenMode', 'narrow')) {
-            $layout = new ET(getFileContent($ThemeClass->getNarrowArticleLayout()));
-        } else {
-            $layout = new ET(getFileContent($ThemeClass->getArticleLayout()));
-        }
 
-        return $layout;
+		if(Mode::is('screenMode', 'narrow')) {
+            $layout = "eshop/tpl/ProductGroupsNarrow.shtml";
+        } else {
+            $layout =  "eshop/tpl/ProductGroups.shtml";
+        }
+        
+        Mode::set('cmsLayout',  $layout);
+        
+
+        return new ET();
     }
     
 
     /**
      * Подготвя данните за навигацията
      */
-    function prepareNavigation($data)
+    function prepareNavigation_($data)
     {
         $query = $this->getQuery(); 
         

@@ -79,7 +79,7 @@ class cms_Page extends page_Html {
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
     static function on_Output(&$invoker)
-    {
+    { 
         // Генерираме хедъра и Линка към хедъра
         $invoker->appendOnce(cms_Feeds::generateHeaders(), 'HEAD');
         //$invoker->replace(cms_Feeds::generateFeedLink(), 'FEED');

@@ -366,9 +366,9 @@ class cms_Articles extends core_Master
         if($menuId) {
             cms_Content::setLang(cms_Content::fetchField($menuId, 'lang'));
         }
-        
+ 
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
-            $content->append(cms_Articles::renderNavigation($navData), 'NAVIGATION');
+            $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
         
         $richText = cls::get('type_RichText');
@@ -391,7 +391,7 @@ class cms_Articles extends core_Master
         
         // Страницата да се кешира в браузъра за 1 час
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
-
+ 
         return $content; 
     }
 

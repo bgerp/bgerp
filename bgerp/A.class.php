@@ -17,6 +17,6 @@ class bgerp_A extends cms_Articles
     
     function act_A()
     {
-        return $this->act_Article();
+        return Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article'));
     }
 }
