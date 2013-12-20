@@ -930,13 +930,6 @@ class cal_Tasks extends core_Master
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
     	    		
-    	    		$taskProgress = cal_TaskProgresses::fetch("#taskId = '{$rec->id}'");
-    	    		
-    	    		if(isset($taskProgress->progress)) {
-    	    			$taskProgress = $taskProgress->progress;
-    	    		} else {
-    	    			$taskProgress = 0;
-    	    		}
     	    		
     		    	// масива със задачите
     		    	$resTask[]=array( 
@@ -950,12 +943,12 @@ class cal_Tasks extends core_Master
     			    					'color' => $colors[$v % 22],
     			    					'hint' => $rec->title,
     			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
-    		    						'progress' => $taskProgress
+    		    						'progress' => $rec->progress
     			    				
     			    	);
         		}
         	} 
-        	
+        	 
         	// правим масив с ресурсите или в нашия случай това са потребителитя
         	foreach($sharedUsers as $key=>$users){
         		if(count($users) >=2 ) {
@@ -1003,7 +996,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    //bp($resTask, $res);
+//bp($resTask, $res);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
