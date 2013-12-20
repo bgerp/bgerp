@@ -67,7 +67,7 @@ class core_Roles extends core_Manager
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
-        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Наследяване,notNull');
+        $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\')', 'caption=Наследяване,notNull');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
         
