@@ -9,7 +9,14 @@ function ganttRender(elem,ganttData) {
 	    $(tableHolder).append( $( divScroll ) );
 		
 	    //брой на ресурсите
-		var rows = Object.keys(ganttData['resources']).length;
+		var rows = 0;
+		var step;
+
+		for (step in ganttData['resources']) {
+		    if (ganttData['resources'].hasOwnProperty(step)) {
+		    	rows++;
+		    }
+		}
 		
 		//генериране на таблицата с ресурсите
 	    var ganttTableTasks ='<table class="gantt-tasks"><tbody>';
@@ -44,7 +51,15 @@ function ganttRender(elem,ganttData) {
 	    //обхождане на големите деления на хедъра на таблицата
 	    jQuery.each( ganttData['headerInfo'], function( i, val ) {
 	    	
-	        var h2Count = Object.keys(val['subHeader']).length;
+	    	var h2Count = 0;
+			var stepH2;
+
+			for (stepH2 in val['subHeader']) {
+			    if (val['subHeader'].hasOwnProperty(stepH2)) {
+			    	h2Count++;
+			    }
+			}
+	        
 	        
 	        //получаване на всички колони, които трябва да има таблицата
 	        cols = cols + h2Count;
