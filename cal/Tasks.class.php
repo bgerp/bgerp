@@ -942,7 +942,8 @@ class cal_Tasks extends core_Master
     		    		                
     			    					'color' => $colors[$v % 22],
     			    					'hint' => $rec->title,
-    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId))
+    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
+    		    						'progress' => cal_TaskProgresses::fetchField($rec->id, 'progress')
     			    				
     			    	);
         		}
@@ -995,7 +996,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    //bp($resTask);
+	    bp($resTask);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
@@ -1187,9 +1188,13 @@ class cal_Tasks extends core_Master
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    			    $headerInfo[$i]['mainHeader'] =  date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j = $j +4) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1217,9 +1222,13 @@ class cal_Tasks extends core_Master
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    				$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j = $j + 6) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1247,9 +1256,13 @@ class cal_Tasks extends core_Master
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    				$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j++) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1282,7 +1295,13 @@ class cal_Tasks extends core_Master
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$w = date("W", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	
+	    		 	if(isset($color)){
+	    		 		$res[$w]['subHeader'][] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	} else {
+	    		 		$res[$w]['subHeader'][] = date("d.m. ", dt::mysql2timestamp($curDate));	
+	    		 	}
+	    		 	
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
@@ -1317,7 +1336,12 @@ class cal_Tasks extends core_Master
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	
+	    		 	if(isset($color)){
+	    		 		$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	} else {
+	    		 		$res[$w]['subHeader'][] = date("d.m. ", dt::mysql2timestamp($curDate));
+	    		 	}
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
