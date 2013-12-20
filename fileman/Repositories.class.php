@@ -1422,8 +1422,12 @@ class fileman_Repositories extends core_Master
      */
     function on_AfterRenderFileTree($mvc, &$res, $data)
     {
-        // Рендираме изгледа
-        $res = $data->fileTree->renderHtml(NULL);
+        // Ако няма файлове
+        if ($data->fileTree) {
+            
+            // Рендираме изгледа
+            $res = $data->fileTree->renderHtml(NULL);
+        }
         
         // Ако няма файлове
         if (!$res) {
@@ -1861,9 +1865,14 @@ class fileman_Repositories extends core_Master
      */
     static function sortFoldersAndFiles($data)
     {
+        if (!$data->fileTreeArr) return ;
+        
         $foldersArr = $data->fileTreeArr;
+        
         if (!is_array($foldersArr)) return ;
-        $type = 'ASC';
+        
+if (!$foldersArr['/']['files']) return ;
+$type = 'ASC';
         if ($type == 'DESC') {
             krsort($foldersArr['/']['files'], SORT_STRING | SORT_FLAG_CASE);
         } else {
