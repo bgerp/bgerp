@@ -799,7 +799,7 @@ class distro_Files extends core_Detail
                 }
                 
                 // Вземаме масив с файловете само в главната директрия
-                $fileNameArr = (array)$reposFileArr['/'];
+                $fileNameArr = (array)$reposFileArr['/']['files'];
                 
                 // Всички файлове в това хранилище
                 $filesArrInThisRepo = (array)$orArr[$repoId];
