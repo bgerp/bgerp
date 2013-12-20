@@ -26,6 +26,12 @@ class fileman_Repositories extends core_Master
      */
     const DONT_USE_MODIFIED_SECS = 5;
     
+
+    /**
+	 *  Брой елементи в сингъл изгледа на една страница
+	 */
+    var $singleItemsPerPage = 5000;
+    
     
     /**
      * Заглавие на таблицата
@@ -1230,7 +1236,7 @@ class fileman_Repositories extends core_Master
         $mvc->prepareSingleFilter($data);
         
         // Избраните филтри
-        $filterRec = $data->listFilter->rec;
+        $filterRec = $data->singleFilter->rec;
         
         // Ако се търси
         if ($filterRec->searchName) {
@@ -1239,20 +1245,29 @@ class fileman_Repositories extends core_Master
             $data->rec->ignore .= "\n" . '-' . str::utf2ascii($filterRec->searchName);
         }
         
+        // Подготвяме файловете
+        $mvc->prepareFiles($data);
+        
+        // Подреждаме папките и файловете
+        $mvc->sortFoldersAndFiles($data);
+        
+        // Подготвяме пейджъра
+        $mvc->prepareSinglePager($data);
+        
+        // Задаваме лимита
+        $mvc->setLimit($data);
+        
         // Подготвяме дървото с файловете
         $mvc->prepareFileTree($data);
     }
     
     
     /**
-     * Извиква се след подготвяне на данните за файловото дърво
+     * Подготвяме файловете
      * 
-     * @param fileman_Repositories $mvc
-     * @param object $res
-     * @param object $data
-     * @param string $subPath
+     * @param object $data - Данните
      */
-    function on_AfterPrepareFileTree($mvc, &$res, $data, $subPath='')
+    function prepareFiles($data, $subPath='')
     {
         try {
             // Вземаме съдържанието
@@ -1265,15 +1280,59 @@ class fileman_Repositories extends core_Master
             return ;
         }
         
-        // Сортираме масива за да може папките да са на първо място
-        krsort($foldersArr);
+        // Обхождаме масива
+        foreach ((array)$foldersArr as $path => $filesArr) {
+            
+            // Ако има файлове
+            if ($filesArr['files']) {
+                
+                // Вземаме броя им
+                $cnt = count($filesArr['files']);
+                
+                // Добавяме масива
+                $data->fileTreeArr[$path] = $filesArr;
+                
+                // Увеличаваме бройката
+                $data->filesCnt += $cnt;
+            } else {
+                
+                // Ако е зададено да се показват и празните папки
+                if ($data->useEmptyFolders) {
+                    
+                    // Добавяме масива
+                    $data->fileTreeArr[$path] = $filesArr;
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготвяне на данните за файловото дърво
+     * 
+     * @param fileman_Repositories $mvc
+     * @param object $res
+     * @param object $data
+     * @param string $subPath
+     */
+    function on_AfterPrepareFileTree($mvc, &$res, $data)
+    {
+        // Масив с папките и файловете
+        $foldersArr = $data->fileTreeArr;
+        
+        // Ако няма, да нищо
+        if (!$foldersArr) return ;
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
         
+        // Брояча
+        $c = 0;
+        
         // Обхождаме масива
         foreach ((array)$foldersArr as $path => $filesArr) {
             
+            // Вземаме файловете
             $filesArr = (array)$filesArr['files'];
             
             // Заместваме разделителите за поддиректория с разделителя за дърво
@@ -1282,7 +1341,7 @@ class fileman_Repositories extends core_Master
             // Ако e празна директория
             if (!count($filesArr)) {
                 
-                // Ако е зададено да се показват ипразните директории
+                // Ако е зададено да се показват и празните директории
                 if ($data->useEmptyFolders) {
                     
                     // Добавяме директорията
@@ -1292,6 +1351,23 @@ class fileman_Repositories extends core_Master
                 
                 // Обхождаме файловете
                 foreach ((array)$filesArr as $file => $modifiedTime) {
+                    
+                    // Ако сме в границита на брояча
+                    if (($c >= $data->singlePager->rangeStart) && ($c < $data->singlePager->rangeEnd)) {
+                        
+                        // Увеличаваме брояча
+                        $c++;
+                    } else {
+                        
+                        // Увеличаваме брояча
+                        $c++;
+                        
+                        // Ако сме достигнали горната граница, да се прекъсне
+                        if ($data->singlePager->rangeEnd < $c) break;
+                        
+                        // Прескачаме
+                        continue;
+                    }
                     
                     // Тримваме, за да премахнем последния 
                     $filePathEntry = rtrim($pathEntry, '->');
@@ -1337,7 +1413,10 @@ class fileman_Repositories extends core_Master
         $tpl->append($mvc->renderFileTree($data), 'FileTree');
         
         // Рендираме филтъра
-        $tpl->append($mvc->renderSingleFilter($data), 'ListFilter');
+        $tpl->append($mvc->renderSingleFilter($data), 'SingleFilter');
+        
+        // Рендираме пейджъра
+        $tpl->append($mvc->renderSinglePager($data), 'SinglePager');
     }
     
     
@@ -1678,13 +1757,13 @@ class fileman_Repositories extends core_Master
     function prepareSingleFilter_($data)
     {
         // Ако не е подговено преди
-        if (!$data->listFilter) {
+        if (!$data->singleFilter) {
             
             $formParams = array(
                 'method' => 'GET',
             );
             
-            $data->listFilter = $this->getForm($formParams);
+            $data->singleFilter = $this->getForm($formParams);
         }
         
         return $data;
@@ -1700,17 +1779,17 @@ class fileman_Repositories extends core_Master
     function on_AfterPrepareSingleFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
-        $data->listFilter->FNC('orderBy', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
+        $data->singleFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
+        $data->singleFilter->FNC('orderBy', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
         			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
     
-		$data->listFilter->showFields = 'searchName, orderBy';
-		$data->listFilter->view = 'horizontal';
+		$data->singleFilter->showFields = 'searchName, orderBy';
+		$data->singleFilter->view = 'horizontal';
 		
         // Активиране на филтъра
-        $data->listFilter->input('searchName, orderBy', 'silent');
+        $data->singleFilter->input('searchName, orderBy', 'silent');
     
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->singleFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
@@ -1722,10 +1801,82 @@ class fileman_Repositories extends core_Master
     function renderSingleFilter_($data)
     {
         // Ако има полета, които да се покажат
-        if (count($data->listFilter->showFields)) {
+        if (count($data->singleFilter->showFields)) {
             
             // Добавяме филтъра
-            return new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
+            return new ET("<div class='singleFilter'>[#1#]</div>", $data->singleFilter->renderHtml(NULL, $data->singleFilter->rec));
         }
+    }
+    
+    
+	/**
+	 * Подготвя навигацията по страници
+	 * 
+	 * @param unknown_type $data
+	 */
+    function prepareSinglePager_(&$data)
+    {
+        // Изчисляваме броя на елементите на страница
+        $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 10000) ?
+        Request::get('PerPage', 'int') : $this->singleItemsPerPage;
+        
+        // Ако има
+        if($perPage) {
+            
+            // Добавяме пейджър
+            $data->singlePager = & cls::get('core_Pager', array('pageVar' => 'P_' . $this->className));
+            $data->singlePager->itemsPerPage = $perPage;
+        }
+    }
+    
+    
+    /**
+     * Задаваме броя на всички елементи
+     * 
+     * @param object $data
+     */
+    function setLimit($data)
+    {
+        // Задаваме броя на страниците
+        $data->singlePager->itemsCount = $data->filesCnt;
+        
+        // Изчисляваме
+        $data->singlePager->calc();
+    }
+    
+    
+	/**
+	 * Рендира  навигация по страници
+	 * 
+	 * @param object $data
+	 */
+    function renderSinglePager_($data)
+    {
+        // Ако има странициране
+        if ($data->singlePager) {
+            
+            // Рендираме
+            return $data->singlePager->getHtml();
+        }
+    }
+    
+    
+    /**
+     * @todo
+     * 
+     * @param unknown_type $foldersArr
+     * @param unknown_type $type
+     */
+    static function sortFoldersAndFiles($data)
+    {
+        $foldersArr = $data->fileTreeArr;
+        if (!is_array($foldersArr)) return ;
+        $type = 'ASC';
+        if ($type == 'DESC') {
+            krsort($foldersArr['/']['files'], SORT_STRING | SORT_FLAG_CASE);
+        } else {
+            ksort($foldersArr['/']['files'], SORT_STRING | SORT_FLAG_CASE);
+        }
+        $data->fileTreeArr = $foldersArr;
     }
 }
