@@ -124,7 +124,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toArray($match[3]);
 	        	
-	    if(!count($parsTel)) break;
+	    if(!count($parsTel)) return;
 	
 		// му задаваме друга икона
 		$icon = sbf("img/16/telephone2.png", ''); 
@@ -169,7 +169,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         
     	$icon = sbf("img/16/fax2.png",'');
         				       
-	    if(!haveRole('officer')) break;
+	    if(!haveRole('officer')) return;
 	                
 		// ако сме в тесен режим и имаме възможност за изпращане на факсове
 		if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {

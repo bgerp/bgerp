@@ -59,9 +59,6 @@ class distro_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.66, 'Документи', 'Дистрибутив', 'distro_Group', 'default', "admin");
-        
         return $html;
     }
     

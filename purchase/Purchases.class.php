@@ -187,6 +187,21 @@ class purchase_Purchases extends core_Master
     }
     
     
+	/**
+     * Екшън за приключване на продажба
+     */
+    function act_Close()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
+    	$rec->state = 'closed';
+    	$this->save($rec);
+    	
+    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
+    }
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -253,12 +268,12 @@ class purchase_Purchases extends core_Master
     			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
     		
-	    	if (store_Receipts::canAddToThread($data->rec->threadId) && haveRole('store')) {
+	    	if (store_Receipts::haveRightFor('add') && store_Receipts::canAddToThread($data->rec->threadId)) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21,warning=Искатели да създадете нова Складова разписка ?');
 	        }
 	    	
-    		if(purchase_Services::canAddToThread($data->rec->threadId)) {
+    		if(store_Receipts::haveRightFor('add') && purchase_Services::canAddToThread($data->rec->threadId)) {
     			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов протокол за покупка на услуги ?');
 	        }

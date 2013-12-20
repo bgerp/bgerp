@@ -198,8 +198,8 @@ class sales_Sales extends core_Master
         $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input,maxRadio=2, columns=2, caption=Плащане->Документ');
         
         // Наш персонал
-        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)', 'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Търговец');
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales)', 'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(rolesForAll=sales,allowEmpty)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Допълнително->ДДС');
@@ -716,13 +716,13 @@ class sales_Sales extends core_Master
     		}
 	    	
     		// Ако протокол може да се добавя към треда и не се експедира на момента
-    		if ($rec->isInstantShipment == 'no' && sales_Services::canAddToThread($rec->threadId)) {
+    		if ($rec->isInstantShipment == 'no'  && sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искатели да създадете нов Протокол за доставка на услуги ?');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
-	    	if ($rec->isInstantShipment == 'no' && store_ShipmentOrders::canAddToThread($rec->threadId) && haveRole('store')) {
+	    	if ($rec->isInstantShipment == 'no'  && store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искатели да създадете ново Експедиционно нареждане ?');
 	        }
@@ -760,9 +760,9 @@ class sales_Sales extends core_Master
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
-    	
     	$rec->state = 'closed';
     	$this->save($rec);
+    	
     	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
     }
     

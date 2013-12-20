@@ -126,7 +126,7 @@ class acc_plg_Contable extends core_Plugin
         	} else {
         		$error = ",error=Неможе да се контира в несъществуващ сч. период";
         	}
-			
+			//bp($rec->isContable);
         	$caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
             $contoUrl = array(
 	           'acc_Journal',

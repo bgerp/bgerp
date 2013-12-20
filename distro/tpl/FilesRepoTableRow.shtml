@@ -1,8 +1,11 @@
-<tr class='nowrap'>
-	<td align='center'>[#tools#]</td>
-	<td>[#file#]</td>
-	<td align='center'>[#modified#]</td>
-</tr>
+<!--ET_BEGIN FileList-->
+	[#FileList#]
+	<tr class='nowrap'>
+		<td align='center'>[#tools#]</td>
+		<td>[#file#]</td>
+		<td align='center'>[#modified#]</td>
+	</tr>
+<!--ET_END FileList-->
 
 <!--ET_BEGIN fileInfo-->
 	<tr>

@@ -913,7 +913,6 @@ class cal_Tasks extends core_Master
 	    				"#c00",
 	    				"#0c0",
 	    				"#00c",
-	    				"#666",
 	    				"#c0c",
     	                );
         if($data->recs){
@@ -931,6 +930,7 @@ class cal_Tasks extends core_Master
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
     	    		
+    	    		
     		    	// масива със задачите
     		    	$resTask[]=array( 
     			    					'taskId' => $rec->id,
@@ -942,12 +942,13 @@ class cal_Tasks extends core_Master
     		    		                
     			    					'color' => $colors[$v % 22],
     			    					'hint' => $rec->title,
-    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId))
+    			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
+    		    						'progress' => $rec->progress
     			    				
     			    	);
         		}
         	} 
-        	
+        	 
         	// правим масив с ресурсите или в нашия случай това са потребителитя
         	foreach($sharedUsers as $key=>$users){
         		if(count($users) >=2 ) {
@@ -995,7 +996,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    //bp($resTask);
+//bp($resTask, $res);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
@@ -1148,6 +1149,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = " ";
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	
 	    		$curDate = dt::timestamp2mysql(mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0])); 
 	    		$toDate = dt::getLastDayOfMonth($endTasksTime[0]). " 23:59:59"; 
@@ -1185,11 +1189,18 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    			    $headerInfo[$i]['mainHeader'] =  date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j = $j +4) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1215,11 +1226,18 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    				$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j = $j + 6) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1245,11 +1263,18 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = " ";
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
-		    		// оформяме заглавните части като показваме всеки един ден 
-	    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
-		    		
+	    			
+	    			if(isset($color)){
+			    		// оформяме заглавните части като показваме всеки един ден 
+		    			$headerInfo[$i]['mainHeader'] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0]))) . "</span>";
+	    			} else {
+	    				$headerInfo[$i]['mainHeader'] = date("d.m. ", dt::mysql2timestamp(dt::addDays($i, $startTasksTime[0])));
+	    			}
 		    		for ($j = 0; $j <=23; $j++) {
 		    			// започваме да чертаем от 00ч на намерения за начало ден, до 23ч на намерения за край ден
 		    			$headerInfo[$i]['subHeader'][$j] = date("H", mktime($j, $j, 0, $startExplode[1], $i, $endExplode[0])) . ":00";
@@ -1274,6 +1299,9 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
 	
@@ -1282,7 +1310,13 @@ class cal_Tasks extends core_Master
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
 	    			$w = date("W", dt::mysql2timestamp($curDate));
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	
+	    		 	if(isset($color)){
+	    		 		$res[$w]['subHeader'][] = "<span class = '{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	} else {
+	    		 		$res[$w]['subHeader'][] = date("d.m. ", dt::mysql2timestamp($curDate));	
+	    		 	}
+	    		 	
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
@@ -1308,6 +1342,9 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
 	
@@ -1317,7 +1354,12 @@ class cal_Tasks extends core_Master
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = dt::getMonth($curDateExplode[1], 'F') . " " . $curDateExplode[0];
 	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	
+	    		 	if(isset($color)){
+	    		 		$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 	} else {
+	    		 		$res[$w]['subHeader'][] = date("d.m. ", dt::mysql2timestamp($curDate));
+	    		 	}
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
 	    		
@@ -1351,6 +1393,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday', mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
 	    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
@@ -1430,10 +1475,5 @@ class cal_Tasks extends core_Master
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
     }
-    
-    public static function act_Test()
-    {
-    	
-    }
- 
+
 }
