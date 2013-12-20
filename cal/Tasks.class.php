@@ -996,7 +996,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    bp($resTask);
+	   // bp($resTask);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
@@ -1454,10 +1454,5 @@ class cal_Tasks extends core_Master
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
     }
-    
-    public static function act_Test()
-    {
-    	
-    }
- 
+
 }
