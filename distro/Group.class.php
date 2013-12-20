@@ -30,7 +30,7 @@ class distro_Group extends core_Master
     /**
      * Път към картинка 16x16
      */
-    var $singleIcon = 'img/16/grouping.png';
+    var $singleIcon = 'img/16/distro.png';
     
     
     /**
