@@ -982,7 +982,6 @@ class distro_Files extends core_Detail
                 }
             }
             
-            
             // Масива от записа
             $reposArr = type_Keylist::toArray($rec->repos);
             
@@ -1155,8 +1154,14 @@ class distro_Files extends core_Detail
             // Ако няма файлове
             if (!$reposArr) {
                 
-                // Задаваме, че няма файлове
-                $tplTable->append(tr('Няма файлове'), 'otherInfo');
+                // Шаблон за ред в таблицата
+                $tplRow = getTplFromFile('distro/tpl/FilesRepoTableRow.shtml');
+                
+                // Заместваме информацията
+                $tplRow->replace(tr('Няма файлове'), 'fileInfo');
+                
+                // Добавяме към шаблона за таблиците
+                $tplTable->append($tplRow, 'repoRow');
             } else {
                 
                 // Добавяме в шаблона
@@ -1166,6 +1171,12 @@ class distro_Files extends core_Detail
             // Добавяме в резултатния шаблон
             $tplRes->append($tplTable, 'REPORES');
         }
+        
+        // Премахваме незаместените шаблони
+        $tplRes->removePlaces();
+        
+        // Премахваме празните блокове
+        $tplRes->removeBlocks();
         
         return  $tplRes;
     }
