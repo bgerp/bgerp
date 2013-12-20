@@ -913,7 +913,6 @@ class cal_Tasks extends core_Master
 	    				"#c00",
 	    				"#0c0",
 	    				"#00c",
-	    				"#666",
 	    				"#c0c",
     	                );
         if($data->recs){
@@ -1004,7 +1003,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    //bp($resTask);
+	    //bp($resTask, $res);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
@@ -1157,6 +1156,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = " ";
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	
 	    		$curDate = dt::timestamp2mysql(mktime(0, 0, 0, $startExplode[1], 1, $startExplode[0])); 
 	    		$toDate = dt::getLastDayOfMonth($endTasksTime[0]). " 23:59:59"; 
@@ -1194,6 +1196,9 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
 	    			
@@ -1227,6 +1232,9 @@ class cal_Tasks extends core_Master
 	    		//урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
@@ -1262,6 +1270,9 @@ class cal_Tasks extends core_Master
 	    		$otherParams['smallerPeriod'] = " ";
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
 	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
+	    		
 	    		for($i = 0; $i <= dt::daysBetween($endTasksTime[0],$startTasksTime[0]); $i++) {
 	    			$color = cal_Calendar::getColorOfDay(dt::addDays($i, $startTasksTime[0]));
 	    			
@@ -1294,6 +1305,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
@@ -1334,6 +1348,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
 	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
@@ -1383,6 +1400,9 @@ class cal_Tasks extends core_Master
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
 	    		$otherParams['biggerPeriod'] = ht::createLink($imgMinus, $url->nextUrl)->getContent();
+	    		
+	    		// кое време е сега?
+	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday', mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
 	    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
