@@ -938,6 +938,7 @@ class cal_Tasks extends core_Master
     	    		} else {
     	    			$taskProgress = 0;
     	    		}
+    	    		
     		    	// масива със задачите
     		    	$resTask[]=array( 
     			    					'taskId' => $rec->id,
@@ -1003,7 +1004,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-	    bp($resTask);
+	    //bp($resTask);
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
