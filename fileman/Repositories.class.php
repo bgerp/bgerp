@@ -1269,16 +1269,8 @@ class fileman_Repositories extends core_Master
      */
     function prepareFiles($data, $subPath='')
     {
-        try {
-            // Вземаме съдържанието
-            $foldersArr = static::retriveFiles($data->rec, $subPath, FALSE, FALSE, TRUE);
-        } catch (Exception $e) {
-            
-            // Връщаме грешката
-            $data->fileTree = tr('Възникна грешка при показване на съдържанието на хранилището');
-            
-            return ;
-        }
+        // Вземаме съдържанието
+        $foldersArr = static::retriveFiles($data->rec, $subPath, FALSE, FALSE, TRUE);
         
         // Обхождаме масива
         foreach ((array)$foldersArr as $path => $filesArr) {
