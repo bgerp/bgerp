@@ -1249,7 +1249,7 @@ class fileman_Repositories extends core_Master
         $mvc->prepareFiles($data);
         
         // Подреждаме папките и файловете
-        $mvc->sortFoldersAndFiles($data);
+        $mvc->orderFoldersAndFiles($data);
         
         // Подготвяме пейджъра
         $mvc->prepareSinglePager($data);
@@ -1774,18 +1774,24 @@ class fileman_Repositories extends core_Master
      */
     function on_AfterPrepareSingleFilter($mvc, $data)
     {
-        // Добавяме поле във формата за търсене
+        // Добавяме поле за търсене по име на файл
         $data->singleFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
-        $data->singleFilter->FNC('orderBy', 'enum(&nbsp;=,createdUp=Създаване ↑, createdDown=Създаване ↓, nameUp=Наименование ↑, nameDown=Наименование ↓)',
+        
+        // Добавяме поле за подредба
+        $data->singleFilter->FNC('orderBy', 'enum(nameDown=Наименование ↓, nameUp=Наименование ↑, createdDown=Създаване ↓, createdUp=Създаване ↑)',
         			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
-    
+        
+        // Кои полета да се показват
 		$data->singleFilter->showFields = 'searchName, orderBy';
-		$data->singleFilter->view = 'horizontal';
 		
+		// Как да се показват
+		$data->singleFilter->view = 'horizontal';
+        
+        // Добавяме бутон за филтриране
+        $data->singleFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
         // Активиране на филтъра
         $data->singleFilter->input('searchName, orderBy', 'silent');
-    
-        $data->singleFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
@@ -1858,26 +1864,151 @@ class fileman_Repositories extends core_Master
     
     
     /**
-     * @todo
+     * Подрежда файлаовете по зададените критерии във филтъра
      * 
-     * @param unknown_type $foldersArr
-     * @param unknown_type $type
+     * @param object $data
      */
-    static function sortFoldersAndFiles($data)
+    static function orderFoldersAndFiles($data)
     {
+        // Ако няма масив с файлове, връщаме
         if (!$data->fileTreeArr) return ;
         
+        // Вземаме масива
         $foldersArr = $data->fileTreeArr;
         
+        // Вземаме подреждането
+        $orderBy = $data->singleFilter->rec->orderBy;
+        
+        // В зависимост от вида
+        if (!$orderBy || $orderBy =='nameDown') {
+            $type = 'name';
+            $order = 'DESC';
+        } elseif ($orderBy =='nameUp') {
+            $type = 'name';
+            $order = 'ASC';
+        } elseif ($orderBy == 'createdDown') {
+            $type = 'created';
+            $order = 'DESC';
+        } elseif ($orderBy == 'createdUp') {
+            $type = 'created';
+            $order = 'ASC';
+        }
+        
+        // Подреждеаме масива по зададените критерии
+        $data->fileTreeArr = static::orderFolderAndFilesArr($data->fileTreeArr, $type, $order);
+    }
+    
+    
+    /**
+     * Подрежда масива с папки и файлове в зададен критерий
+     * 
+     * @param array $foldersArr - Масив с файловете
+     * @param string $type - Типа на подреждане - name, created
+     * @param string $order - Вида на подреждане - DESC, ASC
+     */
+    static function orderFolderAndFilesArr($foldersArr, $type, $order)
+    {
+        // Ако няма папки
         if (!is_array($foldersArr)) return ;
         
-if (!$foldersArr['/']['files']) return ;
-$type = 'ASC';
-        if ($type == 'DESC') {
-            krsort($foldersArr['/']['files'], SORT_STRING | SORT_FLAG_CASE);
-        } else {
-            ksort($foldersArr['/']['files'], SORT_STRING | SORT_FLAG_CASE);
+        /*
+         * SORT_FLAG_CASE се използва само в PHP 5.4 и затова не използваме krsort и ksort
+         */
+        
+        // Папките да са преди файловете и подредени по имена в намаляващ ред
+        uksort($foldersArr, "static::orderDesc");
+//        krsort($foldersArr, SORT_STRING | SORT_FLAG_CASE);
+        
+        // Обхождаме всички файлове в папките
+        foreach ($foldersArr as &$filesArr) {
+            
+            // Ако няма файлове, прескачаме
+            if (!is_array($filesArr['files'])) continue;
+            
+            // Ако типа е зададено да се подреждат по име
+            if ($type == 'name') {
+                
+                // В намаляващ ред
+                if ($order == 'DESC') {
+                    
+                    // Подреждаме файлове
+                    uksort($filesArr['files'], "static::orderDesc");
+//                    krsort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
+                }
+                
+                // В увеличаващ ред
+                if ($order == 'ASC') {
+                    
+                    // Подреждаме файловете
+                    uksort($filesArr['files'], "static::orderAsc");
+//                    ksort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
+                }
+            } elseif ($type == 'created') {
+                
+                // Ако е задедено да се подреждат по създаване
+                
+                // В намаляващ ред
+                if ($order == 'DESC') {
+                    
+                    // Подреждаме
+                    array_multisort($filesArr['files'], SORT_DESC);
+                }
+                
+                // В нарастващ ред
+                if ($order == 'ASC') {
+                    
+                    // Подреждаме
+                    array_multisort($filesArr['files'], SORT_ASC);
+                }
+            }
         }
-        $data->fileTreeArr = $foldersArr;
+        
+        return $foldersArr;
+    }
+    
+    
+    /**
+     * Сравява два стринга и ги подрежда в намалящ ред. Извиква се от uksort().
+     * За разлика от krsort мож да сравнява главни и малки букви в PHP. SORT_FLAG_CASE се използва само в PHP 5.4
+     * 
+     * @param string $str1
+     * @param string $str2
+     * 
+     * @return integer
+     */
+    static function orderDesc($str1, $str2)
+    {
+        $str1 = mb_strtolower($str1);
+        
+        $str2 = mb_strtolower($str2);
+        
+        if ($str1 > $str2) return -1;
+        
+        if ($str1 == $str2) return 0;
+        
+        if (!$str1 < $str2) return 1;
+    }
+    
+    
+    /**
+     * Сравява два стринга и ги подрежда в намалящ ред. Извиква се от uksort().
+     * За разлика от ksort мож да сравнява главни и малки букви в PHP. SORT_FLAG_CASE се използва само в PHP 5.4
+     * 
+     * @param string $str1
+     * @param string $str2
+     * 
+     * @return integer
+     */
+    static function orderAsc($str1, $str2)
+    {
+        $str1 = mb_strtolower($str1);
+        
+        $str2 = mb_strtolower($str2);
+        
+        if ($str1 > $str2) return 1;
+        
+        if ($str1 == $str2) return 0;
+        
+        if (!$str1 < $str2) return -1;
     }
 }
