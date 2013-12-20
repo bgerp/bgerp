@@ -1817,7 +1817,7 @@ fieldset.sharing-history {
 }
 
 .cms-row .fourcol {
-	width: 29.73%;
+	width: 27.73%;
 }
 
 .cms-row .fivecol {
@@ -1833,7 +1833,8 @@ fieldset.sharing-history {
 }
 
 .cms-row .eightcol {
-	width: 62%;
+	width: 64%;
+	float:right;
 }
 
 .cms-row .ninecol {
@@ -2607,39 +2608,40 @@ div.location.public {
 }
 
 .eshop-group-button {
-    border-left:solid 1px transparent;
     float: left; 
-    width: 280px; 
+    width: 300px; 
     height: 140px;
-    margin: 10px;
+    margin: 10px 6px;
     text-align: center;
     .eshop-group-button-title {
         margin-top: 5px;
-        a{	
-		   padding-left:3px;
-		   border-left:solid 2px transparent;
-	       color: #048;
+        a{
+	       color: #333;
+	       &:hover{
+	           text-decoration: underline;
+	       }
         } 
     }
 	
 }
 
 .eshop-group-button:hover  .eshop-group-button-title a {
-	color:#c60;
+	color: #c60;
 }
 
- 
-
-.eshop-group-button img{
-	opacity:0.9;
-	 -webkit-transition: all 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
-     -moz-transition: all 0.3s linear;  /* Firefox 4-15 */
-       -o-transition: all 0.3s linear;  /* Opera 10.50–12.00 */
-          transition: all 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+.eshop-group-button img {
+	-webkit-transition: opacity 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
+     -moz-transition: opacity 0.3s linear;  /* Firefox 4-15 */
+       -o-transition: opacity 0.3s linear;  /* Opera 10.50–12.00 */
+          transition: opacity 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+    filter: alpha(opacity=90);
+    -moz-opacity: 0.9;
+    -khtml-opacity: 0.9;
+    opacity: 0.9;
 }
 
-.eshop-group-button:hover img{
-	opacity:1;
+.eshop-group-button:hover img {
+	opacity: 1;
 }
 
 .narrow .eshop-group-button-title {
@@ -2699,6 +2701,17 @@ div.location.public {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
 	}
+	.eshop-group-button {
+       width: 46%;
+       margin: 0 2% 3%;
+       font-size: 0.9em;
+       height:auto;
+       .eshop-group-button-img a img{
+            width:98%;
+            height:auto;
+            margin:0 1%;
+       }
+    }
 }
 
 /* Mobile */
@@ -2732,11 +2745,25 @@ div.location.public {
 		padding-left: 20px;
 		padding-right: 20px;
 	}
-	
 	#cmsMenu a {
 		margin-left: 8px;
 		margin-right: 8px;
 		font-size: 1.04em;
+    }
+    .eshop-group-button {
+       width: 46%;
+       margin: 0 2% 3%;
+       font-size: 0.9em;
+       height:auto;
+       .eshop-group-button-img a img{
+            width:100%;
+            height:auto;
+            margin:0 1%;
+       }
+    }
+    .cms-row .fourcol, .cms-row .eightcol{
+        width:100%;
+        margin:0 !important;
     }
 }
 
@@ -2752,8 +2779,14 @@ div.location.public {
     }
     .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin: 0 2% 3%;
        font-size: 0.9em;
+       height:auto;
+        .eshop-group-button-img a img{
+            width:98%;
+            height:auto;
+            margin:0 1%;
+       }
     }
 }
 
@@ -2774,7 +2807,7 @@ div.location.public {
     }
     .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin: 0 2% 3%;
        font-size: 0.9em;
     }
 }
@@ -2820,6 +2853,17 @@ div.location.public {
 	.narrow #all {
 		border: none;
 	}
+	.wide .eshop-group-button {
+       width: 96%;
+       margin: 0 2% 3%;
+       font-size: 0.9em;
+       height:auto;
+        .eshop-group-button-img a img{
+            width:98%;
+            height:auto;
+            margin:0 1%;
+       }
+    }
 	.narrow .eshop-group-button {
        width: 46%;
        margin: 0 2%;
