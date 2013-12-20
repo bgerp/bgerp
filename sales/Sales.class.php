@@ -198,8 +198,8 @@ class sales_Sales extends core_Master
         $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input,maxRadio=2, columns=2, caption=Плащане->Документ');
         
         // Наш персонал
-        $this->FLD('initiatorId', 'user(roles=user,allowEmpty)', 'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Търговец');
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales)', 'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(rolesForAll=sales,allowEmpty)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, no=Отделно, freed=Oсвободено,export=Без начисляване)', 'caption=Допълнително->ДДС');
