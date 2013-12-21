@@ -175,7 +175,8 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromDefMethod(core_Mvc $mvc, $rec, $name)
     {
     	$name = "getDefault{$name}";
-    	if(cls::existsMethod($mvc, $name)){
+
+        if(cls::existsMethod($mvc, $name)){
     		
     		return $mvc->$name($rec);
     	}
@@ -192,6 +193,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	if(isset($fld->salecondSysId)){
     		$cId = doc_Folders::fetchCoverId($rec->folderId);
     		$Class = doc_Folders::fetchCoverClassId($rec->folderId);
+
     		return cond_Parameters::getParameter($Class, $cId, $fld->salecondSysId);
     	}
     }
@@ -240,6 +242,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromCoverMethod(core_Mvc $mvc, $rec, $name)
     {
     	$name = "getDefault{$name}";
+      echo "<li> $name";
     	return static::getCoverMethod($rec->folderId, $name);
     }
     

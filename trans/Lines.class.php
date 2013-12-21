@@ -157,11 +157,11 @@ class trans_Lines extends core_Master
     {
     	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, 'ef_icon=img/16/lock.png,warning=Искатели да затворите линията ?,title=Затваряне на линията');
+    		$data->toolbar->addBtn('Затваряне', $changeUrl, 'ef_icon=img/16/lock.png,warning=Искате ли да затворите линията?,title=Затваряне на линията');
     	}
     	
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
-    		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искатели да активирате линията ?,title=Отваряне на линията');
+    		$data->toolbar->addBtn('Активиране', $changeUrl, 'ef_icon=img/16/lock_unlock.png,warning=Искате ли да активирате линията?,title=Отваряне на линията');
     	}
     }
     
@@ -198,7 +198,7 @@ class trans_Lines extends core_Master
 	    	
 	    	$rec->isRepeated = 'no';
 	    	if($rec->start < dt::now()){
-	    		$form->setError('start', 'Неможе да се създаде линия в миналото!');
+	    		$form->setError('start', 'Не може да се създаде линия в миналото!');
 	    	}
     	}
     }

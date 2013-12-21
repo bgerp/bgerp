@@ -853,6 +853,26 @@ class crm_Companies extends core_Master
 
         return TRUE;
 	}
+
+
+    /**
+     * Връща валутата по подразбиране за търговия дадения контрагент
+     * в зависимост от дъжавата му
+     */
+    static function getDefaultCurrencyId($id)
+    {
+        $rec = self::fetch($id);
+
+        $cRec = drdata_Countries::fetch($rec->country);
+
+        if($cRec->letterCode2 == 'BG') {
+
+            return 'BGN';
+        } else {
+
+            return 'EUR';
+        }
+    }
     
     
     /**

@@ -301,7 +301,7 @@ class purchase_PurchasesDetails extends core_Detail
     			$where = "#requestId = {$rec->requestId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
     			if($pRec = $mvc->fetch($where)){
-    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка! Искатели да го обновите ?");
+    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
     				$rec->id = $pRec->id;
     				$update = TRUE;
     			}

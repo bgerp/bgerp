@@ -360,7 +360,7 @@ class sales_SalesDetails extends core_Detail
     			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
     			if($id = $mvc->fetchField($where)){
-    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка! Искатели да го обновите ?");
+    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
     				$rec->id = $id;
 	            	$update = TRUE;
     			}
