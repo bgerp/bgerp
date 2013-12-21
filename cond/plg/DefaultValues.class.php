@@ -230,6 +230,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	}
     	
     	if($Cover == 'crm_Persons'){
+
     		return $mvc->_cashedContragentData->{"p".ucfirst($name)};
     	}
     }
@@ -242,7 +243,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromCoverMethod(core_Mvc $mvc, $rec, $name)
     {
     	$name = "getDefault{$name}";
-      echo "<li> $name";
+      
     	return static::getCoverMethod($rec->folderId, $name);
     }
     
