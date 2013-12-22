@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_data_Translations
+class bgerp_data_Translations extends core_MVC
 {
     
     
@@ -32,7 +32,7 @@ class bgerp_data_Translations
 	    	3 => "csv_createdBy",
 	    	);
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, array(), array('delimiter' => '|'));
         
         $res = static::addForAllLg();
         
@@ -49,8 +49,8 @@ class bgerp_data_Translations
     static function addForAllLg()
     {
         // Масив в всички езици
-        $langArr = arr::make(EF_LANGUAGES, TRUE);
-        
+        $langArr = core_Lg::getLangs();
+
         // Премахваме английския и българския
         unset($langArr['en']);
         unset($langArr['bg']);
@@ -79,10 +79,11 @@ class bgerp_data_Translations
                 $nRec->kstring = $enLangRec->kstring;
                 $nRec->translated = $enLangRec->translated;
                 $nRec->createdBy = -1;
-                
+         
                 // Опитваме се да запишем данните за съответния език
                 core_Lg::save($nRec, NULL, 'IGNORE');
-            // Ако запишем успешно
+                
+                // Ако запишем успешно
                 if ($nRec->id) {
                     
                     // Увеличаваме брояча за съответния език
