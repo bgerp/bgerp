@@ -49,7 +49,7 @@ class cms_GalleryImages extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created,plg_Vid";
+    var $loadList = "plg_RowTools,cms_Wrapper,cms_GalleryWrapper,plg_Created,cms_VerbalIdPlg";
     
     
     /**

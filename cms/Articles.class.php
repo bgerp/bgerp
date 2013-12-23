@@ -25,7 +25,7 @@ class cms_Articles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid, plg_AutoFilter, change_Plugin';
+    var $loadList = 'plg_Created, plg_Modified, plg_Search, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, cms_VerbalIdPlg, plg_AutoFilter, change_Plugin';
     
     
     /**
@@ -209,7 +209,7 @@ class cms_Articles extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     { 
         if(trim($rec->body) && $fields['-list']) {
-            $row->title = ht::createLink($row->title, array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL), NULL, 'ef_icon=img/16/monitor.png');
+            $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), NULL, 'ef_icon=img/16/monitor.png');
         }
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
@@ -247,7 +247,7 @@ class cms_Articles extends core_Master
         }
 		
         $id = Request::get('id', 'int'); 
-        
+         
         if(!$id || !is_numeric($id)) { 
             $menuId =  Mode::get('cMenuId');
 
@@ -261,7 +261,7 @@ class cms_Articles extends core_Master
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);
         }
-        
+       
         if($rec) { 
 
             $menuId = $rec->menuId;
@@ -345,7 +345,7 @@ class cms_Articles extends core_Master
             }
 
             if(trim($rec1->body)) {
-                $l->url = array('A', 'a', $rec1->vid ? $rec1->vid : $rec1->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
+                $l->url = self::getUrl($rec1);
             } 
             
             $l->title = $title;
@@ -387,11 +387,16 @@ class cms_Articles extends core_Master
             if(core_Packs::fetch("#name = 'vislog'")) {
                 vislog_History::add($rec->title);
             }
+ 
+            // Добавя канонично URL
+            $url = toUrl(self::getUrl($rec, TRUE), 'absolute');
+            $content->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
         }
         
         // Страницата да се кешира в браузъра за 1 час
         Mode::set('BrowserCacheExpires', $conf->CMS_BROWSER_CACHE_EXPIRES);
- 
+        
+
         return $content; 
     }
 
@@ -507,7 +512,7 @@ class cms_Articles extends core_Master
 	    	              'Title' => self::getVerbal($rec, 'title'),
 	    	              'Description' => $desc,
 	    	              'Type' =>'article',
-	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
+	    				  'Url' => toUrl(self::getUrl($rec, TRUE), 'absolute'),
 	    				  'Determiner' =>'the',);
 	        
 	    // Създаваме Open Graph Article  обект
@@ -539,7 +544,7 @@ class cms_Articles extends core_Master
     /**
      * Връща URL към публичната част (витрината), отговаряща на посоченото меню
      */
-    function getContentUrl($menuId)
+    function getUrlByMenuId($menuId)
     {
         $query = self::getQuery();
         $query->where("#menuId = {$menuId}");
@@ -548,10 +553,29 @@ class cms_Articles extends core_Master
         $rec = $query->fetch("#menuId = {$menuId} AND #body != ''");
 
         if($rec) {
-            return toUrl(array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL));
+
+            return self::getUrl($rec); 
         } else {
+
             return NULL ;
         }
+    }
+
+
+    /**
+     * Връща URL към посочената статия
+     */
+    static function getUrl($rec, $canonical = FALSE)
+    {
+        expect($rec->menuId, $rec);
+
+        $lg = cms_Content::fetchField($rec->menuId, 'lang');
+        
+        $lg{0} = strtoupper($lg{0});
+
+        $res = array($lg, $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+
+        return $res;
     }
 
 

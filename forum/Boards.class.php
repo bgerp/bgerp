@@ -709,7 +709,7 @@ class forum_Boards extends core_Master {
     /**
      * Връща URL към себе си (форума)
      */
-    function getContentUrl($cMenuId)
+    function getUrlByMenuId($cMenuId)
     {
         return array('forum_Boards', 'forum');
     }

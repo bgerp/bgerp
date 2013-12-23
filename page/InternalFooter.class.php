@@ -1,8 +1,5 @@
 <?php
 
-defIfNot('EF_LANGUAGES', 'bg,en');
-
-
 /**
  * Клас 'page_InternalFooter' - Долния завършек на страницата
  *
@@ -83,7 +80,7 @@ class page_InternalFooter extends core_ET {
      */
     function addLgChange()
     {
-        $langArr = arr::make(EF_LANGUAGES, TRUE);
+        $langArr = core_Lg::getLangs();
         $cl      = core_Lg::getCurrent();
         unset($langArr[$cl]);
  

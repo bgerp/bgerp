@@ -19,9 +19,18 @@ class cms_SourceIntf
     /**
      * Връща URL към съдържание в публичната част, което отговаря на посоченото меню
      */
-    function getContentUrl($cMenuId)
+    function getUrlByMenuId($cMenuId)
     {
-        return $this->class->getContentUrl($cMenuId);
+        return $this->class->getUrlByMenuId($cMenuId);
+    }
+    
+    
+    /**
+     * Връща URL към съдържание в публичната част, което отговаря на посочения запис
+     */
+    function getUrlByRec($rec)
+    {
+        return $this->class->getUrlByMenuId($rec);
     }
 
 

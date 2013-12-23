@@ -445,13 +445,13 @@ class cms_Content extends core_Manager
 
 
     /**
-     *
+     * Връща URL към съдържанието, което отговаря на този запис
      */
     function getContentUrl($rec) 
     {
         if($rec->source) {
             $source = cls::get($rec->source);
-            $url = $source->getContentUrl($rec->id);
+            $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
             $url = arr::make($rec->url);
         } else {
@@ -540,8 +540,10 @@ class cms_Content extends core_Manager
         Mode::set('cMenuId', $menuId);
         
         if ($rec && ($content = $this->getContentUrl($rec))) {
+
             return new Redirect($content);
         } else {
+
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }

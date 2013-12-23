@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, plg_Vid';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
     
     
     /**
@@ -167,7 +167,7 @@ class eshop_Groups extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($fields['-list']) {
-            $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL), NULL, 'ef_icon=img/16/monitor.png');
+            $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
     }
 
@@ -188,6 +188,10 @@ class eshop_Groups extends core_Master
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
         
+         // Добавя канонично URL
+        $url = toUrl(array($this, 'ShowAll', 'cMenuId' => $data->menuId), 'absolute');
+        $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+       
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
@@ -213,6 +217,10 @@ class eshop_Groups extends core_Master
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
+        
+        // Добавя канонично URL
+        $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
+        $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
 
         
         // Страницата да се кешира в браузъра
@@ -232,7 +240,7 @@ class eshop_Groups extends core_Master
         $query->where("#state = 'active' AND #menuId = {$data->menuId}");  
         
         while($rec = $query->fetch()) {
-            $rec->url = array('eshop_Groups', 'show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
+            $rec->url = self::getUrl($rec);
             $data->recs[] = $rec;
         }
 
@@ -247,7 +255,7 @@ class eshop_Groups extends core_Master
      */
     function prepareGroup_($data)
     {    
-        expect($rec = $data->rec = $this->fetch($data->groupId));
+        expect($rec = $data->rec = $this->fetch($data->groupId), $data);
         
         $rec->menuId = $rec->menuId;
 
@@ -350,6 +358,9 @@ class eshop_Groups extends core_Master
     }
 
 
+    /**
+     *
+     */
     function getLayout()
     {
         Mode::set('wrapper', 'cms_Page');
@@ -404,7 +415,7 @@ class eshop_Groups extends core_Master
  
         while($rec = $query->fetch()) {
             $l = new stdClass();
-            $l->url = array('eshop_Groups', 'Show', $rec->vid ? $rec->vid : $rec->id, 'PU' => haveRole('powerUser') ? 1 : NULL);
+            $l->url = self::getUrl($rec);
             $l->title  = $this->getVerbal($rec, 'name');
             $l->level = 2;
             $l->selected = ($groupId == $rec->id);
@@ -412,22 +423,51 @@ class eshop_Groups extends core_Master
             if($this->haveRightFor('edit', $rec)) {
                 $l->editLink = ht::createLink($editImg, array('eshop_Groups', 'edit', $rec->id, 'ret_url' => TRUE));
             }
-
             
             $data->links[] = $l;
         }
     }
 
 
-    // Интерфейс
+    /**
+     * Връща каноничното URL на статията за външния изглед
+     */
+    static function getUrl($rec, $canonical = FALSE)
+    {
+        $mRec = cms_Content::fetch($rec->menuId);
+        
+        $lg = $mRec->lang;
+
+        $lg{0} = strtoupper($lg{0});
+
+        $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        
+        return $url;
+    }
+
+
+    // Интерфейс cms_SourceIntf
      
 
     /**
      * Връща URL към себе си  
      */
-    function getContentUrl($cMenuId)
+    function getUrlByMenuId($cMenuId)
+    {   
+        $url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $cMenuId);
+        
+        return $url;
+    }
+
+
+    /**
+     * Връща URL към съдържание в публичната част, което отговаря на посочения запис
+     */
+    function getUrlByRec($rec)
     {
-        return array('eshop_Groups', 'ShowAll', 'cMenuId' => $cMenuId);
+        $url = self::getUrl($rec);
+
+        return $url;
     }
 
 
