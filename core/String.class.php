@@ -62,7 +62,7 @@ class core_String
     {
         $cStr = str::utf2ascii($str);
 
-        $cStr = trim(preg_replace('/[^a-zA-Z0-9]+/', $substitute, " {$cStr} "), '-');
+        $cStr = trim(preg_replace('/[^a-zA-Z0-9]+/', $substitute, " {$cStr} "), $substitute);
         
         return $cStr;
     }
