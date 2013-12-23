@@ -107,7 +107,7 @@ class csv_Lib
             
         fclose($handle);
 
-        $res->html = self::cntToVerbal($res);
+        $res->html = self::cntToVerbal($res, $mvc->className);
         
         return $res;
     }
@@ -164,20 +164,24 @@ class csv_Lib
     /**
      * Връща html вербално представяне на резултата от ::import(...)
      */
-    static function cntToVerbal($cntObj)
+    static function cntToVerbal($cntObj, $place = NULL)
     {
         $res = '';
+        
+        if($place) {
+            $place = " в {$place}";
+        }
 
         if($cntObj->created) {
-            $res .= "\n<li style='color:green;'>Създадени са {$cntObj->created} записа</li>";
+            $res .= "\n<li style='color:green;'>Създадени са {$cntObj->created} записа{$place}</li>";
         }
             
         if($cntObj->updated) {
-            $res .= "\n<li style='color:#600;'>Обновени са {$cntObj->updated} записа</li>";
+            $res .= "\n<li style='color:#600;'>Обновени са {$cntObj->updated} записа{$place}</li>";
         }
             
         if($cntObj->skipped) {
-            $res .= "\n<li>Пропуснати са {$cntObj->skipped} записа</li>";
+            $res .= "\n<li>Пропуснати са {$cntObj->skipped} записа{$place}</li>";
         }
 
         return $res;
