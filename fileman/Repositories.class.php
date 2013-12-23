@@ -26,6 +26,12 @@ class fileman_Repositories extends core_Master
      */
     const DONT_USE_MODIFIED_SECS = 5;
     
+
+    /**
+	 *  Брой елементи в сингъл изгледа на една страница
+	 */
+    var $singleItemsPerPage = 5000;
+    
     
     /**
      * Заглавие на таблицата
@@ -808,19 +814,30 @@ class fileman_Repositories extends core_Master
      * @param string $subPath - Подпапка в хранилището
      * @param boolean $useFullPath - Да се използва целия файл до папката
      * @param integer $depth - Дълбочината на папката, до която ще се търси
+     * @param boolean $useMTimeFromFile - Да се използва датата на последно модифициране на файловете
      * 
-     * @return array - Масив с всички папки и файловете в тях
+     * @return array - Двумерен масив с всички папки и файловете в тях
+     * mTime - Дата на модифициране на директорията
+     * files - Файлове в директорията
      */
-    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE)
+    static function retriveFiles($repositoryId, $subPath = '', $useFullPath=FALSE, $depth=FALSE, $useMTimeFromFile=FALSE)
     {
-        // Очакваме да е число
-        expect(is_numeric($repositoryId));
+        // Ако е обект
+        if (is_object($repositoryId)) {
+            
+            // Използваме записа
+            $rec = $repositoryId;
+        } else {
+            
+            // Очакваме да е число
+            expect(is_numeric($repositoryId));
+            
+            // Вземаме записа
+            $rec = static::fetch($repositoryId);
+        }
         
         // Масива, който ще връщаме
         $res = array();
-        
-        // Вземаме записа
-        $rec = static::fetch($repositoryId);
         
         // Вземаме пътя до поддиректорията на съответното репозитори
         $fullPath = static::getFullPath($rec->basePath, $rec->subPath);
@@ -890,14 +907,31 @@ class fileman_Repositories extends core_Master
                     
                     // Създаваме масив с директрояита
                     $res[$path] = array();
+                    
+                    // Добавяме времето
+                    $res[$path]['mTime'] = $iterator->current()->getMTime();
                 }
             } else {
                 
                 // Ако няма да се игнорира файла
                 if (!static::isForIgnore($rec->ignore, $fileName)) {
                     
+                    // Вземаме времето
+                    $mTime = $iterator->current()->getMTime();
+                    
                     // Добавяме в резултатите пътя и името на файла
-                    $res[$path][$fileName] = $iterator->current()->getMTime();
+                    $res[$path]['files'][$fileName] = $mTime;
+                    
+                    // Ако е зададено да се използва времето на последна променя на файла
+                    if ($useMTimeFromFile) {
+                        
+                        // Ако времето на промяна на файла е след промяната на директорията
+                        if ($mTime > $res[$path]['mTime']) {
+                            
+                            // Добавяме времето
+                            $res[$path]['mTime'] = $mTime;
+                        }
+                    }
                 }
             }
             
@@ -987,6 +1021,9 @@ class fileman_Repositories extends core_Master
                 
                 // Тримваме текста
                 $ignore = trim($ignore);
+                
+                // Ако няма стринг за игнориране прескачаме
+                if (!$ignore) continue;
                 
                 // Заместваме символите с генерираните числа
                 $ignoreText = str_replace(array('^', '$', '*', '-'),
@@ -1187,45 +1224,108 @@ class fileman_Repositories extends core_Master
     
     
     /**
-     * След подготовка на единичния изглед
+     * След подготовка на сингъла
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
      */
-    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        // Вземаме файловете в дървовидна структура
-        $treeTpl = static::getFileTree($data->rec->id);
+        // Подготвяме формата за филтриране
+        $mvc->prepareSingleFilter($data);
         
-        // Добавя към шаблона
-        $tpl->append($treeTpl, 'FileTree');
+        // Избраните филтри
+        $filterRec = $data->singleFilter->rec;
+        
+        // Ако се търси
+        if ($filterRec->searchName) {
+            
+            // Добавяме да се игнорират всички файлове, които не съдържат филтъра на латиница
+            $data->rec->ignore .= "\n" . '-' . str::utf2ascii($filterRec->searchName);
+        }
+        
+        // Подготвяме файловете
+        $mvc->prepareFiles($data);
+        
+        // Подреждаме папките и файловете
+        $mvc->orderFoldersAndFiles($data);
+        
+        // Подготвяме пейджъра
+        $mvc->prepareSinglePager($data);
+        
+        // Задаваме лимита
+        $mvc->setLimit($data);
+        
+        // Подготвяме дървото с файловете
+        $mvc->prepareFileTree($data);
     }
     
     
-	/**
-     * Връща в дървовидна структура съдържанието на хранилището
+    /**
+     * Подготвяме файловете
      * 
-     * @param integer $id - Хранилище
-     * @param string $subPath - Подпапка в хранилището
-     * 
-     * @return core_Et $res
+     * @param object $data - Данните
      */
-    static function getFileTree($id, $subPath='', $useEmptyFolders=FALSE)
+    function prepareFiles($data, $subPath='')
     {
-        try {
-            // Вземаме съдържанието
-            $foldersArr = static::retriveFiles($id, $subPath);
-        } catch (Exception $e) {
-            
-            // Връщаме грешката
-            return tr('Възникна грешка при показване на съдържанието на хранилището');
-        }
+        // Вземаме съдържанието
+        $foldersArr = static::retriveFiles($data->rec, $subPath, FALSE, FALSE, TRUE);
         
-        // Сортираме масива за да може папките да са на първо място
-        asort($foldersArr);
+        // Обхождаме масива
+        foreach ((array)$foldersArr as $path => $filesArr) {
+            
+            // Ако има файлове
+            if ($filesArr['files']) {
+                
+                // Вземаме броя им
+                $cnt = count($filesArr['files']);
+                
+                // Добавяме масива
+                $data->fileTreeArr[$path] = $filesArr;
+                
+                // Увеличаваме бройката
+                $data->filesCnt += $cnt;
+            } else {
+                
+                // Ако е зададено да се показват и празните папки
+                if ($data->useEmptyFolders) {
+                    
+                    // Добавяме масива
+                    $data->fileTreeArr[$path] = $filesArr;
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Извиква се след подготвяне на данните за файловото дърво
+     * 
+     * @param fileman_Repositories $mvc
+     * @param object $res
+     * @param object $data
+     * @param string $subPath
+     */
+    function on_AfterPrepareFileTree($mvc, &$res, $data)
+    {
+        // Масив с папките и файловете
+        $foldersArr = $data->fileTreeArr;
+        
+        // Ако няма, да нищо
+        if (!$foldersArr) return ;
         
         // Инстанция на класа
         $tableInst = cls::get('core_Tree');
         
+        // Брояча
+        $c = 0;
+        
         // Обхождаме масива
         foreach ((array)$foldersArr as $path => $filesArr) {
+            
+            // Вземаме файловете
+            $filesArr = (array)$filesArr['files'];
             
             // Заместваме разделителите за поддиректория с разделителя за дърво
             $pathEntry = str_replace(array('/', '\\'), "->", $path);
@@ -1233,8 +1333,8 @@ class fileman_Repositories extends core_Master
             // Ако e празна директория
             if (!count($filesArr)) {
                 
-                // Ако е зададено да се показват ипразните директории
-                if ($useEmptyFolders) {
+                // Ако е зададено да се показват и празните директории
+                if ($data->useEmptyFolders) {
                     
                     // Добавяме директорията
                     $tableInst->addNode($pathEntry, FALSE, TRUE);
@@ -1243,6 +1343,23 @@ class fileman_Repositories extends core_Master
                 
                 // Обхождаме файловете
                 foreach ((array)$filesArr as $file => $modifiedTime) {
+                    
+                    // Ако сме в границита на брояча
+                    if (($c >= $data->singlePager->rangeStart) && ($c < $data->singlePager->rangeEnd)) {
+                        
+                        // Увеличаваме брояча
+                        $c++;
+                    } else {
+                        
+                        // Увеличаваме брояча
+                        $c++;
+                        
+                        // Ако сме достигнали горната граница, да се прекъсне
+                        if ($data->singlePager->rangeEnd < $c) break;
+                        
+                        // Прескачаме
+                        continue;
+                    }
                     
                     // Тримваме, за да премахнем последния 
                     $filePathEntry = rtrim($pathEntry, '->');
@@ -1254,7 +1371,7 @@ class fileman_Repositories extends core_Master
                     if (static::checkLastModified($modifiedTime)) {
                         
                         // URL за абсорбиране на файла
-                        $urlPath = static::getAbsorbUrl($id, $file, $path);
+                        $urlPath = static::getAbsorbUrl($data->rec->id, $file, $path);
                     } else {
                         
                          // Да няма URL за абсорбиране на файла
@@ -1270,11 +1387,54 @@ class fileman_Repositories extends core_Master
         // Името
         $tableInst->name = 'file';
         
-        // Рендираме изгледа
-        $res = $tableInst->renderHtml(NULL);
+        // Добавяме масива
+        $data->fileTree = $tableInst;
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     * 
+     * @param fileman_Repositories $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        // Към шаблона добавя дървото с файла
+        $tpl->append($mvc->renderFileTree($data), 'FileTree');
         
-        // Връщаме шаблона
-        return $res;
+        // Рендираме филтъра
+        $tpl->append($mvc->renderSingleFilter($data), 'SingleFilter');
+        
+        // Рендираме пейджъра
+        $tpl->append($mvc->renderSinglePager($data), 'SinglePager');
+    }
+    
+    
+	/**
+     * Връща в дървовидна структура съдържанието на хранилището
+     * 
+     * @param integer $id - Хранилище
+     * @param string $subPath - Подпапка в хранилището
+     * 
+     * @return core_Et $res
+     */
+    function on_AfterRenderFileTree($mvc, &$res, $data)
+    {
+        // Ако няма файлове
+        if ($data->fileTree) {
+            
+            // Рендираме изгледа
+            $res = $data->fileTree->renderHtml(NULL);
+        }
+        
+        // Ако няма файлове
+        if (!$res) {
+            
+            // Добаваме съобщението
+            $res = new ET(tr('Няма файлове'));
+        }
     }
     
     
@@ -1582,5 +1742,273 @@ class fileman_Repositories extends core_Master
             // Ако се създаде, връщаме истина
             return TRUE;
         }
+    }
+    
+    
+    /**
+     * Подготвя формата за филтриране
+     * 
+     * @param stdClass $data
+     */
+    function prepareSingleFilter_($data)
+    {
+        // Ако не е подговено преди
+        if (!$data->singleFilter) {
+            
+            $formParams = array(
+                'method' => 'GET',
+            );
+            
+            $data->singleFilter = $this->getForm($formParams);
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleFilter($mvc, $data)
+    {
+        // Добавяме поле за търсене по име на файл
+        $data->singleFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
+        
+        // Добавяме поле за подредба
+        $data->singleFilter->FNC('orderBy', 'enum(nameDown=Наименование ↓, nameUp=Наименование ↑, createdDown=Създаване ↓, createdUp=Създаване ↑)',
+        			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
+        
+        // Кои полета да се показват
+		$data->singleFilter->showFields = 'searchName, orderBy';
+		
+		// Как да се показват
+		$data->singleFilter->view = 'horizontal';
+        
+        // Добавяме бутон за филтриране
+        $data->singleFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Активиране на филтъра
+        $data->singleFilter->input('searchName, orderBy', 'silent');
+    }
+    
+    
+	/**
+     * Рендира формата за филтриране на сингъл изглед
+     * 
+     * @param stdClass $data
+     */
+    function renderSingleFilter_($data)
+    {
+        // Ако има полета, които да се покажат
+        if (count($data->singleFilter->showFields)) {
+            
+            // Добавяме филтъра
+            return new ET("<div class='singleFilter'>[#1#]</div>", $data->singleFilter->renderHtml(NULL, $data->singleFilter->rec));
+        }
+    }
+    
+    
+	/**
+	 * Подготвя навигацията по страници
+	 * 
+	 * @param unknown_type $data
+	 */
+    function prepareSinglePager_(&$data)
+    {
+        // Изчисляваме броя на елементите на страница
+        $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 10000) ?
+        Request::get('PerPage', 'int') : $this->singleItemsPerPage;
+        
+        // Ако има
+        if($perPage) {
+            
+            // Добавяме пейджър
+            $data->singlePager = & cls::get('core_Pager', array('pageVar' => 'P_' . $this->className));
+            $data->singlePager->itemsPerPage = $perPage;
+        }
+    }
+    
+    
+    /**
+     * Задаваме броя на всички елементи
+     * 
+     * @param object $data
+     */
+    function setLimit($data)
+    {
+        // Задаваме броя на страниците
+        $data->singlePager->itemsCount = $data->filesCnt;
+        
+        // Изчисляваме
+        $data->singlePager->calc();
+    }
+    
+    
+	/**
+	 * Рендира  навигация по страници
+	 * 
+	 * @param object $data
+	 */
+    function renderSinglePager_($data)
+    {
+        // Ако има странициране
+        if ($data->singlePager) {
+            
+            // Рендираме
+            return $data->singlePager->getHtml();
+        }
+    }
+    
+    
+    /**
+     * Подрежда файлаовете по зададените критерии във филтъра
+     * 
+     * @param object $data
+     */
+    static function orderFoldersAndFiles($data)
+    {
+        // Ако няма масив с файлове, връщаме
+        if (!$data->fileTreeArr) return ;
+        
+        // Вземаме масива
+        $foldersArr = $data->fileTreeArr;
+        
+        // Вземаме подреждането
+        $orderBy = $data->singleFilter->rec->orderBy;
+        
+        // В зависимост от вида
+        if (!$orderBy || $orderBy =='nameDown') {
+            $type = 'name';
+            $order = 'DESC';
+        } elseif ($orderBy =='nameUp') {
+            $type = 'name';
+            $order = 'ASC';
+        } elseif ($orderBy == 'createdDown') {
+            $type = 'created';
+            $order = 'DESC';
+        } elseif ($orderBy == 'createdUp') {
+            $type = 'created';
+            $order = 'ASC';
+        }
+        
+        // Подреждеаме масива по зададените критерии
+        $data->fileTreeArr = static::orderFolderAndFilesArr($data->fileTreeArr, $type, $order);
+    }
+    
+    
+    /**
+     * Подрежда масива с папки и файлове в зададен критерий
+     * 
+     * @param array $foldersArr - Масив с файловете
+     * @param string $type - Типа на подреждане - name, created
+     * @param string $order - Вида на подреждане - DESC, ASC
+     */
+    static function orderFolderAndFilesArr($foldersArr, $type, $order)
+    {
+        // Ако няма папки
+        if (!is_array($foldersArr)) return ;
+        
+        /*
+         * SORT_FLAG_CASE се използва само в PHP 5.4 и затова не използваме krsort и ksort
+         */
+        
+        // Папките да са преди файловете и подредени по имена в намаляващ ред
+        uksort($foldersArr, "static::orderDesc");
+//        krsort($foldersArr, SORT_STRING | SORT_FLAG_CASE);
+        
+        // Обхождаме всички файлове в папките
+        foreach ($foldersArr as &$filesArr) {
+            
+            // Ако няма файлове, прескачаме
+            if (!is_array($filesArr['files'])) continue;
+            
+            // Ако типа е зададено да се подреждат по име
+            if ($type == 'name') {
+                
+                // В намаляващ ред
+                if ($order == 'DESC') {
+                    
+                    // Подреждаме файлове
+                    uksort($filesArr['files'], "static::orderDesc");
+//                    krsort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
+                }
+                
+                // В увеличаващ ред
+                if ($order == 'ASC') {
+                    
+                    // Подреждаме файловете
+                    uksort($filesArr['files'], "static::orderAsc");
+//                    ksort($otherArr['files'], SORT_STRING | SORT_FLAG_CASE);
+                }
+            } elseif ($type == 'created') {
+                
+                // Ако е задедено да се подреждат по създаване
+                
+                // В намаляващ ред
+                if ($order == 'DESC') {
+                    
+                    // Подреждаме
+                    array_multisort($filesArr['files'], SORT_DESC);
+                }
+                
+                // В нарастващ ред
+                if ($order == 'ASC') {
+                    
+                    // Подреждаме
+                    array_multisort($filesArr['files'], SORT_ASC);
+                }
+            }
+        }
+        
+        return $foldersArr;
+    }
+    
+    
+    /**
+     * Сравява два стринга и ги подрежда в намалящ ред. Извиква се от uksort().
+     * За разлика от krsort мож да сравнява главни и малки букви в PHP. SORT_FLAG_CASE се използва само в PHP 5.4
+     * 
+     * @param string $str1
+     * @param string $str2
+     * 
+     * @return integer
+     */
+    static function orderDesc($str1, $str2)
+    {
+        $str1 = mb_strtolower($str1);
+        
+        $str2 = mb_strtolower($str2);
+        
+        if ($str1 > $str2) return -1;
+        
+        if ($str1 == $str2) return 0;
+        
+        if (!$str1 < $str2) return 1;
+    }
+    
+    
+    /**
+     * Сравява два стринга и ги подрежда в намалящ ред. Извиква се от uksort().
+     * За разлика от ksort мож да сравнява главни и малки букви в PHP. SORT_FLAG_CASE се използва само в PHP 5.4
+     * 
+     * @param string $str1
+     * @param string $str2
+     * 
+     * @return integer
+     */
+    static function orderAsc($str1, $str2)
+    {
+        $str1 = mb_strtolower($str1);
+        
+        $str2 = mb_strtolower($str2);
+        
+        if ($str1 > $str2) return 1;
+        
+        if ($str1 == $str2) return 0;
+        
+        if (!$str1 < $str2) return -1;
     }
 }

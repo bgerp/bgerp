@@ -4,6 +4,16 @@
 	
 	<h2><div style="padding:5px;">|Хранилище|* <b style="color:green;">[#verbalName#]</b></div></h2>
 	
+	<div class='listTopContainer clearfix21'>
+		[#SingleFilter#]
+	</div>
+	
+	<!--ET_BEGIN SinglePager-->
+		<div class='top-pager'> 
+			[#SinglePager#]
+		</div>
+	<!--ET_END SinglePager-->
+	
 	<table class="styled-table" width="100%">
 		<tr>
 			<th colspan="2">|Информация|*</th>
