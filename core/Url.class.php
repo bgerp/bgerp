@@ -729,12 +729,14 @@ class core_Url
     static function isLocal(&$url1, &$rest = NULL)
     {
         $url = $url1;
-		$httpBoot = getBoot(TRUE);
+		
+        $httpBoot = getBoot(TRUE);
 		
 		if (EF_APP_NAME_FIXED !== TRUE) {
             $app = Request::get('App');
             $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
         }
+
         $httpBootS = $httpBoot;
 
         $starts = array("https://", "http://", '//', 'www.');

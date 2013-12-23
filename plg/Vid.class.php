@@ -67,7 +67,7 @@ class plg_Vid extends core_Plugin
             
         $recVid = str::convertToFixedKey($recVid, EF_VID_LEN - 9, $mdPart);
 
-        $cond = "#{$this->fieldName} = '[#1#]'";
+        $cond = "#{$this->fieldName} LIKE '[#1#]'";
 
         if($rec->id) {
             $cond .= " AND #id != {$rec->id}";

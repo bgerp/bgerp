@@ -454,6 +454,11 @@ function s(text1, text2, textarea)
 	{					
 
 		var caretPos = textarea.caretPos, temp_length = caretPos.text.length;
+		
+		if(caretPos.text != '' && caretPos.text.indexOf("\n") == -1 && text2 == '[/code]')  {
+			text1 = "`";
+			text2 = "`";
+		}
 
 		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text1 + caretPos.text + text2 + ' ' : text1 + caretPos.text + text2;
 
@@ -472,6 +477,11 @@ function s(text1, text2, textarea)
 		var end = textarea.value.substr(textarea.selectionEnd);
 		var newCursorPos = textarea.selectionStart;
 		var scrollPos = textarea.scrollTop;
+
+		if(selection != '' && selection.indexOf("\n") == -1 && text2 == '[/code]')  {
+			text1 = "`";
+			text2 = "`";
+		}
 
 		textarea.value = begin + text1 + selection + text2 + end;
 

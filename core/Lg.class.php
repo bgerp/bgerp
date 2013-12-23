@@ -404,4 +404,15 @@ class core_Lg extends core_Manager
         // Проверяваме дали са еднакви
         return (boolean)($lg == $currLg);
     }
+
+
+    /**
+     * Връща масив от езиците на системата
+     */
+    static function getLangs()
+    {
+        $res = arr::make(EF_LANGUAGES, TRUE);
+
+        return $res;
+    }
 }

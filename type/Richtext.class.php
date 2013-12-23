@@ -731,7 +731,7 @@ class type_Richtext extends type_Blob
         $title = $match[3];
         
         // URL' то 
-        $url = $match[2];
+        $url = trim($match[2]);
         
         // Ако сме в текстов режим
         if (Mode::is('text', 'plain')) {
@@ -749,14 +749,25 @@ class type_Richtext extends type_Blob
             return $text;
         }
         
-        if(trim($url) == 'http://') {
+        // Ако имаме само http:// значи линка е празен
+        if($url == 'http://') {
             $url = '';
         }
+        
+        // Ако нямаме схема на URL-то
+        if(!preg_match("/^[a-z0-9]{0,12}\:\/\//i", $url) ) {
+            if($url{0} == '/') {                
+                $httpBoot = getBoot(TRUE);
+                if (EF_APP_NAME_FIXED !== TRUE) {
+                    $app = Request::get('App');
+                    $httpBoot .= '/' . ($app ? $app : EF_APP_NAME);
+                }
 
-        if(!strpos($url, '://')) {
-            $url = "http://{$url}";
+                $url = $httpBoot . $url;
+            } else {
+                $url = "http://{$url}";
+            }
         }
-
          
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
