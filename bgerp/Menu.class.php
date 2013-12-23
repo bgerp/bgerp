@@ -489,7 +489,7 @@ class bgerp_Menu extends core_Manager
         if(count($this->savedItems)) {
             
             // Премахваме кеша на менюто за всички езици
-            $lgArr = arr::make(EF_LANGUAGES, TRUE);
+            $lgArr = core_Lg::getLangs();
 
             foreach($lgArr as $lg => $title) {
                 $cacheKey = 'menuObj_' . $lg;

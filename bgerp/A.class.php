@@ -12,11 +12,18 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_A extends cms_Articles
+class bgerp_A extends core_Mvc
 {
-    
+    var $protectId = FALSE;
+
     function act_A()
     {
         return Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article'));
     }
+
+    function act_G()
+    {
+        return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show'));
+    }
+
 }

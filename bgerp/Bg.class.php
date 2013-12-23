@@ -2,7 +2,7 @@
 
 
 /**
- * Смяна на езика на английски
+ * Смяна на езика на български
  *
  * @category  bgerp
  * @package   bgerp
@@ -11,14 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_En extends core_Mvc
+class bgerp_Bg extends core_Mvc
 {
     var $protectId = FALSE;
-    
+
     /**
      * Заглавие
      */
-    var $title = 'Смяна на езика на английски';
+    var $title = 'Смяна на езика на български';
     
     
     /**
@@ -30,17 +30,17 @@ class bgerp_En extends core_Mvc
 
     function on_BeforeAction($mvc, &$res, $act)
     {
-        $vid = urldecode(Request::get('Act'));
+        $vid = Request::get('Act');
  
         if($act == 'default') {
             
             // Сменяме езика на външната част на английски
-            cms_Content::setLang('en');
+            cms_Content::setLang('bg');
 
              // Редиректваме
             return redirect(array('Index', 'Default'));
         }
- 
+
         $res = Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $vid));
 
         return FALSE;
