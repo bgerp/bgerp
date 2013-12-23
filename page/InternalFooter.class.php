@@ -1,7 +1,5 @@
 <?php
 
-defIfNot('EF_LANGUAGES', 'bg');
-
 /**
  * Клас 'page_Footer' - Долния завършек на страницата
  *
@@ -54,7 +52,7 @@ class page_InternalFooter extends core_ET {
             $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
             // Добавяме превключване между езиците
-            $langArr = arr::make(EF_LANGUAGES, TRUE);
+            $langArr = core_Lg::getLangs();
             $cl      = core_Lg::getCurrent();
             unset($langArr[$cl]);
  
