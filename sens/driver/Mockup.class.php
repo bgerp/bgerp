@@ -17,7 +17,12 @@
 class sens_driver_Mockup extends sens_driver_IpDevice
 {
     
-    
+    /**
+     * Заглавие на драйвера
+     */
+    var $title = 'Mockup';
+
+
     /**
      * Брой последни стойности на базата на които се изчислява средна стойност
      * @var integer

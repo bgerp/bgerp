@@ -21,7 +21,7 @@ class sens_Sensors extends core_Master
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State,
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State2,plg_Rejected,
                      Params=sens_Params, sens_Wrapper';
     
     
@@ -67,10 +67,10 @@ class sens_Sensors extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
-        $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
-        $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
-        $this->FNC('settings', 'varchar(255)', 'caption=Настройки,column=none');
         $this->FNC('indications', 'varchar(255)', 'caption=Показания');
+        $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
+        $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус,input=none');
+        $this->FNC('settings', 'varchar(255)', 'caption=Настройки,column=none');
     }
     
     
@@ -102,6 +102,23 @@ class sens_Sensors extends core_Master
             );
             $data->retUrl = $url;  
             Request::setProtected('objCls, objId, wrapper');
+        }
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareEditform($mvc, &$data)
+    { 
+        $form = $data->form; 
+        $rec = $form->rec;
+       
+        if($rec->id) {   
+            $form->setReadonly('driver');
         }
     }
     
@@ -181,6 +198,10 @@ class sens_Sensors extends core_Master
         $row->settings .= "</table>";
         
         $row->indications = $driver->renderHtml();
+
+        if($driver->title) {
+            $row->driver = $driver->title;
+        }
     }
     
     

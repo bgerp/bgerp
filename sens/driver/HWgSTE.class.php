@@ -17,7 +17,12 @@
 class sens_driver_HWgSTE extends sens_driver_IpDevice
 {
     
-    
+    /**
+     * Заглавие на драйвера
+     */
+    var $title = 'HWgSTE';
+
+
     /**
      * Параметри които чете или записва драйвера
      */

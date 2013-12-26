@@ -17,6 +17,11 @@
 class sens_driver_TCW122B extends sens_driver_IpDevice
 {
     
+    /**
+     * Заглавие на драйвера
+     */
+    var $title = 'TCW122B';
+
     
     /**
      * Параметри които чете или записва драйвера

@@ -16,7 +16,12 @@
  */
 class sens_driver_SATEC extends sens_driver_IpDevice
 {
-    
+
+    /**
+     * Заглавие на драйвера
+     */
+    var $title = 'SATEC';
+
     
     /**
      * Параметри които чете или записва драйвера

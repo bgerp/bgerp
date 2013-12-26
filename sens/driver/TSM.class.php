@@ -17,7 +17,12 @@
 class sens_driver_TSM extends sens_driver_IpDevice
 {
     
-    
+    /**
+     * Заглавие на драйвера
+     */
+    var $title = 'TSM';
+   
+
     /**
      * Параметри които чете или записва драйвера
      */
