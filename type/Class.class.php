@@ -49,7 +49,11 @@ class type_Class extends type_Key {
         
         $interface = $this->params['interface'];
         
-        $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        if(is_array($this->options)) {
+            $options = $this->options;
+        } else {
+            $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        }
         
         if($this->params['allowEmpty']) {
             $options = arr::combine(array(NULL => ''), $options);
