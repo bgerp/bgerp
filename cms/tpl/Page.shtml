@@ -4,21 +4,15 @@
 		    <img src="[#cms_Page::getHeaderImg#]" id='headerImg'/>
 			[#PAGE_HEADER#]
 		</div>
-		
 		<div id="cmsMenu" class='menuRow'>
 			[#CMS_MENU#]
 		</div>
-		
 		<div id="maincontent">
 			<div class='statuses' id='statuses' style='margin: 0 auto;'>
 				[#STATUSES#]
-				
 			</div>
 			[#CMS_LAYOUT#]
-			
 		</div>
-		
-		
 		<div id="cmsBottom">
 			[#cms_Feeds::generateFeedLink#]
 			[#social_Followers::getButtons#]

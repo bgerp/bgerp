@@ -769,7 +769,7 @@ td.portal-date {
 
 /*тредове*/
 .single-thread .listTable td {
-	max-width: 900px;
+	max-width: 56em;
 }
 
 .doc_Containers table.listTable td, .doc_Containers table.listTable th {
@@ -819,8 +819,8 @@ td.portal-date {
 /*стилове за документи*/
 .document {
     width: 99%;
-    min-width: 800px;
-    max-width: 900px;
+    min-width: 50em;
+    max-width: 56em;
 	border: solid 1px $gray4;
 	background: #ffffff;
 	@include border-radius(5px);
@@ -2641,6 +2641,30 @@ div.location.public {
 	opacity: 1;
 }
 
+.eshop-product-labels {
+	margin-bottom:3px;
+	color: #666;
+}
+
+.eshop-product-list:hover .eshop-product-labels {
+	margin-bottom:3px;
+	color: #333;
+}
+.eshop-product-labels > span, .eshop-product-labels > a {
+    margin-right:10px;
+    @include border-radius(3px);
+	padding:2px;
+	font-size:0.8em;
+	background-color:#ddd;
+	border: solid 1px #d8d8d8;
+	text-shadow: 1px 1px 1px #ccc;
+	display: inline-block;
+	margin-bottom:5px;
+	&:last-child {
+		margin-right:0 !important;
+	}
+}
+ 
 .narrow .eshop-group-button-title {
 	  margin-top: 2px;
 }
@@ -2680,18 +2704,27 @@ div.location.public {
 		height: 1%;
 	}
 	&:hover {
-	    border: solid 1px #579DF3;
+	    border: solid 1px #999;
 	}
 }
 
 
 /*queries*/
 
+body.narrow {
+	font-size:18px;
+}
+
 @media handheld , only screen and (max-width: 1000px) {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
 	}
+
+	.background-holder{
+         padding: 0 !important;
+    }
+
 	#all {
 		margin-top: 0px;
 		margin-bottom: 0px;
@@ -2711,8 +2744,8 @@ div.location.public {
     }
 }
 
-/* Mobile */
 
+/* Mobile */
 @media handheld, only screen and (max-width: 950px) { 
 	body {
 		-webkit-text-size-adjust: none;
