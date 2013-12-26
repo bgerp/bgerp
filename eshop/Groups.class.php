@@ -275,12 +275,14 @@ class eshop_Groups extends core_Master
 
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->products->recs[] = $pRec;
-            $pRow = $data->products->rows[] = eshop_Products::recToVerbal($pRec, 'name,info,image');
+            $pRow = $data->products->rows[] = eshop_Products::recToVerbal($pRec, 'name,info,image,code,coMoq');
             $img = new img_Thumb($pRec->image, 120, 120);
             $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
             if(eshop_Products::haveRightFor('edit', $pRec)) {
                 $pRow->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE));
             }
+
+
         }
 
         // URL за добавяне на продукт
@@ -339,14 +341,7 @@ class eshop_Groups extends core_Master
         $groupTpl = new ET(getFileContent("eshop/tpl/SingleGroupShow.shtml"));
         $groupTpl->setRemovableBlocks(array('PRODUCT'));
         $groupTpl->placeArray($data->row);
-                
-        if(is_array($data->products->rows)) {
-            foreach($data->products->rows as $row) {
-                $pTpl = $groupTpl->getBlock('PRODUCT');
-                $pTpl->placeObject($row, NULL, 'PROD');  
-                $pTpl->append2master(); 
-            }
-        }
+        $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
 
         $groupTpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
 

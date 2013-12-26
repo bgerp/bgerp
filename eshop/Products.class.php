@@ -130,18 +130,65 @@ class eshop_Products extends core_Master
      */
     function description()
     {
+        $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
+
+        // Запитване за нестандартен продукт
+        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf)', 'caption=Запитване->Драйвер');
+        $this->FLD('coParams', 'text', 'caption=Запитване->Параметри');
+        $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
+
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
+
+        $this->setDbUnique('code');
     }
 
 
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    /**
+     * $data->rec, $data->row
+     */
+    function prepareGroupList_($data)
     {
-        if($fields['-list']) {
-           // $row->name = ht::createLink($row->name, array($mvc, 'Show', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
-           $row->groupId = ht::createLink($row->groupId, array('eshop_Groups', 'Show', $rec->groupId), NULL, 'ef_icon=img/16/monitor.png');
-        }
+        $data->row = $this->recToVerbal($data->rec);
     }
+
+
+    /**
+     *
+     * @return $tpl
+     */
+    function renderGroupList_($data)
+    {   
+        $layout = new ET();
+
+        if(is_array($data->rows)) {
+            foreach($data->rows as $id => $row) {
+                
+                $rec = $data->recs[$id];
+
+                $pTpl = new ET(getFileContent('eshop/tpl/ProductListGroup.shtml'));
+                
+                if($rec->code) {
+                    $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
+                }
+ 
+                if($rec->coMoq) {
+                    $row->coMoq = "<span>" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
+                }
+
+                if($rec->coDriver) {
+                    $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), 'Все още не работи...', 'ef_icon=img/16/button-question-icon.png');
+                }
+
+                $pTpl->placeObject($row);
+
+                $layout->append($pTpl);
+            }
+        }
+
+        return $layout;
+    }
+
 }

@@ -191,7 +191,7 @@ class crm_Companies extends core_Master
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         
         // Комуникации

@@ -6,13 +6,5 @@
 		<div class="eshop-group-description">[#description#]</div>
 	</div>
 	
-	<!--ET_BEGIN PRODUCT-->
-		<div class='eshop-product-list'>
-			[#PROD_image#]
-			<div class='eshop-product-list-name'>[#PROD_name#] [#PROD_editLink#]</div>
-		    [#PROD_info#]
-		    <div class='clearfix21'></div>
-		</div>
-	<!--ET_END PRODUCT-->
-
+	[#PRODUCTS#]
 </div>
