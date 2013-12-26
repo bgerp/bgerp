@@ -60,35 +60,6 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 
     } 
     
-     /**
-     * Конвертира въшнен URL към подходящо HTML представяне
-     * 
-     * @param string $url
-     * @param string $title
-     * @param string HTML код
-     */
-    function on_AfterExternalUrl($url, $title) {
-       
-       // След като външните линкове са обработени
-       // ако в системата сме задали
-       // комуникациооно форматиране на линковете
-       $conf = core_Packs::getConfig('bgerp'); 
-       $format = explode(",", $conf->BGERP_COMMUNICATION_FORMAT);
-       
-       if (in_array('web', $format)) {
-       	    // взимаме иконката
-       		$icon = sbf("img/16/world_link.png",'');
-            
-       		$place = str_replace("[#", "", $title);
-       		$place = str_replace("#]", "", $place);
-       		
-       		$place = trim($place);
-       		
-       		// и я добавяме
-       		$url->_htmlBoard[$place] =  "<img class='communicationImg' src='{$icon}' />" . $url->_htmlBoard[$place];
-       }
-    }
-    
     //drdata_address
     //(f|telefax|fax|faks)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])
     
