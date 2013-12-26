@@ -202,7 +202,7 @@ class sales_Sales extends core_Master
         $this->FLD('dealerId', 'user(rolesForAll=sales,allowEmpty)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
-        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, freed=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
+        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
