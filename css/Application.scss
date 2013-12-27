@@ -2642,13 +2642,12 @@ div.location.public {
 }
 
 .eshop-product-labels {
-	margin-bottom:3px;
+	margin-bottom:2px;
 	color: #666;
 }
 
 .eshop-product-list:hover .eshop-product-labels {
-	margin-bottom:3px;
-	color: #333;
+	color: #444;
 }
 .eshop-product-labels > span, .eshop-product-labels > a {
     margin-right:10px;
@@ -2663,6 +2662,10 @@ div.location.public {
 	&:last-child {
 		margin-right:0 !important;
 	}
+}
+
+.eshop-product-labels > a {
+	font-weight:bold;
 }
  
 .narrow .eshop-group-button-title {
@@ -2704,7 +2707,7 @@ div.location.public {
 		height: 1%;
 	}
 	&:hover {
-	    border: solid 1px #999;
+	    border: solid 1px #bbb;
 	}
 }
 

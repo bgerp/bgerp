@@ -1,0 +1,17 @@
+<div class='eshop-product'>
+<table>
+<tr>
+	<td colspan=2><h1 style='font-size:1.5em'>[#name#]</h1></td>
+</tr>
+<tr>
+	<td valign="top" width=120>[#image#]</td>
+	<td valign="top" style='padding-left:8px;'>
+		<div class='eshop-product-labels'>
+			[#code#] [#coMoq#] [#coInquiry#]
+		</div>
+		[#info#]
+		[#longInfo#]
+	</td>
+</tr>
+</table>
+</div>

@@ -25,5 +25,10 @@ class bgerp_A extends core_Mvc
     {
         return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show'));
     }
+    
+    function act_P()
+    {
+        return Request::forward(array('Ctr' => 'eshop_Products', 'Act' => 'Show'));
+    }
 
 }

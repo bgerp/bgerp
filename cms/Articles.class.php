@@ -261,7 +261,8 @@ class cms_Articles extends core_Master
             // Ако има, намира записа на страницата
             $rec = self::fetch($id);
         }
-       
+
+
         if($rec) { 
 
             $menuId = $rec->menuId;
@@ -276,8 +277,10 @@ class cms_Articles extends core_Master
             
         	// Подготвяме информаията за ографа на статията
             $ogp = $this->prepareOgraph($rec);
-        } 
-        
+        }
+
+        cms_Content::setCurrent($menuId);
+
         Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
         Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
 
@@ -361,12 +364,6 @@ class cms_Articles extends core_Master
             $navData->addLink = ht::createLink( tr('+ добави страница'), array('cms_Articles', 'Add', 'menuId' => $menuId, 'ret_url' => array('cms_Articles', 'Article', 'menuId' => $menuId)));
         }
 		
-        Mode::set('cMenuId', $menuId);
-
-        if($menuId) {
-            cms_Content::setLang(cms_Content::fetchField($menuId, 'lang'));
-        }
- 
         if($cnt + Mode::is('screenMode', 'wide') > 1) {
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }

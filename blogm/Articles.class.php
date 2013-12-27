@@ -821,6 +821,7 @@ class blogm_Articles extends core_Master {
      public function getThemeClass()
      {
      	$conf = core_Packs::getConfig('blogm');
+
      	return cls::get($conf->BLOGM_DEFAULT_THEME);
      }
 

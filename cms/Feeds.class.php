@@ -168,6 +168,8 @@ class cms_Feeds extends core_Manager {
 	 */
 	function act_Feeds()
 	{
+        cms_Content::setCurrent();
+
 		$data = new stdClass();
 		$data->action = 'feeds';
 		$data->query = $this->getQuery();
@@ -198,7 +200,7 @@ class cms_Feeds extends core_Manager {
 		if(static::instance()->db->tableExists($tableName)) {
 			
 			// Попълваме вътрешните и вербалните записи
-			while($rec = $data->query->fetch()) {
+			while($rec = $data->query->fetch(array("#lg = '[#1#]'", cms_Content::getLang()))) {
 				$data->recs[$rec->id] = $rec;
 				$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
 			}

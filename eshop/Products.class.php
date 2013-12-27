@@ -32,7 +32,7 @@ class eshop_Products extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
     
     
     /**
@@ -131,16 +131,17 @@ class eshop_Products extends core_Master
     function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
+        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание');
+        $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
+        $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf)', 'caption=Запитване->Драйвер');
-        $this->FLD('coParams', 'text', 'caption=Запитване->Параметри');
+        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf,allowEmpty)', 'caption=Запитване->Драйвер');
+        $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
         $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
 
-        $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
 
         $this->setDbUnique('code');
     }
@@ -152,6 +153,25 @@ class eshop_Products extends core_Master
     function prepareGroupList_($data)
     {
         $data->row = $this->recToVerbal($data->rec);
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterrecToVerbal($mvc, $row, $rec)
+    {
+        if($rec->code) {
+            $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
+        }
+ 
+        if($rec->coMoq) {
+            $row->coMoq = "<span>" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
+        }
+
+        if($rec->coDriver) {
+            $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), 'Все още не работи...', 'ef_icon=img/16/button-question-icon.png');
+        }
     }
 
 
@@ -170,17 +190,10 @@ class eshop_Products extends core_Master
 
                 $pTpl = new ET(getFileContent('eshop/tpl/ProductListGroup.shtml'));
                 
-                if($rec->code) {
-                    $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
-                }
- 
-                if($rec->coMoq) {
-                    $row->coMoq = "<span>" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
-                }
+                $url = self::getUrl($rec);
 
-                if($rec->coDriver) {
-                    $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), 'Все още не работи...', 'ef_icon=img/16/button-question-icon.png');
-                }
+                $row->name = ht::createLink($row->name, $url);
+                $row->image = ht::createLink($row->image, $url);
 
                 $pTpl->placeObject($row);
 
@@ -190,5 +203,92 @@ class eshop_Products extends core_Master
 
         return $layout;
     }
+
+
+    /**
+     *
+     */
+    function act_Show()
+    {
+        $data = new stdClass();
+        $data->productId = Request::get('id', 'int');
+        $data->rec = self::fetch($data->productId);
+        $data->groups = new stdClass();
+        $data->groups->groupId = $data->rec->groupId;
+        $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
+        cms_Content::setCurrent($data->groups->rec->menuId);
+        
+        $this->prepareProduct($data);
+
+        eshop_Groups::prepareNavigation($data->groups);
+        
+        $tpl = eshop_Groups::getLayout();
+        $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
+        $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
+        
+        // Добавя канонично URL
+        $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
+        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+
+        
+        // Страницата да се кешира в браузъра
+        $conf = core_Packs::getConfig('eshop');
+        Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
+        
+        return $tpl;
+    }
+
+
+    /**
+     *
+     */
+    function prepareProduct($data)
+    {
+        $data->row = $this->recToVerbal($data->rec);
+        if($data->rec->image) {
+            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $row->name); 
+        }
+        
+        if(self::haveRightFor('edit', $data->rec)) {
+            $editSbf = sbf("img/16/edit.png", '');
+            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+            $editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE));
+            $data->row->name .= '&nbsp;' . $editLink;
+        }
+
+    }
+
+
+    /**
+     *
+     */
+    function renderProduct($data)
+    {
+        $tpl = new ET(getFileContent("eshop/tpl/ProductShow.shtml"));
+
+        $tpl->placeObject($data->row);
+
+        return $tpl;
+    }
+
+    
+    /**
+     * Връща каноничното URL на продукта за външния изглед
+     */
+    static function getUrl($rec, $canonical = FALSE)
+    {   
+        $gRec = eshop_Groups::fetch($rec->groupId);
+
+        $mRec = cms_Content::fetch($gRec->menuId);
+        
+        $lg = $mRec->lang;
+
+        $lg{0} = strtoupper($lg{0});
+
+        $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        
+        return $url;
+    }
+
 
 }

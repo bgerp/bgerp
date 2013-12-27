@@ -179,7 +179,7 @@ class eshop_Groups extends core_Master
     {
         $data = new stdClass();
         expect($data->menuId = Request::get('cMenuId', 'int'));
-        cms_Content::setLang(cms_Content::fetchField($data->menuId, 'lang'));
+        cms_Content::setCurrent($data->menuId);
 
         $this->prepareNavigation($data);   
         $this->prepareAllGroups($data);  
@@ -210,10 +210,8 @@ class eshop_Groups extends core_Master
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
 
-        Mode::set('cMenuId', $data->rec->menuId);
+        cms_Content::setCurrent($data->rec->menuId);
         
-        cms_Content::setLang(cms_Content::fetchField($data->rec->menuId, 'lang'));
-
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
@@ -269,9 +267,10 @@ class eshop_Groups extends core_Master
 
         $row->description = $this->getVerbal($rec, 'info');
 
-        $pQuery = eshop_Products::getQuery();
         $editSbf = sbf("img/16/edit.png", '');
         $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
+        
+        $pQuery = eshop_Products::getQuery();
 
         while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
             $data->products->recs[] = $pRec;
@@ -281,8 +280,6 @@ class eshop_Groups extends core_Master
             if(eshop_Products::haveRightFor('edit', $pRec)) {
                 $pRow->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE));
             }
-
-
         }
 
         // URL за добавяне на продукт
@@ -354,9 +351,9 @@ class eshop_Groups extends core_Master
 
 
     /**
-     *
+     * Връща лейаута за единичния изглед на групата
      */
-    function getLayout()
+    static function getLayout()
     {
         Mode::set('wrapper', 'cms_Page');
         

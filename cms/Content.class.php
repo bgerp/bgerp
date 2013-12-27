@@ -519,6 +519,29 @@ class cms_Content extends core_Manager
         return $layout;
     }
 
+
+    /**
+     * Задава текущото меню
+     */
+    static function setCurrent($menuId = NULL, $layout = NULL)
+    {
+        if($menuId && $rec = cms_Content::fetch($menuId)) {
+            Mode::set('cMenuId', $menuId);
+            self::setLang($lg = $rec->lang);
+        } else {
+            $lg = self::getLang();
+        }
+
+        $langsArr = arr::make(core_Lg::getLangs());
+
+        if($langsArr[$lg]) {
+            core_Lg::push($lg);
+        }
+
+        Mode::set('wrapper', 'cms_Page');
+        
+    }
+
     
     /**
      * Показва посоченото меню, а ако няма такова - показва менюто с най-малък номер
