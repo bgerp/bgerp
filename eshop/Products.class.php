@@ -166,11 +166,13 @@ class eshop_Products extends core_Master
         }
  
         if($rec->coMoq) {
-            $row->coMoq = "<span>" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
+            $title = tr('Минимално Количество за Поръчка');
+            $row->coMoq = "<span title=\"{$title}\">" . tr('МКП') . ": <b>{$row->coMoq}</b></span>";
         }
 
         if($rec->coDriver) {
-            $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), 'Все още не работи...', 'ef_icon=img/16/button-question-icon.png');
+            $title = tr('Изпратете запитване за производство');
+            $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), "Все още не работи...", "ef_icon=img/16/button-question-icon.png,title={$title}");
         }
     }
 
@@ -224,6 +226,9 @@ class eshop_Products extends core_Master
         
         $tpl = eshop_Groups::getLayout();
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
+        
+        $tpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
+
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
@@ -234,7 +239,7 @@ class eshop_Products extends core_Master
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
-        
+
         return $tpl;
     }
 
@@ -252,8 +257,7 @@ class eshop_Products extends core_Master
         if(self::haveRightFor('edit', $data->rec)) {
             $editSbf = sbf("img/16/edit.png", '');
             $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
-            $editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE));
-            $data->row->name .= '&nbsp;' . $editLink;
+            $data->row->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE));
         }
 
     }
@@ -265,8 +269,13 @@ class eshop_Products extends core_Master
     function renderProduct($data)
     {
         $tpl = new ET(getFileContent("eshop/tpl/ProductShow.shtml"));
-
+        
+        if($data->row->editLink) { 
+            $data->row->name .= '&nbsp;' . $data->row->editLink;
+        }
+        
         $tpl->placeObject($data->row);
+    
 
         return $tpl;
     }
