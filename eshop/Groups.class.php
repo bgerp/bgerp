@@ -266,27 +266,11 @@ class eshop_Groups extends core_Master
         }
 
         $row->description = $this->getVerbal($rec, 'info');
-
-        $editSbf = sbf("img/16/edit.png", '');
-        $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
         
-        $pQuery = eshop_Products::getQuery();
-
-        while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
-            $data->products->recs[] = $pRec;
-            $pRow = $data->products->rows[] = eshop_Products::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            $img = new img_Thumb($pRec->image, 120, 120);
-            $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
-            if(eshop_Products::haveRightFor('edit', $pRec)) {
-                $pRow->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE));
-            }
-        }
-
-        // URL за добавяне на продукт
-        if(eshop_Products::haveRightFor('add')) {
-            $data->addProductUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => TRUE);
-        }
-
+        $data->products = new stdClass();
+        $data->products->groupId = $data->groupId;
+         
+        eshop_Products::prepareGroupList($data->products);
     }
 
 
@@ -342,9 +326,6 @@ class eshop_Groups extends core_Master
 
         $groupTpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
 
-        if($data->addProductUrl) {
-            $groupTpl->append(ht::createBtn('Нов продукт', $data->addProductUrl,  NULL, NULL, array('style' => 'margin-bottom:15px;')));
-        }
 
         return $groupTpl;
     }

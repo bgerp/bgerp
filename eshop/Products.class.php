@@ -179,6 +179,30 @@ class eshop_Products extends core_Master
 
     /**
      *
+     */
+    static function prepareGroupList($data)
+    {
+        $pQuery = self::getQuery();
+        $pQuery->orderBy("#code");
+        while($pRec = $pQuery->fetch("#state = 'active' AND #groupId = {$data->groupId}")) {
+            $data->recs[] = $pRec;
+            $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
+            $img = new img_Thumb($pRec->image, 120, 120);
+            $pRow->image = $img->createImg(array('class' => 'eshop-product-image'));
+            if(self::haveRightFor('edit', $pRec)) {
+                $pRec->editUrl = array('eshop_Products', 'edit', $pRec->id, 'ret_url' => TRUE);
+            }
+        }
+
+        // URL за добавяне на продукт
+        if(self::haveRightFor('add')) {
+            $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => TRUE);
+        }
+    }
+
+
+    /**
+     *
      * @return $tpl
      */
     function renderGroupList_($data)
@@ -186,11 +210,17 @@ class eshop_Products extends core_Master
         $layout = new ET();
 
         if(is_array($data->rows)) {
+            $editSbf = sbf("img/16/edit.png", '');
+            $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
             foreach($data->rows as $id => $row) {
                 
                 $rec = $data->recs[$id];
 
                 $pTpl = new ET(getFileContent('eshop/tpl/ProductListGroup.shtml'));
+
+                if($rec->editUrl) {
+                    $row->editLink = ht::createLink($editImg, $rec->editUrl);
+                }
                 
                 $url = self::getUrl($rec);
 
@@ -201,6 +231,10 @@ class eshop_Products extends core_Master
 
                 $layout->append($pTpl);
             }
+        }
+
+        if($data->addUrl) {
+            $layout->append(ht::createBtn('Нов продукт', $data->addUrl,  NULL, NULL, array('style' => 'margin-top:15px;')));
         }
 
         return $layout;
