@@ -33,12 +33,16 @@ class core_Browser extends core_Manager
         Mode::setPermanent('javascript', 'yes');
         Mode::setPermanent('screenWidth', Request::get('w', 'int'));
         Mode::setPermanent('screenHeight', Request::get('h', 'int'));
-        Mode::setPermanent('windowWidth', Request::get('winW', 'int'));
+        Mode::setPermanent('windowWidth', $w = Request::get('winW', 'int'));
         Mode::setPermanent('windowHeight', Request::get('winH', 'int'));
         Mode::setPermanent('checkNativeSupport', Request::get('scroll', 'int'));
         
         $this->render1x1gif();
         
+        if($w > 1000 && !Mode::is("ScreenModeFromScreenSize")) {
+            Mode::setPermanent('screenMode', 'wide');
+            Mode::setPermanent("ScreenModeFromScreenSize");
+        }
         die;
     }
     
