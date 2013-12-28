@@ -356,7 +356,7 @@ class core_App
             ob_end_flush();
             $size = ob_get_length();
             header("Content-Length: {$size}");
-            header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+            header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
             header('Connection: close');
@@ -417,7 +417,7 @@ class core_App
         header("Status: 302");
         
         // Забранява кеширането. Дали е необходимо тук?
-        header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Pragma: no-cache'); // HTTP 1.0.
         header('Expires: 0'); // Proxies.
 
