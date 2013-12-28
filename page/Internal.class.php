@@ -37,7 +37,7 @@ class page_Internal extends page_Html {
 
         $this->push('js/efCommon.js', 'JS');
         
-        $this->push('Cache-Control: no-cache, no-store, must-revalidate', 'HTTP_HEADER');
+        $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');
         $this->push('Pragma: no-cache', 'HTTP_HEADER');
         $this->push('Expires: Mon, 26 Jul 1997 05:00:00 GMT', 'HTTP_HEADER');
 
