@@ -122,12 +122,32 @@ class cms_Page extends page_Html {
      */
     static function getHeaderImg() 
     {
-        if(Mode::is('screenMode', 'wide')) {
-      	 	$headerImg = sbf("cms/img/bgERP.jpg", '');
+        if(!Mode::is('screenMode', 'wide')) {
+      	 	$screen = '-narrow';
         } else {
-      	 	$headerImg = sbf("cms/img/bgERP-small.jpg", '');
+            $screen = '';
         }
         
+        $lg = '-' . cms_Content::getLang();
+
+        $path = "cms/img/header{$screen}{$lg}.jpg";
+ 
+        if(!getFullPath($path)) {
+            $path = "cms/img/header{$screen}.jpg";
+            if(!getFullPath($path)) {
+                $path = "cms/img/header.jpg";
+                if(!getFullPath($path)) {
+                    if(Mode::is('screenMode', 'wide')) {
+      	 	            $path = "cms/img/bgERP.jpg";
+                    } else {
+      	 	            $path = "cms/img/bgERP-small.jpg";
+                    }
+                }
+            }
+        }
+
+        $headerImg = sbf($path, '');
+
         return $headerImg;
     }
 
