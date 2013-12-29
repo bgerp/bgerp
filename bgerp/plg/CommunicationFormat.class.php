@@ -79,10 +79,12 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      * @param array $match
      */
     function catchCommunicationTelFormat($match)
-    { 
+    {
     	// ако не може да мачнем телефон, просто не правим
     	// никакви обработки
-        if(!trim($match[3])) return;
+        if(!trim($match[3])) {
+            return $match[0];
+        }
         
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
@@ -95,7 +97,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toArray($match[3]);
 	        	
-	    if(!count($parsTel)) return;
+	    if(!count($parsTel)) {
+            return  $match[0];
+        }
 	
 		// му задаваме друга икона
 		$icon = sbf("img/16/telephone2.png", ''); 
@@ -139,9 +143,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         $place = $this->mvc->getPlace();
         
     	$icon = sbf("img/16/fax2.png",'');
-        				       
-	    if(!haveRole('officer')) return;
-	                
+        				       	                
 		// ако сме в тесен режим и имаме възможност за изпращане на факсове
 		if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
 			   	
@@ -214,7 +216,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
     	// ако не може да мачнем телефон, просто не правим
     	// никакви обработки
-        if(!trim($match[3])) return;
+        if(!trim($match[3])) {
+            return $match[0];
+        }
         
         // иконка
 		$icon = sbf("img/16/mobile2.png", ''); 
@@ -227,7 +231,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 	    // парсирваме всеки телефон
 	    $parsTel = $PhonesVerbal->toArray($match[3]);
 	        	
-	    if(!count($parsTel)) break;
+	    if(!count($parsTel)) {
+            return $match[0];
+        }
 
 	    // ако сме в тесен режим
 	    if (Mode::is('screenMode', 'narrow')) {	
@@ -264,7 +270,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      */
     function catchCommunicationFormat($match)
     {   
-        if(!trim($match[3])) return;
+        if(!trim($match[3])) {
+            return $match[0];
+        }
 
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
@@ -342,7 +350,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      */
     function catchCommunicationICQFormat($match)
     {  
-        if(!trim($match[3])) return;
+        if(!trim($match[3])) {
+            return $match[0];
+        }
 
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
@@ -379,7 +389,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
     function catchCommunicationEmailFormat($match)
     {   
     	
-        if(!trim($match[2]))  return;
+        if(!trim($match[2])) {
+            return  $match[0];
+        }
 
        	$icon = sbf("img/16/email.png",''); 
 	         	    
