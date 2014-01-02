@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -309,7 +309,7 @@ class sales_Invoices extends core_Master
         
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $form->rec->contragentName = $coverClass::getTitleById($coverId);
+        $form->rec->contragentName = $coverClass::getVerbal($coverClass::fetch($coverId), 'name');
         
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
