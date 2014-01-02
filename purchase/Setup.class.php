@@ -50,8 +50,8 @@ class purchase_Setup extends core_ProtoSetup
             'purchase_PurchasesDetails',
     		'purchase_Services',
     		'purchase_ServicesDetails',
-    		'purchase_ClosedDealsDebit',
-    		'purchase_ClosedDealsCredit',
+    		//'purchase_ClosedDealsDebit',
+    		//'purchase_ClosedDealsCredit',
         );
 
         
