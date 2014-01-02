@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -144,7 +144,7 @@ class bank_IncomeDocument extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('rate', 'double(decimals=2)', 'caption=Курс,width=6em');
+    	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory,width=16em');
@@ -245,6 +245,17 @@ class bank_IncomeDocument extends core_Master
     	}
     }
      
+    
+	/**
+     * Преди подготовка на вербалното представяне
+     */
+    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+    	if($fields['-single']){
+    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
+    	}
+    }
+    
     
     /**
      *  Обработки по вербалното представяне на данните

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -171,7 +171,7 @@ class cash_Rko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 

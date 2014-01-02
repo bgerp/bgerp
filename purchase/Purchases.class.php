@@ -249,8 +249,12 @@ class purchase_Purchases extends core_Master
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	if($form->isSubmitted()){
-	    	if(!$form->rec->currencyRate){
+	    	if(empty($form->rec->currencyRate)){
 				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
+			} else {
+				if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+			    	$form->setWarning('currencyRate', $msg);
+				}
 			}
     	}
     }

@@ -152,7 +152,6 @@ class sales_Sales extends core_Master
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'initiatorId'        => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -555,6 +554,10 @@ class sales_Sales extends core_Master
         if (empty($rec->currencyRate)) {
             $rec->currencyRate = 
                 currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+        } else {
+        	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+		    	$form->setWarning('currencyRate', $msg);
+			}
         }
 
         $cu = core_Users::getCurrent();

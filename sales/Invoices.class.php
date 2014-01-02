@@ -374,8 +374,8 @@ class sales_Invoices extends core_Master
         		$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
         	}
         
-    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-		    	$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
+    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
+		    	$form->setWarning('rate', $msg);
 			}
 		    	
         	$Vats = cls::get('drdata_Vats');

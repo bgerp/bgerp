@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -145,7 +145,7 @@ class bank_ExchangeDocument extends core_Master
         $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
        	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
        	$this->FLD('equals', 'double(decimals=2)', 'input=none,caption=Общо,summary=amount');
-        $this->FLD('rate', 'double(decimals=2)', 'input=none');
+        $this->FLD('rate', 'double', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -225,9 +225,8 @@ class bank_ExchangeDocument extends core_Master
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
 		    	
-    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
-		    	$form->setWarning('debitQuantity', 'Изходната сума има голяма разлика спрямо очакваното.
-		    					   Сигурни ли сте че искате да запишете документа');
+    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $cCode, $dCode)){
+		    	$form->setWarning('rate', $msg);
 		    }
 		    
 		    // Каква е равностойноста на обменената сума в основната валута за периода
@@ -240,6 +239,17 @@ class bank_ExchangeDocument extends core_Master
 		    $sharedUsers = bank_OwnAccounts::fetchField($rec->peroTo, 'operators');
     		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
 		}
+    }
+    
+    
+	/**
+     * Преди подготовка на вербалното представяне
+     */
+    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+    	if($fields['-single']){
+    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
+    	}
     }
     
     

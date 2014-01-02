@@ -275,9 +275,8 @@ class sales_Quotations extends core_Master
 			    $rec->currencyRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
 			}
 		
-	    	if(!currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
-			    $form->setWarning('currencyRate', 'Изходната сума има голяма разлика спрямо очакваното.
-			    					  Сигурни ли сте че искате да запишете документа');
+	    	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
+			    $form->setWarning('rate', $msg);
 			}
 		}
     }
