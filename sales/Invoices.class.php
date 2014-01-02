@@ -169,7 +169,7 @@ class sales_Invoices extends core_Master
     function description()
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory, class=contactData');
+        $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
@@ -554,6 +554,20 @@ class sales_Invoices extends core_Master
             $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
+        
+        if(empty($rec->place) && $rec->state == 'active'){
+        	$inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
+        	$inChargeRec = crm_Profiles::getProfile($inCharge);
+        	$myCompany = crm_Companies::fetchOwnCompany();
+        	$place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
+        	$countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
+        	
+        	$rec->place = $place;
+        	if($rec->contragentCountryId != $countryId){
+        		$cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+        		$rec->place .= (($place) ? ", " : "") . $cCountry;
+        	}
+        }
     }
     
     
@@ -628,7 +642,7 @@ class sales_Invoices extends core_Master
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
-    	
+    		
     		$mvc->prepareMyCompanyInfo($row);
 		}
     }
