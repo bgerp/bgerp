@@ -2,7 +2,7 @@
 /**
  * Клас 'sales_Services'
  *
- * Мениджър на Протоколи за доставка на услуги
+ * Мениджър на Протокол за извършени услуги
  *
  *
  * @category  bgerp
@@ -17,7 +17,7 @@ class sales_Services extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Протоколи за доставка на услуги';
+    public $title = 'Протоколи за извършени услуги';
 
 
     /**
@@ -110,7 +110,7 @@ class sales_Services extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Протокол за доставка на услуги';
+    public $singleTitle = 'Протокол за извършени услуги';
     
     
     /**

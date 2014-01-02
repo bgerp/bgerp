@@ -2,7 +2,7 @@
 /**
  * Клас 'purchase_Services'
  *
- * Мениджър на Протоколи за покупка на услуги
+ * Мениджър на Приемателен протокол за услуги
  *
  *
  * @category  bgerp
@@ -17,7 +17,7 @@ class purchase_Services extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Протоколи за покупка на услуги';
+    public $title = 'Приемателни протоколи за услуги';
 
 
     /**
@@ -110,7 +110,7 @@ class purchase_Services extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Протокол за покупка на услуги';
+    public $singleTitle = 'Приемателен протокол за услуги';
     
     
     /**

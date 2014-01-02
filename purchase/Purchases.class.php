@@ -269,17 +269,17 @@ class purchase_Purchases extends core_Master
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
     		
 	    	if (store_Receipts::haveRightFor('add') && store_Receipts::canAddToThread($data->rec->threadId)) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21,warning=Искате ли да създадете нова Складова разписка ?');
+	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21');
 	        }
 	    	
     		if(store_Receipts::haveRightFor('add') && purchase_Services::canAddToThread($data->rec->threadId)) {
     			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искате ли да създадете нов протокол за покупка на услуги ?');
+	            $data->toolbar->addBtn('Приемане', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
     	}
     	

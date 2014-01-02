@@ -715,24 +715,24 @@ class sales_Sales extends core_Master
 	    	
     		// Ако доставеното - платеното е точно
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте, че искате да приключите сделката?,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте, че искате да приключите сделката?,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
 	    	
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if ($rec->isInstantShipment == 'no'  && sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искате ли да създадете нов Протокол за доставка на услуги?');
+	            $data->toolbar->addBtn('Изпълнение', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
 	    	if ($rec->isInstantShipment == 'no'  && store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искате ли да създадете ново Експедиционно нареждане?');
+	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	    	if($rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искате ли да създадете нова фактура?');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
     	}
     	
