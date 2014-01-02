@@ -144,6 +144,8 @@ class cond_PaymentMethods extends core_Master
      */
     public static function isCOD($payment)
     {
+    	if(!$payment) return FALSE;
+    	
     	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
     	expect($name = static::fetchField($where, 'name'));
     	
