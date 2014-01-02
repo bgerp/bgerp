@@ -1365,6 +1365,14 @@ div.hFormField {
 	background-image: url('../img/formToolbarBg.jpg');
 }
 
+.wide .vertical .formToolbar .toolbar div{
+	margin:2px 0;
+}
+
+.narrow .vertical .formToolbar .toolbar{
+	margin:0 0 3px 0;
+}
+
 .narrow .vertical .formToolbar {
 	background-image: none;
 	border: solid 1px $gray4;
