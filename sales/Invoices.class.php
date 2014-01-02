@@ -713,6 +713,11 @@ class sales_Invoices extends core_Master
 			    }
 		    }
     	}
+    	
+    	$myCompany = crm_Companies::fetchOwnCompany();
+    	if($rec->contragentCountryId != $myCompany->countryId){
+    		$data->row->place = str::utf2ascii($data->row->place);
+    	}
     }
     
     
