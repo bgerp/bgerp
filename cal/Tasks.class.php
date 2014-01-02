@@ -1381,7 +1381,7 @@ class cal_Tasks extends core_Master
 		    		$otherParams['startTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]))));
 		    		
 	    		} else {
-	    			$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
+	    			$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]); 
 	    		}
 	    		
 	    		if(date("N", mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0])) != 7 ) {
@@ -1397,7 +1397,7 @@ class cal_Tasks extends core_Master
 	    		// кое време е сега?
 	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
-	    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday', mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
+	    		$curDate = date('Y-m-d H:i:s', $otherParams['startTime']);
 	    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
 	          
 	    		// генерираме номерата на седмиците между началото и края
@@ -1406,10 +1406,15 @@ class cal_Tasks extends core_Master
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = $curDateExplode[0];
 	    			
-	    			// годината
-	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	// номера на седмицата
+	    			// ако 31.12 е ден до сряда, то 01 седмица ще се отбелязва в следващата година
+	    			if(date("W", dt::mysql2timestamp($curDate)) == 01 && date("N", mktime(23, 59, 59, 12, 31, $startExplode[0])) <= 3) {
+	    				$w = $w + 1;
+	    			} 
+	    			
+	    			$res[$w]['mainHeader'] = $w;
+	    			// номера на седмицата
 	    		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = "&nbsp;" . date("W", dt::mysql2timestamp($curDate)) . "&nbsp;";
+	    		 	
 	    		 	// обикаляме по седмиците
 	    		 	$curDate = dt::addDays(7, $curDate);
 	    		}
