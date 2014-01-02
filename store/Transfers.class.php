@@ -236,7 +236,7 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('valior', dt::today());
+        $data->form->setDefault('valior', dt::now());
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', FALSE));
     	if(!trans_Lines::count("#state = 'active'")){
         	$data->form->setField('lineId', 'input=none');

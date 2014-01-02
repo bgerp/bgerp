@@ -336,8 +336,7 @@ class sales_Services extends core_Master
         // Задаване на стойности на полетата на формата по подразбиране
         $form = &$data->form;
         $rec  = &$form->rec;
-        
-        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+        $form->setDefault('valior', dt::now());
         
         if (empty($rec->folderId)) {
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));

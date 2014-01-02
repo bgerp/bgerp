@@ -341,7 +341,7 @@ class purchase_Services extends core_Master
         $form = &$data->form;
         $rec  = &$form->rec;
         
-        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+        $form->setDefault('valior', dt::now());
         
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);

@@ -169,12 +169,12 @@ class sales_Invoices extends core_Master
     function description()
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory');
+        $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
-        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник');
+        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
+        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
         $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
@@ -191,7 +191,7 @@ class sales_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС %,input=hidden');
+        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
