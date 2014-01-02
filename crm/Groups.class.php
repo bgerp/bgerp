@@ -220,28 +220,6 @@ class crm_Groups extends core_Master
     }
     
     
-	/**
-     * Превеждаме или транслитерираме
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
-    {
-        // Ако е зададено да се превежда
-        if ($mvc->langSingleField == 'translate') {
-            
-            // Превеждаме
-            $rec->name = tr($rec->name);
-        } elseif ($mvc->langSingleField == 'transliterate') {
-            
-            // Ако е зададено да се транслитерира
-            $rec->name = transliterate($rec->name);
-        }
-    }
-    
-    
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      *
