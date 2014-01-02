@@ -167,7 +167,7 @@ class store_ShipmentOrders extends core_Master
         // Доставка
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
+        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -366,6 +366,9 @@ class store_ShipmentOrders extends core_Master
         $form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        if(!trans_Lines::count("#state = 'active'")){
+        	$form->setField('lineId', 'input=none');
+        }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
         $form->getField('locationId')->type->options = 
@@ -386,17 +389,6 @@ class store_ShipmentOrders extends core_Master
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat    = $dealInfo->agreed->vatType;
             $form->rec->storeId      = $dealInfo->agreed->delivery->storeId;
-            
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
         }
     }
     

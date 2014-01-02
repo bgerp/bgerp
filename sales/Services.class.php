@@ -370,17 +370,6 @@ class sales_Services extends core_Master
             $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
-            
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
         }
     }
     
