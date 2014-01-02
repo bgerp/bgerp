@@ -133,7 +133,7 @@ abstract class price_Helper
 		
 		foreach($recs as &$rec){
 			$vat = 0;
-        	if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'no') {
+        	if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
                 $ProductManager = cls::get($rec->$map['classId']);
                 $vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
             }
@@ -211,7 +211,7 @@ abstract class price_Helper
 			$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
 		}
 		
-		if(!$invoice && $chargeVat != 'no'){ 				 // ако документа не е фактура и не е с отделно ддс
+		if(!$invoice && $chargeVat != 'separate'){ 				 // ако документа не е фактура и не е с отделно ддс
 			unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
 		} else { // ако е фактура или е сотделно ддс
 			if($arr['total']){

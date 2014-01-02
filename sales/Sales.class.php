@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -241,7 +241,7 @@ class sales_Sales extends core_Master
         price_Helper::fillRecs($recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amountDeal -= $rec->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
@@ -470,7 +470,7 @@ class sales_Sales extends core_Master
         // Начисляване на ДДС по подразбиране
         $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
-                'yes' : 'no'
+                'yes' : 'export'
         );
     }
 

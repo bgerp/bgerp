@@ -438,7 +438,7 @@ class sales_SalesDetails extends core_Detail
                 // Изчисляваме цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
             }
-            //bp($rec);
+            
             // Записваме основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
         }

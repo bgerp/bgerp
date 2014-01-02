@@ -644,7 +644,7 @@ class purchase_Purchases extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amountDeal -= $rec->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
