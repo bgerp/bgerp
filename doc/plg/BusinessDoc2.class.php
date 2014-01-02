@@ -215,7 +215,15 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		}
     		}
     	}
-    	
+
+
+    	// Ако няма избран нито един обект, се показва грешка
+	if(!$selectedField){
+    		$form->setError(',', 'Не е избрана папка на Фирма или Лице');
+    		return;
+    	}
+
+
     	// Ако има избран повече от един обект, се показва грешка
     	if(count($errFields)){
     		array_unshift($errFields, $selectedField);
