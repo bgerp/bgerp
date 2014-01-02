@@ -361,20 +361,6 @@ class sales_Sales extends core_Master
         self::setDefaultsFromOrigin($mvc, $form);
         self::setDefaults($mvc, $form);
         
-        // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id) && !empty($form->rec->originId)) {
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
-        }
-        
         if ($form->rec->id){
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
