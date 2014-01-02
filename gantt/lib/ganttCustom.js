@@ -64,7 +64,7 @@ function ganttRender(elem,ganttData) {
 	        //получаване на всички колони, които трябва да има таблицата
 	        cols = cols + h2Count;
 	        
-	        //гериране на реда с големите деления на периода
+	        //генериране на реда с големите деления на периода
 	        firstRow += '<th colspan='+ h2Count + '>' + val['mainHeader'] + '</th>';
 	      
 	        //обхождане на малките деления на хедъра на таблицата
@@ -164,6 +164,25 @@ function ganttRender(elem,ganttData) {
 
 		//на колко секунди се равнява 1px
 		var secPerPX = durationTableSec / ganttWidth; 
+		var currentTime = parseInt(ganttData['otherParams']['currentTime']);
+		var timeLineOffset = (currentTime - start) / secPerPX ;
+		
+		//елемент със сив фон за миналия период
+		var currentTimeLine = document.createElement( "div" );
+		$(currentTimeLine).css('top', headerHeight - 5);
+		$(currentTimeLine).css('height', tdHeight*rows);
+		$(currentTimeLine).addClass('current-line');
+		$(currentTimeLine).css('width', parseInt(timeLineOffset));
+		$(currentTable).append( $( currentTimeLine ) );
+		
+		//елемент със зелен фон за бъдещия период
+		var futureBlock = document.createElement( "div" );
+		$(futureBlock).css('left', parseInt(timeLineOffset)+1);
+		$(futureBlock).css('top', headerHeight - 4);
+		$(futureBlock).css('height', tdHeight*rows -1);
+		$(futureBlock).addClass('future-block');
+		$(futureBlock).css('width', durationTableSec/secPerPX - 1 -parseInt(timeLineOffset));
+		$(currentTable).append( $( futureBlock ) );
 		
 		//за всяка задача
 		jQuery.each( ganttData['tasksData'], function( i, val ) {
@@ -174,7 +193,9 @@ function ganttRender(elem,ganttData) {
 			var hint = val['hint'];
 			var color = val['color'];
 			var url = val['url'];
+			var progress = val['progress'];
 			var resouceCounter = 0;
+			
 			//ако има задача за повече от 1 ресурс, да се изчертава за всеки един от тях
 			jQuery.each( rowId, function( currentRow, valRow ) {
 				
@@ -185,20 +206,25 @@ function ganttRender(elem,ganttData) {
 				var taskParts = val['timeline'].length;
 				
 				//ако задачата има прекъсвания, да начертаем отделните парчета
-				for( var currentPartNumber = 0; currentPartNumber < taskParts; currentPartNumber = currentPartNumber + 1 ){
+				for(var currentPartNumber = 0; currentPartNumber < taskParts; currentPartNumber = currentPartNumber + 1){
 					
 					//взимаме съответното начало и дължина на задачата
 					var duration = parseInt(val['timeline'][currentPartNumber]['duration']);
 					var startTime = parseInt(val['timeline'][currentPartNumber]['startTime']);
+				
 					
 					//създаваме линк за съответната задача
 					var addedAnchor = document.createElement( "a" );
+					
+					if(progress > 0){
+						var progressAnchor = document.createElement( "a" );
+					}
 					
 					//ако задачата се пада извън таблицата
 					if(startTime >= end || startTime + duration <= start){
 						duration = 0;
 						
-					}else{
+					} else{
 					
 						//ако задачата приключва извън периода на таблицата графичното й представяне да не е заоблено в края и да не излиза от таблицата
 						if((startTime + duration) > end){
@@ -239,45 +265,70 @@ function ganttRender(elem,ganttData) {
 							widthTask = widthTask - 1;
 						}	
 						
-						//ако представянето на задачата е поне 3пх да се показва
-						if(widthTask > 3){
-							var zIndex = parseInt(100000000 - widthTask);
-							
-							if(zIndex < 0){
-								zIndex = 1;
-							}
-							
-							//добавяме необходимите атрибути и свойства
-							$(addedAnchor).css('left', parseInt(offsetInPx));
-							$(addedAnchor).css('top', parseInt(offsetFromTop));
-							$(addedAnchor).css('zIndex', zIndex);
-							$(addedAnchor).css('width', parseInt(widthTask));
-							$(addedAnchor).css('background-color', color);
-							$(addedAnchor).addClass('task');
-							$(addedAnchor).attr("title", hint );
-							$(addedAnchor).attr('href', url);
-							$(addedAnchor).attr('target', '_blank');
-							
-							//за да имаме уникално id за всяка задача, дори и да е за няколко ресурса
-							if(resouceCounter > 1){
-								$(addedAnchor).attr('id', taskid + "("+ resouceCounter + ")");
-							}else{
-								$(addedAnchor).attr('id', taskid);
-							}
-							
-							//брой символи на taskid
-							var countOfChars = taskid.length;
-							//приблизителна мин. ширина, спрямо бр. символи
-							var minWidthForTextDisplay = countOfChars*7 + 5;
-							
-							
-							//ако текстът се събира го показваме
-							if(widthTask > minWidthForTextDisplay){
-								$(addedAnchor).text(taskid);
-							}
+						//ако представянето на задачата е по-малко от 3пх да стане 3пх
+						if(widthTask < 3){
+							widthTask = 3;
+						}
+						
+						//по-късите задачи да излизат по-отгоре
+						var zIndex = parseInt(100000000 - widthTask);
+						
+						if(zIndex < 0){
+							zIndex = 1;
+						}
+						
+						//добавяме необходимите атрибути и свойства
+						$(addedAnchor).css('left', parseInt(offsetInPx));
+						$(addedAnchor).css('top', parseInt(offsetFromTop));
+						$(addedAnchor).css('zIndex', zIndex);
+						$(addedAnchor).css('width', parseInt(widthTask));
+						$(addedAnchor).css('background-color', color);
+						$(addedAnchor).addClass('task');
+						$(addedAnchor).attr("title", hint );
+						$(addedAnchor).attr('href', url);
+						$(addedAnchor).attr('target', '_blank');
+						
+						var progressWidth = parseInt(widthTask) * parseFloat(progress);
+						if(progress > 0 && progressWidth < 3)
+							progressWidth = 3;
+						
+						//ако имаме прогрес на задачата, да го покажем с по-тъмен цвят
+						if(progress > 0){
+							$(progressAnchor).css('left', parseInt(offsetInPx));
+							$(progressAnchor).css('top', parseInt(offsetFromTop));
+							$(progressAnchor).css('zIndex', zIndex + 1);
+							$(progressAnchor).css('width', parseInt(progressWidth));
+							$(progressAnchor).addClass('task');
+							$(progressAnchor).addClass('progress');
+							$(progressAnchor).attr("title", hint );
+							$(progressAnchor).attr('href', url);
+							$(progressAnchor).attr('target', '_blank');
+						}
+						
+						
+						//за да имаме уникално id за всяка задача, дори и да е за няколко ресурса
+						if(resouceCounter > 1){
+							$(addedAnchor).attr('id', taskid + "("+ resouceCounter + ")");
+						}else{
+							$(addedAnchor).attr('id', taskid);
+						}
+						
+						//брой символи на taskid
+						var countOfChars = taskid.length;
+						//приблизителна мин. ширина, спрямо бр. символи
+						var minWidthForTextDisplay = countOfChars*7 + 5;
+						
+						
+						//ако текстът се събира го показваме
+						if(widthTask > minWidthForTextDisplay){
+							//$(progressAnchor).text(taskid);
+							$(addedAnchor).text(taskid);
+						}
 
-							//графиката на задачата става наследник на див-а, който e релативен елеменент
-							$(currentTable).append( $( addedAnchor ) );
+						//графиката на задачата става наследник на див-а, който e релативен елеменент
+						$(currentTable).append( $( addedAnchor ) );
+						if(progressAnchor){
+							$(currentTable).append( $( progressAnchor ) );
 						}
 					}
 				}
