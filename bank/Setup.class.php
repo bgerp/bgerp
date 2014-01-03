@@ -55,7 +55,7 @@ class bank_Setup extends core_ProtoSetup
             'bank_Accounts',
             'bank_OwnAccounts',
             'bank_IncomeDocuments',
-        	'bank_CostDocument',
+        	'bank_SpendingDocuments',
             'bank_InternalMoneyTransfer',
             'bank_ExchangeDocument',
         	'bank_PaymentOrders',

@@ -194,7 +194,7 @@ class bank_PaymentOrders extends core_Master
     			$form->setDefault('orderer', $rec->contragentName);
     			$form->setSuggestions('ordererIban', $contragentIbans);
     		
-    		} elseif($doc->className == 'bank_CostDocument') {
+    		} elseif($doc->className == 'bank_SpendingDocuments') {
     			
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
     			// а получателя е контрагента
@@ -331,7 +331,7 @@ class bank_PaymentOrders extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
             	
-    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_SpendingDocuments';
     }
     
     

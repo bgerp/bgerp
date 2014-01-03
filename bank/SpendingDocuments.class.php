@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_CostDocument extends core_Master
+class bank_SpendingDocuments extends core_Master
 {
     
     

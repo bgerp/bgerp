@@ -6,7 +6,7 @@ class bank_DocumentWrapper extends bank_Wrapper
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 		
 		$tabs->TAB('bank_IncomeDocuments', 'Приходни документи');
-		$tabs->TAB('bank_CostDocument', 'Разходни документи');
+		$tabs->TAB('bank_SpendingDocuments', 'Разходни документи');
         $tabs->TAB('bank_InternalMoneyTransfer', 'Вътрешни трансфери');
         $tabs->TAB('bank_ExchangeDocument', 'Обмени на валути');
         
