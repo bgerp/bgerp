@@ -196,6 +196,27 @@ function ganttRender(elem,ganttData) {
 			var progress = val['progress'];
 			var resouceCounter = 0;
 			
+			var textColor;
+			//определяне на цвета на текста от задачата, в завимост от фона й
+			if (color.substring(0, 1) == '#' && color.length==7){
+				
+				var endColor = {
+						r: parseInt(color.substring(1,3),16),
+						g: parseInt(color.substring(3,5),16),
+				    	b: parseInt(color.substring(5,7),16)
+				    };
+				
+				var contrast = Math.round(((parseInt(endColor['r']) * 299) + (parseInt(endColor['g']) * 587) + (parseInt(endColor['b']) * 114)) /1000);
+				
+			    if(contrast < 125) {
+			    	textColor = '#ffffff';
+			    } else {
+			    	textColor='#000000';
+			    }
+			} else {
+				textColor='#000000';
+			}
+
 			//ако има задача за повече от 1 ресурс, да се изчертава за всеки един от тях
 			jQuery.each( rowId, function( currentRow, valRow ) {
 				
@@ -284,9 +305,10 @@ function ganttRender(elem,ganttData) {
 						$(addedAnchor).css('width', parseInt(widthTask));
 						$(addedAnchor).css('background-color', color);
 						$(addedAnchor).addClass('task');
-						$(addedAnchor).attr("title", hint );
+						$(addedAnchor).attr('title', hint );
 						$(addedAnchor).attr('href', url);
 						$(addedAnchor).attr('target', '_blank');
+						$(addedAnchor).css('color', textColor);
 						
 						var progressWidth = parseInt(widthTask) * parseFloat(progress);
 						if(progress > 0 && progressWidth < 3)
@@ -300,7 +322,8 @@ function ganttRender(elem,ganttData) {
 							$(progressAnchor).css('width', parseInt(progressWidth));
 							$(progressAnchor).addClass('task');
 							$(progressAnchor).addClass('progress');
-							$(progressAnchor).attr("title", hint );
+							$(progressAnchor).attr('title', hint );
+							$(progressAnchor).css('color', textColor);
 							$(progressAnchor).attr('href', url);
 							$(progressAnchor).attr('target', '_blank');
 						}
@@ -323,8 +346,11 @@ function ganttRender(elem,ganttData) {
 						if(widthTask > minWidthForTextDisplay){
 							//$(progressAnchor).text(taskid);
 							$(addedAnchor).text(taskid);
+							if(progressAnchor)
+								$(progressAnchor).text(taskid);
 						}
-
+						
+						
 						//графиката на задачата става наследник на див-а, който e релативен елеменент
 						$(currentTable).append( $( addedAnchor ) );
 						if(progressAnchor){
