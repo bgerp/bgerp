@@ -204,8 +204,8 @@ class sales_Sales extends core_Master
         $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input=none,notNull,default=no');
         
         // Наш персонал
-        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales)', 'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(rolesForAll=sales,allowEmpty)', 'caption=Наш персонал->Търговец');
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
@@ -387,11 +387,11 @@ class sales_Sales extends core_Master
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
     	
         // Ако плащането или експедирането е на момента се забранява промяна на някои полета
-        if($form->rec->isInstantShipment){
+        if($form->rec->isInstantShipment == 'yes'){
     		$form->setReadOnly('shipmentStoreId');
     	}
     	
-    	if($form->rec->isInstantShipment){
+    	if($form->rec->isInstantPayment == 'yes'){
     		$form->setReadOnly('caseId');
     		$form->setReadOnly('paymentMethodId');
     	}
@@ -575,11 +575,11 @@ class sales_Sales extends core_Master
 	    if($fields['-single']){
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	if ($rec->isInstantPayment == 'yes') {
-	            $row->caseId .= ' <span style="color:#060">(' . tr('експедирано') . ')</span>';
+	            $row->caseId .= ' <span style="color:#060">(' . tr('платено') . ')</span>';
 	        }
 	        
 	        if ($rec->isInstantShipment == 'yes') {
-	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('платено') . ')</span>';
+	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('експедирано') . ')</span>';
 	        }
 	        
 		    $mvc->prepareHeaderInfo($row, $rec);
@@ -681,13 +681,13 @@ class sales_Sales extends core_Master
     		}
 	    	
     		// Ако протокол може да се добавя към треда и не се експедира на момента
-    		if ($rec->isInstantShipment == 'no'  && sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
+    		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Изпълнение', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
-	    	if ($rec->isInstantShipment == 'no'  && store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	    	if (store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
@@ -699,7 +699,7 @@ class sales_Sales extends core_Master
     	}
     	
     	if(haveRole('debug')){
-            $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+            $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
     }
     
@@ -719,13 +719,13 @@ class sales_Sales extends core_Master
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
     			if(cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?');
+    				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?', FALSE, array('style' => 'padding:3px;'));
     			}
     		}
     		
     		$storeId = store_Stores::getCurrent('id', FALSE);
     		if($rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
-    			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?');
+    			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
     		}
 	    }
     }
