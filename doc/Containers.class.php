@@ -1171,6 +1171,9 @@ class doc_Containers extends core_Manager
             $query->where(array("#state = '[#1#]'", $state));
         }
         
+        // Оттеглените документи да не се вземат в предвид
+        $query->where(array("#state != 'rejected'"));
+        
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
             
