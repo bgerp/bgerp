@@ -54,7 +54,7 @@ class bank_Setup extends core_ProtoSetup
     var $managers = array(
             'bank_Accounts',
             'bank_OwnAccounts',
-            'bank_IncomeDocument',
+            'bank_IncomeDocuments',
         	'bank_CostDocument',
             'bank_InternalMoneyTransfer',
             'bank_ExchangeDocument',

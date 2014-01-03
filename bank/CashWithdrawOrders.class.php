@@ -292,7 +292,7 @@ class bank_CashWithdrawOrders extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	return $firstDoc->className == 'bank_IncomeDocument' || $firstDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_CostDocument';
     }
     
     

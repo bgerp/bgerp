@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_IncomeDocument extends core_Master
+class bank_IncomeDocuments extends core_Master
 {
     
     
@@ -26,6 +26,12 @@ class bank_IncomeDocument extends core_Master
      * Заглавие на мениджъра
      */
     var $title = "Приходни банкови документи";
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'bank_IncomeDocument';
     
     
     /**
