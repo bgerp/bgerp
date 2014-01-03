@@ -117,6 +117,13 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
+    					 currencyId, bankAccountId, caseId, dealerId';
+    
+    
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
@@ -728,5 +735,18 @@ class purchase_Purchases extends core_Master
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата покупка") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
