@@ -628,7 +628,7 @@ class sales_Services extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашият протокол за продажба на услуги") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашия протокол за продажба на услуги") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
