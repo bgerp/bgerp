@@ -183,7 +183,10 @@ class purchase_Purchases extends core_Master
     	$this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
-    	$this->FLD('state','enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$this->FLD('state', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
+            'caption=Статус, input=none'
+        );
     }
     
     
