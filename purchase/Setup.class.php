@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -50,8 +50,8 @@ class purchase_Setup extends core_ProtoSetup
             'purchase_PurchasesDetails',
     		'purchase_Services',
     		'purchase_ServicesDetails',
-    		//'purchase_ClosedDealsDebit',
-    		//'purchase_ClosedDealsCredit',
+    		'purchase_ClosedDealsDebit',
+    		'purchase_ClosedDealsCredit',
         );
 
         
