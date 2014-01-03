@@ -609,7 +609,7 @@ class cash_Pko extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашият приходен касов ордер") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашия приходен касов ордер") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
