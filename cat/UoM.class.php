@@ -156,7 +156,7 @@ class cat_UoM extends core_Manager
     	($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
     	
     	// Очакваме двете мерки да имат една обща основна мярка
-    	expect($baseFromId == $baseToId, "Неможе да се конвертира от едната мярка в другата");
+    	expect($baseFromId == $baseToId, "Не може да се конвертира от едната мярка в другата");
     	$rate = $fromRec->baseUnitRatio / $toRec->baseUnitRatio;
     	
     	// Форматираме резултата да се показва правилно числото

@@ -359,7 +359,7 @@ class price_ConsumptionNorms extends core_Master {
     	// Намираме всички продукти от каталога
     	$productsArr = cat_Products::getByGroup(static::$ingredientProductGroups);
     	$options = array_diff_key($productsArr,$notAllowed);
-    	if(!count($options)) return Redirect(array($this, 'single', $id), FALSE, 'Неможе да се добавят нови съставки');
+    	if(!count($options)) return Redirect(array($this, 'single', $id), FALSE, 'Не може да се добавят нови съставки');
     	
     	// Връщаме тези продукти, които не част от $notAllowed
     	return $options;

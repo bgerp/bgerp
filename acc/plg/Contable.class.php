@@ -119,12 +119,12 @@ class acc_plg_Contable extends core_Plugin
         	$docPeriod = acc_Periods::fetchByDate($rec->valior);
         	if($docPeriod){
 	        	if($docPeriod->state == 'closed'){
-	        		$error = ",error=Неможе да се контира в затворен сч. период";
+	        		$error = ",error=Не може да се контира в затворен сч. период";
 	        	} elseif($docPeriod->end > acc_Periods::getPeriodEnd()){
-	        		$error = ",error=Неможе да се контира в бъдещ сч. период";
+	        		$error = ",error=Не може да се контира в бъдещ сч. период";
 	        	}
         	} else {
-        		$error = ",error=Неможе да се контира в несъществуващ сч. период";
+        		$error = ",error=Не може да се контира в несъществуващ сч. период";
         	}
 			//bp($rec->isContable);
         	$caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
