@@ -135,7 +135,7 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	if($rec->state == 'active'){
     		$info = static::getDealInfo($rec->threadId);
-    		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
+    		$rec->amount = abs($mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId')));
     		$rec->currencyId = $info->agreed->currency;
     		$rec->rate = $info->agreed->rate;
     	}
@@ -198,7 +198,7 @@ abstract class acc_ClosedDeals extends core_Master
 		$amount = abs(static::getClosedDealAmount($firstDoc));
         
         $result = (object)array(
-            'reason'      => "Приключване на продажба " . $firstDoc->getHandle(),
+            'reason'      => $firstDoc->getHandle(),
             'valior'      => dt::now(),
             'totalAmount' => $amount,
             'entries'     => array()
@@ -267,7 +267,7 @@ abstract class acc_ClosedDeals extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if(!$rec->amount){
     		$info = static::getDealInfo($rec->threadId);
-    		$rec->baseAmount = static::getClosedDealAmount($rec->threadId);
+    		$rec->baseAmount = abs(static::getClosedDealAmount($rec->threadId));
     		$amount = $rec->baseAmount / $info->agreed->rate;
     		$row->currencyId = $info->agreed->currency;
     		$row->baseAmount = $mvc->fields['amount']->type->toVerbal($rec->baseAmount);

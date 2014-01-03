@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,7 +18,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     /**
      * Заглавие
      */
-    public $title = 'Приключване на продажба с излишък';
+    public $title = 'Приключване на продажба с изв. приход';
     
     
     /**
@@ -63,17 +63,11 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
 	 */
 	public $canSingle = 'ceo,sales';
     
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,sales';
-    
 	
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Приключване на продажба с излишък';
+    public $singleTitle = 'Приключване на продажба с изв. приход';
    
     
     /**
@@ -91,7 +85,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = '';
+    public $searchFields = '';
     
     
     /**
@@ -124,7 +118,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->text = tr("Приключване на сделката с надплатено");
+    	$row->text = tr("Приключване на сделката с изв. приход");
     	
     }
     
@@ -143,13 +137,13 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
     	$result->entries[] = array(
-    		'amount' => abs($result->totalAmount),
+    		'amount' => $result->totalAmount,
             'debit'  => array('411', 
                         array($docRec->contragentClassId, $docRec->contragentId), 
                         array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-                       'quantity' => abs($result->totalAmount),
+                       'quantity' => $result->totalAmount,
                       ), 
-        	'credit' => array('7911', 'quantity' => abs($result->totalAmount)));
+        	'credit' => array('7911', 'quantity' => $result->totalAmount));
        
         return $result;
     }
@@ -162,7 +156,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     public function getDocumentRow($id)
     {
     	$row = parent::getDocumentRow($id);
-    	$title = "Приключване на продажба {$row->saleId} с остатък";
+    	$title = "Приключване на продажба {$row->saleId} с изв. приход";
     	$row->title = $title;
     	$row->recTitle = $title;
     	
@@ -191,7 +185,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата продажба с излишък") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашата продажба с изв. приход") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
