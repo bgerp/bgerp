@@ -62,6 +62,8 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
+                    <!--ET_BEGIN deliveryInfo-->
+                    [#deliveryInfo#]
                     <td class="topCell first" valign="top">
                         <!--ET_BEGIN deliveryTime-->
                         <div>
@@ -86,6 +88,7 @@
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
+                     <!--ET_END deliveryInfo-->
                     <td class="topCell" valign="top">
                     <!--ET_BEGIN currencyId-->
 			             <div>|Валута|*:  <b>[#currencyId#]</b></div>
