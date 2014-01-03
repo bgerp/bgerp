@@ -81,7 +81,7 @@ class mp_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'originId, folderId';
+	public $searchFields = 'folderId';
 	
 	
 	/**
@@ -155,9 +155,9 @@ class mp_Jobs extends core_Master
       */
     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-    	if($rec->originId){
+    	if($rec->specId){
     		// Извличане на ключовите думи от документа
-	     	$object = doc_Containers::getDocument($rec->originId);
+	     	$object = techno_Specifications::getDriver($rec->specId);
 	    	$title = $object->getTitleById();
 	     	
 	    	$res = plg_Search::normalizeText($title);
