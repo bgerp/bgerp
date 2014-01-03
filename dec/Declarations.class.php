@@ -17,7 +17,7 @@ class dec_Declarations extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -116,6 +116,12 @@ class dec_Declarations extends core_Master
      */ 
    	var $newBtnGroup = "3.8|Търговия";
     
+   	
+   	/**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'typeId, doc, managerId, locationId, materialId';
+
     
     /**
      * Описание на модела
@@ -437,5 +443,18 @@ class dec_Declarations extends core_Master
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата декларация за съответствие") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
