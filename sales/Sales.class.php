@@ -163,6 +163,13 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId,
+    					 initiatorId, dealerId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

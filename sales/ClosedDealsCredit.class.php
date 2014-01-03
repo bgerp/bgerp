@@ -30,7 +30,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -92,6 +92,12 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      * Полета свързани с цени
      */
     public $priceFields = 'amount';
+        
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = '';
     
     
     /**
@@ -181,5 +187,18 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата продажба с остатък") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }
