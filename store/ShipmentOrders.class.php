@@ -146,6 +146,12 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

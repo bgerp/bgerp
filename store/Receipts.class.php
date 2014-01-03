@@ -138,6 +138,12 @@ class store_Receipts extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
