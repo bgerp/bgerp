@@ -533,10 +533,12 @@ class cash_Rko extends core_Master
     
         /* @var $result bgerp_iface_DealResponse */
         $result = new bgerp_iface_DealResponse();
+    	
+        // При продажба платеното се намалява, ако е покупка се увеличава
+        $origin = static::getOrigin($rec);
+        $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
     
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-    
-        $result->paid->amount          = -($rec->amount * $rec->rate);
+        $result->paid->amount          = $sign * $rec->amount * $rec->rate;
         $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;

@@ -493,9 +493,11 @@ class bank_IncomeDocument extends core_Master
         /* @var $result bgerp_iface_DealResponse */
         $result = new bgerp_iface_DealResponse();
         
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
+        // При продажба платеното се увеличава, ако е покупка се намалява
+        $origin = static::getOrigin($rec);
+        $sign = ($origin->className == 'purchase_Purchases') ? -1 : 1;
         
-        $result->paid->amount                 = $rec->amount * $rec->rate;
+        $result->paid->amount                 = $sign * $rec->amount * $rec->rate;
         $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = $rec->ownAccount;
