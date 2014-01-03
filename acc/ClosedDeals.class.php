@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -172,8 +172,8 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	return $result;
     }
-    
-    
+	
+	
     /**
 	 * След подготовка на лист тулбара
 	 */
@@ -362,6 +362,7 @@ abstract class acc_ClosedDeals extends core_Master
     	
     	if($docClassId){
     		$data->query->where("#docClassId = {$docClassId}");
+    		$data->rejQuery->where("#docClassId = {$docClassId}");
     	}
     }
 }
