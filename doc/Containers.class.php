@@ -1147,4 +1147,37 @@ class doc_Containers extends core_Manager
         
         return $res;
     }
+    
+    
+    /**
+     * Връща масив с всички id' та на документите в нишката
+     * 
+     * @param integer $threadId - id на нишка
+     * 
+     * @return array
+     */
+    static function getAllDocIdFromThread($threadId, $state=NULL)
+    {
+        $arr = array();
+        
+        // Вземаме всички документи от нишката
+        $query = static::getQuery();
+        $query->where("#threadId = '{$threadId}'");
+        
+        // Ако е зададено състояние
+        if ($state) {
+            
+            // Да се вземат документи от съответното състояние
+            $query->where(array("#state = '[#1#]'", $state));
+        }
+        
+        // Обхождаме резултатите
+        while ($rec = $query->fetch()) {
+            
+            // Добавяме в масива
+            $arr[$rec->id] = $rec->id;
+        }
+        
+        return $arr;
+    }
 }
