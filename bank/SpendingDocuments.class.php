@@ -19,7 +19,7 @@ class bank_SpendingDocuments extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf, email_DocumentIntf';
    
     
     /**
@@ -492,5 +492,18 @@ class bank_SpendingDocuments extends core_Master
         	'currencyRate' => $rec->rate,
             'valior'       => $rec->valior,
         );
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашия разходен банков документ") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

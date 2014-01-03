@@ -19,7 +19,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
    
     
     /**
@@ -378,4 +378,5 @@ class bank_PaymentOrders extends core_Master
     		$tpl->removeBlock('header');
     	}
     }
+
 }

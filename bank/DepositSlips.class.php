@@ -19,7 +19,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
    
     
     /**
