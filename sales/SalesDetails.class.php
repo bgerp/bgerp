@@ -355,6 +355,9 @@ class sales_SalesDetails extends core_Detail
         }
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
+    		if($rec->packQuantity == 0){
+    			$form->setError('packQuantity', 'Количеството не може да е "0"');
+    		}
            
     		if(empty($rec->id)){
     			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
