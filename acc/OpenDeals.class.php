@@ -253,7 +253,7 @@ class acc_OpenDeals extends core_Manager {
 	    	case 'bank':
 	    		
 	    		// Приходен и Разходен банков документ
-	    		$btns = ht::createBtn('ПБД', array('bank_IncomeDocument', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_add.png,title=Нов приходен банков документ');
+	    		$btns = ht::createBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_add.png,title=Нов приходен банков документ');
 	    		$btns .= ht::createBtn('РБД', array('bank_CostDocument', 'add', 'originId' => $originId), NULL, NULL, 'ef_icon=img/16/bank_rem.png,title=Нов разходен банков документ');
 	    		break;
 	    	case 'store':
