@@ -1475,11 +1475,27 @@ class distro_Files extends core_Detail
                 // Вземаме записа за файла
                 $fRec = fileman_Files::fetchByFh($fileHnd);
                 
+                // Името на файла
+                $nName = $fRec->name;
+                
+                // Брояч за името
+                $nCounter = 0;
+                
+                // Проверяваме дали файла съществува
+                while(static::getArrFilesExistInRepo($nName, $reposArrSave, $title)) {
+                    
+                    // Разделяме името и разширението на файла
+                    $nNameArr = fileman_Files::getNameAndExt($nName);
+                    
+                    // Добавяме брояча към името
+                    $nName = $nNameArr['name'] . '_' . $nCounter++ . $nNameArr['ext'];
+                }
+                
                 // Създаваме масив за добавяне от манипулатор на файл
                 $addFromFhArr = array('title' => $title,
                 					  'fileHnd' => $fRec->fileHnd,
                                       'reposArr' => $reposArrSave,
-                                      'name' => $fRec->name);
+                                      'name' => $nName);
                 
                 // Добавяме масива
                 $this->actionWithFile['addFromFh'] = $addFromFhArr;
