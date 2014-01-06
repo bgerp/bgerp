@@ -18,7 +18,7 @@ class distro_Group extends core_Master
     /**
      * Заглавие на модела
      */
-    var $title = 'Разпределена група файлове';
+    var $title = 'Разпределени групи файлове';
     
     
     /**
