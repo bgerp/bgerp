@@ -1556,7 +1556,7 @@ class distro_Files extends core_Detail
     static function removeUserRepos($reposArr, $groupId, $fileHnd)
     {
         // Ако има файл със същото име в групата
-        $rRepos = static::fetchField(array("#groupId = '[#1#]' AND #name = '[#2#]'", $groupId, $fileHnd), 'repos');
+        $rRepos = static::fetchField(array("#groupId = '[#1#]' AND #sourceFh = '[#2#]'", $groupId, $fileHnd), 'repos');
         
         // Ако има хранилища
         if ($rRepos) {
