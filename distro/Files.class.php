@@ -1407,9 +1407,6 @@ class distro_Files extends core_Detail
                 // Обхождаме масива с всички останали хранилища
                 foreach ($sReposArr as $repoId => $repoName) {
                     
-                    // Ако сме добавили същия файл
-                    if ($filesInReposArr[$repoId][$fileHnd]) continue;
-                    
                     // Добавяме линк към хранилището и файла
                     $filesInReposArr[$repoId][$fileHnd] = fileman::getLinkToSingle($fileHnd)->getContent();
                 }
