@@ -73,7 +73,7 @@ class social_Sharings extends core_Master
 		$this->FLD('name', 'varchar(32)', 'caption=Услуга,mandatory');
 		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне,mandatory');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
-		$this->FLD('sharedCnt', 'int', 'caption=Cподеляния, input=none,notNull');
+		$this->FLD('sharedCnt', 'int', 'caption=Споделяния, input=none,notNull');
     }
     
     
