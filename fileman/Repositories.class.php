@@ -1778,7 +1778,7 @@ class fileman_Repositories extends core_Master
         $data->singleFilter->FNC('searchName', 'varchar', 'placeholder=Име на файл,caption=Търсене,input,silent,recently');
         
         // Добавяме поле за подредба
-        $data->singleFilter->FNC('orderBy', 'enum(nameDown=Наименование ↓, nameUp=Наименование ↑, createdDown=Създаване ↓, createdUp=Създаване ↑)',
+        $data->singleFilter->FNC('orderBy', 'enum(nameDown=Наименование|* ↓, nameUp=Наименование|* ↑, createdDown=Създаване|* ↓, createdUp=Създаване|* ↑)',
         			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Кои полета да се показват
