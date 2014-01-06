@@ -120,12 +120,6 @@ class sales_Sales extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Продажба';
-    
-    
-    /**
-     * Шаблон за единичен изглед
-     */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
    
     
     /**
@@ -141,6 +135,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    public $singleLayoutFile = 'sales/tpl/sales/SingleLayoutSale.shtml';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -153,6 +153,7 @@ class sales_Sales extends core_Master
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
+    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -165,8 +166,7 @@ class sales_Sales extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId,
-    					 initiatorId, dealerId';
+    public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId, initiatorId, dealerId';
     
     
     /**
@@ -212,7 +212,8 @@ class sales_Sales extends core_Master
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
-    	
+    	$this->FLD('template', "key(mvc=doc_TplManager,select=name,where=#docClassId \\= \\'{$this->getClassId()}\\')", 'caption=Допълнително->Шаблон');
+        
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
@@ -555,15 +556,22 @@ class sales_Sales extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		$amountType = $mvc->getField('amountDeal')->type;
+		$rec->amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
+		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
 		
-		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
             	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
+        }
+        
+        foreach (array('ToPay', 'ToDeliver', 'ToInvoice') as $amnt){
+        	$color = ($rec->{"amount{$amnt}"} < 0) ? 'red' : 'green';
+        	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
         if($rec->paymentState == 'overdue'){
@@ -807,9 +815,18 @@ class sales_Sales extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
+        $amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
+		$amountToPay = $rec->amountDelivered - $rec->amountPaid;
+		$amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+        $subTitle = "Дост: " . (($rec->amountDelivered) ? $rec->amountDelivered : 0) . "({$amountToDeliver})";
+		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $rec->amountPaid : 0) . "({$amountToPay})";
+        if($rec->makeInvoice != 'no'){
+        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $rec->amountInvoiced : 0) . "({$amountToInvoice})";
+        }
         
         $row = (object)array(
             'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+        	'subTitle' => $subTitle,
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
@@ -1104,9 +1121,9 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
+     * Нагласяне на крон да приключва продажби и да проверява дали са пресрочени
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    private function setCron(&$res)
     {
     	// Крон метод за затваряне на остарели продажби
     	$rec = new stdClass();
@@ -1142,6 +1159,47 @@ class sales_Sales extends core_Master
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е пресрочена.</li>";
         }
+    }
+    
+    
+    /**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/SingleLayoutSale.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/SingleLayoutSale1.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/SingleLayoutSale2.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SingleLayoutSale3.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/SingleLayoutSale4.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/SingleLayoutSale5.shtml', 'lang' => 'en');
+    	
+    	$added = 0;
+    	foreach ($tplArr as $arr){
+    		if(!doc_TplManager::fetch("#name = '{$arr['name']}'")){
+    			$arr['docClassId'] = $this->getClassId();
+    			$arr['content'] = getFileContent($arr['content']);
+    			$arr['createdBy'] = -1;
+    			doc_TplManager::save((object)$arr);
+    			$added++;
+    		}
+    	}
+    	
+    	if($added){
+    		$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби</font></li>";
+    	} else {
+    		$res .= "<li>Не са добавени нови шаблони за продажби</li>";
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setCron($res);
+    	$mvc->setTemplates($res);
     }
     
     
@@ -1249,4 +1307,18 @@ class sales_Sales extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Рендиране на единичния изглед
+     */
+    public function renderSingleLayout_(&$data)
+	{
+		if($data->rec->template){
+			
+			return doc_TplManager::getTemplate($data->rec->template);
+		}
+		
+	 	return parent::renderSingleLayout_($data);
+	}
 }

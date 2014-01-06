@@ -20,7 +20,7 @@
 			                    <td width='33%' class='custom-header-bg'><b>|Получател|*</b></td>
 			                    
 			                    <td class="cell" align="center" width='34%' rowspan = '2'>
-			                        <font style="font-size:16pt;"><b> |ПРОДАЖБА|*</b> </font><br>
+			                        <font style="font-size:16pt;"><b> |ДОГОВОР ЗА ПРОДАЖБА|*</b> </font><br>
 			                        <div style="padding-top:5px;">
 			                        	№ <span class="bigData">[#id#]</span> / 
 			                        	<span class="bigData">[#valior#]</span>
@@ -143,7 +143,7 @@
 				            |Фактурирано|*, [#currencyId#]
 				        </th>
 				        <th>
-				            |Остатък|*, [#currencyId#]
+				            |Наш персонал|*
 				        </th>
 				    </tr>
 				    </thead>
@@ -152,7 +152,18 @@
 				        <td class = 'nowrap'>[#amountDelivered#]</td>
 				        <td class = 'nowrap'>[#amountPaid#]</td>
 				        <td class = 'nowrap'>[#amountInvoiced#]</td>
-				        <td class = 'nowrap'>[#amountToPay#]</td>
+				        <td class = 'nowrap' style='font-size:0.8em;' rowspan='2'>
+					        <!--ET_BEGIN initiatorId-->
+					        <span style='font-weight:normal'>|инициатор|*</span>: [#initiatorId#]<br />
+					        <!--ET_END initiatorId-->
+					        <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
+				        </td>
+				    </tr>
+				    <tr>
+				    	<td style = 'border:0px'></td>
+				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
+				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
+				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
 				    </tr>
 				</table>
 			</div>
