@@ -1539,11 +1539,8 @@ class distro_Files extends core_Detail
      */
     static function removeUserRepos($reposArr, $groupId, $fileHnd)
     {
-        // Запис за файла
-        $fRec = fileman_Files::fetchByFh($fileHnd);
-        
         // Ако има файл със същото име в групата
-        $rRepos = static::fetchField(array("#groupId = '[#1#]' AND #name = '[#2#]'", $groupId, $fRec->name), 'repos');
+        $rRepos = static::fetchField(array("#groupId = '[#1#]' AND #name = '[#2#]'", $groupId, $fileHnd), 'repos');
         
         // Ако има хранилища
         if ($rRepos) {
