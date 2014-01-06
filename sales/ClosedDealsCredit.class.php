@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -18,7 +18,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     /**
      * Заглавие
      */
-    public $title = 'Приключване на продажба с остатък';
+    public $title = 'Приключване на продажба с изв. разход';
 
 
     /**
@@ -30,7 +30,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -69,17 +69,11 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
 	 */
 	public $canSingle = 'ceo,sales';
     
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,sales';
-    
 	
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Приключване на продажба с остатък';
+    public $singleTitle = 'Приключване на продажба с изв. разход';
    
     
     /**
@@ -92,6 +86,12 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      * Полета свързани с цени
      */
     public $priceFields = 'amount';
+        
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = '';
     
     
     /**
@@ -124,7 +124,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->text = tr("Сделката е приключена с остатък");
+    	$row->text = tr("Сделката е приключена с изв. разход");
     }
     
     
@@ -142,12 +142,12 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
     	
     	$result->entries[] = array(
-    		'amount' => abs($result->totalAmount),
-    		'debit' => array('6911', 'quantity' => abs($result->totalAmount)),
+    		'amount' => $result->totalAmount,
+    		'debit' => array('6911', 'quantity' => $result->totalAmount),
             'credit'  => array('411', 
                         array($docRec->contragentClassId, $docRec->contragentId), 
                         array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-                       'quantity' => abs($result->totalAmount),
+                       'quantity' => $result->totalAmount,
                       )
         );
        
@@ -162,7 +162,7 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     public function getDocumentRow($id)
     {
     	$row = parent::getDocumentRow($id);
-    	$title = "Приключване на продажба {$row->saleId} с остатък";
+    	$title = "Приключване на продажба {$row->saleId} с изв. разход";
     	$row->title = $title;
     	$row->recTitle = $title;
     	
@@ -181,5 +181,18 @@ class sales_ClosedDealsCredit extends acc_ClosedDeals
     			$res = 'no_one';
     		}
     	}
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата продажба с изв. разход") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

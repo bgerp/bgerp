@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  * @todo:     Да се документира този клас
@@ -858,11 +858,16 @@ class crm_Companies extends core_Master
     /**
      * Връща валутата по подразбиране за търговия дадения контрагент
      * в зависимост от дъжавата му
+     * @param int $id - ид на записа
+     * @return string(3) - BGN или EUR за дефолт валутата
      */
     static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
 
+        // Ако контрагента няма държава, то дефолт валутата е BGN
+    	if(empty($rec->country)) return 'BGN';
+    	
         $cRec = drdata_Countries::fetch($rec->country);
 
         if($cRec->letterCode2 == 'BG') {

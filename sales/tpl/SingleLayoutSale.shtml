@@ -86,7 +86,7 @@
 			    
 			                        <!--ET_BEGIN shipmentStoreId-->
 			                        <div>
-			                            |От склад|*: <b>[#shipmentStoreId#] </b>
+			                            |От склад|*: <b>[#shipmentStoreId#] <span style='margin-left:5px'>[#shipBtn#]</span></b>
 			                        </div>
 			                        <!--ET_END shipmentStoreId-->
 			                             
@@ -113,7 +113,7 @@
 			                        
 			                        <!--ET_BEGIN caseId-->
 			                        <hr/>
-			                        <div>|Каса|*: <b>[#caseId#]</b></div>
+			                        <div>|Каса|*: <b>[#caseId#]</b> <span style='margin-left:5px'>[#caseBtn#]</span></div>
 			                        <!--ET_END caseId-->
 			                    </td>
 			       

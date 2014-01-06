@@ -83,7 +83,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
         
         // Ако няма поне едно поле key във формата
         if(!count($form->selectFields("#key"))){ 
-        	$msg = tr('Неможе да се добави документ в папка, защото възможните списъци за избор са празни');
+        	$msg = tr('Не може да се добави документ в папка, защото възможните списъци за избор са празни');
         	return Redirect(core_Message::getErrorUrl($msg, 'page_Error'));
         }
         
@@ -215,7 +215,13 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		}
     		}
     	}
-    	
+
+    	// Ако няма избран нито един обект, се показва грешка
+		if(!$selectedField){
+    		$form->setError(',', 'Не е избрана папка');
+    		return;
+    	}
+
     	// Ако има избран повече от един обект, се показва грешка
     	if(count($errFields)){
     		array_unshift($errFields, $selectedField);

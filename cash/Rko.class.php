@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cash
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -171,7 +171,7 @@ class cash_Rko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -533,10 +533,12 @@ class cash_Rko extends core_Master
     
         /* @var $result bgerp_iface_DealResponse */
         $result = new bgerp_iface_DealResponse();
+    	
+        // При продажба платеното се намалява, ако е покупка се увеличава
+        $origin = static::getOrigin($rec);
+        $sign = ($origin->className == 'purchase_Purchases') ? 1 : -1;
     
-        $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-    
-        $result->paid->amount          = -($rec->amount * $rec->rate);
+        $result->paid->amount          = $sign * $rec->amount * $rec->rate;
         $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
@@ -576,7 +578,7 @@ class cash_Rko extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашият разходен касов ордер") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашия разходен касов ордер") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }

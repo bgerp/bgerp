@@ -19,7 +19,7 @@ class bank_DepositSlips extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
    
     
     /**
@@ -248,7 +248,7 @@ class bank_DepositSlips extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	return $firstDoc->className == 'bank_IncomeDocument' || $firstDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_SpendingDocuments';
     }
     
     

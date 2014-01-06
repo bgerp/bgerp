@@ -2,7 +2,7 @@
 /**
  * Клас 'sales_Services'
  *
- * Мениджър на Протоколи за доставка на услуги
+ * Мениджър на Протокол за извършени услуги
  *
  *
  * @category  bgerp
@@ -17,7 +17,7 @@ class sales_Services extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Протоколи за доставка на услуги';
+    public $title = 'Протоколи за извършени услуги';
 
 
     /**
@@ -110,7 +110,7 @@ class sales_Services extends core_Master
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Протокол за доставка на услуги';
+    public $singleTitle = 'Протокол за извършени услуги';
     
     
     /**
@@ -135,6 +135,12 @@ class sales_Services extends core_Master
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'locationId, vehicleId, note';
     
     
     /**
@@ -193,7 +199,7 @@ class sales_Services extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amount = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amount -= $rec->_total->discount;
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
@@ -336,8 +342,7 @@ class sales_Services extends core_Master
         // Задаване на стойности на полетата на формата по подразбиране
         $form = &$data->form;
         $rec  = &$form->rec;
-        
-        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+        $form->setDefault('valior', dt::now());
         
         if (empty($rec->folderId)) {
             expect($rec->folderId = core_Request::get('folderId', 'key(mvc=doc_Folders)'));
@@ -370,17 +375,6 @@ class sales_Services extends core_Master
             $form->rec->locationId = $dealInfo->agreed->delivery->location;
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
-            
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
         }
     }
     
@@ -634,7 +628,7 @@ class sales_Services extends core_Master
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашият протокол за продажба на услуги") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашия протокол за продажба на услуги") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

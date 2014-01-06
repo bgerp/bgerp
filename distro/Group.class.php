@@ -538,4 +538,46 @@ class distro_Group extends core_Master
         // Записваме
         $mvc->save($rec);
     }
+    
+    
+    /**
+     * Връща масив с документите и файловете, които могат да се добавят
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    static function getFilesForAdd($id)
+    {
+        // Масива, който ще връщаме
+        $docAndFilesArr = array();
+        
+        // Вземаме записа
+        $rec = static::fetch($id);
+        
+        // Вземаме id'тата на всички документи от нишката
+        $allDocIdArr = doc_Containers::getAllDocIdFromThread($rec->threadId, 'active');
+        
+        // Премахваме id' то на този документ
+        unset($allDocIdArr[$rec->containerId]);
+        
+        // Обръщаме масива
+        $allDocIdArr = array_reverse($allDocIdArr);
+        
+        // Обхождаме масива
+        foreach ($allDocIdArr as $docId) {
+            
+            // Вземаме класа на документа
+            $class = doc_Containers::getDocument($docId);
+            
+            // Ако има съответния интерфейс
+            if (cls::haveInterface('distro_AddFilesIntf', $class->instance)) {
+                
+                // Вземаме всички файлове
+                $docAndFilesArr[$docId] = $class->instance->getFilesArr($class->that);
+            }
+        }
+        
+        return $docAndFilesArr;
+    }
 }

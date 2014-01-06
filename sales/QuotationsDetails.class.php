@@ -220,11 +220,11 @@ class sales_QuotationsDetails extends core_Detail {
 	    	
 	    	if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}")){
 	    		if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
-	    			$form->setError('optional', "Неможе да добавите продукта като опционален, защото фигурира вече като задължителен!");
+	    			$form->setError('optional', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
 	    			
 	    			return;
 	    		} elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
-	    			$form->setError('optional', "Неможе да добавите продукта като задължителен, защото фигурира вече като опционален!");
+	    			$form->setError('optional', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
 	    			
 	    			return;
 	    		}
@@ -258,7 +258,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	}
 	    	
 	    	if($rec->optional == 'no' && !$rec->quantity){
-	    		$form->setError('quantity', 'Задължителния продукт неможе да е без количество!');
+	    		$form->setError('quantity', 'Задължителния продукт не може да е без количество!');
 	    	}
     	}
     }

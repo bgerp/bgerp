@@ -898,22 +898,50 @@ class cal_Tasks extends core_Master
 				    	"#7d6e23", 
 				    	"#33757d",
 				    	"#211b7d", 
-				    	"#72147d",
-				    	"Violet",
-				    	"Green",
-				    	"DeepPink ",
-				    	"MediumVioletRed",
+				    	"#72142d",
+				    	"#EE82EE",
+				    	"#0080d0",
+				    	"#FF1493",
+				    	"#C71585",
 				    	"#0d777d",
-				    	"Indigo",
+				    	"#4B0082",
 				    	"#7d1c24",
-				    	"DarkSlateBlue",
+				    	"#483D8B",
 				    	"#7b237d", 
-				    	"DarkMagenta ",
-	    				"Pink",
-	    				"#c00",
-	    				"#0c0",
-	    				"#00c",
-	    				"#c0c",
+				    	"#8B008B",
+	    				"#FFC0CB",
+	    				"#cc0000",
+	    				"#00cc00",
+	    				"#0000cc",
+	    				"#cc00cc",
+		    			"#3366CC",
+		    			"#FF9999",
+		    			"#FF3300",
+		    			"#9999FF",
+		    			"#330033",
+		    			"#003300",
+		    			"#0000FF",
+		    			"#FFFF33",
+		    			"#66CDAA",
+		    			"#98FB98",
+		    			"#4169E1",
+		    			"#D2B48C",
+		    			"#9ACD32",
+		    			"#00FF7F",
+		    			"#4169E1",
+		    			"#EEE8AA",
+		    			"#9370DB",
+		    			"#3CB371",
+		    			"#FFB6C1",
+		    			"#DAA520",
+		    			"#483D8B",
+		    			"#8B0000",
+		    			"#00FFFF",
+		    			"#DC143C",
+		    			"#8A2BE2",
+		    			"#D2B48C",
+		    			"#3CB371",
+		    			"#AFEEEE",
     	                );
         if($data->recs){
     	    // за всеки едиин запис от базата данни
@@ -940,7 +968,7 @@ class cal_Tasks extends core_Master
     		                								'duration' => $timeDuration,  
     		                								'startTime'=> dt::mysql2timestamp($rec->timeStart))),
     		    		                
-    			    					'color' => $colors[$v % 22],
+    			    					'color' => $colors[$v % 50],
     			    					'hint' => $rec->title,
     			    					'url' => toUrl(array('doc_Containers', 'list' , 'threadId' => $rec->threadId)),
     		    						'progress' => $rec->progress
@@ -1381,7 +1409,7 @@ class cal_Tasks extends core_Master
 		    		$otherParams['startTime'] = dt::mysql2timestamp(date('Y-m-d H:i:s', strtotime('last Monday',mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]))));
 		    		
 	    		} else {
-	    			$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
+	    			$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]); 
 	    		}
 	    		
 	    		if(date("N", mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0])) != 7 ) {
@@ -1397,7 +1425,7 @@ class cal_Tasks extends core_Master
 	    		// кое време е сега?
 	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
-	    		$curDate = date('Y-m-d H:i:s', strtotime('last Monday', mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0])));
+	    		$curDate = date('Y-m-d H:i:s', $otherParams['startTime']);
 	    		$toDate = dt::addSecs(86399, date('Y-m-d H:i:s', strtotime('Sunday', mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]))));
 	          
 	    		// генерираме номерата на седмиците между началото и края
@@ -1406,10 +1434,15 @@ class cal_Tasks extends core_Master
 	    			$curDateExplode =  explode("-", $curDate);
 	    			$w = $curDateExplode[0];
 	    			
-	    			// годината
-	    		 	$res[$w]['mainHeader'] = $w;
-	    		 	// номера на седмицата
+	    			// ако 31.12 е ден до сряда, то 01 седмица ще се отбелязва в следващата година
+	    			if(date("W", dt::mysql2timestamp($curDate)) == 01 && date("N", mktime(23, 59, 59, 12, 31, $startExplode[0])) <= 3) {
+	    				$w = $w + 1;
+	    			} 
+	    			
+	    			$res[$w]['mainHeader'] = $w;
+	    			// номера на седмицата
 	    		 	$res[$w]['subHeader'][date("W", dt::mysql2timestamp($curDate))] = "&nbsp;" . date("W", dt::mysql2timestamp($curDate)) . "&nbsp;";
+	    		 	
 	    		 	// обикаляме по седмиците
 	    		 	$curDate = dt::addDays(7, $curDate);
 	    		}

@@ -136,7 +136,7 @@ class store_Transfers extends core_Master
         
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
+        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -236,8 +236,11 @@ class store_Transfers extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('valior', dt::today());
+        $data->form->setDefault('valior', dt::now());
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', FALSE));
+    	if(!trans_Lines::count("#state = 'active'")){
+        	$data->form->setField('lineId', 'input=none');
+        }
     }
     
     
@@ -348,13 +351,13 @@ class store_Transfers extends core_Master
         	// Ако артикула е вложим сметка 302 иначе 321
         	$accId = ($dRec->isConvertable == 'yes') ? '302' : '321';
         	$result->entries[] = array(
-        		 'debit'  => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+        		 'credit'  => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
                        array('store_Stores', $rec->fromStore), // Перо 1 - Склад
                        array($dRec->classId, $dRec->productId),  // Перо 2 - Артикул
                   'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
 	             ),
 	             
-                  'credit' => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+                  'debit' => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
                        array('store_Stores', $rec->toStore), // Перо 1 - Склад
                        array($dRec->classId, $dRec->productId),  // Перо 2 - Артикул
                   'quantity' => $dRec->quantity, // Количество продукт в основната му мярка

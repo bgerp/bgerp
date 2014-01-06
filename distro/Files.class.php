@@ -291,7 +291,7 @@ class distro_Files extends core_Detail
                                        'bucket' => $bucket,
                                        );
                 // Добавяме в действията
-                $mvc->actionWithFile['upladFile'] = $uploadFileArr;
+                $mvc->actionWithFile['uploadFile'] = $uploadFileArr;
             }
             
             // Ако създаваме нов запис
@@ -623,7 +623,7 @@ class distro_Files extends core_Detail
         }
         
         // Ако е зададен масива за качване на файл
-        if ($uploadFileaArr = $mvc->actionWithFile['upladFile']) {
+        if ($uploadFileaArr = $mvc->actionWithFile['uploadFile']) {
             
             // Обхождаме масива с хранилищата
             foreach ((array)$uploadFileaArr['reposArr'] as $repoId) {
@@ -1332,5 +1332,275 @@ class distro_Files extends core_Detail
         
         // Сетваме грешката
         static::log('Възникна грешка: ' . serialize($resArr), $id);
+    }
+    
+    
+    /**
+     * Екшън за добавяне на файлове в хранилищата от други документи
+     */
+    function act_addFiles()
+    {
+        // Права за работа с екшън-а
+        $this->requireRightFor('add');
+        
+        // Манипулатора на файла
+        $masterKey = Request::get($this->masterKey);
+        
+        // Ескеbp(йпваме манипулатора
+        $masterKey = $this->db->escape($masterKey);
+        
+        // Записа за съответния файл
+        $mRec = $this->Master->fetch($masterKey);
+        
+        // Очакваме да има такъв запис
+        expect($mRec, 'Няма такъв запис.');
+        
+        // Проверяваме за права сингъла
+        $this->Master->requireRightFor('single', $mRec);
+        
+        // Проверяваме права за добавяне
+        $this->Master->requireRightFor('add', $mRec);
+        
+        // Трябва да имаме достъп до сингъла на нишката
+        doc_Threads::requireRightFor('single', $mRec->threadId);
+        
+        //URL' то където ще се редиректва при отказ или след запис
+        $retUrl = getRetUrl();
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this->Master, 'single', $mRec->id));
+        
+        // Вземаме масива с хранилищата
+        $reposArr = $this->Master->getReposArr($mRec->id);
+        
+        // Вземамаме масива с документите и файловете в тях
+        $docAndFilesArr = $this->Master->getFilesForAdd($masterKey);
+        
+        // Ако флага не е вдигнат
+        expect($docAndFilesArr, 'Няма файлове');
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Брояч
+        $i = 0;
+        
+        // Обхождаме ги
+        foreach ($docAndFilesArr as $docId => $filesArr) {
+            
+            // Вземаем линка към сингъла на документа
+            $document = doc_Containers::getLinkForSingle($docId);
+            
+            // Обжодаме масива файлаове
+            foreach ((array)$filesArr as $fileHnd => $dummy) {
+                
+                // Всички хранилища
+                $sReposArr = $reposArr;
+                
+                // Ако файла е бил извлечен преди това, прескачаме
+                if ($fileHndArr[$fileHnd]) continue;
+                
+                // Добавяме в масива с извлечените файлове
+                $fileHndArr[$fileHnd] = $fileHnd;
+                
+                // Запис за файла
+                $fRec = fileman_Files::fetchByFh($fileHnd);
+                
+                // Премахваме хранилищата в които файла се използва
+                $sReposArr = static::removeUserRepos($reposArr, $mRec->id, $fileHnd);
+                
+                // Ако няма останали хранилища за предложения, прескачаме
+                if (!$sReposArr) continue;
+                
+                // Вдигаме флага
+                $haveSuggRepos = TRUE;
+                
+                // Увеличаваме брояча
+                $i++;
+                
+                // Добавяме линк към сингъла
+                $fileLink = fileman::getLinkToSingle($fileHnd);
+                
+                // Добаваме заглавието за полето
+//                $caption = '|*' . $document . '|->|*' . $fileLink . '|->Хранилище';
+                $caption = '|*' . $fileLink . '|->Хранилище';
+                
+                // Името на хранилището
+                $repoName = 'repo' . $i;
+                
+                // Добавяме в масива
+                $fncArr[$i] = $repoName;
+                
+                // Добавяме в масива за запис на файла
+                $fileHndFnc[$i] = $fRec;
+                
+                // Добаваме функционално поле
+                $form->FNC($repoName, cls::get(('type_Keylist'), array('suggestions' => $sReposArr)), 'input', array('caption' => $caption));
+            }
+        }
+        
+        // Ако няма файлове за покзване
+        if (!$haveSuggRepos) {
+            
+            // Добавяме статус съобщение
+            core_Statuses::add(tr('Няма други файлове за добавяне'));
+            
+            // Редиректваме
+            return new Redirect($retUrl);
+        }
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Въвеждаме съдържанието на полетата
+        $form->input($fncArr);
+        
+        // Ако формата е изпратена без грешки, показваме линка за сваляне
+        if($form->isSubmitted()) {
+            
+            // Вземаме заглавието/титлата на полето
+            $title = $this->Master->getGroupTitle($masterKey);
+            
+            // Обхождаме фунцкионалните полета
+            foreach ($fncArr as $i => $fncName) {
+                
+                // Ако няма избрани хранилища
+                if (!$form->rec->$fncName) continue;
+                
+                // Масив с избраните хранилища
+                $reposArrSave = type_Keylist::toArray($form->rec->$fncName);
+                
+                // Създаваме масив за добавяне от манипулатор на файл
+                $addFromFhArr = array('title' => $title,
+                					  'fileHnd' => $fileHndFnc[$i]->fileHnd,
+                                      'reposArr' => $reposArrSave,
+                                      'name' => $fileHndFnc[$i]->name);
+                
+                // Добавяме масива
+                $this->actionWithFile['addFromFh'] = $addFromFhArr;
+                
+                // Ако има запис за този файл
+                if ($rec = static::fetch(array("#groupId = '[#1#]' AND #name = '[#2#]' AND #sourceFh = '[#3#]'", $form->rec->groupId, $fileHndFnc[$i]->name, $fileHndFnc[$i]->fileHnd))) {
+                    
+                    // Добавяме избраните хранилища
+                    $rec->repos = type_Keylist::merge($rec->repos, $form->rec->$fncName);
+                } else {
+                    
+                    // Създаваме записа
+                    $rec = new stdClass();
+                    $rec->groupId = $form->rec->groupId;
+                    $rec->sourceFh = $fileHndFnc[$i]->fileHnd;
+                    $rec->name = $fileHndFnc[$i]->name;
+                    $rec->repos = $form->rec->$fncName;
+                }
+                
+                // Записваме промените
+                static::save($rec);
+            }
+            
+            // Редиректваме
+            return new Redirect($retUrl);
+        }
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = $fncArr;
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        
+        // Линк към сингъла на мастера
+        $groupName = doc_Containers::getLinkForSingle($mRec->containerId);
+        
+        // Добавяме титлата на формата
+        $form->title = "Добавяне на файл в|* {$groupName}";
+        
+        // Рендираме изгледа
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Премахваме хранилищата от масива, които ги има записани в модела към този запис
+     * 
+     * @param array $reposArr - Масив с хранилищата
+     * @param integer $groupId - id на групата
+     * @param string $fileHnd - Манипулатор на файла
+     * 
+     * @return array
+     */
+    static function removeUserRepos($reposArr, $groupId, $fileHnd)
+    {
+        // Запис за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Ако има файл със същото име в групата
+        $rRepos = static::fetchField(array("#groupId = '[#1#]' AND #name = '[#2#]'", $groupId, $fRec->name), 'repos');
+        
+        // Ако има хранилища
+        if ($rRepos) {
+            
+            // Масив с хранилищата, в които се намира файла
+            $rReposArr = type_Keylist::toArray($rRepos);
+            
+            // Обхождаме масива
+            foreach ($rReposArr as $repoId) {
+                
+                // Премахваме от предложенията
+                unset($reposArr[$repoId]);
+            }
+        }
+        
+        return $reposArr;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        // Ако има права за добавяне и ако има файлове за добавяне
+        if (($mvc->Master->haveRightFor('add', $data->masterData->rec->id)) && 
+            ($filesAndDocArr = $mvc->Master->getFilesForAdd($data->masterData->rec->id))) {
+            
+            // Вземаме масива с хранилищата
+            $reposArr = $mvc->Master->getReposArr($data->masterData->rec->id);
+            
+            // Обхождаме всички документи и файлоаве
+            foreach (($filesAndDocArr) as $docId => $filesArr) {
+                
+                // Ако флага е вдигнат, прекъсваме цикъла
+                if ($flag) break;
+                
+                // Обхождаме всички файлове
+                foreach ($filesArr as $fileHnd => $dummy) {
+                    
+                    // Премахваме всички хранилища, в които се намира файла
+                    $sReposArr = static::removeUserRepos($reposArr, $data->masterData->rec->id, $fileHnd);
+                        
+                    // Ако е масив и има хранилища
+                    if (is_array($sReposArr) && count($sReposArr)) {
+                        
+                        // Вдигаме флага
+                        $flag = TRUE;
+                        
+                        // Прекъсваме цикъла
+                        break;
+                    }
+                }
+            }
+            
+            // Ако флага е вдигнат
+            if ($flag) {
+                
+                // Добавяме бутона
+                $data->toolbar->addBtn('Добави', array(
+                        $mvc,
+                        'addFiles',
+                        $mvc->masterKey => $data->masterData->rec->id,
+                        'ret_url' => TRUE
+                    ),
+                    'id=btnFiles', 'ef_icon = img/16/attach_2.png, title=Добавяне на файлове');
+            }
+        }
     }
 }

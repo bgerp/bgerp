@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -152,7 +152,6 @@ class sales_Sales extends core_Master
     	'makeInvoice'        => 'lastDocUser|lastDoc|defMethod',
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'initiatorId'        => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     );
     
@@ -161,6 +160,13 @@ class sales_Sales extends core_Master
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId,
+    					 initiatorId, dealerId';
     
     
     /**
@@ -184,10 +190,10 @@ class sales_Sales extends core_Master
         
         // Доставка
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTerm');
-        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Обект до,silent'); // обект, където да бъде доставено (allowEmpty)
+        $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
-        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 'input, maxRadio=2, columns=2, caption=Доставка->Документ');
+        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 'input=none,notNull,default=no');
         
         // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethod');
@@ -195,11 +201,11 @@ class sales_Sales extends core_Master
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input,maxRadio=2, columns=2, caption=Плащане->Документ');
+        $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input=none,notNull,default=no');
         
         // Наш персонал
-        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales)', 'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(rolesForAll=sales,allowEmpty)', 'caption=Наш персонал->Търговец');
+        $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор');
+        $this->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
@@ -241,7 +247,7 @@ class sales_Sales extends core_Master
         price_Helper::fillRecs($recs, $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amountDeal -= $rec->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
@@ -362,20 +368,6 @@ class sales_Sales extends core_Master
         self::setDefaultsFromOrigin($mvc, $form);
         self::setDefaults($mvc, $form);
         
-        // Ако създаваме нов запис и то базиран на предхождащ документ ...
-        if (empty($form->rec->id) && !empty($form->rec->originId)) {
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
-        }
-        
         if ($form->rec->id){
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
@@ -393,6 +385,16 @@ class sales_Sales extends core_Master
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
         
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
+    	
+        // Ако плащането или експедирането е на момента се забранява промяна на някои полета
+        if($form->rec->isInstantShipment == 'yes'){
+    		$form->setReadOnly('shipmentStoreId');
+    	}
+    	
+    	if($form->rec->isInstantPayment == 'yes'){
+    		$form->setReadOnly('caseId');
+    		$form->setReadOnly('paymentMethodId');
+    	}
     }
     
     
@@ -439,25 +441,6 @@ class sales_Sales extends core_Master
 	        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 	        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         }
-        
-    	// Моментни експедиция и плащане по подразбиране
-    	if(empty($form->rec->isInstantShipment)){
-	    	if(!$storeId = store_Stores::getCurrent('id', FALSE)){
-		        $form->setField('isInstantShipment', 'input=hidden');
-		        $form->rec->isInstantShipment = 'no';
-		    } else {
-		        $form->rec->isInstantShipment = ($form->rec->shipmentStoreId == $storeId) ? 'yes' : 'no';
-		    }
-    	}
-
-    	if(empty($form->rec->isInstantPayment)){
-	    	if(!$caseId = cash_Cases::getCurrent('id', FALSE)){
-		        $form->setField('isInstantPayment', 'input=hidden');
-		        $form->rec->isInstantPayment = 'no';
-		    } else {
-		        $form->rec->isInstantPayment = ($form->rec->caseId == $caseId) ? 'yes' : 'no';
-		    }
-    	}
 	        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
@@ -470,7 +453,7 @@ class sales_Sales extends core_Master
         // Начисляване на ДДС по подразбиране
         $contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
         $form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ?
-                'yes' : 'no'
+                'yes' : 'export'
         );
     }
 
@@ -555,29 +538,11 @@ class sales_Sales extends core_Master
         if (empty($rec->currencyRate)) {
             $rec->currencyRate = 
                 currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+        } else {
+        	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+		    	$form->setWarning('currencyRate', $msg);
+			}
         }
-
-        $cu = core_Users::getCurrent();
-        if ($rec->isInstantShipment == 'yes') {
-        	if(empty($rec->shipmentStoreId)){
-        		
-        		$form->setError('shipmentStoreId', 'Не е избран склад');
-        	} elseif(store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') != $cu) {
-        		
-        		$form->setError('isInstantShipment', 'Само отговорика на склада може да експедира на момента от него');
-        	}
-        }
-
-        if ($rec->isInstantPayment == 'yes') {
-            if(empty($rec->caseId)){
-            	
-            	$form->setError('caseId', 'Не е избрана каса');
-            } elseif(cash_Cases::fetchField($rec->caseId, 'cashier') != $cu){
-            	
-            	$form->setError('isInstantPayment', 'Само отговорика на касата може да приема плащане на момента');
-            }
-        }
-        
         $form->rec->paymentState = 'pending';
     }
     
@@ -610,11 +575,11 @@ class sales_Sales extends core_Master
 	    if($fields['-single']){
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	if ($rec->isInstantPayment == 'yes') {
-	            $row->caseId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
+	            $row->caseId .= ' <span style="color:#060">(' . tr('платено') . ')</span>';
 	        }
 	        
 	        if ($rec->isInstantShipment == 'yes') {
-	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('на момента') . ')</span>';
+	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('експедирано') . ')</span>';
 	        }
 	        
 		    $mvc->prepareHeaderInfo($row, $rec);
@@ -712,29 +677,29 @@ class sales_Sales extends core_Master
 	    	
     		// Ако доставеното - платеното е точно
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте, че искате да приключите сделката?,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте, че искате да приключите сделката?,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
 	    	
     		// Ако протокол може да се добавя към треда и не се експедира на момента
-    		if ($rec->isInstantShipment == 'no'  && sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
+    		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искате ли да създадете нов Протокол за доставка на услуги?');
+	            $data->toolbar->addBtn('Изпълнение', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
-	    	if ($rec->isInstantShipment == 'no'  && store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
+	    	if (store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21,warning=Искате ли да създадете ново Експедиционно нареждане?');
+	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	    	if($rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искате ли да създадете нова фактура?');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
     	}
     	
     	if(haveRole('debug')){
-            $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+            $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
     }
     
@@ -749,6 +714,39 @@ class sales_Sales extends core_Master
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     	}
+    	
+    	if($rec->state == 'draft'){
+    		$caseId = cash_Cases::getCurrent('id', FALSE);
+    		if($rec->isInstantPayment == 'no'){
+    			if(cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
+    				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?', FALSE, array('style' => 'padding:3px;'));
+    			}
+    		}
+    		
+    		$storeId = store_Stores::getCurrent('id', FALSE);
+    		if($rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
+    			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
+    		}
+	    }
+    }
+    
+    
+    /**
+     * Екшън отбелязващ че документа контира плащане и експедиране
+     */
+    function act_SetMode()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($type = Request::get('type', 'enum(pay,ship)'));
+    	expect($rec = static::fetch($id));
+    	expect($rec->state == 'draft');
+    	$field = ($type == 'pay') ? 'isInstantPayment' : 'isInstantShipment';
+    	expect($rec->$field == 'no');
+    	
+    	$rec->$field = 'yes';
+    	$this->save($rec);
+    	
+    	return Redirect(array($this, 'single', $id), FALSE, 'Продажбата вече контира и плащане');
     }
     
     

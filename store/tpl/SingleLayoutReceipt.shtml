@@ -100,9 +100,13 @@
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
+                    
+                    <!--ET_BEGIN middleCell-->
+                    [#middleCell#]
                     <td class="topCell" valign="top" width="30%">
                     </td>
-       
+                    <!--ET_END middleCell-->
+                    
                     <td class="topCell" align="right" valign="top">
                         [#SUMMARY#]
                     </td>

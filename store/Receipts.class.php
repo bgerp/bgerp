@@ -138,6 +138,12 @@ class store_Receipts extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -159,7 +165,7 @@ class store_Receipts extends core_Master
         // Доставка
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект от,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транс. линия');
+        $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -203,7 +209,7 @@ class store_Receipts extends core_Master
     	$rec->volume = $measures->volume;
         
         // ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amount = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amount = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amount -= $rec->_total->discount;
         $rec->amountDelivered = $amount * $rec->currencyRate;
         $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
@@ -354,10 +360,13 @@ class store_Receipts extends core_Master
         $form = &$data->form;
         $rec  = &$form->rec;
         
-        $form->setDefault('valior', dt::mysql2verbal(dt::now(FALSE)));
+        $form->setDefault('valior', dt::now());
         $form->setDefault('storeId', store_Stores::getCurrent('id', FALSE));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
+    	if(!trans_Lines::count("#state = 'active'")){
+        	$form->setField('lineId', 'input=none');
+        }
         
         // Поле за избор на локация - само локациите на контрагента по покупката
         $form->getField('locationId')->type->options = 
@@ -379,17 +388,6 @@ class store_Receipts extends core_Master
             $form->rec->deliveryTime = $dealInfo->agreed->delivery->time;
             $form->rec->chargeVat = $dealInfo->agreed->vatType;
             $form->rec->storeId = $dealInfo->agreed->delivery->storeId;
-            
-            // ... и стойностите по подразбиране са достатъчни за валидиране
-            // на формата, не показваме форма изобщо, а направо създаваме записа с изчислените
-            // ст-сти по подразбиране. За потребителя си остава възможността да промени каквото
-            // е нужно в последствие.
-            
-            if ($mvc->validate($form)) {
-                if (self::save($form->rec)) {
-                    redirect(array($mvc, 'single', $form->rec->id));
-                }
-            }
         }
     }
     

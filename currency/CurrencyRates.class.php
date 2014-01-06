@@ -400,7 +400,8 @@ class currency_CurrencyRates extends core_Detail
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
      * @param string $то - код към коя валута
-     * @return boolean TRUE/FALSE
+     * @return mixed FALSE - ако няма отколонение
+     * 				 $msg  - 'предупреждението за съответствие'
      */
     public static function hasDeviation($givenRate, $date, $from, $to)
     {
@@ -410,8 +411,9 @@ class currency_CurrencyRates extends core_Detail
     	
     	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
     	if($difference > $percent) {
-		    return FALSE;
-		} 
-		return TRUE;
+		    return 'Въведения курс е много различен от текущия';
+		}
+		 
+		return FALSE;
     }
 }

@@ -19,7 +19,7 @@ class bank_PaymentOrders extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
    
     
     /**
@@ -184,7 +184,7 @@ class bank_PaymentOrders extends core_Master
     		$myCompany = crm_Companies::fetchOwnCompany();
     		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId, $rec->contragentClassId);
     		
-    		if($doc->className == 'bank_IncomeDocument') {
+    		if($doc->className == 'bank_IncomeDocuments') {
     			
     			// Ако оригиналния документ е приходен, наредителя е контрагента
     			// а получателя е моята фирма
@@ -194,7 +194,7 @@ class bank_PaymentOrders extends core_Master
     			$form->setDefault('orderer', $rec->contragentName);
     			$form->setSuggestions('ordererIban', $contragentIbans);
     		
-    		} elseif($doc->className == 'bank_CostDocument') {
+    		} elseif($doc->className == 'bank_SpendingDocuments') {
     			
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
     			// а получателя е контрагента
@@ -266,7 +266,7 @@ class bank_PaymentOrders extends core_Master
 	 	
 	 	if(Mode::is('printing')){
 	 		
-		 	if($data->row->originClassId == 'bank_IncomeDocument') {
+		 	if($data->row->originClassId == 'bank_IncomeDocuments') {
 		 		
 		 		// скриваме логото на моята фирма
 		 		$tpl->replace('','blank');
@@ -331,7 +331,7 @@ class bank_PaymentOrders extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
             	
-    	return $firstDoc->className == 'bank_IncomeDocument' || $firstDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_SpendingDocuments';
     }
     
     
@@ -378,4 +378,5 @@ class bank_PaymentOrders extends core_Master
     		$tpl->removeBlock('header');
     	}
     }
+
 }

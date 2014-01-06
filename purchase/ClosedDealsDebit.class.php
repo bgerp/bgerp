@@ -1,73 +1,73 @@
 <?php
 /**
- * Клас 'sales_ClosedDealsDebit'
- * Клас с който се приключва една продажба, контират се извънредните
+ * Клас 'purchase_ClosedDealsDebit'
+ * Клас с който се приключва една покупка, контират се извънредните
  * приходи.
  * 
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_ClosedDealsDebit extends acc_ClosedDeals
+class purchase_ClosedDealsDebit extends acc_ClosedDeals
 {
     /**
      * Заглавие
      */
-    public $title = 'Приключване на продажба с изв. приход';
+    public $title = 'Приключване на покупки с изв. приход';
     
     
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRead = 'ceo,purchase';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools,
+    public $loadList = 'purchase_Wrapper, acc_plg_Contable, plg_RowTools,
                     doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales';
+    public $canEdit = 'ceo,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,purchase';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,purchase';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,purchase';
     
 	
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Приключване на продажба с изв. приход';
+    public $singleTitle = 'Приключване на покупка с изв. приход';
    
     
     /**
@@ -83,14 +83,8 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     
     
     /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = '';
-    
-    
-    /**
      * В какъв тред може да се добавя документа
-     * Трябва да е продажба и разликата на платеното
+     * Трябва да е покупка и разликата на платеното
      * и експедираното да е отрицателна
      */
     static function canAddToThread($threadId)
@@ -99,10 +93,10 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     	if($res){
     		$firstDoc = doc_Threads::getFirstDocument($threadId);
     		$info = static::getDealInfo($firstDoc);
-    		$res = $info->dealType == bgerp_iface_DealResponse::TYPE_SALE;
+    		$res = $info->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE;
     		if($res){
 	    		$amount = static::getClosedDealAmount($firstDoc);
-	    		if($amount <= 0){
+	    		if($amount >= 0){
 	    			
 	    			return FALSE;
 	    		}
@@ -138,12 +132,12 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     	
     	$result->entries[] = array(
     		'amount' => $result->totalAmount,
-            'debit'  => array('411', 
+            'debit'  => array('401', 
                         array($docRec->contragentClassId, $docRec->contragentId), 
                         array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
                        'quantity' => $result->totalAmount,
                       ), 
-        	'credit' => array('7911', 'quantity' => $result->totalAmount));
+        	'credit' => array('7912', 'quantity' => $result->totalAmount));
        
         return $result;
     }
@@ -156,7 +150,7 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     public function getDocumentRow($id)
     {
     	$row = parent::getDocumentRow($id);
-    	$title = "Приключване на продажба {$row->saleId} с изв. приход";
+    	$title = "Приключване на покупка {$row->saleId} с изв. приход";
     	$row->title = $title;
     	$row->recTitle = $title;
     	
@@ -171,22 +165,10 @@ class sales_ClosedDealsDebit extends acc_ClosedDeals
     {
     	if($action == 'conto' && isset($rec)){
     		$amount = static::getClosedDealAmount($rec->threadId);
-    		if($amount < 0){
+    		
+    		if($amount > 0){
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на имейл по подразбиране
-     */
-    static function getDefaultEmailBody($id)
-    {
-        $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата продажба с изв. приход") . ': #[#handle#]');
-        $tpl->append($handle, 'handle');
-        return $tpl->getContent();
     }
 }

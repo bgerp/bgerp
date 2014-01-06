@@ -2,13 +2,13 @@
 
 
 /**
- * Документ за Нареждане Разписки
+ * Документ за Нареждане разписки
  *
  *
  * @category  bgerp
  * @package   bank
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -292,7 +292,7 @@ class bank_CashWithdrawOrders extends core_Master
     {
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
-    	return $firstDoc->className == 'bank_IncomeDocument' || $firstDoc->className == 'bank_CostDocument';
+    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_SpendingDocuments';
     }
     
     

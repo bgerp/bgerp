@@ -117,6 +117,13 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
+    					 currencyId, bankAccountId, caseId, dealerId';
+    
+    
+    /**
      * Полета свързани с цени
      */
     public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
@@ -183,7 +190,10 @@ class purchase_Purchases extends core_Master
     	$this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
-    	$this->FLD('state','enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
+    	$this->FLD('state', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
+            'caption=Статус, input=none'
+        );
     }
     
     
@@ -249,8 +259,12 @@ class purchase_Purchases extends core_Master
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	if($form->isSubmitted()){
-	    	if(!$form->rec->currencyRate){
+	    	if(empty($form->rec->currencyRate)){
 				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
+			} else {
+				if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+			    	$form->setWarning('currencyRate', $msg);
+				}
 			}
     	}
     }
@@ -265,17 +279,17 @@ class purchase_Purchases extends core_Master
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключи', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
     		
 	    	if (store_Receipts::haveRightFor('add') && store_Receipts::canAddToThread($data->rec->threadId)) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21,warning=Искате ли да създадете нова Складова разписка ?');
+	            $data->toolbar->addBtn('Засклаждане', $receiptUrl, 'ef_icon = img/16/star_2.png,title=Засклаждане на артикулите в склада,order=9.21');
 	        }
 	    	
     		if(store_Receipts::haveRightFor('add') && purchase_Services::canAddToThread($data->rec->threadId)) {
     			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
-	            $data->toolbar->addBtn('Услуга', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22,warning=Искате ли да създадете нов протокол за покупка на услуги ?');
+	            $data->toolbar->addBtn('Приемане', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
     	}
     	
@@ -644,7 +658,7 @@ class purchase_Purchases extends core_Master
         price_Helper::fillRecs($query->fetchAll(), $rec);
         
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'no') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
+        $amountDeal = ($rec->chargeVat == 'separate') ? $rec->_total->amount + $rec->_total->vat : $rec->_total->amount;
         $amountDeal -= $rec->_total->discount;
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
         $rec->amountVat  = $rec->_total->vat * $rec->currencyRate;
@@ -721,5 +735,18 @@ class purchase_Purchases extends core_Master
         }
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на имейл по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата покупка") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        return $tpl->getContent();
     }
 }

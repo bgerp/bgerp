@@ -169,12 +169,12 @@ class sales_Invoices extends core_Master
     function description()
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('place', 'varchar(64)', 'caption=Място, mandatory');
+        $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory');
-        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник');
+        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
+        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
         $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
         $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
         $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
@@ -191,7 +191,7 @@ class sales_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС %,input=hidden');
+        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
@@ -309,7 +309,7 @@ class sales_Invoices extends core_Master
         
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $form->rec->contragentName = $coverClass::getTitleById($coverId);
+        $form->rec->contragentName = $coverClass::fetchField($coverId, 'name');
         
         $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
         if($className == 'crm_Persons'){
@@ -374,8 +374,8 @@ class sales_Invoices extends core_Master
         		$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
         	}
         
-    		if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-		    	$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
+    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
+		    	$form->setWarning('rate', $msg);
 			}
 		    	
         	$Vats = cls::get('drdata_Vats');
@@ -554,6 +554,20 @@ class sales_Invoices extends core_Master
             $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
+        
+        if(empty($rec->place) && $rec->state == 'active'){
+        	$inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
+        	$inChargeRec = crm_Profiles::getProfile($inCharge);
+        	$myCompany = crm_Companies::fetchOwnCompany();
+        	$place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
+        	$countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
+        	
+        	$rec->place = $place;
+        	if($rec->contragentCountryId != $countryId){
+        		$cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+        		$rec->place .= (($place) ? ", " : "") . $cCountry;
+        	}
+        }
     }
     
     
@@ -628,7 +642,7 @@ class sales_Invoices extends core_Master
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
-    	
+    		
     		$mvc->prepareMyCompanyInfo($row);
 		}
     }
@@ -698,6 +712,11 @@ class sales_Invoices extends core_Master
 			    	$data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " <b>{$pValue}</b>" : $pValue;
 			    }
 		    }
+    	}
+    	
+    	$myCompany = crm_Companies::fetchOwnCompany();
+    	if($rec->contragentCountryId != $myCompany->countryId){
+    		$data->row->place = str::utf2ascii($data->row->place);
     	}
     }
     

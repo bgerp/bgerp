@@ -21,7 +21,7 @@
                 <tr>
                     <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|ПРОТОКОЛ|*<br /><span style='font-size:12pt;'>|ЗА ПОКУПКА НА УСЛУГИ|*</span></b> </font><br>
+                        <font style="font-size:16pt;"><b>|ПРИЕМАТЕЛЕН|*<br /><span style='font-size:12pt;'>|ПРОТОКОЛ ЗА УСЛУГИ|*</span></b> </font><br>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
@@ -62,6 +62,8 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
+                    <!--ET_BEGIN deliveryInfo-->
+                    [#deliveryInfo#]
                     <td class="topCell first" valign="top">
                         <!--ET_BEGIN deliveryTime-->
                         <div>
@@ -86,6 +88,7 @@
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
+                     <!--ET_END deliveryInfo-->
                     <td class="topCell" valign="top">
                     <!--ET_BEGIN currencyId-->
 			             <div>|Валута|*:  <b>[#currencyId#]</b></div>

@@ -24,7 +24,7 @@ class bank_Wrapper extends plg_ProtoWrapper
     {
        $this->TAB('bank_Accounts', 'Всички сметки', 'ceo, bank');
        $this->TAB('bank_OwnAccounts', 'Наши сметки', 'ceo, bank');
-       $this->TAB('bank_IncomeDocument', 'Документи', 'ceo, bank');
+       $this->TAB('bank_IncomeDocuments', 'Документи', 'ceo, bank');
        $this->TAB('bank_PaymentOrders', 'Бланки', 'ceo, bank');
        $this->TAB(array('acc_OpenDeals', 'list', 'show' => 'bank'), 'Сделки', 'bank, ceo');
        

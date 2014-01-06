@@ -177,15 +177,15 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,width=8em,salecondSysId=deliveryTerm');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,width=10em,hint=Изберете локация или въведете нова');
         
-		$this->FLD('company', 'varchar', 'caption=Адресант->Фирма, changable');
-        $this->FLD('person', 'varchar', 'caption=Адресант->Лице, changable');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл, changable');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел., changable');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, changable');
-        $this->FLD('pCode', 'varchar', 'caption=Адресант->П. код, changable');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, changable');
+		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
+        $this->FLD('person', 'varchar', 'caption=Получател->Лице, changable, class=contactData');
+        $this->FLD('email', 'varchar', 'caption=Получател->Имейл, changable, class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Получател->Тел., changable, class=contactData');
+        $this->FLD('fax', 'varchar', 'caption=Получател->Факс, changable, class=contactData');
+        $this->FLD('country', 'varchar', 'caption=Получател->Държава, changable, class=contactData');
+        $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
+        $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
     	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
     	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
     	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
@@ -275,9 +275,8 @@ class sales_Quotations extends core_Master
 			    $rec->currencyRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
 			}
 		
-	    	if(!currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
-			    $form->setWarning('currencyRate', 'Изходната сума има голяма разлика спрямо очакваното.
-			    					  Сигурни ли сте че искате да запишете документа');
+	    	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
+			    $form->setWarning('rate', $msg);
 			}
 		}
     }

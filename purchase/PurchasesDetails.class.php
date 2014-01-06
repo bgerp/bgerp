@@ -294,6 +294,10 @@ class purchase_PurchasesDetails extends core_Detail
         	// Извличане на информация за продукта - количество в опаковка, единична цена
             $rec = &$form->rec;
 
+    		if($rec->packQuantity == 0){
+    			$form->setError('packQuantity', 'Количеството не може да е "0"');
+    		}
+    		
             $masterRec  = purchase_Purchases::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
