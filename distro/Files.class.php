@@ -1380,14 +1380,8 @@ class distro_Files extends core_Detail
         // Вземаме формата към този модел
         $form = $this->getForm();
         
-        // Брояч
-        $i = 0;
-        
         // Обхождаме ги
         foreach ($docAndFilesArr as $docId => $filesArr) {
-            
-            // Вземаем линка към сингъла на документа
-            $document = doc_Containers::getLinkForSingle($docId);
             
             // Обжодаме масива файлаове
             foreach ((array)$filesArr as $fileHnd => $dummy) {
@@ -1410,30 +1404,18 @@ class distro_Files extends core_Detail
                 // Ако няма останали хранилища за предложения, прескачаме
                 if (!$sReposArr) continue;
                 
+                // Обхождаме масива с всички останали хранилища
+                foreach ($sReposArr as $repoId => $repoName) {
+                    
+                    // Ако сме добавили същия файл
+                    if ($filesInReposArr[$repoId][$fileHnd]) continue;
+                    
+                    // Добавяме линк към хранилището и файла
+                    $filesInReposArr[$repoId][$fileHnd] = fileman::getLinkToSingle($fileHnd)->getContent();
+                }
+                
                 // Вдигаме флага
                 $haveSuggRepos = TRUE;
-                
-                // Увеличаваме брояча
-                $i++;
-                
-                // Добавяме линк към сингъла
-                $fileLink = fileman::getLinkToSingle($fileHnd);
-                
-                // Добаваме заглавието за полето
-//                $caption = '|*' . $document . '|->|*' . $fileLink . '|->Хранилище';
-                $caption = '|*' . $fileLink . '|->Хранилище';
-                
-                // Името на хранилището
-                $repoName = 'repo' . $i;
-                
-                // Добавяме в масива
-                $fncArr[$i] = $repoName;
-                
-                // Добавяме в масива за запис на файла
-                $fileHndFnc[$i] = $fRec;
-                
-                // Добаваме функционално поле
-                $form->FNC($repoName, cls::get(('type_Keylist'), array('suggestions' => $sReposArr)), 'input', array('caption' => $caption));
             }
         }
         
@@ -1447,49 +1429,83 @@ class distro_Files extends core_Detail
             return new Redirect($retUrl);
         }
         
+        // Обхощдаме всички хранилища
+        foreach ((array)$filesInReposArr as $repoId => $fileArr) {
+            
+            // Името на хранилището
+            $repoName = 'repo' . $repoId;
+            
+            // Добавяме в масива за имената на функционалните полета
+            $repoFncArr[$repoId] = $repoName;
+            
+            // Линк към сингъла на хранилището
+            $link = fileman_Repositories::getLinkToSingle($repoId);
+            
+            // Добавяме функционалните полета
+            $form->FNC($repoName, cls::get(('type_Set'), array('suggestions' => $fileArr)),
+            		'input, hint=Добавяне на файл в хранилище', array('caption' => '|*' . $link));
+        }
+        
         // Въвеждаме id-то (и евентуално други silent параметри, ако има)
         $form->input(NULL, 'silent');
         
         // Въвеждаме съдържанието на полетата
-        $form->input($fncArr);
+        $form->input($repoFncArr);
         
-        // Ако формата е изпратена без грешки, показваме линка за сваляне
+        // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
             // Вземаме заглавието/титлата на полето
             $title = $this->Master->getGroupTitle($masterKey);
             
             // Обхождаме фунцкионалните полета
-            foreach ($fncArr as $i => $fncName) {
+            foreach ($repoFncArr as $repoId => $fncName) {
                 
-                // Ако няма избрани хранилища
+                // Ако няма избрани файлове, прескачаме
                 if (!$form->rec->$fncName) continue;
                 
-                // Масив с избраните хранилища
-                $reposArrSave = type_Keylist::toArray($form->rec->$fncName);
+                // Масив с избраните файлове в това хранилище
+                $rFilesArr = type_Set::toArray($form->rec->$fncName);
+                
+                // Обхождаме масива
+                foreach ($rFilesArr as $fileHnd) {
+                    
+                    // Добавяме в масива с файлове и хранилищата
+                    $filesArrToSave[$fileHnd][$repoId] = $repoId;
+                }
+            }
+            
+            // Обхождаме масива с файлове и хранилищата
+            foreach ($filesArrToSave as $fileHnd => $reposArrSave) {
+                
+                // Вземаме записа за файла
+                $fRec = fileman_Files::fetchByFh($fileHnd);
                 
                 // Създаваме масив за добавяне от манипулатор на файл
                 $addFromFhArr = array('title' => $title,
-                					  'fileHnd' => $fileHndFnc[$i]->fileHnd,
+                					  'fileHnd' => $fRec->fileHnd,
                                       'reposArr' => $reposArrSave,
-                                      'name' => $fileHndFnc[$i]->name);
+                                      'name' => $fRec->name);
                 
                 // Добавяме масива
                 $this->actionWithFile['addFromFh'] = $addFromFhArr;
                 
+                // Преобразуваме масива в keylist
+                $kRepos = type_Keylist::fromArray($reposArrSave);
+                
                 // Ако има запис за този файл
-                if ($rec = static::fetch(array("#groupId = '[#1#]' AND #name = '[#2#]' AND #sourceFh = '[#3#]'", $form->rec->groupId, $fileHndFnc[$i]->name, $fileHndFnc[$i]->fileHnd))) {
+                if ($rec = static::fetch(array("#groupId = '[#1#]' AND #name = '[#2#]' AND #sourceFh = '[#3#]'", $form->rec->groupId, $fRec->name, $fRec->fileHnd))) {
                     
                     // Добавяме избраните хранилища
-                    $rec->repos = type_Keylist::merge($rec->repos, $form->rec->$fncName);
+                    $rec->repos = type_Keylist::merge($rec->repos, $kRepos);
                 } else {
                     
                     // Създаваме записа
                     $rec = new stdClass();
                     $rec->groupId = $form->rec->groupId;
-                    $rec->sourceFh = $fileHndFnc[$i]->fileHnd;
-                    $rec->name = $fileHndFnc[$i]->name;
-                    $rec->repos = $form->rec->$fncName;
+                    $rec->sourceFh = $fRec->fileHnd;
+                    $rec->name = $fRec->name;
+                    $rec->repos = $kRepos;
                 }
                 
                 // Записваме промените
@@ -1501,7 +1517,7 @@ class distro_Files extends core_Detail
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = $fncArr;
+        $form->showFields = $repoFncArr;
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
