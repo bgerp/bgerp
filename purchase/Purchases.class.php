@@ -119,7 +119,7 @@ class purchase_Purchases extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
+    public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
     					 currencyId, bankAccountId, caseId, dealerId';
     
     
@@ -208,7 +208,7 @@ class purchase_Purchases extends core_Master
     	$rec->state = 'closed';
     	$this->save($rec);
     	
-    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
+    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е приключена');
     }
     
     

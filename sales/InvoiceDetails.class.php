@@ -92,7 +92,7 @@ class sales_InvoiceDetails extends core_Detail
     {
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
-        $this->FLD('quantity', 'double', 'caption=К-во,mandatory');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');

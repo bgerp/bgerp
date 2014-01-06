@@ -99,7 +99,7 @@ class sales_QuotationsDetails extends core_Detail {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
     	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
-    	$this->FLD('quantity', 'double', 'caption=К-во,width=8em;');
+    	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во,width=8em;');
     	$this->FLD('price', 'double(minDecimals=2)', 'caption=Ед. цена, input,width=8em');
         $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка,width=8em');
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,width=8em;');

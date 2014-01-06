@@ -99,11 +99,6 @@
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
-                    <td class="topCell" valign="top">
-                    <!--ET_BEGIN currencyId-->
-			             <div>|Валута|*:  <b>[#currencyId#]</b></div>
-			        <!--ET_END currencyId-->
-                    </td>
        
                     <td class="topCell" align="right" valign="top">
                         [#SUMMARY#]

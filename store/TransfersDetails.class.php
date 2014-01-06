@@ -89,7 +89,7 @@ class store_TransfersDetails extends core_Detail
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
-        $this->FLD('quantity', 'double', 'caption=К-во,input=none');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('isConvertable', 'enum(no,yes)', 'input=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input,mandatory');

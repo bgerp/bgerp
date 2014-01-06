@@ -145,7 +145,7 @@ class sales_SalesDetails extends core_Detail
         $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $this->FNC('packQuantity', 'double', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
@@ -355,9 +355,6 @@ class sales_SalesDetails extends core_Detail
         }
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
-    		if($rec->packQuantity == 0){
-    			$form->setError('packQuantity', 'Количеството не може да е "0"');
-    		}
            
     		if(empty($rec->id)){
     			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";

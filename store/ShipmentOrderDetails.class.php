@@ -134,7 +134,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double', 'caption=Цена,input=none');

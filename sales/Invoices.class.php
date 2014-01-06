@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -1086,6 +1086,7 @@ class sales_Invoices extends core_Master
     private static function isNumberInRange($number)
     {
     	if(empty($number)) return FALSE;
+    	
     	$conf = core_Packs::getConfig('sales');
     	
     	return ($conf->INV_MIN_NUMBER <= $number && $number <= $conf->INV_MAX_NUMBER);
@@ -1110,5 +1111,24 @@ class sales_Invoices extends core_Master
     	if($nextNum > $conf->INV_MAX_NUMBER) return NULL;
     	
     	return $nextNum;
+    }
+    
+    
+    /**
+     * Документа неможе да се активира ако има детайл с количество 0
+     */
+    public static function on_AfterCanActivate($mvc, &$res, $rec)
+    {
+    	// Ако няма ид, не може да се активира документа
+    	if(empty($rec->id)) return $res = 'FALSE';
+    	
+    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+    	$dQuery->where("#invoiceId = {$rec->id}");
+    	$dQuery->where("#quantity = 0");
+    	
+    	// Ако има поне едно 0-во к-во документа, не може да се активира
+    	if($dQuery->fetch()){
+    		$res = FALSE;
+    	}
     }
 }

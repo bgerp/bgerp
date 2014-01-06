@@ -165,7 +165,7 @@ class sales_Sales extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId,
+    public $searchFields = 'deliveryTermId, deliveryLocationId, shipmentStoreId, paymentMethodId, currencyId, bankAccountId, caseId,
     					 initiatorId, dealerId';
     
     
@@ -761,7 +761,7 @@ class sales_Sales extends core_Master
     	$rec->state = 'closed';
     	$this->save($rec);
     	
-    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е прилючена');
+    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е приключена');
     }
     
     

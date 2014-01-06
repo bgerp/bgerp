@@ -104,7 +104,7 @@ class purchase_PurchasesDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
 
         // Количество в основна мярка
-        $this->FLD('quantity', 'double', 'caption=К-во: Д / П,input=none');
+        $this->FLD('quantity', 'double(Min=0)', 'caption=К-во: Д / П,input=none');
         $this->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         $this->FNC('packQuantityDelivered', 'double(minDecimals=0)', 'caption=К-во->Доставено,input=none'); // Сумата на доставената стока
         
