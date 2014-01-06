@@ -167,10 +167,11 @@ class fileman_Files2 extends core_Master
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
      * @param string $path - Пътя, където да се абсорбира файла
+     * @param string $fileName - Името на файла
      * 
      * @return string $copyPath - Пътя до файла
      */
-    public static function extract($fh, $path=NULL)
+    public static function extract($fh, $path=NULL, $fileName=NULL)
     {
         // Вземаме записите за файла
         expect($rec = fileman_Files::fetchByFh($fh), 'Няма такъв запис');
@@ -191,8 +192,15 @@ class fileman_Files2 extends core_Master
             $path = static::getTempPath();
         }
         
+        // Ако не е задено името на файла
+        if (!$fileName) {
+            
+            // Използваме от модела
+            $fileName = $rec->name;
+        }
+        
         // Пътя до файла
-        $copyPath = $path . "/" . $rec->name;
+        $copyPath = $path . "/" . $fileName;
         
         // Копираме файла
         $copied = copy($originalPath, $copyPath);

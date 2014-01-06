@@ -510,7 +510,7 @@ class fileman_Repositories extends core_Master
                 try {
                     
                     // Екстрактваме файла
-                    static::extract($fh, $fullPath);
+                    static::extract($fh, $fullPath, $fileName);
                     
                     // Добавяме в копирания
                     $resArr['copied'][$repoId] = $fileName;
@@ -775,13 +775,14 @@ class fileman_Repositories extends core_Master
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
      * @param string $path - Пътя, където да се абсорбира файла
+     * @param string $fileName - Името на файла
      * 
      * @return string - Пътя до файла
      */
-    static function extract($fh, $path=NULL)
+    static function extract($fh, $path=NULL, $fileName=NULL)
     {
         
-        return fileman::extract($fh, $path);
+        return fileman::extract($fh, $path, $fileName);
     }
     
     
@@ -954,7 +955,6 @@ class fileman_Repositories extends core_Master
      */
     static function checkFileExistInRepo($fileName, $repoId, $subPath='')
     {
-        
         // Ако не е подадено името на файла
         if (!$fileName) return FALSE;
         
