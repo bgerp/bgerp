@@ -855,16 +855,32 @@ class fileman_Files2 extends core_Master
      * @param fileHnd $fh - Манипулатор на файла
      * @param boolean $absolute - Дали линка да е абсолютен
      * @param array $attr - Други параметри
+     * @param string $name - Името, което да се използва
      * 
      * @return core_Et - Линк
      */
-    static function getLinkToSingle($fh, $absolute=FALSE, $attr=array())
+    static function getLinkToSingle($fh, $absolute=FALSE, $attr=array(), $name=NULL)
     {
         // Вземаме записа
         $rec = fileman_Files::fetchByFh($fh);
         
+        // Ако е задедено името
+        if ($name) {
+            
+            // Ескейпваме вербалното
+            $vName = type_Varchar::escape($name);
+            $vName = core_ET::escape($vName);
+        } else {
+            
+            // Името
+            $name = $rec->name;
+            
+            // Вербалното име
+            $vName = fileman_Files::getVerbal($rec,'name');
+        }
+        
         //Разширението на файла
-        $ext = fileman_Files::getExt($rec->name);
+        $ext = fileman_Files::getExt($name);
         
         //Иконата на файла, в зависимост от разширението на файла
         $icon = "fileman/icons/{$ext}.png";
@@ -877,7 +893,7 @@ class fileman_Files2 extends core_Master
         }
         
         // Вербалното име на файла
-        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $absolute) . ");'>" . fileman_Files::getVerbal($rec,'name') . "</span>";
+        $fileName = "<span class='linkWithIcon' style='background-image:url(" . sbf($icon, '"', $absolute) . ");'>{$vName}</span>";
         
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);
