@@ -21,7 +21,7 @@ class trz_SalaryRules extends core_Manager
     /**
      * Заглавие
      */
-    var $title = ' Правила';
+    var $title = 'Правила';
     
     
     /**
