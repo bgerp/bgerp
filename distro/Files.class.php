@@ -998,6 +998,24 @@ class distro_Files extends core_Detail
     }
     
     
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        // Ако има манипулатор на файл и име на файл
+        if ($rec->sourceFh && $rec->name) {
+        
+            // Вземаме линк с текущото име
+            $row->sourceFh = fileman::getLinkToSingle($rec->sourceFh, FALSE, array(), $rec->name);
+        }
+    }
+    
+    
     /**
      * 
      * 
@@ -1488,7 +1506,14 @@ class distro_Files extends core_Detail
                     $nNameArr = fileman_Files::getNameAndExt($nName);
                     
                     // Добавяме брояча към името
-                    $nName = $nNameArr['name'] . '_' . $nCounter++ . $nNameArr['ext'];
+                    $nName = $nNameArr['name'] . '_' . $nCounter++;
+                    
+                    // Ако има разширениет на файла
+                    if ($nNameArr['ext']) {
+                        
+                        // Добавяме разширението
+                        $nName .= '.' . $nNameArr['ext'];
+                    }
                 }
                 
                 // Създаваме масив за добавяне от манипулатор на файл
@@ -1504,7 +1529,7 @@ class distro_Files extends core_Detail
                 $kRepos = type_Keylist::fromArray($reposArrSave);
                 
                 // Ако има запис за този файл
-                if ($rec = static::fetch(array("#groupId = '[#1#]' AND #name = '[#2#]' AND #sourceFh = '[#3#]'", $form->rec->groupId, $fRec->name, $fRec->fileHnd))) {
+                if ($rec = static::fetch(array("#groupId = '[#1#]' AND #name = '[#2#]' AND #sourceFh = '[#3#]'", $form->rec->groupId, $nName, $fRec->fileHnd))) {
                     
                     // Добавяме избраните хранилища
                     $rec->repos = type_Keylist::merge($rec->repos, $kRepos);
@@ -1514,7 +1539,7 @@ class distro_Files extends core_Detail
                     $rec = new stdClass();
                     $rec->groupId = $form->rec->groupId;
                     $rec->sourceFh = $fRec->fileHnd;
-                    $rec->name = $fRec->name;
+                    $rec->name = $nName;
                     $rec->repos = $kRepos;
                 }
                 
