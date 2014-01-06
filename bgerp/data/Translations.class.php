@@ -32,7 +32,7 @@ class bgerp_data_Translations extends core_MVC
 	    	3 => "csv_createdBy",
 	    	);
     	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, array(), array('delimiter' => '|'));
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         
         $res = static::addForAllLg();
         
