@@ -93,6 +93,12 @@
 		                </tr>           
 		                </tbody>
 		            </table>
+		            <ol>
+						<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+						<!--ET_BEGIN others-->
+							[#others#]
+						<!--ET_END others-->
+					</ol>
 		 			<!--ET_BEGIN DETAILS-->
 						<div class='details'>
 							[#DETAILS#]

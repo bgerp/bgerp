@@ -68,7 +68,10 @@
 			                    <td class="topCell first" valign="top">
 			                        <!--ET_BEGIN deliveryTermId-->
 			                    	<div>
-			                            |Условие|*: <b>[#deliveryTermId#]</b>
+			                            |Доставка|*: <b>[#deliveryTermId#]</b>
+			                            <!--ET_BEGIN deliveryLocationId-->
+			                            <br />[#deliveryLocationId#]
+			                            <!--ET_END deliveryLocationId-->
 			                       	</div>
 			                       	<!--ET_END deliveryTermId-->
 			                       	
@@ -88,13 +91,7 @@
 			                        <div>
 			                            |От склад|*: <b>[#shipmentStoreId#] <span style='margin-left:5px'>[#shipBtn#]</span></b>
 			                        </div>
-			                        <!--ET_END shipmentStoreId-->
-			                             
-			        
-			                        <!--ET_BEGIN note-->
-				                        <hr />
-				                        [#note#]
-			                        <!--ET_END note-->     
+			                        <!--ET_END shipmentStoreId-->  
 			                    </td>
 			                     <!--ET_END conditions-->
 			                    <td class="topCell" valign="top">
@@ -162,6 +159,14 @@
 			
 		</div>
 	</div>
+	
+	<ol>
+	<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+	<!--ET_BEGIN notes-->
+		[#notes#]
+	<!--ET_END notes-->
+	</ol>
+	
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 		[#DETAILS#]

@@ -118,6 +118,7 @@ class sales_SaleRequests extends core_Master
     {
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,fromOffer');
         $this->FLD('contragentId', 'int', 'input=hidden,fromOffer');
+		$this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,fromOffer');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,width=8em,fromOffer,oldFieldName=paymentCurrencyId');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,width=8em,fromOffer,oldFieldName=rate');
@@ -190,6 +191,7 @@ class sales_SaleRequests extends core_Master
     		}
     	}
     	
+    	$rec->others = $quoteRec->others;
     	$this->save($rec);
     	$this->sales_SaleRequestDetails->delete("#requestId = {$rec->id}");
     	
@@ -508,6 +510,20 @@ class sales_SaleRequests extends core_Master
 	    	}
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
+	    	
+	    	if($rec->others){
+				$others = explode('<br>', $row->others);
+				$row->others = '';
+				foreach ($others as $other){
+					$row->others .= "<li>{$other}</li>";
+				}
+			}
+			
+	    	if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+				$row->chargeVat = tr('без');
+			} else {
+				$row->chargeVat = tr('с') . " {$row->chargeVat}";
+			}	
 	    }
     }
     

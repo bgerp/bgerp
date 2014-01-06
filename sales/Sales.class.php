@@ -211,7 +211,7 @@ class sales_Sales extends core_Master
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
-        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
+        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
     	
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
@@ -413,8 +413,10 @@ class sales_Sales extends core_Master
         
         /* @var $dealInfo bgerp_iface_DealResponse */
         $dealInfo = $origin->getDealInfo();
+        $originRec = $origin->fetch();
         $aspect   = $dealInfo->quoted;
         
+        $form->rec->note			   = $originRec->others;
         $form->rec->deliveryTermId     = $aspect->delivery->term;
         $form->rec->deliveryLocationId = $aspect->delivery->location;
         $form->rec->paymentMethodId    = $aspect->payment->method;
@@ -587,6 +589,23 @@ class sales_Sales extends core_Master
 	        if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }
+	        
+	        if($rec->deliveryLocationId){
+	        	$row->deliveryLocationId = crm_Locations::getAddress($rec->deliveryLocationId);
+	        }
+	        
+	    	if($rec->note){
+				$notes = explode('<br>', $row->note);
+				foreach ($notes as $note){
+					$row->notes .= "<li>{$note}</li>";
+				}
+			}
+			
+			if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+				$row->chargeVat = tr('без');
+			} else {
+				$row->chargeVat = tr('с') . " {$row->chargeVat}";
+			}
 	    }
     }
     
