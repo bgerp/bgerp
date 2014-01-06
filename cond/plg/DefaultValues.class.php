@@ -14,12 +14,13 @@
  * 
  * -------------------------------------------------------------
  * 
- * lastDocUser     - Последния документ в папката от потребителя 
- * lastDoc 		   - Последния документ в папката				 
- * defMethod	   - Дефолт метод с име "getDefault{$name}"		 
- * clientData	   - От контрагент интерфейса					 
- * clientCondition - От дефолт търговско условие				 
- * coverMethod	   - Метод от корицата с име "getDefault{$name}"
+ * lastDocUser        - Последния документ в папката от потребителя 
+ * lastDoc 		      - Последния документ в папката
+ * lastDocSameCuntry  - Последния документ в папка на клиент от същата държава				 
+ * defMethod	      - Дефолт метод с име "getDefault{$name}"		 
+ * clientData	      - От контрагент интерфейса					 
+ * clientCondition    - От дефолт търговско условие				 
+ * coverMethod	      - Метод от корицата с име "getDefault{$name}"
  *  
  * -------------------------------------------------------------
  *
@@ -166,6 +167,34 @@ class cond_plg_DefaultValues extends core_Plugin
     	$query->limit(1);
     	
     	return $query->fetch()->$name;
+    }
+    
+    
+	/**
+     * Определяне ст-ст по подразбиране на поелто template
+     */
+    public static function getFromLastDocSameCuntry(core_Mvc $mvc, $rec, $name)
+    {
+    	// Информацията за текущия контрагент
+    	$cData = doc_Folders::getContragentData($rec->folderId);
+    	//bp($rec);
+    	// Намиране на последната продажба, на контрагент от същата държава
+    	$query = $mvc->getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy("#createdOn", "DESC");
+        $query->where("#folderId != {$rec->folderId}");
+        $query->show("{$name},folderId");
+        
+        while($oRec = $query->fetch()){
+       		$cData2 = doc_Folders::getContragentData($oRec->folderId);
+       		if($cData->countryId == $cData2->countryId){
+       			
+       			// Ако контрагента е от същата държава 
+       			return $oRec->$name;
+       		}
+        }
+        
+        return NULL;
     }
     
     
