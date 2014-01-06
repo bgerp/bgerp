@@ -1395,9 +1395,6 @@ class distro_Files extends core_Detail
                 // Добавяме в масива с извлечените файлове
                 $fileHndArr[$fileHnd] = $fileHnd;
                 
-                // Запис за файла
-                $fRec = fileman_Files::fetchByFh($fileHnd);
-                
                 // Премахваме хранилищата в които файла се използва
                 $sReposArr = static::removeUserRepos($reposArr, $mRec->id, $fileHnd);
                 
