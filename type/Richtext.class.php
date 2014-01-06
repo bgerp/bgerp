@@ -772,8 +772,12 @@ class type_Richtext extends type_Blob
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
             list($url1, $url2) = explode('#', $url, 2);
-            $url2 = str::canonize($url2);
-            $url = $url1 . '#' . $url2;
+            if($url2) {
+                $url2 = str::canonize($url2);
+                $url = $url1 . '#' . $url2;
+            } else {
+                $url = $url1; 
+            }
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
