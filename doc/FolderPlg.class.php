@@ -34,11 +34,12 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Определя достъпа по подразбиране за новите папки
-            setIfNot($mvc->defaultAccess, 'public');
+            setIfNot($defaultAccess, $mvc->defaultAccess, 'public');
+
 
             // Достъп
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
-            $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,notNull,value=' . $mvc->defaultAccess);
+            $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне');
         }
         
