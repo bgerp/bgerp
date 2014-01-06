@@ -533,6 +533,7 @@ class distro_Files extends core_Detail
             // Добавяме файла
             $resArr = fileman_Repositories::addFileInReposFromFh($addFromFhArr['fileHnd'], $addFromFhArr['reposArr'],
                                                                  $addFromFhArr['title'], FALSE, $addFromFhArr['name']);
+            
             // Очакваме да има копирани файлове
             expect($resArr['copied']);
             
