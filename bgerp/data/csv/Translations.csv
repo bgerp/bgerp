@@ -1,566 +1,1486 @@
-"en"|"Зареждане SOFIBID _633f"|"Load SOFIBID & SOFIBOR"
-"en"|"Зареждане EONIA"|"Load EONIA"
-"en"|"Зареждане EURIBOR"|"Load EURIBOR"
-"en"|"Стойност"|"Value"
-"en"|"За дата"|"Date"
-"en"|"Срочност"|"Term"
-"en"|"Индекс"|"Index"
-"en"|"Зареди от ECB"|"Load from ECB"
-"en"|"Към основна ва_172de"|"To main currency"
-"en"|"стойност"|"value"
-"en"|"дата"|"date"
-"en"|"Курс"|"Rate"
-"en"|"Торта"|"Cake"
-"en"|"Площ"|"Surface"
-"en"|"Линии"|"Lines"
-"en"|"Tаблица"|"Table"
-"en"|"Исторически ва_3350"|"Historical currency rates"
-"en"|"Валутни групи"|"Currency groups"
-"en"|"Номенклатури"|"Lists"
-"en"|"Индекси"|"Indexes"
-"en"|"Валутни курсове"|"Currency rates"
-"en"|"Групи валути"|"Group of currencies"
-"en"|"Нова валута"|"New currency"
-"en"|"курс"|"rate"
-"en"|"обновяване"|"update"
-"en"|"Валута"|"Currency"
-"en"|"Списък с всичк_25ee6"|"List with all currencies"
-"en"|"Журнал"|"Journal"
-"en"|"Мемориални Орд_2c4e"|"Memo orders"
-"en"|"до"|"to"
-"en"|"от"|"from"
-"en"|"Период"|"Period"
-"en"|"Оборотни ведом_cdde"|"Оборотни ведомости"
-"en"|"Собственици"|"Owners"
-"en"|"Обекти"|"Objects"
-"en"|"Четци"|"Readers"
-"en"|"Карти"|"Cards"
-"en"|"Други"|"Other"
-"en"|"Действие"|"Action"
-"en"|"Четец"|"Четец"
-"en"|"Карта"|"Reader"
-"en"|"Картодържател"|"Card-owner"
-"en"|"Събития"|"Events"
-"en"|"Методи"|"Methods"
-"en"|"Тестове"|"Tests"
-"en"|"Активиран"|"Active"
-"en"|"Възложител"|"Assignor"
-"en"|"Произход"|"Origin"
-"en"|"Партида"|"Batch"
-"en"|"Вид"|"Kind"
-"en"|"Лабораторни те_54ab"|"Laboratory tests"
-"en"|"Текущ"|"Current"
-"en"|"Последна употр_c0e5"|"Last use"
-"en"|"Товарачи"|"Loaders"
-"en"|"Избор"|"Choise"
-"en"|"Фактури"|"Invoices"
-"en"|"Сделки за прод_1427c"|"Sales deals"
-"en"|"Шаблони"|"Templates"
-"en"|"Цикли"|"Cycles"
-"en"|"Смени"|"Shifts"
-"en"|"Отдели"|"Departments"
-"en"|"Длъжности"|"Positions"
-"en"|"Назначения"|"Назначения"
-"en"|"Допълнителни"|"Additional"
-"en"|"Изпитателен срок"|"Изпитателен срок"
-"en"|"Предизвестие"|"Предизвестие"
-"en"|"Годишен отпуск"|"Годишен отпуск"
-"en"|"Край"|"Край"
-"en"|"Условия"|"Условия"
-"en"|"Длъжност"|"Длъжност"
-"en"|"Смяна"|"Смяна"
-"en"|"Отдел"|"Отдел"
-"en"|"Работа"|"Работа"
-"en"|"Трудов стаж"|"Трудов стаж"
-"en"|"Издадена от"|"Издадена от"
-"en"|"Диплома №"|"Диплома №"
-"en"|"Специалност"|"Специалност"
-"en"|"Образование"|"Образование"
-"en"|"Служител"|"Служител"
-"en"|"Управител"|"Управител"
-"en"|"Трудови Договори"|"Трудови Договори"
-"en"|"Нов"|"Нов"
-"en"|"Bulgaria"|"Bulgaria"
-"en"|"Кюп"|"Кюп"
-"en"|"Е-кутия"|"E-box"
-"en"|"Окръжен съд"|"District court"
-"en"|"Градски съд"|"City court"
-"en"|"Редактиране на_b8ea"|"Record editing"
-"en"|"Окръжни съдилища"|"District courts"
-"en"|"Пулт"|"Pool"
-"en"|"Сметка"|"Account"
-"en"|"Град"|"City"
-"en"|"МВР по страната"|"MVR in Bulgaria"
-"en"|"Проверка на VAT _cab97"|"VAT check"
-"en"|"Използван на"|"Used on"
-"en"|"Проверен на"|"Proof in"
-"en"|"VAT"|"VAT"
-"en"|"Регистър на да_dcfbe"|"Register of VATs"
-"en"|"Регион"|"Region"
-"en"|"Код"|"Код"
-"en"|"Страна"|"Страна"
-"en"|"Телефонни кодове"|"Телефонни кодове"
-"en"|"Код на държава"|"Код на държава"
-"en"|"максимално"|"maximal"
-"en"|"Ip"|"Ip"
-"en"|"минимално"|"minimal"
-"en"|"IP"|"IP"
-"en"|"Държава-към-IP"|"Държава-към-IP"
-"en"|"Празник"|"Празник"
-"en"|"Поздрав"|"Greeting"
-"en"|"База"|"Base"
-"en"|"Ден"|"Day"
-"en"|"Данни за празн_fd20a"|"Data for holidays in calendar"
-"en"|"Публичност"|"Publicity"
-"en"|"Домейн"|"Domain"
-"en"|"на"|"on"
-"en"|"Липсващ метод:"|"Missing method:"
-"en"|"Страницата е з_933c4"|"The page is loaded on"
-"en"|"Широк"|"Wide"
-"en"|"Горе"|"Top"
-"en"|"Изход"|"Exit"
-"en"|"Календар"|"Calendar"
-"en"|"Групи"|"Groups"
-"en"|"Лица"|"Persons"
-"en"|"Фирми"|"Companies"
-"en"|"Добавяне на но_972cc"|"Add new location"
-"en"|"Все още няма ло_238c"|"No locations yet"
-"en"|"Локации"|"Locations"
-"en"|"Добавяне на но_b0da9"|"Add new bank account"
-"en"|"Все още няма ба_4e42"|"No bank accounts yet"
-"en"|"Банкови сметки"|"Bank accounts"
-"en"|"Наистина ли же_0a920"|"Do you like to delete the document?"
-"en"|"Изтриване"|"Delete"
-"en"|"Друга информация"|"Other info"
-"en"|"Година"|"Year"
-"en"|"Фирмено дело"|"Company file"
-"en"|"Решение по рег_047c8"|"Решение по регистрацията"
-"en"|"Web сайт"|"Web сайт"
-"en"|"Адрес и контакти"|"Addresses and contacts"
-"en"|"Greece"|"Greece"
-"en"|"Затваряне"|"Close"
-"en"|"on time"|"on time"
-"en"|"веднага"|"now"
-"en"|"на момента"|"in time"
-"en"|"Съдилища"|"Courts"
-"en"|"МВР"|"MVR"
-"en"|"ЗДДС №"|"VAT ID"
-"en"|"Тел. кодове"|"Tel. codes"
-"en"|"IP-to-Country"|"IP-to-Country"
-"en"|"Празници"|"Holidays"
-"en"|"Домейни"|"Domains"
-"en"|"Страни"|"Countries"
-"en"|"разширение"|"extension"
-"en"|"ITU-T телефонен код"|"ITU-T telephone code"
-"en"|"име"|"name"
-"en"|"код"|"code"
-"en"|"валута"|"currency"
-"en"|"Столица"|"Capital"
-"en"|"Суверинитет"|"Dependency"
-"en"|"Формално име"|"Formal name"
-"en"|"Наименование"|"Name"
-"en"|"ISO информация з_9f55"|"ISO information about countries"
-"en"|"Срок"|"Duration"
-"en"|"Обект"|"Object"
-"en"|"Изтриване на в_84902"|"Delete all records"
-"en"|"Изтриване на и_33938"|"Delete expired records"
-"en"|"Живот"|"Lifetime"
-"en"|"Ключ"|"Key"
-"en"|"Кеширани обекти"|"Cached objects"
-"en"|"Логове на Cron"|"Logs of Cron"
-"en"|"Параметри"|"Parameters"
-"en"|"Описание"|"Description"
-"en"|"Периодични про_b38f"|"Scheduled tasks"
-"en"|"и"|"and"
-"en"|"час"|"hour"
-"en"|"мин."|"min."
-"en"|"часа"|"hours"
-"en"|"ден"|"day"
-"en"|"Какво?"|"What?"
-"en"|"Кой?"|"Who?"
-"en"|"Кога?"|"When?"
-"en"|"Интерфейс"|"Interface"
-"en"|"Видимост"|"Visibility"
-"en"|"Класове, имащи _436a"|"Classes with interfaces"
-"en"|"Наследяване"|"Inheritance"
-"en"|"Роля"|"Role"
-"en"|"Имена"|"Names"
-"en"|"Аватар"|"Avatar"
-"en"|"MD5"|"MD5"
-"en"|"Файл"|"File"
-"en"|"Генерирани PDF д_1fee"|"Generated PDF documents"
-"en"|"Модифициране"|"Modify"
-"en"|"Начало на след_28f08"|"Begin of next repeat"
-"en"|"Времена"|"Times"
-"en"|"Отговорници"|"Responsables"
-"en"|"Повторение"|"Repeat"
-"en"|"Начало"|"Begin"
-"en"|"Чернови"|"Drafts"
-"en"|"Приключени"|"Closed"
-"en"|"Чакащите"|"Waitings"
-"en"|"Активни"|"Active"
-"en"|"Статус"|"Status"
-"en"|"Потребител(и)"|"User(s)"
-"en"|"Споделяне"|"Share"
-"en"|"Достъп"|"Access"
-"en"|"Права"|"Rights"
-"en"|"Несортирани па_11b7"|"Unsorted folders"
-"en"|"Резултат"|"Result"
-"en"|"Кое"|"What"
-"en"|"Кой/Какво"|"Who/What"
-"en"|"Кога"|"When"
-"en"|"Лог на документи"|"Documents log"
-"en"|"отпечата"|"print"
-"en"|"Папка"|"Folder"
-"en"|"Документ"|"Document"
-"en"|"Търсене на док_9b38e"|"Documents search"
-"en"|"Всички"|"All"
-"en"|"Всички папки"|"All folders"
-"en"|"Вид документ"|"Document type"
-"en"|"Tърсене на доку_d783"|"Document search"
-"en"|"MOM"|"MOM"
-"en"|"HR"|"HR"
-"en"|"RFID"|"RFID"
-"en"|"№"|"№"
-"en"|"не съществува"|"not exists"
-"en"|"към"|"to"
-"en"|"изход"|"exit"
-"en"|"в"|"in"
-"en"|"Ядро"|"Core"
-"en"|"Частен"|"Private"
-"en"|"Цени"|"Prices"
-"en"|"Фирма"|"Company"
-"en"|"Финанси"|"Finances"
-"en"|"Филтър"|"Filter"
-"en"|"Филтрирай"|"Filter"
-"en"|"Фамилен"|"Family"
-"en"|"Фактура за про_288aa"|"Sale invoice"
-"en"|"Факс"|"Fax"
-"en"|"Управление на _1cd80"|"Packages management"
-"en"|"Уникод"|"Unicode"
-"en"|"Търсене"|"Search"
-"en"|"Транспорт"|"Transport"
-"en"|"Тип"|"Type"
-"en"|"Тесен"|"Mobile"
-"en"|"Тел"|"Tel"
-"en"|"Тел."|"Tel"
-"en"|"ТРЗ"|"Payroll"
-"en"|"Състояние"|"State"
-"en"|"Сърдечни поздр_2049"|"Best regards"
-"en"|"Съобщение"|"Message"
-"en"|"Създаване"|"Creation"
-"en"|"Счетоводство"|"Accounting"
-"en"|"Стринг"|"String"
-"en"|"Спряно"|"Stopped"
-"en"|"Складове"|"Stores"
-"en"|"Система"|"System"
-"en"|"Сделки"|"Deals"
-"en"|"С избраните ..."|"With selected ..."
-"en"|"Рутиране"|"Routing"
-"en"|"Роли"|"Roles"
-"en"|"Реф."|"Ref."
-"en"|"Редакция"|"Edit"
-"en"|"Регистър на пл_28cf2"|"Register of plugins"
-"en"|"Разпращане"|"Blast"
-"en"|"Първо чакащите"|"First waitings"
-"en"|"Първо отворените"|"First opens"
-"en"|"Продукти"|"Products"
-"en"|"Продажби"|"Sales"
-"en"|"Прикачени файл_0fc7"|"Attached files"
-"en"|"Преместване"|"Move"
-"en"|"Премахване"|"Remove"
-"en"|"Предлагаме на _859ba"|"Please see attached quotation:"
-"en"|"Превод"|"Translation"
-"en"|"Превод на инте_d1efe"|"Interface translation"
-"en"|"Потребители"|"Users"
-"en"|"Потребител"|"User"
-"en"|"Последно"|"Last"
-"en"|"Подредба"|"Order"
-"en"|"По създаване"|"By creation"
-"en"|"По последно"|"By Last"
-"en"|"По брой документи"|"By documents cnt"
-"en"|"Плъгинът"|"The plugin"
-"en"|"Плъгини"|"Plugins"
-"en"|"Плъгин"|"Plugin"
-"en"|"Писмо"|"Letter"
-"en"|"Печат"|"Print"
-"en"|"Персонал"|"Personnel"
-"en"|"Парола"|"Password"
-"en"|"Папките на "|"Folders of "
-"en"|"Папки"|"Folders"
-"en"|"Папки с нишки о_9fbf"|"Folders with document threads"
-"en"|"Пакети"|"Packs"
-"en"|"Пакет"|"Pack"
-"en"|"П. код"|"Post code"
-"en"|"Оттегляне"|"Reject"
-"en"|"Относно"|"Subject"
-"en"|"Отказ"|"Cancel"
-"en"|"Отговорник"|"Responsible"
-"en"|"Отговор"|"Reply"
-"en"|"Отворени теми в"|"Open themes in"
-"en"|"Отваряне"|"Open"
-"en"|"От"|"From"
-"en"|"От адрес"|"From address"
-"en"|"Оригинален док_aaf4"|"Original document"
-"en"|"Обхват"|"Scope"
-"en"|"Обслужване"|"Services"
-"en"|"Обновяване"|"Update"
-"en"|"Номер"|"Number"
-"en"|"Нов..."|"New..."
-"en"|"Нов запис"|"New record"
-"en"|"Нишки"|"Threads"
-"en"|"Ник"|"Nick"
-"en"|"Настройки"|"Settings"
-"en"|"Наистина ли же_bfb90"|"Do you like to reject document?"
-"en"|"Наистина ли же_9039f"|"Do you like to delete this record?"
-"en"|"На"|"On"
-"en"|"На вниманието на"|"On attention of"
-"en"|"Моята Фирма ООД"|"My Company Ltd"
-"en"|"Мониторинг"|"Monitor"
-"en"|"Моля запознайт_181f"|"Please see attached invoice:"
-"en"|"Логове"|"Logs"
-"en"|"Логистика"|"Logistic"
-"en"|"Лице"|"Person"
-"en"|"Латиница"|"Latin"
-"en"|"Лаборатория"|"Lab"
-"en"|"Кюпове"|"Pot"
-"en"|"Към"|"Attn"
-"en"|"Кутии"|"Inboxes"
-"en"|"Крон"|"Cron"
-"en"|"Кош"|"Bin"
-"en"|"Копие"|"Clone"
-"en"|"Копие на"|"Copy to"
-"en"|"Контакти"|"Contacts"
-"en"|"Коментари"|"Comments"
-"en"|"Коментар"|"Comment"
-"en"|"Книги"|"Books"
-"en"|"Ключови думи"|"Keywords"
-"en"|"Класове"|"Classes"
-"en"|"Клас"|"Class"
-"en"|"Кеш"|"Cache"
-"en"|"Кетъринг"|"Catering"
-"en"|"Каталог"|"Catalog"
-"en"|"Каси"|"Cash"
-"en"|"Камери"|"CTVs"
-"en"|"Калкулатор"|"Calculator"
-"en"|"История"|"History"
-"en"|"Интерфейси"|"Interfaces"
-"en"|"Инсталирай"|"Install"
-"en"|"Имейли"|"Emails"
-"en"|"Имейл"|"Email"
-"en"|"Име"|"Name"
-"en"|"Изходящи"|"Outgoing"
-"en"|"Изходящи имейли"|"Outgoings emails"
-"en"|"Изходящ имейл"|"Outgoing email"
-"en"|"Изпращания"|"Sendings"
-"en"|"Изпращане"|"Sending"
-"en"|"Изпращане на и_4908a"|"Email sending"
-"en"|"Изпрати"|"Send"
-"en"|"Известия"|"Notifications"
-"en"|"Знаци"|"Chars"
-"en"|"Здравейте"|"Hello"
-"en"|"Здравейте колеги"|"Dear Sirs"
-"en"|"Уважаеми колеги"|"Dear Sirs"
-"en"|"Уважаеми"|"Dear"
-"en"|"Уважаема"|"Dear"
-"en"|"Запис"|"Save"
-"en"|"Заключвания"|"Lockings"
-"en"|"Задачи"|"Tasks"
-"en"|"Заглавие"|"Title"
-"en"|"Експорт в CSV"|"CSV export"
-"en"|"Език"|"Language"
-"en"|"Държава"|"Country"
-"en"|"Доставки"|"Purchasing"
-"en"|"Документи"|"Documents"
-"en"|"Добавяне на запис"|"Add new record"
-"en"|"До"|"To"
-"en"|"Дата"|"Date"
-"en"|"Данни"|"Data"
-"en"|"ДА"|"LTA"
-"en"|"Грешка"|"Error"
-"en"|"Град/с"|"Place"
-"en"|"Г-ца"|"Mrs."
-"en"|"Г-н"|"Mr."
-"en"|"Г-жа"|"Ms."
-"bg"|"Г-ца"|"г-ца"
-"bg"|"Г-н"|"г-н"
-"bg"|"Г-жа"|"г-жа"
-"en"|"Входящо писмо"|"Incoming mail"
-"en"|"Входящи"|"Incoming"
-"en"|"Входящ имейл"|"Incoming email"
-"en"|"Вход"|"Enter"
-"en"|"Вход в"|"Sign in"
-"en"|"Време"|"Time"
-"en"|"Указател"|"Organizer"
-"en"|"Визитник"|"Contacts"
-"en"|"Валути"|"Currencies"
-"en"|"Бюджетиране"|"Budget"
-"en"|"Благодаря за и_d297b"|"Thanks for the email on"
-"en"|"Банки"|"Banks"
-"en"|"Активно"|"Active"
-"en"|"Активиране"|"Activation"
-"en"|"Адресант"|"Recipient"
-"en"|"Адрес"|"Address"
-"en"|"Администриране"|"Admin"
-"en"|"Автор"|"Author"
-"en"|"title"|"title"
-"en"|"last"|"last"
-"en"|"PDF файлове"|"PDF files"
-"en"|"Сортиране по ""п_8f67"|"Sorted by ""Last"""
-"en"|"Галерия"|"Gallery"
-"en"|"Хранилки"|"Feeds"
-"en"|"Назначения"|"Hires"
-"en"|"Условия на доставка"|"Delivery terms"
-"en"|"Оферти"|"Quotations"
-"en"|"Доставки"|"Supply"
-"en"|"Задължения"|"Duties"
-"en"|"Търговия"|"Commerce"
-"en"|"Трудови договори"|"Employment contracts"
-"en"|"Заплати"|"Salaries"
-"en"|"Премии"|"Bonuses"
-"en"|"Болнични"|"Sick days"
-"en"|"Отпуски"|"Leave"
-"en"|"Глоби"|"Penalties"
-"en"|"Моля запознайт_a5c1"|"Please familiarize yourself with the referral email"
-"bg"|"first monday"|"първи понеделник"
-"bg"|"first tuesday"|"първи вторник"
-"bg"|"first wednesday"|"първа сряда"
-"bg"|"first thursday"|"първи четвъртък"
-"bg"|"first friday"|"първи петък"
-"bg"|"first saturday"|"първа събота"
-"bg"|"first sunday"|"първа неделя"
-"bg"|"second monday"|"втори понеделник"
-"bg"|"second tuesday"|"втори вторник"
-"bg"|"second wednesday"|"втора сряда"
-"bg"|"second thursday"|"втори четвъртък"
-"bg"|"second friday"|"втори петък"
-"bg"|"second saturday"|"втора събота"
-"bg"|"second sunday"|"втора неделя"
-"bg"|"third monday"|"трети  понеделник"
-"bg"|"third tuesday"|"трети вторник"
-"bg"|"third wednesday"|"трета сряда"
-"bg"|"third thursday"|"трети четвъртък"
-"bg"|"third friday"|"трети петък"
-"bg"|"third saturday"|"трета събота"
-"bg"|"third sunday"|"трета неделя"
-"bg"|"penultimate monday"|"предпоследен понеделник"
-"bg"|"penultimate tuesday"|"предпоследен вторник"
-"bg"|"penultimate wednesday"|"предпоследна сряда"
-"bg"|"penultimate thursday"|"предпоследен четвъртък"
-"bg"|"penultimate friday"|"предпоследен петък"
-"bg"|"penultimate saturday"|"предпоследна събота"
-"bg"|"penultimate sunday"|"предпоследна неделя"
-"bg"|"last monday"|"последен понеделник"
-"bg"|"last tuesday"|"последен вторник"
-"bg"|"last wednesday"|"последна сряда"
-"bg"|"last thursday"|"последен четвъртък"
-"bg"|"last friday"|"последен петък"
-"bg"|"last saturday"|"последна събота"
-"bg"|"last sunday"|"последна неделя"
-"en"|"Напомняния"|"Reminders"
-"en"|"Приоритет"|"Priority"
-"en"|"нисък"|"low"
-"en"|"нормален"|"normal"
-"en"|"висок"|"high"
-"en"|"аларма"|"alarma"
-"en"|"Отваряне на нишката"|"Open thread"
-"en"|"Нотификация"|"Notification"
-"en"|"Нотификация-ако няма отговор"|"Notification-if no answer"
-"en"|"Чернова-копие на темата"|"Draft-copy thread"
-"en"|"Копие на темата"|"Copy thread"
-"en"|"Предварително"|"Previously"
-"en"|"Всеки"|"Each"
-"en"|"Мярка"|"Measure"
-"en"|"Съблюдаване"|"Observation"
-"en"|"дена"|"days"
-"en"|"седмици"|"weeks"
-"en"|"месеца"|"months"
-"en"|"Ден от началот_bb4b7"|"Day of the month"
-"en"|"Ден от началот_96c47"|"Day of the week"
-"en"|"Напомняне"|"Reminder"
-"en"|"Следващо напомняне"|"Next remindering"
-"en"|"Повторение на"|"Repetition "
-"en"|"всеки"|"every"
-"en"|"ден"|"day"
-"en"|"седмица"|"week"
-"en"|"месец"|"month"
-"en"|"Повторно изпра_daf5"|"Resending"
-"en"|"Артикули"|"Items"
-"en"|"Екип"|"Team"
-"en"|"Продажба"|"Sale"
-"en"|"Обмени на валути"|"Currencies exchanges"
-"en"|"Касови обмени _84955"|"Cash currencies exchanges"
-"en"|"Вътрешни парич_39a7"|"Internal money transfers"
-"en"|"Получени"|"Received"
-"en"|"Обменени"|"Exchanged"
-"en"|"Напред"|"Forward"
-"en"|"Операция"|"Operation"
-"en"|"Получател"|"Recipient"
-"en"|"Календар на съ_399d7"|"Calendar of Events and Holidays"
-"en"|"Събития за сед_bd9fe"|"Events for the week"
-"en"|"Събития за месец"|"Events for the month"
-"en"|"Събития за година"|"Events for the year"
-"en"|"Януари"|"January"
-"en"|"Февруари"|"February"
-"en"|"Март"|"March"
-"en"|"Април"|"April"
-"en"|"Май"|"May"
-"en"|"Юни"|"June"
-"en"|"Юли"|"July"
-"en"|"Август"|"August"
-"en"|"Септември"|"September"
-"en"|"Октомври"|"October"
-"en"|"Ноември"|"November"
-"en"|"Декември"|"December"
-"en"|"Нисък"|"Low"
-"en"|"Нормален"|"Normal"
-"en"|"Висок"|"High"
-"en"|"Критичен"|"Critical"
-"en"|"месецa-ден от н_9f9b7"|"month-day from the beginning of the month"
-"en"|"месецa-ден от н_d94c7"|"month-day from the beginning of the week"
-"en"|"напомняне"|"reminder"
-"en"|"Създаване на"|"Creation"
-"en"|"Продължителност"|"Duration"
-"en"|"Край"|"End"
-"en"|"Цял ден"|"All day"
-"en"|"Структурно звено"|"Structural unit"
-"en"|"П - почивка"|"R - rest"
-"en"|"Д - дневна"|"D - day"
-"en"|"Н - нощна"|"N - night"
-"en"|"II - втора смяна"|"II - second shift"
-"en"|"I - първа смяна"|"I - first shift"
-"en"|"Пон"|"Mon"
-"en"|"Вто"|"Tue"
-"en"|"Сря"|"Wed"
-"en"|"Чет"|"Thu"
-"en"|"Пет"|"Fri"
-"en"|"Съб"|"Sat"
-"en"|"Нед"|"Sun"
-"en"|"Сд"|"Week"
-"en"|"Подчинен на"|"Depend on"
-"en"|"График"|"Schedule"
-"en"|"Започва на"|"Starting on"
-"en"|"Работен график"|"Work schedule"
-"en"|"Работен график_4579"|"Work schedule on structural unit "
-"en"|" за месец"|" for month "
-"en"|"Информация"|"Information"
-"en"|"януари"|"January"
-"en"|"февруари"|"February"
-"en"|"март"|"March"
-"en"|"април"|"April"
-"en"|"май"|"May"
-"en"|"юни"|"June"
-"en"|"юли"|"July"
-"en"|"август"|"August"
-"en"|"септември"|"September"
-"en"|"октомври"|"October"
-"en"|"ноември"|"November"
-"en"|"декември"|"December"
-"en"|"В състава на"|"In structure on"
-"en"|"Локация"|"Location"
-"en"|"Структура"|"Structure"
-"en"|"Организационна структура"|"Organization structure"
-"en"|"Работно време"|"Working time"
-"en"|"отдел"|"department"
-"en"|"звено"|"unit"
-"en"|"бригада"|"brigade"
+en,бригада,brigade
+en,звено,unit
+en,отдел,department
+en,Работно време,Working time
+en,Структура,Structure
+en,Локация,Location
+en,В състава на,In structure on
+en,декември,December
+en,ноември,November
+en,октомври,October
+en,септември,September
+en,август,August
+en,юли,July
+en,юни,June
+en,май,May
+en,април,April
+en,март,March
+en,февруари,February
+en,януари,January
+en,Информация,Information
+en, за месец, for month 
+en,Работен график_4579,Work schedule on structural unit 
+en,Работен график,Work schedule
+en,Започва на,Starting on
+en,График,Schedule
+en,Подчинен на,Depend on
+en,Сд,Week
+en,Нед,Sun
+en,Съб,Sat
+en,Пет,Fri
+en,Чет,Thu
+en,Сря,Wed
+en,Вто,Tue
+en,Пон,Mon
+en,I - първа смяна,I - first shift
+en,II - втора смяна,II - second shift
+en,Н - нощна,N - night
+en,Д - дневна,D - day
+en,П - почивка,R - rest
+en,Структурно звено,Structural unit
+en,Цял ден,All day
+en,Край,End
+en,Продължителност,Duration
+en,Създаване на,Creation
+en,напомняне,reminder
+en,месецa-ден от н_d94c7,month-day from the beginning of the week
+en,месецa-ден от н_9f9b7,month-day from the beginning of the month
+en,Критичен,Critical
+en,Висок,High
+en,Нормален,Normal
+en,Нисък,Low
+en,Декември,December
+en,Ноември,November
+en,Октомври,October
+en,Септември,September
+en,Август,August
+en,Юли,July
+en,Юни,June
+en,Май,May
+en,Април,April
+en,Март,March
+en,Февруари,February
+en,Януари,January
+en,Събития за година,Events for the year
+en,Събития за месец,Events for the month
+en,Събития за сед_bd9fe,Events for the week
+en,Календар на съ_399d7,Calendar of Events and Holidays
+en,Получател,Recipient
+en,Операция,Operation
+en,Напред,Forward
+en,Обменени,Exchanged
+en,Получени,Received
+en,Вътрешни парич_39a7,Internal money transfers
+en,Касови обмени _84955,Cash currencies exchanges
+en,Обмени на валути,Currencies exchanges
+en,Продажба,Sale
+en,Екип,Team
+en,Артикули,Items
+en,Повторно изпра_daf5,Resending
+en,месец,month
+en,седмица,week
+en,ден,day
+en,всеки,every
+en,Повторение на,Repetition 
+en,Напомняне,Reminder
+en,Ден от началот_96c47,Day of the week
+en,Ден от началот_bb4b7,Day of the month
+en,месеца,months
+en,седмици,weeks
+en,дена,days
+en,Съблюдаване,Observation
+en,Мярка,Measure
+en,Всеки,Each
+en,Предварително,Previously
+en,Копие на темата,Copy thread
+en,Чернова-копие на темата,Draft-copy thread
+en,Нотификация-ако няма отговор,Notification-if no reply
+en,Нотификация,Notification
+en,Отваряне на нишката,Open thread
+en,аларма,alarm
+en,висок,high
+en,нормален,normal
+en,нисък,low
+en,Приоритет,Priority
+en,Напомняния,Reminders
+en,Моля запознайт_a5c1,Please read the referral email
+en,Глоби,Penalties
+en,Отпуски,Leave
+en,Болнични,Sick days
+en,Премии,Bonuses
+en,Заплати,Salaries
+en,Трудови договори,Employment contracts
+en,Търговия,Commerce
+en,Задължения,Duties
+en,Доставки,Supply
+en,Оферти,Quotations
+en,Условия на доставка,Delivery terms
+en,Назначения,Hires
+en,Хранилки,Feeds
+en,Галерия,Gallery
+en,"Сортиране по ""п_8f67","Sorted by ""Last"""
+en,PDF файлове,PDF files
+en,last,last
+en,title,title
+en,Автор,Author
+en,Администриране,Admin
+en,Адрес,Address
+en,Адресант,Recipient
+en,Активиране,Activation
+en,Активно,Active
+en,Банки,Banks
+en,Благодаря за и_d297b,Thanks for the email on
+en,Бюджетиране,Budget
+en,Валути,Currencies
+en,Визитник,Contacts
+en,Указател,Organizer
+en,Време,Time
+en,Вход в,Sign in
+en,Вход,Enter
+en,Входящ имейл,Incoming email
+en,Входящи,Incoming
+en,Входящо писмо,Incoming mail
+en,Г-жа,Ms.
+en,Г-н,Mr.
+en,Г-ца,Mrs.
+en,Град/с,Place
+en,Грешка,Error
+en,ДА,LTA
+en,Данни,Data
+en,Дата,Date
+en,До,To
+en,Добавяне на запис,Add new record
+en,Документи,Documents
+en,Държава,Country
+en,Език,Language
+en,Експорт в CSV,CSV export
+en,Заглавие,Title
+en,Задачи,Tasks
+en,Заключвания,Lockings
+en,Запис,Save
+en,Уважаема,Dear
+en,Уважаеми,Dear
+en,Уважаеми колеги,Dear Sirs
+en,Здравейте колеги,Dear Sirs
+en,Здравейте,Hello
+en,Знаци,Chars
+en,Известия,Notifications
+en,Изпрати,Send
+en,Изпращане на и_4908a,Email sending
+en,Изпращане,Sending
+en,Изпращания,Sendings
+en,Изходящ имейл,Outgoing email
+en,Изходящи имейли,Outgoings emails
+en,Изходящи,Outgoing
+en,Име,Name
+en,Имейл,Email
+en,Имейли,Emails
+en,Инсталирай,Install
+en,Интерфейси,Interfaces
+en,История,History
+en,Калкулатор,Calculator
+en,Камери,CTVs
+en,Каси,Cash
+en,Каталог,Catalog
+en,Кетъринг,Catering
+en,Кеш,Cache
+en,Клас,Class
+en,Класове,Classes
+en,Ключови думи,Keywords
+en,Книги,Books
+en,Коментар,Comment
+en,Коментари,Comments
+en,Контакти,Contacts
+en,Копие на,Copy of
+en,Копие,Clone
+en,Кош,Bin
+en,Крон,Cron
+en,Кутии,Inboxes
+en,Към,Attn
+en,Кюпове,Pot
+en,Лаборатория,Lab
+en,Латиница,Latin
+en,Лице,Person
+en,Логистика,Logistic
+en,Логове,Logs
+en,Моля запознайт_181f,Please see attached invoice:
+en,Мониторинг,Monitor
+en,Моята Фирма ООД,My Company Ltd
+en,На вниманието на,On attention of
+en,На,On
+en,Наистина ли же_9039f,Do you like to delete this record?
+en,Наистина ли же_bfb90,Do you like to reject document?
+en,Настройки,Settings
+en,Ник,Nick
+en,Нишки,Threads
+en,Нов запис,New record
+en,Нов...,New...
+en,Номер,Number
+en,Обновяване,Update
+en,Обслужване,Services
+en,Обхват,Scope
+en,Оригинален док_aaf4,Original document
+en,От адрес,From address
+en,От,From
+en,Отваряне,Open
+en,Отворени теми в,Open themes in
+en,Отговор,Reply
+en,Отговорник,Responsible
+en,Отказ,Cancel
+en,Относно,Subject
+en,Оттегляне,Reject
+en,П. код,Post code
+en,Пакет,Pack
+en,Пакети,Packs
+en,Папки с нишки о_9fbf,Folders with document threads
+en,Папки,Folders
+en,Папките на ,Folders of 
+en,Парола,Password
+en,Персонал,Personnel
+en,Печат,Print
+en,Писмо,Letter
+en,Плъгин,Plugin
+en,Плъгини,Plugins
+en,Плъгинът,The plugin
+en,По брой документи,By documents cnt
+en,По последно,By Last
+en,По създаване,By creation
+en,Подредба,Order
+en,Последно,Last
+en,Потребител,User
+en,Потребители,Users
+en,Превод на инте_d1efe,Interface translation
+en,Превод,Translation
+en,Предлагаме на _859ba,Please see attached quotation:
+en,Премахване,Remove
+en,Преместване,Move
+en,Прикачени файл_0fc7,Attached files
+en,Продажби,Sales
+en,Продукти,Products
+en,Първо отворените,First opens
+en,Първо чакащите,First waitings
+en,Разпращане,Blast
+en,Регистър на пл_28cf2,Register of plugins
+en,Редакция,Edit
+en,Реф.,Ref.
+en,Роли,Roles
+en,Рутиране,Routing
+en,С избраните ...,With selected ...
+en,Сделки,Deals
+en,Система,System
+en,Складове,Stores
+en,Спряно,Stopped
+en,Стринг,String
+en,Счетоводство,Accounting
+en,Създаване,Creation
+en,Съобщение,Message
+en,Сърдечни поздр_2049,Best regards
+en,Състояние,State
+en,ТРЗ,Payroll
+en,Тел.,Tel
+en,Тел,Tel
+en,Тесен,Mobile
+en,Тип,Type
+en,Транспорт,Transport
+en,Търсене,Search
+en,Уникод,Unicode
+en,Управление на _1cd80,Packages management
+en,Факс,Fax
+en,Фактура за про_288aa,Sale invoice
+en,Фамилен,Family
+en,Филтрирай,Filter
+en,Филтър,Filter
+en,Финанси,Finances
+en,Фирма,Company
+en,Цени,Prices
+en,Частен,Private
+en,Ядро,Core
+en,в,in
+en,изход,exit
+en,към,to
+en,не съществува,not exists
+en,Tърсене на доку_d783,Document search
+en,Вид документ,Document type
+en,Всички папки,All folders
+en,Всички,All
+en,Търсене на док_9b38e,Documents search
+en,Документ,Document
+en,Папка,Folder
+en,отпечата,print
+en,Лог на документи,Documents log
+en,Кога,When
+en,Кой/Какво,Who/What
+en,Кое,What
+en,Резултат,Result
+en,Несортирани па_11b7,Unsorted folders
+en,Права,Rights
+en,Достъп,Access
+en,Споделяне,Share
+en,Потребител(и),User(s)
+en,Статус,Status
+en,Активни,Active
+en,Чакащите,Waitings
+en,Приключени,Closed
+en,Чернови,Drafts
+en,Начало,Begin
+en,Повторение,Repeat
+en,Отговорници,Responsables
+en,Времена,Times
+en,Начало на след_28f08,Begin of next repeat
+en,Модифициране,Modify
+en,Генерирани PDF д_1fee,Generated PDF documents
+en,Файл,File
+en,MD5,MD5
+en,Аватар,Avatar
+en,Имена,Names
+en,Роля,Role
+en,Наследяване,Inheritance
+en,"Класове, имащи _436a",Classes with interfaces
+en,Видимост,Visibility
+en,Интерфейс,Interface
+en,Кога?,When?
+en,Кой?,Who?
+en,Какво?,What?
+en,часа,hours
+en,мин.,min.
+en,час,hour
+en,и,and
+en,Периодични про_b38f,Scheduled tasks
+en,Описание,Description
+en,Параметри,Parameters
+en,Логове на Cron,Logs of Cron
+en,Кеширани обекти,Cached objects
+en,Ключ,Key
+en,Живот,Lifetime
+en,Изтриване на и_33938,Delete expired records
+en,Изтриване на в_84902,Delete all records
+en,Обект,Object
+en,Срок,Duration
+en,ISO информация з_9f55,ISO information about countries
+en,Наименование,Name
+en,Формално име,Formal name
+en,Суверинитет,Dependency
+en,Столица,Capital
+en,валута,currency
+en,код,code
+en,име,name
+en,ITU-T телефонен код,ITU-T telephone code
+en,разширение,extension
+en,Страни,Countries
+en,Домейни,Domains
+en,Празници,Holidays
+en,IP-to-Country,IP-to-Country
+en,Тел. кодове,Tel. codes
+en,ЗДДС №,VAT ID
+en,МВР,MVR
+en,Съдилища,Courts
+en,на момента,in time
+en,веднага,now
+en,on time,on time
+en,Затваряне,Close
+en,Greece,Greece
+en,Адрес и контакти,Addresses and contacts
+en,Web сайт,Web сайт
+en,Решение по рег_047c8,Decision on registration
+en,Фирмено дело,Company file
+en,Година,Year
+en,Друга информация,Other info
+en,Изтриване,Delete
+en,Наистина ли же_0a920,Do you really like to delete the document?
+en,Банкови сметки,Bank accounts
+en,Все още няма ба_4e42,No bank accounts yet
+en,Добавяне на но_b0da9,Add new bank account
+en,Локации,Locations
+en,Все още няма ло_238c,No locations yet
+en,Добавяне на но_972cc,Add new location
+en,Фирми,Companies
+en,Лица,Persons
+en,Групи,Groups
+en,Календар,Calendar
+en,Изход,Exit
+en,Горе,Top
+en,Широк,Wide
+en,Страницата е з_933c4,The page is loaded on
+en,Липсващ метод:,Missing method:
+en,на,on
+en,Домейн,Domain
+en,Публичност,Publicity
+en,Данни за празн_fd20a,Data for holidays in calendar
+en,Ден,Day
+en,База,Base
+en,Поздрав,Greeting
+en,Празник,Празник
+en,Държава-към-IP,Country-to-IP
+en,IP,IP
+en,минимално,minimal
+en,Ip,Ip
+en,максимално,maximal
+en,Код на държава,Country code
+en,Телефонни кодове,Phone codes
+en,Страна,Country
+en,Код,Code
+en,Регион,Region
+en,Регистър на да_dcfbe,Register of VATs
+en,VAT,VAT
+en,Проверен на,Proof in
+en,Използван на,Used on
+en,Проверка на VAT _cab97,VAT number check
+en,МВР по страната,MVR in Bulgaria
+en,Град,City
+en,Сметка,Account
+en,Пулт,Pool
+en,Окръжни съдилища,District courts
+en,Редактиране на_b8ea,Record editing
+en,Градски съд,City court
+en,Окръжен съд,District court
+en,Е-кутия,E-box
+en,Bulgaria,Bulgaria
+en,Нов,New
+en,Трудови Договори,Employment Contracts
+en,Управител,Manager
+en,Служител,Employe
+en,Образование,Education
+en,Специалност,Speciality
+en,Диплома №,Diploma №
+en,Издадена от,Issued by
+en,Трудов стаж,Work experience
+en,Работа,Job
+en,Отдел,Department
+en,Смяна,Shift
+en,Длъжност,Position
+en,Условия,Conditions
+en,Годишен отпуск,Annual leave
+en,Предизвестие,Notice
+en,Изпитателен срок,Probation
+en,Допълнителни,Additional
+en,Длъжности,Positions
+en,Отдели,Departments
+en,Смени,Shifts
+en,Цикли,Cycles
+en,Шаблони,Templates
+en,Сделки за прод_1427c,Sales deals
+en,Фактури,Invoices
+en,Избор,Choise
+en,Товарачи,Loaders
+en,Последна употр_c0e5,Last use
+en,Текущ,Current
+en,Лабораторни те_54ab,Laboratory tests
+en,Вид,Kind
+en,Партида,Batch
+en,Произход,Origin
+en,Възложител,Assignor
+en,Активиран,Active
+en,Тестове,Tests
+en,Методи,Methods
+en,Събития,Events
+en,Картодържател,Card-owner
+en,Карта,Card
+en,Четец,Reader
+en,Действие,Action
+en,Други,Other
+en,Карти,Cards
+en,Четци,Readers
+en,Обекти,Objects
+en,Собственици,Owners
+en,Оборотни ведом_cdde,Trial Balance
+en,Период,Period
+en,от,from
+en,до,to
+en,Мемориални Орд_2c4e,Memo orders
+en,Журнал,Journal
+en,Списък с всичк_25ee6,List with all currencies
+en,Валута,Currency
+en,обновяване,update
+en,курс,rate
+en,Нова валута,New currency
+en,Групи валути,Groups of currencies
+en,Валутни курсове,Currency rates
+en,Индекси,Indexes
+en,Номенклатури,Lists
+en,Валутни групи,Currency groups
+en,Исторически ва_3350,Historical currency rates
+en,Tаблица,Table
+en,Линии,Lines
+en,Площ,Surface
+en,Торта,Cake
+en,Курс,Rate
+en,дата,date
+en,стойност,value
+en,Към основна ва_172de,To main currency
+en,Зареди от ECB,Load from ECB
+en,Индекс,Index
+en,Срочност,Term
+en,За дата,Date
+en,Стойност,Value
+en,Зареждане EURIBOR,Load EURIBOR
+en,Зареждане EONIA,Load EONIA
+en,Зареждане SOFIBID _633f,Load SOFIBID & SOFIBOR
+en,бележка,note
+en,Pixlr,Pixlr
+en,Kп,Cp
+en,Рецепта,Recipe
+en,Статия,Article
+en,Системен Администратор,System Administrator
+en,Автоматично ру_fc36,Automatic routing
+en,Потребителски _74e3,User rules
+en,Автоматични пр_76f8,Automatic routing rules
+en,домейн,domain
+en,Означение,Callout
+en,"Параметри, под_a428f","Parameters, supported by the sensors"
+en,Последни 3 мец.,Last 3 months
+en,Последен месец,Last month
+en,Последна седмица,Last week
+en,Последни 24 часа,Last 24 hours
+en,По седмици,Weekly
+en,Мин. дневни,Min. daily
+en,Макс. дневни,Max. daily
+en,По дни,Daily
+en,По часове,Hourly
+en,Без осредняване,Without averaging
+en,Осредняване,Averaging
+en,Сензор,Sensor
+en,Записи от сенз_bf0f9,Records from sensors
+en,Мениджър изгледи,Views manager
+en,Наблюдение,Surveillance
+en,Показания,Indications
+en,Драйвер,Driver
+en,Сензори,Sensors
+en,Притежание,Possession
+en,Притежател,Holder
+en,Притежания,Possessions
+en,Rfid номер,Rfid number
+en,Публични статии,Public Articles
+en,Статии,Articles
+en,Лейаут,Layout
+en,Източник,Source
+en,Публично съдър_149d,Public content
+en,Прецизност,Precision
+en,Размерност,Dimensionality
+en,Числов,Numerical
+en,Външна,External
+en,Разработка,Elaboration
+en,Поръчка,Order
+en,Изпълнител,Executant
+en,лабораторен тест,laboratory test
+en,Поръчки за храна,Orders for food
+en,Столуващи хора,Catering Users
+en,Добавяне на за_4524f,"Add an entry in ""Catering Companies"""
+en,Фирми за кетъринг,Catering Companies
+en,Позиции,Positions
+en,Камера,Camera
+en,Камери за виде_35689,Cameras for video surveillance
+en,Тип на документа,Document Type
+en,Номер на докум_ca9b7,Document Number
+en,Регистър на тр_23d90,"Register of shipping documents CMR, B/L"
+en,Състояние на п_85f2f,Condition of Shipments
+en,Регистър,Register
+en,Претенции за р_46c2e,Claims for reclamation
+en,Пратки,Shipments
+en,Заявка,Request
+en,Доставка,Delivery
+en,Товарене,Loading
+en,По договор,Under contract
+en,Номер на заявката,Request Number
+en,Заявки за това_2f537,Request for loading
+en,Позиция,Position
+en,Палет,Pallet
+en,Търсене на пал_74cfe,Search pallet in warehouse
+en,Палети в СКЛАД,Pallets in Warehouse
+en,Носещи колони _068c0,Supporting columns in number of pallet locations
+en,Колони,Columns
+en,Редове,Rows
+en,Стелаж №,Stillage №
+en,Търсене на про_ee600,Search product in warehouse
+en,Стелажи в СКЛАД,Stillages in Warehouse
+en,Видове палети,Types of pallets
+en,Зони,Zones
+en,Стелажи,Stillages
+en,Палети,Pallets
+en,Движения,Movements
+en,Експедиция,Shipping
+en,Липсват потреб_199b,Missing users for choice
+en,Към документ №,To document №
+en,сигнал,signal
+en,en,Ресто,Change
+en,Продадено,Sold
+en,Точка,Point
+en,Средства за пл_92d8c,Means of payment
+en,Отчети,Reports
+en,Бързи бутони,Shortcuts
+en,Бележки за про_9f1b5,Notes for sale
+en,Точки на Продажба,Points of Sale
+en,Маршрути,Routes
+en,Търговец,Merchant
+en,Клиент,Customer
+en,Недоставени,Undelivered
+en,Доставени,Delivered
+en,Неплатени,Unpaid
+en,Платени,Paid
+en,Основание за с_ee041,Reason for creation
+en,Закупчик,Buyer
+en,Платено,Paid
+en,Доставено,Delivered
+en,Поръчано,Ordered
+en,Стойности,Values
+en,Заповеди,Orders
+en,Ползване от,Use of
+en,Считано,Regarded
+en,неплатен,unpaid
+en,платен,paid
+en,Информация->Вид,Information-> Type
+en,Считано->До,Regarded->To
+en,Считано->От,Regarded->From
+en,Молби,Applications
+en,MKB код,ICD code
+en,Причина,Reason
+en,Отсъствие,Absence
+en,НКПД,NCO
+en,Назначени,Hired
+en,Щат,Plan
+en,НКИД,NCEA
+en,Организационн_9216c,Organization structure
+en,Брой дни,Number of days
+en,Графици,Schedules
+en,Шаблон,Template
+en,Създаване->От,Create->From
+en,Създаване->На,Create->On
+en,Шаблони за тру_db451,Templates for employment contracts
+en,Оборот,Turnover
+en,Баланси,Balances
+en,Приходи и Разходи,Revenues and Expenses
+en,По подразделен_e850,By Divisions / Activities
+en,Баланс,Balance
+en,Приходи / Разходи,Revenues / Expenses
+en,Дейност,Activity
+en,Видове дейности,Types of activities
+en,Подразделение,Subdivision
+en,Номер на опера_27d02,Operation number
+en,Парични средства,Bankroll
+en,Вносни Бележки,Deposit slips
+en,Нареждане Разп_be4e,Cash payment order
+en,Платежни Нареж_44b2,Payment orders
+en,Вътрешни транс_4e7b,Internal transfers
+en,Разходни докум_4dc4,Expenditure documents
+en,Приходни докум_bbe4,Revenue documents
+en,Oператори,Operators
+en,Представляват,Represent
+en,Титуляри,Holders
+en,Банкова сметка,Bank account
+en,Поотделно,Separately
+en,Създаден:,Created:
+en,Вальор,Value date
+en,бр,no.
+en,Активирани,Activated
+en,Кредит сметка,Credit account
+en,Дебит сметка,Debit account
+en,КОВ,CCE
+en,ВКТ,ICT
+en,РКО,DCO
+en,ПКО,CCO
+en,Касиер,Cashier
+en,Фирмени каси,Cash-desks
+en,Тип документ,Document Type
+en,Бланки,Templates
+en,Наши сметки,Our accounts
+en,Всички сметки,All accounts
+en,Банкови сметки_e9ab,Company bank accounts
+en,Разплащателна,Current account
+en,ДА Групи,LTA Groups
+en,Кредит,Credit
+en,Дебит,Debit
+en,Обобщен,Generalized
+en,крайно,end
+en,начално,start
+en,Салдо,Balance
+en,кредит,credit
+en,дебит,debit
+en,Обороти,Turnovers
+en,Максимум,Maximum
+en,Минимум,Minimum
+en,Перо 3,Feather 3
+en,Перо 2,Feather 2
+en,Перо 1,Feather 1
+en,От начална дата,From start date
+en,Лимит,Limit
+en,Група->продукти,Group->products
+en,Мета данни,Metadata
+en,Брой продукти,Number of products
+en,Продуктова група,Product Group
+en,Сметкоплан,Chart of accounts
+en,Корекционна,Correctional
+en,Смесена,Mixed
+en,Активна,Active
+en,Пасивна,Passive
+en,Макс. ном.,Max. number
+en,Пера в номенкл_8048c,Feathers in the nomenclature
+en,Справки,Reports
+en,Последен запис,Last record
+en,%ДДС,%VAT
+en,Счетоводни пер_b160,Accounting periods
+en,Наистина ли же_42ad1,Do you really want to finish the period?
+en,Приключване,Closing
+en,Инвентарна книга,Inventory book
+en,ГАН,YDR
+en,В употреба от,In use from
+en,Сериен,Serial
+en,Наш,Our
+en,Регистър на дъ_da20c,Fixed assets register
+en,ценоразпис,Price list
+en,Наистина ли же_2a886,Do you really want the document to be accounted?
+en,Контиране,Accounting
+en,Всички експеди_f789,All shipping orders
+en,Мярка / Опаковка,Measure/Packaging
+en,ЕАН,EAN
+en,Всички цени са,All prices are
+en,Групи продукти,Groups of Products
+en,Всички ценораз_2c36,All price lists
+en,без ДДС,without VAT
+en,Наистина ли же_c9dfa,Do you really want to correct the document?
+en,Корекция,Correction
+en,КИ,CN
+en,ДИ,DN
+en,Към продажба,To sale
+en,Основание за р_b916b,Reason for the VAT amount
+en,Дата на данъчн_dc848,Date of the tax event
+en,Съставил,Prepared
+en,Каса,Cash-desk
+en,Банкова с-ка,Bank acc
+en,на ден,per day
+en,Лихва за проср_a5486,Interest on late payments
+en,Краен срок за п_0995,Deadline for payment
+en,Начин,Method
+en,Плащане,Payment
+en,Отговорен за с_31d0a,Responsible for the business operation
+en,Условие,Condition
+en,Общо,Total
+en,ДДС,VAT
+en,Данъчна основа,Tax base
+en,С думи,Verbally
+en,ЕИК,UIC
+en,номер по ЗДДС,VAT number
+en,Доставчик,Supplier
+en,към Фактура,to Invoice
+en,ОРИГИНАЛ,ORIGINAL
+en,Място,Place
+en,Всички фактури_fe82,All sales invoices
+en,с начисляване,with accrual
+en,Цена,Price
+en,Мярка/Опак.,Measure/Pack.
+en,Продукт,Product
+en,Експедиране,Shipping
+en,Всички продажби,All sales
+en,Контиран,Accounted
+en,Последващ,Subsequent
+en,с ДДС,VAT included
+en,без,without
+en,В сила,In effect
+en,Без ДДС,Without VAT
+en,Разх. норми,Cons. norms
+en,Политики,Policies
+en,Наследява,Inherit
+en,Ценови политики,Pricing policies
+en,Групи на артик_653d2,Groups of items
+en,Дълбочина,Depth
+en,Височина,Height
+en,Ширина,Width
+en,Габарит,Dimension
+en,Тара,Tare
+en,Нето,Net
+en,Количество,Quantity
+en,Добавяне на оп_42af5,Add packaging for 
+en,Услуги,Services
+en,Суровини и мат_72165,Raw Materials
+en,Стоки,Goods
+en,Резервни части,Spare parts
+en,Продукти - стан_a7ed,Products - standard
+en,Продукти - нест_4a43,Products - nonstandard
+en,Консумативи,Consumables
+en,Заготовки,Preformed
+en,Код БН,Code BN
+en,Ценова група,Price group
+en,Габарити,Dimensions
+en,Тегло,Weight
+en,К-во,Quantity
+en,Опаковка,Package
+en,Артикул,Item
+en,Свойства,Properties
+en,Стоки - други,Goods - other
+en,Добави към пот_57ea5,Add to user
+en,сек.,sec.
+en,Вътрешен,Internal
+en,Контакт,Contact
+en,Външен,External
+en,Списък за масово разпращане,List for mass sending
+en,Ключово поле,Key field
+en,Всички полета,All fields
+en,Създадено на,Created on
+en,Създадено от,Created by
+en,Записи,Recordings
+en,Лица в групата,Persons in the group
+en,Промяна ЛК,Change ID card
+en,Промяна на дан_fd64e,Change data
+en,Редактиране на_3c38,Edit location
+en,Нормално,Normally
+en,също да бъдат п_e017,also be moved
+en,намиращи се в,located in
+en,имейл-а от,emails from
+en,Желаете ли и ос_bcb3,Would you like and the other
+en,Нова нишка,New thread
+en,промяна,change
+en,Заявки за прод_7423e,Request for sale
+en,fromTo,fromTo
+en,Несъответствия,Inconsistencies
+en,Рекламации,Reclamations
+en,Поръчки,Orders
+en,Заявки,Applications
+en,Столуващи,Users
+en,Кетаринг,Catering
+en,Дневни менюта,Daily menus
+en,Правила,Regulations
+en,Показатели,Data
+en,Правило,Rule
+en,Ведомост,Payroll
+en,Производствен_2b5ea,Production tasks
+en,Рецепти,Recipes
+en,Палитра,Palette
+en,Палитри,Palettes
+en,Задания,Assignments
+en,Задания за про_80703,Assignments for production
+en,В процес на раз_26e5,Under construction
+en,Универсален пр_b8e9,Universal product
+en,Технолог,Technologist
+en,Мастила,Inks
+en,Покупки,Purchases
+en,Несъответсвия,Inconsistencies
+en,Рекламация,Reclamation
+en,ЛС,HR
+en,Операции-Каси,Operations-Cash
+en,Операции-Банки,Operations-Banks
+en,Колцентър,Callcenter
+en,просрочване с,overdue with
+en,Добавяне на но_ef55d,Adding a New Task
+en,Обменено,Exchanged
+en,Получено,Received
+en,Грешка при изп_bd922,Error sending to
+en,Трябва да сте л_645c,You must be logged in to edit this entry.
+en,Лица отговарящ_ed86,Persons meeting the filter
+en,Редактиран док_a26d,Edited document
+en,Покупка,Purchase
+en,Оферта,Offer
+en,Фактура,Invoice
+en,Непознат форма_627b,Unknown format for duration
+en,Времена->Продъ_1a71e,Times-> Duration
+en,отпечатвания,prints
+en,width,width
+en,Фирми отговаря_1f19,Companies meeting the filter
+en,използвания,uses
+en,препратени,forwarded
+en,Въведете досег_93ca,Enter your current password
+en,Нова парола (пак),New password (again)
+en,Нова парола,New password
+en,Стара парола,Current password
+en,Смяна на паролата,Change password
+en,Стойността не _5138d,Value is not a valid email
+en,Служебни комун_a56f,Business communications->Emails
+en,сваляне,download
+en,Не може да се н_2c222,Could not make a reminder in the past 
+en,Опитайте пак,Try again
+en,Прекалено дълг_7fa8,Too long time for relogin
+en,Прогрес по,Progress of
+en,Прогрес по зад_30f07,Progress on tasks
+en,Брой,Number
+en,normal,normal
+en,Затворено,Closed
+en,Точки,Points
+en,Типове сигнали,Types of signals
+en,Нов вътрешен,New internal
+en,Получено на,Received on
+en,Мобилен номер,Mobile number
+en,Изпращач,Sender
+en,Услуга,Service
+en,Грешка при изп_441ef,Error sending
+en,Грешка при пол_93864,Error receiving
+en,Изпратен,Sent
+en,Получен,Received
+en,Статус на съоб_e3628,Message status
+en,Изпратено,Sent
+en,Изпратени факс_d0b0,Sent faxes
+en,Картинка,Picture
+en,Въпрос,Question
+en,Гласуване,Voting
+en,Опции,Options
+en,Въпроси,Questions
+en,Обобщение,Generalization
+en,Oписание,Description
+en,Параметри за л_3a5df,Parameters for laboratory tests
+en,Максимална,Maximum
+en,Минимална,Minimum
+en,Възможни стойн_abd9,Possible values
+en,Параметър,Parameter
+en,Оборудване,Equipment
+en,Методи за лабо_c1b4f,Methods for laboratory testing
+en,Contact card,Contact card
+en,Редактиране на_8a70,Edit user data
+en,Profile,Profile
+en,При промяна на _81b9,When changing the nickname of the user must be assigned a new password
+en,Промяна на,Change of
+en,Въвели сте нед_c1a80,You have entered an unacceptable value:
+en,получавания,arrivals
+en,Основание,Reason
+en,Изчакайте и оп_cee8a,Please try again later
+en,Прекалено крат_9f06,Too short time for relogin
+en,Бланка,Template
+en,Привет,Greetings
+en,Персонализаци_12704,Personalization of
+en,Първи документ,First document
+en,изпращания,Sent items
+en,използване,use
+en,Използван доку_e8f2,Used document
+en,сваляния,downloads
+en,виждания,reads
+en,Свален файл,Downloaded file
+en,Видян документ,Read document
+en,Възможно е дуб_8f991,It is possible to duplicate with the following company
+en,Потвърдено пол_3c2d,Acknowledge receipt
+en,Успешно изпрат_cee1,Successfully sent to
+en,Последно добавенo,Last added
+en,Национален №,National No
+en,в тип,in type
+en,Възникна грешк_d1cf,There was an error processing the data file
+en,виждане,read
+en,Търсене на пап_380be,Searching for folders corresponding to
+en,Номера,Numbers
+en,Търсен,Searched
+en,Позвъняващ,Calling
+en,Изходящ,Outgoing
+en,Входящ,Incoming
+en,Тип на разговора,Type of conversation
+en,Тип на обаждането,Type of the call
+en,Няма информация,No Information
+en,Отговорено,Answered
+en,Заето,Busy
+en,Прекъснато,Interrupted
+en,Без отговор,Unanswered
+en,Състояние на о_139c8,State of Call
+en,Лаб,Laboratory
+en,Централа,Call center
+en,Преместване на_58e9,Moving thread of documents
+en,"Моля, посочете _dd0b",Please specify where to move selected thread
+en,Използване,Using
+en,отпечатване,print
+en,входящ документ,Incoming document
+en,Съдебна регист_99ba,Court Registration
+en,Преместване на_bbc8,Moving threads of documents
+en,"Моля, посочете _1d89",Please specify where to move selected threads
+en,СМС,SMS
+en,Инициатор,Initiator
+en,Разговори,Calls
+en,Все още няма ус_3bd5,There are still no conditions
+en,Условия на про_52100,Terms of sale
+en,Фирми започващ_850b,Companies beginning with the letters
+en,Лица започващи_337a,Persons starting with the letters
+en,препратен,forwarded
+en,Съблюдаване на,Compliance
+en,Всички напомня_6e71,All reminders
+en,Заявки за покупки,Purchase orders
+en,Крайната цел е _13d8,End point has been reached
+en,Дебъг,Debug
+en,Нямате достъп _07fa3,You don't have access to this folder! Are you sure you want to move the thread?
+en,Групово премес_af15,Group moving
+en,Избор на папка _ac67,Choose folder for the thread
+en,"Моля, изберете _8a6d","Please, choose a folder"
+en,Преместване в _8ff89,Moving in new Persons folder
+en,"Моля, въведете _dfd8",Please enter the contact details of the person
+en,Преместване в _56087,Move selected threads to a new Company folder
+en,"Моля, въведете _c6b3",Please enter the contact details of the company
+en,Преместване на_8cc0,Move the document to a new folder
+en,"Моля, посочете _abdb",Please choose where you want the document to be moved
+en,Препратен имейл,forwarded email
+en,Артикули в кат_f7279,Products in Catalog
+en,Труд,Labor
+en,Външни услуги,Outside services
+en,Спецификация,Specification
+en,Всички потреби_ec69,All users
+en,КЦ,Call center
+en,Изходен код на _2665,Source code of the email
+en,Хедърите на им_6d6e4,The headers of the email
+en,Прикачените фа_4961,Attachments
+en,Текстовата час_0abd,Text part of the email
+en,HTML изглед,HTML view
+en,Предупреждение,Warning
+en,Игнорирай пред_32cc,Ignore the warning
+en,Възможно е дуб_6e72b,Possible duplication with the following person
+en,Полето трябва _35b3d,The field must contain 10 digits.
+en,Не е валидно ЕГ_50e3,Not valid Personal Number./Not valid Foreign Personal Number.
+en,Управители,Managers
+en,Служители,Personnel
+en,Човешки ресурси,Human Resources
+en,оттеглени,rejected
+en,ГРЕШКА В БАЗАТ_c7eb1,Database Error
+en,Телефон,Phone
+en,Кредитори,Creditors
+en,Институции,Institutions
+en,Доставчици,Suppliers
+en,Свързани лица,Related parties
+en,В сила от,In effect from
+en,Политика,Policy
+en,Клиенти,Customers
+en,Отпечатвания,Prints
+en,Препращания,Forwardings
+en,Виждания,Views
+en,получаване,receiving
+en,изпращане,sending
+en,Изтича,Expires
+en,Мета информация,Meta information
+en,Адресант->Имейл,Addressee->Email
+en,За да изпратит_e780e,You must fill the field
+en,Потребителски _842c,User Data
+en,Промяна на пер_ca722,Change the personalization
+en,Няма данни,No data availible
+en,Персонализация,Personalizacion
+en,Смяна на парола,Change password
+en,cмяна),change)
+en,Спецификации,Specifications
+en,Отчети за POS пр_e9fc7,Reports for POS sales
+en,Молби за отпуски,Applications for leave
+en,Командировки,Business trips
+en,Заповеди за от_0349e,Orders to leave
+en,Болнични листи,Hospital lists
+en,ГРЕШКА В ПРИЛО_9cbdc,Application Error
+en,Без дата,No date
+en,Отработено време,Spent time
+en,Краен срок,Deadline
+en,Всички задачи,All tasks
+en,остават,remain
+en,задача,task
+en,Грешки,Errors
+en,Потребителя тр_b2f5,User must have at least one role for a team!
+en,Потребителя тр_ac2a,User must have at least one role to rank!
+en,Системна,System
+en,Ранг,rank
+en,Модул,Module
+en,индиректно,indirect
+en,Брой фирми,Number of companies
+en,Нямате добавен_416b,Not added a list for circulars. Please add.
+en,Нямате добавен_cfec,Not added a list for emails. Please add.
+en,Блокирани,Blocked
+en,Етикети,Labels
+en,Писма,Letters
+en,Факсове,Faxes
+en,SMS-и,SMS
+en,Списъци,Lists
+en,Масово разпращ_7ab3,Mass mailing
+en,Напишете името_d3f1,Write the name of each field on a separate line
+en,Kлючовото поле _0236,The key field for the list
+en,Полета,Fields
+en,циркулярни кон_6939,circulars contacts
+en,Списъци за изп_2d55a,"Lists for sending circulars emails, letters, SMS-and faxes and more"
+en,имейл,e-mail
+en,Счетоводни,Accounting
+en,Отчет за POS про_380b0,Report for POS sales
+en,Циркулярни,Circular
+en,Общи,General
+en,Задачи от,Tasks from
+en,Задачи към,Tasks for
+en,Терминология,Terminology
+en,Технологии,Technology
+en,Некоректен имейл,Incorrect email
+en,Имейл->Адрес,Email->Address
+en,Некоректна сто_a431,Incorrect field value
+en,Трябва да избе_e751c,You must select only one of the three options
+en,Препращане на _8c56a,Forwarding email
+en,входящ имейл,incoming email
+en,Видян на,Seen at
+en,Отношение,Relation
+en,Контейнер,Container
+en,Отношения на п_2a603,Relations of users to threads
+en,Абониран,Subscribed
+en,Споделен,Shared
+en,Сума,Amount
+en,Обръщение в им_757d4,Salutation in e-mails
+en,Липсват възмож_dd95,There are no possibilities for sending email. Set at least one account in Documents-> Email-> Accounts
+en,Вземи файла от _4ad6,Take the file from this URL
+en,Последно логване,Last login
+en,Визитка,Contact card
+en,Група->указател,Group->organizer
+en,Брой лица,Number of persons
+en,Брой компании,Number of companies
+en,Контрагент,Partner
+en,Само лица,Persons only
+en,Само фирми,Companies only
+en,Фирми и лица,Companies and persons
+en,Група,Group
+en,Съдържание,Ingredients
+en,Групи с визитки,Groups of business cards
+en,Редактиране,Edit
+en,Експортиране,Export
+en,Фирми в групата,Companies in group 
+en,Документи в ни_b50a6,Documents into the threads
+en,Вносна бележка,Deposit slip
+en,Платежно нареж_52bd,Payment order
+en,Касова обмяна _25076,Cash currency exchange
+en,Банкова обмяна_8e6b,Bank currency exchange
+en,Вътрешен касов_c9c7,Internal cash transfer
+en,Вътрешен банко_0366,Internal bank transfer
+en,Разходен банко_9860,Expenditure bank document
+en,Приходен банко_ac29,Revenue bank document
+en,Разходен касов_5ac8,Debit cash order
+en,Приходен касов_9be4,Credit cash order
+en,Поддържани сис_2c07,Supported systems
+en,Прототип,Prototype
+en,Позволени типове,Allowed types
+en,Няма достъпна _a3fb2,No accessible system
+en,Анкета,Survey
+en,Лабораторен тест,Laboratory test
+en,Разходна норма,Consumption norm
+en,Протокол за пр_2df4e,Protocol for changing LTA
+en,Пускане в експ_8dd6f,Commissioning of LTA
+en,Мемориален ордер,Order of transactions
+en,Болничен лист,Hospital list
+en,Трудов договор,Labor contract
+en,Ценоразпис,Price list
+en,Отчет за бързи _7c74,Report for quick sales
+en,Оферта от дост_b4b32,Offer from a supplier
+en,Експедиционно _da6c,Shipping order
+en,Циркулярно писмо,Circular letter
+en,Циркулярен имейл,Circular email
+en,Циркулярни кон_d435,Circular contacts
+en,Отпечатъци,Fingerprints
+en,Спам,Spam
+en,Разписки,Receipts
+en,Върнати,Returned
+en,Съобщения,Messages
+en,Акаунт,Account
+en,Тема,Topic
+en,Локации на кон_142df,Locations of partners
+en,Друг,Other
+en,Фабрика,Factory
+en,Склад,Store
+en,Магазин,Shop
+en,Офис,Office
+en,За получаване _f5844,Shipment address
+en,Главна квартира,Headquarter
+en,За кореспонден_20dd,For correspondence
+en,Снимка,Picture
+en,Координати,Coordinates
+en,GLN код,GLN code
+en,Юрисдикция,Jurisdiction
+en,Нова локация на ,New location on 
+en,Регистрация,Registration
+en,Представители,Representatives
+en,Решение по рег_3e9cb,Decision on registration
+en,ЛК,ID card
+en,Банка,Bank
+en,Валидност,Validity
+en,Издаване,Issuance
+en,Лична карта,Identity card
+en,Служебна инфор_c0d2,Work communcations
+en,Вътрешно,Internally
+en,Фото,Picture
+en,Мобилен,Mobile
+en,Лични комуника_9a93,Personal communications
+en,Служебни комун_382c,Work communcations
+en,Нас. място,City
+en,Пощ. код,Postal code
+en,ЕГН,Personal Number
+en,Обръщение,Salutation
+en,Импорт,Import
+en,Рожден ден,Birthday
+en,Запис и Нов,Save and New
+en,Всички изходящ_92b1,All outgoing e-mails
+en,всички,all
+en,добави,add
+en,За,Re
+en,коментар,comment
+en,сподели,share
+en,Редактиране на,Edit of
+en,Наистина ли ис_9f50b,Are you sure you want to ACTIVATE the document?
+en,Сигнал,Signal
+en,Молба за отпуск,Application for leave
+en,Входящ документ,Incoming document
+en,Задача,Task
+en,Добавяне на но_877ab,Adding new document to this thread
+en,са преместени в,are moved to
+en,нишки от,threads from
+en,Преместване на_ad72,Move all
+en,« Връщане,« Back
+en,Продължение »,Continue »
+en,Нова папка на л_4ecb,New person folder
+en,Нова папка на ф_bbf2,New company folder
+en,Съществуваща п_0174,Existing folder
+en,Преместване към,Move to
+en,Първи документ_e7b9,First document in the thread
+en,Баркодове,Barcodes
+en,Преглед,Preview
+en,Грешна парола _88a27,Wrong password or username
+en,Затворен,Closed
+en,Резолюции,Resolution
+en,Оценки,Ratings
+en,Превенции,Prevention
+en,Корекции,Corrections
+en,Типове,Types
+en,Системи,Systems
+en,Компонент,Компонент
+en,Последно изчис_7770,Last calculated
+en,е добавен в,was added to
+en,От URL,From URL
+en,Разширения,File extensions
+en,Макс. размер,Max file size
+en,добавяне на файл,adding new file
+en,Качване,Upload
+en,Поправка,Repair
+en,Стойност по по_acbfc,Default value
+en,Настройки на п_d317c,Package settings
+en,файл,file
+en,Прикачване на _4ad50,Attach a file
+en,линк,link
+en,Добавяне на,Adding new
+en,изходящ имейл,outgoing e-mail
+en,Циркулярни писма,Circular letters
+en,Циркулярни име_3d6e,Circular emails
+en,Ценоразписи,Price lists
+en,Фактури за про_aec89,Sales Invoice
+en,Списъци с конт_d23a7,Contact lists
+en,Сигнали,Signals
+en,Резолюция на с_c297a,Resolution on the signal
+en,Разходни касов_8e6a,Debit cash orders
+en,Разходни банко_a3df,Expenditure bank documents
+en,Разходни Норми,Consumption norms
+en,Приходни касов_b832,Credit cash orders
+en,Приходни банко_d760,Revenue bank documents
+en,Превантивни де_876d,Preventive action
+en,Платежни нареж_731d,Payment orders
+en,Оценка на сигнал,Rating of the signal
+en,Оферти за покупки,Offers for purchases
+en,Отчети за бърз_50379,Reports for quick sales
+en,Нареждане разп_4678,Cash payment order
+en,Коригиращи дей_d8b4,Correcting actions
+en,Експедиционни _b21d,Shipping orders
+en,Дълготрайни ак_6a98,Fixed assets
+en,ДА Документи,LTA documents
+en,Вътрешни касов_29a2,Internal cash transfers
+en,Вътрешни банко_f42d,Internal bank transfers
+en,Входящи имейли,Incoming e-mails
+en,Входящи докуме_aae3,Incoming documents
+en,Вносни бележки,Deposit slips
+en,Банкови обмени_aab5,Bank exchanges of currencies
+en,Мерки,Measures
+en,Опаковки,Packaging
+en,Продукти в кат_97d96,Products in catalog
+en,Няма записи,No records
+en,Наистина ли же_59fc6,Do you really want to recover the document?
+en,Възстановяване,Recovery
+en,Нова стойност,New value
+en,Стара стойност,Old value
+en,Поле,Field
+en,Адресни данни,Address details
+en,Езици,Languages
+en,Tел. код,Tel. code
+en,НаименованиеBG,NameBG
+en,Сваляния,Downloads
+en,Кофи,Buckets
+en,Екстрактнато,Extracted
+en,Кофа,Bucket
+en,Данни Id,Data Id
+en,Манипулатор,Manipulator
+en,Последни,Last
+en,Наистина ли же_250da,Do you really want to remove all records?
+en,Изпразване,Emptying
+en,Авто скриване,Auto hide
+en,Екшън,Action
+en,Контролер,Controller
+en,Под меню,Sub-menu
+en,Меню,Menu
+en,Ред,Row
+en,Елементи на ме_1d410,Menu Items
+en,Освободено,Freed
+en,Събудено,Awaken
+en,Оттеглено,Withdrawed
+en,Скрито,Hidden
+en,Приключено,Finished
+en,Отворено,Opened
+en,Активирано,Acivated
+en,Чакащо,Waiting
+en,Чернова,Draft
+en,Ден от края на _943bd,Day from the end of the month
+en,години,years
+en,месецa,months
+en,Проект,Project
+en,Следващо напом_731f,Next reminder
+en,Прогрес,Progress
+en,Именници,Name days
+en,Ден от седмицата,Day of Week
+en,Международен,International
+en,Мюсюлмански,Muslim
+en,Православен,Orthodox
+en,Отработване,Work off
+en,Неработен,Playday
+en,Тип на празника,Holiday type
+en,Кат. Великден,Catholic Easter
+en,Великден,Easter
+en,Национален пра_678b,National holiday of
+en,Месец,Month
+en,Седмица,Week
+en,Списък,List
+en,Операции,Operations
+en,Лимити,Limits
+en,Периоди,Periods
+en,Пера,Feathers
+en,Не е включен в _a3d49,It is not in lists
+en,Промяна,Change
+en,Дебитори,Debtors
+en,Съдилище,Court
+en,Решение по рег_db60e,Court registration No
+en,Бележки,Notes
+en,Телефони,Phones
+en,Комуникации,Communications
+en,Всички групи,All groups
+en,Пощенски код,Postal code
+en,Данъчен №,VAT No
+en,Последно проме_2336,Last modified
+en,Последно добав_b214,Last added
+en,Азбучно,Alphabetic
+en,Нишки от докум_96092,Threads with documents
+en,Действия с изб_dff97,With selected rows
+en,Английски,English
+en,Български,Bulgarian
+en,Добавен на,Added on
+en,Размер,Size
+en,Съдържа се в,Contained in
+en,Вземи,Take
+en,Линк,Link
+en,Профили,Profiles
+en,Разкачане на в_800a0,Disconnect the business card from the user
+en,Редактиране на_8821,Editing user login information
+en,Редактиране на_7b58,Edit of user profile
+en,Подпис,Signature
+en,Лого EN,Logo EN
+en,Лого,Logo
+en,Създаден на,Created on
+en,Потребителски _2eff,User profile
+en,Наистина ли же_eb7d0,Do you really want to create a folder for documents to
+en,Профил,Profile
+en,Сайт/Блог,Site/Blog
+en,Моб.,Mob.
+en,Секретен,Secret
+en,Общ,Shared
+en,Личен,Personal
+en,Екипен,Team
+en,Всеки понеделн_02c2,Every Monday
+en,Всеки вторник,Every Tuesday
+en,Всяка сряда,Every Wednesday
+en,Всеки четвъртък,Every Thursday
+en,Всеки петък,Every Friday
+en,Всяка събота,Every Saturday
+en,Всеки ден,Every day
+en, е спрян., is stopped.
+en, е стартиран., is started.
+en,Конфигуриране,Configuring
+en,Непопълнено за_dfe6,Blank required field
+en,Вече съществув_3488,Entry already exists with the same data
+en,Файлове в папка,Files in a folder
+en,Сорс,Source
+en,Хедъри,Headers
+en,Текст,Text
+en,Сваляне,Download
+en,Версии,Versions
+en,Детайли,Details
+en,Въведете отнов_2206,Enter the password again for confirmation
+en,Паролата трябв_08f2,The password must be at least
+en,Заличен,Deleted
+en,Блокиран,Blocked
+en,Неактивиран,Inactivated
+en,Парола (пак),Password (again)
+en,Изглед,Preview
+en,Препращане,Forward
+en,Кп,Cp
+en,Всички входящи_3bf7,All incoming e-mails
+en,Размер:,Size:
+en,Липсва заглавие,Missing title
+en,дни,days
+en,Обновяване на _1201f,System Update
+en,Имейл акаунт,Email account
+en,Изисква се,Required
+en,Не се изисква,Not required
+en,Без криптиране,Without encryption
+en,Да,Yes
+en,Не,No
+en,Дали писмото д_febd9,Whether the letter to be deleted from IMAP box after receiving in the system?
+en,Спрян,Stopped
+en,Активен,Active
+en,С валидиране,Validation
+en,Без валидиране,Without validation
+en,По подразбиране,By default
+en,Корпоративна,Corporate
+en,Събирателна,Collecting
+en,Самостоятелна,Separate
+en,С рутиране,Routing
+en,Без рутиране,Without Routing
+en,"Имейл адреса, с_c775","Email address, corresponding of the account"
+en,Аутентикация,Authentication
+en,Изтриване?,Delete?
+en,Изтегляне,Download
+en,IMAP папка,IMAP folder
+en,Сертификат,Certificate
+en,Сигурност,Security
+en,Имейл кутии,Mailboxes
+en,SMTP сървър,SMTP server
+en,Сървър,Server
+en,Протокол,Protocol
+en,Получаване,Receiving
+en,Имейл акаунти,Email Accounts
+en,Обръщения,Addressings
+en,Непарсируеми,Unparsable
+en,Сметки,Accounts
+en,Отношения,Relations
+en,Проекти,Projects
+en,Нишка,Thread
+en,Теми,Subjects
+en,Нов проект,New Project
+en,Ново лице,New Person
+en,Нова фирма,New Company
+en,символа,symbols
+en,Въведената сто_ab9f,Input value is above the permissible
+en,Лог,Log
+en,Форум,Forum
+en,Блог,Blog
+en,Сайт,Site
+en,Планиране,Planning
+en,Производство,Production
+en,Точки на продажба,Points of sale
+en,Анкети,Surveys
+en,Поддръжка,Support
+en,Промени,Changes
+en,Файлове,Files
+en,Ценообразуване,Pricing
+en,Събитие,Event
+en,Разглеждане,See
+en,Хранилище,Repository
+en,Игнориране,Ignore
+en,Път,Path
+en,Път до хранилище,Path to repository
+en,Подпапка,Subfolder
+en,Няма файлове,No files
+en,Група файлове,Group of files
+en,група файлове,group of files
+en,Автоматизации,Automatizations
+en,Последователи,Followers
+en,Следени,Followed
+en,Следене,Tracking
+en,Споделяния,Sharings
+en,Икона,Icon
+en,Добавки,Additions
+en,Публично съдържание,Public content
+en,ПОКУПКА,PURCHASE
+en,Всички покупки,All purchases
+en,До склад,To store
+en,От обект,Object from
+en,покупка,purchase
+en,Покупки « Доставки,Purchases « Supplies
+en,Закупчик,Buyer
+en,Всички разпределени групи файлове,All allocated groups of files
+en,Отстъпка,Discount
+en,К-во: Д / П,Qty: D / O
+en,Остатък,Balance
+en,Фактурирано,Invoiced
+en,Срок до,Date to
