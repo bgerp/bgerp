@@ -177,7 +177,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
     	// Информацията за текущия контрагент
     	$cData = doc_Folders::getContragentData($rec->folderId);
-    	//bp($rec);
+    	
     	// Намиране на последната продажба, на контрагент от същата държава
     	$query = $mvc->getQuery();
         $query->where("#state = 'active'");

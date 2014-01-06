@@ -35,6 +35,12 @@ class doc_TplManager extends core_Master
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,admin';
@@ -90,8 +96,22 @@ class doc_TplManager extends core_Master
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title)', "caption=Клас, width=100%");
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
+        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter');
         
-        $this->setDbUnique('name,docClassId');
+        $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Връща подадения шаблон
+     * @param int $id - ид на шаблон
+     * @return core_ET $tpl - шаблона
+     */
+    public static function getTemplate($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return new ET(tr("|*" . $rec->content));
     }
     
     
@@ -112,5 +132,15 @@ class doc_TplManager extends core_Master
     	}
     	
     	return $options;
+    }
+    
+    
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+    { 
+    	// Шаблоните се сортират по ключове
+    	ksort($res);
     }
 }         
