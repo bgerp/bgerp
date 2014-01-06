@@ -213,7 +213,7 @@ class fileman_Repositories extends core_Master
         }
         
         // Плейсхолдера, който ще показваме
-        $placeText = "Текст, който да се игнорира: ^ начало, * всики, - без, $ край";
+        $placeText = "Текст, който да се игнорира: ^ начало, * всички, - без, $ край";
         
         // Добавяме плейсхолдера
         $data->form->addAttr('ignore', array('placeholder' => $placeText));
