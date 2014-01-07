@@ -16,6 +16,7 @@
 class doc_RichTextPlg extends core_Plugin
 {
     
+    
     /**
      * Шаблон за намиране на линкове към документи
      * # (от 1 до 3 букви)(от 1 до 10 цифри). Без да се прави разлика за малки и големи букви.
@@ -44,6 +45,16 @@ class doc_RichTextPlg extends core_Plugin
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+    }
+    
+    
+    /**
+     * Добавя бутон за качване на документ
+     */
+    function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
+    {
+        // Добавяме бутон за прикачане на документи
+	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Добавяне на документ') . "' onclick=\"s('', '', document.getElementById('{$attr['id']}'))\">" . tr('Документ') . "</a>", 'filesAndDoc');    
     }
     
     
