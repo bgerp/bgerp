@@ -1917,13 +1917,17 @@ div.richEdit {
 
 #richtext-emoticons4 {
 	position: absolute;
-	left: 34.9em;
-	top: -20px;
+	left: 31.8em;
+	bottom: 2.5em;
 	display: none;
 }
 
 .narrow #richtext-emoticons4 {
-	left: 19.3em;
+	left: 16.2em;
+}
+
+#richtext-emoticons4 .rtbutton {
+	display: block;
 }
 
 a.rtbutton {
