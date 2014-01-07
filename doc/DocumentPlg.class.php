@@ -843,6 +843,9 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
+        // Тряба потребителя да има достъп до папката
+        expect(doc_Folders::haveRightToFolder($rec->folderId));
+        
         $mvc->invoke('AfterPrepareDocumentLocation', array($data->form));
     }
 
