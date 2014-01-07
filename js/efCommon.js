@@ -601,7 +601,7 @@ function toggleRichtextGroups(id)
 	if (typeof jQuery != 'undefined') {
 		var hidden = $("#" + id).css("display");
 		
-		$('.richtext-holder-group').css("display", "none" );
+		$('.richtext-group-title + .richtext-holder-group').css("display", "none" );
 	    if (hidden == 'none') {
 	    	$("#" + id).fadeToggle("slow");
 	    }
@@ -610,9 +610,19 @@ function toggleRichtextGroups(id)
 		var el = document.getElementById(id);  
 		var hidden = el.style.display;
 		
-		document.getElementsByClassName('richtext-holder-group')[0].style.display='none';
-		document.getElementsByClassName('richtext-holder-group')[1].style.display='none';
-		document.getElementsByClassName('richtext-holder-group')[2].style.display='none';
+		var richtextGroupTitle = document.getElementsByClassName('richtext-group-title');
+		
+		var richtextGroupHolder = document.getElementsByClassName('richtext-holder-group');
+		
+		if (richtextGroupTitle) {
+			for (var i = richtextGroupTitle.length - 1; i >= 0; i--)
+			{
+				if (richtextGroupHolder[i]) {
+					richtextGroupHolder[i].style.display='none';
+				}
+			}
+		}
+		
 		
 		if (hidden != 'block' && (el.style.display == 'none' || el.style.display == '')) el.style.display='block';
 			else el.style.display='none';
