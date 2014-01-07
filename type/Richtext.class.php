@@ -1125,7 +1125,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("</span>", 'TBL_GROUP3');
         
         
-        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Добавяне на файлове/документи' onclick=\"toggleRichtextGroups('richtext-emoticons4')\">Добави</a>", 'TBL_GROUP4');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons4')\">" . tr('Добави') . "</a>", 'TBL_GROUP4');
     
         $toolbarArr->add("<span id='richtext-emoticons4' class='richtext-holder-group'>", 'TBL_GROUP4');
     	    
