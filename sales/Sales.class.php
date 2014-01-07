@@ -1073,6 +1073,11 @@ class sales_Sales extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
+    	if($data->rec->template){
+			
+			$tpl = doc_TplManager::getTemplate($data->rec->template);
+		}
+    	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
@@ -1174,22 +1179,18 @@ class sales_Sales extends core_Master
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/SingleLayoutSale4.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/SingleLayoutSale5.shtml', 'lang' => 'en');
     	
-    	$added = 0;
+    	$added = $updated = 0;
     	foreach ($tplArr as $arr){
-    		if(!doc_TplManager::fetch("#name = '{$arr['name']}'")){
-    			$arr['docClassId'] = $this->getClassId();
-    			$arr['content'] = getFileContent($arr['content']);
-    			$arr['createdBy'] = -1;
-    			doc_TplManager::save((object)$arr);
-    			$added++;
-    		}
+    		
+    		$arr['id'] = doc_TplManager::fetch("#name = '{$arr['name']}'")->id;
+    		$arr['docClassId'] = $this->getClassId();
+    		$arr['content'] = getFileContent($arr['content']);
+    		$arr['createdBy'] = -1;
+    		doc_TplManager::save((object)$arr);
+    		($arr['id']) ? $updated++ : $added++;
     	}
     	
-    	if($added){
-    		$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби</font></li>";
-    	} else {
-    		$res .= "<li>Не са добавени нови шаблони за продажби</li>";
-    	}
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}</font></li>";
     }
     
     
@@ -1307,18 +1308,4 @@ class sales_Sales extends core_Master
     		}
     	}
     }
-    
-    
-    /**
-     * Рендиране на единичния изглед
-     */
-    public function renderSingleLayout_(&$data)
-	{
-		if($data->rec->template){
-			
-			return doc_TplManager::getTemplate($data->rec->template);
-		}
-		
-	 	return parent::renderSingleLayout_($data);
-	}
 }

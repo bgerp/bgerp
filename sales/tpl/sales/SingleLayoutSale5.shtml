@@ -171,6 +171,7 @@
 		</div>
 	</div>
 	
+	<h4>|Условия|*</h4>
 	<ol>
 	<li>All the prices are with <span style = 'text-transform:lowercase'>[#chargeVat#]</span> VAT</li>
 	<!--ET_BEGIN notes-->

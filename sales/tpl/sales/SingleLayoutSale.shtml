@@ -156,7 +156,10 @@
 					        <!--ET_BEGIN initiatorId-->
 					        <span style='font-weight:normal'>|инициатор|*</span>: [#initiatorId#]<br />
 					        <!--ET_END initiatorId-->
+					        
+					        <!--ET_BEGIN dealerId-->
 					        <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
+					        <!--ET_END dealerId-->
 				        </td>
 				    </tr>
 				    <tr>
@@ -171,6 +174,7 @@
 		</div>
 	</div>
 	
+	<h4>|Условия|*</h4>
 	<ol>
 	<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
 	<!--ET_BEGIN notes-->
