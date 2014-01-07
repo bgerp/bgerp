@@ -116,8 +116,7 @@ class sales_Setup extends core_ProtoSetup
         	'sales_QuotationsDetails',
     		'sales_SaleRequests',
     		'sales_SaleRequestDetails',
-    		'sales_ClosedDealsDebit',
-    		'sales_ClosedDealsCredit',
+    		'sales_ClosedDeals',
     		'sales_Services',
     		'sales_ServicesDetails',
         );
