@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -109,10 +109,7 @@ class bank_OwnAccounts extends core_Master {
     
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
-     * $autoList.
-     * 
-     * @see acc_plg_Registry
-     * @var string
+     * $autoList
      */
     var $autoList = 'bankAcc';
     
@@ -143,7 +140,7 @@ class bank_OwnAccounts extends core_Master {
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
-        $this->FLD('operators', 'userList(roles=bank)', 'caption=Оператори,mandatory');
+        $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
     }
     
 
