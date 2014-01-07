@@ -251,7 +251,7 @@ abstract class price_Helper
 		
 		$tpl = getTplFromFile('price/tpl/BusinessDocSummary.shtml');
 		foreach (array('baseAmount', 'vatAmount') as $fld){
-			if($obj->$fld == 0){
+			if(isset($obj->$fld) && $obj->$fld == 0){
 				$obj->$fld = "<span class='quiet'>{$obj->$fld}</span>";
 			}
 		}
