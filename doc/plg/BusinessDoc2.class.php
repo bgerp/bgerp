@@ -153,6 +153,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
     	core_Debug::$isLogging = FALSE;
+    	//bp($coversArr);
     	foreach ($coversArr as $coverId){
     		
     		// Подадената корица, трябва да е съществуващ 
@@ -167,9 +168,9 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		list($pName, $coverName) = explode('_', $coverId);
 	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
 	    		if ($optionList) {
-	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%,key");
+	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
 	    		} else {
-	    			$form->FNC($coverName, "varchar", "input,caption=Изберете точно една папка->{$Class->singleTitle},width=100%");
+	    			$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
 	    			$form->setReadOnly($coverName);
 	    			
 	    			continue;
@@ -177,15 +178,17 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	    		
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$query = $Class::getQuery();
+	    		$newOptions = array();
 	    		$query->where("#id IN ({$optionList})");
 	    		$query->show('inCharge,access,shared');
 	    		while($rec = $query->fetch()){
+	    			
 	    			if(doc_Folders::haveRightToObject($rec)){
-	    				$options[$rec->id] = $options[$rec->id];
+	    				$newOptions[$rec->id] = $options[$rec->id];
 	    			}
 	    		}
 	    		
-	    		$form->setOptions($coverName, $options);
+	    		$form->setOptions($coverName, $newOptions);
     		}
     	}
     	
@@ -225,7 +228,7 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     	// Ако има избран повече от един обект, се показва грешка
     	if(count($errFields)){
     		array_unshift($errFields, $selectedField);
-    		$form->setError(implode(',', $errFields), 'Трябва да посочите точно еднa папка');
+    		$form->setError(implode(',', $errFields), 'Трябва да е избрана една папка');
     		return;
     	}
     	
