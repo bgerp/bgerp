@@ -55,6 +55,9 @@ class fileman_RichTextPlg extends core_Plugin
             $fileUpload->appendOnce($callback, 'SCRIPTS');
             
             $toolbarArr->add($fileUpload, 'TBL_GROUP2');
+            
+            // Добавяне в групата за добавяне на файлове
+            $toolbarArr->add($fileUpload, 'filesAndDoc');
         }
     }
     
