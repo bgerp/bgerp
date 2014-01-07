@@ -1890,7 +1890,7 @@ div.richEdit {
 	width: 600px; 
 }
 
-.narrow .richedit-toolbar {
+.richedit-toolbar {
 	position: relative;
 }
 
@@ -1913,6 +1913,17 @@ div.richEdit {
 	left: 11.5em;
 	top: -20px;
 	display: none;
+}
+
+#richtext-emoticons4 {
+	position: absolute;
+	left: 34.9em;
+	top: -20px;
+	display: none;
+}
+
+.narrow #richtext-emoticons4 {
+	left: 19.3em;
 }
 
 a.rtbutton {
