@@ -1106,7 +1106,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton title=" . tr("Линк") . " onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'TBL_GROUP2');
         
         if(Mode::is('screenMode', 'narrow')) {
         	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавие 1' onclick=\"toggleRichtextGroups('richtext-emoticons3')\">H</a>", 'TBL_GROUP3');
