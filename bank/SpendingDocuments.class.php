@@ -186,25 +186,7 @@ class bank_SpendingDocuments extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         
     	if($origin = $mvc->getOrigin($form->rec)) {
-    		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
-    		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
-    		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
-    		 	if($amount <= 0) {
-    		 		$amount = 0;
-    		 	}
-    		 	
-    		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
-    		 	foreach ($options as $index => $op){
-    		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
-    		 			unset($options[$index]);
-    		 		}
-    		 	}
-    		 	
-    		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 	$form->rec->rate       = $dealInfo->shipped->rate;
-    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
-    		 }
+    		 $mvc->setDefaultsFromOrigin($origin, $form, $options);
     	}
     	
         $form->setDefault('valior', $today);
@@ -216,6 +198,45 @@ class bank_SpendingDocuments extends core_Master
     }
 	
 	
+	/**
+     * Задава стойности по подразбиране от продажба/покупка
+     * @param core_ObjectReference $origin - ориджин на документа
+     * @param core_Form $form - формата
+     * @param array $options - масив с сч. операции
+     */
+    private function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, $options)
+    {
+    	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
+        if($origin->haveInterface('bgerp_DealAggregatorIntf')){
+    		 $dealInfo = $origin->getAggregateDealInfo();
+    		 $amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 $amount = ($amount <= 0) ? 0 : $amount;
+    		 	
+    		 // Ако има банкова сметка по пдоразбиране
+    		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
+    		 	$bankRec = bank_OwnAccounts::fetch($bankId);
+    		 	$operators = keylist::toArray($bankRec->operators);
+    		 		
+    		 	// Ако потребителя е оператор на сметката, но не е логнат форсира се логването му в нея
+				if($bankId != bank_OwnAccounts::getCurrent('id', FALSE) && in_array(core_Users::getCurrent(), $operators)){
+    		 		Redirect(array('Ctr' => 'bank_OwnAccounts', 'Act' => 'SetCurrent', 'id' => $bankId, 'ret_url' => TRUE));
+    		 	}
+    		 }
+    		 	
+    		 // Ако операциите на документа не са позволени от интерфейса, те се махат
+    		 foreach ($options as $index => $op){
+    		 	if(!in_array($index, $dealInfo->allowedPaymentOperations)){
+    		 		unset($options[$index]);
+    		 	}
+    		 }
+    		 	
+    		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
+    		 $form->rec->rate       = $dealInfo->shipped->rate;
+    		 $form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    	}
+    }
+    
+    
     /**
      * Проверка след изпращането на формата
      */
