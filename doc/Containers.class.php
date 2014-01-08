@@ -1035,7 +1035,7 @@ class doc_Containers extends core_Manager
         $documentClassId = core_Classes::fetch("LOWER(#name) = '{$documentName}'")->id;
         
         // Ако има такъв запис, връщаме TRUE
-        return (boolean)static::fetch("#threadId = '{$threadId}' AND #docClass = '{$documentClassId}'");
+        return (boolean)static::fetch("#threadId = '{$threadId}' AND #docClass = '{$documentClassId}' AND #state != 'rejected'");
     }
     
     
