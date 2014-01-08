@@ -565,7 +565,7 @@ class distro_Group extends core_Master
         $allDocIdArr = array_reverse($allDocIdArr);
         
         // Обхождаме масива
-        foreach ($allDocIdArr as $docId) {
+        foreach ($allDocIdArr as $docId => $docRec) {
             
             // Вземаме класа на документа
             $class = doc_Containers::getDocument($docId);
