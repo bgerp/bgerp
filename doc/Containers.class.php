@@ -1152,17 +1152,29 @@ class doc_Containers extends core_Manager
     /**
      * Връща масив с всички id' та на документите в нишката
      * 
-     * @param integer $threadId - id на нишка
+     * @param mixed $thread - id на нишка или масив с id-та на нишка
+     * @param string $state - Състоянието на документите
+     * @param string $order - ASC или DESC подредба по дата на модифициране или да не се подреждат
      * 
      * @return array
      */
-    static function getAllDocIdFromThread($threadId, $state=NULL)
+    static function getAllDocIdFromThread($thread, $state=NULL, $order=NULL)
     {
         $arr = array();
         
         // Вземаме всички документи от нишката
         $query = static::getQuery();
-        $query->where("#threadId = '{$threadId}'");
+        
+        // Ако е подаден масив
+        if (is_array($thread)) {
+            
+            // За всички нишки
+            $query->orWhereArr("threadId", $thread);
+        } else {
+            
+            // За съответната нишка
+            $query->where("#threadId = '{$thread}'");
+        }
         
         // Ако е зададено състояние
         if ($state) {
@@ -1171,11 +1183,25 @@ class doc_Containers extends core_Manager
             $query->where(array("#state = '[#1#]'", $state));
         }
         
-        // Оттеглените документи да не се вземат в предвид
-        $query->where(array("#state != 'rejected'"));
+        // Ако състоянието не е оттеглено
+        if ($state != 'rejected') {
+            
+            // Оттеглените документи да не се вземат в предвид
+            $query->where(array("#state != 'rejected'"));
+        }
+        
+        // Ако е зададена подреба
+        if ($order) {
+            
+            // Използваме я
+            $query->orderBy('modifiedOn', $order);
+        }
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
+            
+            // Ако нямаме права за сингъла на документа
+            if (!static::haveRightFor('single', $rec)) continue;
             
             // Добавяме в масива
             $arr[$rec->id] = $rec->id;
