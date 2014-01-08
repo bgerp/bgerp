@@ -134,17 +134,9 @@ class doc_TplManager extends core_Master
     		$options[$rec->id] = $rec->name;
     	}
     	
+    	ksort($options);
+    	
     	return $options;
-    }
-    
-    
-    /**
-     * Премахва от резултатите скритите от менютата за избор
-     */
-    function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
-    { 
-    	// Шаблоните се сортират по ключове
-    	ksort($res);
     }
     
     
