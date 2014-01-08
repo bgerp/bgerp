@@ -600,12 +600,11 @@ class doc_Containers extends core_Manager
         
         try {
             $docRow = $doc->getDocumentRow();
+            $title = $docRow->title;
         }  catch (core_Exception_Expect $expect) {
             $title = '?????????????????????????????????????';
         }
-
-        $title = $docRow->title;
-
+        
         return $title;
     }
     
