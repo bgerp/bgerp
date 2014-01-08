@@ -1204,7 +1204,7 @@ class doc_Containers extends core_Manager
             if (!static::haveRightFor('single', $rec)) continue;
             
             // Добавяме в масива
-            $arr[$rec->id] = $rec->id;
+            $arr[$rec->id] = $rec;
         }
         
         return $arr;
