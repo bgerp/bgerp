@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, saleId=Продажба, amount, createdBy, createdOn';
+    protected $listFields = 'id, saleId=Документ, type=Вид, amount, createdBy, createdOn';
 	
 	
 	/**
@@ -62,9 +62,15 @@ abstract class acc_ClosedDeals extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    protected $searchFields = '';
+    
+    
+    /**
      * Работен кеш
      */
-    protected static $cache;
+    protected static $cache = array();
     
     
     /**
@@ -100,15 +106,16 @@ abstract class acc_ClosedDeals extends core_Master
     	$firstDoc = (is_numeric($threadId)) ? doc_Threads::getFirstDocument($threadId) : $threadId;
     	
     	expect($firstDoc instanceof core_ObjectReference, $firstDoc);
-    	
+    	$threadId = $firstDoc->fetchField('threadId');
     	if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-	    	if(empty(static::$cache)){
+	    	if(empty(static::$cache[$threadId])){
 	    		
 	    		// Запис във временния кеш
-	    		expect(static::$cache = $firstDoc->getAggregateDealInfo());
+	    		expect($dealInfo = $firstDoc->getAggregateDealInfo());
+	    		static::$cache[$threadId] = $dealInfo;
 	    	}
 	    	
-	    	return static::$cache;
+	    	return static::$cache[$threadId];
     	}
     	
     	return FALSE;
@@ -135,7 +142,7 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	if($rec->state == 'active'){
     		$info = static::getDealInfo($rec->threadId);
-    		$rec->amount = abs($mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId')));
+    		$rec->amount = $mvc::getClosedDealAmount($mvc->fetchField($rec->id, 'threadId'));
     		$rec->currencyId = $info->agreed->currency;
     		$rec->rate = $info->agreed->rate;
     	}
@@ -272,12 +279,12 @@ abstract class acc_ClosedDeals extends core_Master
     	if(!$rec->amount){
     		$info = static::getDealInfo($rec->threadId);
     		$rec->baseAmount = abs(static::getClosedDealAmount($rec->threadId));
-    		$amount = $rec->baseAmount / $info->agreed->rate;
+    		$amount = abs($rec->baseAmount / $info->agreed->rate);
     		$row->currencyId = $info->agreed->currency;
     		$row->baseAmount = $mvc->fields['amount']->type->toVerbal($rec->baseAmount);
     	} else {
-    		$row->baseAmount = $row->amount;
-    		@$amount =  $rec->amount / $rec->rate;
+    		$row->baseAmount = abs($row->amount);
+    		@$amount =  abs($rec->amount / $rec->rate);
     	}
     	
     	$row->amount = $mvc->fields['amount']->type->toVerbal($amount);

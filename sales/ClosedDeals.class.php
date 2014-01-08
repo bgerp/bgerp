@@ -35,7 +35,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools,
+    public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
                     doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry';
     
     
@@ -85,12 +85,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * Полета свързани с цени
      */
     public $priceFields = 'amount';
-        
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    public $searchFields = '';
     
     
     /**
@@ -166,11 +160,15 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->text = tr("Сделката е приключена с ");
     	$amount = static::getClosedDealAmount($rec->threadId);
-    	$row->text .= " " . (($amount < 0) ? tr('разход от') : tr('приход от'));
+    	$type = (($amount < 0) ? tr('разход') : tr('приход'));
+    	$row->text .= " " . $type . " " . tr("от");
+    	if($fields['-list']){
+    		$row->type = $type;
+    	}
     }
     
     
@@ -181,7 +179,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашата продажба с изв. разход") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с нашия документ") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
