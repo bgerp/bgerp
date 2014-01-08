@@ -14,7 +14,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -153,7 +153,8 @@ class doc_plg_BusinessDoc2 extends core_Plugin
 	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
     {
     	core_Debug::$isLogging = FALSE;
-    	//bp($coversArr);
+    	
+    	
     	foreach ($coversArr as $coverId){
     		
     		// Подадената корица, трябва да е съществуващ 
@@ -165,30 +166,32 @@ class doc_plg_BusinessDoc2 extends core_Plugin
     			
     			$options = $mvc->getCoverOptions($Class);
 	    		$optionList = implode(", ", array_keys($options));
-	    		list($pName, $coverName) = explode('_', $coverId);
-	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-	    		if ($optionList) {
-	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
-	    		} else {
-	    			$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
-	    			$form->setReadOnly($coverName);
-	    			
-	    			continue;
-	    		}
-	    		
+    			
 	    		// Показват се само обектите до които има достъп потребителя
 	    		$query = $Class::getQuery();
 	    		$newOptions = array();
 	    		$query->where("#id IN ({$optionList})");
 	    		$query->show('inCharge,access,shared');
 	    		while($rec = $query->fetch()){
-	    			
 	    			if(doc_Folders::haveRightToObject($rec)){
 	    				$newOptions[$rec->id] = $options[$rec->id];
 	    			}
 	    		}
 	    		
-	    		$form->setOptions($coverName, $newOptions);
+	    		list($pName, $coverName) = explode('_', $coverId);
+	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
+	    		if ($newOptions) {
+	    			
+	    			// Ако има достъпни корици, слагат се като опции
+	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
+	    			$form->setOptions($coverName, $newOptions);
+	    		} else {
+	    			
+	    			// Ако няма нито една достъпна корица, полето става readOnly
+	    			$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
+	    			$form->setReadOnly($coverName);
+	    			continue;
+	    		}
     		}
     	}
     	
