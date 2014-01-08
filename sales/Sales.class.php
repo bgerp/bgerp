@@ -37,7 +37,7 @@ class sales_Sales extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager,
                     doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
@@ -76,12 +76,6 @@ class sales_Sales extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,sales';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,sales';
     
     
     /**
@@ -212,7 +206,7 @@ class sales_Sales extends core_Master
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
-    	$this->FLD('template', "key(mvc=doc_TplManager,select=name,where=#docClassId \\= \\'{$this->getClassId()}\\')", 'caption=Допълнително->Шаблон');
+
         
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
@@ -1073,11 +1067,6 @@ class sales_Sales extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	if($data->rec->template){
-			
-			$tpl = doc_TplManager::getTemplate($data->rec->template);
-		}
-    	
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
@@ -1181,13 +1170,8 @@ class sales_Sales extends core_Master
     	
     	$added = $updated = 0;
     	foreach ($tplArr as $arr){
-    		
-    		$arr['id'] = doc_TplManager::fetch("#name = '{$arr['name']}'")->id;
     		$arr['docClassId'] = $this->getClassId();
-    		$arr['content'] = getFileContent($arr['content']);
-    		$arr['createdBy'] = -1;
-    		doc_TplManager::save((object)$arr);
-    		($arr['id']) ? $updated++ : $added++;
+    		doc_TplManager::add($arr, $added, $updated);
     	}
     	
     	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}</font></li>";

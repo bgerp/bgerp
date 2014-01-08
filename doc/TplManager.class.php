@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -31,7 +31,7 @@ class doc_TplManager extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_SaveAndNew, plg_Modified, doc_Wrapper, doc_ActivatePlg, plg_RowTools';
+    public $loadList = 'plg_Created, plg_SaveAndNew, plg_Modified, doc_Wrapper, plg_RowTools, plg_State2';
     
     
     /**
@@ -85,7 +85,7 @@ class doc_TplManager extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, docClassId, createdBy, modifiedOn';
+    public $listFields = 'id, name, docClassId, createdBy, modifiedOn, state';
 
     
     /**
@@ -93,11 +93,12 @@ class doc_TplManager extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory, width=100%');
-        $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title)', "caption=Клас, width=100%");
+        $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
+        $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Мениджър, width=100%,mandatory");
+        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,autoFilter,width=2em');
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
-        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter');
         
+        // Уникален индекс
         $this->setDbUnique('name');
     }
     
@@ -116,7 +117,7 @@ class doc_TplManager extends core_Master
     
     
     /**
-     * Връща всички шаблони за посочения клас
+     * Връща всички активни шаблони за посочения мениджър
      * @param int $classId - ид на клас
      * @return array $options - опции за шаблоните на документа
      */
@@ -127,6 +128,8 @@ class doc_TplManager extends core_Master
     	$options = array();
     	$query = static::getQuery();
     	$query->where("#docClassId = {$classId}");
+    	$query->where("#state = 'active'");
+    	
     	while($rec = $query->fetch()){
     		$options[$rec->id] = $rec->name;
     	}
@@ -142,5 +145,25 @@ class doc_TplManager extends core_Master
     { 
     	// Шаблоните се сортират по ключове
     	ksort($res);
+    }
+    
+    
+    /**
+     * Добавя шаблон
+     * @param mixed $object - Обект или масив
+     * @param int $added - брой добавени шаблони
+     * @param int $updated - брой обновени шаблони
+     */
+    public static function add($object, &$added = 0, &$updated = 0)
+    {
+    	$object = (object)$object;
+    	
+    	$object->id = static::fetch("#name = '{$object->name}'")->id;
+    	$object->content = getFileContent($object->content);
+    	$object->createdBy = -1;
+    	$object->state = 'active';
+    	
+    	static::save($object);
+    	($object->id) ? $updated++ : $added++;
     }
 }         
