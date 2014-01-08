@@ -84,7 +84,7 @@ class type_Richtext extends type_Blob
         $tpl = new ET("<span class='richEdit' style='width:100%;'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#]&nbsp;[#TBL_GROUP2#]&nbsp;[#TBL_GROUP3#]&nbsp;[#TBL_GROUP4#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
-            $attr['style'] .= 'min-width:260px;width:100%;';
+            $attr['style'] .= 'min-width:260px;';
             setIfNot($attr['rows'], $this->params['rows'], 7);
         } else {
             $attr['style'] .= 'width:100%;';
