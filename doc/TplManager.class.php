@@ -153,12 +153,14 @@ class doc_TplManager extends core_Master
      * @param mixed $object - Обект или масив
      * @param int $added - брой добавени шаблони
      * @param int $updated - брой обновени шаблони
+     * @param boolean $replace - дали да се обнови съдържанието на шаблона
      */
-    public static function add($object, &$added = 0, &$updated = 0)
+    public static function add($object, &$added = 0, &$updated = 0, $replace = FALSE)
     {
     	$object = (object)$object;
-    	
     	$object->id = static::fetch("#name = '{$object->name}'")->id;
+    	if(!$replace && $object->id) return;
+    	
     	$object->content = getFileContent($object->content);
     	$object->createdBy = -1;
     	$object->state = 'active';
