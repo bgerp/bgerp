@@ -32,7 +32,7 @@ class fileman_RichTextPlg extends core_Plugin
         
         if($mvc->params['bucket']) {
             
-            $callbackName = 'placeFile_' . $id;
+            $windowName = $callbackName = 'placeFile_' . $id;
             
             $callback = "function {$callbackName}(fh, fName) { 
                 var ta = get$('{$id}');
