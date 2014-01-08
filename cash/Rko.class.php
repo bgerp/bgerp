@@ -32,7 +32,7 @@ class cash_Rko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, cond_plg_DefaultValues';
     
@@ -276,8 +276,8 @@ class cash_Rko extends core_Master
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
 		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
 		    } else {
-		    	if(!currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
-		    		$form->setWarning('rate', 'Въведения курс има много голяма разлика спрямо очакваната');
+		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
+		    		$form->setWarning('rate', $msg);
 		    	}
 		    }
     	}
