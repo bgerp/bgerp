@@ -160,7 +160,7 @@
 				        </td>
 				    </tr>
 				    <tr>
-				    	<td style = 'border:0px'></td>
+				    	<td style = 'border-top:0px;font-size:0.8em;font-weight:normal;color:rgb(85, 85, 85);'>Remainder</td>
 				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
 				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
 				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
@@ -171,13 +171,15 @@
 		</div>
 	</div>
 	
-	<h4>|Условия|*</h4>
-	<ol>
-	<li>All the prices are with <span style = 'text-transform:lowercase'>[#chargeVat#]</span> VAT</li>
+	<div style = 'margin-top:10px'>
+	<b>Conditions</b>
+	<ol style = ';margin-top:1px'>
+	<li>All prices are with <span style = 'text-transform:lowercase'>[#chargeVat#]</span> VAT</li>
 	<!--ET_BEGIN notes-->
 		[#notes#]
 	<!--ET_END notes-->
 	</ol>
+	</div>
 	
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
