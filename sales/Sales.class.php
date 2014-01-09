@@ -125,7 +125,7 @@ class sales_Sales extends core_Master
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
     
     
     /**
