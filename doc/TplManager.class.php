@@ -85,7 +85,7 @@ class doc_TplManager extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, docClassId, createdBy, modifiedOn, state';
+    public $listFields = 'id, name, docClassId, createdBy, modifiedOn, modifiedBy, state';
 
     
     /**
@@ -184,20 +184,36 @@ class doc_TplManager extends core_Master
      * @param mixed $object - Обект или масив
      * @param int $added - брой добавени шаблони
      * @param int $updated - брой обновени шаблони
-     * @param boolean $replace - дали да се обнови съдържанието на шаблона
      */
-    public static function add($object, &$added = 0, &$updated = 0, $replace = FALSE)
+    public static function add($object, &$added = 0, &$updated = 0)
     {
     	$object = (object)$object;
-    	$object->id = static::fetch("#name = '{$object->name}'")->id;
-    	if(!$replace && $object->id) return;
+    	$exRec = static::fetch("#name = '{$object->name}'");
+    	$object->id = ($exRec) ? $exRec->id : NULL;
+    	$object->modifiedBy = ($exRec) ? $exRec->modifiedBy : NULL;
+    	
+    	// Ако се обновява шаблон създаден от system но модифициран от потребител - той не се обновява
+    	if($object->id && $object->modifiedBy != -1) return;
     	
     	$object->content = getFileContent($object->content);
     	$object->createdBy = -1;
     	$object->state = 'active';
+    	$object->_modifiedBy = -1;
     	
     	static::save($object);
     	($object->id) ? $updated++ : $added++;
+    }
+    
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
+    {
+    	// Ако записа е вкаран от сетъпа променяме за модифициран от да е @system
+    	if($rec->_modifiedBy){
+    		$rec->modifiedBy = $rec->_modifiedBy;
+    	}
     }
     
     

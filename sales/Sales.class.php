@@ -1171,7 +1171,7 @@ class sales_Sales extends core_Master
     	$added = $updated = 0;
     	foreach ($tplArr as $arr){
     		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::add($arr, $added, $updated, TRUE);
+    		doc_TplManager::add($arr, $added, $updated);
     	}
     	
     	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}</font></li>";
