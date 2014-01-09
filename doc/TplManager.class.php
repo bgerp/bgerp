@@ -95,11 +95,50 @@ class doc_TplManager extends core_Master
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Мениджър, width=100%,mandatory");
-        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,autoFilter,width=2em');
+        $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,autoFilter,width=2em');
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
+        $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
         
         // Уникален индекс
         $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * След потготовка на формата за добавяне / редактиране.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($originId = $form->rec->originId){
+    		expect($origin = static::fetch($originId));
+    		$form->setDefault('docClassId', $origin->docClassId);
+    		$form->setDefault('lang', $origin->lang);
+    		$form->setDefault('content', $origin->content);
+    	}
+    }
+    
+    
+    /**
+     * Проверка след изпращането на формата
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    { 
+    	if ($form->isSubmitted()){
+    		if($originId = $form->rec->originId){
+    			$origin = static::fetch($originId);
+    			$new = preg_replace("/\s+/", "", $form->rec->content);
+    			$old = preg_replace("/\s+/", "", $origin->content);
+    			
+    			if($origin->docClassId == $form->rec->docClassId && $new == $old){
+    				$form->setWarning('content' , 'Клонирания шаблон е със същото съдържание като оригинала !');
+    			}
+    		}
+    	}
     }
     
     
@@ -159,5 +198,28 @@ class doc_TplManager extends core_Master
     	
     	static::save($object);
     	($object->id) ? $updated++ : $added++;
+    }
+    
+    
+    /**
+     * След подготовка на единичния изглед
+     */
+	function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	// Добавяне на бутон за клониране
+    	$data->toolbar->addBtn('Клонирай', array('doc_TplManager', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png');
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'delete' && isset($rec)){
+    		if(cls::get($rec->docClassId)->fetch("#template = {$rec->id}")){
+    			$res = 'no_one';
+    		}
+    	}
     }
 }         
