@@ -143,7 +143,7 @@
 				    |Фактурирано|*, [#currencyId#]
 				</th>
 				<th>
-				    |Остатък|*, [#currencyId#]
+				    |Наш персонал|*
 				</th>
 				</tr>
 				</thead>
@@ -152,8 +152,18 @@
 				    <td class = 'nowrap'>[#amountDelivered#]</td>
 				    <td class = 'nowrap'>[#amountPaid#]</td>
 				    <td class = 'nowrap'>[#amountInvoiced#]</td>
-				    <td class = 'nowrap'>[#amountToPay#]</td>
-				   </tr>
+				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='2'>
+					        <!--ET_BEGIN dealerId-->
+					        <span style='font-weight:normal'>|Закупчик|*</span>: [#dealerId#]
+					        <!--ET_END dealerId-->
+				        </td>
+				  </tr>
+				  <tr>
+				    	<td style = 'border:0px'></td>
+				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
+				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
+				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
+				    </tr>
 			</table>
 		</div>
 </div>

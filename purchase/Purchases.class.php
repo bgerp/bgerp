@@ -401,15 +401,22 @@ class purchase_Purchases extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$amountType = $mvc->getField('amountDeal')->type;
+		$rec->amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
 		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
+		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
 		
-    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay') as $amnt) {
+    	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
                 $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
             } else {
             	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
 				$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
+        }
+        
+    	foreach (array('ToPay', 'ToDeliver', 'ToInvoice') as $amnt){
+        	$color = ($rec->{"amount{$amnt}"} < 0) ? 'red' : 'green';
+        	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
     	if($fields['-list']){
