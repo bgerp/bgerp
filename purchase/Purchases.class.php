@@ -371,6 +371,27 @@ class purchase_Purchases extends core_Master
     }
     
     
+	/**
+     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)"
+     * @param stdClass $rec - запис от модела
+     * @return string $subTitle - подзаглавието
+     */
+    private function getSubTitle($rec)
+    {
+    	$fields = $this->selectFields();
+    	$fields['-single'] = TRUE;
+    	$row = $this->recToVerbal($rec, $fields);
+    	
+        $subTitle = "Дост: " . (($row->amountDelivered) ? $row->amountDelivered : 0) . "({$row->amountToDeliver})";
+		$subTitle .= ", Плат: " . (($row->amountPaid) ? $row->amountPaid : 0) . "({$row->amountToPay})";
+        if($rec->makeInvoice != 'no'){
+        	$subTitle .= ", Факт: " . (($row->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
+        }
+        
+        return strip_tags($subTitle);
+    }
+    
+    
     /**
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
@@ -381,6 +402,7 @@ class purchase_Purchases extends core_Master
     
         $row = (object)array(
             'title'    => "Покупка №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+        	'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,

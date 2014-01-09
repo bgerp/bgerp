@@ -803,24 +803,37 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Връща подзаглавието на документа във вида "Дост: ХХХ(ууу), Плат ХХХ(ууу), Факт: ХХХ(ууу)"
+     * @param stdClass $rec - запис от модела
+     * @return string $subTitle - подзаглавието
+     */
+    private function getSubTitle($rec)
+    {
+    	$fields = $this->selectFields();
+    	$fields['-single'] = TRUE;
+    	$row = $this->recToVerbal($rec, $fields);
+    	
+        $subTitle = "Дост: " . (($row->amountDelivered) ? $row->amountDelivered : 0) . "({$row->amountToDeliver})";
+		$subTitle .= ", Плат: " . (($row->amountPaid) ? $row->amountPaid : 0) . "({$row->amountToPay})";
+        if($rec->makeInvoice != 'no'){
+        	$subTitle .= ", Факт: " . (($row->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
+        }
+        
+        return strip_tags($subTitle);
+    }
+    
+    
+    /**
      * @param int $id key(mvc=sales_Sales)
      * @see doc_DocumentIntf::getDocumentRow()
      */
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
-		$amountToPay = $rec->amountDelivered - $rec->amountPaid;
-		$amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
-        $subTitle = "Дост: " . (($rec->amountDelivered) ? $rec->amountDelivered : 0) . "({$amountToDeliver})";
-		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $rec->amountPaid : 0) . "({$amountToPay})";
-        if($rec->makeInvoice != 'no'){
-        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $rec->amountInvoiced : 0) . "({$amountToInvoice})";
-        }
         
         $row = (object)array(
             'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
-        	'subTitle' => $subTitle,
+        	'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
