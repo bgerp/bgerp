@@ -405,6 +405,7 @@ class currency_CurrencyRates extends core_Detail
      */
     public static function hasDeviation($givenRate, $date, $from, $to)
     {
+    	expect($givenRate);
     	$conf = core_Packs::getConfig('currency');
     	$percent = $conf->EXCHANGE_DEVIATION * 100;
     	$knownRate = static::getRate($date, $from, $to);
