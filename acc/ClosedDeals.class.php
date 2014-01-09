@@ -166,6 +166,11 @@ abstract class acc_ClosedDeals extends core_Master
     {
     	// Първия документ в треда трябва да е активиран
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	// Може да се добавя само към ниша с първи документ имащ 'bgerp_DealAggregatorIntf'
+    	if(!$firstDoc->haveInterface('bgerp_DealAggregatorIntf')) return FALSE;
+    	
+    	// Може да се добавя само към активирани документи
     	if($firstDoc->fetchField('state') != 'active') return FALSE;
 		
     	$res = static::getDealInfo($threadId);
@@ -173,8 +178,7 @@ abstract class acc_ClosedDeals extends core_Master
     	// Дали вече има такъв документ в нишката
     	$closedDoc = static::fetch("#threadId = {$threadId} AND #state != 'rejected'");
     	
-    	// може да се добавя само ако документа има 'bgerp_DealAggregatorIntf',
-    	// няма друг затварящ документ и няма продукти
+    	// Няма друг затварящ документ и няма продукти
     	$result = $res && count($res->agreed->products) && $closedDoc === FALSE;
     	
     	// Не може да се приключва документ, по който нищо не е платено и експедирано
