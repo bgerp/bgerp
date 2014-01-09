@@ -355,4 +355,57 @@ class bgerp_Recently extends core_Manager
             $res .= "Обновени ключови думи на  {$count} записа в Последно";
         }
     }
+    
+    
+    /**
+     * Връща id-тата на последно използваните нишки
+     * 
+     * @param integer $count - Броя нишки
+     * @param integer $userId - За потребителя
+     * 
+     * @return array
+     */
+    static function getLastThreadsId($count=5, $userId=NULL)
+    {
+        // Броя трябва да е положителен
+        expect($count > 0);
+        
+        // Масив с нишките
+        $threadsArr = array();
+        
+        // Ако не е подадено id на потребителя
+        if (!$userId) {
+            
+            // id на текищия потребител
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме последните документи
+        $query = static::getQuery();
+        $query->where("#userId = '{$userId}'");
+        $query->where("#type = 'document'");
+        $query->orderBy("last", "DESC");
+        
+        // Брояч
+        $cnt=0;
+        while ($rec = $query->fetch()) {
+            
+            // id на нишката
+            $threadId = doc_Containers::fetchField($rec->objectId, 'threadId');
+            
+            // Ако няма id на нишка или нямам права за сингъла на нишката, прескачаме
+            if (!$threadId || !doc_Threads::haveRightFor('single', $threadId)) continue;
+            
+            // Добавяме в масива
+            $threadsArr[$threadId] = $threadId;
+            
+            // Увеличаваме брояча
+            $cnt++;
+            
+            // Ако сме достигнали лимита, прекъсваме
+            if ($cnt == $count) break;
+        }
+        
+        return $threadsArr;
+    }
 }
