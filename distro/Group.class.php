@@ -561,11 +561,15 @@ class distro_Group extends core_Master
         // Премахваме id' то на този документ
         unset($allDocIdArr[$rec->containerId]);
         
-        // Обръщаме масива
-        $allDocIdArr = array_reverse($allDocIdArr);
+        // Ако има повече от 1 елемент в масива
+        if (count((array)$allDocIdArr) > 1) {
+            
+            // Обръщаме масива
+            $allDocIdArr = array_reverse($allDocIdArr, TRUE);
+        }
         
         // Обхождаме масива
-        foreach ($allDocIdArr as $docId => $docRec) {
+        foreach ((array)$allDocIdArr as $docId => $docRec) {
             
             // Вземаме класа на документа
             $class = doc_Containers::getDocument($docId);
