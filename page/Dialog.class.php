@@ -21,8 +21,8 @@ class page_Dialog extends page_Html
     {
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->append("<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("css/dialogWrapper.css") . "/>\n", "HEAD");
-        
+        $this->append("<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("css/dialog.css") . "/>\n", "HEAD");
+        bp(sbf("css/dialog.css"));
         $this->append("<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("css/common.css") . "/>\n", "HEAD");
         
         $this->append("<script type=\"text/javascript\" src=" . sbf("js/efCommon.js") . "></script>\n", "HEAD");
