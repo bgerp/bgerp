@@ -1894,39 +1894,32 @@ div.richEdit {
 	position: relative;
 }
 
-.narrow #richtext-emoticons {
+.richtext-relative-group {
+	position:relative;
+}
+.richtext-relative-group a:hover {
+	cursor:pointer;
+}
+.narrow #richtext-emoticons, .narrow #richtext-emoticons2, .narrow #richtext-emoticons3 ,#richtext-emoticons5 {
 	position: absolute;
-	left: 5px;
-	top: -20px;
+	left: 0px;
+	bottom: 2em;
 	display: none;
 }
 
-.narrow #richtext-emoticons2 {
+#richtext-emoticons4{
 	position: absolute;
-	left: 24px;
-	top: -20px;
-	display: none;
-}
-
-.narrow #richtext-emoticons3 {
-	position: absolute;
-	left: 11.5em;
-	top: -20px;
-	display: none;
-}
-
-#richtext-emoticons4 {
-	position: absolute;
-	left: 31.8em;
-	bottom: 2.5em;
+	right: 0em;
+	bottom: 2em;
 	display: none;
 }
 
 .narrow #richtext-emoticons4 {
-	left: 16.2em;
+	left: 0em;
+	right:auto;
 }
 
-#richtext-emoticons4 .rtbutton {
+#richtext-emoticons4 .rtbutton, #richtext-emoticons5 .rtbutton {
 	display: block;
 }
 
