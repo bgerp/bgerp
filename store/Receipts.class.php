@@ -340,7 +340,7 @@ class store_Receipts extends core_Master
     	
     	if($rec->state == 'active' && sales_Invoices::haveRightFor('add')){
     		$originId = doc_Threads::getFirstContainerId($data->rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993,warning=Искате ли да създадете нова фактура?');
+	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
 	    
 	    if(empty($data->noTotal)){
