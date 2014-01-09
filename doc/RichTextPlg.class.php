@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_RichText
  *
@@ -45,16 +44,6 @@ class doc_RichTextPlg extends core_Plugin
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
-    }
-    
-    
-    /**
-     * Добавя бутон за качване на документ
-     */
-    function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
-    {
-        // Добавяме бутон за прикачане на документи
-	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Добавяне на документ') . "' onclick=\"s('', '', document.getElementById('{$attr['id']}'))\">" . tr('Документ') . "</a>", 'filesAndDoc');    
     }
     
     
@@ -284,5 +273,319 @@ class doc_RichTextPlg extends core_Plugin
     	
     	// Намират се всички цитирания на документи в поле richtext
     	return static::getAttachedDocs($all);
+    }
+    
+    
+    /**
+     * Добавя бутон за качване на документ
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Toolbar $toolbarArr
+     * @param array $attr
+     */
+    function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
+    {
+        // id
+        $id = $attr['id'];
+        
+        // Име на функцията и на прозореца
+        $windowName = $callbackName = 'placeDoc_' . $id;
+        
+        // Ако е мобилен/тесем режим
+        if(Mode::is('screenMode', 'narrow')) {
+            
+            // Парамтери към отварянето на прозореца
+            $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        } else {
+            $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+        }
+        
+        // URL за добавяне на документи
+        $url = $mvc->getUrLForAddDoc($callbackName);
+        
+        // JS фунцкията, която отваря прозореца
+        $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+        
+        // Бутон за отвяряне на прозореца
+        $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
+        
+        
+        // JS функцията
+        $callback = "function {$callbackName}(docHnd) {
+            var ta = get$('{$id}');
+            rp(\"\\n\" + docHnd, ta);
+            return true;
+        }";
+        
+        // Добавяме скрипта
+        $documentUpload->appendOnce($callback, 'SCRIPTS');
+        
+        // Добавяне в групата за добавяне на документ
+        $toolbarArr->add($documentUpload, 'filesAndDoc');
+    }
+    
+    
+	/**
+     * Връща URL за добавяне на документи
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Et $res
+     * @param string $callback
+     */
+    function on_AfterGetUrLForAddDoc($mvc, &$res, $callback)
+    {
+        // Защитаваме променливите
+        Request::setProtected('callback');
+        
+        // Създаваме URL' то
+        $res = toUrl(array($mvc, 'addDocDialog', 'callback' => $callback));
+    }
+	
+	
+	/**
+     * Извиква се преди изпълняването на екшън
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Et $tpl
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$tpl, $action)
+    {
+        // Ако екшъна не е дилогов прозорец за добавяне на документи, да не се изпълнява
+        if (strtolower($action) != 'adddocdialog') return ;
+        
+        // Задаваме врапера
+        Mode::set('wrapper', 'page_Dialog');
+
+        // Защитените променливи
+        Request::setProtected('callback');
+        
+        // Обект с данните
+        $data = new stdClass();
+        
+        // Вземаме променливите
+        $data->callback = Request::get('callback', 'identifier');
+        $data->PerPage = Request::get('PerPage', 'int');
+        
+        // Подготваме страницирането
+        $mvc->prepareAddDocDialogPager($data);
+        
+        // Подготвяме данните
+        $mvc->prepareAddDocDialog($data);
+        
+        // Рендираме диалоговия прозорец
+        $tpl = $mvc->renderAddDocDialog($data);
+        
+        return FALSE;
+    }
+    
+    
+	/**
+	 * Подготвя навигацията по страници
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param object $data
+	 */
+    function on_AfterPrepareAddDocDialogPager($mvc, &$res, &$data)
+    {
+        // Ако е сетнат
+        if ($perPage = $data->PerPage) {
+            
+            // Трябва да е между 0-100
+            if ($perPage > 100) {
+                $perPage = 100;
+            } elseif ($perPage < 0) {
+                $perPage = 0;
+            }
+        }
+        
+        // Ако няма
+        if (!$perPage) {
+            
+            // Задаваме стойността
+            $perPage = ($mvc->dialogItemsPerPage) ? $mvc->dialogItemsPerPage : 4;
+        }
+        
+        // Ако има зададен брой
+        if($perPage) {
+            
+            // Ако все още не е сетнат
+            if (!$data->dialogPager) {
+                
+                // Сетваме пейджъра
+                $data->dialogPager = & cls::get('core_Pager', array('pageVar' => 'P_' . get_called_class()));
+            }
+            // Добавяме страниците към пейджъра
+            $data->dialogPager->itemsPerPage = $perPage;
+        }
+    }
+    
+    
+    /**
+     * Подготвя необходимите данни
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object $data
+     */
+	function on_AfterPrepareAddDocDialog($mvc, $res, &$data)
+	{
+	    // Вземаме документите от последните 3 нишки за съответния потребител
+	    $threadsArr = bgerp_Recently::getLastThreadsId(3);
+	    
+	    // Вземаме всички документи от нишката, до които потебителя има достъп
+        $docIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+        
+        // Задаваме броя на документите
+        $data->itemsCnt = count((array)$docIdsArr);
+        
+        // Зададаваме лимита за странициране
+        $mvc->setLimitAddDocDialogPager($data);
+        
+        // Брояча
+        $c = 0;
+        
+        // Масив с всички документи
+        $resArr = array();
+        
+        // Обхождаме документите
+        foreach ((array)$docIdsArr as $docId => $docRec) {
+            
+            // Ако сме в границита на брояча
+            if (($c >= $data->dialogPager->rangeStart) && ($c < $data->dialogPager->rangeEnd)) {
+                
+                // Увеличаваме брояча
+                $c++;
+            } else {
+                
+                // Увеличаваме брояча
+                $c++;
+                
+                // Ако сме достигнали горната граница, да се прекъсне
+                if ($data->dialogPager->rangeEnd < $c) break;
+                
+                // Прескачаме
+                continue;
+            }
+            
+            
+            try {
+                
+                // Вземаме документа
+                $document = doc_Containers::getDocument($docId, 'doc_DocumentIntf');
+                
+                // Вземаме полетата
+                $docRow = $document->getDocumentRow();
+                
+                // Масив за вземане на уникалното id
+                $attrId = array();
+                
+                // Вземаме уникалното id
+                ht::setUniqId($attrId);
+                
+                // id на реда
+                $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id']; 
+                
+                // Заглавие на документа
+                $resArr[$docId]['title'] = str::limitLen($docRow->title, 25);
+                
+                // Манипулатор на докуемнта
+                $resArr[$docId]['handle'] = $document->getHandle();
+                
+                // Данни за създаването на документа
+                $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
+                $resArr[$docId]['createdBy'] = doc_Containers::getVerbal($docRec, 'createdBy');
+                $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . ' ' . tr('от') . ' ' . $resArr[$docId]['createdBy'];
+                
+                // Манипулатора, който ще се добавя
+                $handle = '#' . $resArr[$docId]['handle'];
+                
+                // Атрибутите на линковете
+                $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                
+                // Името на документа да се добави към текста, при натискане на линка
+                $resArr[$docId]['title'] = ht::createLink($resArr[$docId]['title'], '#', NULL, $attr); 
+            } catch (Exception $e) {
+                continue;
+            }
+        }
+        
+        // Добавяме резултатите
+        $data->docIdsArr = $resArr;
+	}
+    
+    
+	/**
+	 * Задаваме броя на всички елементи
+     * 
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param oject $data
+	 */
+    function on_AfterSetLimitAddDocDialogPager($mvc, &$res, &$data)
+    {
+        // Задаваме броя на страниците
+        $data->dialogPager->itemsCount = $data->itemsCnt;
+        
+        // Изчисляваме
+        $data->dialogPager->calc();
+    }
+	
+	
+    /**
+     * Извиква се след рендиране на диалоговия прозорец
+     * 
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     * @param object $data
+     */
+	function on_AfterRenderAddDocDialog($mvc, &$tpl, $data)
+	{
+	    // Ако няма шаблон
+	    if (!$tpl) {
+	        
+	        // Вземаме шаблона
+            $tpl = getTplFromFile('doc/tpl/DialogAddDoc.shtml');
+	    }
+        
+        // Инстанция на класа за създаване на таблици
+        $inst = cls::get('core_TableView');
+        
+        // Полета в таблицата
+        $tableCaptionArr = array('handle' => 'Хендлър', 'title' => 'Заглавие', 'created' => 'Създадено');
+        
+        // Вземаме таблицата с попълнени данни
+        $tableTpl = $inst->get($data->docIdsArr, $tableCaptionArr);
+        
+        // Заместваме в главния шаблон за детайлите
+        $tpl->append($tableTpl, 'tableContent');
+        
+        // Заместваме страницирането
+        $tpl->append($mvc->RenderDialogAddDocPager($data), 'pager');
+        
+        // Конфигурация на ядрото
+        $conf = core_Packs::getConfig('core');
+        
+        // Добавяме титлата
+        $tpl->prepend(tr("Документи") . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
+	}
+    
+    
+	/**
+	 * Рендира  навигация по страници
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param core_ET $res
+	 * @param object $data
+	 */
+    function on_AfterRenderDialogAddDocPager($mvc, &$res, $data)
+    {
+        // Ако има странициране
+        if ($data->dialogPager) {
+            
+            // Рендираме
+            $res = $data->dialogPager->getHtml();
+        }
     }
 }

@@ -1,0 +1,4 @@
+<span>|Избор на документ|*</span>
+[#pager#]
+[#tableContent#]
+<button onclick='javascript:window.close();' class='dialog-close'>X</button>
