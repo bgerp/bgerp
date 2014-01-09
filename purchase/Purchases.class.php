@@ -186,7 +186,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Закупчик');
 
         // Допълнително
-        $this->FLD('note', 'richtext(bucket=Notes)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
+        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
     	$this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
@@ -262,7 +262,7 @@ class purchase_Purchases extends core_Master
 	    	if(empty($form->rec->currencyRate)){
 				 $form->rec->currencyRate = round(currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, NULL), 4);
 			} else {
-				if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
+				if($msg = currency_CurrencyRates::hasDeviation($form->rec->currencyRate, $form->rec->valior, $form->rec->currencyId, NULL)){
 			    	$form->setWarning('currencyRate', $msg);
 				}
 			}
@@ -453,6 +453,19 @@ class purchase_Purchases extends core_Master
 	    	if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }
+	        
+	    	if($rec->note){
+	    		$notes = explode('<br>', $row->note);
+				foreach ($notes as $note){
+					$row->notes .= "<li>{$note}</li>";
+				}
+			}
+			
+			if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
+				$row->chargeVat = tr('без');
+			} else {
+				$row->chargeVat = tr('с') . " {$row->chargeVat}";
+			}
 	    }
 	    
     }

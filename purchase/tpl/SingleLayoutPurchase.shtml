@@ -116,11 +116,6 @@
                 </tr>           
                 </tbody>
             </table>
- 			<!--ET_BEGIN DETAILS-->
-				<div class='details'>
-					[#DETAILS#]
-				</div>
-			<!--ET_END DETAILS-->
         </td>
     </tr>
     </tbody>
@@ -159,12 +154,28 @@
 				        </td>
 				  </tr>
 				  <tr>
-				    	<td style = 'border:0px'></td>
+				    	<td style = 'border-top:0px;font-size:0.8em;font-weight:normal;color:rgb(85, 85, 85);'>|Остатък|*</td>
 				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
 				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
 				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
 				    </tr>
 			</table>
 		</div>
+		
+		<div style = 'margin-top:10px'>
+			<b>|Условия|*</b>
+			<ol style = ';margin-top:1px'>
+			<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+			<!--ET_BEGIN notes-->
+				[#notes#]
+			<!--ET_END notes-->
+			</ol>
+		</div>
+	
+		<!--ET_BEGIN DETAILS-->
+		<div class='details'>
+		[#DETAILS#]
+		</div>
+		<!--ET_END DETAILS-->
 </div>
 </div>
