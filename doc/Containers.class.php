@@ -1199,8 +1199,14 @@ class doc_Containers extends core_Manager
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
             
-            // Ако нямаме права за сингъла на документа
-            if (!static::haveRightFor('single', $rec)) continue;
+            // Ако няма клас или документ - прескачаме
+            if (!$rec->docClass || !$rec->docId) continue;
+            
+            // Инстанция на класа
+            $cls = core_Cls::get($rec->docClass);
+            
+            // Ако нямаме права за сингъла на документа, прескачаме
+            if (!$cls->haveRightFor('single', $rec->docId)) continue;
             
             // Добавяме в масива
             $arr[$rec->id] = $rec;
