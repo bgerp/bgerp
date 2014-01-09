@@ -341,8 +341,8 @@ abstract class acc_ClosedDeals extends core_Master
     		}
     	}
     	
-    	if($action == 'restore' && isset($rec)){
-    		if($mvc->fetch("#threadId = {$rec->threadId} AND #state != 'rejected'")){
+    	if(($action == 'restore' || $action == 'reject') && isset($rec)){
+    		if(!haveRole('ceo,sales')){
     			$res = 'no_one';
     		}
     	}
