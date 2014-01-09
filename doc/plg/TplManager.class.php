@@ -80,7 +80,11 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// Ако има избран шаблон то той се изпозлва за единичен изглед
     	if($data->rec->template){
-			$tpl = doc_TplManager::getTemplate($data->rec->template);
+    		try{
+    			$tpl = doc_TplManager::getTemplate($data->rec->template);
+    		} catch (Exception $ex){
+    			// Ако има проблем при зареждането на шаблона, рендира се дефолт изгледа
+    		}
 		}
     }
 }
