@@ -223,7 +223,9 @@ class doc_TplManager extends core_Master
 	function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	// Добавяне на бутон за клониране
-    	$data->toolbar->addBtn('Клонирай', array('doc_TplManager', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png');
+    	if($mvc->haveRightFor('add')){
+    		$data->toolbar->addBtn('Клониране', array('doc_TplManager', 'add', 'originId' => $data->rec->id), 'ef_icon=img/16/copy16.png,title=Клонирай шаблона');
+    	}
     }
     
     
@@ -233,6 +235,8 @@ class doc_TplManager extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'delete' && isset($rec)){
+    		
+    		// Ако шаблона е използван в някой документ, не може да се трие
     		if(cls::get($rec->docClassId)->fetch("#template = {$rec->id}")){
     			$res = 'no_one';
     		}
