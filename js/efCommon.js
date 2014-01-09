@@ -596,8 +596,11 @@ function hideRichtextEditGroups()
 }
 
 function toggleRichtextGroups(id)
-{ 
-	event.stopPropagation();
+{
+	if (typeof event !== 'undefined') {
+		event.stopPropagation();
+	}
+	
 	if (typeof jQuery != 'undefined') {
 		var hidden = $("#" + id).css("display");
 		
