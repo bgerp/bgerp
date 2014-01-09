@@ -312,7 +312,8 @@ class sales_SalesDetails extends core_Detail
         $masterRec = $data->masterRec;
        	$ProductManager = cls::get($rec->classId);
        	
-        $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+       	$data->form->fields['packPrice']->unit = $masterRec->currencyId . ", ";
+        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));

@@ -256,8 +256,10 @@ class purchase_PurchasesDetails extends core_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec       = &$data->form->rec;
-        $masterRec = &$data->masterRec;
-        $data->form->fields['packPrice']->unit = ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+        $masterRec = $data->masterRec;
+        
+        $data->form->fields['packPrice']->unit = $masterRec->currencyId . ", ";
+        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $products = $mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         
