@@ -591,6 +591,8 @@ function hideRichtextEditGroups()
 			hideRichtextEditGroupsBlock();
 		};
 	}
+	
+	return false;
 }
 
 function toggleRichtextGroups(id)
@@ -617,6 +619,8 @@ function toggleRichtextGroups(id)
 			else el.style.display='none';
 		
 	}
+	
+	return false;
 }
 
 function hideRichtextEditGroupsBlock()
