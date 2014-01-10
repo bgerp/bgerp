@@ -221,8 +221,8 @@ class store_Products extends core_Manager
 		        if($rec->quantityNotOnPallets > 0){
 		        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
 		        }
-	        
-		        $row->name = ht::createLink($row->name, array($ProductMan, 'single', $rec->productId));
+		        
+		        $row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
 		        
 		        $row->quantity .= ' ' . $measureShortName;
 		        if($rec->quantityOnPallets){
