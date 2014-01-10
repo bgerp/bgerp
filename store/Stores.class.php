@@ -258,7 +258,7 @@ class store_Stores extends core_Master
     	if($action == 'select' && $rec){
     		$cu = core_Users::getCurrent();
     		if($rec->chiefId == $cu || keylist::isIn($cu, $rec->workersIds)){
-    			$res = 'storeWorker';
+    			$res = 'ceo,storeWorker';
     		}
     	}
     }
