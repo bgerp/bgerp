@@ -91,7 +91,7 @@
                         
         				<!--ET_BEGIN lineId-->
         				<div>
-                            |Транс. линия|*: <br /><b>[#lineId#]</b>
+                            |Транспорт|*: <br /><b>[#lineId#]</b>
                         </div>
         				<!--ET_END lineId-->
         				
