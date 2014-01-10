@@ -9,21 +9,20 @@
        width: 100%;
        border-collapse: separate;
        border-spacing: 5px 0;
-        
-	   thead {
-	       font-size: 13px;
-	   }
 	   
 	   td, th {
 	       text-align: center;
 	   	   border: 1px solid #ccc;
+	   	   border-collapse: collapse;
 	   }
 	   
-	   th {
+	   .sum-th {
 	       background-color: #efefef;
 	   	   font-weight: normal;
 	   	   color: #555;
 	   	   border-bottom: none;
+	   	   padding:0px;
+	   	   font-size:13px;
 	   }
 
 	   td {

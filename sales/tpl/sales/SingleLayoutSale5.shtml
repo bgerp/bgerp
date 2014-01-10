@@ -83,7 +83,7 @@
 			                       	
 			                        <!--ET_BEGIN deliveryTime-->
 			                        <div>
-			                            Delivery Until: <b>[#deliveryTime#]</b>
+			                            Deadline: <b>[#deliveryTime#]</b>
 			                        </div>
 			                        <!--ET_END deliveryTime-->
 			    
@@ -128,31 +128,29 @@
 			<div class="sale-summary">
 				<table cellspacing="5">
 				    <colgroup span="5"/>
-				    <thead>
 				    <tr>
-				        <th>
+				        <td class = 'sum-th'>
 				            Ordered, [#currencyId#]
-				        </th>
-				        <th>
+				        </td>
+				        <td class = 'sum-th'>
 				            Delivered, [#currencyId#]
-				        </th>
-				        <th>
+				        </td>
+				        <td class = 'sum-th'>
 				            Paid, [#currencyId#]
-				        </th>
-				        <th>
+				        </td>
+				        <td class = 'sum-th'>
 				            Invoiced, [#currencyId#]
-				        </th>
-				        <th>
+				        </td>
+				        <td class = 'sum-th'>
 				            Our employees
-				        </th>
+				        </td>
 				    </tr>
-				    </thead>
 				    <tr>
 				        <td class = 'nowrap'>[#amountDeal#]</td>
 				        <td class = 'nowrap'>[#amountDelivered#]</td>
 				        <td class = 'nowrap'>[#amountPaid#]</td>
 				        <td class = 'nowrap'>[#amountInvoiced#]</td>
-				        <td class = 'nowrap' style='font-size:0.8em;' rowspan='2'>
+				        <td class = 'nowrap' style='font-size:0.8em;' rowspan='3'>
 					        <!--ET_BEGIN initiatorId-->
 					        <span style='font-weight:normal'>initiator</span>: [#initiatorId#]<br />
 					        <!--ET_END initiatorId-->
@@ -160,10 +158,21 @@
 				        </td>
 				    </tr>
 				    <tr>
-				    	<td style = 'border-top:0px;font-size:0.8em;font-weight:normal;color:rgb(85, 85, 85);'>Remainder</td>
-				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
-				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
-				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
+				        <td rowspan='2' style = 'border:0px;'></td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            To deliver, [#currencyId#]
+				        </td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            To pay, [#currencyId#]
+				        </td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            To invoice, [#currencyId#]
+				        </td>
+				    </tr>
+				    <tr>
+				    	<td>[#amountToDeliver#]</td>
+				    	<td>[#amountToPay#]</td>
+				    	<td>[#amountToInvoice#]</td>
 				    </tr>
 				</table>
 			</div>
