@@ -626,17 +626,16 @@ function toggleRichtextGroups(id)
 function hideRichtextEditGroupsBlock()
 {
 	if (typeof jQuery != 'undefined') {	
-		$('.richtext-group-title + .richtext-holder-group').css("display", "none" );
+		$('.richtext-holder-group-after').css("display", "none" );
 	}else{
-		var richtextGroupTitle = document.getElementsByClassName('richtext-group-title');
 		
-		var richtextGroupHolder = document.getElementsByClassName('richtext-holder-group');
+		var richtextGroupHide = document.getElementsByClassName('richtext-holder-group-after');
 		
-		if (richtextGroupTitle) {
-			for (var i = richtextGroupTitle.length - 1; i >= 0; i--)
+		if (richtextGroupHide) {
+			for (var i = richtextGroupHide.length - 1; i >= 0; i--)
 			{
-				if (richtextGroupHolder[i]) {
-					richtextGroupHolder[i].style.display='none';
+				if (richtextGroupHide[i]) {
+					richtextGroupHide[i].style.display='none';
 				}
 			}
 		}

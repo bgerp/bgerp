@@ -1058,9 +1058,10 @@ class type_Richtext extends type_Blob
         
         if(Mode::is('screenMode', 'narrow')) {
             $toolbarArr->add("<a class='rtbutton1 richtext-group-title' title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons')\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
+            $emot1 = 'richtext-holder-group-after';
         }
         
-        $toolbarArr->add("<span id='richtext-emoticons' class='richtext-holder-group'>", 'TBL_GROUP1');
+        $toolbarArr->add("<span id='richtext-emoticons' class='richtext-holder-group {$emot1}'>", 'TBL_GROUP1');
         
 	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Усмивка') .  "' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
 	        
@@ -1088,9 +1089,10 @@ class type_Richtext extends type_Blob
         
         if(Mode::is('screenMode', 'narrow')) {
         	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Текст') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons2')\">Текст</a>", 'TBL_GROUP2');
+        	 $emot2 = 'richtext-holder-group-after';
         }
         
-        $toolbarArr->add("<span id='richtext-emoticons2' class='richtext-holder-group'>", 'TBL_GROUP2');
+        $toolbarArr->add("<span id='richtext-emoticons2' class='richtext-holder-group {$emot2}'>", 'TBL_GROUP2');
         
 	        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Удебелен текст') .  "' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
 	        
@@ -1112,7 +1114,9 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Стилове') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons5')\">" . tr('Стил') . "</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<span id='richtext-emoticons5' class='richtext-holder-group'>", 'TBL_GROUP2');
+        $emot5 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons5' class='richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
          
 	        $toolbarArr->add("<a title='" . tr('Грешка') .  "' onclick=\"s('[bError]', '[/bError]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/dialog_error-small.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2'); 
 	        
@@ -1136,9 +1140,10 @@ class type_Richtext extends type_Blob
         
         if(Mode::is('screenMode', 'narrow')) {
         	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавие 1' onclick=\"toggleRichtextGroups('richtext-emoticons3')\">H</a>", 'TBL_GROUP3');
+        	 $emot3 = 'richtext-holder-group-after';
         }
         
-        $toolbarArr->add("<span id='richtext-emoticons3' class='richtext-holder-group'>", 'TBL_GROUP3');
+        $toolbarArr->add("<span id='richtext-emoticons3' class='richtext-holder-group {$emot3}'>", 'TBL_GROUP3');
         
 	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 1') .  "' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>", 'TBL_GROUP3');
 	        
@@ -1155,8 +1160,10 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP4');
         
         $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons4')\">" . tr('Добави') . "</a>", 'TBL_GROUP4');
-    
-        $toolbarArr->add("<span id='richtext-emoticons4' class='richtext-holder-group'>", 'TBL_GROUP4');
+        
+        $emot4 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons4' class='richtext-holder-group {$emot4}'>", 'TBL_GROUP4');
     	    
             $toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP4');
         
