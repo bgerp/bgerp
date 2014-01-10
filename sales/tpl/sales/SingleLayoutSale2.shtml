@@ -157,15 +157,16 @@
 					        <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
 				        </td>
 				    </tr>
+				    <tr style='height:5px'></tr>
 				    <tr>
 				        <td rowspan='2' style = 'border:0px;'></td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За доставяне|*, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За плащане|*, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За фактуриране|*, [#currencyId#]
 				        </td>
 				    </tr>

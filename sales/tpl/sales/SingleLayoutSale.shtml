@@ -149,7 +149,7 @@
 				        <td class = 'nowrap'>[#amountDelivered#]</td>
 				        <td class = 'nowrap'>[#amountPaid#]</td>
 				        <td class = 'nowrap'>[#amountInvoiced#]</td>
-				        <td class = 'nowrap' style='font-size:0.8em;' rowspan='3'>
+				        <td class = 'nowrap' style='font-size:0.8em;' rowspan='4'>
 					        <!--ET_BEGIN initiatorId-->
 					        <span style='font-weight:normal'>|инициатор|*</span>: [#initiatorId#]<br />
 					        <!--ET_END initiatorId-->
@@ -159,15 +159,16 @@
 					        <!--ET_END dealerId-->
 				        </td>
 				    </tr>
+				    <tr style='height:5px'></tr>
 				    <tr>
 				        <td rowspan='2' style = 'border:0px;'></td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За доставяне|*, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За плащане|*, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            |За фактуриране|*, [#currencyId#]
 				        </td>
 				    </tr>
