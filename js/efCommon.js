@@ -606,7 +606,7 @@ function toggleRichtextGroups(id)
 		
 		hideRichtextEditGroupsBlock();
 	    if (hidden == 'none') {
-	    	$("#" + id).fadeToggle("slow");
+	    	$("#" + id).show("fast");
 	    }
 	} else {
 	
