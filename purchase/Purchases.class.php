@@ -33,7 +33,7 @@ class purchase_Purchases extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg, doc_plg_TplManager,
 				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
@@ -101,7 +101,7 @@ class purchase_Purchases extends core_Master
     /**
      * Лейаут на единичния изглед 
      */
-    public $singleLayoutFile = 'purchase/tpl/SingleLayoutPurchase.shtml';
+    public $singleLayoutFile = 'purchase/tpl/purchases/SingleLayoutPurchase.shtml';
     
     
     /**
@@ -789,6 +789,36 @@ class purchase_Purchases extends core_Master
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата покупка") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
+        
         return $tpl->getContent();
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+    /**
+     * Зарежда шаблоните на покупката в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchase.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseService.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Purchase of Service contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseServiceEN.shtml', 'lang' => 'en');
+    	
+    	$added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::add($arr, $added, $updated);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}</font></li>";
     }
 }

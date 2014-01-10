@@ -18,7 +18,7 @@
                 <tr>
                     <td class="cell custom-header-bg" valign="top" width="35%"><b>|Доставчик|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|ПОКУПКА|*</b> </font><br>
+                        <font style="font-size:16pt;"><b>|ДОГОВОР ЗА ПОКУПКА НА УСЛУГА|*</b> </font><br>
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span>
                         	<span class="bigData">[#valior#]</span>
@@ -66,7 +66,7 @@
 	                    <td class="topCell first" valign="top">
 	                        <!--ET_BEGIN deliveryTermId-->
 	                        <div>
-	                            |Условие|*: <b>[#deliveryTermId#]</b>
+	                            |Доставка|*: <b>[#deliveryTermId#]</b>
 	                       	</div>
 	                       	<!--ET_END deliveryTermId-->
 	                       	
@@ -147,17 +147,28 @@
 				    <td class = 'nowrap'>[#amountDelivered#]</td>
 				    <td class = 'nowrap'>[#amountPaid#]</td>
 				    <td class = 'nowrap'>[#amountInvoiced#]</td>
-				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='2'>
+				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='3'>
 					        <!--ET_BEGIN dealerId-->
 					        <span style='font-weight:normal'>|Закупчик|*</span>: [#dealerId#]
 					        <!--ET_END dealerId-->
 				        </td>
 				  </tr>
 				  <tr>
-				    	<td style = 'border-top:0px;font-size:0.8em;font-weight:normal;color:rgb(85, 85, 85);'>|Остатък|*</td>
-				    	<td style = 'border-top:0px'>[#amountToDeliver#]</td>
-				    	<td style = 'border-top:0px'>[#amountToPay#]</td>
-				    	<td style = 'border-top:0px'>[#amountToInvoice#]</td>
+				        <td rowspan='2' style = 'border:0px;'></td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            |За доставяне|*, [#currencyId#]
+				        </td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            |За плащане|*, [#currencyId#]
+				        </td>
+				        <td class = 'sum-th' style='border-top: 0'>
+				            |За фактуриране|*, [#currencyId#]
+				        </td>
+				    </tr>
+				    <tr>
+				    	<td>[#amountToDeliver#]</td>
+				    	<td>[#amountToPay#]</td>
+				    	<td>[#amountToInvoice#]</td>
 				    </tr>
 			</table>
 		</div>
