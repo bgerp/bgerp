@@ -149,7 +149,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     public function getDocumentRow($id)
     {
     	$row = parent::getDocumentRow($id);
-    	$title = "Приключване на покупка {$row->saleId}";
+    	$title = "Приключване на покупка #{$row->saleId}";
     	$row->title = $title;
     	$row->recTitle = $title;
     	
