@@ -595,10 +595,12 @@ function hideRichtextEditGroups()
 	return false;
 }
 
-function toggleRichtextGroups(id)
+function toggleRichtextGroups(id, event)
 {
 	if (typeof event !== 'undefined') {
 		event.stopPropagation();
+	} else {
+		window.event.stopPropagation();
 	}
 	
 	if (typeof jQuery != 'undefined') {

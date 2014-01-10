@@ -1057,7 +1057,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP1');
         
         if(Mode::is('screenMode', 'narrow')) {
-            $toolbarArr->add("<a class='rtbutton1 richtext-group-title' title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons')\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
+            $toolbarArr->add("<a class='rtbutton1 richtext-group-title' title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons', event)\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
             $emot1 = 'richtext-holder-group-after';
         }
         
@@ -1088,7 +1088,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">-</a>", 'TBL_GROUP2');
         
         if(Mode::is('screenMode', 'narrow')) {
-        	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Текст') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons2')\">Текст</a>", 'TBL_GROUP2');
+        	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Текст') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons2', event)\">Текст</a>", 'TBL_GROUP2');
         	 $emot2 = 'richtext-holder-group-after';
         }
         
@@ -1112,7 +1112,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Стилове') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons5')\">" . tr('Стил') . "</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Стилове') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons5', event)\">" . tr('Стил') . "</a>", 'TBL_GROUP2');
         
         $emot5 = 'richtext-holder-group-after';
         
@@ -1139,7 +1139,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
         
         if(Mode::is('screenMode', 'narrow')) {
-        	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавие 1' onclick=\"toggleRichtextGroups('richtext-emoticons3')\">H</a>", 'TBL_GROUP3');
+        	 $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавие 1' onclick=\"toggleRichtextGroups('richtext-emoticons3', event)\">H</a>", 'TBL_GROUP3');
         	 $emot3 = 'richtext-holder-group-after';
         }
         
@@ -1159,7 +1159,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP4');
         
-        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons4')\">" . tr('Добави') . "</a>", 'TBL_GROUP4');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons4', event);\">" . tr('Добави') . "</a>", 'TBL_GROUP4');
         
         $emot4 = 'richtext-holder-group-after';
         
