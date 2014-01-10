@@ -85,7 +85,7 @@ class doc_TplManager extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, docClassId, createdBy, modifiedOn, modifiedBy, state';
+    public $listFields = 'id, name, docClassId, createdOn, createdBy, modifiedOn, modifiedBy, state';
 
     
     /**
@@ -105,16 +105,16 @@ class doc_TplManager extends core_Master
     
     
     /**
-     * След потготовка на формата за добавяне / редактиране.
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * След потготовка на формата за добавяне / редактиране
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
     	
+    	// Ако шаблона е клонинг
     	if($originId = $form->rec->originId){
+    		
+    		// Копират се нужните данни от ориджина
     		expect($origin = static::fetch($originId));
     		$form->setDefault('docClassId', $origin->docClassId);
     		$form->setDefault('lang', $origin->lang);
@@ -129,13 +129,23 @@ class doc_TplManager extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     { 
     	if ($form->isSubmitted()){
+    		
+    		$plugins = cls::get($form->rec->docClassId)->getPlugins();
+    		if(empty($plugins['doc_plg_TplManager'])){
+    			$form->setError('docClassId', "Избрания клас трябва да поддържа 'doc_plg_TplManager'!");
+    		}
+    		
+    		// Ако шаблона е клонинг
     		if($originId = $form->rec->originId){
+    			
     			$origin = static::fetch($originId);
     			$new = preg_replace("/\s+/", "", $form->rec->content);
     			$old = preg_replace("/\s+/", "", $origin->content);
     			
+    			// Ако клонинга е за същия документ като ориджина, и няма промяна
+    			// в съдържанието се слага предупреждение
     			if($origin->docClassId == $form->rec->docClassId && $new == $old){
-    				$form->setWarning('content' , 'Клонирания шаблон е със същото съдържание като оригинала !');
+    				$form->setWarning('content' , 'Клонирания шаблон е със същото съдържание като оригинала!');
     			}
     		}
     	}
@@ -149,9 +159,9 @@ class doc_TplManager extends core_Master
      */
     public static function getTemplate($id)
     {
-    	expect($rec = static::fetch($id));
+    	expect($content = static::fetchField($id, 'content'));
     	
-    	return new ET(tr("|*" . $rec->content));
+    	return new ET(tr("|*" . $content));
     }
     
     
@@ -162,9 +172,10 @@ class doc_TplManager extends core_Master
      */
     public static function getTemplates($classId)
     {
+    	$options = array();
     	expect(core_Classes::fetch($classId));
     	
-    	$options = array();
+    	// Извличане на всички активни шаблони за документа
     	$query = static::getQuery();
     	$query->where("#docClassId = {$classId}");
     	$query->where("#state = 'active'");
