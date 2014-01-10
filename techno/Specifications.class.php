@@ -218,7 +218,7 @@ class techno_Specifications extends core_Manager {
      */
     public static function getDriver($id)
     {
-    	$rec = static::fetchRec($id);
+    	expect($rec = static::fetchRec($id));
     	
     	return new core_ObjectReference($rec->docClassId, $rec->docId);
     }
@@ -458,9 +458,18 @@ class techno_Specifications extends core_Manager {
 	*/
     function getLinkToObj($objectId)
     {
-        $rec = $this->fetchRec($objectId);
+    	return static::getHyperlink($objectId);
+    }
+    
+    
+    /**
+     * Линк към драйвера на спецификацията
+     */
+    public static function getHyperlink($id, $icon = FALSE)
+    {
+    	expect($Driver = static::getDriver($id));
     	
-        return ht::createLink($rec->title, array(cls::get($rec->docClassId), 'single', $rec->docId));
+        return $Driver->getHyperlink(TRUE);
     }
     
     
