@@ -114,10 +114,10 @@ class type_Richtext extends type_Blob
         if ($this->params['appendQuote']) {
             
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}');});", 'JQRUN');
+            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}');});", 'SCRIPTS');
         }
         
-    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'JQRUN');
+    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
         
         return $tpl;
     }
