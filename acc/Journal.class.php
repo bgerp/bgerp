@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,7 @@ class acc_Journal extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing, plg_Search,
                      acc_Wrapper, Entries=acc_JournalDetails, plg_Sorting';
     
     
@@ -103,6 +103,12 @@ class acc_Journal extends core_Master
     
     
     /**
+     * Полета за търсене
+     */
+    var $searchFields = 'reason';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -124,6 +130,26 @@ class acc_Journal extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
                 
         $this->setDbUnique('docType,docId,state');
+    }
+    
+    
+	/**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
+    	$data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
+    	
+    	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
+		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
+    	
+    	$data->listFilter->showFields = 'dateFrom,dateTo,search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	// Активиране на филтъра
+        $data->listFilter->input(NULL, 'silent');
     }
     
     
@@ -347,5 +373,25 @@ class acc_Journal extends core_Master
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	$data->query->orderBy('id', 'DESC');
+    	
+    	if($data->listFilter->rec->dateFrom){
+    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
+    	}
+    	
+    	if($data->listFilter->rec->dateTo){
+    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
+    	}
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+    	// Думите за търсене са името на документа-основания
+     	$object = new core_ObjectReference($rec->docType, $rec->docId);
+     	$title = $object->getDocumentRow()->title;
+     	$res .= " " . plg_Search::normalizeText($title);
+     }
 }
