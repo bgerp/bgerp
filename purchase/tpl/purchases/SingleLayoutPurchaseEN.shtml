@@ -147,21 +147,22 @@
 				    <td class = 'nowrap'>[#amountDelivered#]</td>
 				    <td class = 'nowrap'>[#amountPaid#]</td>
 				    <td class = 'nowrap'>[#amountInvoiced#]</td>
-				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='3'>
+				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='4'>
 					        <!--ET_BEGIN dealerId-->
 					        <span style='font-weight:normal'>Buyer</span>: [#dealerId#]
 					        <!--ET_END dealerId-->
 				        </td>
 				  </tr>
-				  <tr>
+				  <tr style='height:5px'></tr>
+				    <tr>
 				        <td rowspan='2' style = 'border:0px;'></td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            To deliver, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            To pay, [#currencyId#]
 				        </td>
-				        <td class = 'sum-th' style='border-top: 0'>
+				        <td class = 'sum-th'>
 				            To invoice, [#currencyId#]
 				        </td>
 				    </tr>
