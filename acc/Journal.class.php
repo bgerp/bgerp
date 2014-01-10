@@ -391,7 +391,9 @@ class acc_Journal extends core_Master
      {
     	// Думите за търсене са името на документа-основания
      	$object = new core_ObjectReference($rec->docType, $rec->docId);
-     	$title = $object->getDocumentRow()->title;
-     	$res .= " " . plg_Search::normalizeText($title);
+     	if($object->haveInterface('doc_DocumentIntf')){
+	     	$title = $object->getDocumentRow()->title;
+	     	$res .= " " . plg_Search::normalizeText($title);
+     	}
      }
 }
