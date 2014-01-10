@@ -156,7 +156,7 @@ class acc_OpenDeals extends core_Manager {
     			'valior' => $rec->valior,
     			'amountDeal' => $rec->amountDeal,
     			'amountPaid' => $rec->amountPaid, 
-    			'state' => ($rec->state == 'draft') ? 'active' : $rec->state,
+    			'state' => $rec->state,
     			'docClass' => $classId,
     			'docId' => $rec->id,
     			'id' => static::fetchField("#docClass = {$classId} AND #docId = {$rec->id}", 'id'),
