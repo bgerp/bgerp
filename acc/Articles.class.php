@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -380,14 +380,24 @@ class acc_Articles extends core_Master
      */
     function act_RevertArticle()
     {
-    	expect(haveRole('acc,ceo'));
+    	expect($this->haveRightFor('write'));
     	expect($docClassId = Request::get('docType', 'int'));
     	expect($docId = Request::get('docId', 'int'));
-    	expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
-		
-    	expect($result = static::createReverseArticle($journlRec));
-    	return Redirect(array(cls::get($docClassId), 'single', $docId), FALSE, "Създаден е успешно обратен Мемориален ордер");
     	
+    	$DocClass = cls::get($docClassId);
+    	expect($DocClass->haveRightFor('correction', $docId));
+    	expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
+		expect($result = static::createReverseArticle($journlRec));
+    	
+    	if(cls::haveInterface('doc_DocumentIntf', $docClassId)){
+    		
+    		// Ако е документ ориджина на обратната статия, редирект към сингъла му
+    		return Redirect(array(cls::get($docClassId), 'single', $docId), FALSE, "Създаден е успешно обратен Мемориален ордер");
+    	} else {
+    		
+    		// Ако не е документ, редирект към сингъла на създадената статия в папка "Сторно"
+    		return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
+    	}
     }
     
     
