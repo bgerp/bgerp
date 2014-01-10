@@ -157,6 +157,19 @@ class acc_Articles extends core_Master
     }
     
     
+	/**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+        $data->listFilter->input(NULL, 'silent');
+    }
+    
+    
     /**
      * Прави заглавие на МО от данните в записа
      */
