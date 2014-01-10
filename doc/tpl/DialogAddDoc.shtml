@@ -1,4 +1,6 @@
-<span>|Избор на документ|*</span>
+<div class='dialogDocTitle'>|Избор на документ|*</div>
 [#pager#]
-[#tableContent#]
+<div class='dialogDocTable'>
+    [#tableContent#]
+</div>
 <button onclick='javascript:window.close();' class='dialog-close'>X</button>

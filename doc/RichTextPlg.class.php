@@ -570,6 +570,9 @@ class doc_RichTextPlg extends core_Plugin
         
         // Добавяме титлата
         $tpl->prepend(tr("Документи") . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
+        
+        // Добавяме css-файла
+       	$tpl->push('doc/css/dialogDoc.css','CSS');
 	}
     
     

@@ -1,0 +1,27 @@
+.upload-doc-created {
+	width: 130px;
+}
+
+.dialogDocTable {
+	overflow-y: auto;
+    max-height: 253px;
+}
+
+.dialogDocTable table {
+	width: 100%;
+	background-color: white;
+}
+
+.dialogDocTable table tr td:last-child {
+    width: 1%;
+}
+
+.dialogDocTable table tr td:first-child {
+	width: 70px;
+}
+
+.dialogDocTitle {
+	margin-bottom: -7px;
+	font-weight: bold;
+}
+
