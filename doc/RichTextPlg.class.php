@@ -497,6 +497,7 @@ class doc_RichTextPlg extends core_Plugin
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
                 $resArr[$docId]['createdBy'] = doc_Containers::getVerbal($docRec, 'createdBy');
                 $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . ' ' . tr('от') . ' ' . $resArr[$docId]['createdBy'];
+                $resArr[$docId]['created'] = "<div class='upload-doc-created'>" . $resArr[$docId]['created'] . "</div>";
                 
                 // Манипулатора, който ще се добавя
                 $handle = '#' . $resArr[$docId]['handle'];
