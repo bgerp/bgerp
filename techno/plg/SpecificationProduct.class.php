@@ -32,6 +32,13 @@ class techno_plg_SpecificationProduct extends core_Plugin
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'before=sharedUsers,caption=Свойства->Списък,columns=2');
     	}
+    	
+    	// Добавяне на интерфейс за изпращане по имейл
+    	$mvc->interfaces = arr::make($mvc->interfaces);
+        setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
+        
+        // Добавяне на плъгин за изпращане по имейл
+        $mvc->load('doc_EmailCreatePlg');
     }
     
     
@@ -280,5 +287,19 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	if($coverClass instanceof cat_Products){
     		$res = cat_Products::getByProperty('canManifacture');
     	}
+    }
+    
+    
+	/**
+	* Интерфейсен метод на doc_ContragentDataIntf
+	* Връща тялото на имейл по подразбиране
+	*/
+    static function on_AfterGetDefaultEmailBody($mvc, $res, $id)
+    {
+        $handle = static::getHandle($id);
+        $tpl = new ET(tr("Моля запознайте се с нашата спецификация") . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
     }
 }    
