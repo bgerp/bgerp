@@ -131,7 +131,7 @@ class sales_Sales extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    public $singleLayoutFile = 'sales/tpl/sales/SingleLayoutSale.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
     
     
     /**
@@ -1090,6 +1090,7 @@ class sales_Sales extends core_Master
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
+    		$tpl->removeBlock('STATISTIC_BAR');
     	}
     	
     	if($data->summary){
@@ -1182,12 +1183,12 @@ class sales_Sales extends core_Master
      */
     private function setTemplates(&$res)
     {
-    	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/SingleLayoutSale.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/SingleLayoutSale1.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/SingleLayoutSale2.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SingleLayoutSale3.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/SingleLayoutSale4.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/SingleLayoutSale5.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en');
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){

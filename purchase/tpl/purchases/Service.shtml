@@ -1,14 +1,3 @@
-[#SingleToolbar#]
-<div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<!--ET_BEGIN header-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<!--ET_END header-->
-<div class='scrolling-holder'>
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
@@ -16,9 +5,9 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell custom-header-bg" valign="top" width="35%"><b>|Supplier|*</b></td>
+                    <td class="cell custom-header-bg" valign="top" width="35%"><b>|Доставчик|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|PURCHASE CONTRACT|*</b> </font><br>
+                        <font style="font-size:16pt;"><b>|ДОГОВОР ЗА ПОКУПКА НА УСЛУГА|*</b> </font><br>
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span>
                         	<span class="bigData">[#valior#]</span>
@@ -29,7 +18,7 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell custom-header-bg" width="35%" valign="top"><b>|Receiver|*</b></td>
+                    <td class="cell custom-header-bg" width="35%" valign="top"><b>|Получател|*</b></td>
                     </tr>
                     <tr>
                     <td class="cell">
@@ -66,47 +55,62 @@
 	                    <td class="topCell first" valign="top">
 	                        <!--ET_BEGIN deliveryTermId-->
 	                        <div>
-	                            Delivery:<b>[#deliveryTermId#]</b>
+	                            |Доставка|*: <b>[#deliveryTermId#]</b>
 	                       	</div>
 	                       	<!--ET_END deliveryTermId-->
 	                       	
 	                        <!--ET_BEGIN deliveryTime-->
 	                        <div>
-	                            Deadline: <b>[#deliveryTime#]</b>
+	                            |Срок до|*: <b>[#deliveryTime#]</b>
 	                        </div>
 	                        <!--ET_END deliveryTime-->
 	    
 	    					<!--ET_BEGIN deliveryLocationId-->
 	    					<div>
-	                            From: <b>[#deliveryLocationId#]</b>
+	                            |От|*: <b>[#deliveryLocationId#]</b>
 	                        </div>
 	    					<!--ET_END deliveryLocationId-->
 	    					
 	                        <!--ET_BEGIN shipmentStoreId-->
 	                        <div>
-	                            For store: <b>[#shipmentStoreId#] </b>
+	                            |До склад|*: <b>[#shipmentStoreId#] </b>
 	                        </div>
 	                        <!--ET_END shipmentStoreId-->
+							<b>|Условия|*</b>
+							<ol style = ';margin-top:1px'>
+							<!--ET_BEGIN withVat-->
+							<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
+							<!--ET_END withVat-->
+							<!--ET_BEGIN sepVat-->
+							<li>|Всички цени са с отделно ДДС|*[#sepVat#]</li>
+							<!--ET_END sepVat-->
+							<!--ET_BEGIN noVat-->
+							<li>|Всички цени са без ДДС|*[#noVat#]</li>
+							<!--ET_END noVat-->
+							<!--ET_BEGIN notes-->
+								[#notes#]
+							<!--ET_END notes-->
+							</ol>
 	                    </td>
                    <!--ET_END purchaseConditions-->
                    
                     <td class="topCell" valign="top">
                         <!--ET_BEGIN paymentMethodId-->
-                            <div>Payment: <b>[#paymentMethodId#]</b></div>
+                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
                         <!--ET_END paymentMethodId-->
                         
                         <!--ET_BEGIN currencyId-->
-                            <div>Currency:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
+                            <div>|Валута|*:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
                         <!--ET_END currencyId-->
                         
                         <!--ET_BEGIN bankAccountId-->
                             <hr />
-                            <div>Bank account :  <b>[#bankAccountId#]</b></div>
+                            <div>|Банкова с-ка|* :  <b>[#bankAccountId#]</b></div>
                         <!--ET_END bankAccountId-->
                         
                         <!--ET_BEGIN caseId-->
                         <hr/>
-                        <div>Case: <b>[#caseId#]</b></div>
+                        <div>|Каса|*: <b>[#caseId#]</b></div>
                         <!--ET_END caseId-->
                     </td>
        
@@ -120,82 +124,3 @@
     </tr>
     </tbody>
 </table>
-<div class="sale-summary">
-		<table cellspacing="5">
-		<colgroup span="5"/>
-		<thead>
-			<tr>
-				<th>
-				    Ordered, [#currencyId#]
-				</th>
-				<th>
-				    Delivered, [#currencyId#]
-				</th>
-				<th>
-				    Paid, [#currencyId#]
-				</th>
-				<th>
-				    Invoiced, [#currencyId#]
-				</th>
-				<th>
-				    Our Employees
-				</th>
-				</tr>
-				</thead>
-				<tr>
-				    <td class = 'nowrap'>[#amountDeal#]</td>
-				    <td class = 'nowrap'>[#amountDelivered#]</td>
-				    <td class = 'nowrap'>[#amountPaid#]</td>
-				    <td class = 'nowrap'>[#amountInvoiced#]</td>
-				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='4'>
-					        <!--ET_BEGIN dealerId-->
-					        <span style='font-weight:normal'>Buyer</span>: [#dealerId#]
-					        <!--ET_END dealerId-->
-				        </td>
-				  </tr>
-				  <tr style='height:5px'></tr>
-				    <tr>
-				        <td rowspan='2' style = 'border:0px;'></td>
-				        <td class = 'sum-th'>
-				            To deliver, [#currencyId#]
-				        </td>
-				        <td class = 'sum-th'>
-				            To pay, [#currencyId#]
-				        </td>
-				        <td class = 'sum-th'>
-				            To invoice, [#currencyId#]
-				        </td>
-				    </tr>
-				    <tr>
-				    	<td>[#amountToDeliver#]</td>
-				    	<td>[#amountToPay#]</td>
-				    	<td>[#amountToInvoice#]</td>
-				    </tr>
-			</table>
-		</div>
-		
-		<div style = 'margin-top:10px'>
-			<b>Conditions</b>
-			<ol style = ';margin-top:1px'>
-			<!--ET_BEGIN withVat-->
-			<li>|All the prices are with applied VAT|*[#withVat#]</li>
-			<!--ET_END withVat-->
-			<!--ET_BEGIN sepVat-->
-			<li>|All the prices are with separate VAT|*[#sepVat#]</li>
-			<!--ET_END sepVat-->
-			<!--ET_BEGIN noVat-->
-			<li>|All the prices are without VAT|*[#noVat#]</li>
-	<!--ET_END noVat-->
-			<!--ET_BEGIN notes-->
-				[#notes#]
-			<!--ET_END notes-->
-			</ol>
-		</div>
-	
-		<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-		[#DETAILS#]
-		</div>
-		<!--ET_END DETAILS-->
-</div>
-</div>

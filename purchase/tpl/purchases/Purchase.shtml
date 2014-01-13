@@ -1,14 +1,3 @@
-[#SingleToolbar#]
-<div class='document'>
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<!--ET_BEGIN header-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<!--ET_END header-->
-<div class='scrolling-holder'>
 <table width=100% cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
@@ -87,6 +76,21 @@
 	                            |До склад|*: <b>[#shipmentStoreId#] </b>
 	                        </div>
 	                        <!--ET_END shipmentStoreId-->
+							<b>|Условия|*</b>
+							<ol style = ';margin-top:1px'>
+							<!--ET_BEGIN withVat-->
+							<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
+							<!--ET_END withVat-->
+							<!--ET_BEGIN sepVat-->
+							<li>|Всички цени са с отделно ДДС|*[#sepVat#]</li>
+							<!--ET_END sepVat-->
+							<!--ET_BEGIN noVat-->
+							<li>|Всички цени са без ДДС|*[#noVat#]</li>
+							<!--ET_END noVat-->
+							<!--ET_BEGIN notes-->
+								[#notes#]
+							<!--ET_END notes-->
+							</ol>
 	                    </td>
                    <!--ET_END purchaseConditions-->
                    
@@ -120,80 +124,3 @@
     </tr>
     </tbody>
 </table>
-<div class="sale-summary">
-		<table cellspacing="5">
-		<colgroup span="5"/>
-			<tr>
-				<td class = 'sum-th'>
-				    |Поръчано|*, [#currencyId#]
-				</td>
-				<td class = 'sum-th'>
-				    |Доставено|*, [#currencyId#]
-				</td>
-				<td class = 'sum-th'>
-				    |Платено|*, [#currencyId#]
-				</td>
-				<td class = 'sum-th'>
-				    |Фактурирано|*, [#currencyId#]
-				</td>
-				<td class = 'sum-th'>
-				    |Наш персонал|*
-				</td>
-				</tr>
-				<tr>
-				    <td class = 'nowrap'>[#amountDeal#]</td>
-				    <td class = 'nowrap'>[#amountDelivered#]</td>
-				    <td class = 'nowrap'>[#amountPaid#]</td>
-				    <td class = 'nowrap'>[#amountInvoiced#]</td>
-				    <td class = 'nowrap' style='font-size:0.8em;' rowspan='4'>
-					        <!--ET_BEGIN dealerId-->
-					        <span style='font-weight:normal'>|Закупчик|*</span>: [#dealerId#]
-					        <!--ET_END dealerId-->
-				        </td>
-				  </tr>
-				  <tr style='height:5px'></tr>
-				    <tr>
-				        <td rowspan='2' style = 'border:0px;'></td>
-				        <td class = 'sum-th'>
-				            |За доставяне|*, [#currencyId#]
-				        </td>
-				        <td class = 'sum-th'>
-				            |За плащане|*, [#currencyId#]
-				        </td>
-				        <td class = 'sum-th'>
-				            |За фактуриране|*, [#currencyId#]
-				        </td>
-				    </tr>
-				    <tr>
-				    	<td>[#amountToDeliver#]</td>
-				    	<td>[#amountToPay#]</td>
-				    	<td>[#amountToInvoice#]</td>
-				    </tr>
-			</table>
-		</div>
-		
-		<div style = 'margin-top:10px'>
-			<b>|Условия|*</b>
-			<ol style = ';margin-top:1px'>
-			<!--ET_BEGIN withVat-->
-			<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
-			<!--ET_END withVat-->
-			<!--ET_BEGIN sepVat-->
-			<li>|Всички цени са с отделно ДДС|*[#sepVat#]</li>
-			<!--ET_END sepVat-->
-			<!--ET_BEGIN noVat-->
-			<li>|Всички цени са без ДДС|*[#noVat#]</li>
-			<!--ET_END noVat-->
-			<!--ET_BEGIN notes-->
-				[#notes#]
-			<!--ET_END notes-->
-			</ol>
-		</div>
-	
-		<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-		[#DETAILS#]
-		</div>
-		<!--ET_END DETAILS-->
-</div>
-</div>

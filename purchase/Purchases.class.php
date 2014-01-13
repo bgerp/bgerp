@@ -101,7 +101,7 @@ class purchase_Purchases extends core_Master
     /**
      * Лейаут на единичния изглед 
      */
-    public $singleLayoutFile = 'purchase/tpl/purchases/SingleLayoutPurchase.shtml';
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutPurchase.shtml';
     
     
     /**
@@ -508,6 +508,7 @@ class purchase_Purchases extends core_Master
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
+    		$tpl->removeBlock('STATISTIC_BAR');
     	}
     	
     	if($data->summary){
@@ -816,10 +817,10 @@ class purchase_Purchases extends core_Master
      */
     private function setTemplates(&$res)
     {
-    	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchase.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseService.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseEN.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Purchase of Service contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseServiceEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Purchase of Service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en');
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
