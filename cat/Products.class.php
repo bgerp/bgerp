@@ -471,6 +471,46 @@ class cat_Products extends core_Master {
     		}
     	}
     	
+    	// Премахват се тези продукти до които потребителя няма достъп
+    	static::unsetUnavailableProducts($products);
+    	
+    	return $products;
+    }
+    
+    
+    /**
+     * Помощна ф-я премахваща от списъкс  продукти, тези които са в недостъпни групи
+     * @param array $products - продукти отговарящи на някакви критерии
+     */
+    private static function unsetUnavailableProducts(&$products)
+    {
+    	// Извличане на групите до които текущия потребител има достъп
+    	$allowedGroups = array();
+    	$groupQuery = cat_Groups::getQuery();
+    	cat_Groups::restrictAccess($groupQuery);
+    	while($gRec = $groupQuery->fetch()){
+	    	$allowedGroups[$gRec->id] = $gRec->id;
+    	}
+    	
+    	$productIds = implode(", ", array_keys($products));
+    	$query = static::getQuery();
+    	static::restrictAccess($query);
+    	$query->in('id', $productIds);
+    	while($rec = $query->fetch()){
+    		$flag = FALSE;
+    		$groups = keylist::toArray($rec->groups);
+    		foreach ($groups as $gr){
+    			if(isset($allowedGroups[$gr])){
+    				$flag = TRUE;
+    			}
+    		}
+    		
+    		// Ако никоя от групите на продукта не е достъпна, той се премахва
+    		if(!$flag){
+    			unset($products[$rec->id]);
+    		}
+    	}
+    	
     	return $products;
     }
     
