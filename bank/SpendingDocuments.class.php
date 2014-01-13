@@ -39,7 +39,7 @@ class bank_SpendingDocuments extends core_Master
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
      	plg_Sorting, doc_plg_BusinessDoc2,doc_DocumentPlg, acc_plg_DocumentSummary,
-     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, cond_plg_DefaultValues';
+     	plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, cond_plg_DefaultValues, doc_EmailCreatePlg';
     
     
     /**
