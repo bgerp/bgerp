@@ -221,10 +221,9 @@ class bank_SpendingDocuments extends core_Master
     		 // Ако има банкова сметка по пдоразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
     		 	$bankRec = bank_OwnAccounts::fetch($bankId);
-    		 	$operators = keylist::toArray($bankRec->operators);
     		 		
     		 	// Ако потребителя е оператор на сметката, но не е логнат форсира се логването му в нея
-				if($bankId != bank_OwnAccounts::getCurrent('id', FALSE) && in_array(core_Users::getCurrent(), $operators)){
+				if($bankId != bank_OwnAccounts::getCurrent('id', FALSE) && bank_OwnAccounts::haveRightFor('select', $bankRec)){
     		 		Redirect(array('Ctr' => 'bank_OwnAccounts', 'Act' => 'SetCurrent', 'id' => $bankId, 'ret_url' => TRUE));
     		 	}
     		 }
