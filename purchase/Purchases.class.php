@@ -461,11 +461,19 @@ class purchase_Purchases extends core_Master
 				}
 			}
 			
-			if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
-				$row->chargeVat = tr('без');
-			} else {
-				$row->chargeVat = tr('с') . " {$row->chargeVat}";
+			// Взависимост начислява ли се ддс-то се показва подходящия текст
+			switch($rec->chargeVat){
+				case 'yes':
+					$fld = 'withVat';
+					break;
+				case 'separate':
+					$fld = 'sepVat';
+					break;
+				default:
+					$fld = 'noVat';
+					break;
 			}
+			$row->$fld = ' ';
 	    }
 	    
     }

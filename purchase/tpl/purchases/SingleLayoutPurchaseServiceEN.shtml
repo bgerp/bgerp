@@ -177,7 +177,15 @@
 		<div style = 'margin-top:10px'>
 			<b>Conditions</b>
 			<ol style = ';margin-top:1px'>
-			<li>All the prices are with <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+			<!--ET_BEGIN withVat-->
+			<li>|All the prices are with applied VAT|*[#withVat#]</li>
+			<!--ET_END withVat-->
+			<!--ET_BEGIN sepVat-->
+			<li>|All the prices are with separate VAT|*[#sepVat#]</li>
+			<!--ET_END sepVat-->
+			<!--ET_BEGIN noVat-->
+			<li>|All the prices are without VAT|*[#noVat#]</li>
+	<!--ET_END noVat-->
 			<!--ET_BEGIN notes-->
 				[#notes#]
 			<!--ET_END notes-->

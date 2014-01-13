@@ -184,7 +184,15 @@
 	<div style = 'margin-top:10px'>
 	<b>|Условия|*</b>
 	<ol style = ';margin-top:1px'>
-	<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+	<!--ET_BEGIN withVat-->
+	<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
+	<!--ET_END withVat-->
+	<!--ET_BEGIN sepVat-->
+	<li>|Всички цени са с отделно ДДС|*[#sepVat#]</li>
+	<!--ET_END sepVat-->
+	<!--ET_BEGIN noVat-->
+	<li>|Всички цени са без ДДС|*[#noVat#]</li>
+	<!--ET_END noVat-->
 	<!--ET_BEGIN notes-->
 		[#notes#]
 	<!--ET_END notes-->
