@@ -354,6 +354,9 @@ class doc_RichTextPlg extends core_Plugin
         // Ако екшъна не е дилогов прозорец за добавяне на документи, да не се изпълнява
         if (strtolower($action) != 'adddocdialog') return ;
         
+        // Очакваме да е логнат потребител
+        requireRole('user');
+        
         // Задаваме врапера
         Mode::set('wrapper', 'page_Dialog');
 
