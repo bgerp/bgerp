@@ -33,6 +33,8 @@ class doc_plg_TplManager extends core_Plugin
         if(empty($mvc->fields['template'])){
         	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Шаблон');
         }
+        
+        setIfNot($mvc->templateFld, 'SINGLE_CONTENT');
     }
     
     
@@ -80,11 +82,13 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// Ако има избран шаблон то той се изпозлва за единичен изглед
     	if($data->rec->template){
-    		try{
-    			$tpl = doc_TplManager::getTemplate($data->rec->template);
-    		} catch (Exception $ex){
-    			// Ако има проблем при зареждането на шаблона, рендира се дефолт изгледа
-    		}
+    		$template = $data->rec->template;
+		} else {
+			$templates = doc_TplManager::getTemplates($mvc->getClassId());
+			$template = key($templates);
 		}
+		
+		$content = doc_TplManager::getTemplate($template);
+    	$tpl->replace($content, $mvc->templateFld);
     }
 }
