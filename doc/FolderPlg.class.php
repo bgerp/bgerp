@@ -35,9 +35,7 @@ class doc_FolderPlg extends core_Plugin
             
             // Определя достъпа по подразбиране за новите папки
             setIfNot($defaultAccess, $mvc->defaultAccess, 'public');
-
-
-            // Достъп
+            
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,notNull,value=' . $defaultAccess);
             $mvc->FLD('shared' , 'userList', 'caption=Права->Споделяне');
@@ -347,5 +345,60 @@ class doc_FolderPlg extends core_Plugin
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl));
             }
         }
+    }
+    
+    
+    /**
+     * Вариант на doc_Folders::restrictAccess, който ограничава достъпа до записи, които
+     * могат да са корици на папка, но не е задължително да имат създадена папка
+     */
+    function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $teammates = keylist::toArray(core_Users::getTeammates($userId));
+        $managers  = core_Users::getByRole('manager');
+        
+        // Подчинените в екипа (използва се само за мениджъри)
+        $subordinates = array_diff($teammates, $managers);
+        
+        foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
+            if (${$v}) {
+                ${$v} = implode(',', ${$v});
+            } else {
+                ${$v} = FALSE;
+            }
+        }
+        
+        $conditions = array(
+            "#access = 'public'",           // Всеки има достъп до публичните папки
+            "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
+            "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
+        );
+        
+        if ($teammates) {
+            // Всеки има достъп до екипните папки, за които отговаря негов съекипник
+            $conditions[] = "#access = 'team' AND #inCharge IN ({$teammates})";
+        }
+        
+        switch (true) {
+            case core_Users::haveRole('ceo') :
+            // CEO вижда всичко с изключение на private и secret папките на другите CEO
+            if ($ceos) {
+                $conditions[] = "#inCharge NOT IN ({$ceos})";
+            }
+            break;
+            case core_Users::haveRole('manager') :
+            	
+            // Manager вижда private папките на подчинените в екипите си
+            if ($subordinates) {
+                $conditions[] = "#access = 'private' AND #inCharge IN ({$subordinates})";
+            }
+            break;
+        }
+        
+        $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
 }
