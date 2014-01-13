@@ -4,7 +4,7 @@
 
 .dialogDocTable {
 	overflow-y: auto;
-    max-height: 253px;
+	max-height: 253px;
 }
 
 .dialogDocTable table {
@@ -20,8 +20,17 @@
 	width: 70px;
 }
 
+.listTable{
+	margin-bottom:0;
+}
 .dialogDocTitle {
-	margin-bottom: -7px;
+	display:block;
+	margin-bottom:12px;
 	font-weight: bold;
+}
+
+.dialogPager{
+	clear:both;
+	margin-top:-10px;
 }
 

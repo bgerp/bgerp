@@ -1,5 +1,9 @@
 <div class='dialogDocTitle'>|Избор на документ|*</div>
+<!--ET_BEGIN pager-->
+<div class='dialogPager'>
 [#pager#]
+</div>
+<!--ET_END pager-->
 <div class='dialogDocTable'>
     [#tableContent#]
 </div>
