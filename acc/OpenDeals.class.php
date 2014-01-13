@@ -205,7 +205,7 @@ class acc_OpenDeals extends core_Manager {
 	    	foreach (array('Deal', 'Paid') as $name){
 	    		$field = "amount{$name}";
 		    	if(empty($rec->$field)){
-		    		$row->$field = "<span class='quiet'>0.00</span>";
+		    		$row->$field = "<span class='quiet'>0,00</span>";
 		    	} else {
 		    		$row->$field = $mvc->fields[$field]->type->toVerbal($rec->$field / $docRec->currencyRate);
 		    	}
@@ -283,8 +283,8 @@ class acc_OpenDeals extends core_Manager {
     public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
     {
     	if($action != 'list') return;
-    	$show = Request::get('show');
-    	expect(in_array($show, array('store', 'cash', 'bank')));
+    	
+    	$show = Request::get('show', 'enum(store,bank,cash)');
     	expect(haveRole("ceo,{$show}"));
     	
     	switch($show){
