@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -69,12 +69,6 @@ class purchase_Services extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, purchase';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, purchase';
     
     
     /**
@@ -158,7 +152,6 @@ class purchase_Services extends core_Master
         // Доставка
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime', 'caption=Срок до');
-        $this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Доставител');
         
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');

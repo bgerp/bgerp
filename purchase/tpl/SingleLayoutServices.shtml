@@ -77,12 +77,6 @@
                         </div>
                         <!--ET_END locationId-->
         				
-        				<!--ET_BEGIN vehicleId-->
-        				<div>
-                            |Доставител|*: <b>[#vehicleId#]</b>
-                        </div>
-        				<!--ET_END vehicleId-->
-        				
                         <!--ET_BEGIN note-->
 	                        <hr />
 	                        [#note#]
