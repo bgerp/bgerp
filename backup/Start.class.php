@@ -33,7 +33,7 @@ class backup_Start extends core_Manager
     private static $storage;
     private static $confFileName;
     
-    static function init($params = array())
+    function init($params = array())
     {
         self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
         self::$conf = core_Packs::getConfig('backup');
