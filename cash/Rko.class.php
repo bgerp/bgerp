@@ -226,6 +226,15 @@ class cash_Rko extends core_Master
     		 		}
     		 	}
     		 	
+    		 	if($caseId = $dealInfo->agreed->payment->caseId){
+    		 		$cashRec = cash_Cases::fetch($caseId);
+	    		 	
+    		 		// Ако потребителя може да избере касата, но не е логнат форсира се логването му в нея
+					if($caseId != cash_Cases::getCurrent('id', FALSE) && cash_Cases::haveRightFor('select', $cashRec)){
+	    		 		Redirect(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $caseId, 'ret_url' => TRUE));
+	    		 	}
+    		 	}
+    		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 	$form->rec->rate       = $dealInfo->shipped->rate;
     		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
