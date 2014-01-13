@@ -359,9 +359,6 @@ class doc_RichTextPlg extends core_Plugin
         
         // Задаваме врапера
         Mode::set('wrapper', 'page_Dialog');
-
-        // Защитените променливи
-        Request::setProtected('callback');
         
         // Обект с данните
         $data = new stdClass();
