@@ -208,11 +208,7 @@ class doc_TplManager extends core_Master
     	if($exRec){
     		$object->id = $exRec->id;
     		$object->hash = $exRec->hash;
-    		$object->modifiedBy = $exRec->modifiedBy;
     	}
-    	
-    	// Ако системен шаблон модифициран от потрбеителя, той не се обновява
-    	if($object->id && $object->modifiedBy != -1) return;
     	
     	// Ако файла на шаблона не е променян, то записа не се обновява
     	$fileHash = md5_file(getFullPath($object->content));
@@ -225,7 +221,6 @@ class doc_TplManager extends core_Master
     	$object->content = getFileContent($object->content);
     	$object->createdBy = -1;
     	$object->state = 'active';
-    	$object->_modifiedBy = -1;
     	
     	static::save($object);
     	($object->id) ? $updated++ : $added++;
@@ -265,6 +260,13 @@ class doc_TplManager extends core_Master
     		
     		// Ако шаблона е използван в някой документ, не може да се трие
     		if(cls::get($rec->docClassId)->fetch("#template = {$rec->id}")){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->createdBy == -1){
     			$res = 'no_one';
     		}
     	}
