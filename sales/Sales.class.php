@@ -1181,13 +1181,13 @@ class sales_Sales extends core_Master
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/SingleLayoutSale4.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/SingleLayoutSale5.shtml', 'lang' => 'en');
     	
-    	$added = $updated = 0;
+    	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
     		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::add($arr, $added, $updated);
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}</font></li>";
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
     
     

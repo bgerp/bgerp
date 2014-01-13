@@ -98,6 +98,7 @@ class doc_TplManager extends core_Master
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,autoFilter,width=2em');
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
         $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
+        $this->FLD('hash', 'varchar', "input=none");
         
         // Уникален индекс
         $this->setDbUnique('name');
@@ -192,20 +193,35 @@ class doc_TplManager extends core_Master
     
     /**
      * Добавя шаблон
+     * 
      * @param mixed $object - Обект или масив
      * @param int $added - брой добавени шаблони
      * @param int $updated - брой обновени шаблони
+     * @param int $skipped - брой пропуснати шаблони
      */
-    public static function add($object, &$added = 0, &$updated = 0)
+    public static function addOnce($object, &$added = 0, &$updated = 0, &$skipped = 0)
     {
     	$object = (object)$object;
-    	$exRec = static::fetch("#name = '{$object->name}'");
-    	$object->id = ($exRec) ? $exRec->id : NULL;
-    	$object->modifiedBy = ($exRec) ? $exRec->modifiedBy : NULL;
     	
-    	// Ако се обновява шаблон създаден от system но модифициран от потребител - той не се обновява
+    	// Ако има вече такъв запис
+    	$exRec = static::fetch("#name = '{$object->name}'");
+    	if($exRec){
+    		$object->id = $exRec->id;
+    		$object->hash = $exRec->hash;
+    		$object->modifiedBy = $exRec->modifiedBy;
+    	}
+    	
+    	// Ако системен шаблон модифициран от потрбеителя, той не се обновява
     	if($object->id && $object->modifiedBy != -1) return;
     	
+    	// Ако файла на шаблона не е променян, то записа не се обновява
+    	$fileHash = md5_file(getFullPath($object->content));
+    	if(isset($object->hash) && $object->hash == $fileHash){
+    		$skipped++;
+    		return;
+    	}
+    	
+    	$object->hash = $fileHash;
     	$object->content = getFileContent($object->content);
     	$object->createdBy = -1;
     	$object->state = 'active';

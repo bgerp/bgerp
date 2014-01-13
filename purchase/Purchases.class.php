@@ -813,12 +813,12 @@ class purchase_Purchases extends core_Master
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Purchase of Service contract', 'content' => 'purchase/tpl/purchases/SingleLayoutPurchaseServiceEN.shtml', 'lang' => 'en');
     	
-    	$added = $updated = 0;
+    	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
     		$arr['docClassId'] = $this->getClassId();
-    		doc_TplManager::add($arr, $added, $updated);
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}</font></li>";
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }
