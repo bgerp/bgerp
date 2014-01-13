@@ -53,6 +53,12 @@ class cms_GalleryImages extends core_Manager {
     
     
     /**
+     * 
+     */
+    var $vidFieldName = 'vid';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'gallery_Images';
