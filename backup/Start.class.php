@@ -32,9 +32,25 @@ class backup_Start extends core_Manager
     private static $metaFileName;
     private static $storage;
     private static $confFileName;
+    private static $initialized = false;    
     
-    function init($params = array())
+    function init($array = array())
     {
+        self::initialize();
+    }
+    
+    /**
+     * Инициализация при статичните извиквания
+     *
+     *
+     */
+    private static function initialize()
+    {
+        if (self::$initialized) {
+            
+            return;
+        }
+        
         self::$lockFileName = EF_TEMP_PATH . '/backupLock.tmp';
         self::$conf = core_Packs::getConfig('backup');
         $now = date("Y_m_d_H_i");
@@ -43,6 +59,7 @@ class backup_Start extends core_Manager
         self::$metaFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_META";
         self::$confFileName = self::$conf->BACKUP_PREFIX . "_" . EF_DB_NAME . "_conf.tar.gz";
         self::$storage = core_Cls::get("backup_" . self::$conf->BACKUP_STORAGE_TYPE);
+        self::$initialized = true;
     }
     
     /**
@@ -378,7 +395,7 @@ class backup_Start extends core_Manager
      */
     public static function unLock()
     {
-        self::init(array());
+        self::initialize();
         
         return @unlink(self::$lockFileName);
     }
@@ -390,7 +407,7 @@ class backup_Start extends core_Manager
      */
     public static function isLocked()
     {
-        self::init(array());
+        self::initialize();
         
         return file_exists(self::$lockFileName);
     }
@@ -428,28 +445,28 @@ class backup_Start extends core_Manager
      */
     public function act_Full()
     {
-        self::init(array());
+        self::initialize();
         
         return self::full();
     }
     
     public function act_BinLog()
     {
-        self::init(array());
+        self::initialize();
         
         return self::binLog();
     }
     
     public function act_Clean()
     {
-        self::init(array());
+        self::initialize();
         
         return self::clean();
     }
     
     public function act_SaveConf()
     {
-        self::init(array());
+        self::initialize();
         
         return self::saveConf();
     }
