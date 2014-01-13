@@ -41,8 +41,8 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, bgerp_plg_Blank,
-    				 dec_Wrapper, doc_ActivatePlg, plg_Printing, plg_RowTools, doc_DocumentIntf, doc_DocumentPlg';
+    var $loadList = 'sales_Wrapper, bgerp_plg_Blank, dec_Wrapper, doc_ActivatePlg, plg_Printing, 
+    				 plg_RowTools, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
     
     
     /**
