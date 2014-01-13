@@ -429,7 +429,7 @@ class purchase_Purchases extends core_Master
 		
     	foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
-                $row->{"amount{$amnt}"} = '<span class="quiet">0.00</span>';
+                $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
             } else {
             	$value = $rec->{"amount{$amnt}"} / $rec->currencyRate;
 				$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
