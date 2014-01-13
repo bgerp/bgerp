@@ -1858,6 +1858,10 @@ span.richEdit div.richedit-toolbar {
 	white-space: nowrap;
 }
 
+.wide span.richEdit div.richedit-toolbar{
+	min-width:600px !important;
+}
+
 .narrow span.richEdit div.richedit-toolbar {
 	padding-top: 8px;
 	font-size: 0.8em;
@@ -1878,6 +1882,8 @@ div.richEdit {
 	width: 100%;
 }
 
+
+
 .richEdit textarea {
 	margin-bottom: 0px;
 	overflow: auto;
@@ -1887,7 +1893,6 @@ div.richEdit {
 
 .narrow .richEdit textarea { 
 	border-bottom: 1px solid white; 
-	width: 600px; 
 }
 
 .richedit-toolbar {
@@ -1900,26 +1905,26 @@ div.richEdit {
 .richtext-relative-group a:hover {
 	cursor:pointer;
 }
-.narrow #richtext-emoticons, .narrow #richtext-emoticons2, .narrow #richtext-emoticons3 ,#richtext-emoticons5 {
+
+#richtext-emoticons, #richtext-emoticons2, #richtext-emoticons3, #richtext-emoticons4, #richtext-emoticons5 {
 	position: absolute;
 	left: 0px;
-	bottom: 2em;
+	bottom: 2.1em;
 	display: none;
 }
 
-#richtext-emoticons4{
+#richtext-emoticons5{
+    left: -160%;
+}
+
+#richtext-emoticons6{
 	position: absolute;
 	right: 0em;
 	bottom: 2em;
 	display: none;
 }
 
-.narrow #richtext-emoticons4 {
-	left: 0em;
-	right:auto;
-}
-
-#richtext-emoticons4 .rtbutton, #richtext-emoticons5 .rtbutton {
+#richtext-emoticons6 .rtbutton{
 	display: block;
 }
 
