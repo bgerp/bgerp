@@ -1201,7 +1201,7 @@ class type_Richtext extends type_Blob
     	
 	        $toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
 	             
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Черта") . "</a>", 'filesAndDoc', 1000.045);
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Черта') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Черта") . "</a>", 'filesAndDoc', 1000.045);
 	        
 	        $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.075);
         
