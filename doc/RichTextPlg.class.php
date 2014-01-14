@@ -321,7 +321,7 @@ class doc_RichTextPlg extends core_Plugin
         $documentUpload->appendOnce($callback, 'SCRIPTS');
         
         // Добавяне в групата за добавяне на документ
-        $toolbarArr->add($documentUpload, 'filesAndDoc');
+        $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.055);
     }
     
     
