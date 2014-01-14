@@ -53,31 +53,14 @@ class store_plg_Document extends core_Plugin
 			
 			// Ако има изчислен обем
 			if($obj->volume !== NULL){
-				
-				// При опаковка обема е широчината по дължината по височината
-				if($pack = $pInfo->packagingRec){
-					$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
-				} else {
-					
-					// При без опаковка, се проверява имали зададен параметър обем 
-					$volume = $ProductMan->getParam($p->productId, 'volume');
-				}
-				
+				$volume = $ProductMan->getVolume($p->productId, $p->packagingId);
 				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 			}
 			
 			if($obj->weight !== NULL){
+				$weight = $ProductMan->getWeight($p->productId, $p->packagingId);
 				
-				// При опаковка обема е нетото + тарата
-				if($pack = $pInfo->packagingRec){
-					$weight = $pack->netWeight + $pack->tareWeight;
-				} else {
-					
-					// При без опаковка, се проверява имали зададен параметър тегло 
-					$weight = $ProductMan->getParam($p->productId, 'weight');
-				}
-				
-				(!$volume) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
+				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 			}
 		}
 		
