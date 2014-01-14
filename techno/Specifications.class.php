@@ -486,6 +486,36 @@ class techno_Specifications extends core_Manager {
     }
     
     
+	/**
+     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+    public function getWeight($productId, $packagingId = NULL)
+    {
+    	$TechnoClass = static::getDriver($productId);
+    	
+    	return $TechnoClass->getWeight($productId, $packagingId);
+    }
+    
+    
+	/**
+     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+    public function getVolume($productId, $packagingId = NULL)
+    {
+    	$TechnoClass = static::getDriver($productId);
+    	
+    	return $TechnoClass->getVolume($productId, $packagingId);
+    }
+    
+    
     /**
 	 * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
 	 *

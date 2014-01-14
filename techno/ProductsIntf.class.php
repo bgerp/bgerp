@@ -102,17 +102,6 @@ class techno_ProductsIntf
     }
     
     
-	/**
-     * Връща информация за теглото на продукта
-     * @param int $id - ид на продукт
-     * @return stdClass - Обект
-     */
-    public function getWeight($id)
-    {
-    	return $this->class->getWeight($id);
-    }
-    
-    
     /**
      * Връща масив с допълнителни параметри, специфични за технолога. Те ще се
      * използват в заданията
@@ -137,5 +126,31 @@ class techno_ProductsIntf
 	public function renderAdditionalParams($id, $data)
     {
     	return $this->class->renderAdditionalParams($data);
+    }
+    
+    
+	/**
+     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+	public function getWeight($productId, $packagingId = NULL)
+    {
+    	return $this->class->getWeight($productId, $packagingId);
+    }
+    
+    
+    /**
+     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+	public function getVolume($productId, $packagingId = NULL)
+    {
+    	return $this->class->getVolume($productId, $packagingId);
     }
 }

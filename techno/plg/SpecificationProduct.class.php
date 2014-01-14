@@ -302,4 +302,26 @@ class techno_plg_SpecificationProduct extends core_Plugin
         
         return $tpl->getContent();
     }
+    
+    
+    /**
+     * Дефолт метод за връщане на тегло
+     */
+    static function on_AfterGetWeight($mvc, $res, $id, $packagingId)
+    {
+    	if(!$res){
+    		return $mvc->getParam($id, 'weight');
+    	}
+    }
+    
+    
+	/**
+     * Дефолт метод за връщане на обем
+     */
+    static function on_AfterGetVolume($mvc, $res, $id, $packagingId)
+    {
+    	if(!$res){
+    		return $mvc->getParam($id, 'volume');
+    	}
+    }
 }    
