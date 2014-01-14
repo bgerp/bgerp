@@ -297,7 +297,7 @@ class doc_RichTextPlg extends core_Plugin
             // Парамтери към отварянето на прозореца
             $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         } else {
-            $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
         // URL за добавяне на документи
@@ -404,7 +404,7 @@ class doc_RichTextPlg extends core_Plugin
         if (!$perPage) {
             
             // Задаваме стойността
-            $perPage = ($mvc->dialogItemsPerPage) ? $mvc->dialogItemsPerPage : 4;
+            $perPage = ($mvc->dialogItemsPerPage) ? $mvc->dialogItemsPerPage : 8;
         }
         
         // Ако има зададен брой
@@ -488,7 +488,7 @@ class doc_RichTextPlg extends core_Plugin
                 $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id']; 
                 
                 // Заглавие на документа
-                $resArr[$docId]['title'] = str::limitLen($docRow->title, 25);
+                $resArr[$docId]['title'] = str::limitLen($docRow->title, 35);
                 
                 // Манипулатор на докуемнта
                 $resArr[$docId]['handle'] = $document->getHandle();
