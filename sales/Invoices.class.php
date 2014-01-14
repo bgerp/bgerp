@@ -636,12 +636,6 @@ class sales_Invoices extends core_Master
 	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
 	    	
-	    	if($rec->dealValue){
-				$SpellNumber = cls::get('core_SpellNumber');
-				$total = ($rec->dealValue + $rec->vatAmount - $rec->discountAmount) / $rec->rate;
-				$row->amountVerbal = $SpellNumber->asCurrency($total, 'bg', FALSE);
-	    	}
-	    	
 	    	if($rec->accountId){
 	    		$Varchar = cls::get('type_Varchar');
 	    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
