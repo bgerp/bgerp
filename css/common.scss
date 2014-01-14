@@ -1902,29 +1902,30 @@ div.richEdit {
 .richtext-relative-group {
 	position:relative;
 }
+
 .richtext-relative-group a:hover {
 	cursor:pointer;
 }
 
-#richtext-emoticons, #richtext-emoticons2, #richtext-emoticons3, #richtext-emoticons4, #richtext-emoticons5 {
+.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5 {
 	position: absolute;
 	left: 0px;
 	bottom: 2.1em;
 	display: none;
 }
 
-#richtext-emoticons5{
+.richtext-emoticons5{
     left: -160%;
 }
 
-#richtext-emoticons6{
+.richtext-emoticons6{
 	position: absolute;
 	right: 0em;
 	bottom: 2em;
 	display: none;
 }
 
-#richtext-emoticons6 .rtbutton{
+.richtext-emoticons6 .rtbutton{
 	display: block;
 }
 
