@@ -46,7 +46,7 @@ class sales_Invoices extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
-                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices';
+                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices, doc_plg_TplManager';
     
     
     /**
@@ -65,6 +65,12 @@ class sales_Invoices extends core_Master
      * Детайла, на модела
      */
     public $details = 'sales_InvoiceDetails' ;
+    
+    
+    /**
+     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
+     */
+    public $templateFld = 'INVOICE_HEADER';
     
     
     /**
@@ -154,6 +160,7 @@ class sales_Invoices extends core_Master
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
     	'caseId'              => 'lastDocUser|lastDoc',
+    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -234,6 +241,24 @@ class sales_Invoices extends core_Master
 	}
 	
 	
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $mvc->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    }
+    
+    
     /**
      * След промяна в детайлите на обект от този клас
      */
@@ -579,15 +604,6 @@ class sales_Invoices extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	$conf = core_Packs::getConfig('sales');
-    	if ($conf->INV_LAYOUT == 'Letter') {
-    		$header = getTplFromFile('sales/tpl/InvoiceHeaderLetter.shtml');
-    	} else {
-    		$header = getTplFromFile('sales/tpl/InvoiceHeaderNormal.shtml');
-    	}
-    	
-    	$tpl->replace($header, 'INVOICE_HEADER');
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     	
     	if($data->summary){

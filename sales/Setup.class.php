@@ -92,7 +92,6 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'INV_LAYOUT'               => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за фактурата->Шаблон'),
 			'QUOTE_LAYOUT'             => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за пресрочване"),
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
