@@ -2,18 +2,6 @@
 
 
 /**
- * Шаблон на хедъра на фактурата
- */
-defIfNot('INV_LAYOUT', 'Normal');
-
-
-/**
- * Шаблон на хедъра на офертата
- */
-defIfNot('QUOTE_LAYOUT', 'Letter');
-
-
-/**
  * Максимален срок за бъдещи цени с които да работи офертата
  */
 defIfNot('SALE_MAX_FUTURE_PRICE', type_Time::SECONDS_IN_MONTH);
@@ -92,7 +80,6 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'QUOTE_LAYOUT'             => array("enum(Normal=Основен изглед,Letter=Изглед за писмо)", 'caption=Изглед за оферта->Шаблон'),
 			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за пресрочване"),
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),

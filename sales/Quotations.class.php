@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -23,13 +23,13 @@ class sales_Quotations extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'Q';
+    public $abbr = 'Q';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    var $oldClassName = 'sales_Quotes';
+    public $oldClassName = 'sales_Quotes';
     
     
     /**
@@ -41,7 +41,7 @@ class sales_Quotations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search, doc_plg_HidePrices,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
                     doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, cond_plg_DefaultValues';
        
     
@@ -58,39 +58,27 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
+     */
+    public $templateFld = 'QUOTE_HEADER';
+    
+    
+    /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/document_quote.png';
+    public $singleIcon = 'img/16/document_quote.png';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,sales';
+	public $canList = 'ceo,sales';
     
     
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,sales';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
     
     
     /**
@@ -114,25 +102,25 @@ class sales_Quotations extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    var $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
+    public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
    
    
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
+    public $searchFields = 'paymentMethodId, reff, company, person, email, folderId';
     
    
     /**
      * Брой оферти на страница
      */
-    var $listItemsPerPage = '20';
+    public $listItemsPerPage = '20';
     
     
     /**
       * Групиране на документите
       */ 
-    var $newBtnGroup = "3.7|Търговия";
+    public $newBtnGroup = "3.7|Търговия";
     
     
     /**
@@ -156,6 +144,7 @@ class sales_Quotations extends core_Master
         'pCode' 		  => 'lastDocUser|lastDoc|clientData',
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
+    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -413,18 +402,10 @@ class sales_Quotations extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	$conf = core_Packs::getConfig('sales');
-    	if ($conf->QUOTE_LAYOUT == 'Letter') {
-    		$header = getTplFromFile('sales/tpl/QuotationHeaderLetter.shtml');
-    	}else {
-    		$header = getTplFromFile('sales/tpl/QuotationHeaderNormal.shtml');
-    	}
-	  	
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+	  	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
     	
-    	$tpl->replace($header, 'QUOTE_HEADER');
     	$tpl->push('sales/tpl/styles.css', 'CSS');
     }
     
@@ -658,5 +639,23 @@ class sales_Quotations extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Оферта изглед за писмо', 'content' => 'sales/tpl/QuotationHeaderLetter.shtml', 'lang' => 'bg');
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $mvc->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за оферти, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }
