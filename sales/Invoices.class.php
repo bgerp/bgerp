@@ -706,12 +706,14 @@ class sales_Invoices extends core_Master
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     		
-    		$plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->total / $rec->rate, $rec->date, TRUE);
-		    if(count($plan)){
-			    foreach ($plan as $pName => $pValue){
-			    	$data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " <b>{$pValue}</b>" : $pValue;
-			    }
-		    }
+            if($rec->paymentMethodId) {
+                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->rate ? ($rec->total / $rec->rate) : $rec->total + 0, $rec->date, TRUE);
+                if(count($plan)){
+                    foreach ($plan as $pName => $pValue){
+                        $data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " <b>{$pValue}</b>" : $pValue;
+                    }
+                }
+            }
     	}
     	
     	$myCompany = crm_Companies::fetchOwnCompany();

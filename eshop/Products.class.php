@@ -134,6 +134,12 @@ class eshop_Products extends core_Master
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
+        
+        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
+        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
+        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
+        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
+
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
@@ -159,7 +165,7 @@ class eshop_Products extends core_Master
     /**
      *
      */
-    function on_AfterrecToVerbal($mvc, $row, $rec)
+    function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($rec->code) {
             $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
@@ -174,6 +180,11 @@ class eshop_Products extends core_Master
             $title = tr('Изпратете запитване за производство');
             $row->coInquiry   = ht::createLink(tr('Запитване'), array(cls::get($rec->coDriver), 'Inquiry', $id), "Все още не работи...", "ef_icon=img/16/button-question-icon.png,title={$title}");
         }
+
+        if($fields['-list']) {
+            $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
+        }
+
     }
 
 
@@ -288,6 +299,23 @@ class eshop_Products extends core_Master
             $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $row->name); 
         }
         
+
+        if($data->rec->image2) {
+            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(120, 120), array(600, 600), $row->name . ' 2'); 
+        }
+
+        if($data->rec->image3) {
+            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(120, 120), array(600, 600), $row->name3 . ' 3'); 
+        }
+
+        if($data->rec->image4) {
+            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(120, 120), array(600, 600), $row->name4 . ' 4'); 
+        }
+
+        if($data->rec->image5) {
+            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(120, 120), array(600, 600), $row->name5 . ' 5'); 
+        }
+
         if(self::haveRightFor('edit', $data->rec)) {
             $editSbf = sbf("img/16/edit.png", '');
             $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
