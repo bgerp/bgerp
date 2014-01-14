@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -85,8 +85,7 @@ class store_TransfersDetails extends core_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
@@ -145,10 +144,6 @@ class store_TransfersDetails extends core_Detail
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
-                $ProductManager = cls::get($rec->classId);
-                
-    			$row->productId = $ProductManager->getTitleById($rec->productId);
-    			
                 if (empty($rec->packagingId)) {
                     $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
@@ -168,15 +163,9 @@ class store_TransfersDetails extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $ProductManager = cls::get($rec->classId);
+        $fromStore = $mvc->Master->fetchField($rec->transferId, 'fromStore');
         
-    	if (empty($rec->id)) {
-        	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
-            $form->setOptions('productId', $ProductManager::getByProperty('canStore'));
-        	
-        } else {
-            $form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
-        }
+        $form->setOptions('productId', store_Products::getProductsInStore($fromStore));
     }
     
     
@@ -185,19 +174,13 @@ class store_TransfersDetails extends core_Detail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
-    	$rec = $form->rec;
-    	expect($ProductMan = cls::get($rec->classId));
-	    if($form->rec->productId){
-	    	$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-	    }
-	    	
-    	if ($form->isSubmitted() && !$form->gotErrors()) {
-        
-            // Извличаме ид на политиката, кодирано в ид-то на продукта 
-            $rec->packagingId = ($rec->packagingId) ? $rec->packagingId : NULL;
-            $productInfo = $ProductMan->getProductInfo($rec->productId, $rec->packagingId);
-			
-            if (empty($rec->packagingId)) {
+    	$rec = &$form->rec;
+    	if ($form->isSubmitted()){
+    		$sProd = store_Products::fetch($rec->productId);
+    		$ProductMan = cls::get($sProd->classId);
+    		$productInfo = $ProductMan->getProductInfo($sProd->productId, $rec->packagingId);
+    		
+    		if (empty($rec->packagingId)) {
                 $rec->quantityInPack = 1;
             } else {
              	if ($rec->packagingId != $productInfo->packagingRec->packagingId) {
@@ -211,7 +194,7 @@ class store_TransfersDetails extends core_Detail
             $rec->isConvertable = isset($productInfo->meta['canConvert']) ? 'yes' : 'no';
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $rec->uomId = $productInfo->productRec->measureId;
-        }
+    	}
     }
     
     
@@ -221,23 +204,11 @@ class store_TransfersDetails extends core_Detail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-            $masterRec = $data->masterData->rec;
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            
-            foreach ($productManagers as $manId => $manName) {
-            	$productMan = cls::get($manId);
-            	$products = $productMan::getByProperty('canStore');
-                if(!count($products)){
-                	$error = "error=Няма складируеми {$productMan->title}";
-                }
-                
-                $data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
-                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
-            	unset($error);
-            }
-            
-            unset($data->toolbar->buttons['btnAdd']);
+	    	$products = store_Products::getProductsInStore($data->masterData->rec->fromStore);
+    		
+    		if(!count($products)){
+    			$data->toolbar->buttons['btnAdd']->attr['error'] = "Няма продукти в избрания склад";
+    		}
         }
     }
 }

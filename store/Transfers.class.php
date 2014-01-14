@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -306,11 +306,11 @@ class store_Transfers extends core_Master
     	$dQuery = $this->store_TransfersDetails->getQuery();
     	$dQuery->EXT('state', 'store_Transfers', 'externalKey=transferId');
     	$dQuery->where("#transferId = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+    		$sProd = store_Products::fetch($dRec->productId);
+    		$ProductMan = cls::get($sProd->classId);
+    		if(cls::haveInterface('doc_DocumentIntf', $ProductMan)){
+    			$res[] = (object)array('class' => $ProductMan, 'id' => $sProd->productId);
     		}
     	}
     	return $res;
@@ -347,19 +347,20 @@ class store_Transfers extends core_Master
         $dQuery = store_TransfersDetails::getQuery();
         $dQuery->where("#transferId = '{$rec->id}'");
         while($dRec = $dQuery->fetch()){
+        	$sProd = store_Products::fetch($dRec->productId);
         	
         	// Ако артикула е вложим сметка 302 иначе 321
         	$accId = ($dRec->isConvertable == 'yes') ? '302' : '321';
         	$result->entries[] = array(
         		 'credit'  => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
                        array('store_Stores', $rec->fromStore), // Перо 1 - Склад
-                       array($dRec->classId, $dRec->productId),  // Перо 2 - Артикул
+                       array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
                   'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
 	             ),
 	             
                   'debit' => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
                        array('store_Stores', $rec->toStore), // Перо 1 - Склад
-                       array($dRec->classId, $dRec->productId),  // Перо 2 - Артикул
+                       array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
                   'quantity' => $dRec->quantity, // Количество продукт в основната му мярка
 	             ),
 	       );
