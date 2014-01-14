@@ -1052,7 +1052,7 @@ class type_Richtext extends type_Blob
     {
         $formId = $attr['id'];
         
-        $toolbarArr = new core_ObjectCollection('html,place');
+        $toolbarArr = new core_ObjectCollection('html,place,order');
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP1');
         
@@ -1201,9 +1201,9 @@ class type_Richtext extends type_Blob
     	
 	        $toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
 	             
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Линия") . "</a>", 'filesAndDoc');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Черта") . "</a>", 'filesAndDoc', 1000.045);
 	        
-	        $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'filesAndDoc');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'filesAndDoc', 1000.075);
         
         $toolbarArr->add("</span>", 'TBL_GROUP3');
         
