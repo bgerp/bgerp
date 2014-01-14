@@ -1168,7 +1168,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span id='{$attr['id']}-group5' class='richtext-emoticons5 richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
          
-        	$toolbarArr->add("<a class=rtbutton style='background: white;' title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15' align='top'/></a>", 'TBL_GROUP2');
+        	$toolbarArr->add("<a class=rtbutton title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15' align='top'/></a>", 'TBL_GROUP2');
         	
         	$toolbarArr->add("<a class=rtbutton title='" . tr('Цитат') .  "' onclick=\"s('[bQuote]', '[/bQuote]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/quote.png') . " height='15' width='15' align='top'/></a>", 'TBL_GROUP2');
         	
