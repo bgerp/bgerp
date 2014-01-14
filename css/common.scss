@@ -1929,15 +1929,21 @@ div.richEdit {
 	display: block;
 }
 
+.richtext-emoticons, .richtext-emoticons5{
+	background-color:#fff;
+	1padding:2px 2px 0 2px;
+	1border:1px solid #000;
+}
+
+.rtbutton img{
+	vertical-align:middle;
+	display:inline-block;
+}
+
 a.rtbutton {
     border: 1px solid #bba;
     background: #eed;
-    padding: 0.1em 0.3em;
-    cursor: pointer;
-}
-
-a.rtbutton1 {
-	padding-right: 3px;
+    padding: 0.2em 0.3em;
     cursor: pointer;
 }
 
