@@ -142,6 +142,7 @@ class purchase_Purchases extends core_Master
     	'dealerId'           => 'lastDocUser|lastDoc|defMethod',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
