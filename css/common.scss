@@ -1853,9 +1853,7 @@ span.richEdit div.richedit-toolbar {
     text-align: left;
 	color: #333;
     font-size: 0.9em;
-    padding-top: 10px; 
     margin-top: -4px;
-	white-space: nowrap;
 }
 
 .wide span.richEdit div.richedit-toolbar{
@@ -1863,9 +1861,9 @@ span.richEdit div.richedit-toolbar {
 }
 
 .narrow span.richEdit div.richedit-toolbar {
-	padding-top: 8px;
+	padding-top: 4px;
 	font-size: 0.8em;
-    padding-bottom: 6px; 
+    padding-bottom: 4px; 
 	font-family: Verdana, Geneva, sans-serif;
 	margin-top: 0px;
 	-webkit-user-select: none;
@@ -1881,8 +1879,6 @@ div.richEdit {
 	display: table;
 	width: 100%;
 }
-
-
 
 .richEdit textarea {
 	margin-bottom: 0px;
@@ -1901,55 +1897,75 @@ div.richEdit {
 
 .richtext-relative-group {
 	position:relative;
+	display:block;
+	float:left;
 }
 
 .richtext-relative-group a:hover {
-	cursor:pointer;
-}
-
-.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5 {
-	position: absolute;
-	left: 0px;
-	bottom: 2.1em;
-	display: none;
-}
-
-.richtext-emoticons5{
-    left: -160%;
-}
-
-.richtext-emoticons6{
-	position: absolute;
-	right: 0em;
-	bottom: 2em;
-	display: none;
-}
-
-.richtext-emoticons6 .rtbutton{
-	display: block;
-}
-
-.richtext-emoticons, .richtext-emoticons5{
-	background-color:#fff;
-	1padding:2px 2px 0 2px;
-	1border:1px solid #000;
-}
-
-.rtbutton img{
-	vertical-align:middle;
-	display:inline-block;
+	cursor: pointer;
 }
 
 a.rtbutton {
     border: 1px solid #bba;
     background: #eed;
-    padding: 0.2em 0.3em;
+    padding: 0.2em 0.3em 0.1em;
     cursor: pointer;
+    display: block;
+    float: left;
+    min-width: 0.7em;
+    height: 1.2em;
+}
+
+.narrow a.rtbutton {
+	padding: 0.2em 0.3em 0.3em;
+	height:1.1em;
 }
 
 a.rtbutton:hover {
     background: white;
     border-style: outset;
+}
+
+.richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5 {
+    position: absolute;
+    left: 0px;
+    bottom: 2.1em;
+    display: none;
+    white-space: nowrap;
+}
+
+.richtext-emoticons6 {
+	position: absolute;
+    right: 0px;
+    bottom: 2.1em;
+    display: none;
+}
+
+.richtext-emoticons5 {
+    left: -260%;
+}
+
+.richtext-emoticons a.rtbutton, .richtext-emoticons2 a.rtbutton, .richtext-emoticons3 a.rtbutton, 
+.richtext-emoticons4 a.rtbutton, .richtext-emoticons5 a.rtbutton {
+    display: table-cell;
+    float: none;
+    padding: 0.2em 0.3em 0.1em;
+}
+
+.richtext-emoticons6 .rtbutton{
+    float:none;
+}
+
+.rtbutton img{
+    vertical-align:middle;
+    display:inline;
+    position:relative;
+    top:-1px;
+}
+
+.narrow .rtbutton img {
+    vertical-align: top;
+    top: 1px;
 }
 /* край на стилове за елемента 'RichEdit' */
 
