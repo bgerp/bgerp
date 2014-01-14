@@ -291,7 +291,9 @@ class cat_Groups extends core_Master
 	    	0 => "name", 
 	    	1 => "info", 
 	    	2 => "sysId", 
-	    	3 => "meta");
+	    	3 => "meta",
+	    	//4 => "access",
+	    	);
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;

@@ -785,7 +785,8 @@ class cat_Products extends core_Master {
 	    	0 => "name", 
 	    	1 => "code", 
 	    	2 => "csv_measureId", 
-	    	3 => "csv_groups",);
+	    	3 => "csv_groups",
+	    	4 => "access");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
