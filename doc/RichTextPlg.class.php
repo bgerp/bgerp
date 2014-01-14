@@ -491,7 +491,7 @@ class doc_RichTextPlg extends core_Plugin
                 $resArr[$docId]['title'] = str::limitLen($docRow->title, 35);
                 
                 // Манипулатор на докуемнта
-                $resArr[$docId]['handle'] = $document->getHandle();
+                $handle = '#' . $document->getHandle();
                 
                 // Данни за създаването на документа
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
@@ -499,14 +499,11 @@ class doc_RichTextPlg extends core_Plugin
                 $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . ' ' . tr('от') . ' ' . $resArr[$docId]['createdBy'];
                 $resArr[$docId]['created'] = "<div class='upload-doc-created'>" . $resArr[$docId]['created'] . "</div>";
                 
-                // Манипулатора, който ще се добавя
-                $handle = '#' . $resArr[$docId]['handle'];
-                
                 // Атрибутите на линковете
                 $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();", "class" => "file-log-link");
                 
                 // Името на документа да се добави към текста, при натискане на линка
-                $resArr[$docId]['title'] = ht::createLink($resArr[$docId]['title'], '#', NULL, $attr); 
+                $resArr[$docId]['handle'] = ht::createLink($handle, '#', NULL, $attr); 
             } catch (Exception $e) {
                 continue;
             }
