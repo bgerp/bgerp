@@ -1170,6 +1170,8 @@ class type_Richtext extends type_Blob
          
         	$toolbarArr->add("<a style='background: white;' title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2');
         	
+        	$toolbarArr->add("<a title='" . tr('Цитат') .  "' onclick=\"s('[bQuote]', '[/bQuote]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/quote.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2');
+        	
 	        $toolbarArr->add("<a title='" . tr('Грешка') .  "' onclick=\"s('[bError]', '[/bError]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/dialog_error-small.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2'); 
 	        
 	        $toolbarArr->add("<a title='" . tr('Успех') .  "' onclick=\"s('[bOk]', '[/bOk]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/ok-small.png') . " height='15' width='15'  align='top'/></a> ", 'TBL_GROUP2');
