@@ -937,4 +937,50 @@ class cat_Products extends core_Master {
     	
     	return cat_products_Params::fetchParamValue($id, $sysId);
     }
+    
+    
+    /**
+     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+    public function getWeight($productId, $packagingId = NULL)
+    {
+    	$weight = 0;
+    	if($packagingId){
+    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+    		$weight = $pack->netWeight + $pack->tareWeight;
+    	}
+    	
+    	if(!$weight){
+    		$weight = $this->getParam($productId, 'weight');
+    	}
+    	
+    	return $weight;
+    }
+    
+    
+	/**
+     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+    public function getVolume($productId, $packagingId = NULL)
+    {
+    	$volume = 0;
+    	if($packagingId){
+    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+    		$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
+    	}
+    	
+    	if(!$volume){
+    		$volume = $this->getParam($productId, 'volume');
+    	}
+    	
+    	return $volume;
+    }
 }

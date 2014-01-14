@@ -121,4 +121,30 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getParam($productId, $sysId);
     }
+    
+    
+    /**
+     * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+	public function getWeight($productId, $packagingId = NULL)
+    {
+    	return $this->class->getWeight($productId, $packagingId);
+    }
+    
+    
+    /**
+     * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
+     * 
+     * @param int $productId - ид на продукт
+     * @param int $packagingId - ид на опаковка
+     * @return double - теглото на еденица от продукта
+     */
+	public function getVolume($productId, $packagingId = NULL)
+    {
+    	return $this->class->getVolume($productId, $packagingId);
+    }
 }
