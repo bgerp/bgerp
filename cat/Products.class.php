@@ -484,6 +484,10 @@ class cat_Products extends core_Master {
      */
     private static function unsetUnavailableProducts(&$products)
     {
+    	if(!count($products)){
+    		return;
+    	}
+    	
     	// Извличане на групите до които текущия потребител има достъп
     	$allowedGroups = array();
     	$groupQuery = cat_Groups::getQuery();
