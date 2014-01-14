@@ -180,6 +180,7 @@ abstract class price_Helper
 	 * 		->vat        - % ДДС // само при фактура или ако ддс-то се начислява отделно
 	 * 		->vatAmount  - Стойност на ДДС-то // само при фактура или ако ддс-то се начислява отделно
 	 * 		->total      - Крайната стойност
+	 * 		->sayWords   - крайната сума изписана с думи
 	 * 
 	 */
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE)
@@ -220,50 +221,29 @@ abstract class price_Helper
 			}
 		}
 		
-		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0.00</span>";
-		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0.00</span>";
+		$SpellNumber = cls::get('core_SpellNumber');
+    	$arr['sayWords'] = $SpellNumber->asCurrency($arr['total']);
 		
-		return (object)$arr;
-	}
-	
-	
-	/**
-	 * Рендира таблицата със съмаризираната информация
-	 * @param stClass $obj - обект @see prepareSummary
-	 * @param boolean $multilang -дали кепшъните да са двуезични
-	 * @return core_ET
-	 */
-	public static function renderSummary($obj, $multilang = FALSE)
-	{
-		// Обръщане на стойностите във вербален вид
+		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";
+		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0,00</span>";
+		
+		if($arr['vatAmount'] === NULL && $chargeVat == 'separate'){
+			$arr['vatAmount'] = "<span class='quiet'>0,00</span>";
+		}
+		
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
 		
-		foreach ((array)$obj as $index => $el){
+		foreach ($arr as $index => $el){
 			if(is_double($el)){
-				$obj->$index = $Double->toVerbal($el);
+				$arr[$index] = $Double->toVerbal($el);
 			}
 		}
 		
-		if($obj->vat){
-			$obj->vat .= ' %';
+		if($arr['vat']){
+			$arr['vat'] .= ' %';
 		}
 		
-		$tpl = getTplFromFile('price/tpl/BusinessDocSummary.shtml');
-		foreach (array('baseAmount', 'vatAmount') as $fld){
-			if(isset($obj->$fld) && $obj->$fld == 0){
-				$obj->$fld = "<span class='quiet'>{$obj->$fld}</span>";
-			}
-		}
-		
-		$tpl = $tpl->placeObject($obj);
-		if($multilang){
-			foreach (array('Subtotal', 'Discount', 'Neto', 'Tax base', 'Vat', 'Total') as $id => $cap){
-				if(($id == 1 || $id == 2) && empty($obj->discount)) continue;
-				$tpl->replace("/ {$cap}", "TRANS{$id}");
-			}
-		}
-		
-		return $tpl;
+		return (object)$arr;
 	}
 }

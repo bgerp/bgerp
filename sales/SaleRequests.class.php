@@ -480,7 +480,14 @@ class sales_SaleRequests extends core_Master
         $row->contragentAddress = $contragent->getFullAdress();
         
         $row->contragentName = $contragent->getTitleById();
-    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+        
+        if(empty($data->noTotal)){
+        	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+        }
+    	
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
     }
     
     
@@ -549,14 +556,5 @@ class sales_SaleRequests extends core_Master
     	if($data->rec->state == 'draft') {
 	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', $data->rec->id ,'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
     }
 }

@@ -757,6 +757,10 @@ class sales_Sales extends core_Master
     			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
     		}
 	    }
+	    
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
     }
     
     
@@ -1093,9 +1097,7 @@ class sales_Sales extends core_Master
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
     	
-    	if($data->summary){
-    		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
-    	}
+    	
     }
     
     

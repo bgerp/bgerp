@@ -316,10 +316,6 @@ class store_Receipts extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	if($data->summary){
-    		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
-    	}
     }
     
     
@@ -346,6 +342,10 @@ class store_Receipts extends core_Master
 	    if(empty($data->noTotal)){
 	    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
 	    }
+	    
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
 	}
     
     

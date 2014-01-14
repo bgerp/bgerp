@@ -251,7 +251,16 @@ class sales_Quotations extends core_Master
 	    }
     }
     
-    
+    /** 
+	 * След подготовка на тулбара на единичен изглед
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {//bp();
+    	if($data->sales_QuotationsDetails->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->sales_QuotationsDetails->summary);
+    		//bp($data->row);
+    	}
+    }
     /**
      * Извиква се след въвеждането на данните от Request във формата
      */

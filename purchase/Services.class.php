@@ -74,19 +74,7 @@ class purchase_Services extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, purchase';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
     public $canConto = 'ceo, purchase';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'vehicleId';
     
     
     /**
@@ -292,10 +280,6 @@ class purchase_Services extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	if($data->summary){
-    		$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
-    	}
     }
     
     
@@ -322,6 +306,10 @@ class purchase_Services extends core_Master
 	    if(empty($data->noTotal)){
 	    	 $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
 	    }
+	    
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
 	}
     
     

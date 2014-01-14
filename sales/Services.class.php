@@ -84,12 +84,6 @@ class sales_Services extends core_Master
     
     
     /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    public $lastUsedKeys = 'vehicleId';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, folderId, amountDeliveredVat, createdOn, createdBy';
@@ -134,7 +128,7 @@ class sales_Services extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'locationId, vehicleId, note';
+    var $searchFields = 'locationId, note';
     
     
     /**
@@ -298,8 +292,6 @@ class sales_Services extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
-    	
-    	$tpl->replace(price_Helper::renderSummary($data->summary), 'SUMMARY');
     }
     
     
@@ -323,7 +315,13 @@ class sales_Services extends core_Master
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
 	    
-	    $data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    	if(empty($data->noTotal)){
+	    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+	    }
+	    
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
 	}
     
     

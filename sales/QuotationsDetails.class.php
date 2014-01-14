@@ -114,7 +114,6 @@ class sales_QuotationsDetails extends core_Detail {
      */
     static function on_AfterPrepareListRecs($mvc, $data)
     {
-    	if(!count($data->recs)) return;
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$masterRec = $data->masterData->rec;
@@ -122,12 +121,14 @@ class sales_QuotationsDetails extends core_Detail {
     	$total = new stdClass();
     	$total->discAmount = 0;
     	
-    	foreach ($recs as $id => $rec){
-    		if($rec->optional == 'no'){
-    			$notOptional[$id] = $rec;
-    		}  else {
-    			$optional[$id] = $rec;
-    		}
+    	if(count($recs)){
+	    	foreach ($recs as $id => $rec){
+	    		if($rec->optional == 'no'){
+	    			$notOptional[$id] = $rec;
+	    		}  else {
+	    			$optional[$id] = $rec;
+	    		}
+	    	}
     	}
     	
     	// Подготовка за показване на задължителнтие продукти
@@ -395,11 +396,8 @@ class sales_QuotationsDetails extends core_Detail {
     	}
 
     	if($summary = $data->summary){
-    		$SpellNumber = cls::get('core_SpellNumber');
-    		$sayWords = $SpellNumber->asCurrency($data->summary->total);
-    		
-    		$dTpl->replace(price_Helper::renderSummary($summary), 'SUMMARY');
-    		$dTpl->replace($sayWords, 'sayWords');
+    		$dTpl->placeObject($summary, 'SUMMARY');
+    		$dTpl->replace($summary->sayWords, 'sayWords');
     	}
     	
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');

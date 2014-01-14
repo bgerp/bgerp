@@ -605,12 +605,6 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
-    	
-    	if($data->summary){
-    		$tpl->replace(price_Helper::renderSummary($data->summary, TRUE), 'SUMMARY');
-    	} else {
-    		unset($data->row->amountVerbal);
-    	}
     }
     
     
@@ -735,6 +729,10 @@ class sales_Invoices extends core_Master
     	$myCompany = crm_Companies::fetchOwnCompany();
     	if($rec->contragentCountryId != $myCompany->countryId){
     		$data->row->place = str::utf2ascii($data->row->place);
+    	}
+    	
+    	if($data->summary){
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
     
