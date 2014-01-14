@@ -70,12 +70,6 @@
 	                            From: <b>[#deliveryLocationId#]</b>
 	                        </div>
 	    					<!--ET_END deliveryLocationId-->
-	    					
-	                        <!--ET_BEGIN shipmentStoreId-->
-	                        <div>
-	                            For store: <b>[#shipmentStoreId#] </b>
-	                        </div>
-	                        <!--ET_END shipmentStoreId-->
 	                        <b>|Conditions|*</b>
 							<ol style = ';margin-top:1px'>
 							<!--ET_BEGIN withVat-->
@@ -159,7 +153,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' style='text-align:right'><hr><b>With words</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>With words: [#sayWords#]</td>
 				     </tr>
 				</table>  
                     </td>

@@ -75,11 +75,6 @@
                         </div>
                         <!--ET_END deliveryTime-->
     
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <div>
-                            |От склад|*: <b>[#shipmentStoreId#] <span style='margin-left:5px'>[#shipBtn#]</span></b>
-                        </div>
-                        <!--ET_END shipmentStoreId-->
                         <b>|Условия|*</b>
 						<ol style = ';margin-top:1px'>
 						<!--ET_BEGIN withVat-->
@@ -162,7 +157,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				     <td colspan = '3' style='text-align:right'><hr><b>|Словом|*</b>: [#sayWords#]</td>
+				     <td colspan = '3' style='text-align:right'><hr>|Словом|</b>: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

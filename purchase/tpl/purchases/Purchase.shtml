@@ -71,11 +71,6 @@
 	                        </div>
 	    					<!--ET_END deliveryLocationId-->
 	    					
-	                        <!--ET_BEGIN shipmentStoreId-->
-	                        <div>
-	                            |До склад|*: <b>[#shipmentStoreId#] </b>
-	                        </div>
-	                        <!--ET_END shipmentStoreId-->
 							<b>|Условия|*</b>
 							<ol style = ';margin-top:1px'>
 							<!--ET_BEGIN withVat-->
@@ -160,7 +155,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' style='text-align:right'><hr><b>|Словом|*</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

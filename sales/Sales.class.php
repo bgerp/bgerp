@@ -747,13 +747,13 @@ class sales_Sales extends core_Master
     	if($rec->state == 'draft'){
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
-    			if(cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
+    			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
     				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?', FALSE, array('style' => 'padding:3px;'));
     			}
     		}
     		
     		$storeId = store_Stores::getCurrent('id', FALSE);
-    		if($rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
+    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
     			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
     		}
 	    }
@@ -1096,8 +1096,6 @@ class sales_Sales extends core_Master
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
-    	
-    	
     }
     
     
