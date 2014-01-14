@@ -316,4 +316,29 @@ class store_Products extends core_Manager
     		static::save($rec);
     	}
     }
+    
+    
+    /**
+     * Връща всички налични продукти в склада
+     * 
+     * @param int $storeId - ид на склад, ако е NULL взима текущия активен склад
+     * @return array $products
+     */
+    public static function getProductsInStore($storeId = NULL)
+    {
+    	if(!$storeId){
+    		$storeId = store_Stores::getCurrent();
+    	}
+    	
+    	$products = array();
+	    $pQuery = static::getQuery();
+	    $pQuery->where("#storeId = {$storeId}");
+	    $pQuery->where("#quantity > 'active'");
+	    $pQuery->where("#state = 'active'");
+	    while($pRec = $pQuery->fetch()){
+	        $products[$pRec->id] = $pRec->name;
+	    }
+	    
+	    return $products;
+    }
 }
