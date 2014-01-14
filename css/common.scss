@@ -1365,6 +1365,14 @@ div.hFormField {
 	background-image: url('../img/formToolbarBg.jpg');
 }
 
+.wide .vertical .formToolbar .toolbar div{
+	margin:2px 0;
+}
+
+.narrow .vertical .formToolbar .toolbar{
+	margin:0 0 3px 0;
+}
+
 .narrow .vertical .formToolbar {
 	background-image: none;
 	border: solid 1px $gray4;
@@ -1850,6 +1858,10 @@ span.richEdit div.richedit-toolbar {
 	white-space: nowrap;
 }
 
+.wide span.richEdit div.richedit-toolbar{
+	min-width:600px !important;
+}
+
 .narrow span.richEdit div.richedit-toolbar {
 	padding-top: 8px;
 	font-size: 0.8em;
@@ -1870,6 +1882,8 @@ div.richEdit {
 	width: 100%;
 }
 
+
+
 .richEdit textarea {
 	margin-bottom: 0px;
 	overflow: auto;
@@ -1879,32 +1893,39 @@ div.richEdit {
 
 .narrow .richEdit textarea { 
 	border-bottom: 1px solid white; 
-	width: 600px; 
 }
 
-.narrow .richedit-toolbar {
+.richedit-toolbar {
 	position: relative;
 }
 
-.narrow #richtext-emoticons {
+.richtext-relative-group {
+	position:relative;
+}
+.richtext-relative-group a:hover {
+	cursor:pointer;
+}
+
+#richtext-emoticons, #richtext-emoticons2, #richtext-emoticons3, #richtext-emoticons4, #richtext-emoticons5 {
 	position: absolute;
-	left: 5px;
-	top: -20px;
+	left: 0px;
+	bottom: 2.1em;
 	display: none;
 }
 
-.narrow #richtext-emoticons2 {
+#richtext-emoticons5{
+    left: -160%;
+}
+
+#richtext-emoticons6{
 	position: absolute;
-	left: 24px;
-	top: -20px;
+	right: 0em;
+	bottom: 2em;
 	display: none;
 }
 
-.narrow #richtext-emoticons3 {
-	position: absolute;
-	left: 11.5em;
-	top: -20px;
-	display: none;
+#richtext-emoticons6 .rtbutton{
+	display: block;
 }
 
 a.rtbutton {

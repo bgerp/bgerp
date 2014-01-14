@@ -114,11 +114,10 @@ class type_Richtext extends type_Blob
         if ($this->params['appendQuote']) {
             
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}');});", 'JQRUN');
+            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}');});", 'SCRIPTS');
         }
-        if(Mode::is('screenMode', 'narrow')){
-        	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'JQRUN');
-        }
+        
+    	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
         
         return $tpl;
     }
@@ -772,8 +771,12 @@ class type_Richtext extends type_Blob
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
             list($url1, $url2) = explode('#', $url, 2);
-            $url2 = str::canonize($url2);
-            $url = $url1 . '#' . $url2;
+            if($url2) {
+                $url2 = str::canonize($url2);
+                $url = $url1 . '#' . $url2;
+            } else {
+                $url = $url1; 
+            }
         } else {
             $link = $this->externalLink($url, $title, $place);
         }
@@ -1051,72 +1054,158 @@ class type_Richtext extends type_Blob
         
         $toolbarArr = new core_ObjectCollection('html,place');
         
-        if(Mode::is('screenMode', 'narrow')) {
-        $toolbarArr->add("<a class='rtbutton1' title='Усмивки' onclick=\"toggleRichtextGroups('richtext-emoticons')\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
-        }
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP1');
         
-        $toolbarArr->add("<span id='richtext-emoticons' class='richtext-holder-group'>", 'TBL_GROUP1');
+       	$toolbarArr->add("<a class='rtbutton1 richtext-group-title' title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons', event)\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
         
-	        $toolbarArr->add("<a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
+       	$emot1 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons' class='richtext-holder-group {$emot1}'>", 'TBL_GROUP1');
+        
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Усмивка') .  "' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
 	        
-	        $toolbarArr->add("<a class='rtbutton1' title='Широка усмивка' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Широка усмивка') .  "' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>", 'TBL_GROUP1');
 	        
-	        $toolbarArr->add("<a class='rtbutton1' title='Супер!' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Супер!') .  "' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>", 'TBL_GROUP1');
 	      
-	        $toolbarArr->add("<a class='rtbutton1' title='Бира' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'))\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Бира') .  "' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'))\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
 	            
-	        $toolbarArr->add("<a class='rtbutton1' title='Въпрос?' onclick=\"rp('[em=question]', document.getElementById('{$formId}'))\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Въпрос?') .  "' onclick=\"rp('[em=question]', document.getElementById('{$formId}'))\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>", 'TBL_GROUP1');
 	            
-	        $toolbarArr->add("<a class='rtbutton1' title='Сърце' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'))\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Сърце') .  "' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'))\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
 	            
-	        $toolbarArr->add("<a class='rtbutton1' title='OK' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'))\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('OK') .  "' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'))\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
 	            
-	        $toolbarArr->add("<a class='rtbutton1' title='Мисля' onclick=\"rp('[em=think]', document.getElementById('{$formId}'))\"><img alt='Мисля' src=" . sbf('img/em15/em.icon.think.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+	        $toolbarArr->add("<a class='rtbutton1' title='" . tr('Мисля') .  "' onclick=\"rp('[em=think]', document.getElementById('{$formId}'))\"><img alt='Мисля' src=" . sbf('img/em15/em.icon.think.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP1');
         
         $toolbarArr->add("</span>", 'TBL_GROUP1');
         
         
-        $toolbarArr->add("<a class=rtbutton title='Линия' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">-</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='" . tr('Удебелен текст') .  "' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
+         
+        $toolbarArr->add("<a class=rtbutton style='font-style:italic;' title='" . tr('Наклонен текст') .  "' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>", 'TBL_GROUP2');
+         
+        $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;' title='" . tr('Подчертан текст') .  "' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
         
         
-        if(Mode::is('screenMode', 'narrow')) {
-        	 $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:blue' title='Цвят на буквите' onclick=\"toggleRichtextGroups('richtext-emoticons2')\">A</a>", 'TBL_GROUP2');
-        }
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<span id='richtext-emoticons2' class='richtext-holder-group'>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' style='font-weight:bold; color:blue' title='" . tr('Цвят на буквите') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons2', event)\">А</a>", 'TBL_GROUP2');
         
-        	$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:blue' title='Сини букви' onclick=\"s('[color=blue]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+        $emot2 = 'richtext-holder-group-after';
         
-       		$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='Червени букви' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
-        
-        	$toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<span id='richtext-emoticons2' class='richtext-holder-group {$emot2}'>", 'TBL_GROUP2');
+	        
+		   	$toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:blue' title='" . tr('Сини букви') .  "' onclick=\"s('[color=blue]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+		        
+		    $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='" . tr('Червени букви') .  "' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+		    
+		    $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:green' title='" . tr('Зелени букви') .  "' onclick=\"s('[color=green]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+		     
+		    $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:#888' title='" . tr('Сиви букви') .  "' onclick=\"s('[color=#888]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+		        
+        $toolbarArr->add("</span>", 'TBL_GROUP2');
         
         $toolbarArr->add("</span>", 'TBL_GROUP2');
         
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title=" . tr("Код") . " onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\">" . tr("Код") . "</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='" . tr('Цвят на фона') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons3', event)\">A</a>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton style='font-style:italic;' title='Наклонен текст' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>", 'TBL_GROUP2');
+        $emot3 = 'richtext-holder-group-after';
         
-        $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<span id='richtext-emoticons3' class='richtext-holder-group {$emot3}'>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class=rtbutton title=" . tr("Линк") . " onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("линк") . "</a>", 'TBL_GROUP2');
-        
-        if(Mode::is('screenMode', 'narrow')) {
-        	 $toolbarArr->add("<a class=rtbutton title='Заглавие 1' onclick=\"toggleRichtextGroups('richtext-emoticons3')\">H</a>", 'TBL_GROUP3');
-        }
-        
-        $toolbarArr->add("<span id='richtext-emoticons3' class='richtext-holder-group'>", 'TBL_GROUP3');
-        
-	        $toolbarArr->add("<a class=rtbutton title='Заглавие 1' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>", 'TBL_GROUP3');
+	        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='" . tr('Жълт фон') .  "' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+	                
+	        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: lightgreen;' title='" . tr('Зелен фон') .  "' onclick=\"s('[bg=lightgreen]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='Заглавие 2' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'))\">H2</a>", 'TBL_GROUP3');
+	        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: red; color: white' title='" . tr('Червен фон') .  "' onclick=\"s('[bg=red][color=white]', '[/color][/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='Заглавие 3' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'))\">H3</a>", 'TBL_GROUP3');
+	        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: black; color: white' title='" . tr('Черен фон') .  "' onclick=\"s('[bg=black][color=white]', '[/color][/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавия' onclick=\"toggleRichtextGroups('richtext-emoticons4', event)\">H</a>", 'TBL_GROUP2');
+        
+        $emot4 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons4' class='richtext-holder-group {$emot4}'>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='Списък' onclick=\"rp('[li] ', document.getElementById('{$formId}'))\">LI</a>", 'TBL_GROUP3');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 1') .  "' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>", 'TBL_GROUP2');
+	         
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 2') .  "' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'))\">H2</a>", 'TBL_GROUP2');
+	         
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 3') .  "' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'))\">H3</a>", 'TBL_GROUP2');
+	         
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 4') .  "' onclick=\"s('[h4]', '[/h4]', document.getElementById('{$formId}'))\">H4</a>", 'TBL_GROUP2');
+	        
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 5') .  "' onclick=\"s('[h5]', '[/h5]', document.getElementById('{$formId}'))\">H5</a>", 'TBL_GROUP2');
+	        
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 6') .  "' onclick=\"s('[h6]', '[/h6]', document.getElementById('{$formId}'))\">H6</a>", 'TBL_GROUP2');
+	         
+	        $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        
+        $toolbarArr->add("<a class=rtbutton title='" . tr('Списък') .  "' onclick=\"rp('[li] ', document.getElementById('{$formId}'))\">≡</a>", 'TBL_GROUP2');
+         
+        
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Блок') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons5', event)\">" . tr('Блок') . "</a>", 'TBL_GROUP2');
+        
+        $emot5 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons5' class='richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
+         
+        	$toolbarArr->add("<a style='background: white;' title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2');
+        	
+	        $toolbarArr->add("<a title='" . tr('Грешка') .  "' onclick=\"s('[bError]', '[/bError]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/dialog_error-small.png') . " height='15' width='15' align='top'/></a>&nbsp;", 'TBL_GROUP2'); 
+	        
+	        $toolbarArr->add("<a title='" . tr('Успех') .  "' onclick=\"s('[bOk]', '[/bOk]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/ok-small.png') . " height='15' width='15'  align='top'/></a> ", 'TBL_GROUP2');
+	
+	        $toolbarArr->add("<a title='" . tr('Съвет') .  "' onclick=\"s('[bTip]', '[/bTip]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/App-tip-icon3-small.png') . " height='15' width='15'  align='top'/></a>&nbsp;", 'TBL_GROUP2');
+	         
+	        $toolbarArr->add("<a title='" . tr('Информация') .  "' onclick=\"s('[bInfo]', '[/bInfo]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/info_blue-small.png') . " height='15' width='15'  align='top'/></a> &nbsp;", 'TBL_GROUP2');
+	       
+	        $toolbarArr->add("<a title='" . tr('Предупреждение') .  "' onclick=\"s('[bWarn]', '[/bWarn]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/dialog_warning-small.png') . " height='15' width='15'  align='top'/></a> &nbsp", 'TBL_GROUP2');
+	
+	        $toolbarArr->add("<a title='" . tr('Въпрос') .  "' onclick=\"s('[bQuestion]', '[/bQuestion]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/Help-icon-small.png') . " height='15' width='15'  align='top'/></a> &nbsp;", 'TBL_GROUP2');
+        	        
+	        $toolbarArr->add("<a title='" . tr('Неномериран списък') .  "' onclick=\"s('[ul]', '[/ul]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/ul.png') . " height='15' width='15'  align='top'/></a> &nbsp;", 'TBL_GROUP2');
+	        
+	        $toolbarArr->add("<a title='" . tr('Номериран списък') .  "' onclick=\"s('[ol]', '[/ol]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/16/ol.png') . " height='15' width='15'  align='top'/></a> &nbsp;", 'TBL_GROUP2');
+	         
+	    $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP2');
+        
+        
+        $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
+        
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('richtext-emoticons6', event);\">" . tr('Сложи') . "</a>", 'TBL_GROUP3');
+        
+        $emot6 = 'richtext-holder-group-after';
+        
+        $toolbarArr->add("<span id='richtext-emoticons6' class='richtext-holder-group {$emot6}'>", 'TBL_GROUP3');
+    	
+	        $toolbarArr->add(new ET("[#filesAndDoc#]"), 'TBL_GROUP3');
+	             
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Линия') .  "' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">" . tr("Линия") . "</a>", 'filesAndDoc');
+	        
+	        $toolbarArr->add("<a class=rtbutton title='" . tr("Линк") . "' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">" . tr("Линк") . "</a>", 'filesAndDoc');
+        
+        $toolbarArr->add("</span>", 'TBL_GROUP3');
         
         $toolbarArr->add("</span>", 'TBL_GROUP3');
         

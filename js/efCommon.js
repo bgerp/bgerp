@@ -584,39 +584,65 @@ function hideRichtextEditGroups()
 {
 	if (typeof jQuery != 'undefined') {	
 		$('body').live('click',function() {
-			$('.richtext-holder-group').css("display", "none" );
+			hideRichtextEditGroupsBlock();
 		});
 	}else{
 		window.onclick = function() {
-			document.getElementsByClassName('richtext-holder-group')[0].style.display='none';
-			document.getElementsByClassName('richtext-holder-group')[1].style.display='none';
-			document.getElementsByClassName('richtext-holder-group')[2].style.display='none';
+			hideRichtextEditGroupsBlock();
 		};
 	}
+	
+	return false;
 }
 
-function toggleRichtextGroups(id)
-{ 
-	event.stopPropagation();
+function toggleRichtextGroups(id, event)
+{
+	if (typeof event !== 'undefined') {
+		event.stopPropagation();
+	} else {
+		window.event.stopPropagation();
+	}
+	
 	if (typeof jQuery != 'undefined') {
 		var hidden = $("#" + id).css("display");
 		
-		$('.richtext-holder-group').css("display", "none" );
+		hideRichtextEditGroupsBlock();
 	    if (hidden == 'none') {
-	    	$("#" + id).fadeToggle("slow");
+	    	$("#" + id).show("fast");
 	    }
 	} else {
 	
 		var el = document.getElementById(id);  
 		var hidden = el.style.display;
 		
-		document.getElementsByClassName('richtext-holder-group')[0].style.display='none';
-		document.getElementsByClassName('richtext-holder-group')[1].style.display='none';
-		document.getElementsByClassName('richtext-holder-group')[2].style.display='none';
+		hideRichtextEditGroupsBlock();
 		
-		if (hidden != 'block' && (el.style.display == 'none' || el.style.display == '')) el.style.display='block';
-			else el.style.display='none';
+		if (hidden != 'block' && (el.style.display == 'none' || el.style.display == '')) {
+			el.style.display='block';
+		} else {
+			el.style.display='none';
+		}
+	}
+	
+	return false;
+}
+
+function hideRichtextEditGroupsBlock()
+{
+	if (typeof jQuery != 'undefined') {	
+		$('.richtext-holder-group-after').css("display", "none" );
+	}else{
 		
+		var richtextGroupHide = document.getElementsByClassName('richtext-holder-group-after');
+		
+		if (richtextGroupHide) {
+			for (var i = richtextGroupHide.length - 1; i >= 0; i--)
+			{
+				if (richtextGroupHide[i]) {
+					richtextGroupHide[i].style.display='none';
+				}
+			}
+		}
 	}
 }
 
