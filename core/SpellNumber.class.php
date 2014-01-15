@@ -354,7 +354,7 @@ class core_SpellNumber
         
     	// Дали да показваме валутата в края на сумата в думи
         if($displayCurrency) {
-        	$numBgn = " лeва";
+        	$numBgn = " лева";
         	$centBgn = " стотинки";
         	$numEuro = " EURO";
         	$centEuro = " CENTS";
