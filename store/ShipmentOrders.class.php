@@ -267,6 +267,8 @@ class store_ShipmentOrders extends core_Master
                 $shipProduct->price       = $product->price;
                 $shipProduct->uomId       = $product->uomId;
                 $shipProduct->discount    = $product->discount;
+                $shipProduct->weight      = $product->weight;
+                $shipProduct->volume      = $product->volume;
                 $shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
                 
                 $mvc->store_ShipmentOrderDetails->save($shipProduct);
@@ -565,6 +567,8 @@ class store_ShipmentOrders extends core_Master
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
+            $p->weight      = $dRec->weight;
+            $p->volume      = $dRec->volume;
             
             $result->shipped->products[] = $p;
         }
