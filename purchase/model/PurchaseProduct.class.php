@@ -102,6 +102,33 @@ class purchase_model_PurchaseProduct extends core_Model
     
     
     /**
+     * Тегло на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $weight;
+    
+    
+    /**
+     * Обем на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $volume;
+    
+    
+    /**
+     * Срок на продукта
+     *
+     * @var time
+     * @see $classId
+     */
+    public $term;
+    
+    
+    /**
      * Връща к-то в опаковка
      */
     public function getQuantityInPack()

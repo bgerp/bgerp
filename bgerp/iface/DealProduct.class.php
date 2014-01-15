@@ -72,6 +72,33 @@ class bgerp_iface_DealProduct
     
     
     /**
+     * Тегло на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $weight;
+    
+    
+    /**
+     * Обем на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $volume;
+    
+    
+    /**
+     * Срок на продукта
+     *
+     * @var time
+     * @see $classId
+     */
+    public $term;
+    
+    
+    /**
      * Първичния ключ на мениджъра на продукта
      * 
      * @return int key(mvc=core_Classes)

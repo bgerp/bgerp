@@ -43,7 +43,7 @@
 					        
 					        <!--ET_BEGIN shipmentStoreId-->
 	                        <div>
-	                            |До склад|*: <b>[#shipmentStoreId#] </b>
+	                            <span style='font-weight:normal'>|До склад|*</span>: <b>[#shipmentStoreId#]</b>
 	                        </div>
 	                        <!--ET_END shipmentStoreId-->
 				        </td>
