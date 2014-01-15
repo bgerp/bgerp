@@ -419,7 +419,13 @@ class img_Thumb
         
         $id = core_Crypt::encodeVar($state, img_Thumb::getCryptKey()) . '.' . $this->getThumbFormat();
         
-        return toUrl(array('img_M', 'R', 't' => $id));
+        if ($this->isAbsolute) {
+            $type = 'absolute';
+        } else {
+            $type = 'relative';
+        }
+        
+        return toUrl(array('img_M', 'R', 't' => $id), $type);
     }
 
 
