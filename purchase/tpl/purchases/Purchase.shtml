@@ -53,7 +53,7 @@
                      <!--ET_BEGIN purchaseConditions-->
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
-							<b>|Условия|*</b>
+							<b>|Условия|*:</b>
 							<ol style = ';margin-top:1px'>
 							
 							<!--ET_BEGIN deliveryTermId-->
