@@ -36,7 +36,7 @@ class sales_Services extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
+                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
                     doc_plg_BusinessDoc2, plg_LastUsedKeys';
 
@@ -618,4 +618,30 @@ class sales_Services extends core_Master
         
         return $tpl->getContent();
     }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = sales_ServicesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#shipmentId  = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }
