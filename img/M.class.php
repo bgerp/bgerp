@@ -35,7 +35,7 @@ class img_M extends core_Mvc
             header("Content-Type: image/{$type}");
             header('Content-Length: ' . filesize($file));
             readfile($file);
-            
+            flush();
             $this->thumb = $thumb;
 
             shutdown();
