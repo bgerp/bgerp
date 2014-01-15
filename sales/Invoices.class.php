@@ -116,12 +116,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
-    
-    
-    /**
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';

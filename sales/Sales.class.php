@@ -77,12 +77,6 @@ class sales_Sales extends core_Master
 	 */
 	public $canSingle = 'ceo,sales';
     
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
-    
 
     /**
      * Кой може да го активира?

@@ -97,12 +97,6 @@ class cash_ExchangeDocument extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'cash, ceo';
-    
-    
-    /**
      * Кой може да го контира?
      */
     var $canConto = 'acc, cash, ceo';

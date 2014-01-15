@@ -96,12 +96,6 @@ class bank_ExchangeDocument extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'bank, ceo';
-    
-    
-    /**
      * Кой може да го контира?
      */
     var $canConto = 'acc, bank, ceo';

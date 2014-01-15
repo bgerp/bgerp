@@ -102,12 +102,6 @@ class bank_CashWithdrawOrders extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'bank, ceo';
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'bank/tpl/SingleCashWithdrawOrder.shtml';
