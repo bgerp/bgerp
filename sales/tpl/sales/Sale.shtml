@@ -54,29 +54,30 @@
                  <!--ET_BEGIN conditions-->
                          [#conditions#]
                     <td class="topCell first" valign="top">
-                        <!--ET_BEGIN deliveryTermId-->
-                    	<div>
+                        <b>|Условия|*</b>
+						<ol style = ';margin-top:1px'>
+						
+						<!--ET_BEGIN deliveryTermId-->
+                    	<li>
                             |Доставка|*: <b>[#deliveryTermId#]</b>
                             <!--ET_BEGIN deliveryLocationId-->
-                            <br />[#deliveryLocationId#]
+                            , [#deliveryLocationId#]
                             <!--ET_END deliveryLocationId-->
-                       	</div>
+                       	</li>
                        	<!--ET_END deliveryTermId-->
                        	
                         <!--ET_BEGIN pricesAtDate-->
-                      	<div>
+                      	<li>
                             |Цени към|*: <b>[#pricesAtDate#]</b><br>
-                       	</div>
+                       	</li>
                        	<!--ET_END pricesAtDate-->
                        	
                         <!--ET_BEGIN deliveryTime-->
-                        <div>
+                        <li>
                             |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
+                        </li>
                         <!--ET_END deliveryTime-->
-    
-                        <b>|Условия|*</b>
-						<ol style = ';margin-top:1px'>
+                        
 						<!--ET_BEGIN withVat-->
 						<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
 						<!--ET_END withVat-->
