@@ -38,7 +38,7 @@ class sales_Sales extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager,
-                    doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    doc_DocumentPlg, acc_plg_Contable, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
@@ -647,7 +647,8 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Пресрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
-		$data->listFilter->showFields .= ',type';
+       
+		$data->listFilter->showFields .= ',search,type';
 		$data->listFilter->input();
 		
 		if($filter = $data->listFilter->rec) {
@@ -1312,4 +1313,30 @@ class sales_Sales extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = sales_SalesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#saleId  = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }
