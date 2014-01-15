@@ -98,9 +98,6 @@ class fancybox_Fancybox {
         $aAttr['class'] .= 'fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
 
-        
-        $tpl->placeObject($rec);
-        
         $jQuery = cls::get('jquery_Jquery');
         $jQuery->enable($tpl);
         
