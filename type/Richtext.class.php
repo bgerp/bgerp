@@ -842,10 +842,10 @@ class type_Richtext extends type_Blob
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">{$title}</a>";  
               
         } else {
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">{$title}</a>";
         }
         
         return $link;
