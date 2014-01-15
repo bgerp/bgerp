@@ -56,9 +56,9 @@ body {
 }
 
 .vertical .formTable{
-	-moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
+	-moz-box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
     td {
         border: none !important;
     }
