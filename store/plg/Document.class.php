@@ -52,12 +52,12 @@ class store_plg_Document extends core_Plugin
 			// Ако има изчислен обем
 			if($obj->volume !== NULL){
 				$volume = $p->volume;
-				(!$volume) ? $obj->volume = NULL : $obj->volume += $volume;
+				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 			}
 			
 			if($obj->weight !== NULL){
 				$weight = $p->weight;
-				(!$weight) ? $obj->weight = NULL : $obj->weight += $weight;
+				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 			}
 		}
 		

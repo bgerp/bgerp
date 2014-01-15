@@ -594,8 +594,8 @@ class purchase_Purchases extends core_Master
             $p->uomId       = $dRec->uomId;
             
             $ProductMan = cls::get($p->classId);
-            $p->weight  = ($dRec->quantity / $dRec->quantityInPack) * $ProductMan->getWeight($p->productId);
-            $p->volume  = ($dRec->quantity / $dRec->quantityInPack) * $ProductMan->getVolume($p->productId);
+            $p->weight  = $ProductMan->getWeight($p->productId);
+            $p->volume  = $ProductMan->getVolume($p->productId);
             
             $result->agreed->products[] = $p;
         }
