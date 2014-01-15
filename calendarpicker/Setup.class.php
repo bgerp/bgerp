@@ -39,7 +39,7 @@ class calendarpicker_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Добавя календар, в полетата за въвеждане на дата";
+    var $info = "Добавя календар в полетата за въвеждане на дата";
     
     
     /**
