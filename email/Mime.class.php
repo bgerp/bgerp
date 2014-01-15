@@ -661,7 +661,7 @@ class email_Mime extends core_BaseClass
             
             $decoded = '';
 
-            if (count($imapDecodeArr) > 0) {
+            if ($imapDecodeArr && count($imapDecodeArr) > 0) {
                 foreach ($imapDecodeArr as $id => $value) {
                     
                     // Нулираме флага
