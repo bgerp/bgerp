@@ -112,6 +112,13 @@ class cms_plg_RichTextPlg extends core_Plugin
         if($img->style || $groupRec->style) {
             $attr['style'] = $img->style . ';' . $groupRec->style;
         }
+        
+        //Ако принтираме или пращаме документа
+        if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
+            
+            // Добавяме атрибута за да използваме абсолютни линкове
+            $attr['isAbsolute'] = TRUE;
+        }
 
         $res = $Fancybox->getImage($imgRec->src, $tArr, $mArr, $imgRec->title, $attr);
         
