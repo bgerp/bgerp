@@ -55,7 +55,7 @@
                          [#conditions#]
                     <td class="topCell first" valign="top">
                         <!--ET_END deliveryTime-->
-                        <b>|Условия|*</b>
+                        <b>|Условия|*:</b>
 						<ol style = ';margin-top:1px'>
 						
 						<!--ET_BEGIN deliveryTermId-->
