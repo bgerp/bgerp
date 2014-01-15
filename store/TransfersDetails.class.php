@@ -167,7 +167,13 @@ class store_TransfersDetails extends core_Detail
         $rec = &$form->rec;
         $fromStore = $mvc->Master->fetchField($rec->transferId, 'fromStore');
         
-        $form->setOptions('productId', store_Products::getProductsInStore($fromStore));
+        if(empty($rec->id)){
+        	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
+        	$form->setOptions('productId', store_Products::getProductsInStore($fromStore));
+        } else {
+        	$form->setReadOnly('productId');
+        }
+        
     }
     
     
@@ -177,9 +183,19 @@ class store_TransfersDetails extends core_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	$rec = &$form->rec;
-    	if ($form->isSubmitted()){
+    	
+    	if($form->rec->productId){
     		$sProd = store_Products::fetch($rec->productId);
     		$ProductMan = cls::get($sProd->classId);
+    		$packs = $ProductMan->getPacks($sProd->productId);
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+        }
+    	
+    	if ($form->isSubmitted() && !$form->gotErrors()){
     		$productInfo = $ProductMan->getProductInfo($sProd->productId, $rec->packagingId);
     		
     		if (empty($rec->packagingId)) {
@@ -192,12 +208,17 @@ class store_TransfersDetails extends core_Detail
                 $rec->quantityInPack = $productInfo->packagingRec->quantity;
             }
             
-            // Отбелязване дали продукта е вложим
+            if($sProd->quantity < $rec->packQuantity){
+            	$form->setWarning("packQuantity", "Въведеното количество е по-голямо от наличното '{$sProd->quantity}' в склада");
+            }
+            
             $rec->weight = $ProductMan->getWeight($sProd->productId);
             $rec->volume = $ProductMan->getVolume($sProd->productId);
-            $rec->isConvertable = isset($productInfo->meta['canConvert']) ? 'yes' : 'no';
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $rec->uomId = $productInfo->productRec->measureId;
+            
+            // Дали продукта е вложим
+            $rec->isConvertable = isset($productInfo->meta['canConvert']) ? 'yes' : 'no';
     	}
     }
     
