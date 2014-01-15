@@ -78,6 +78,12 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
+     * Кои роли имат пълни права за този мениджър?
+     */
+    var $canAdmin = 'ceo, cms';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -192,6 +198,53 @@ class fileman_GalleryImages extends core_Manager
     		    // Търсим в заглавието
     		    $data->query->where(array("LOWER(#title) LIKE LOWER('%[#1#]%')", $title));
     		}
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако има запис и потребител
+        if ($rec && $userId) {
+            
+            // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
+            if ($action == 'edit' || $action == 'add' || $action == 'single' || $action == 'delete') {
+                
+                // Ако няма права за админ на записа
+                if (!$mvc->haveRightFor('admin', $rec, $userId)) {
+                    
+                    // Ако не е създател на документа
+                    if ($rec->createdBy != $userId) {
+                        
+                        // Ако не е мениджър
+                        if (haveRole('manager')) {
+                            
+                            // Вземаме хората от нашия екип
+                            $teemMates = core_Users::getTeammates($userId);
+                            
+                            // Ако не е мениджър на екипа
+                            if (!type_Keylist::isIn($rec->createdBy, $teemMates)) {
+                                
+                                // Да не може
+                                $requiredRoles = 'no_one';
+                            }
+                        } else {
+                            
+                            // Да не може
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
         }
     }
 }
