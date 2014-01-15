@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_GalleryGroups' - групи от картинки
  *
@@ -38,13 +37,13 @@ class fileman_GalleryGroups extends core_Manager
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	var $canList = 'user';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	var $canSingle = 'user';
     
     
     /**
@@ -78,11 +77,11 @@ class fileman_GalleryGroups extends core_Manager
 
         $this->FLD('columns', 'int', 'caption=Колони');
      
-        $this->FLD('tWidth', 'int', 'caption=Тъмб->широчина');
-        $this->FLD('tHeight', 'int', 'caption=Тъмб->височина');
+        $this->FLD('tWidth', 'int', 'caption=Тъмб->Широчина');
+        $this->FLD('tHeight', 'int', 'caption=Тъмб->Височина');
         
-        $this->FLD('width', 'int', 'caption=Картинка->широчина');
-        $this->FLD('height', 'int', 'caption=Картинка->височина');
+        $this->FLD('width', 'int', 'caption=Картинка->Широчина');
+        $this->FLD('height', 'int', 'caption=Картинка->Височина');
     }
     
     /**
