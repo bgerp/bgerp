@@ -120,7 +120,6 @@
 				     </tr>
 				     <!--ET_BEGIN discount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Отстъпка|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
 				     	<td align='right'><b>[#discount#]</b></td>
@@ -128,7 +127,6 @@
 				     <!--ET_END discount-->
 				     <!--ET_BEGIN neto-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Нето|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
 				     	<td align='right'><b>[#neto#]</b></td>
@@ -137,7 +135,6 @@
 				     
 				     <!--ET_BEGIN baseAmount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Данъчна основа|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
 				     	<td align='right'><b>[#baseAmount#]</b></td>
@@ -149,14 +146,12 @@
 				     </tr>
 				     <!--ET_BEGIN vatAmount-->
 				     <tr class='nowrap'>
-				        <td></td>
 				    	<td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
 				    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
 				    	<td align='right'><b>[#vatAmount#]</b></td>
 				     </tr>
 				     <!--ET_END vatAmount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				    	<td align='right'>|Общо|* :</td>
 				    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
 				    	<td align='right'><b>[#total#]</b></td>

@@ -141,6 +141,7 @@
 				     	<td align='right'><b>[#baseAmount#]</b></td>
 				     </tr>
 				     <!--ET_END baseAmount-->
+				      
 				     <tr>
 				     	<td colspan='3' style='padding:0px'><hr /></td>
 				     </tr>
@@ -157,7 +158,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				     <td colspan = '3' style='text-align:right'><hr>|Словом|</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

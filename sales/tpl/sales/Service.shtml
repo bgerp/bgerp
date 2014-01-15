@@ -142,7 +142,7 @@
 				     <!--ET_END baseAmount-->
 				      
 				     <tr>
-				     	<td colspan='4' style='padding:0px'><hr /></td>
+				     	<td colspan='3' style='padding:0px'><hr /></td>
 				     </tr>
 				     <!--ET_BEGIN vatAmount-->
 				     <tr class='nowrap'>
