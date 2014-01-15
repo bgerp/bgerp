@@ -625,21 +625,28 @@ function hideRichtextEditGroups()
 
 function toggleRichtextGroups(id, event)
 {
-	if (typeof event !== 'undefined') {
+	if (typeof event == 'undefined') {
+		event = window.event;
+	}
+	
+	if (event.stopPropagation) {
 		event.stopPropagation();
+	} else if (event.preventDefault) {
+		event.preventDefault();
 	} else {
-		window.event.stopPropagation();
+		event.returnValue = false;
+		event.cancelBubble = true;
 	}
 	
 	if (typeof jQuery != 'undefined') {
 		var hidden = $("#" + id).css("display");
-		
+
 		hideRichtextEditGroupsBlock();
 	    if (hidden == 'none') {
 	    	$("#" + id).show("fast");
 	    }
 	} else {
-	
+
 		var el = document.getElementById(id);  
 		var hidden = el.style.display;
 		
