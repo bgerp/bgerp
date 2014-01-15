@@ -419,19 +419,28 @@ function sc(text)
 
 
 // Редактор за BBCode текст:   ...
-function rp(text, textarea)
+function rp(text, textarea, newLine)
 {
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
-	{
+	{  
 		var caretPos = textarea.caretPos;
 		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		
+		if (caretPos.text.charAt(caretPos.text.length - 1) != "\n" && newLine){
+			caretPos.text = "\n" + caretPos.text ;
+		}
+		
 		caretPos.select();
 	} else if (typeof(textarea.selectionStart) != 'undefined' ) {
-
+		
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var end = textarea.value.substr(textarea.selectionEnd);
 		var scrollPos = textarea.scrollTop;
-
+		
+		if (begin.charAt(begin.length-1) != "\n" && begin != '' && newLine){
+			begin += "\n";
+		}
+		
 		textarea.value = begin + text + end;
 
 		if (textarea.setSelectionRange)
@@ -448,7 +457,7 @@ function rp(text, textarea)
 
 
 // Редактор за BBCode текст: селектира ...
-function s(text1, text2, textarea)
+function s(text1, text2, textarea, newLine, multiline)
 {	
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
 	{					
@@ -459,9 +468,19 @@ function s(text1, text2, textarea)
 			text1 = "`";
 			text2 = "`";
 		}
-
+				
+		if (caretPos.text.charAt(caretPos.text.length - 1) != "\n"  && newLine){
+			caretPos.text = caretPos.text + "\n" ;
+		}
+		
+		if(multiline) {
+			text1 = text1 + "\n";
+			text2 = "\n" + text2;
+		}
+		
 		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text1 + caretPos.text + text2 + ' ' : text1 + caretPos.text + text2;
-
+		
+		
 		if (temp_length == 0)
 		{
 			caretPos.moveStart('character', -text2.length);
@@ -478,11 +497,20 @@ function s(text1, text2, textarea)
 		var newCursorPos = textarea.selectionStart;
 		var scrollPos = textarea.scrollTop;
 
-		if(selection != '' && selection.indexOf("\n") == -1 && text2 == '[/code]')  {
+		if(selection != '' && selection.indexOf("\n") == -1 && text2 == '[/code]') {
 			text1 = "`";
 			text2 = "`";
 		}
-
+		
+		if (begin.charAt(begin.length-1) != "\n" && begin != '' && newLine) {
+			text1 = "\n" + text1;
+		}
+		
+		if(multiline) {
+			text1 = text1 + "\n";
+			text2 = "\n" + text2;
+		}
+			
 		textarea.value = begin + text1 + selection + text2 + end;
 
 		if (textarea.setSelectionRange)
