@@ -50,7 +50,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg, plg_Search";
     
     
     /**
@@ -81,6 +81,12 @@ class fileman_GalleryImages extends core_Manager
      * Кои роли имат пълни права за този мениджър?
      */
     var $canAdmin = 'ceo, cms';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title, src';
     
     
     /**
@@ -126,7 +132,6 @@ class fileman_GalleryImages extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('titleSearch', 'varchar', 'caption=Заглавие,input,silent');
         $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|cms, rolesForTeams=ceo|cms|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
@@ -138,9 +143,9 @@ class fileman_GalleryImages extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'titleSearch, usersSearch, groupSearch';
+        $data->listFilter->showFields = 'search, usersSearch, groupSearch';
         
-        $data->listFilter->input('groupSearch, usersSearch, titleSearch', 'silent');
+        $data->listFilter->input('groupSearch, usersSearch', 'silent');
     }
 
     
@@ -187,16 +192,6 @@ class fileman_GalleryImages extends core_Manager
     		    
     		    // Търсим групата
     		    $data->query->where(array("#groupId = '[#1#]'", $filter->groupSearch));
-    		}
-    		
-    		// Тримваме заглавието
-    		$title = trim($filter->titleSearch);
-    		
-    		// Ако има съдържание
-    		if (strlen($title)) {
-    		    
-    		    // Търсим в заглавието
-    		    $data->query->where(array("LOWER(#title) LIKE LOWER('%[#1#]%')", $title));
     		}
         }
     }
