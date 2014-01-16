@@ -315,10 +315,27 @@ class store_Receipts extends core_Master
     }
     
     
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_(&$data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    	
+    	
+    }
+    
+    
     /**
      * След подготовка на единичния изглед
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
@@ -334,14 +351,6 @@ class store_Receipts extends core_Master
     		$originId = doc_Threads::getFirstContainerId($data->rec->threadId);
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
-	    
-	    if(empty($data->noTotal)){
-	    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-	    }
-	    
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
 	}
     
     

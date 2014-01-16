@@ -694,17 +694,19 @@ class sales_Invoices extends core_Master
     }
     
     
-    /**
-     * След подготовка на тулбара на единичен изглед.
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$data)
+    public function prepareSingle_(&$data)
     {
-    	$rec = &$data->rec;
+    	parent::prepareSingle_($data);
     	
+    	$rec = &$data->rec;
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
-    		
-            if($rec->paymentMethodId) {
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	
+    	 	if($rec->paymentMethodId) {
                 $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->rate ? ($rec->total / $rec->rate) : $rec->total + 0, $rec->date, TRUE);
                 if(count($plan)){
                     foreach ($plan as $pName => $pValue){
@@ -713,14 +715,19 @@ class sales_Invoices extends core_Master
                 }
             }
     	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$rec = &$data->rec;
     	
     	$myCompany = crm_Companies::fetchOwnCompany();
     	if($rec->contragentCountryId != $myCompany->countryId){
     		$data->row->place = str::utf2ascii($data->row->place);
-    	}
-    	
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
     

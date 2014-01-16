@@ -111,6 +111,12 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
+     * Полета за скриване/показване от шаблоните
+     */
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,weight=Обем,volume=Тегло';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -39,7 +39,7 @@ class store_ShipmentOrders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
-                    doc_DocumentPlg, acc_plg_DocumentSummary, store_DocumentWrapper,
+                    doc_DocumentPlg, acc_plg_DocumentSummary, store_DocumentWrapper, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
@@ -142,7 +142,13 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    public $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    
+    
+    /**
+     * Полета за скриване/показване от шаблоните
+     */
+    //public $toggleFields = 'valior=Дата,amountDelivered=Доставено';
     
     
     /**
@@ -323,10 +329,25 @@ class store_ShipmentOrders extends core_Master
     }
     
     
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_(&$data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    }
+    
+    
     /**
      * След подготовка на единичния изглед
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
@@ -342,15 +363,6 @@ class store_ShipmentOrders extends core_Master
     		$originId = doc_Threads::getFirstContainerId($rec->threadId);
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
-	    
-	    if(empty($data->noTotal)){
-	    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-	    }
-	    
-	    
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
 	}
     
     

@@ -729,16 +729,27 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_(&$data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    }
+    
+    
+    /**
      * След подготовка на сингъла
      */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
-    	
-    	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-    	}
-    	
+    
     	if($rec->state == 'draft'){
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
@@ -752,10 +763,6 @@ class sales_Sales extends core_Master
     			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
     		}
 	    }
-	    
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
     }
     
     

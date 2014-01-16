@@ -301,17 +301,15 @@ class purchase_Purchases extends core_Master
     
     
 	/**
-     * След подготовка на сингъла
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public function prepareSingle_(&$data)
     {
-    	$rec = &$data->rec;
+    	parent::prepareSingle_($data);
     	
+    	$rec = &$data->rec;
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-    	}
-    	
-    	if($data->summary){
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
