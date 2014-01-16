@@ -828,7 +828,7 @@ class callcenter_Talks extends core_Master
         $outgoingsOptions = new stdClass();
         $outgoingsOptions->title = tr('Изходящи');
         $outgoingsOptions->attr = array('class' => 'team');
-        $incomingsOptions->keylist = 'outgoings';
+        $outgoingsOptions->keylist = 'outgoings';
         
         $statusOptions['outgoing'] = $outgoingsOptions;
         $statusOptions['outgoing_ANSWERED'] = tr('Отговорено');
@@ -919,9 +919,9 @@ class callcenter_Talks extends core_Master
     		}
     		
             // Ако се търси по статус или вид
-            if ($filter->dialStatusType) {
+            if ($filter->dialStatus) {
                 
-                $dialStatusType = $filter->dialStatusType;
+                $dialStatusType = $filter->dialStatus;
                 
                 // Разделяме статуса от типа
                 list($callType, $dialStatus) = explode('_', $dialStatusType);
