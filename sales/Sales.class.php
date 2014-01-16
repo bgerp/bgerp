@@ -129,6 +129,12 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -731,7 +737,7 @@ class sales_Sales extends core_Master
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    public function prepareSingle_(&$data)
+    public function prepareSingle_($data)
     {
     	parent::prepareSingle_($data);
     	
