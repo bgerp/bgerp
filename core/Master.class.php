@@ -413,7 +413,7 @@ class core_Master extends core_Manager
      * 
      * @param array|string $details
      */
-    public function attachDetails($details)
+    public function attachDetails_($details)
     {
         // Списъка с детайлите става на масив
         $details       = arr::make($details, TRUE);
