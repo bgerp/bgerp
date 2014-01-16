@@ -138,7 +138,7 @@ class fileman_GalleryImages extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'titleSearch, groupSearch, usersSearch';
+        $data->listFilter->showFields = 'titleSearch, usersSearch, groupSearch';
         
         $data->listFilter->input('groupSearch, usersSearch, titleSearch', 'silent');
     }
