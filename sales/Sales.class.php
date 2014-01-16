@@ -731,6 +731,23 @@ class sales_Sales extends core_Master
     	if(haveRole('debug')){
             $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
+    	
+    	
+    	if($rec->state == 'draft'){
+    		$caseId = cash_Cases::getCurrent('id', FALSE);
+    		if($rec->isInstantPayment == 'no'){
+    			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
+    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контирате и плащането?');
+    			}
+    		}
+    		
+    		$storeId = store_Stores::getCurrent('id', FALSE);
+    		if($rec->isInstantShipment == 'no'){
+	    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
+	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контирате и експедиране?');
+	    		}
+    		}
+	    }
     }
     
     
@@ -746,29 +763,6 @@ class sales_Sales extends core_Master
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
-    }
-    
-    
-    /**
-     * След подготовка на сингъла
-     */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
-    {
-    	$rec = &$data->rec;
-    
-    	if($rec->state == 'draft'){
-    		$caseId = cash_Cases::getCurrent('id', FALSE);
-    		if($rec->isInstantPayment == 'no'){
-    			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?', FALSE, array('style' => 'padding:3px;'));
-    			}
-    		}
-    		
-    		$storeId = store_Stores::getCurrent('id', FALSE);
-    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
-    			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
-    		}
-	    }
     }
     
     

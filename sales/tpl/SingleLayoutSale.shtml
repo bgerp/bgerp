@@ -48,7 +48,7 @@
 				        <!--ET_END dealerId-->
 				        
 				        <!--ET_BEGIN shipmentStoreId-->
-				        <div style='font-weight:normal'>|от склад|*: <b>[#shipmentStoreId#]</b> [#shipBtn#]</div> 
+				        <div style='font-weight:normal'>|от склад|*: <b>[#shipmentStoreId#]</b></div> 
                         <!--ET_END shipmentStoreId-->
 			        </td>
 			    </tr>
