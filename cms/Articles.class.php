@@ -266,6 +266,8 @@ class cms_Articles extends core_Master
         if($rec) { 
 
             $menuId = $rec->menuId;
+            
+            cms_Content::setCurrent($menuId);
 
             $lArr = explode('.', self::getVerbal($rec, 'level'));
             
@@ -277,9 +279,11 @@ class cms_Articles extends core_Master
             
         	// Подготвяме информаията за ографа на статията
             $ogp = $this->prepareOgraph($rec);
+        } else {
+
+            cms_Content::setCurrent($menuId);
         }
 
-        cms_Content::setCurrent($menuId);
 
         Mode::set('SOC_TITLE', $ogp->siteInfo['Title']);
         Mode::set('SOC_SUMMARY', $ogp->siteInfo['Description']);
