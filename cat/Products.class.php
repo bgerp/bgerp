@@ -322,28 +322,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Оцветяване през ред
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListRows($mvc, $data)
-    {
-        $rowCounter = 0;
-        
-        if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
-                $rec = $data->recs[$i];
-                $rowCounter++;
-                $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
-                $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-            }
-        }
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
