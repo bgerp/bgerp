@@ -146,12 +146,6 @@ class store_ShipmentOrders extends core_Master
     
     
     /**
-     * Полета за скриване/показване от шаблоните
-     */
-    //public $toggleFields = 'valior=Дата,amountDelivered=Доставено';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -351,9 +345,6 @@ class store_ShipmentOrders extends core_Master
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
-    	
-    	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
@@ -694,5 +685,39 @@ class store_ShipmentOrders extends core_Master
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Експедиционно нареждане', 
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	$tplArr[] = array('name' => 'Packaging list', 
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }
