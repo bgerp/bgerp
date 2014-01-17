@@ -46,7 +46,7 @@
 		
 		<!--ET_BEGIN TOTAL-->
 			<tr class='border-top'>
-				<td class='quiet'>|Общо|*:</td><td>[#TOTAL#]</td>
+				<td class='quiet'>|Повиквания|*:</td><td>[#TOTAL#]</td>
 			</tr>
 		<!--ET_END TOTAL-->
 	</table>
