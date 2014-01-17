@@ -40,7 +40,7 @@ class location_Type extends type_Varchar {
         
         $JQuery->enable($tpl);
         
-        $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false\"></script>", "HEAD", TRUE);
+        $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $Lg = cls::get('core_Lg');
         
@@ -76,8 +76,8 @@ class location_Type extends type_Varchar {
         $JQuery = cls::get('jquery_Jquery');
         
         $JQuery->enable($res);
-        
-        $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false\"></script>", "HEAD", TRUE);
+       
+        $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $res->push('location/js/gmap3.min.js', 'JS');
 
