@@ -332,7 +332,7 @@ class store_ShipmentOrders extends core_Master
 	/**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    public function prepareSingle_(&$data)
+    public function prepareSingle_($data)
     {
     	parent::prepareSingle_($data);
     	

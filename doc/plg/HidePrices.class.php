@@ -96,6 +96,10 @@ class doc_plg_HidePrices extends core_Plugin
     		static::unsetPriceFields($data->row, $priceFields);
     	}
     	
+        if(!$data) {
+            $data = new stdClass();
+        }
+
     	// Флаг да не се подготвя общата сума
     	$data->noTotal = TRUE;
     }
