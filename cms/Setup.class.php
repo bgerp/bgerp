@@ -92,8 +92,6 @@ class cms_Setup extends core_ProtoSetup
             'cms_Objects',
             'cms_Articles',
         	'cms_Feeds',
-         	'cms_GalleryGroups',
-            'cms_GalleryImages',
             'cms_Includes',
             'cms_VerbalId',
          );
@@ -130,13 +128,6 @@ class cms_Setup extends core_ProtoSetup
         // Инсталираме плъгина  
         $html .= $Plugins->forcePlugin('Публична страница', 'cms_PagePlg', 'page_Wrapper', 'private');
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_RichText', 'private');
-
-         // Замества абсолютните линкове с титлата на документа
-        core_Plugins::installPlugin('Галерии и картинки в RichText', 'cms_plg_RichTextPlg', 'type_Richtext', 'private');
-        $html .= "<li>Закачане на cms_plg_RichTextPlg към полетата за RichEdit - (Активно)";
-        
-        // Инсталираме плъгина за добавяне на картинки
-        $html .= $Plugins->installPlugin('Картинки в RichEdit', 'cms_RichTextPlg', 'type_Richtext', 'private');
         
         // Добавяме класа връщащ темата в core_Classes
         core_Classes::add('cms_DefaultTheme');

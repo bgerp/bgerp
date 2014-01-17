@@ -153,11 +153,11 @@ class bgerp_plg_Groups extends core_Plugin
                 }
                 
                 if(!$changed) {
-                    $msg = tr("Не бяха променени групите на нито една фирма");
+                    $msg = tr("Не бяха променени групи");
                 } elseif($changed == 1) {
-                    $msg = tr("Бяха променени групите на една фирма");
+                    $msg = tr("Бяха променени групите на 1 " . mb_strtolower($mvc->singleTitle));
                 } else {
-                    $msg = tr("Бяха променени групите на|* {$changed} |фирми");
+                    $msg = tr("Бяха променени групите на|* {$changed} "  . mb_strtolower($mvc->title));
                 }
 
                 $res = new Redirect($retUrl, $msg);

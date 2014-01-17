@@ -456,10 +456,25 @@ class sales_SaleRequests extends core_Master
     }
     
     
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    }
+    
+    
     /**
      * Обработка на завката
      */
-    static function on_AfterPrepareSingle($mvc, &$data)
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {	
     	$rec = &$data->rec;
     	$row = &$data->row;
@@ -480,14 +495,6 @@ class sales_SaleRequests extends core_Master
         $row->contragentAddress = $contragent->getFullAdress();
         
         $row->contragentName = $contragent->getTitleById();
-        
-        if(empty($data->noTotal)){
-        	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->createdOn, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-        }
-    	
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
     }
     
     

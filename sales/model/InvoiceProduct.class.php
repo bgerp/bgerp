@@ -12,10 +12,12 @@ class sales_model_InvoiceProduct extends core_Model
      */
     public static $mvc = 'sales_InvoiceDetails';
     
+    
     /**
      * @var int key(mvc=sales_Sales)
      */
     public $invoiceId;
+    
     
     /**
      * Ценова политика
@@ -24,12 +26,14 @@ class sales_model_InvoiceProduct extends core_Model
      */
     public $policyId;
     
+    
     /**
      * ИД на продукт
      * 
      * @var int
      */
     public $productId;
+    
     
     /**
      * Мярка
@@ -38,12 +42,14 @@ class sales_model_InvoiceProduct extends core_Model
      */
     public $uomId;
     
+    
     /**
      * Опаковка (ако има)
      * 
      * @var int key(mvc=cat_Packagings)
      */
     public $packagingId;
+    
     
     /**
      * Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
@@ -53,6 +59,7 @@ class sales_model_InvoiceProduct extends core_Model
      */
     public $quantityInPack;
         
+    
     /**
      * Количество (в основна мярка)
      * 
@@ -60,26 +67,57 @@ class sales_model_InvoiceProduct extends core_Model
      */
     public $quantity;
         
+    
     /**
      * Цена за единица продукт в основна мярка
      * 
      * @var double
      */
     public $price;
-        
+
+    
     /**
      * Забележка
      * 
      * @var double
      */
     public $note;
-        
+
+    
     /**
      * Сума
      * 
      * @var double
      */
     public $amount;
+    
+    
+    /**
+     * Тегло на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $weight;
+    
+    
+    /**
+     * Обем на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $volume;
+    
+    
+    /**
+     * Срок на продукта
+     *
+     * @var time
+     * @see $classId
+     */
+    public $term;
+    
     
     protected function calc_productClass()
     {

@@ -38,7 +38,7 @@ class sales_Sales extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager,
-                    doc_DocumentPlg, acc_plg_Contable, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    doc_DocumentPlg, acc_plg_Contable, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
     
     
@@ -76,12 +76,6 @@ class sales_Sales extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,sales';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
     
 
     /**
@@ -132,6 +126,12 @@ class sales_Sales extends core_Master
      * Файл с шаблон за единичен изглед на статия
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutSale.shtml';
+    
+    
+    /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
     
     
     /**
@@ -653,7 +653,8 @@ class sales_Sales extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
         $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Пресрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
-		$data->listFilter->showFields .= ',type';
+       
+		$data->listFilter->showFields .= ',search,type';
 		$data->listFilter->input();
 		
 		if($filter = $data->listFilter->rec) {
@@ -734,33 +735,40 @@ class sales_Sales extends core_Master
     
     
     /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    }
+    
+    
+    /**
      * След подготовка на сингъла
      */
     static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
-    	
-    	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-    	}
-    	
+    
     	if($rec->state == 'draft'){
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
-    			if(cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
+    			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
     				$data->row->caseBtn = ht::createBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'Желаете ли този документ да контирате и плащането?', FALSE, array('style' => 'padding:3px;'));
     			}
     		}
     		
     		$storeId = store_Stores::getCurrent('id', FALSE);
-    		if($rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
+    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
     			$data->row->shipBtn = ht::createBtn('Експедирано?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'Желаете ли този документ да контирате и експедиране?', FALSE, array('style' => 'padding:3px;'));
     		}
 	    }
-	    
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
     }
     
     
@@ -969,6 +977,10 @@ class sales_Sales extends core_Master
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
             
+            $ProductMan = cls::get($p->classId);
+            $p->weight  = $ProductMan->getWeight($p->productId);
+            $p->volume  = $ProductMan->getVolume($p->productId);
+            
             $result->agreed->products[] = $p;
             
             if ($rec->isInstantShipment == 'yes') {
@@ -1096,8 +1108,6 @@ class sales_Sales extends core_Master
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
-    	
-    	
     }
     
     
@@ -1316,4 +1326,30 @@ class sales_Sales extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = sales_SalesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#saleId  = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

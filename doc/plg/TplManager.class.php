@@ -75,20 +75,60 @@ class doc_plg_TplManager extends core_Plugin
     }
     
     
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_BeforeRenderSingleLayout($mvc, &$res, $data)
+    {
+    	if(!$data->rec->template){
+			$templates = doc_TplManager::getTemplates($mvc->getClassId());
+			$data->rec->template = key($templates);
+		}
+		
+		// За текущ език се избира този на шаблона
+		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
+    	core_Lg::push($lang);
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_BeforeRenderSingleToolbar($mvc, &$res, $data)
+    {
+    	// Маха се пушнатия език, за да може да се рендира тулбара нормално
+    	core_Lg::pop();
+    }
+    
+    
+	/**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleToolbar($mvc, &$res, $data)
+    {
+    	// След рендиране на тулбара отново се пушва езика на шаблона
+    	$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
+    	core_Lg::push($lang);
+    }
+    
+    
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
     function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-    	// Ако има избран шаблон то той се изпозлва за единичен изглед
-    	if($data->rec->template){
-    		$template = $data->rec->template;
-		} else {
-			$templates = doc_TplManager::getTemplates($mvc->getClassId());
-			$template = key($templates);
-		}
-		
-		$content = doc_TplManager::getTemplate($template);
+    	// Ако има избран шаблон то той се замества в еденичния изглед
+    	$content = doc_TplManager::getTemplate($data->rec->template);
     	$tpl->replace($content, $mvc->templateFld);
+    }
+    
+    
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	// След като документа е рендиран, се възстановява нормалния език
+    	core_Lg::pop();
     }
 }

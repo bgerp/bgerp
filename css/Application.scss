@@ -2595,7 +2595,6 @@ div.location.public {
     background-image: url('../cms/img/rss24.png');
 }
 
-
 .blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
     border-bottom: none !important;
 }
@@ -2609,37 +2608,24 @@ div.location.public {
 
 .eshop-group-button {
     float: left; 
-    width: 300px; 
+    width: 46%; 
     height: 140px;
-    margin: 10px 6px;
-    margin-bottom:10px !important;
+    margin: 10px 2% 25px;
     text-align: center;
     .eshop-group-button-title {
-        margin-top: 5px;
+        margin-top: 2px;
         a{
 	        color: #048;
         } 
     }
-	
+}
+
+.narrow .eshop-group-button{
+	margin-bottom:10px;
 }
 
 .eshop-group-button:hover  .eshop-group-button-title a {
 	color: #c60;
-}
-
-.eshop-group-button img {
-	-webkit-transition: opacity 0.3s linear;  /* Chrome 1-25, Safari 3.2+ */
-     -moz-transition: opacity 0.3s linear;  /* Firefox 4-15 */
-       -o-transition: opacity 0.3s linear;  /* Opera 10.50–12.00 */
-          transition: opacity 0.3s linear;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
-    filter: alpha(opacity=90);
-    -moz-opacity: 0.9;
-    -khtml-opacity: 0.9;
-    opacity: 0.9;
-}
-
-.eshop-group-button:hover img {
-	opacity: 1;
 }
 
 .eshop-product-labels {
@@ -2735,17 +2721,6 @@ body.narrow {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
 	}
-	.eshop-group-button {
-       width: 46%;
-       margin: 0 2% 4%;
-       font-size: 0.9em;
-       height:auto;
-       .eshop-group-button-img a img{
-            width:98%;
-            height:auto;
-            margin:0 1%;
-       }
-    }
 }
 
 
@@ -2784,20 +2759,21 @@ body.narrow {
 		margin-right: 8px;
 		font-size: 1.04em;
     }
-    .eshop-group-button {
+    
+}
+@media handheld, only screen and (max-width: 900px) { 
+	.eshop-group-button {
        width: 96%;
        margin: 0 2% 4%;
-       font-size: 0.9em;
        height:auto;
        .eshop-group-button-img a img{
             width:100%;
             height:auto;
-            margin:0 1%;
+            margin-right: 1%;
+            margin-left: 1%;
        }
     }
 }
-
-
 @media handheld, only screen and (max-width: 800px) { 
 	.background-holder {
 	     padding: 0 !important;
@@ -2815,7 +2791,8 @@ body.narrow {
         .eshop-group-button-img a img{
             width:98%;
             height:auto;
-            margin:0 1%;
+            margin-right: 1%;
+            margin-left: 1%;
        }
     }
 }
@@ -2834,7 +2811,8 @@ body.narrow {
     }
     .eshop-group-button {
       width: 96%;
-       margin: 0 2% 4%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -2859,7 +2837,9 @@ body.narrow {
     }
     .narrow .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       height: 150px;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -2885,12 +2865,14 @@ body.narrow {
         .eshop-group-button-img a img{
             width:98%;
             height:auto;
-            margin:0 1%;
+            margin-right: 1%;
+            margin-left: 1%;
        }
     }
 	.narrow .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -2927,7 +2909,8 @@ body.narrow {
 	}
 	.narrow .eshop-group-button {
 	   width: 46%;
-       margin: 0 2%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
 	}
 }
@@ -2959,7 +2942,8 @@ body.narrow {
 	}
 	.narrow  .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -2988,7 +2972,8 @@ body.narrow {
 	}
 	.narrow  .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -3020,7 +3005,8 @@ body.narrow {
 	}
 	.narrow .eshop-group-button {
        width: 46%;
-       margin: 0 2%;
+       margin-right: 2%;
+       margin-left: 2%;
        font-size: 0.9em;
     }
 }
@@ -3052,7 +3038,8 @@ body.narrow {
 	}
 	.narrow .eshop-group-button {
        width: 100%;
-       margin: 2% 0;
+       margin-right: 0%;
+       margin-left: 0%;
        font-size: 0.9em;
     }
 }
@@ -3085,7 +3072,8 @@ body.narrow {
 	}
 	.narrow .eshop-group-button {
        width: 100%;
-       margin: 2% 0;
+       margin-right: 0%;
+       margin-left: 0%;
        font-size: 0.9em;
     }
 }
@@ -3117,7 +3105,8 @@ body.narrow {
 	}
 	.eshop-group-button {
        width: 100%;
-       margin: 2% 0;
+       margin-right: 0%;
+       margin-left: 0%;
        font-size: 0.9em;
     }
 }

@@ -296,7 +296,7 @@ class mp_Jobs extends core_Master
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->originId = $Driver::getHyperLink();
+    		$row->originId = $Driver->getHyperLink(TRUE);
     	}
     	
     	if($fields['-single']){

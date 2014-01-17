@@ -55,33 +55,28 @@
 	                 <!--ET_BEGIN conditions-->
                           [#conditions#]
 	                    <td class="topCell first" valign="top">
-	                        <!--ET_BEGIN deliveryTermId-->
-	                    	<div>
-	                            |Delivery|*: <b>[#deliveryTermId#]</b>
-	                            <!--ET_BEGIN deliveryLocationId-->
-	                            <br />[#deliveryLocationId#]
-	                            <!--ET_END deliveryLocationId-->
-	                       	</div>
-	                       	<!--ET_END deliveryTermId-->
-	                       	
-	                        <!--ET_BEGIN pricesAtDate-->
-	                      	<div>
-	                            Prices at: <b>[#pricesAtDate#]</b><br>
-	                       	</div>
-	                       	<!--ET_END pricesAtDate-->
-	                       	
-	                        <!--ET_BEGIN deliveryTime-->
-	                        <div>
-	                            Deadline: <b>[#deliveryTime#]</b>
-	                        </div>
-	                        <!--ET_END deliveryTime-->
-	    
-	                        <!--ET_BEGIN shipmentStoreId-->
-	                        <div>
-	                            From store: <b>[#shipmentStoreId#] <span style='margin-left:5px'>[#shipBtn#]</span></b>
-	                        </div>
-	                        <!--ET_END shipmentStoreId-->
+	                    <b>Conditions</b>
 	                        <ol style = ';margin-top:1px'>
+	                        <!--ET_BEGIN deliveryTermId-->
+                    	<li>
+                            Delivery: <b>[#deliveryTermId#]</b>
+                            <!--ET_BEGIN deliveryLocationId-->
+                            , [#deliveryLocationId#]
+                            <!--ET_END deliveryLocationId-->
+                       	</li>
+                       	<!--ET_END deliveryTermId-->
+                       	
+                        <!--ET_BEGIN pricesAtDate-->
+                      	<li>
+                            Prices at: <b>[#pricesAtDate#]</b><br>
+                       	</li>
+                       	<!--ET_END pricesAtDate-->
+                       	
+                        <!--ET_BEGIN deliveryTime-->
+                        <li>
+                            Del. time: <b>[#deliveryTime#]</b>
+                        </li>
+                        <!--ET_END deliveryTime-->
 							<!--ET_BEGIN withVat-->
 							<li>All the prices are with apllied VAT[#withVat#]</li>
 							<!--ET_END withVat-->
@@ -163,7 +158,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				     <td colspan = '3' style='text-align:right'><hr><b>With words</b>: [#sayWords#]</td>
+				     <td colspan = '3' style='text-align:right'><hr>With words: [#sayWords#]</td>
 				     </tr>
 				</table>
 	                    </td>

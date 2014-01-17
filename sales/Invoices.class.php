@@ -46,13 +46,13 @@ class sales_Invoices extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
-                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices, doc_plg_TplManager';
+                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, folderId, type';
+    public $listFields = 'tools=Пулт, number, date, place, folderId, type';
     
     
     /**
@@ -116,12 +116,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
-    
-    
-    /**
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
@@ -144,6 +138,7 @@ class sales_Invoices extends core_Master
      */
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
     
+    public $filterDateField = 'date';
     
     /**
      * Стратегии за дефолт стойностти
@@ -197,13 +192,13 @@ class sales_Invoices extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
-        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
+        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС,summary=amount');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
-        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden');
-        $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none');
-        $this->FLD('discountAmount', 'double(decimals=2)', 'input=none');
+        $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
+        $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
+        $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
@@ -226,13 +221,13 @@ class sales_Invoices extends core_Master
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		$data->listFilter->view = 'horizontal';
+		//$data->listFilter->view = 'horizontal';
 		$data->listFilter->FNC('invType','enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input,silent');
 		$data->listFilter->setDefault('invType','invoice');
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png'); 
 		
-		$data->listFilter->showFields = 'search,invType';
+		$data->listFilter->showFields .= ',search,invType';
 		$data->listFilter->input('search,invType', 'silent');
 		
 		if($type = $data->listFilter->rec->invType){
@@ -636,12 +631,6 @@ class sales_Invoices extends core_Master
 	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
 	    	
-	    	if($rec->dealValue){
-				$SpellNumber = cls::get('core_SpellNumber');
-				$total = ($rec->dealValue + $rec->vatAmount - $rec->discountAmount) / $rec->rate;
-				$row->amountVerbal = $SpellNumber->asCurrency($total, 'bg', FALSE);
-	    	}
-	    	
 	    	if($rec->accountId){
 	    		$Varchar = cls::get('type_Varchar');
 	    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
@@ -706,17 +695,19 @@ class sales_Invoices extends core_Master
     }
     
     
-    /**
-     * След подготовка на тулбара на единичен изглед.
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$data)
+    public function prepareSingle_($data)
     {
-    	$rec = &$data->rec;
+    	parent::prepareSingle_($data);
     	
+    	$rec = &$data->rec;
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
-    		
-            if($rec->paymentMethodId) {
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	
+    	 	if($rec->paymentMethodId) {
                 $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->rate ? ($rec->total / $rec->rate) : $rec->total + 0, $rec->date, TRUE);
                 if(count($plan)){
                     foreach ($plan as $pName => $pValue){
@@ -725,14 +716,19 @@ class sales_Invoices extends core_Master
                 }
             }
     	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$rec = &$data->rec;
     	
     	$myCompany = crm_Companies::fetchOwnCompany();
     	if($rec->contragentCountryId != $myCompany->countryId){
     		$data->row->place = str::utf2ascii($data->row->place);
-    	}
-    	
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
     

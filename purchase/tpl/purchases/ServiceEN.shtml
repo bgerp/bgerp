@@ -53,31 +53,23 @@
                      <!--ET_BEGIN purchaseConditions-->
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
-	                        <!--ET_BEGIN deliveryTermId-->
-	                        <div>
-	                            Delivery:<b>[#deliveryTermId#]</b>
-	                       	</div>
+	                        <b>|Conditions|*</b>
+							<ol style = ';margin-top:1px'>
+							
+							<li>
+	                            Delivery: <b>[#deliveryTermId#]</b>
+	                            <!--ET_BEGIN deliveryLocationId-->
+	    						, [#deliveryLocationId#]
+	    						<!--ET_END deliveryLocationId-->
+	                       	</li>
 	                       	<!--ET_END deliveryTermId-->
 	                       	
 	                        <!--ET_BEGIN deliveryTime-->
-	                        <div>
-	                            Deadline: <b>[#deliveryTime#]</b>
-	                        </div>
+	                        <li>
+	                            Del. time: <b>[#deliveryTime#]</b>
+	                        </li>
 	                        <!--ET_END deliveryTime-->
-	    
-	    					<!--ET_BEGIN deliveryLocationId-->
-	    					<div>
-	                            From: <b>[#deliveryLocationId#]</b>
-	                        </div>
-	    					<!--ET_END deliveryLocationId-->
-	    					
-	                        <!--ET_BEGIN shipmentStoreId-->
-	                        <div>
-	                            For store: <b>[#shipmentStoreId#] </b>
-	                        </div>
-	                        <!--ET_END shipmentStoreId-->
-	                        <b>|Conditions|*</b>
-							<ol style = ';margin-top:1px'>
+	                        
 							<!--ET_BEGIN withVat-->
 							<li>|All the prices are with VAT|*[#withVat#]</li>
 							<!--ET_END withVat-->
@@ -159,7 +151,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' style='text-align:right'><hr><b>With words</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>With words: [#sayWords#]</td>
 				     </tr>
 				</table>  
                     </td>

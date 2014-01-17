@@ -48,26 +48,15 @@ class store_plg_Document extends core_Plugin
 		$obj->weight = 0;
 		
 		foreach ($products as $p){
-			if(isset($p->classId)){
-				$ProductMan = cls::get($p->classId);
-				$productId = $p->productId;
-				$pInfo = $ProductMan->getProductInfo($productId, $p->packagingId);
-			}else {
-				$sRec = store_Products::fetch($p->productId);
-				$ProductMan = cls::get($sRec->classId);
-				$productId = $sRec->productId;
-				$pInfo = $ProductMan->getProductInfo($productId, $p->packagingId);
-			}
 			
 			// Ако има изчислен обем
 			if($obj->volume !== NULL){
-				$volume = $ProductMan->getVolume($productId, $p->packagingId);
+				$volume = $p->volume;
 				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
 			}
 			
 			if($obj->weight !== NULL){
-				$weight = $ProductMan->getWeight($productId, $p->packagingId);
-				
+				$weight = $p->weight;
 				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
 			}
 		}

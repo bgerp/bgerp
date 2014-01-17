@@ -78,12 +78,6 @@ class store_Transfers extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,store';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
     public $canConto = 'ceo,store';
     
     

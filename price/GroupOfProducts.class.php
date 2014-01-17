@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценови групи
@@ -192,13 +192,17 @@ class price_GroupOfProducts extends core_Detail
         }
         
         // За опции се слагат само продаваемите продукти
-        $data->form->setOptions('productId', cat_Products::getByProperty('canSell'));
+        $products = cat_Products::getByProperty('canSell');
+        expect(count($products), 'Няма продаваеми продукти');
+        $data->form->setOptions('productId', $products);
 
         if($data->masterMvc instanceof cat_Products) {
             $data->form->title = "Добавяне в ценова група";
             $data->form->setField('productId', 'input');
             $data->form->setReadOnly('productId');
-
+            $pInfo = cat_Products::getProductInfo($rec->productId);
+            expect(isset($pInfo->meta['canSell']), 'Продукта не е продаваем');
+            
             if(!$rec->groupId) {
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
@@ -257,7 +261,7 @@ class price_GroupOfProducts extends core_Detail
     
 
     /**
-     *
+     * Връща masterKey-а
      */
     function getMasterKey($rec)
     {
@@ -386,7 +390,7 @@ class price_GroupOfProducts extends core_Detail
 	
     
     /**
-     *
+     * Подготвя продукт в група
      */
     function prepareProductInGroup($data)
     {   
@@ -447,10 +451,25 @@ class price_GroupOfProducts extends core_Detail
 
 
     /**
-     *
+     * Рендира продукт в група
      */
     function renderProductInGroup($data)
     {
         return self::renderDetail_($data);
+    }
+    
+    
+	/**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	// Ако няма продаваеми продукти, слага се error на бутона
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$products = cat_Products::getByProperty('canSell');
+    		if(!count($products)){
+    			$data->toolbar->buttons['btnAdd']->error = 'Няма продаваеми продукти, които да се включат в групата';
+    		}
+    	}
     }
 }

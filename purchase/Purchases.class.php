@@ -153,6 +153,12 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Поле в което се замества шаблона от doc_TplManager
+     */
+    public $templateFld = 'SINGLE_CONTENT';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -301,17 +307,15 @@ class purchase_Purchases extends core_Master
     
     
 	/**
-     * След подготовка на сингъла
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public function prepareSingle_($data)
     {
-    	$rec = &$data->rec;
+    	parent::prepareSingle_($data);
     	
+    	$rec = &$data->rec;
     	if(empty($data->noTotal)){
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-    	}
-    	
-    	if($data->summary){
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }
@@ -592,6 +596,10 @@ class purchase_Purchases extends core_Master
             $p->quantity    = $dRec->quantity;
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
+            
+            $ProductMan = cls::get($p->classId);
+            $p->weight  = $ProductMan->getWeight($p->productId);
+            $p->volume  = $ProductMan->getVolume($p->productId);
             
             $result->agreed->products[] = $p;
         }

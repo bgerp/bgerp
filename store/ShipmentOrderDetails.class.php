@@ -111,6 +111,12 @@ class store_ShipmentOrderDetails extends core_Detail
     
     
     /**
+     * Полета за скриване/показване от шаблоните
+     */
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,weight=Обем,volume=Тегло';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -120,6 +126,8 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
+        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
         // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');

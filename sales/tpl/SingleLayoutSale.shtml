@@ -13,6 +13,7 @@
 			[#SINGLE_CONTENT#]
 			
 			<!--ET_BEGIN STATISTIC_BAR-->
+			[#STATISTIC_BAR#]
 			<div class="sale-summary">
 			<table cellspacing="5" width='100%'>
 			    <tr>
@@ -29,7 +30,7 @@
 			            |Фактурирано|*, [#currencyId#]
 			        </td>
 			        <td class = 'sum-th'>
-			            |Наш персонал|*
+			            |Информация|*
 			        </td>
 			    </tr>
 			    <tr>
@@ -45,6 +46,10 @@
 				        <!--ET_BEGIN dealerId-->
 				        <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
 				        <!--ET_END dealerId-->
+				        
+				        <!--ET_BEGIN shipmentStoreId-->
+				        <div style='font-weight:normal'>|от склад|*: <b>[#shipmentStoreId#]</b> [#shipBtn#]</div> 
+                        <!--ET_END shipmentStoreId-->
 			        </td>
 			    </tr>
 			    <tr style='height:5px'></tr>

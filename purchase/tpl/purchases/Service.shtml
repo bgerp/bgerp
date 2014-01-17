@@ -53,31 +53,24 @@
                      <!--ET_BEGIN purchaseConditions-->
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
-	                        <!--ET_BEGIN deliveryTermId-->
-	                        <div>
+							<b>|Условия|*:</b>
+							<ol style = ';margin-top:1px'>
+							
+							<!--ET_BEGIN deliveryTermId-->
+	                        <li>
 	                            |Доставка|*: <b>[#deliveryTermId#]</b>
-	                       	</div>
+	                            <!--ET_BEGIN deliveryLocationId-->
+	    						, [#deliveryLocationId#]
+	    						<!--ET_END deliveryLocationId-->
+	                       	</li>
 	                       	<!--ET_END deliveryTermId-->
 	                       	
 	                        <!--ET_BEGIN deliveryTime-->
-	                        <div>
+	                        <li>
 	                            |Срок до|*: <b>[#deliveryTime#]</b>
-	                        </div>
+	                        </li>
 	                        <!--ET_END deliveryTime-->
-	    
-	    					<!--ET_BEGIN deliveryLocationId-->
-	    					<div>
-	                            |От|*: <b>[#deliveryLocationId#]</b>
-	                        </div>
-	    					<!--ET_END deliveryLocationId-->
-	    					
-	                        <!--ET_BEGIN shipmentStoreId-->
-	                        <div>
-	                            |До склад|*: <b>[#shipmentStoreId#] </b>
-	                        </div>
-	                        <!--ET_END shipmentStoreId-->
-							<b>|Условия|*</b>
-							<ol style = ';margin-top:1px'>
+	                        
 							<!--ET_BEGIN withVat-->
 							<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
 							<!--ET_END withVat-->
@@ -160,7 +153,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' style='text-align:right'><hr><b>|Словом|*</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table> 
                     </td>

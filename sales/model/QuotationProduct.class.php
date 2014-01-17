@@ -47,13 +47,41 @@ class sales_model_QuotationProduct
      * @var double
      */
     public $price;
-        
+
+    
     /**
      * Процент отстъпка (0..1 => 0% .. 100%)
      * 
      * @var double
      */
     public $discount;
+    
+    
+    /**
+     * Тегло на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $weight;
+    
+    
+    /**
+     * Обем на продукта (ако има)
+     *
+     * @var int
+     * @see $classId
+     */
+    public $volume;
+    
+    
+    /**
+     * Срок на продукта
+     *
+     * @var time
+     * @see $classId
+     */
+    public $term;
     
     
     /**

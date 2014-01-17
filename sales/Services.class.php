@@ -36,7 +36,7 @@ class sales_Services extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
+                    doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
                     doc_plg_BusinessDoc2, plg_LastUsedKeys';
 
@@ -69,12 +69,6 @@ class sales_Services extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
-    
-    
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'ceo,sales';
     
     
     /**
@@ -295,10 +289,25 @@ class sales_Services extends core_Master
     }
     
     
+	/**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareSingle_($data)
+    {
+    	parent::prepareSingle_($data);
+    	
+    	$rec = &$data->rec;
+    	if(empty($data->noTotal)){
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	}
+    }
+    
+    
     /**
      * След подготовка на единичния изглед
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
@@ -314,14 +323,6 @@ class sales_Services extends core_Master
     		$originId = doc_Threads::getFirstContainerId($rec->threadId);
 	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
-	    
-    	if(empty($data->noTotal)){
-	    	$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
-	    }
-	    
-    	if($data->summary){
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
-    	}
 	}
     
     
@@ -624,4 +625,30 @@ class sales_Services extends core_Master
         
         return $tpl->getContent();
     }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = sales_ServicesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#shipmentId  = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

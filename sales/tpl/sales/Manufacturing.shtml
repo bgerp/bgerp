@@ -54,34 +54,30 @@
                  <!--ET_BEGIN conditions-->
                          [#conditions#]
                     <td class="topCell first" valign="top">
-                        <!--ET_BEGIN deliveryTermId-->
-                    	<div>
+                        <b>|Условия|*:</b>
+						<ol style = ';margin-top:1px'>
+						
+						<!--ET_BEGIN deliveryTermId-->
+                    	<li>
                             |Доставка|*: <b>[#deliveryTermId#]</b>
                             <!--ET_BEGIN deliveryLocationId-->
-                            <br />[#deliveryLocationId#]
+                            , [#deliveryLocationId#]
                             <!--ET_END deliveryLocationId-->
-                       	</div>
+                       	</li>
                        	<!--ET_END deliveryTermId-->
                        	
                         <!--ET_BEGIN pricesAtDate-->
-                      	<div>
+                      	<li>
                             |Цени към|*: <b>[#pricesAtDate#]</b><br>
-                       	</div>
+                       	</li>
                        	<!--ET_END pricesAtDate-->
                        	
                         <!--ET_BEGIN deliveryTime-->
-                        <div>
+                        <li>
                             |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
+                        </li>
                         <!--ET_END deliveryTime-->
-    
-                        <!--ET_BEGIN shipmentStoreId-->
-                        <div>
-                            |От склад|*: <b>[#shipmentStoreId#] <span style='margin-left:5px'>[#shipBtn#]</span></b>
-                        </div>
-                        <!--ET_END shipmentStoreId-->
-                        <b>|Условия|*</b>
-						<ol style = ';margin-top:1px'>
+                        
 						<!--ET_BEGIN withVat-->
 						<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
 						<!--ET_END withVat-->
@@ -126,7 +122,6 @@
 				     </tr>
 				     <!--ET_BEGIN discount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Отстъпка|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
 				     	<td align='right'><b>[#discount#]</b></td>
@@ -134,7 +129,6 @@
 				     <!--ET_END discount-->
 				     <!--ET_BEGIN neto-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Нето|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
 				     	<td align='right'><b>[#neto#]</b></td>
@@ -143,7 +137,6 @@
 				     
 				     <!--ET_BEGIN baseAmount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				     	<td align='right'>|Данъчна основа|* :</td>
 				     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
 				     	<td align='right'><b>[#baseAmount#]</b></td>
@@ -155,20 +148,18 @@
 				     </tr>
 				     <!--ET_BEGIN vatAmount-->
 				     <tr class='nowrap'>
-				        <td></td>
 				    	<td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
 				    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
 				    	<td align='right'><b>[#vatAmount#]</b></td>
 				     </tr>
 				     <!--ET_END vatAmount-->
 				     <tr class='nowrap'>
-				      <td></td>
 				    	<td align='right'>|Общо|* :</td>
 				    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' style='text-align:right'><hr><b>|Словом|*</b>: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

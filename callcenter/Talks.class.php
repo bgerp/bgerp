@@ -87,7 +87,7 @@ class callcenter_Talks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows, plg_GroupByDate, plg_AutoFilter';
+    var $loadList = 'callcenter_Wrapper, plg_RowTools, plg_Printing, plg_Search, plg_Sorting, plg_RefreshRows, plg_GroupByDate';
     
 
     /**
@@ -150,7 +150,7 @@ class callcenter_Talks extends core_Master
         $this->FLD('internalData', 'keylist(mvc=callcenter_Numbers)', 'caption=Вътрешен->Потребител, width=100%, oldFieldName=calledData');
         
 //        $this->FLD('mp3', 'varchar', 'caption=Аудио');
-        $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането,autoFilter');
+        $this->FLD('dialStatus', 'enum(NO ANSWER=Без отговор, FAILED=Прекъснато, BUSY=Заето, ANSWERED=Отговорено, UNKNOWN=Няма информация)', 'allowEmpty, caption=Състояние, hint=Състояние на обаждането');
         $this->FLD('uniqId', 'varchar', 'caption=Номер');
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Време->Начало');
         $this->FLD('answerTime', 'datetime(format=smartTime)', 'allowEmpty, caption=Време->Отговор');
@@ -807,7 +807,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Функционално поле за търсене по статус и тип на разговора
-        //$data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input');
+        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Опции за търсене
         $statusOptions[''] = '';
@@ -828,7 +828,7 @@ class callcenter_Talks extends core_Master
         $outgoingsOptions = new stdClass();
         $outgoingsOptions->title = tr('Изходящи');
         $outgoingsOptions->attr = array('class' => 'team');
-        $incomingsOptions->keylist = 'outgoings';
+        $outgoingsOptions->keylist = 'outgoings';
         
         $statusOptions['outgoing'] = $outgoingsOptions;
         $statusOptions['outgoing_ANSWERED'] = tr('Отговорено');
@@ -837,7 +837,7 @@ class callcenter_Talks extends core_Master
         $statusOptions['outgoing_FAILED'] = tr('Прекъснато');
         
         // Задаваме опциите
-        $data->listFilter->setOptions('dialStatus', $statusOptions);
+        $data->listFilter->setOptions('dialStatusType', $statusOptions);
         
         // Ако имаме тип на обаждането
         if ($typeOptions = &$data->listFilter->getField('callType')->type->options) {
@@ -849,16 +849,6 @@ class callcenter_Talks extends core_Master
             $data->listFilter->setDefault('callType', 'all');
         }
         
-        // Ако имаме статуси
-        if ($typeOptions = &$data->listFilter->getField('dialStatus')->type->options) {
-            
-            // Добавяме в началото празен стринг за всички
-            $typeOptions = array('all' => '') + $typeOptions;
-            
-            // Избираме го по подразбиране
-            $data->listFilter->setDefault('dialStatus', 'all');
-        }
-        
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
         
@@ -867,9 +857,9 @@ class callcenter_Talks extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, dialStatus';
+        $data->listFilter->showFields = 'search, usersSearch, dialStatusType';
         
-        $data->listFilter->input('search, usersSearch, dialStatus', 'silent');
+        $data->listFilter->input('search, usersSearch, dialStatusType', 'silent');
     }
 
     
