@@ -28,25 +28,27 @@ class doc_plg_TplManagerDetail extends core_Plugin
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$masterRec = $data->masterRec;
-    	if($masterRec->template){
-    		$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
+    	if(!$masterRec->template){
+    		$templates = doc_TplManager::getTemplates($mvc->Master->getClassId());
+			$masterRec->template = key($templates);
+    	}
+    	
+    	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
+    	if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
     		
-    		if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
-    			
-    			// Полетата които трябва да се показват
-    			$fields = arr::make($toggleFields[$mvc->className]);
-    			
-    			// Всички полета, които могат да се скриват/показват
-    			$toggleFields = arr::make($mvc->toggleFields);
-    			$intersect = array_intersect_key($data->form->selectFields(""), $toggleFields);
-    			
-    			// Ако някое от полетата не трябва да се показва, то се скрива от формата
-    			foreach ($intersect as $k => $v){
-    				if(!in_array($k, $fields) && empty($v->mandatory)){
-    					$data->form->setField($k, 'input=none');
-    				}
-    			}
-    		}
+	    	// Полетата които трябва да се показват
+	    	$fields = arr::make($toggleFields[$mvc->className]);
+	    			
+	    	// Всички полета, които могат да се скриват/показват
+	    	$toggleFields = arr::make($mvc->toggleFields);
+	    	$intersect = array_intersect_key($data->form->selectFields(""), $toggleFields);
+	    				
+	    	// Ако някое от полетата не трябва да се показва, то се скрива от формата
+	    	foreach ($intersect as $k => $v){
+	    		if(!in_array($k, $fields) && empty($v->mandatory)){
+	    			$data->form->setField($k, 'input=none');
+	    		}
+	    	}
     	}
     }
     
@@ -57,24 +59,22 @@ class doc_plg_TplManagerDetail extends core_Plugin
     static function on_AfterPrepareListFields($mvc, &$data)
     {
     	$masterRec = $data->masterData->rec;
-    	if($masterRec->template){
-    		$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
+    	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
     		
-    		if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
+    	if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
     			
-    			// Полетата които трябва да се показват
-    			$fields = arr::make($toggleFields[$mvc->className]);
+    		// Полетата които трябва да се показват
+    		$fields = arr::make($toggleFields[$mvc->className]);
     			
-    			// Всички полета, които могат да се скриват/показват
-    			$toggleFields = arr::make($mvc->toggleFields);
-    			$intersect = array_intersect_key($data->listFields, $toggleFields);
+    		// Всички полета, които могат да се скриват/показват
+    		$toggleFields = arr::make($mvc->toggleFields);
+    		$intersect = array_intersect_key($data->listFields, $toggleFields);
     			
-    			foreach ($intersect as $k => $v){
+    		foreach ($intersect as $k => $v){
     				
-    				// За всяко от опционалните полета: ако не е избран да се показва, се маха
-    				if(!in_array($k, $fields)){
-    					unset($data->listFields[$k]);
-    				}
+    			// За всяко от опционалните полета: ако не е избран да се показва, се маха
+    			if(!in_array($k, $fields)){
+    				unset($data->listFields[$k]);
     			}
     		}
     	}
