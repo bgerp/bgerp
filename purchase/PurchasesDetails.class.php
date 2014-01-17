@@ -262,6 +262,7 @@ class purchase_PurchasesDetails extends core_Detail
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $products = $mvc->Policy->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+        expect(count($products));
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';this.form.submit();"));
