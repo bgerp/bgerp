@@ -109,6 +109,9 @@ class core_Manager extends core_Mvc
         // Подготвяме формата за филтриране
         $this->prepareListFilter($data);
         
+        // Подготвяме заявката за резюме/обощение
+        $this->prepareListSummary($data);
+        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
@@ -362,6 +365,31 @@ class core_Manager extends core_Mvc
         }
         
         return $data;
+    }
+    
+    
+    /**
+     * Рендира заявката за създаване на резюме
+     */
+    function prepareListSummary_(&$data)
+    {
+        // Ако има заявка
+        if ($data->query) {
+            
+            // Ако няма обощени
+            if (!$data->listSummary) {
+                
+                // Създаваме обекта
+                $data->listSummary = new stdClass();
+            }
+            
+            // Ако няма заявка за резюме
+            if (!$data->listSummary->query) {
+                
+                // Клонираме заявката
+                $data->listSummary->query = clone $data->query;
+            }
+        }
     }
     
     
