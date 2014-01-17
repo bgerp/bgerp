@@ -1,0 +1,57 @@
+<div id="callSummary">
+	<table>
+		
+		<!--ET_BEGIN duration-->
+			<tr>
+				<td class='quiet'>|Продължителност|*:</td><td>[#duration#]</td>
+			</tr>
+		<!--ET_END duration-->
+		
+		<tr>
+			<th colspan="1" class='quiet'>|Състояние|*</th>
+		</tr>
+		
+		<!--ET_BEGIN ANSWERED-->
+		<tr>
+			<td class='quiet'>|Отговорено|*:</td><td>[#ANSWERED#]</td>
+		</tr>
+		<!--ET_END ANSWERED-->
+		
+		<!--ET_BEGIN NO_ANSWER-->
+		<tr>
+			<td class='quiet'>|Без отговор|*:</td><td>[#NO_ANSWER#]</td>
+		</tr>
+		<!--ET_END NO_ANSWER-->
+		
+		<!--ET_BEGIN BUSY-->
+		<tr>
+			<td class='quiet'>|Заето|*:</td><td>[#BUSY#]</td>
+		</tr>
+		<!--ET_END BUSY-->
+		
+		<!--ET_BEGIN FAILED-->
+		<tr>
+			<td class='quiet'>|Прекъснато|*:</td><td>[#FAILED#]</td>
+		</tr>
+		<!--ET_END FAILED-->
+		
+		<!--ET_BEGIN UNKNOWN-->
+		<tr>
+			<td class='quiet'>|Неизвестно|*:</td><td>[#UNKNOWN#]</td>
+		</tr>
+		<!--ET_END UNKNOWN-->
+		
+		<!--ET_BEGIN OTHER-->
+			<tr>
+				<td class='quiet'>|Други|*:</td><td>[#OTHER#]</td>
+			</tr>
+		<!--ET_END OTHER-->
+		
+		
+		<!--ET_BEGIN TOTAL-->
+			<tr>
+				<td class='quiet'>|Общо|*:</td><td>[#TOTAL#]</td>
+			</tr>
+		<!--ET_END TOTAL-->
+	</table>
+</div>
