@@ -7,10 +7,6 @@
 			</tr>
 		<!--ET_END duration-->
 		
-		<tr>
-			<th colspan="1" class='quiet'>|Състояние|*</th>
-		</tr>
-		
 		<!--ET_BEGIN ANSWERED-->
 		<tr>
 			<td class='quiet'>|Отговорено|*:</td><td>[#ANSWERED#]</td>
@@ -49,7 +45,7 @@
 		
 		
 		<!--ET_BEGIN TOTAL-->
-			<tr>
+			<tr class='border-top'>
 				<td class='quiet'>|Общо|*:</td><td>[#TOTAL#]</td>
 			</tr>
 		<!--ET_END TOTAL-->
