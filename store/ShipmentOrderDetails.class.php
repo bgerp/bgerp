@@ -122,7 +122,7 @@ class store_ShipmentOrderDetails extends core_Detail
     public function description()
     {
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('info', 'varchar(125)', 'caption=Колети');
+        $this->FLD('info', "varchar(125)", 'caption=Колети,hint=В кои колети се намира продукта');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
@@ -234,6 +234,48 @@ class store_ShipmentOrderDetails extends core_Detail
         if (empty($recs)) return;
         
         price_Helper::fillRecs($recs, $orderRec);
+        
+        // Преброява броя на колетите, само ако се показва тази информация
+        if(isset($data->listFields['info'])){
+        	$orderRec->colletsCount = $mvc->countCollets($recs);
+        	$data->masterData->row->colletsCount = cls::get('type_Int')->toVerbal($orderRec->colletsCount);
+        }
+    }
+    
+    
+    /**
+     * Преброява общия брой на колетите
+     * @param array $recs - записите от модела
+     */
+    private function countCollets($recs)
+    {
+    	$count = 0;
+    	foreach ($recs as $rec){
+    		
+    		// За всяка информация за колети
+    		if($rec->info){
+    			
+    			// Разбиване на записа
+    			$info = explode(',', $rec->info);
+	    		foreach ($info as &$seq){
+	    			
+	    			// Ако е посочен интервал от рода 1-5
+	    			$seq = explode('-', $seq);
+	    			if(count($seq) == 1){
+	    				
+	    				// Ако няма такова разбиване, се увеличава броя
+	    				$count += 1;
+	    			} else {
+	    				
+	    				// Ако е посочен интервал, броя се увеличава с разликата
+	    				$count += $seq[1] - $seq[0] +1;
+	    			}
+	    		}
+    		}
+    	}
+    	
+    	// Връщане на броя на колетите
+    	return $count;
     }
     
     
@@ -341,6 +383,14 @@ class store_ShipmentOrderDetails extends core_Detail
            
             if (empty($rec->discount)) {
                 $rec->discount = $aggreedProduct->discount;
+            }
+            
+            if($rec->info){
+            	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
+            		$form->setError('info', "Полето може да приема само числа,запетаи и тирета");
+            	}
+            	
+            	$rec->info = preg_replace("/\s+/", "", $rec->info);
             }
         }
     }
