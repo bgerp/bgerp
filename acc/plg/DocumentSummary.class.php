@@ -35,7 +35,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -82,7 +82,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     /**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		$data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -99,14 +99,8 @@ class acc_plg_DocumentSummary extends core_Plugin
 		
         // Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
-    }
-	
-	
-	/**
-	 * Филтрираме резултатите
-	 */
-	function on_BeforePrepareListRecs($mvc, $res, $data)
-	{
+        
+        // Ако формата за търсене е изпратена
 		if($filter = $data->listFilter->rec) {
 			
 			if($filter->search){
@@ -143,44 +137,70 @@ class acc_plg_DocumentSummary extends core_Plugin
     			}
     		}
 		}
-	}
+    }
+	
+	
+	/**
+     * След подготовка на записите
+     */
+    function on_AfterPrepareListRecs($mvc, &$res, &$data)
+    {
+		// Ако няма заявка, да не се изпълнява
+		$queryCopy = clone $data->query;
+        $queryCopy->show = array();
+        $queryCopy->groupBy = array();
+        $queryCopy->executed = FALSE;
+		$queryCopy->start = NULL;
+        $queryCopy->limit = NULL;
+		
+		// Ще се преброяват всички неоттеглени документи
+ 		$queryCopy->where("#state != 'rejected' || #state IS NULL");
+		
+		$data->listSummary->summary = array();
+		
+		// Кои полета трябва да се обобщят
+		$fieldsArr = $mvc->selectFields("#summary");
+		
+		// Основната валута за периода
+    	$baseCurrency = acc_Periods::getBaseCurrencyCode();
+    	
+    	// Подготовка на обобщаващите данни
+    	while($rec = $queryCopy->fetch()){
+    		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
+    	}
+    	
+    	// Преброяване на черновите документи
+    	$activeQuery = clone $queryCopy;
+    	$queryCopy->where("#state = 'draft'");
+    	$draftCount = $queryCopy->count();
+    	
+    	// Преброяване на активираните/затворени документи
+    	$activeQuery->where("#state = 'active' || #state = 'closed'");
+    	$activeCount = $activeQuery->count();
+    	
+    	// Изчистване на клонираната заявки
+    	unset($activeQuery);
+    	
+    	// Добавяне в обобщението на броя активирани и броя чернови документи
+    	$data->listSummary->summary['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $activeCount);
+    	$data->listSummary->summary['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $draftCount);
+    }
 	
 	
 	/**
 	 * След рендиране на List Summary-то
 	 */
-	static function on_AfterRenderListSummary($mvc, $tpl, $data)
+	static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
-    	$res = array();
-    	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 0;
-    	$queryCopy = clone $data->query;
-    	$queryCopy->show = array();
-    	$queryCopy->groupBy = array();
-    	$queryCopy->executed = FALSE;
-    	
-    	$fieldsArr = $mvc->selectFields("#summary");
-    	$baseCurrency = acc_Periods::getBaseCurrencyCode();
-    	while($rec = $queryCopy->fetch()){
-    		static::prepareSummary($mvc, $fieldsArr, $rec, $res, $baseCurrency);
+    	if($data->listSummary->summary){
+    		$tpl = static::renderSummary($data->listSummary->summary);
     	}
-    	
-    	$queryCopy->where("#state = 'draft'");
-    	$draftCount = $queryCopy->count();
-    	unset($queryCopy->where[(count($queryCopy->where) -1)]);
-    	$queryCopy->where("#state = 'active' || #state = 'closed'");
-    	$activeCount = $queryCopy->count();
-    	
-    	$res['countA'] = (object)array('caption' => tr('Активирани'), 'measure' => tr('бр'), 'quantity' => $activeCount);
-    	$res['countB'] = (object)array('caption' => tr('Чернови'), 'measure' => tr('бр'), 'quantity' => $draftCount);
-    	$tpl = static::renderSummary($res);
-    	
-    	return FALSE;
     }
     
     
     /**
      * Подготвя обощаващата информация
+     * 
      * @param core_Mvc $mvc - Класа към който е прикачен плъгина
      * @param array $fld - Поле от модела имащо атрибут "summary"
      * @param stdClass $rec - Запис от модела
@@ -203,7 +223,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	    				$baseAmount = currency_CurrencyRates::convertAmount($rec->{$fld->name}, dt::now(), $code, NULL);
 	    			} else {
 	    				
-	    				// Ако няма стойнсот за валутата по обобщение приемаме
+	    				// Ако няма стойнсот за валутата по обобщение се приема
 	    				// че сумата е в основната валута за периода
 	    				$baseAmount = $rec->{$fld->name};
 	    			}
@@ -222,6 +242,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     
    /**
     * Рендира обобщението
+    * 
     * @param array $res - Масив от записи за показване
     * @return core_ET $tpl - Шаблон на обобщението
     */
