@@ -261,8 +261,11 @@ class store_Products extends core_Manager
     
     
     /**
-     * Синхронизиране на запис от счетоводството с модела
-     * @param stdClass $rec
+     * Синхронизиране на запис от счетоводството с модела, Вика се от крон-а
+     * (@see acc_Balances::cron_Recalc)
+     * 
+     * @param stdClass $all - масив идващ от баланса във вида:
+     * 				array('store_id|class_id|product_Id' => 'quantity')
      */
     public static function sync($all)
     {
@@ -274,6 +277,8 @@ class store_Products extends core_Manager
     		
     		// Задаване на стойности на записа
     		list($storeId, $classId, $productId) = explode('|', $index);
+    		expect($storeId, $classId, $productId);
+    		
     		$rec = (object)array('storeId'   => $storeId,
     							 'classId'   => $classId,
     							 'productId' => $productId,
@@ -287,10 +292,13 @@ class store_Products extends core_Manager
 	    		$rec = $exRec;
 	    	}
 	    	
-	    	// Обновяване на датата за ъпдейт, и състоянието на продукта
+	    	// Обновяване на датата за ъпдейт
 	    	$rec->lastUpdated = $date;
+	    	
+	    	// Ако количеството е 0, състоянието е затворено
 	    	$rec->state = ($rec->quantity) ? 'active' : 'closed';
 	    	
+	    	// Обновяване на записа
 	    	static::save($rec);
     	}
     	
@@ -300,19 +308,27 @@ class store_Products extends core_Manager
     
     
     /**
-     * Ф-я която ъпдейтва всички записи, които присъстват в модела, но липсват
-     * в баланса. Техните
-     * @param date $date
+     * Ф-я която ъпдейтва всички записи, които присъстват в модела, 
+     * но липсват в баланса
+     * 
+     * @param date $date - дата
      */
     private static function updateMissingProducts($date)
     {
+    	// Всички продукти, които не са били обновени с последния ъпдейт,
+    	// са тези, които не идват от баланса
     	$query = static::getQuery();
     	$query->where("#lastUpdated != '{$date}'");
+    	
+    	// За всеки запис
     	while($rec = $query->fetch()){
+    		
+    		// К-то им се занулява и състоянието се затваря
     		$rec->state       = 'closed';
     		$rec->quantity    = 0;
     		$rec->lastUpdated = $date;
     		
+    		// Обновяване на записа
     		static::save($rec);
     	}
     }
@@ -326,14 +342,16 @@ class store_Products extends core_Manager
      */
     public static function getProductsInStore($storeId = NULL)
     {
+    	// Ако няма склад, взима се текущия
     	if(!$storeId){
     		$storeId = store_Stores::getCurrent();
     	}
     	
+    	// Извличане на всички активни продукти с к-во по-голямо от нула
     	$products = array();
 	    $pQuery = static::getQuery();
 	    $pQuery->where("#storeId = {$storeId}");
-	    $pQuery->where("#quantity > 'active'");
+	    $pQuery->where("#quantity > 0");
 	    $pQuery->where("#state = 'active'");
 	    while($pRec = $pQuery->fetch()){
 	        $products[$pRec->id] = $pRec->name;
