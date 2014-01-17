@@ -133,12 +133,10 @@ class eshop_Products extends core_Master
         $this->FLD('code', 'varchar(10)', 'caption=Код');
         $this->FLD('groupId', 'key(mvc=eshop_Groups,select=name)', 'caption=Група, mandatory, silent');
         $this->FLD('name', 'varchar(64)', 'caption=Продукт, mandatory,width=100%');
-        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация');
+        $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         
-        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
-        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
-        $this->FLD('image4', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
-        $this->FLD('image5', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация,column=none');
+        $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
+        $this->FLD('image3', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация3,column=none');
 
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
