@@ -102,7 +102,7 @@ class acc_OpenDeals extends core_Manager {
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->view = 'horizontal';
+    	
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
     	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
