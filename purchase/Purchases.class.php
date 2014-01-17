@@ -120,7 +120,7 @@ class purchase_Purchases extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'deliveryTermId, deliveryLocationId, deliveryTime, shipmentStoreId, paymentMethodId,
-    					 currencyId, bankAccountId, caseId, dealerId';
+    					 currencyId, bankAccountId, caseId, dealerId, folderId';
     
     
     /**
