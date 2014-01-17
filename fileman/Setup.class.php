@@ -177,8 +177,14 @@ class fileman_Setup extends core_ProtoSetup
             // Установяваме модела за хранилища
             'fileman_Repositories',
     
-            // установяваме модела за последни файлове
+            // Установяваме модела за последни файлове
             'fileman_Log',
+            
+        	// Установяваме модела за групи на галериите
+            'fileman_GalleryGroups',
+    
+            // Установяваме модела за галериите 
+            'fileman_GalleryImages',
         );
     /**
      * Инсталиране на пакета
@@ -220,6 +226,9 @@ class fileman_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за качване на файлове в RichEdit
         $html .= $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
+        
+         // Замества абсолютните линкове с титлата на документа
+        $html .= $Plugins->installPlugin('Галерии и картинки в RichText', 'fileman_GalleryRichTextPlg', 'type_Richtext', 'private');
         
         // Кофа за файлове качени от архиви
         $html .= $Buckets->createBucket('archive', 'Качени от архив', '', '100MB', 'user', 'user');
