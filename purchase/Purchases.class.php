@@ -35,7 +35,7 @@ class purchase_Purchases extends core_Master
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg, doc_plg_TplManager,
 				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -839,4 +839,30 @@ class purchase_Purchases extends core_Master
     	
     	$res .= "<li><font color='green'>Добавени са {$added} шаблона за покупки, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = purchase_PurchasesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#requestId = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }
