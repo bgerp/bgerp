@@ -261,8 +261,10 @@ class eshop_Products extends core_Master
         $data->groups = new stdClass();
         $data->groups->groupId = $data->rec->groupId;
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
+        
         cms_Content::setCurrent($data->groups->rec->menuId);
         
+
         $this->prepareProduct($data);
 
         eshop_Groups::prepareNavigation($data->groups);

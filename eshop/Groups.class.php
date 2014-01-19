@@ -206,12 +206,14 @@ class eshop_Groups extends core_Master
     function act_Show()
     {
         $data = new stdClass();
-        $data->groupId = Request::get('id', 'int');
+
+        expect($data->groupId = Request::get('id', 'int'));
+        expect($groupRec = self::fetch($data->groupId));
+        cms_Content::setCurrent($groupRec->menuId);
+        
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
 
-        cms_Content::setCurrent($data->rec->menuId);
-        
         $layout = $this->getLayout();
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
@@ -220,7 +222,6 @@ class eshop_Groups extends core_Master
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
 
-        
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
