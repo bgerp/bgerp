@@ -94,7 +94,7 @@ class plg_Sorting extends core_Plugin
                         break;
                     case 'down' :
                         $img = 'img/icon_sort_down.gif';
-                        $sort = $f . '|none';
+                        $sort = $field . '|none';
                         break;
                     default :
                     expect(FALSE, $direction);
