@@ -110,7 +110,7 @@
                         
                         <!--ET_BEGIN caseId-->
                         <hr/>
-                        <div>|Каса|*: <b>[#caseId#]</b> <span style='margin-left:5px'>[#caseBtn#]</span></div>
+                        <div>|Каса|*: <b>[#caseId#]</b></div>
                         <!--ET_END caseId-->
                     </td>
        

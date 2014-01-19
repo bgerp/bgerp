@@ -38,7 +38,7 @@ class purchase_Services extends core_Master
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, plg_LastUsedKeys';
+                    doc_plg_BusinessDoc2, plg_LastUsedKeys, plg_Search';
 
     
     /**
@@ -80,7 +80,7 @@ class purchase_Services extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDeliveredVat, createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered, amountDeliveredVat, createdOn, createdBy';
 
 
     /**
@@ -118,6 +118,12 @@ class purchase_Services extends core_Master
      */
     protected $updated = array();
     
+      
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'valior, contragentClassId, contragentId, locationId, deliveryTime, folderId';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -129,8 +135,8 @@ class purchase_Services extends core_Master
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
         
-        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,summary=amount,input=none');
+        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,summary=amount,input=none');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
         // Контрагент
@@ -363,8 +369,9 @@ class purchase_Services extends core_Master
     {
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		if($rec->amountDeliveredVat){
+    		if($rec->amountDeliveredVat || $rec->amountDelivered){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
+    			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
     		} else {
     			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
@@ -609,4 +616,30 @@ class purchase_Services extends core_Master
         
         return $tpl->getContent();
     }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = purchase_ServicesDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#shipmentId = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

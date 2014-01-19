@@ -803,12 +803,19 @@ class callcenter_Talks extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        // Използваме собсвен лейаут за тъсене
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('callcenter/tpl/TalksFilterForm.shtml')));
+    
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // Функционално поле за търсене по статус и тип на разговора
         $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input', array('attr' => array('onchange' => 'this.form.submit();')));
         
+        // Полета за търсене по дата
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,input');
+		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,input');
+		
         // Опции за търсене
         $statusOptions[''] = '';
         
@@ -850,24 +857,18 @@ class callcenter_Talks extends core_Master
         }
         
         // В хоризонтален вид
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->view = 'vertical';
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search, usersSearch, dialStatusType';
+        $data->listFilter->showFields = 'search, usersSearch, dialStatusType, from, to';
         
-        $data->listFilter->input('search, usersSearch, dialStatusType', 'silent');
-    }
-
-    
-    /**
-     * 
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
+        // Инпутваме заявката
+        $data->listFilter->input('search, usersSearch, dialStatusType, from, to', 'silent');
+        
         // Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
             
@@ -933,12 +934,147 @@ class callcenter_Talks extends core_Master
                     $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
                 }
             }
+            
+            // Масив с датите
+            $dateRange = array();
+	        
+            // Ако е зададено от
+	        if ($filter->from) {
+	            
+	            // Добавяме в масива
+	            $dateRange[0] = $filter->from; 
+	        }
+	        
+	        // Ако е зададено до
+	        if ($filter->to) {
+	            
+	            // Добавяме в масива
+	            $dateRange[1] = $filter->to; 
+	        }
+	        
+	        // Ако има от и до
+	        if (count($dateRange) == 2) {
+	            
+	            // Подреждаме масива
+	            sort($dateRange);
+	        }
+	        
+	        // Ако има от
+            if($dateRange[0]) {
+                
+                // Разговори приети От дата
+    			$data->query->where(array("#startTime >= '[#1#]'", $dateRange[0]));
+    		}
+            
+    		// Ако има до
+			if($dateRange[1]) {
+			    
+			    // Разговори До дата
+    			$data->query->where(array("#startTime <= '[#1#] 23:59:59'", $dateRange[1]));
+    		}
         }
     }
     
     
     /**
      * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        // Ако няма заявка, да не се изпълнява
+        if (!$data->listSummary->query) return ;
+        
+    	// Обхождаме всички клонирани записи
+        while ($rec = $data->listSummary->query->fetch()) {
+            
+            // Статус на разговора
+            $dialStatus = $rec->dialStatus;
+            
+            // Ако няма статус
+            if (!$dialStatus) {
+                $dialStatus = 'OTHER';
+            } elseif ($dialStatus == 'NO ANSWER') {
+                
+                // Заместваме празния интервал с долна черта
+                $dialStatus = 'NO_ANSWER';
+            }
+            
+            // Добавяме продължителността
+            $stat['duration'] += $rec->duration;
+            
+            // Увеличаваме броя на съответния статус
+            $stat['dialStatus'][$dialStatus]++;
+            
+            // Увеличаваме броя на всички състояния
+            $stat['dialStatus']['TOTAL']++;
+        }
+        
+        // Статистика за разговорите
+        $data->listSummary->stat = $stat;
+        
+        // Ако има продължителност
+        if ($stat['duration']) {
+            
+            // Инстанция на класа
+            $Time = cls::get('type_Time');
+            
+            // Вербално представяне
+            $stat['duration'] = $Time->toVerbal($stat['duration']);
+        } else {
+            
+            // Премахваме продължителността на разговора, ако е 0
+            unset($stat['duration']);
+        }
+        
+        // Добавяме вербалните стойности
+        $data->listSummary->statVerb = $stat;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $tpl
+     * @param unknown_type $data
+     */
+    static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
+    {
+        // Ако няма данни, няма да се показва нищо
+        if (!$data->listSummary->statVerb) return ;
+        
+    	// Зареждаме и подготвяме шаблона
+    	$tpl = getTplFromFile(("callcenter/tpl/CallSummary.shtml"));
+    	
+    	// Заместваме продължителността на разговора
+    	$tpl->append($data->listSummary->statVerb['duration'], 'duration');
+    	
+    	// Заместваме статусите на обажданията
+    	$tpl->placeArray($data->listSummary->statVerb['dialStatus']);
+    	
+    	// Премахваме празните блокове
+		$tpl->removeBlocks();
+		$tpl->append2master();
+    	
+		// Добавяме CSS
+		$tpl->push('callcenter/css/callSummary.css', 'CSS');
+		
+    	return $tpl;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $requiredRoles
+     * @param unknown_type $action
+     * @param unknown_type $rec
+     * @param unknown_type $userId
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {

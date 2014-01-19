@@ -49,7 +49,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Search, plg_Sorting, plg_Rejected';
+    public $loadList = 'plg_Search, plg_Sorting, plg_Rejected, acc_plg_DocumentSummary';
     
     
     /**
@@ -72,8 +72,8 @@ class acc_OpenDeals extends core_Manager {
     	$this->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ->Клас');
         $this->FLD('docId', 'int(cellAttr=left)', 'caption=Документ->Обект');
     	$this->FLD('valior', 'date', 'caption=Дата');
-    	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано');
-    	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено');
+    	$this->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума->Поръчано, summary = amount');
+    	$this->FLD('amountPaid', 'double(decimals=2)', 'caption=Сума->Платено, summary = amount');
     	$this->FLD('state', 'enum(active=Активно, closed=Приключено, rejected=Оттеглено)', 'caption=Състояние');
     	
     	$this->setDbUnique('docClass,docId');
@@ -102,7 +102,7 @@ class acc_OpenDeals extends core_Manager {
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->view = 'horizontal';
+    	
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
     	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));

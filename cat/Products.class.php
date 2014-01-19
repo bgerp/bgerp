@@ -322,28 +322,6 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Оцветяване през ред
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListRows($mvc, $data)
-    {
-        $rowCounter = 0;
-        
-        if (count($data->rows)) {
-            foreach ($data->rows as $i=>&$row) {
-                $rec = $data->recs[$i];
-                $rowCounter++;
-                $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
-                $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-            }
-        }
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -479,33 +457,56 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Помощна ф-я премахваща от списъкс  продукти, тези които са в недостъпни групи
+     * Помощна ф-я премахваща от списъка с продукти отговарящи на
+     * някакви мета данни тези до които потребителя няма достъп.
+     * Връща се подможество състоящо се от тези продукти от подадените,
+     * до които има достъп потребителя и има достъп до поне една тяхна група
+     * 
      * @param array $products - продукти отговарящи на някакви критерии
      */
     private static function unsetUnavailableProducts(&$products)
     {
-    	if(!count($products)){
-    		return;
-    	}
+    	// Ако няма продукти 
+    	if(!count($products)) return;
     	
     	// Извличане на групите до които текущия потребител има достъп
     	$allowedGroups = array();
     	$groupQuery = cat_Groups::getQuery();
     	cat_Groups::restrictAccess($groupQuery);
+    	
+    	// Запомнят се в един масив
     	while($gRec = $groupQuery->fetch()){
 	    	$allowedGroups[$gRec->id] = $gRec->id;
     	}
     	
+    	// Подготвяне във стринг на ид-та на продуктите
     	$productIds = implode(", ", array_keys($products));
+    	
+    	// Извличане на продукти
+    	$accessibleProducts = array();
     	$query = static::getQuery();
+    	
+    	// До които потребителя има достъп
     	static::restrictAccess($query);
+    	
+    	// И ид-та им присъстват в $products
     	$query->in('id', $productIds);
+    	
+    	// За всякя заявка
     	while($rec = $query->fetch()){
+    		
+    		// Натрупват се всички достъпни продукти
+    		$accessibleProducts[$rec->id] = $rec->id;
+    		
+    		// Флаг дали потребителя има достъп до поне една група на продукта
     		$flag = FALSE;
+    		
+    		// Ако има достъп до поне една група флага се сетва на TRUE
     		$groups = keylist::toArray($rec->groups);
     		foreach ($groups as $gr){
     			if(isset($allowedGroups[$gr])){
     				$flag = TRUE;
+    				break;
     			}
     		}
     		
@@ -515,7 +516,9 @@ class cat_Products extends core_Master {
     		}
     	}
     	
-    	return $products;
+    	// Накрая се връща общата част от всички продукти и тези
+    	// до които има достъп потребителя
+    	$products = array_intersect_key($products, $accessibleProducts);
     }
     
     

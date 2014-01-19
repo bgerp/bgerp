@@ -29,12 +29,31 @@ class doc_plg_TplManager extends core_Plugin
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
         
-        // Добавя поле за избор на шаблон, ако няма ,where=#docClassId \\= \\'{$mvc->getClassId()}\\'
+        // Добавя поле за избор на шаблон, ако няма
         if(empty($mvc->fields['template'])){
         	$mvc->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Шаблон');
         }
-        
-        setIfNot($mvc->templateFld, 'SINGLE_CONTENT');
+    }
+    
+    
+    /**
+     * Изпълнява се след закачане на детайлите
+     */
+    public function on_AfterAttachDetails($mvc, $res, $details)
+    {
+    	if($mvc->details){
+        	$details = arr::make($mvc->details);
+        	
+        	// На всеки детайл от модела му се прикача 'doc_plg_TplManagerDetail' (ако го няма)
+        	foreach($details as $Detail){
+        		if($mvc->$Detail instanceof $Detail){
+        			$plugins = $mvc->$Detail->getPlugins();
+        			if(empty($plugins['doc_plg_TplManagerDetail'])){
+        				$mvc->$Detail->load('doc_plg_TplManagerDetail');
+        			}
+        		}
+        	}
+        }
     }
     
     
@@ -75,17 +94,25 @@ class doc_plg_TplManager extends core_Plugin
     }
     
     
+	/**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, &$rec)
+    {
+    	// Ако няма шаблон, за шаблон се приема първия такъв за модела
+    	if(!$rec->template){
+			$templates = doc_TplManager::getTemplates($mvc->getClassId());
+			$rec->template = key($templates);
+		}
+    }
+    
+    
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
     function on_BeforeRenderSingleLayout($mvc, &$res, $data)
     {
-    	if(!$data->rec->template){
-			$templates = doc_TplManager::getTemplates($mvc->getClassId());
-			$data->rec->template = key($templates);
-		}
-		
-		// За текущ език се избира този на шаблона
+    	// За текущ език се избира този на шаблона
 		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
     	core_Lg::push($lang);
     }
@@ -119,7 +146,16 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// Ако има избран шаблон то той се замества в еденичния изглед
     	$content = doc_TplManager::getTemplate($data->rec->template);
-    	$tpl->replace($content, $mvc->templateFld);
+    	
+    	if($mvc->templateFld){
+    		
+    		// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
+    		$tpl->replace($content, $mvc->templateFld);
+    	} else {
+    		
+    		// Ако няма плейсхолър за шаблона, то се замества целия еденичен изглед
+    		$tpl = $content;
+    	}
     }
     
     
@@ -130,5 +166,38 @@ class doc_plg_TplManager extends core_Plugin
     {
     	// След като документа е рендиран, се възстановява нормалния език
     	core_Lg::pop();
+    }
+    
+    
+	/**
+     * След подготовка на на единичния изглед
+     */
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	// Ако има избран шаблон
+    	if($data->rec->template){
+    		$toggleFields = doc_TplManager::fetchField($data->rec->template, 'toggleFields');
+    		
+    		// Ако има данни, за кои полета да се показват от мастъра
+    		if(count($toggleFields) && $toggleFields['masterFld'] !== NULL){
+    			
+    			// Полетата които трябва да се показват
+    			$fields = arr::make($toggleFields['masterFld']);
+    			
+    			// Всички полета, които могат да се скриват/показват
+    			$toggleFields = arr::make($mvc->toggleFields);
+    			
+    			// Намират се засичането на двата масива с полета
+    			$intersect = array_intersect_key((array)$data->row, $toggleFields);
+    			
+    			foreach ($intersect as $k => $v){
+    				
+    				// За всяко от опционалните полета: ако не е избран да се показва, се маха
+    				if(!in_array($k, $fields)){
+    					unset($data->row->$k);
+    				}
+    			}
+    		}
+    	}
     }
 }

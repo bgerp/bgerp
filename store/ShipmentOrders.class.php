@@ -39,7 +39,7 @@ class store_ShipmentOrders extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, 
-                    doc_DocumentPlg, acc_plg_DocumentSummary, store_DocumentWrapper, doc_plg_TplManager,
+                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
@@ -94,7 +94,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
 
     
     /**
@@ -142,13 +142,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
-    
-    
-    /**
-     * Полета за скриване/показване от шаблоните
-     */
-    //public $toggleFields = 'valior=Дата,amountDelivered=Доставено';
+    public $searchFields = 'locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId';
     
     
     /**
@@ -162,8 +156,8 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory'); 
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=ДДС,input=hidden');
         
-        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено,input=none,summary=amount');
+        $this->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount'); // Сумата на доставената стока
+        $this->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,input=none,summary=amount');
         $this->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         
         // Контрагент
@@ -352,9 +346,6 @@ class store_ShipmentOrders extends core_Master
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
-    	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
@@ -449,6 +440,7 @@ class store_ShipmentOrders extends core_Master
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->amountDelivered){
+    			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
     		} else {
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
@@ -695,4 +687,64 @@ class store_ShipmentOrders extends core_Master
         
         return $tpl->getContent();
     }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Експедиционно нареждане', 
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrder.shtml', 'lang' => 'bg', 
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Експедиционно нареждане с цени', 
+    					  'content' => 'store/tpl/SingleLayoutShipmentOrderPrices.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	$tplArr[] = array('name' => 'Packaging list', 
+    					  'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = store_ShipmentOrderDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#shipmentId = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

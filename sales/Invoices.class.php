@@ -52,7 +52,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, type';
+    public $listFields = 'tools=Пулт, number, date, place, folderId, type, dealValue, vatAmount';
     
     
     /**
@@ -138,7 +138,9 @@ class sales_Invoices extends core_Master
      */
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
     
+    
     public $filterDateField = 'date';
+    
     
     /**
      * Стратегии за дефолт стойностти
@@ -192,7 +194,7 @@ class sales_Invoices extends core_Master
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
-        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС,summary=amount');
+        $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');

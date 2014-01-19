@@ -396,4 +396,30 @@ class techno_GeneralProducts extends core_Master {
         $tpl->append($handle, 'handle');
         return $tpl->getContent();
     }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = techno_GeneralProductsDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#generalProductId  = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){ //bp($recDetails->price);
+	        	// взимаме заглавията на продуктите
+	        	$producDetails.= " " . $recDetails->price . " " .$recDetails->amount;
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($producDetails);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

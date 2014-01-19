@@ -37,7 +37,7 @@ class store_Receipts extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, acc_plg_DocumentSummary, store_DocumentWrapper,
+                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
@@ -134,7 +134,7 @@ class store_Receipts extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume';
+    var $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId';
     
     
     /**
@@ -681,4 +681,30 @@ class store_Receipts extends core_Master
         
         return $tpl->getContent();
     }
+    
+    
+     /**
+      * Добавя ключови думи за пълнотекстово търсене, това са името на
+      * документа или папката
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	// Тук ще генерираме всички ключови думи
+     	$detailsKeywords = '';
+
+     	// заявка към детайлите
+     	$query = store_ReceiptDetails::getQuery();
+     	// точно на тази фактура детайлите търсим
+     	$query->where("#receiptId = '{$rec->id}'");
+     	
+	        while ($recDetails = $query->fetch()){
+	        	// взимаме заглавията на продуктите
+	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	// и ги нормализираме
+	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	        }
+	        
+    	// добавяме новите ключови думи към основните
+    	$res = " " . $res . " " . $detailsKeywords;
+     }
 }

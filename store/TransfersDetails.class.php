@@ -169,11 +169,12 @@ class store_TransfersDetails extends core_Detail
         
         if(empty($rec->id)){
         	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
-        	$form->setOptions('productId', store_Products::getProductsInStore($fromStore));
+        	$products = store_Products::getProductsInStore($fromStore);
+        	expect(count($products));
+        	$form->setOptions('productId', $products);
         } else {
         	$form->setReadOnly('productId');
         }
-        
     }
     
     
