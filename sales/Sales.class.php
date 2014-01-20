@@ -1173,7 +1173,12 @@ class sales_Sales extends core_Master
     	
     	while($rec = $query->fetch()){
     		$rec->state = 'closed';
-    		$this->save($rec);
+    		
+    		try{
+    			$this->save($rec);
+    		} catch(Exception $e){
+    			// Ако има проблем при обновяването
+    		}
     	}
     }
     
@@ -1331,8 +1336,15 @@ class sales_Sales extends core_Master
     			$rec->paymentState = 'paid';
     			$this->save($rec);
     		} else {
-    			// Намира се метода на плащане от интерфейса
-    			$dealInfo = $this->getAggregateDealInfo($rec->id);
+    			try{
+    				// Намира се метода на плащане от интерфейса
+    				$dealInfo = $this->getAggregateDealInfo($rec->id);
+    			} catch(Exception $e){
+    				
+    				// Ако има проблем при извличането се продължава
+    				continue;
+    			}
+    			
     			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
     			if($mId){
     				// Намира се датата в реда фактура/експедиция/продажба
@@ -1350,7 +1362,12 @@ class sales_Sales extends core_Master
     				
     					// Ако да, то продажбата се отбелязва като пресрочена
     					$rec->paymentState = 'overdue';
-    					$this->save($rec);
+    					
+    					try{
+    						$this->save($rec);
+    					}catch(Exception $e){
+    						// Ако има проблем при ъпдейтването
+    					}
     				}
     			}
     		}
