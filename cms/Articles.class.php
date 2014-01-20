@@ -152,6 +152,8 @@ class cms_Articles extends core_Master
         }
 
         $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        
+        $data->query->orderBy('#menuId,#level');
     }
 
 
@@ -178,15 +180,6 @@ class cms_Articles extends core_Master
         }
 
         return $options;
-    }
-
-
-    /**
-     *  Задава подредбата
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy('#menuId,#level');
     }
 
 

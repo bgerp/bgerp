@@ -326,6 +326,8 @@ class cms_Content extends core_Manager
         }
        
         $data->query->where(array("#lang = '[#1#]'", $lang));
+        
+        $data->query->orderBy('#order,#lang');
     }
 
 
@@ -346,15 +348,6 @@ class cms_Content extends core_Manager
             $lang = cms_Content::getLang();
             $data->form->setDefault('lang', $lang);
         }
-    }
-    
-
-    /**
-     *  Задава подредбата
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy('#order,#lang');
     }
 
     
