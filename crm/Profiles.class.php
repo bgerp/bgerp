@@ -664,15 +664,6 @@ class crm_Profiles extends core_Master
 
 
     /**
-     * Изпълнява се след подготовка на данните за списъчния изглед
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy("lastLoginTime", "DESC");
-    }
-
-
-    /**
      * След подготовката на редовете на списъчния изглед
      * 
      * Прави ника и името линкове към профилната визитка (в контекста на crm_Profiles)
@@ -722,6 +713,8 @@ class crm_Profiles extends core_Master
     	$data->listFilter->showFields = 'search';
         
         $data->listFilter->input('search', 'silent');
+        
+        $data->query->orderBy("lastLoginTime", "DESC");
     }
     
     /**

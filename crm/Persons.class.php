@@ -225,17 +225,57 @@ class crm_Persons extends core_Master
 
 
     /**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
      *
      * @param core_Mvc $mvc
-     * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        // Подредба
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        
+        // Вземаме стойността по подразбиране, която може да се покаже
+        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+        
+        // Задаваме стойността по подразбиране
+        $data->listFilter->setDefault('users', $default);
+        
+        // Подготовка на полето за подредба
+        foreach($mvc->listOrderBy as $key => $attr) {
+            $options[$key] = $attr[0];
+        }
+        $orderType = cls::get('type_Enum');
+        $orderType->options = $options;
+
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+                                         
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty,translate)', 'placeholder=Всички групи,caption=Група,input,silent', 
+            array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+
+        $data->listFilter->view = 'horizontal';
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = 'search,users,order,groupId';
+
+        $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
+        
+        // Според заявката за сортиране, показваме различни полета
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+
+        if($showColumns) {
+            $showColumns = arr::make($showColumns, TRUE);
+            foreach($showColumns as $field => $title) {
+                $data->listFields[$field] = $title;
+            }
+        }
+        
+    	// Подредба
         setIfNot($data->listFilter->rec->order, 'alphabetic');
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
         if($orderCond) {
@@ -297,59 +337,6 @@ class crm_Persons extends core_Master
 
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
-        }
-    }
-
-
-    /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListFilter($mvc, &$res, $data)
-    {
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        
-        // Вземаме стойността по подразбиране, която може да се покаже
-        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
-        
-        // Задаваме стойността по подразбиране
-        $data->listFilter->setDefault('users', $default);
-        
-        // Подготовка на полето за подредба
-        foreach($mvc->listOrderBy as $key => $attr) {
-            $options[$key] = $attr[0];
-        }
-        $orderType = cls::get('type_Enum');
-        $orderType->options = $options;
-
-        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-                                         
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty,translate)', 'placeholder=Всички групи,caption=Група,input,silent', 
-            array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-
-        $data->listFilter->view = 'horizontal';
-
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-
-        // Показваме само това поле. Иначе и другите полета
-        // на модела ще се появят
-        $data->listFilter->showFields = 'search,users,order,groupId';
-
-        $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
-        
-        // Според заявката за сортиране, показваме различни полета
-        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
-
-        if($showColumns) {
-            $showColumns = arr::make($showColumns, TRUE);
-            foreach($showColumns as $field => $title) {
-                $data->listFields[$field] = $title;
-            }
         }
      }
 

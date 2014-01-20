@@ -214,61 +214,7 @@ class crm_Companies extends core_Master
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
-    
-    
-    /**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Подредба
-        setIfNot($data->listFilter->rec->order, 'alphabetic');
-        $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
-        if($orderCond) {
-            $data->query->orderBy($orderCond);
-        }
 
-        
-        if($data->listFilter->rec->alpha) {
-            if($data->listFilter->rec->alpha{0} == '0') {
-                $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
-            } else {
-                $alphaArr = explode('-', $data->listFilter->rec->alpha);
-                $cond = array();
-                $i = 1;
-                
-                foreach($alphaArr as $a) {
-                    $cond[0] .= ($cond[0] ? ' OR ' : '') .
-                    "( LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) LIKE LOWER('[#{$i}#]%'))";
-                    $cond[$i] = $a;
-                    $i++;
-                }
-            }
-            
-            $data->query->where($cond);
-        }
-
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
-        }
-
-        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
-            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
-        }
-                    
-        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
-            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
-        }
-    }
-    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -319,6 +265,47 @@ class crm_Companies extends core_Master
             foreach($showColumns as $field => $title) {
                 $data->listFields[$field] = $title;
             }
+        }
+        
+     	// Подредба
+        setIfNot($data->listFilter->rec->order, 'alphabetic');
+        $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
+        if($orderCond) {
+            $data->query->orderBy($orderCond);
+        }
+
+        
+        if($data->listFilter->rec->alpha) {
+            if($data->listFilter->rec->alpha{0} == '0') {
+                $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
+            } else {
+                $alphaArr = explode('-', $data->listFilter->rec->alpha);
+                $cond = array();
+                $i = 1;
+                
+                foreach($alphaArr as $a) {
+                    $cond[0] .= ($cond[0] ? ' OR ' : '') .
+                    "( LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) LIKE LOWER('[#{$i}#]%'))";
+                    $cond[$i] = $a;
+                    $i++;
+                }
+            }
+            
+            $data->query->where($cond);
+        }
+
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
+            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+        }
+                    
+        if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
+            $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
         }
     }
     

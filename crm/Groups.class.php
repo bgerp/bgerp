@@ -137,40 +137,7 @@ class crm_Groups extends core_Master
         $this->setDbUnique("name");
         $this->setDbUnique("sysId");
     }
-   
 
-    /**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$data->query->orderBy('#name');
-    	
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->users) {
-            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
-        }
-
-        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
-            
-        	$user = type_Keylist::toArray($data->listFilter->rec->users);
-            
-        	foreach($user as $u){
-        		
-        		$groupList = crm_Persons::fetchField($u, 'groupList');
-        		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
-        	}
-
-        }
-
-    }
-    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -199,8 +166,25 @@ class crm_Groups extends core_Master
         $data->listFilter->showFields = 'search,users';
         
         $rec = $data->listFilter->input('users,search', 'silent');
- 
-    }
+        
+    	$data->query->orderBy('#name');
+    	
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+
+        if(($data->listFilter->rec->users != 'all_users') && (strpos($data->listFilter->rec->users, '|-1|') === FALSE)) {  
+            
+        	$user = type_Keylist::toArray($data->listFilter->rec->users);
+            
+        	foreach($user as $u){
+        		
+        		$groupList = crm_Persons::fetchField($u, 'groupList');
+        		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+        	}
+        }
+     }
  
 
     /**
