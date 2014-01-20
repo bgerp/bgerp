@@ -71,11 +71,47 @@ class doc_Search extends core_Manager
     
     
     /**
-     * Филтрира по id на нишка (threadId)
+     * Изпълнява се след подготовката на филтъра за листовия изглед
+     * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    static function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $filterRec = $data->listFilter->rec;
+        $data->listFilter->title = 'Tърсене на документи';
+        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
+        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
+        $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
+        
+        // Търсим дали има посочена или текуща
+        $lastfolderId = Request::get('scopeFolderId', 'int');
+        if(!$lastfolderId) {
+            $lastfolderId = Mode::get('lastfolderId');
+        } 
+        
+    	// Ако има текуща папка, добавяме опция за търсене само в нея
+        if (($lastfolderId) && (doc_Folders::haveRightFor('single', $lastfolderId)) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, 'title'))) {
+            $field = $data->listFilter->getField('scopeFolderId');
+    		$field->type->options[$lastfolderId] = '|*' . $lastFolderTitle;
+            $data->listFilter->setField('scopeFolderId', 'input');
+    	}
+    	
+        $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
+
+    	$data->listFilter->getField('search')->caption = 'Ключови думи';
+        $data->listFilter->getField('search')->width = '100%';
+        $data->listFilter->getField('docClass')->caption = 'Вид документ';
+        $data->listFilter->getField('docClass')->width = '100%';
+        $data->listFilter->getField('docClass')->placeholder = 'Всички';
+        $data->listFilter->getField('author')->width = '100%';
+        $data->listFilter->getField('state')->width = '100%';
+        $data->listFilter->getField('scopeFolderId')->width = '100%';
+        
+        $data->listFilter->setDefault('author', 'all_users');
+
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
+        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+    	$filterRec = $data->listFilter->rec;
         
         $isFiltered =
         !empty($filterRec->search) ||
@@ -193,49 +229,6 @@ class doc_Search extends core_Manager
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where("0 = 1");
         }
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на филтъра за листовия изглед
-     * Обикновено тук се въвеждат филтриращите променливи от Request
-     */
-    static function on_AfterPrepareListFilter($mvc, &$res, $data)
-    {
-        $data->listFilter->title = 'Tърсене на документи';
-        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=100%,caption=Обхват');
-        $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
-        
-        // Търсим дали има посочена или текуща
-        $lastfolderId = Request::get('scopeFolderId', 'int');
-        if(!$lastfolderId) {
-            $lastfolderId = Mode::get('lastfolderId');
-        } 
-        
-    	// Ако има текуща папка, добавяме опция за търсене само в нея
-        if (($lastfolderId) && (doc_Folders::haveRightFor('single', $lastfolderId)) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, 'title'))) {
-            $field = $data->listFilter->getField('scopeFolderId');
-    		$field->type->options[$lastfolderId] = '|*' . $lastFolderTitle;
-            $data->listFilter->setField('scopeFolderId', 'input');
-    	}
-    	
-        $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-
-    	$data->listFilter->getField('search')->caption = 'Ключови думи';
-        $data->listFilter->getField('search')->width = '100%';
-        $data->listFilter->getField('docClass')->caption = 'Вид документ';
-        $data->listFilter->getField('docClass')->width = '100%';
-        $data->listFilter->getField('docClass')->placeholder = 'Всички';
-        $data->listFilter->getField('author')->width = '100%';
-        $data->listFilter->getField('state')->width = '100%';
-        $data->listFilter->getField('scopeFolderId')->width = '100%';
-        
-        $data->listFilter->setDefault('author', 'all_users');
-
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
-        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 
     

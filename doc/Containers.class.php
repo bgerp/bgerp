@@ -94,20 +94,7 @@ class doc_Containers extends core_Manager
         $this->setDbIndex('threadId');
         $this->setDbUnique('docClass, docId');
     }
-    
-    
-    /**
-     * Филтрира по id на нишка (threadId)
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $threadId = Request::get('threadId', 'int');
-        
-        if($threadId) {
-            $data->query->where("#threadId = {$threadId}");
-        }
-    }
-    
+ 
     
     /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
@@ -127,6 +114,12 @@ class doc_Containers extends core_Manager
         bgerp_Recently::add('document', $data->threadRec->firstContainerId);
         
         $data->query->orderBy('#createdOn');
+        
+    	$threadId = Request::get('threadId', 'int');
+        
+        if($threadId) {
+            $data->query->where("#threadId = {$threadId}");
+        }
     }
     
     

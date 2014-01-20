@@ -142,15 +142,8 @@ class doc_Folders extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'search,users,order';
         $data->listFilter->input('search,users,order', 'silent');
-    }
-    
-    
-    /**
-     * Действия преди извличането на данните
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        if(!$data->listFilter->rec->users) {
+        
+    	if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
         

@@ -180,7 +180,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Предпазва от листване скритите папки
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    function on_AfterPrepareListFilter($mvc, &$data)
     { 
         if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
             $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");

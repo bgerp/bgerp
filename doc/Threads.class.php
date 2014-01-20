@@ -220,14 +220,7 @@ class doc_Threads extends core_Manager
         $data->listFilter->showFields = 'folderId,search,order';
 
         $data->listFilter->input(NULL, 'silent');
-    }
-    
-    
-    /**
-     * Филтрира по папка и ако е указано показва само оттеглените записи
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
+        
         expect($folderId = $data->listFilter->rec->folderId);
         
         doc_Folders::requireRightFor('single');

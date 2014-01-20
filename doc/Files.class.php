@@ -157,22 +157,6 @@ class doc_Files extends core_Manager
     
     
     /**
-     * Филтрира по папка и ако е указано показва само оттеглените записи
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Очакваме да има id на папка
-        expect($folderId = $data->listFilter->rec->folderId);
-        
-        // Очакваме да има такъв запис
-        expect($folderRec = doc_Folders::fetch($folderId));
-
-        // Подготвяме филтрите
-        doc_Files::applyFilter($data->listFilter->rec, $data->query);
-    }
-    
-    
-    /**
      * 
      */
     static function on_AfterPrepareListRecs($mvc, &$res, $data)
@@ -205,6 +189,15 @@ class doc_Files extends core_Manager
         $data->listFilter->showFields = 'folderId,search';
 
         $data->listFilter->input(NULL, 'silent');
+        
+        // Очакваме да има id на папка
+        expect($folderId = $data->listFilter->rec->folderId);
+        
+        // Очакваме да има такъв запис
+        expect($folderRec = doc_Folders::fetch($folderId));
+
+        // Подготвяме филтрите
+        doc_Files::applyFilter($data->listFilter->rec, $data->query);
     }
     
     

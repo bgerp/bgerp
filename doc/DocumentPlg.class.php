@@ -266,7 +266,7 @@ class doc_DocumentPlg extends core_Plugin
      * Преди подготовка на данните за табличния изглед правим филтриране
      * на записите, които са (или не са) оттеглени и сортираме от нови към стари
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    function on_AfterPrepareListFilter($mvc, &$data)
     {
         if($data->query) {
             if(Request::get('Rejected')) {
