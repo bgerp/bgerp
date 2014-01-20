@@ -478,7 +478,7 @@ class cat_Products extends core_Master {
     	
     	// И ид-та им присъстват в $products
     	$query->in('id', $productIds);
-    	
+    	//bp($query->fetchAll());
     	// За всякя заявка
     	while($rec = $query->fetch()){
     		
@@ -497,8 +497,9 @@ class cat_Products extends core_Master {
     			}
     		}
     		
-    		// Ако никоя от групите на продукта не е достъпна, той се премахва
-    		if(!$flag){
+    		// Ако никоя от групите на продукта не е достъпна и продукта не
+    		// е шернат до потребителя, той се премахва
+    		if(!$flag && !keylist::isIn(core_Users::getCurrent(), $rec->shared)){
     			unset($products[$rec->id]);
     		}
     	}
