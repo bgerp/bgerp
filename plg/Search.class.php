@@ -96,27 +96,15 @@ class plg_Search extends core_Plugin
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC($mvc->searchInputField, 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-    }
-    
-    
-    /**
-     * Изпълнява се преди извличането на записите от базата данни
-     * Добавя условие в $query за пълнотекстово търсене
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->listFilter->input(null, 'silent');
+        
+    	$data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
         if ($filterRec->{$mvc->searchInputField}) {
             static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
         }
     }
-    
+       
     
     static function applySearch($search, $query, $field = 'searchKeywords')
     {
