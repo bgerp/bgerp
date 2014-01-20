@@ -80,7 +80,7 @@ class forum_Categories extends core_Manager {
 	/**
 	 * Подреждаме категориите по полето им order
 	 */ 
-	function on_BeforePrepareListRecs($mvc, $res, $data)
+	function on_AfterPrepareListFilters($mvc, &$data)
 	{
 		$data->query->orderBy('#order');
 	}

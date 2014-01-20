@@ -1032,40 +1032,6 @@ class forum_Postings extends core_Detail {
    	 		//$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));
    	 	}
     }
-   
-    
-    /**
-	 *  Показваме само постингите, които са теми при Лист изгледа и Single-a  на дъска
-	 */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-	{
-		$data->query->where("#themeId IS  NULL");
-		$data->title = tr('Показване на всички теми');
-		
-        if($filter = $data->listFilter->rec) {
-	    	if($filter->board > 0) {
-					$data->query->where("#boardId = {$filter->board}");
-					$verbalBoard = $data->listFilter->fields['board']->type->toVerbal($filter->board);
-					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
-				}
-				
-        	if($filter->posting == 'all') {
-				
-				// Ако търсим по всички постинги добавяме и коментарите
-				$data->query->orWhere("#themeId IS NOT NULL");
-				$data->title = tr('Показване на всички постинги');
-			} elseif($filter->posting == 'comments') {
-				
-				// Ако търсим само в коментари
-				unset($data->query->where);
-				$data->query->where("#themeId IS NOT NULL");
-				$data->title = tr('Показване на всички коментари');
-			}
-		}
-        
-		// подреждане на резултатите
-		$data->query->orderBy('type, createdOn', 'DESC');
-	}
 	
 	
 	/**
@@ -1125,6 +1091,33 @@ class forum_Postings extends core_Detail {
    		$data->listFilter->view = 'horizontal';
    		$data->listFilter->showFields = 'search, posting, board';
         $data->listFilter->input('search, board, posting', 'silent');
+        
+        $data->query->where("#themeId IS  NULL");
+		$data->title = tr('Показване на всички теми');
+		
+        if($filter = $data->listFilter->rec) {
+	    	if($filter->board > 0) {
+					$data->query->where("#boardId = {$filter->board}");
+					$verbalBoard = $data->listFilter->fields['board']->type->toVerbal($filter->board);
+					$data->title .= ' в дъска |*<font color="darkblue">"' . $verbalBoard . '"</font>';
+				}
+				
+        	if($filter->posting == 'all') {
+				
+				// Ако търсим по всички постинги добавяме и коментарите
+				$data->query->orWhere("#themeId IS NOT NULL");
+				$data->title = tr('Показване на всички постинги');
+			} elseif($filter->posting == 'comments') {
+				
+				// Ако търсим само в коментари
+				unset($data->query->where);
+				$data->query->where("#themeId IS NOT NULL");
+				$data->title = tr('Показване на всички коментари');
+			}
+		}
+        
+		// подреждане на резултатите
+		$data->query->orderBy('type, createdOn', 'DESC');
     }
     
     

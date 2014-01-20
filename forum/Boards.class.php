@@ -110,7 +110,7 @@ class forum_Boards extends core_Master {
 	/**
 	 * Подрежане и филтриране на дъските по категории
 	 */ 
-	function on_BeforePrepareListRecs($mvc, $res, $data)
+	function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		// Предпазване от листване на конфиденциални дъски
 		$cu = core_Users::getCurrent();
