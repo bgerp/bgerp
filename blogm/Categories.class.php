@@ -160,7 +160,7 @@ class blogm_Categories extends core_Manager {
 	/**
      * Преди извличане на записите от БД
      */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	static::filterByLang($data->query);
     }

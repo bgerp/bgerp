@@ -159,27 +159,7 @@ class blogm_Articles extends core_Master {
         }
 
 	}
-	
-	
-	/**
-	 *  извършва филтриране и подреждане на статиите
-	 */
-	function on_BeforePrepareListRecs($mvc, $res, $data)
-	{
-		// Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
-		$categories = blogm_Categories::getCategoriesByLang();
-		$data->query->likeKeylist('categories', keylist::fromArray($categories));
-	
-		// Ако метода е 'browse' показваме само активните статии
-		if($data->action == 'browse'){
-			
-			// Показваме само статиите които са активни
-			$data->query->where("#state = 'active'");
-			
-		}
-	}
-	
+
 
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
@@ -252,6 +232,19 @@ class blogm_Articles extends core_Master {
         if(($cat = $recFilter->category) > 0) {
            $data->query->where("#categories LIKE '%|{$cat}|%'");
         }
+        
+	    // Подреждаме статиите по датата им на публикуане в низходящ ред	
+		$data->query->orderBy('createdOn', 'DESC');
+		$categories = blogm_Categories::getCategoriesByLang();
+		$data->query->likeKeylist('categories', keylist::fromArray($categories));
+	
+		// Ако метода е 'browse' показваме само активните статии
+		if($data->action == 'browse'){
+			
+			// Показваме само статиите които са активни
+			$data->query->where("#state = 'active'");
+			
+		}
      }
 
 
