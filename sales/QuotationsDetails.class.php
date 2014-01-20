@@ -359,6 +359,7 @@ class sales_QuotationsDetails extends core_Detail {
     	
     	// Шаблон за опционалните продукти
     	$oTpl = clone $dTpl;
+    	$oTpl->removeBlock("totalPlace");
     	$oCount = $dCount = 1;
     	
     	// Променливи за определяне да се скриват ли някои колони
@@ -393,6 +394,8 @@ class sales_QuotationsDetails extends core_Detail {
 	    			$rowTpl->append2master();
 	    		}
 	    	}
+    	} else {
+    		$dTpl->replace('<tr><td colspan="5">' . tr("Няма записи") . '</td></tr>', 'ROWS');
     	}
 
     	if($summary = $data->summary){

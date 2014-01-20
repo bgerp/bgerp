@@ -10,6 +10,7 @@
 			<th>|Цена|*</th>
 			<th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
 		</tr>
+	[#ROWS#]
 	<!--ET_BEGIN ROW-->
 	[#ROW#]
 	<tr class='[#TR_CLASS#]'>
