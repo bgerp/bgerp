@@ -208,7 +208,7 @@ class cash_Cases extends core_Master {
 	/**
 	 * Преди подготовка на резултатите
 	 */
-	function on_BeforePrepareListRecs($mvc, $res, $data)
+	function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		if(!haveRole('ceo, cashMaster')){
 			
