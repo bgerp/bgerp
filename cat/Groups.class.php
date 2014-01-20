@@ -168,25 +168,6 @@ class cat_Groups extends core_Master
         $this->setDbUnique("sysId");
     }
     
-/**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$data->query->orderBy('#name');
-    	
-        if($data->listFilter->rec->product) {  
-        	$groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
-           		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
-        	}
-    }
-    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -209,6 +190,13 @@ class cat_Groups extends core_Master
         $data->listFilter->showFields = 'search,product';
         
         $rec = $data->listFilter->input('product,search', 'silent');
+        
+    	$data->query->orderBy('#name');
+    	
+        if($data->listFilter->rec->product) {  
+        	$groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
+           		$data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
+        }
  
     }
     

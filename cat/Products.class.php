@@ -347,21 +347,8 @@ class cat_Products extends core_Master {
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search,order,meta,groupId';
         $data->listFilter->input('order,groupId,search,meta', 'silent');
-    }
-    
-    
-    /**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Подредба
+        
+    	// Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
             $data->query->orderBy('#name');
         } elseif($data->listFilter->rec->order == 'last') {
