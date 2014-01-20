@@ -143,6 +143,8 @@ class techno_Specifications extends core_Manager {
     	 if($data->listFilter->rec->common){
     	 	$data->query->where("#common = '{$data->listFilter->rec->common}'");
     	 }
+    	 
+    	 $data->query->orderBy('id', 'DESC');
     }
     
     
@@ -369,15 +371,6 @@ class techno_Specifications extends core_Manager {
     	);
     	
     	return static::save((object)$arr);
-    }
-    
-    
-	/**
-     * Преди извличане на записите от БД
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$data->query->orderBy('id', 'DESC');
     }
     
     
