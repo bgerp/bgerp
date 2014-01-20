@@ -899,6 +899,12 @@ class label_Labels extends core_Master
         
         // Инпутваме полетата
         $form->input(NULL, 'silent');
+        
+        // Подреждаме по състояние
+        $data->query->orderBy('#state=ASC');
+        
+        // Подреждаме по дата на модифициране
+        $data->query->orderBy('#modifiedOn=DESC');
     }
     
     
@@ -927,21 +933,5 @@ class label_Labels extends core_Master
     {
         // Активираме шаблона
         label_Templates::activateTemplate($rec->templateId);
-    }
-    
-    /**
-     * Действия преди извличането на данните
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Подреждаме по състояние
-        $data->query->orderBy('#state=ASC');
-        
-        // Подреждаме по дата на модифициране
-        $data->query->orderBy('#modifiedOn=DESC');
     }
 }

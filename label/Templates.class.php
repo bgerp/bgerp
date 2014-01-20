@@ -288,6 +288,12 @@ class label_Templates extends core_Master
         
         // Инпутваме полетата
         $form->input(NULL, 'silent');
+        
+        // Подреждаме по състояние
+        $data->query->orderBy('#state=ASC');
+        
+        // Подреждаме по дата на създаване
+        $data->query->orderBy('#createdOn=DESC');
     }
     
     
@@ -370,22 +376,5 @@ class label_Templates extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-    }
-    
-
-    /**
-     * Действия преди извличането на данните
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Подреждаме по състояние
-        $data->query->orderBy('#state=ASC');
-        
-        // Подреждаме по дата на създаване
-        $data->query->orderBy('#createdOn=DESC');
     }
 }

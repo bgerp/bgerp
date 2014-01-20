@@ -360,7 +360,7 @@ class label_Counters extends core_Master
      * @param unknown_type $res
      * @param unknown_type $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме по състояние
         $data->query->orderBy('#state=ASC');
