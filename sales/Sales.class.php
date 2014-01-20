@@ -39,7 +39,7 @@ class sales_Sales extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager,
                     doc_DocumentPlg, acc_plg_Contable, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary';
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_SharablePlg';
     
     
     /**
@@ -390,6 +390,8 @@ class sales_Sales extends core_Master
     		$form->setReadOnly('caseId');
     		$form->setReadOnly('paymentMethodId');
     	}
+    	
+    	$form->setField('sharedUsers', 'input=none');
     }
     
     
@@ -1064,6 +1066,40 @@ class sales_Sales extends core_Master
     	if($form->rec->threadId && !$form->rec->id){
 		     unset($form->rec->threadId);
 		}
+    }
+    
+    
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+    	if($rec->state == 'active'){
+    		
+    		// Кои потребители ще се нотифицират
+    		$rec->sharedUsers = '';
+    		
+    		// Ако има склад, се нотифицира отговорника му
+    		if($rec->shipmentStoreId){
+    			$chiefId = store_Stores::fetchField($rec->shipmentStoreId, 'chiefId');
+    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $chiefId);
+    		}
+    		
+    		// Ако има каса се нотифицира касиера
+    		if($rec->caseId){
+    			$cashierId = store_Stores::fetchField($rec->caseId, 'cashier');
+    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cashierId);
+    		}
+    		
+    		// Ако има б. сметка се нотифицират операторите и
+    		if($rec->bankAccountId){
+    			$operators = bank_OwnAccounts::fetchField($rec->bankAccountId,'operators');
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
+    		}
+    		
+    		// Текущия потребител се премахва от споделянето
+    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    	}
     }
     
     

@@ -537,6 +537,41 @@ class purchase_Purchases extends core_Master
     	}
     }
     
+    
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+    	if($rec->state == 'active'){
+    		
+    		// Кои потребители ще се нотифицират
+    		$rec->sharedUsers = '';
+    		
+    		// Ако има склад, се нотифицира отговорника му
+    		if($rec->shipmentStoreId){
+    			$chiefId = store_Stores::fetchField($rec->shipmentStoreId, 'chiefId');
+    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $chiefId);
+    		}
+    		
+    		// Ако има каса се нотифицира касиера
+    		if($rec->caseId){
+    			$cashierId = store_Stores::fetchField($rec->caseId, 'cashier');
+    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cashierId);
+    		}
+    		
+    		// Ако има б. сметка се нотифицират операторите и
+    		if($rec->bankAccountId){
+    			$operators = bank_OwnAccounts::fetchField($rec->bankAccountId,'operators');
+    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
+    		}
+    		
+    		// Текущия потребител се премахва от споделянето
+    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    	}
+    }
+    
+    
 	/**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
