@@ -52,10 +52,11 @@
                 <tr>
                      <!--ET_BEGIN purchaseConditions-->
 	                     [#purchaseConditions#]
-	                    <td class="topCell first" valign="top"><!--ET_BEGIN deliveryTermId-->
+	                    <td class="topCell first" valign="top">
 	                        <b>|Conditions|*</b>
 							<ol style = ';margin-top:1px'>
 							
+							<!--ET_BEGIN deliveryTermId-->
 							<li>
 	                            Delivery: <b>[#deliveryTermId#]</b>
 	                            <!--ET_BEGIN deliveryLocationId-->
@@ -82,7 +83,6 @@
 							<!--ET_BEGIN notes-->
 								[#notes#]
 							<!--ET_END notes-->
-							</ol>
 	                    </td>
                    <!--ET_END purchaseConditions-->
                    
