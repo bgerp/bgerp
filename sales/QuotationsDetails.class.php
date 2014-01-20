@@ -401,6 +401,8 @@ class sales_QuotationsDetails extends core_Detail {
     	if($summary = $data->summary){
     		$dTpl->placeObject($summary, 'SUMMARY');
     		$dTpl->replace($summary->sayWords, 'sayWords');
+    	} else {
+    		$dTpl->removeBlock("totalPlace");
     	}
     	
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
