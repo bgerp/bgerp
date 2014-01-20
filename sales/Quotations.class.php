@@ -251,16 +251,18 @@ class sales_Quotations extends core_Master
 	    }
     }
     
+    
     /** 
 	 * След подготовка на тулбара на единичен изглед
      */
     static function on_AfterPrepareSingle($mvc, &$res, &$data)
-    {//bp();
+    {
     	if($data->sales_QuotationsDetails->summary){
     		$data->row = (object)((array)$data->row + (array)$data->sales_QuotationsDetails->summary);
-    		//bp($data->row);
     	}
     }
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата
      */
@@ -295,9 +297,6 @@ class sales_Quotations extends core_Master
     		// В папка на контрагент
     		$coverClass = doc_Folders::fetchCoverClassName($originRec->folderId);
     		expect(cls::haveInterface('doc_ContragentDataIntf', $coverClass));
-    		
-    		// Трябва да има зададена цена
-    		expect($origin->getPriceInfo()->price);
     		
     		$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
     		if(($quantities[0] || $quantities[1] || $quantities[2])){

@@ -150,7 +150,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	if(sales_Quotations::haveRightFor('add') && $rec->state != 'rejected' && strpos($rec->meta, 'canSell') !== false){
     		
     		// Ако офертата е в папка на контрагент и може да се изчисли цена
-    		if($contragentFolder && $hasPrice){
+    		if($contragentFolder){
 	    		$qId = sales_Quotations::fetchField(("#originId = {$rec->containerId} AND #state='draft'"), 'id');
 		    	if($qId){
 		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта,warning=Искате ли да редактирате съществуващата оферта на спецификацията?');
