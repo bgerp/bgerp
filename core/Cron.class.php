@@ -84,7 +84,7 @@ class core_Cron extends core_Manager
     /**
      * Преди извличането на записите за листовия изглед
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_AfterPrepareListFilter($mvc, &data)
     {
         $data->query->orderBy('#period'); 
     }

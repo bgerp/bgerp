@@ -209,15 +209,7 @@ class core_Users extends core_Manager
         
         $rec = $data->listFilter->input('search,role', 'silent');
         
-    }
-
-    
-    /**
-     * Изпълнява се след подготовка на данните за списъчния изглед
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy("lastLoginTime,createdOn", "DESC");
+    	$data->query->orderBy("lastLoginTime,createdOn", "DESC");
 
         if($data->listFilter->rec->role) {
             $data->query->where("#roles LIKE '%|{$data->listFilter->rec->role}|%'");

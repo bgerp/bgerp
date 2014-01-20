@@ -118,16 +118,9 @@ class core_Logs extends core_Manager
         $data->listFilter->showFields = 'user,date,class';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('user,date,class', 'silent');  
-    }
-    
+        $data->listFilter->input('user,date,class', 'silent'); 
 
-    /**
-     * Подготвя заявката
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $query = $data->query;
+    	$query = $data->query;
         $query->orderBy('#createdOn=DESC');
         $query->orderBy('#id=DESC');
         
