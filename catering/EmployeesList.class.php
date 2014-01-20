@@ -73,29 +73,7 @@ class catering_EmployeesList extends core_Manager
         
         $this->setDbUnique('personId');
     }
-    
-    
-    /**
-     * Преди извличане на записите от БД
-     * Ако потребителя не е ceo или catering показваме само неговия запис
-     * Ако потребителя е ceo или catering показваме списък от всички служители
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Check current user roles
-        if (!haveRole('ceo,catering')) {
-            $personId = $this->getPersonIdForCurrentUser();
-            
-            $data->query->where("#id = '{$personId}'");
-            
-            unset($data->listFields['num']);
-        }
-    }
-    
+
     
     /**
      * Сменяме заглавието
@@ -207,5 +185,14 @@ class catering_EmployeesList extends core_Manager
         $data->listFilter->showFields = 'search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('search', 'silent');
+        
+    	// Check current user roles
+        if (!haveRole('ceo,catering')) {
+            $personId = $this->getPersonIdForCurrentUser();
+            
+            $data->query->where("#id = '{$personId}'");
+            
+            unset($data->listFields['num']);
+        }
     }
 }

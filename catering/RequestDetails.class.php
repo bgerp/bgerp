@@ -94,7 +94,7 @@ class catering_RequestDetails extends core_Detail
     
     
     /**
-     * Преди извличане на записите от БД
+     *
      * Ако няма права ceo,catering се показват заявките само за потребителя
      * Ако има права ceo,catering записите се сортират първо по $personId
      * Ако заявката е със state=closed се скрива колоната за редакция на записите
@@ -103,7 +103,7 @@ class catering_RequestDetails extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Check current user roles
         if (!haveRole('ceo,catering')) {

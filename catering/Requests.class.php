@@ -243,13 +243,12 @@ class catering_Requests extends core_Master
     
     
     /**
-     * Преди извличане на записите от БД сортираме по date
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#date', 'DESC');
         

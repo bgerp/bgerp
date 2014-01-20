@@ -114,7 +114,7 @@ class catering_Orders extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($date = substr(Request::get('date', 'date'), 0, 10)) {
             $data->query->where("#date = '{$date}'");
