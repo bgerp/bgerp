@@ -195,14 +195,6 @@ class acc_Items extends core_Manager
     }
     
     
-    /**
-     * Изпълнява се преди подготовката на редовете в таблицата
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#num');
-    }
-    
     
     /**
      * Преди запис на перо
@@ -391,6 +383,8 @@ class acc_Items extends core_Manager
         if($filter->search) {
             $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
         }
+        
+        $data->query->orderBy('#num');
     }
     
     

@@ -3,7 +3,7 @@
  * Клас 'acc_ClosedDeals'
  * Абстрактен клас за създаване на приключващи документи. Неговите наследници
  * могат да се създават само в тред, началото на който е документ с интерфейс
- *'bgerp_DealAggregatorIntf'. След контирането на този документ, неможе в треда
+ *'bgerp_DealAggregatorIntf'. След контирането на този документ, не може в треда
  * да се добавят документи, променящи стойностите на сделката
  * 
  *
@@ -62,9 +62,15 @@ abstract class acc_ClosedDeals extends core_Master
     
     
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_Search';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    protected $searchFields = '';
+    protected $searchFields = 'notes,docId,classId';
     
     
     /**
@@ -366,7 +372,7 @@ abstract class acc_ClosedDeals extends core_Master
 	/**
      * Преди извличане на записите от БД
      */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$plugins = $mvc->getPlugins();
     	if(isset($plugins['sales_Wrapper'])){

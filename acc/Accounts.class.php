@@ -177,13 +177,13 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * Преди извличане на записите от БД
+     * 
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Сортиране на записите по num
         $data->query->orderBy('num');
