@@ -24,7 +24,7 @@ class doc_plg_TplManager extends core_Plugin
      * @param core_Mvc $mvc
      * @param core_Mvc $data
      */
-    public static function on_AfterDescription($mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
@@ -39,7 +39,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Изпълнява се след закачане на детайлите
      */
-    public function on_AfterAttachDetails($mvc, $res, $details)
+    public function on_AfterAttachDetails(core_Mvc $mvc, &$res, $details)
     {
     	if($mvc->details){
         	$details = arr::make($mvc->details);
@@ -63,7 +63,7 @@ class doc_plg_TplManager extends core_Plugin
      * @param core_Mvc $mvc
      * @return boolean
      */
-    protected static function checkApplicability($mvc)
+    protected static function checkApplicability(core_Mvc $mvc)
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
@@ -81,13 +81,29 @@ class doc_plg_TplManager extends core_Plugin
     }
     
     
+    
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param sales_Sales $mvc
-     * @param stdClass $data
+     * Метод връщащ темплейта на документа, ако го няма връща ид-то на първия възможен
+     * темплейт за този тип документи
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterGetTemplate(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = is_object($id) ? $id : $mvc->fetch($id);
+    	expect($rec);
+    	
+    	if(empty($rec->template)){
+    		$templates = doc_TplManager::getTemplates($mvc->getClassId());
+    		$res = key($templates);
+    	} else {
+    		$res = $rec->template;
+    	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
     	$templates = doc_TplManager::getTemplates($mvc->getClassId());
     	(count($templates)) ? $data->form->setOptions('template', $templates) : $data->form->setReadOnly('template');
@@ -97,20 +113,17 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, &$rec)
+    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)
     {
     	// Ако няма шаблон, за шаблон се приема първия такъв за модела
-    	if(!$rec->template){
-			$templates = doc_TplManager::getTemplates($mvc->getClassId());
-			$rec->template = key($templates);
-		}
+    	$rec->template = $mvc->getTemplate($rec->id);
     }
     
     
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderSingleLayout($mvc, &$res, $data)
+    function on_BeforeRenderSingleLayout(core_Mvc $mvc, &$res, $data)
     {
     	// За текущ език се избира този на шаблона
 		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
@@ -121,7 +134,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderSingleToolbar($mvc, &$res, $data)
+    function on_BeforeRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// Маха се пушнатия език, за да може да се рендира тулбара нормално
     	core_Lg::pop();
@@ -131,7 +144,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleToolbar($mvc, &$res, $data)
+    function on_AfterRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
     	$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
@@ -142,7 +155,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
     	// Ако има избран шаблон то той се замества в еденичния изглед
     	$content = doc_TplManager::getTemplate($data->rec->template);
@@ -162,7 +175,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingle($mvc, &$tpl, $data)
+    function on_AfterRenderSingle(core_Mvc $mvc, &$tpl, $data)
     {
     	// След като документа е рендиран, се възстановява нормалния език
     	core_Lg::pop();
@@ -172,7 +185,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * След подготовка на на единичния изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    static function on_AfterPrepareSingle(core_Mvc $mvc, &$res, &$data)
     {
     	// Ако има избран шаблон
     	if($data->rec->template){

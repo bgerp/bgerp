@@ -22,16 +22,13 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param core_Manager $mvc
+     * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
     {
     	$masterRec = $data->masterRec;
-    	if(!$masterRec->template){
-    		$templates = doc_TplManager::getTemplates($mvc->Master->getClassId());
-			$masterRec->template = key($templates);
-    	}
+    	$masterRec->template = $mvc->Master->getTemplate($masterRec->id);
     	
     	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
     	if(count($toggleFields) && $toggleFields[$mvc->className] !== NULL){
@@ -56,7 +53,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields($mvc, &$data)
+    static function on_AfterPrepareListFields(core_Mvc $mvc, &$data)
     {
     	$masterRec = $data->masterData->rec;
     	$toggleFields = doc_TplManager::fetchField($masterRec->template, 'toggleFields');
@@ -84,7 +81,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderListToolbar($mvc, &$res, $data)
+    function on_BeforeRenderListToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// Маха се пушнатия език, за да може да се рендира тулбара нормално
     	core_Lg::pop();
@@ -94,7 +91,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderListToolbar($mvc, &$res, $data)
+    function on_AfterRenderListToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
     	$lang = doc_TplManager::fetchField($data->masterData->rec->template, 'lang');
