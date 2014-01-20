@@ -462,14 +462,7 @@ class support_Issues extends core_Master
         $data->listFilter->setField('componentId', array('mandatory' => FALSE));
         $data->listFilter->setField('systemIdShow', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('systemIdShow', array('mandatory' => FALSE));
-    }
-    
-
-    /**
-     * 
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, &$data)
-    {
+        
         // id' то на системата
         $systemId = $data->listFilter->rec->systemIdShow;
         
@@ -548,7 +541,7 @@ class support_Issues extends core_Master
             }        
         }
     }
-    
+
     
 	/**
      * Интерфейсен метод на doc_DocumentInterface
