@@ -157,21 +157,6 @@ class store_Products extends core_Manager
 	{
 		$res = " " . plg_Search::normalizeText($rec->name);
 	}
-	
-	
-    /**
-     * Извличане записите само от избрания склад
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('state');
-    }
      
      
     /**
@@ -257,6 +242,10 @@ class store_Products extends core_Manager
             
             if ($condProductId) $data->query->where($condProductId);
         }
+        
+        $selectedStoreId = store_Stores::getCurrent();
+        $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('state');
     }
     
     

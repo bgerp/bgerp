@@ -196,6 +196,11 @@ class store_Racks extends core_Master
                 $mvc->productIdFilter = $recFilter->productIdFilter;
             }
         }
+        
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('id');
     }
     
     
@@ -388,22 +393,6 @@ class store_Racks extends core_Master
             
             /* ENDOF Ако стелажа съществува (edit) */
         }
-    }
-    
-    
-    /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('id');
     }
     
     

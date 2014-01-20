@@ -159,21 +159,6 @@ class store_Pallets extends core_Manager
     
     
     /**
-     * Извличане записите само от избрания склад
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('state');
-    }
-    
-    
-    /**
      * Филтър
      *
      * @param core_Mvc $mvc
@@ -198,6 +183,10 @@ class store_Pallets extends core_Manager
                 $data->query->where($cond);
             }
         }
+        
+        $selectedStoreId = store_Stores::getCurrent();
+        $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('state');
     }
     
     

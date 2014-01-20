@@ -172,19 +172,6 @@ class store_Movements extends core_Manager
     
     
     /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('state');
-    }
-    
-    
-    /**
      * В зависимост от state-а
      *
      * @param core_Mvc $mvc
@@ -672,6 +659,8 @@ class store_Movements extends core_Manager
             
             if ($condProductId) $data->query->where($condProductId);
         }
+        
+        $data->query->orderBy('state');
     }
     
     

@@ -150,7 +150,7 @@ class store_Zones extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
