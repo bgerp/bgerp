@@ -9,10 +9,10 @@
 	</div>
 	<!--ET_END header-->
 <div class='scrolling-holder'>
-[#SINGLE_CONTENT#]
 <!--ET_BEGIN STATISTIC_BAR-->
+[#STATISTIC_BAR#]
 <div class="sale-summary">
-		<table cellspacing="5">
+		<table cellspacing="5" style='margin-bottom:10px'>
 		<colgroup span="5"/>
 			<tr>
 				<td class = 'sum-th'>
@@ -69,7 +69,7 @@
 			</table>
 		</div>
 		<!--ET_END STATISTIC_BAR-->
-	
+[#SINGLE_CONTENT#]
 		<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 		[#DETAILS#]

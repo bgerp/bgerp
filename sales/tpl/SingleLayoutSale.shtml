@@ -10,12 +10,10 @@
 	<!--ET_END header-->
 	<div class='scrolling-holder'>	
 		<div class='display-table'>
-			[#SINGLE_CONTENT#]
-			
 			<!--ET_BEGIN STATISTIC_BAR-->
 			[#STATISTIC_BAR#]
 			<div class="sale-summary">
-			<table cellspacing="5" width='100%'>
+			<table cellspacing="5" width='100%' style='margin-bottom:10px'>
 			    <tr>
 			        <td class = 'sum-th'>
 			            |Поръчано|*, [#currencyId#]
@@ -35,7 +33,7 @@
 			    </tr>
 			    <tr>
 			        <td class = 'nowrap'>[#amountDeal#]</td>
-			        <td class = 'nowrap'>[#amountDelivered#]</td>
+			        <td class = 'nowrap'>[#amountDelivered#] </td>
 			        <td class = 'nowrap'>[#amountPaid#]</td>
 			        <td class = 'nowrap'>[#amountInvoiced#]</td>
 			        <td class = 'nowrap' style='font-size:0.8em;' rowspan='4'>
@@ -73,7 +71,7 @@
 			</table>
 		</div>
 		<!--ET_END STATISTIC_BAR-->
-		
+			[#SINGLE_CONTENT#]
 		</div>
 	<div style = 'margin-top:10px'>
 	</div>
