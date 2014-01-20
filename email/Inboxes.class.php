@@ -194,7 +194,16 @@ class email_Inboxes extends core_Master
         	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->inChargeF));
         }
         
-        
+    	// Ако няма роля admin или ceo или email
+        if(!haveRole('ceo, admin, email')) {
+            
+            // id на текущия потребител
+            $cu = core_Users::getCurrent();
+            
+            // Да се показват кутиите на които е inCharge или му са споделени
+            $data->query->where("#inCharge = {$cu}");
+            $data->query->orLikeKeylist("shared", $cu);
+        }
     }
     
     
@@ -635,24 +644,6 @@ class email_Inboxes extends core_Master
         }
 
         return $allEmailsArr;
-    }
-    
-    
-	/**
-     * 
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Ако няма роля admin или ceo или email
-        if(!haveRole('ceo, admin, email')) {
-            
-            // id на текущия потребител
-            $cu = core_Users::getCurrent();
-            
-            // Да се показват кутиите на които е inCharge или му са споделени
-            $data->query->where("#inCharge = {$cu}");
-            $data->query->orLikeKeylist("shared", $cu);
-        }
     }
     
     

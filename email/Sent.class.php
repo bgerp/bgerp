@@ -661,21 +661,8 @@ class email_Sent extends core_Manager
         $data->listFilter->view = 'horizontal';
         
         $data->listFilter->input(null, 'silent');
-    }
-    
-    
-    /**
-     * Подредба и филтър на on_BeforePrepareListRecs()
-     * Манипулации след подготвянето на основния пакет данни
-     * предназначен за рендиране на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Филтър по изпращач
+        
+    	// Филтър по изпращач
         $users = array();
         
         if ($data->listFilter->rec->users) {

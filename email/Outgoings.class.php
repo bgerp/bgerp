@@ -173,7 +173,7 @@ class email_Outgoings extends core_Master
     /**
      * Филтрира само собсвеноръчно създадените изходящи имейли
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    function on_AfterPrepareListFilter($mvc, &$data)
     {
         if(!haveRole('ceo')) {
             $cu = core_Users::getCurrent();

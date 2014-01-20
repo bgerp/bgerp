@@ -105,14 +105,7 @@ class email_Fingerprints extends core_Manager
         if($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
-    }
-    
-
-    /**
-     * Преди извличането на записите ги подрежда от по-нови, към по-стари
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
+        
         $data->query->orderBy("#id", 'DESC');
     }
 
