@@ -164,31 +164,7 @@ class trz_Requests extends core_Master
     	// Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=trz|ceo)', 'caption=Споделяне->Потребители');
     }
-    
-    
-    /**
-     * Прилага филтъра, така че да се показват записите за определение потребител
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        if($data->listFilter->rec->paid) {
-    		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
-    	}
-    	
-        // Филтриране по потребител/и
-        if(!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
-        }
 
-        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
-            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
-        }
-        
-    	if($data->listFilter->rec->personId) {
-    		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
-    	}
-    }
-    
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -250,6 +226,23 @@ class trz_Requests extends core_Master
         $data->listFilter->showFields .= ', selectedUsers, personId, paid';
         
         $data->listFilter->input('selectedUsers, personId, paid', 'silent');
+        
+     	if($data->listFilter->rec->paid) {
+    		$data->query->where("#paid = '{$data->listFilter->rec->paid}'");
+    	}
+    	
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = '|' . core_Users::getCurrent() . '|';
+        }
+
+        if(($data->listFilter->rec->selectedUsers != 'all_users') && (strpos($data->listFilter->rec->selectedUsers, '|-1|') === FALSE)) {
+            $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #createdBy, '|%')");
+        }
+        
+    	if($data->listFilter->rec->personId) {
+    		$data->query->where("#personId = '{$data->listFilter->rec->personId}'");
+    	}
     }
 
     

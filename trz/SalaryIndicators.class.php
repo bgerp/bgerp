@@ -125,14 +125,37 @@ class trz_SalaryIndicators extends core_Manager
 	    	$row->doc = ht::createLink($name, array ('trz_Bonuses', 'single', 'id' => $rec->docId));
     	}
     }
-    
+ 
     
     /**
-     * Прилага филтъра, така че да се показват записите 
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$from = $data->listFilter->rec->from;
+    	
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
+        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
+        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
+        $data->listFilter->FNC('indicators', 'varchar', 'caption=Показател,input,silent, width = 150px');
+        $data->listFilter->FNC('group', 'enum(1=,
+        									  2=По дати,
+        									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
+
+        $ind = $mvc->getIndicatorNames();
+        $data->listFilter->setOptions('indicators', $ind);
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+       	$data->listFilter->showFields = 'from, to, person, indicators, group';
+        $data->listFilter->input('from, to, person, indicators, group', 'silent');
+        
+   		$from = $data->listFilter->rec->from;
     	$to = $data->listFilter->rec->to;
     	$person = $data->listFilter->rec->person;
     	$indicators = $data->listFilter->rec->indicators;
@@ -163,37 +186,6 @@ class trz_SalaryIndicators extends core_Manager
 	    if($indicators){
 	    	$data->query->where("#indicator = '{$indicators}'");
 	    }
-	    
-    }
-    
-    
-    /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=Дата->От,input,silent, width = 150px');
-        $data->listFilter->FNC('to', 'date', 'caption=Дата->До,input,silent, width = 150px');
-        $data->listFilter->FNC('person', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=Служител,input,silent, width = 150px');
-        $data->listFilter->FNC('indicators', 'varchar', 'caption=Показател,input,silent, width = 150px');
-        $data->listFilter->FNC('group', 'enum(1=,
-        									  2=По дати,
-        									  3=Обобщено)', 'caption=Групиране,input,silent, width = 150px');
-
-        $ind = $mvc->getIndicatorNames();
-        $data->listFilter->setOptions('indicators', $ind);
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-       	$data->listFilter->showFields = 'from, to, person, indicators, group';
-        $data->listFilter->input('from, to, person, indicators, group', 'silent');
     }
     
     
