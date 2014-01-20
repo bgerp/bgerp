@@ -234,7 +234,7 @@ class blast_Emails extends core_Master
      * Добавяне на филтър
      * Сортиране на записите
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
         $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%;margin-left:2px, 
