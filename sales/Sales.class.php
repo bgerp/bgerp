@@ -847,8 +847,12 @@ class sales_Sales extends core_Master
     {
         expect($rec = $this->fetch($id));
         
+        // Името на шаблона е и име на документа
+        $templateId = $this->getTemplate($rec);
+        $templateName = doc_TplManager::getTitleById($templateId);
+        
         $row = (object)array(
-            'title'    => "Продажба №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+            'title'    => "{$templateName} №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
         	'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
