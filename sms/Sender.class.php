@@ -84,19 +84,6 @@ class sms_Sender extends core_Manager
     
     
     /**
-     * Сортиране DESC - последния запис да е най-отгоре
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy('#time', 'DESC');
-    }
-    
-    
-    /**
      * Оцветяваме записите в зависимост от приоритета събитие
      *
      * @param core_Mvc $mvc
@@ -133,6 +120,8 @@ class sms_Sender extends core_Manager
         if($rec->status) {
             $data->query->where("#status = '{$rec->status}'");
         }
+        
+        $data->query->orderBy('#time', 'DESC');
     }
     
     
