@@ -312,27 +312,6 @@ class cal_Reminders extends core_Master
 
     
     /**
-     * Прилага филтъра, така че да се показват записите за определение потребител
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-
-    	$userId = core_Users::getCurrent();
-        $data->query->orderBy("#timeStart=ASC,#state=DESC");
-        
-                
-        if($data->listFilter->rec->selectedUsers) {
-	           
-	         if($data->listFilter->rec->selectedUsers != 'all_users') {
-	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-	               
-	           }
-            	
-        } 
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -356,6 +335,18 @@ class cal_Reminders extends core_Master
         $data->listFilter->showFields = 'selectedUsers';
         
         $data->listFilter->input('selectedUsers', 'silent');
+        
+    	$userId = core_Users::getCurrent();
+        $data->query->orderBy("#timeStart=ASC,#state=DESC");
+        
+                
+        if($data->listFilter->rec->selectedUsers) {
+	           
+	         if($data->listFilter->rec->selectedUsers != 'all_users') {
+	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+	               
+	           }
+        }
     }
 
 

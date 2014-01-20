@@ -509,22 +509,6 @@ class cal_Tasks extends core_Master
     
     
     /**
-     * Прилага филтъра, така че да се показват записите за определение потребител
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$chart = Request::get('Chart');
-    	$data->query->orderBy("#timeStart=ASC,#state=DESC");
-        
-        if($data->action === 'list'){
-            if($data->listFilter->rec->selectedUsers != 'all_users') {
-	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
-            }
-        }
-    }
-    
-    
-    /**
      * Игнорираме pager-а
      *
      * @param core_Mvc $mvc
@@ -575,6 +559,15 @@ class cal_Tasks extends core_Master
         	$data->listFilter->showFields = 'search, selectedUsers';
         } else{
         	$data->listFilter->showFields = 'selectedUsers';
+        }
+        
+    	$chart = Request::get('Chart');
+    	$data->query->orderBy("#timeStart=ASC,#state=DESC");
+        
+        if($data->action === 'list'){
+            if($data->listFilter->rec->selectedUsers != 'all_users') {
+	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
+            }
         }
     }
 

@@ -237,34 +237,7 @@ class cal_Calendar extends core_Master
         
         return $res;
     }
-        
-    
-    /**
-     * Прилага филтъра, така че да се показват записите след посочената дата
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	
-        $data->query->orderBy("#time=ASC,#priority=DESC");
-        
-        if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
-	        if($from = $data->listFilter->rec->from) {
-	        	
-	            $data->query->where("#time >= date('$from')");
-	          	        
-	       }
-        }
-        
-      if(!$data->listFilter->rec->selectedUsers) {
-      	
-		  $data->listFilter->rec->selectedUsers = 
-		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
-		  
-		  $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
-	      $data->query->orWhere('#users IS NULL OR #users = ""');
-	  }
-    }
-    
+
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -295,6 +268,25 @@ class cal_Calendar extends core_Master
         }
         
         $data->listFilter->input('selectedUsers, from', 'silent');
+        
+        $data->query->orderBy("#time=ASC,#priority=DESC");
+        
+        if($data->action == 'list' || $data->action == 'day' || $data->action == 'week'){
+	        if($from = $data->listFilter->rec->from) {
+	        	
+	            $data->query->where("#time >= date('$from')");
+	          	        
+	       }
+        }
+        
+      	if(!$data->listFilter->rec->selectedUsers) {
+      	
+		  $data->listFilter->rec->selectedUsers = 
+		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+		  
+		  $data->query->likeKeylist('users', $data->listFilter->rec->selectedUsers);
+	      $data->query->orWhere('#users IS NULL OR #users = ""');
+	  }
     }
 
     
