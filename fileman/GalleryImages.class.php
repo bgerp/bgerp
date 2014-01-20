@@ -146,18 +146,7 @@ class fileman_GalleryImages extends core_Manager
         $data->listFilter->showFields = 'search, usersSearch, groupSearch';
         
         $data->listFilter->input('groupSearch, usersSearch', 'silent');
-    }
-
-    
-    /**
-     * 
-     * 
-     * @param unknown_type $mvc
-     * @param unknown_type $res
-     * @param unknown_type $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
+        
         // По - новите добавени да са по - напред
         $data->query->orderBy("#createdOn", "DESC");
         

@@ -1155,15 +1155,8 @@ class fileman_Files extends core_Master
         $data->listFilter->showFields = 'fName, usersSearch, bucket';
         
         $data->listFilter->input('usersSearch, bucket, fName', 'silent');
-    }
-
-    
-    /**
-     * 
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // По - новите да са по - напред
+        
+    	// По - новите да са по - напред
         $data->query->orderBy("#modifiedOn", 'DESC');
         
         // Ако не е избран потребител по подразбиране
@@ -1210,4 +1203,5 @@ class fileman_Files extends core_Master
             }
         }
     }
+
 }
