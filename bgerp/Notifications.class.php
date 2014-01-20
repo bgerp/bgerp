@@ -120,16 +120,7 @@ class bgerp_Notifications extends core_Manager
         
         bgerp_Notifications::save($rec);
     }
-
-    
-    /**
-     * Сортиране по най-ново известие
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy("#modifiedOn", 'DESC');  
-    }
-           
+     
     
     /**
      * Отбелязва съобщение за прочетено
@@ -372,6 +363,8 @@ class bgerp_Notifications extends core_Manager
     	} else {
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	}
+    	
+    	$data->query->orderBy("#modifiedOn", 'DESC');  
     }
     
     
