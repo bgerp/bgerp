@@ -1091,7 +1091,7 @@ class sales_Sales extends core_Master
     		
     		// Ако има каса се нотифицира касиера
     		if($rec->caseId){
-    			$cashierId = store_Stores::fetchField($rec->caseId, 'cashier');
+    			$cashierId = cash_Cases::fetchField($rec->caseId, 'cashier');
     			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cashierId);
     		}
     		
