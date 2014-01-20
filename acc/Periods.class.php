@@ -125,7 +125,7 @@ class acc_Periods extends core_Manager
     /**
      * Сортира записите по поле end
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('end', 'DESC');
     }

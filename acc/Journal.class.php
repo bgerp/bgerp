@@ -150,6 +150,16 @@ class acc_Journal extends core_Master
     	
     	// Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
+        
+    	$data->query->orderBy('id', 'DESC');
+    	
+    	if($data->listFilter->rec->dateFrom){
+    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
+    	}
+    	
+    	if($data->listFilter->rec->dateTo){
+    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
+    	}
     }
     
     
@@ -364,23 +374,6 @@ class acc_Journal extends core_Master
         acc_Periods::touch($rec->valior);
 
         return array($docClassId, $docId);
-    }
-    
-    
-	/**
-     * Преди извличане на записите от БД
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$data->query->orderBy('id', 'DESC');
-    	
-    	if($data->listFilter->rec->dateFrom){
-    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
-    	}
-    	
-    	if($data->listFilter->rec->dateTo){
-    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
-    	}
     }
     
     

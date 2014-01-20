@@ -110,23 +110,17 @@ class acc_OpenDeals extends core_Manager {
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     	}
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
-    }
-    
-    
-    /**
-	 * Преди подготовка на резултатите
-	 */
-	function on_BeforePrepareListRecs($mvc, $res, $data)
-	{
-		$data->query->orderBy('state', "ASC");
+    	
+    	$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
 		
 		if(isset($data->listFilter->rec->sState) && $data->listFilter->rec->sState != 'all'){
 			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
 		}
-	}
-	
+		
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+      	
 	
 	/**
 	 * Преди подготовка на полетата за показване в списъчния изглед
