@@ -121,6 +121,20 @@ class price_ListRules extends core_Detail
         $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em,silent');
 		$data->listFilter->showFields = 'search, from';
 		$data->listFilter->input();
+		
+		$data->query->orderBy('#validFrom,#id', 'DESC');
+        
+    	if($productId = Request::get('product', 'int')){
+			$data->query->where(array("#productId = [#1#]", $productId));
+		}
+		
+    	if($from = $data->listFilter->rec->from){
+			$data->query->where(array("#validFrom >= '[#1#]'", $from));
+		}
+		
+    	if($search = $data->listFilter->rec->search){
+			plg_Search::applySearch($search, $data->query);
+		}
 	}
 	
 	
@@ -437,27 +451,6 @@ class price_ListRules extends core_Detail
         }
 
         $row->ROW_ATTR['class'] .= " state-{$state}";
-    }
-
-	
-    /**
-     * Преди извличане на записите от БД
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#validFrom,#id', 'DESC');
-        
-    	if($productId = Request::get('product', 'int')){
-			$data->query->where(array("#productId = [#1#]", $productId));
-		}
-		
-    	if($from = $data->listFilter->rec->from){
-			$data->query->where(array("#validFrom >= '[#1#]'", $from));
-		}
-		
-    	if($search = $data->listFilter->rec->search){
-			plg_Search::applySearch($search, $data->query);
-		}
     }
 
     
