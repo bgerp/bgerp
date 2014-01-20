@@ -179,7 +179,7 @@ class currency_Currencies extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($groupId = Request::get('groupId', 'int')) {
             

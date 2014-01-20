@@ -54,7 +54,7 @@ class currency_CurrencyGroupContent extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $groupId = Request::get('id', 'int');
         $groupName = Request::get('groupName');

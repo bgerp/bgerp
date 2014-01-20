@@ -223,7 +223,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy("date", 'DESC');;
     }
