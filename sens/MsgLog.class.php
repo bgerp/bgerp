@@ -95,19 +95,6 @@ class sens_MsgLog extends core_Manager
     
     
     /**
-     * Сортиране DESC - последния запис да е най-отгоре
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#time', 'DESC');
-    }
-    
-    
-    /**
      * Оцветяваме записите в зависимост от приоритета събитие
      *
      * @param core_Mvc $mvc
@@ -149,5 +136,7 @@ class sens_MsgLog extends core_Manager
                 $data->query->where("#priority = '{$rec->priority}'");
             }
         }
+        
+        $data->query->orderBy('#time', 'DESC');
     }
 }

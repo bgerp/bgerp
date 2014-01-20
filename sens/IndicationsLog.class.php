@@ -184,6 +184,8 @@ class sens_IndicationsLog extends core_Manager
                 $data->listFields['value'] = $mvc->Params->fetchField($rec->paramId, 'param');
             }
         }
+        
+        $data->query->orderBy('#time', 'DESC');
     }
     
     
@@ -193,19 +195,6 @@ class sens_IndicationsLog extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->time = $rec->timeGroup;
-    }
-    
-    
-    /**
-     * Сортиране DESC - последния запис да е най-отгоре
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#time', 'DESC');
     }
     
     

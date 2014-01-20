@@ -254,7 +254,7 @@ class sens_Overviews extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#title', 'ASC');
     }
