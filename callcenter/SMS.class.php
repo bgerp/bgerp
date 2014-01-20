@@ -478,19 +478,8 @@ class callcenter_SMS extends core_Master
         $data->listFilter->showFields = 'search, usersSearch, status';
         
         $data->listFilter->input('search,usersSearch, status', 'silent');
-    }
-    
-    
-	/**
-     * Сортиране DESC - последния запис да е най-отгоре
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        // Последно получените и изпратени и да са първи
+        
+    	// Последно получените и изпратени и да са първи
         $data->query->orderBy('#createdOn', 'DESC');
     
         // Ако не е избран потребител по подразбиране

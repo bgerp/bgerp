@@ -276,15 +276,8 @@ class callcenter_Fax extends core_Manager
         $data->listFilter->showFields = 'search,usersSearch';
         
         $data->listFilter->input('search,usersSearch', 'silent');
-    }
-
-    
-    /**
-     * 
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        // Ако не е избран потребител по подразбиране
+        
+    	// Ако не е избран потребител по подразбиране
         if(!$data->listFilter->rec->usersSearch) {
             
             // Да е текущия
