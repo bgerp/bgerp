@@ -221,7 +221,7 @@ abstract class acc_ClosedDeals extends core_Master
         $result = (object)array(
             'reason'      => $firstDoc->getHandle(),
             'valior'      => dt::now(),
-            'totalAmount' => $amount,
+            'totalAmount' => currency_Currencies::round($amount),
             'entries'     => array()
         );
        
@@ -293,7 +293,7 @@ abstract class acc_ClosedDeals extends core_Master
     		$row->currencyId = $info->agreed->currency;
     		$row->baseAmount = $mvc->fields['amount']->type->toVerbal($rec->baseAmount);
     	} else {
-    		$row->baseAmount = abs($row->amount);
+    		$row->baseAmount = $mvc->fields['amount']->type->toVerbal(abs($rec->amount));
     		@$amount =  abs($rec->amount / $rec->rate);
     	}
     	
