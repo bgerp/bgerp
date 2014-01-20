@@ -79,7 +79,7 @@ class bglocal_Banks extends core_Manager
     /**
      *  Подреждаме банките по азбучен ред
      */
-	static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#name');
     }
