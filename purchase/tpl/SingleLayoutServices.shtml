@@ -135,7 +135,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' ><hr><b>|Словом|*</b>: [#sayWords#]</td>
+				      <td colspan = '3' ><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

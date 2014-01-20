@@ -47,7 +47,7 @@
 	<tr>
 		<td colspan='4' class='total-td-label'>
 		<!--ET_BEGIN sayWords-->
-		<div><b>|Словом|*</b>: [#sayWords#] &nbsp;
+		<div>|Словом|*: [#sayWords#] &nbsp;
 		<!--ET_END sayWords-->
 		<!--ET_BEGIN currencyTotalId-->
 			<span class='cCode'>[#currencyTotalId#]</span>

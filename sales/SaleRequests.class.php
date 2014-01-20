@@ -537,7 +537,11 @@ class sales_SaleRequests extends core_Master
 				$row->chargeVat = tr('без');
 			} else {
 				$row->chargeVat = tr('с') . " {$row->chargeVat}";
-			}	
+			}
+
+			if($rec->currencyRate == 1){
+				unset($row->currencyRate);
+			}
 	    }
     }
     
