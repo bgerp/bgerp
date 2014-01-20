@@ -136,21 +136,7 @@ class lab_Tests extends core_Master
         $this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Изтрит)', 'caption=Статус,input=none,notSorting');
         $this->FLD('searchd', 'text', 'caption=searchd, input=none, notSorting');
     }
-    
-    
-    /**
-     * Сортиране преди извличане на записите
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#activatedOn', 'DESC');
-        $data->query->orderBy('#createdOn', 'DESC');
-    }
-    
+
     
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
@@ -545,6 +531,9 @@ class lab_Tests extends core_Master
             $data->query->orderBy('#activatedOn', 'DESC');
             $data->query->orderBy('#createdOn', 'DESC');
         }
+        
+        $data->query->orderBy('#activatedOn', 'DESC');
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
