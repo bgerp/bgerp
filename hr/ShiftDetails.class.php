@@ -86,7 +86,7 @@ class hr_ShiftDetails extends core_Detail
     /**
      * Сортиране
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_AfterPrepareListFilter($mvc, &$data)
     {
 
         $data->query->orderBy('#day');

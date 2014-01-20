@@ -239,7 +239,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy("#orderStr");
     }

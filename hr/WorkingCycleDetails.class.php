@@ -90,7 +90,7 @@ class hr_WorkingCycleDetails extends core_Detail
     /**
      * Сортиране
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_AfterPrepareListFilter($mvc, &$data)
     {
 
         $data->query->orderBy('#day');
