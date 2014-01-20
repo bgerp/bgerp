@@ -94,7 +94,7 @@ class store_ShipmentOrders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
 
     
     /**
@@ -439,10 +439,7 @@ class store_ShipmentOrders extends core_Master
     	
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		if($rec->amountDelivered){
-    			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
-    			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
-    		} else {
+    		if(!$rec->amountDelivered){
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
     	}
