@@ -106,15 +106,6 @@ class bgerp_Recently extends core_Manager
         
         bgerp_Recently::save($rec);
     }
-    
-    
-    /**
-     * Сортиране по най-ново 'последно'
-     */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->query->orderBy("#last", 'DESC');  
-    }
 
     
     /**
@@ -332,6 +323,8 @@ class bgerp_Recently extends core_Manager
     	} else {
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	}
+    	
+    	$data->query->orderBy("#last", 'DESC');  
 	}
     
     
