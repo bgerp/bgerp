@@ -235,6 +235,8 @@ class sales_Invoices extends core_Master
 		if($type = $data->listFilter->rec->invType){
 			$data->query->where("#type = '{$type}'");
 		}
+		
+		$data->query->orderBy('#number', 'DESC');
 	}
 	
 	
@@ -771,17 +773,8 @@ class sales_Invoices extends core_Master
 		
 		$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
 	}
-    
-    
-    /**
-     * Преди извличане на записите филтър по number
-     */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $data->query->orderBy('#number', 'DESC');
-    }
 
-
+	
     /**
      * Данните на контрагент, записани в съществуваща фактура
      * Интерфейсен метод на @see doc_ContragentDataIntf.

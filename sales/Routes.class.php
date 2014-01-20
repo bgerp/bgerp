@@ -226,6 +226,25 @@ class sales_Routes extends core_Manager {
 		}
         $data->listFilter->showFields = 'user, date';
 		$data->listFilter->input();
+		
+		$data->query->orderBy("#state");
+    	if($date = $data->listFilter->rec->date){
+    			
+    		// Изчисляваме дните между датата от модела и търсената
+    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
+    			
+    		// Записа отговаря ако разликата е 0 и повторението е 0
+    		$data->query->orWhere("#dif = 0 && #repeatWeeks = 0");
+    			
+    		// Ако разликата се дели без остатък на 7 * броя повторения
+    		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
+    	}
+    	
+    	if($salesmanId = $data->listFilter->rec->user){
+    			
+    		// Филтриране по продавач
+    		$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
+    	}
 	}
 	
 	
@@ -250,33 +269,7 @@ class sales_Routes extends core_Manager {
     {
     	$editUrl['locationId'] = $rec->locationId;
     }
-    
-    
-    /**
-     * Преди извличане на записите от БД
-     */
-    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-    	$data->query->orderBy("#state");
-    	if($date = $data->listFilter->rec->date){
-    			
-    		// Изчисляваме дните между датата от модела и търсената
-    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
-    			
-    		// Записа отговаря ако разликата е 0 и повторението е 0
-    		$data->query->orWhere("#dif = 0 && #repeatWeeks = 0");
-    			
-    		// Ако разликата се дели без остатък на 7 * броя повторения
-    		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
-    	}
-    	
-    	if($salesmanId = $data->listFilter->rec->user){
-    			
-    		// Филтриране по продавач
-    		$data->query->where(array("#salesmanId = [#1#]", $salesmanId));
-    	}
-    }
-    
+
     
     /**
      * Подготовка на маршрутите, показвани в Single-a на локациите
