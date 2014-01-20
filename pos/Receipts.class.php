@@ -392,7 +392,7 @@ class pos_Receipts extends core_Master {
     /**
      *  Филтрираме бележката
      */
-	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	public static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->query->orderBy('#createdOn', 'DESC');
     }
