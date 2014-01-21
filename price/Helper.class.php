@@ -67,8 +67,8 @@ abstract class price_Helper
 		$arr = array();
         
         // Конвертиране цените във валутата
-        $arr['noVat'] = $price / $rate;
-		$arr['withVat'] = ($price * (1 + $vat)) / $rate;
+        @$arr['noVat'] = $price / $rate;
+		@$arr['withVat'] = ($price * (1 + $vat)) / $rate;
 		
 		$arr['noVat'] = static::roundPrice($arr['noVat']);
 		$arr['withVat'] = static::roundPrice($arr['withVat']);
