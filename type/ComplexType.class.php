@@ -90,29 +90,36 @@ class type_ComplexType extends type_Varchar {
     	if(!is_array($value)) return NULL;
         
     	// Извличане на лявата и дясната част на полето
-        $vLeft = trim($value['cL']);
-        $vRight = trim($value['cR']);
+        $vLeft = ($value['cL']) ? trim($value['cL']) : NULL;
+        $vRight = ($value['cR']) ? trim($value['cR']) : NULL;
         
-        // Трябва и двете полета да са попълнени
-        if(empty($vLeft) || empty($vRight)){
-        	$this->error = "Едно от двете полета е празно";
+        // Ако има поне едно сетнато поле
+        if(isset($vLeft) || isset($vRight)){
         	
-        	return FALSE;
-        }
-        
-        // Преобразуване на числата в състояние подходящо за запис
-        $vLeft = $this->double->fromVerbal($vLeft);
-        $vRight = $this->double->fromVerbal($vRight);
-        
-        // Трябва да са въведени валидни double числа
-        if(empty($vLeft) || empty($vRight)){
-        	$this->error = "Не са въведени валидни числа";
+	        // Ако има поне едно празно поле, сетва се грешка
+	        if(empty($vLeft) || empty($vRight)){
+	        	$this->error = "Едно от двете полета е празно";
+	        	
+	        	return FALSE;
+	        }
         	
-        	return FALSE;
-        }
-        
-        // В полето се записва стринга '[лява_част]|[дясна_част]'
-        return $vLeft . "|" . $vRight;
+        	// Преобразуване на числата в състояние подходящо за запис
+	        $vLeft = $this->double->fromVerbal($vLeft);
+	        $vRight = $this->double->fromVerbal($vRight);
+	        
+	        // Трябва да са въведени валидни double числа
+	        if(empty($vLeft) || empty($vRight)){
+	        	$this->error = "Не са въведени валидни числа";
+	        	
+	        	return FALSE;
+	        }
+	        
+	        // В полето се записва стринга '[лява_част]|[дясна_част]'
+	        return $vLeft . "|" . $vRight;
+	    }
+
+	    // Ако няма нито едно сетнато поле, не се прави нищо
+	    return NULL;
     }
     
     
