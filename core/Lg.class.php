@@ -258,7 +258,7 @@ class core_Lg extends core_Manager
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    static function on_BeforePrepareListRecs($invoker, &$res, $data)
+    static function on_AfterPrepareListFilter($invoker, &$data)
     {
         // Подрежда словосъчетанията по обратен на постъпването им ред
         $data->query->orderBy(array(

@@ -245,7 +245,7 @@ class core_Cache extends core_Manager
     /**
      * Подреждане - най-отгоре са последните записи
      */
-    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }

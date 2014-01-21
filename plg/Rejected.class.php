@@ -179,24 +179,6 @@ class plg_Rejected extends core_Plugin
     
     
     /**
-     * Преди подготовка на данните за табличния изглед правим филтриране
-     * на записите, които са (или не са) оттеглени
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        if($data->query) {
-            if(Request::get('Rejected')) {
-                $data->query->where("#state = 'rejected'");
-            } else {
-                $data->rejQuery = clone($data->query);
-                $data->query->where("#state != 'rejected' || #state IS NULL");
-                $data->rejQuery->where("#state = 'rejected'");
-            }
-        }
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * Забранява изтриването на вече използвани сметки
@@ -252,6 +234,16 @@ class plg_Rejected extends core_Plugin
             
             // Задаваме стойността от заявката
             $data->listFilter->setDefault('Rejected', $rejectedId);
+        }
+        
+    	if($data->query) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->rejQuery = clone($data->query);
+                $data->query->where("#state != 'rejected' || #state IS NULL");
+                $data->rejQuery->where("#state = 'rejected'");
+            }
         }
     }
 }
