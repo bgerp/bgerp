@@ -45,7 +45,7 @@ class mp_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, mp_Wrapper, doc_ActivatePlg, plg_Search';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, mp_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -194,6 +194,8 @@ class mp_Jobs extends core_Master
         
     	$locations = crm_Locations::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
     	$form->setOptions('deliveryPlace', array('' => '') + $locations);
+    	
+    	$mvc->setField('sharedUsers', 'input=none');
     }
     
     

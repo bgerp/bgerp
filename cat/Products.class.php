@@ -478,7 +478,7 @@ class cat_Products extends core_Master {
     	
     	// И ид-та им присъстват в $products
     	$query->in('id', $productIds);
-    	//bp($query->fetchAll());
+    	
     	// За всякя заявка
     	while($rec = $query->fetch()){
     		
