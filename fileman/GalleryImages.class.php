@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_GalleryImages' - картинки в галерията
  *
@@ -9,7 +8,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -50,7 +49,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg, plg_Search";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg, plg_Search, fileman_GalleryDialogWrapper";
     
     
     /**
@@ -87,6 +86,12 @@ class fileman_GalleryImages extends core_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'title, src';
+    
+    
+    /**
+     * Брой елементи при показване на страница в диалогов прозорец
+     */
+    var $galleryListItemsPerPage = 5;
     
     
     /**
@@ -230,5 +235,318 @@ class fileman_GalleryImages extends core_Manager
                 }
             }
         }
+    }
+    
+    
+	/**
+     * Връща URL за добавяне на документи
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Et $res
+     * @param string $callback
+     */
+    static function getUrLForAddImg($callback)
+    {
+        // Защитаваме променливите
+        Request::setProtected('callback');
+        
+        // Създаваме URL' то
+        return toUrl(array('fileman_GalleryImages', 'addImg', 'callback' => $callback));
+    }
+    
+    
+    /**
+     * 
+     */
+    function act_AddImg()
+    {
+        // Защитаваме променливите
+        Request::setProtected('callback');
+        
+        // Името на класа
+        $class = 'fileman_GalleryImages';
+        
+        // Вземаме екшъна
+        $act = 'addImgDialog';
+        
+        // Други допълнителни данни
+        $callback = Request::get('callback');
+        
+        $url = array($class, $act, 'callback' => $callback);
+        
+        return new Redirect($url);
+    }
+    
+    
+    function act_AddImgDialog()
+    {
+        // Очакваме да е логнат потребител
+        requireRole('user');
+        
+        // id на записа
+        $id = Request::get('id', 'int');
+        
+        // Ако има id
+        if ($id) {
+            
+            // Изискваме да има права за редактиране
+            $this->requireRightFor('edit', $id);
+            
+            // Вземаме записа
+            $rec = static::fetch($id);
+            
+            // Очакваме да има такъв запис
+            expect($rec);
+        }
+        
+        // Задаваме врапера
+        Mode::set('wrapper', 'page_Dialog');
+        
+        // Обект с данните
+        $data = new stdClass();
+        
+        // Вземаме променливите
+        $callback = $this->callback = Request::get('callback', 'identifier');
+        
+        // Вземаме формата към този модел
+        $form = $this->getForm();
+        
+        // Добавяме нужните полета
+        $form->FNC('imgFile', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Изображение, mandatory");
+        $form->FNC('imgGroupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група, mandatory');
+        $form->FNC('imgTitle', 'varchar(128)', 'caption=Заглавие');
+        
+        // Ако има запис
+        if ($rec) {
+            
+            // Сетваме стойностите на променливите
+            $form->setDefault('imgFile', $rec->src);
+            $form->setDefault('imgGroupId', $rec->groupId);
+            $form->setDefault('imgTitle', $rec->title); 
+        }
+        
+        // Въвеждаме полето
+        $form->input('imgFile, imgGroupId, imgTitle');
+        
+        // Ако формата е изпратена без грешки
+        if($form->isSubmitted()) {
+            
+            // Манипулатор на файла
+            $fileHnd = $form->rec->imgFile;
+            
+            // Ако не е задедено име
+            if (!($name = $form->rec->imgTitle)) {
+                
+                // Да се използва името на файла
+                $name = fileman_Files::fetchByFh($fileHnd, 'name');
+            }
+            
+            // Ако няма запис
+            if (!$rec) {
+                
+                // Създаваме записите
+                $rec = new stdClass();
+            }
+            
+            // Добавяме стойностите
+            $rec->title = $name;
+            $rec->groupId = $form->rec->imgGroupId;
+            $rec->src = $form->rec->imgFile;
+            
+            // Записваме
+            $this->save($rec);
+            
+            // Вземаме полето
+            $vid = $this->vidFieldName;
+            
+            // Очакваме да има стойност
+            expect($rec->$vid);
+            
+            // Създаваме шаблона
+            $tpl = new ET();
+            
+            // Добавяме скрипта, който ще добави надписа и ще затвори прозореца
+            $tpl->append("if(window.opener.{$callback}('{$rec->$vid}') == true) self.close(); else self.focus();", 'SCRIPTS');
+            
+            return $tpl;
+        }
+        
+        // Заглавие на шаблона
+        $form->title = "Добавяне на картинка";
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'imgFile, imgGroupId, imgTitle';
+        
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Добави', 'save', 'ef_icon = img/16/add.png');
+        
+        // URL за връщане
+        $retUrl = getRetUrl();
+        
+        if ($retUrl) {
+            
+            // При отказ да се върне към предишния запис
+            $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close16.png');
+        } else {
+            
+            // При отказ да се затвори прозореца
+            $form->toolbar->addFnBtn('Отказ', 'self.close();', 'ef_icon = img/16/close16.png');
+        }
+
+        // Рендираме опаковката
+        $tpl = $this->renderDialog($form->renderHtml());
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън за показване на диалогов прозорец за с изображенията в галерията
+     */
+    function act_GalleryDialog()
+    {
+        // Очакваме да е логнат потребител
+        requireRole('user');
+        
+        // Обект с необходомите данни
+        $data = new stdClass();
+        
+        // Създаваме заявката
+        $data->query = $this->getQuery();
+        
+        // По - новите добавени да са по - напред
+        $data->query->orderBy("#createdOn", "DESC");
+        
+        // Търсим по създатели
+        $data->query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
+        
+        // Функцията, която ще се извика
+        $data->callback = $this->callback = Request::get('callback', 'identifier');
+        
+        // Титлата на формата
+        $data->title = 'Изображения в галерия';
+        
+        // Брой елементи на страница
+        $this->listItemsPerPage = $this->galleryListItemsPerPage;
+        
+        // Подготвяме навигацията по страници
+        $this->prepareListPager($data);
+        
+        // Подготвяме записите за таблицата
+        $this->prepareListRecs($data);
+        
+        // Подготвяме редовете на таблицата за диалога
+        $this->prepareGalleryDialogListRows($data);
+        
+        // Рендираме изгледа
+        $tpl = $this->renderGalleryDialogList($data);
+        
+        // Задаваме врапера
+        Mode::set('wrapper', 'page_Dialog');
+        
+        return $this->renderDialog($tpl);
+    }
+    
+    
+    /**
+     * Подготвя вербалните стойности на записите, които ще се показват в диалоговия прозорец на галерията
+     * 
+     * @param stdObject $data
+     */
+    function prepareGalleryDialogListRows($data)
+    {   
+        // Защитаваме променливите
+        Request::setProtected('callback, id');
+        
+        // Ако има записи
+        if($data->recs && count($data->recs)) {
+            
+            // Обхождаме записите
+            foreach($data->recs as $id => $rec) {
+                
+                // Добавяме вербалните представяния
+                $data->rows[$id] = $this->recToVerbal($rec, 'src, groupId');
+                // Защитаваме променливите
+                
+                // Ако има права за редактиране
+                if ($this->haveRightFor('edit', $data->recs[$id])) {
+                    
+                    // Изображение за редактиране
+                    $img = ht::createElement('img', array('src' => sbf('img/16/edit16.png', '')));
+                    
+                    // Линк, който сочи към добавяне на изображения в диалов прозрец, с данните на това изображение
+                    $data->rows[$id]->tools = ht::createLink($img, array($this, 'addImgDialog', $id, 'callback' => $data->callback, 'ret_url' => TRUE));
+                }
+                
+                if ($data->recs[$id]->vid) {
+                    
+                    // Добавяме id на реда
+                    $idRow = 'rowGallery' . $id;
+                    $data->rows[$id]->ROW_ATTR['id'] = $idRow;
+                    
+                    // Атрибутите на линковете
+                    $attr = array('onclick' => "flashDocInterpolation('{$idRow}'); if(window.opener.{$data->callback}('{$data->recs[$id]->vid}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                    
+                    // Изображение за добавяне
+                    $imgAdd = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', '')));
+                    
+                    // Линк, който добавя изображението в рич едита
+                    $data->rows[$id]->tools .= ht::createLink($imgAdd, '#', NULL, $attr);
+                }
+            }
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Рендираме общия изглед за 'List'
+     */
+    function renderGalleryDialogList($data)
+    {
+        // Рендираме общия лейаут
+        $tpl = new ET("
+            <div>
+                [#ListTitle#]
+                
+                <div class='top-pager'> 
+                	[#ListPagerTop#]
+                </div>
+                
+                [#ListTable#]
+            </div>
+          ");
+        
+        // Попълваме титлата
+        $tpl->append($this->renderListTitle($data), 'ListTitle');
+        
+        // Попълваме горния страньор
+        $tpl->append($this->renderListPager($data), 'ListPagerTop');
+        
+        // Попълваме таблицата с редовете
+        $tpl->append($this->renderGalleryDialogListTable($data), 'ListTable');
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Рендира таблицата за показване в диалоговия прозорец на галерията
+     * 
+     * @param stdObject $data
+     */
+    function renderGalleryDialogListTable($data)
+    {
+        // Инстанция на класа
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        
+        // Полетата, които ще се показва
+        $listFields = array('tools' => '✍','groupId' => 'Група', 'src' => 'Картинка');    
+        
+        // Рендираме таблицата
+        $tpl = $table->get($data->rows, $listFields);
+        
+        return new ET("<div class='listRows'>[#1#]</div>", $tpl);
     }
 }
