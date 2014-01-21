@@ -348,9 +348,14 @@ class core_SpellNumber
      * @param boolean $displayCurrency Дали да върне валутата
      * @return text $text подадената сума изписана с думи
      */
-    function asCurrency($num, $lg = "bg", $displayCurrency = TRUE)
+    function asCurrency($num, $lg = NULL, $displayCurrency = TRUE)
     {
-        $num = round($num, 2);
+        // Ако не е зададен език, взима се текущия от сесията
+    	if(empty($lg)){
+        	$lg = core_Lg::getCurrent();
+        }
+        
+    	$num = round($num, 2);
         
     	// Дали да показваме валутата в края на сумата в думи
         if($displayCurrency) {
