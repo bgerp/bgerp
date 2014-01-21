@@ -419,7 +419,7 @@ class cms_Content extends core_Manager
 
                 if($filePath){
                     $imageUrl = sbf("img/flags/" . $lg . ".png", "");
-                    $img = ht::createElement("img", array('src' => $imageUrl, 'width' => 16));
+                    $img = ht::createElement("img", array('src' => $imageUrl, 'vertical-align' => 'middle'));
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);
@@ -430,7 +430,7 @@ class cms_Content extends core_Manager
         } elseif(count($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang';
             $attr['title'] = tr('Смяна на езика');
-            $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/16/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
+            $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
         }
 
         return $tpl;
