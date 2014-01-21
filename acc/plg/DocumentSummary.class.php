@@ -143,19 +143,13 @@ class acc_plg_DocumentSummary extends core_Plugin
 	/**
      * След подготовка на записите
      */
-    function on_AfterPrepareListRecs($mvc, &$res, &$data)
+    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
 		// Ако няма заявка, да не се изпълнява
-		$queryCopy = clone $data->query;
-        $queryCopy->show = array();
-        $queryCopy->groupBy = array();
-        $queryCopy->executed = FALSE;
-		$queryCopy->start = NULL;
-        $queryCopy->limit = NULL;
+		if (!$data->listSummary->query) return ;
 		
 		// Ще се преброяват всички неоттеглени документи
- 		$queryCopy->where("#state != 'rejected' || #state IS NULL");
-		
+ 		$data->listSummary->query->where("#state != 'rejected' || #state IS NULL");
 		$data->listSummary->summary = array();
 		
 		// Кои полета трябва да се обобщят
@@ -165,20 +159,20 @@ class acc_plg_DocumentSummary extends core_Plugin
     	$baseCurrency = acc_Periods::getBaseCurrencyCode();
     	
     	// Подготовка на обобщаващите данни
-    	while($rec = $queryCopy->fetch()){
+    	while($rec = $data->listSummary->query->fetch()){
     		static::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
     	}
     	
     	// Преброяване на черновите документи
-    	$activeQuery = clone $queryCopy;
-    	$queryCopy->where("#state = 'draft'");
-    	$draftCount = $queryCopy->count();
+    	$activeQuery = clone $data->listSummary->query;
+    	$data->listSummary->query->where("#state = 'draft'");
+    	$draftCount = $data->listSummary->query->count();
     	
     	// Преброяване на активираните/затворени документи
     	$activeQuery->where("#state = 'active' || #state = 'closed'");
     	$activeCount = $activeQuery->count();
     	
-    	// Изчистване на клонираната заявки
+    	// Изчистване на клонираната заявка
     	unset($activeQuery);
     	
     	// Добавяне в обобщението на броя активирани и броя чернови документи
