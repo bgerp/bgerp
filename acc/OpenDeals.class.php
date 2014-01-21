@@ -106,7 +106,8 @@ class acc_OpenDeals extends core_Manager {
     	$data->listFilter->FNC('show', 'varchar', 'input=hidden');
     	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
-    	$data->listFilter->showFields = 'search';
+    	
+    	$data->listFilter->showFields = 'from,to,search';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     	}
@@ -118,7 +119,7 @@ class acc_OpenDeals extends core_Manager {
 			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
 		}
 		
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
       	
 	
