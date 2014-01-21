@@ -1083,9 +1083,9 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("</span>", 'TBL_GROUP1');
         
         
-        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;margin-left:5px;text-indent:1px' title='" . tr('Удебелен текст') .  "' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;text-indent:1px' title='" . tr('Удебелен текст') .  "' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
          
-        $toolbarArr->add("<a class=rtbutton style='font-style:italic;text-indent:3px;' title='" . tr('Наклонен текст') .  "' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton style='font-style:italic;text-indent:2px;' title='" . tr('Наклонен текст') .  "' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>", 'TBL_GROUP2');
          
         $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;text-indent:2px;' title='" . tr('Подчертан текст') .  "' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
         
@@ -1195,7 +1195,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP3');
         
-        $toolbarArr->add("<a class='rtbutton richtext-group-title'  style='margin-left:5px;' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\">" . tr('Сложи') . "</a>", 'TBL_GROUP3');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title'  style='margin-left:4px;' title='" . tr('Добавяне на файлове/документи') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group6', event);\">" . tr('Сложи') . "</a>", 'TBL_GROUP3');
         
         $emot6 = 'richtext-holder-group-after';
         
