@@ -181,7 +181,12 @@ class type_ComplexType extends type_Varchar {
     	$parts = array();
     	
     	// Извличане на съответните стойностти
-    	list($parts['left'], $parts['right']) = explode('|', $value);
+    	if(is_array($value)){
+    		$parts['left'] = $value['cL'];
+    		$parts['right'] = $value['cR'];
+    	} else {
+    		list($parts['left'], $parts['right']) = explode('|', $value);
+    	}
     	
     	// Трябва да са точно '2'
     	expect(count($parts) == 2);
