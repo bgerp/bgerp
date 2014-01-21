@@ -6,9 +6,10 @@
  * на един ред. Записва ги като стринг с "|" разделяща ги
  * 
  * Параметри:
- * 		left  - placeholder на лявата част
- * 		right - placeholder на дясната част
- *
+ * left         - placeholder на лявата част
+ * right        - placeholder на дясната част
+ * require enum(left,right,both) - изискване коя част задължително да е попълнена
+ * 
  *
  * @category  ef
  * @package   type
@@ -39,6 +40,8 @@ class type_ComplexType extends type_Varchar {
     function init($params = array())
     {
         parent::init($params);
+        
+        setIfNot($this->params['require'], 'left');
         
         // Инстанциране на type_Double
         $this->double = cls::get('type_Double', $params);
@@ -90,25 +93,43 @@ class type_ComplexType extends type_Varchar {
     	if(!is_array($value)) return NULL;
         
     	// Извличане на лявата и дясната част на полето
-        $vLeft = ($value['cL']) ? trim($value['cL']) : NULL;
-        $vRight = ($value['cR']) ? trim($value['cR']) : NULL;
+        $vLeft = (strlen($value['cL'])) ? trim($value['cL']) : NULL;
+        $vRight = (strlen($value['cR'])) ? trim($value['cR']) : NULL;
         
         // Ако има поне едно сетнато поле
         if(isset($vLeft) || isset($vRight)){
         	
-	        // Ако има поне едно празно поле, сетва се грешка
-	        if(empty($vLeft) || empty($vRight)){
-	        	$this->error = "Едно от двете полета е празно";
-	        	
-	        	return FALSE;
-	        }
+        	// Взависимост от параметъра require се проверява попълнени ли са полетата
+        	switch($this->params['require']){
+        		case 'left':
+        			if(empty($vLeft)){
+        				$this->error = "Лявото поле трябва да е попълнено";
+        			}
+        			break;
+        		case 'right':
+        			if(empty($vRight)){
+        				$this->error = "Дясното поле трябва да е попълнено";
+        			}
+        			break;
+        		case 'both':
+        			if(empty($vLeft) || empty($vRight)){
+        				$this->error = "Двете полета трябва да са попълнени";
+        			}
+        			break;
+        	}
+	        
+        	// Ако има грешка, се излиза от ф-ята
+        	if($this->error){
+        		
+        		return FALSE;
+        	}
         	
         	// Преобразуване на числата в състояние подходящо за запис
 	        $vLeft = $this->double->fromVerbal($vLeft);
 	        $vRight = $this->double->fromVerbal($vRight);
 	        
-	        // Трябва да са въведени валидни double числа
-	        if(empty($vLeft) || empty($vRight)){
+	        // Трябва да са въведени валидни double числа, или празен стринг
+	        if($vLeft === FALSE || $vRight === FALSE){
 	        	$this->error = "Не са въведени валидни числа";
 	        	
 	        	return FALSE;
@@ -136,21 +157,28 @@ class type_ComplexType extends type_Varchar {
         
         $res = '';
         
-        // Ако лявата част има има се показва
-        if($this->params['left']){
-        	$res .= $this->params['left'] . ": ";
+        // Ако лявата част има стойност
+        if(strlen($left)){
+	        // Ако лявата част има има се показва
+	        if($this->params['left']){
+	        	$res .= $this->params['left'] . ": ";
+	        }
+	        
+	        $res .= $this->getVerbalPart($left);
         }
         
-        // Показване на лявата част във вербален вид
-        $res .= $this->getVerbalPart($left) . "; ";
-        
-        // Ако дясната част има има се показва
-    	if($this->params['right']){
-        	$res .= $this->params['right'] . ": ";
+        // Ако дясната част има стойност
+    	if(strlen($right)){
+    		
+    		$res .= (strlen($left)) ? "; " : '';
+    		
+	        // Ако дясната част има има се показва
+	        if($this->params['right']){
+	        	$res .= $this->params['right'] . ": ";
+	        }
+	        
+	        $res .= $this->getVerbalPart($right);
         }
-        
-        // Показване на дясната част във вербален вид
-        $res .= $this->getVerbalPart($right);
         
         // Връщане на вебалното представяне
         return $res;
