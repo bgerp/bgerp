@@ -272,8 +272,8 @@ class fileman_GalleryImages extends core_Manager
         // Ако има избран текст
         if ($selText) {
             
-            // Шаблон за намиране на първото от избраните изображения
-            $pattern = "/\[img=\#(?'text'[^\]]*)\]/i";
+            // Шаблон за намиране на изображение към галерията
+            $pattern = "/^\[img=\#(?'text'[^\]]*)\]\s*$/i";
             
             preg_match($pattern, $selText, $match);
             
