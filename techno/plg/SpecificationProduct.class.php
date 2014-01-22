@@ -153,9 +153,9 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		if($contragentFolder){
 	    		$qId = sales_Quotations::fetchField(("#originId = {$rec->containerId} AND #state='draft'"), 'id');
 		    	if($qId){
-		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта,warning=Искате ли да редактирате съществуващата оферта на спецификацията?');
+		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qId), 'ef_icon=img/16/document_quote.png,title=Промяна на съществуваща оферта');
 		    	} else {
-		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията,warning=Искате ли да създадете нова оферта за спецификацията?');
+		    		$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/document_quote.png,title=Създава оферта за спецификацията');
 		    	}
     		} 
     	}
@@ -163,7 +163,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     	if($rec->state == 'active'){
     		//@TODO да махна изискването да има дебъг
     		if(haveRole('debug') && $hasPrice && !$contragentFolder){
-    			$data->toolbar->addBtn('Задание', array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), 'warning=Искате ли да създадете ново задание за производство,ef_icon=img/16/clipboard_text.png,title=Ново задание за производство');
+    			$data->toolbar->addBtn('Задание', array('mp_Jobs', 'add', 'originClass' => $mvc->getClassId(), 'originDocId' => $rec->id), 'ef_icon=img/16/clipboard_text.png,title=Ново задание за производство');
     		}
     	}
     }
