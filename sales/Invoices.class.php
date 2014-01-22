@@ -214,6 +214,8 @@ class sales_Invoices extends core_Master
         $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
         $this->FLD('docId', 'int', 'input=hidden,silent');
         
+        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
+        
         $this->setDbUnique('number');
     }
     
@@ -303,7 +305,12 @@ class sales_Invoices extends core_Master
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
         $rec->discountAmount = $rec->_total->discount * $rec->rate;
         
-        $this->save($rec);
+        // Записване в кеш полето дали има още продукти за добавяне
+        $origin = $this->getOrigin($rec);
+		$dealAspect = $origin->getAggregateDealInfo()->shipped;
+		$invProducts = $this->getDealInfo($rec->id)->invoiced;
+		$rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'all')) ? 'yes' : 'no';
+    	$this->save($rec);
     }
     
     

@@ -152,10 +152,7 @@ class sales_ServicesDetails extends core_Detail
     	
     	if($action == 'add' && isset($rec->shipmentId)){
       		$masterRec = $mvc->Master->fetch($rec->shipmentId);
-		    $origin = $mvc->Master->getOrigin($masterRec);
-		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
-		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
-    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services')){
+    		if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     			$requiredRoles = 'no_one';
     		}
     	}

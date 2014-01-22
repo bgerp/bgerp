@@ -92,8 +92,8 @@ class store_TransfersDetails extends core_Detail
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('isConvertable', 'enum(no,yes)', 'input=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input,mandatory');
-    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+    	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
+        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
     }
     
     

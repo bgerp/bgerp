@@ -127,8 +127,8 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+        $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
+        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         
         // Количество в основна мярка
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
@@ -213,10 +213,7 @@ class store_ShipmentOrderDetails extends core_Detail
     	
     	if($action == 'add' && isset($rec->shipmentId)){
       		$masterRec = $mvc->Master->fetch($rec->shipmentId);
-		    $origin = $mvc->Master->getOrigin($masterRec);
-		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
-		    $invProducts = $mvc->Master->getDealInfo($rec->shipmentId)->shipped;
-    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable')){
+    		if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     			$requiredRoles = 'no_one';
     		}
     	}

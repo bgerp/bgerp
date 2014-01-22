@@ -153,6 +153,8 @@ class purchase_Services extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
             'caption=Статус, input=none'
         );
+        
+        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
     }
 
 
@@ -186,6 +188,11 @@ class purchase_Services extends core_Master
         $rec->amountDeliveredVat = $rec->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $rec->_total->discount * $rec->currencyRate;
         
+        // Записване в кеш полето дали има още продукти за добавяне
+        $origin = $this->getOrigin($rec);
+		$dealAspect = $origin->getAggregateDealInfo()->agreed;
+		$invProducts = $this->getDealInfo($rec->id)->shipped;
+		$rec->isFull = (!bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'services')) ? 'yes' : 'no';
         $this->save($rec);
     }
     

@@ -105,8 +105,8 @@ class store_ReceiptDetails extends core_Detail
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
+        $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
+        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
         $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
@@ -178,10 +178,7 @@ class store_ReceiptDetails extends core_Detail
     	
     	if($action == 'add' && isset($rec->receiptId)){
       		$masterRec = $mvc->Master->fetch($rec->receiptId);
-		    $origin = $mvc->Master->getOrigin($masterRec);
-		    $dealAspect = $origin->getAggregateDealInfo()->agreed;
-		    $invProducts = $mvc->Master->getDealInfo($rec->receiptId)->shipped;
-    		if($masterRec->state != 'draft' || !bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'storable')){
+    		if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     			$requiredRoles = 'no_one';
     		}
     	}
