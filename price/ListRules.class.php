@@ -104,7 +104,7 @@ class price_ListRules extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
-        $this->FLD('price', 'double(decimals=2)', 'caption=Цена,mandatory');
+        $this->FLD('price', 'double', 'caption=Цена,mandatory');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,mandatory,placeholder=%');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До');
@@ -402,8 +402,15 @@ class price_ListRules extends core_Detail
         }
 
 
-        // Вербален изказ на правилото
-        $price    = $mvc->getVerbal($rec, 'price');
+        // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
+        if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
+        	$mvc->fields['price']->type->params['decimals'] = 5;
+        } else {
+        	$mvc->fields['price']->type->params['decimals'] = 2;
+        }
+        
+        $price = $mvc->fields['price']->type->toVerbal($rec->price);
+        
         $discount = $mvc->getVerbal($rec, 'discount');
         
         if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
