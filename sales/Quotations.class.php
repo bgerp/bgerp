@@ -714,4 +714,15 @@ class sales_Quotations extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $rec = (is_object($rec)) ? $rec : static::fetch($rec);
+    	
+    	return tr("|Оферта|* №{$rec->id}");
+    }
 }

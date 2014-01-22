@@ -23,6 +23,14 @@ class sales_QuotationsDetails extends core_Detail {
     
     
     /**
+     * Заглавие в единствено число
+     *
+     * @var string
+     */
+    public $singleTitle = 'Артикул';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'sales_QuotesDetails';
@@ -176,8 +184,6 @@ class sales_QuotationsDetails extends core_Detail {
     	$form = &$data->form;
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
-        $masterLink = sales_Quotations::getLink($form->rec->quotationId);
-        $form->title = (($rec->id) ? "Редактиране" : "Добавяне") . " на артикул в|*" . $masterLink;
         $productMan = cls::get($rec->classId);
         
         if($rec->productId){
