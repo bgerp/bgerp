@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -45,12 +45,6 @@ class store_Products extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo,store';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	var $canSingle = 'ceo,store';
     
     
     /**
@@ -230,18 +224,6 @@ class store_Products extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search';
-        
-        // Активиране на филтъра
-        $recFilter = $data->listFilter->input();
-        
-        // Ако филтъра е активиран
-        if ($data->listFilter->isSubmitted()) {
-            if ($recFilter->productIdFilter) {
-                $condProductId = "#id = '{$recFilter->productIdFilter}'";
-            }
-            
-            if ($condProductId) $data->query->where($condProductId);
-        }
         
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
