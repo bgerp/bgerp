@@ -9,13 +9,13 @@
 	</div>
 	<!--ET_END header-->
 	
-	<table border = 1 id = 'jobTable'>
+	<table id = 'jobTable'>
 		<tr>
 			<td class='job-head'>|Данни на заданието|*</td>
 		</tr>
 		<tr>
-			<td colspan = '2'>
-				<table class='styled-table'>
+			<td>
+				<table cellpadding = '2'>
 					<tr>
 						<td>|Падеж|*:</td>
 						<td><b>[#dueDate#]</b></td>
@@ -37,14 +37,14 @@
 			<td class='job-head'>|Бележки|*</td>
 		</tr>
 		<tr>
-			<td>&nbsp;[#notes#]&nbsp;</td>
+			<td>[#notes#]</td>
 		</tr>
 		<tr>
 			<td class='job-head'>|Логистика|*</td>
 		</tr>
 		<tr>
 			<td>
-				<table class='styled-table'>
+				<table cellpadding = '2'>
 				
 					<!--ET_BEGIN deliveryTermId-->
 					<tr>
@@ -62,7 +62,7 @@
 					
 					<!--ET_BEGIN deliveryPlace-->
 					<tr>
-						<td>|Място|*</td>
+						<td>|Място|*:</td>
 						<td>[#deliveryPlace#]</td>
 					</tr>
 					<!--ET_END deliveryPlace-->

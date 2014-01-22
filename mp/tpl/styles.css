@@ -7,17 +7,12 @@
 	padding: 5px !important;
 }
 
-.document #jobSpec div.general-product{
-	border:1px solid #EEE;
-	padding:10px;
-}
-
 .document #jobTable{
-	border-color:#EEE;
+	border:1px solid #ccc;
 	border-collapse:collapse;
 }
 
-.document #jobTable td{
-	border-color:#EEE;
+.document #jobTable > tbody > tr > td{
+	border:1px solid #ccc;
 	padding:0.3em;
 }
