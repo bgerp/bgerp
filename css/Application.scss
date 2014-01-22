@@ -2633,6 +2633,7 @@ div.location.public {
 
 .narrow .eshop-group-button{
 	margin-bottom:10px;
+	height:auto;
 }
 
 .eshop-group-button:hover  .eshop-group-button-title a {
@@ -2773,7 +2774,7 @@ body.narrow {
     
 }
 @media handheld, only screen and (max-width: 900px) { 
-	.eshop-group-button {
+	.wide .eshop-group-button {
        width: 96%;
        margin: 0 2% 4%;
        height:auto;
@@ -2794,7 +2795,7 @@ body.narrow {
 		margin-right: 6px !important;
 		font-size: 0.97em;
     }
-    .eshop-group-button {
+    .wide .eshop-group-button {
        width: 96%;
        margin: 0 2% 4%;
        font-size: 0.9em;
@@ -2820,7 +2821,7 @@ body.narrow {
 		margin-right: 4px !important;
 		font-size: 0.89em;
     }
-    .eshop-group-button {
+    .wide .eshop-group-button {
       width: 96%;
        margin-right: 2%;
        margin-left: 2%;
@@ -2848,7 +2849,7 @@ body.narrow {
     }
     .narrow .eshop-group-button {
        width: 46%;
-       height: 150px;
+       min-height: 150px;
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
