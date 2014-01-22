@@ -1590,7 +1590,8 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Реализация по подразбиране на метод getDescendants()
      * 
-     * Метода връща референции към документите (от всевъзможни типове), които са от същата нишка
+     * Метода връща референции към документите (от всевъзможни типове),
+     * които са от същата нишка на даден документ (без него)
      * 
      * @param core_Mvc $mvc
      * @param array $chain масив от core_ObjectReference
@@ -1600,18 +1601,20 @@ class doc_DocumentPlg extends core_Plugin
     {
         $chain = array();
         
-        /* @var $query core_Query */
         $query = doc_Containers::getQuery();
         
-        $threadId   = $mvc->fetchField($originDocId, 'threadId');
-        $docClassId = $mvc->getClassId();
+        // Извличане на треда и контейнера на документа
+        $threadId    = $mvc->fetchField($originDocId, 'threadId');
+        $containerId = $mvc->fetchField($originDocId, 'containerId');
         
+        // Намиране на последващите документи в треда (различни от текущия)
         $chainContainers = $query->fetchAll("
-            #threadId = {$threadId} 
-            AND #docId <> {$originDocId} 
-            AND #docClass <> {$docClassId}
+            #id != {$containerId}
+            AND #threadId = {$threadId}
+            AND #docId IS NOT NULL
         ", 'id, originId');
         
+        // За всеки намерен документ, вкарва се във веригата
         foreach ($chainContainers as $cc) {
             $chain[] = doc_Containers::getDocument($cc->id);
         }
