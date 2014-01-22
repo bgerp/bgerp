@@ -431,9 +431,15 @@ class fileman_GalleryImages extends core_Manager
             // При отказ да се затвори прозореца
             $form->toolbar->addFnBtn('Отказ', 'self.close();', 'ef_icon = img/16/close16.png');
         }
-
+        
+        // Рендираме формата
+        $tpl = $form->renderHtml();
+        
+        // Добавяме бутона за затваряне
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+        
         // Рендираме опаковката
-        $tpl = $this->renderDialog($form->renderHtml());
+        $tpl = $this->renderDialog($tpl);
         
         return $tpl;
     }
@@ -483,7 +489,13 @@ class fileman_GalleryImages extends core_Manager
         // Задаваме врапера
         Mode::set('wrapper', 'page_Dialog');
         
-        return $this->renderDialog($tpl);
+        // Добавяме бутона за затваряне
+        $tpl->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
+        
+        // Рендираме опаковката
+        $tpl = $this->renderDialog($tpl);
+        
+        return $tpl;
     }
     
     
