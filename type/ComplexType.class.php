@@ -212,7 +212,7 @@ class type_ComplexType extends type_Varchar {
      */
     public static function getParts($value)
     {
-    	//Тук ще се събират лявата ид ясната част
+    	// Тук ще се събират лявата и дясната част
     	$parts = array();
     	
     	// Извличане на съответните стойностти
