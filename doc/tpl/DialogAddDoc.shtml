@@ -1,4 +1,4 @@
-<div class='dialogDocTitle'>|Избор на документ|*</div>
+<div class='dialogDocTitle'>[#title#]</div>
 <!--ET_BEGIN pager-->
 <div class='dialogPager'>
 [#pager#]
@@ -7,4 +7,3 @@
 <div class='dialogDocTable'>
     [#tableContent#]
 </div>
-<button onclick='javascript:window.close();' class='dialog-close'>X</button>

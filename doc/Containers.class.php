@@ -1207,4 +1207,46 @@ class doc_Containers extends core_Manager
         
         return $arr;
     }
+    
+    
+    /**
+     * Връща URL за добавяне на документ
+     * 
+     * @param string $callback
+     * 
+     * @return URL
+     */
+    static function getUrLForAddDoc($callback)
+    {
+        // Защитаваме променливите
+        Request::setProtected('callback');
+        
+        // Задаваме линка
+        $url = array('doc_Containers', 'AddDoc', 'callback' => $callback);
+        
+        return toUrl($url);
+    }
+    
+    
+    /**
+     * Екшън, който редиректва към качването на файл в съответния таб
+     */
+    function act_AddDoc()
+    {
+        $callback = Request::get('callback', 'identifier');
+        
+        // Защитаваме променливите
+        Request::setProtected('callback');
+        
+        // Името на класа
+        $class = 'doc_Log';
+        
+        // Вземаме екшъна
+        $act = 'addDocDialog';
+        
+        // URL-то да сочи към съответния екшън и клас
+        $url = array($class, $act, 'callback' => $callback);
+        
+        return new Redirect($url);
+    }
 }
