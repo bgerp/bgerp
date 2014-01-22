@@ -419,7 +419,7 @@ class cms_Content extends core_Manager
 
                 if($filePath){
                     $imageUrl = sbf("img/flags/" . $lg . ".png", "");
-                    $img = ht::createElement("img", array('src' => $imageUrl, 'vertical-align' => 'middle'));
+                    $img = ht::createElement("img", array('src' => $imageUrl));
                 }
                 
                 $url = array($this, 'SelectLang', 'lang' => $lg);

@@ -1570,11 +1570,14 @@ fieldset.sharing-history {
 	float: left;
 }
 
-.narrow #cmsMenu a.selectLang img{
-	height: 1em;
+#cmsMenu a img{
+	height: 1.12em;
 	min-height:16px;
 	position: relative;
-	top: -1px;
+	vertical-align: bottom;
+}
+.narrow #cmsMenu a img{
+	top:1px;
 }
 
 #cmsTop,#cmsBottom,#cmsTop.a,#cmsBottom.a {
