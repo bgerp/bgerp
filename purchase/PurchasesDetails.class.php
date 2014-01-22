@@ -22,7 +22,7 @@ class purchase_PurchasesDetails extends core_Detail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**

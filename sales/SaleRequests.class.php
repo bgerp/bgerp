@@ -321,9 +321,9 @@ class sales_SaleRequests extends core_Master
     		if($fRec = (object)$this->fetchField($id, 'data')){
     			$form->rec = $fRec;
     		}
-    		$form->title = "|Редактиране на|*&nbsp;" . $this->getLink($id);
+    		$form->title = "|Редактиране на|*&nbsp; <b>Заявка за продажба №{$id}</b>";
     	} else {
-    		$form->title = "|Заявка към|*&nbsp;" . cls::get('sales_Quotations')->getLink($quotationId);
+    		$form->title = "|Заявка към|*&nbsp;<b>" . sales_Quotations::getRecTitle($quotationId) . "</b>";
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');

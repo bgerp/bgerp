@@ -26,7 +26,7 @@ class sales_SalesDetails extends core_Detail
      *
      * @var string
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Артикул';
     
     
     /**
