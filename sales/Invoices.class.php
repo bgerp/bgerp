@@ -873,7 +873,7 @@ class sales_Invoices extends core_Master
     {
         $rec = $this->fetch($id);
 		$row = new stdClass();
-        $row->title = "Фактура №{$rec->number}";
+        $row->title = static::getRecTitle($rec);
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->authorId = $rec->createdBy;
         $row->state = $rec->state;
@@ -1164,4 +1164,13 @@ class sales_Invoices extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        return tr("|Фактура|* №") . static::recToVerbal($rec, 'number,-single')->number;
+    }
 }

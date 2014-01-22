@@ -425,4 +425,13 @@ class store_Transfers extends core_Master
     	
     	return $table->get($data->transfers, $fields);
     }
+    
+    
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        return tr("|Междускладов трансфер|* №") . $rec->id;
+    }
 }

@@ -23,6 +23,14 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * Заглавие в единствено число
+     *
+     * @var string
+     */
+    public $singleTitle = 'Продукт';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
@@ -117,10 +125,6 @@ class sales_InvoiceDetails extends core_Detail
       	$dealAspect = $origin->getAggregateDealInfo()->shipped;
       	$invProducts = $mvc->Master->getDealInfo($form->rec->invoiceId)->invoiced;
         $form->setOptions('productId', bgerp_iface_DealAspect::buildProductOptions($dealAspect, $invProducts, 'all', $form->rec->productId, $form->rec->classId, $form->rec->packagingId));
-        
-        $masterTitle = $mvc->Master->getDocumentRow($form->rec->invoiceId)->title;
-        (Request::get('Act') == 'add') ? $action = tr("Добавяне") : $action = tr("Редактиране");
-      	$form->title = "{$action} |на запис в|* {$masterTitle}";
     }
 
     

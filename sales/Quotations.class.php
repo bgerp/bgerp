@@ -144,7 +144,7 @@ class sales_Quotations extends core_Master
         'pCode' 		  => 'lastDocUser|lastDoc|clientData',
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
-    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -154,9 +154,12 @@ class sales_Quotations extends core_Master
     public function description()
     {
     	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
-        $this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Валидност,width=8em');
-        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,width=100%', array('attr' => array('style' => 'max-width:500px;')));
-        $this->FLD('others', 'text(rows=4)', 'caption=Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
+        
+        $this->FNC('row1', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->Първи ред');
+    	$this->FNC('row2', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->Втори ред');
+    	$this->FNC('row3', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->Трети ред');
+    	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name)','caption=Плащане->Метод,width=8em,salecondSysId=paymentMethod');
@@ -175,9 +178,9 @@ class sales_Quotations extends core_Master
         $this->FLD('pCode', 'varchar', 'caption=Получател->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Получател->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Получател->Адрес, changable, class=contactData');
-    	$this->FNC('quantity1', 'int', 'caption=Оферта->К-во 1,width=4em');
-    	$this->FNC('quantity2', 'int', 'caption=Оферта->К-во 2,width=4em');
-    	$this->FNC('quantity3', 'int', 'caption=Оферта->К-во 3,width=4em');
+    	
+    	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност,width=8em');
+    	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия,width=100%', array('attr' => array('style' => 'max-width:500px;')));
     }
     
     
@@ -225,7 +228,21 @@ class sales_Quotations extends core_Master
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
        if($rec->originId){
-       		$data->form->setField('quantity1,quantity2,quantity3', 'input');
+       	
+       		// Ако офертата има ориджин
+       		$data->form->setField('row1,row2,row3', 'input');
+       		$origin = doc_Containers::getDocument($rec->originId);
+       		
+       		if($origin->haveInterface('techno_ProductsIntf')){
+       			$price = $origin->getPriceInfo()->price;
+	       		
+       			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
+	       		if(!$price){
+	       			$data->form->fields['row1']->type->params['require'] = 'both';
+	       			$data->form->fields['row2']->type->params['require'] = 'both';
+	       			$data->form->fields['row3']->type->params['require'] = 'both';
+	       		}
+       		}
        }
        
        if(!$rec->person){
@@ -244,8 +261,12 @@ class sales_Quotations extends core_Master
 	    if($data->rec->state == 'active'){
 	    	$items = $mvc->getItems($data->rec->id);
 	    	if((sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items) AND sales_SaleRequests::haveRightFor('add')){
+	    		
+	    		// Ако има поне един опционален продукт, може да се генерира заявка
 	    		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');
 	    	} elseif($items && sales_Sales::haveRightFor('add')){
+	    		
+	    		// Ако има уникални продукти и потребителя има може да създава продажба, се поставя бутон за продажба
 	    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	    	}
 	    }
@@ -298,9 +319,9 @@ class sales_Quotations extends core_Master
     		$coverClass = doc_Folders::fetchCoverClassName($originRec->folderId);
     		expect(cls::haveInterface('doc_ContragentDataIntf', $coverClass));
     		
-    		$quantities = array($rec->quantity1, $rec->quantity2, $rec->quantity3);
-    		if(($quantities[0] || $quantities[1] || $quantities[2])){
-    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $quantities);
+    		$dRows = array($rec->row1, $rec->row2, $rec->row3);
+    		if(($dRows[0] || $dRows[1] || $dRows[2])){
+    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $dRows);
 			}
     	}
     }
@@ -456,6 +477,7 @@ class sales_Quotations extends core_Master
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата оферта") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
+        
         return $tpl->getContent();
     }
     

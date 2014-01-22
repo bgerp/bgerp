@@ -744,4 +744,13 @@ class store_ShipmentOrders extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        return tr("|Експедиционно нареждане|* №") . $rec->id;
+    }
 }

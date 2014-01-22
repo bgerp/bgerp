@@ -462,7 +462,11 @@ class sales_Sales extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("|Продажба|* №") . $rec->id;
+        // Името на шаблона е и име на документа
+    	$templateId = static::getTemplate($rec);
+    	$templateName = doc_TplManager::getTitleById($templateId);
+        
+    	return "{$templateName} №{$rec->id} / " . static::getVerbal($rec, 'valior');
     }
 
 
@@ -846,18 +850,15 @@ class sales_Sales extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        
-        // Името на шаблона е и име на документа
-        $templateId = $this->getTemplate($rec);
-        $templateName = doc_TplManager::getTitleById($templateId);
+        $title = static::getRecTitle($rec);
         
         $row = (object)array(
-            'title'    => "{$templateName} №{$rec->id} / " . $this->getVerbal($rec, 'valior'),
+            'title'    => $title,
         	'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author'   => $this->getVerbal($rec, 'createdBy'),
             'state'    => $rec->state,
-            'recTitle' => $this->getRecTitle($rec),
+            'recTitle' => $title,
         );
         
         return $row;

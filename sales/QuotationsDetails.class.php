@@ -487,9 +487,9 @@ class sales_QuotationsDetails extends core_Detail {
      * на посочените примерни количества в нея
      * @param stdClass $rec - запис на оферта
      * @param core_ObjectReference $origin - ид на спецификацията
-     * @param array $quantities - количества подадени от заявката
+     * @param array $dRows - количества И цени подадени във вида "к-во|цена"
      */
-    public function insertFromSpecification($rec, $origin, $quantities = array())
+    public function insertFromSpecification($rec, $origin, $dRows = array())
     {
     	$docClassId = $origin->instance->getClassId();
     	$docId = $origin->that;
@@ -505,17 +505,29 @@ class sales_QuotationsDetails extends core_Detail {
     	// Изтриват се предишни записи на спецификацията в офертата
     	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #classId = {$classId}");
     	
-    	foreach ($quantities as $q) {
-    		if(empty($q)) continue;
+    	foreach ($dRows as $row) {
+    		if(empty($row)) continue;
+    		
+    		// Извличане на к-то и цената от формата
+    		$row = type_ComplexType::getParts($row);
     		
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $specRec->id;
-    		$dRec->quantity = $q;
+    		$dRec->quantity = $row['left'];
     		$dRec->classId = $classId;
-    		$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $q, $rec->date);
-    		$dRec->price = $price->price;
+    		
+    		// Ако полето от формата има дясна част, това е цената
+    		if($row['right']){
+    			$dRec->price = $row['right'];
+    		} else {
+    			
+    			// Ако няма извлича се цената от спецификацията
+    			$price = $ProductMan->getPriceInfo($rec->contragentClassId, $rec->contragentId, $dRec->productId, $dRec->classId, NULL, $dRec->quantity, $rec->date);
+    			$dRec->price = $price->price;
+    		}
+    		
     		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
     		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
