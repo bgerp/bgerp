@@ -256,28 +256,67 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
-     * 
+     * Екшън за редирект към необходимия екшън за добавяне на изображение в ричтекст поле
      */
     function act_AddImg()
     {
-        // Защитаваме променливите
-        Request::setProtected('callback');
-        
-        // Името на класа
-        $class = 'fileman_GalleryImages';
-        
-        // Вземаме екшъна
-        $act = 'addImgDialog';
+        // Избрания текст
+        $selText = Request::get('selText');
         
         // Други допълнителни данни
         $callback = Request::get('callback');
         
-        $url = array($class, $act, 'callback' => $callback);
+        // Защитаваме променливите
+        Request::setProtected('callback, id');
+        
+        // Ако има избран текст
+        if ($selText) {
+            
+            // Шаблон за намиране на първото изображение в галерия
+            $pattern = "/(\#)(?'text'[^\]|$|\s]+)/i";
+            
+            preg_match($pattern, $selText, $match);
+            
+            // Ако има окрит вид на галерията
+            if($match['text']) {
+                
+                // Текста за търсене
+                $searchText = $match['text'];
+            } else {
+                
+                // Ако щаблона не открие текста, но все пак има текст
+                // Премахваме последната скоба, ако има такава
+                $searchText = rtrim($selText, ']');
+            }
+            
+            // Опитваме се да вземем id на записа от вида
+            $id = $this->fetchField(array("#{$this->vidFieldName} = '[#1#]'", $searchText));
+        } 
+        
+        // Ако има id и имаме права за редакция
+        if ($id && $this->haveRightFor('edit', $id)) {
+            
+            // URL-то да сочи към диалоговия прозорец за редактиране на изображението
+            $url = array($this, 'addImgDialog', $id, 'callback' => $callback);
+        } else {
+            
+            // Името на класа
+            $class = 'fileman_GalleryImages';
+            
+            // Вземаме екшъна
+            $act = 'addImgDialog';
+            
+            // URL-то да сочи към съответния екшън и клас
+            $url = array($class, $act, 'callback' => $callback);
+        }
         
         return new Redirect($url);
     }
     
     
+    /**
+     * Екшън за добавяне на изображение в ричтекст поле
+     */
     function act_AddImgDialog()
     {
         // Очакваме да е логнат потребител

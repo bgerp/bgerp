@@ -163,7 +163,16 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             $url = fileman_GalleryImages::getUrLForAddImg($callbackName);
             
             // JS фунцкията, която отваря прозореца
-            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+            $js = "
+            var url = '{$url}';
+            
+            var richtext = get$('{$id}');
+            
+            var selText = getSelectedText(richtext);
+            
+            url += '&selText=' + encodeURIComponent(selText);
+            
+            openWindow(url, '{$windowName}', '{$args}'); return false;";
             
             // Бутон за отвяряне на прозореца
             $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на картинка") . "' onclick=\"{$js}\">" . tr("Картинка") . "</a>");
