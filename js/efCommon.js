@@ -474,6 +474,20 @@ function rp(text, textarea, newLine)
 	}
 }
 
+/**
+ * Връща избрания текст в textarea
+ * 
+ * @param textarea
+ * @return text
+ */
+function getSelectedText(textarea)
+{
+	if (typeof(textarea.selectionStart) != 'undefined' ) {
+		var selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
+		
+		return selectedText;
+	}
+}
 
 // Редактор за BBCode текст: селектира ...
 function s(text1, text2, textarea, newLine, multiline)
