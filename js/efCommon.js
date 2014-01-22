@@ -198,6 +198,10 @@ function isIE()
   return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
+function getIEVersion () {
+	  var myNav = navigator.userAgent.toLowerCase();
+	  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
+}
 
 // Инициализира комбобокса
 function comboBoxInit(id, suffix) 
@@ -421,23 +425,30 @@ function sc(text)
 // Редактор за BBCode текст:   ...
 function rp(text, textarea, newLine)
 {
-	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
+	var version = getIEVersion();
+	if( (version == 8 || version == 9) && typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange )
 	{  
+		textarea.focus();
 		var caretPos = textarea.caretPos;
-		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
 		
-		if (caretPos.text.charAt(caretPos.text.length - 1) != "\n" && newLine){
-			caretPos.text = "\n" + caretPos.text ;
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+		
+		if (previousChar !="\n"  && position != 0  && newLine){
+			text = "\n" + text;
 		}
 		
-		caretPos.select();
+		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		
+		textarea.focus();
 	} else if (typeof(textarea.selectionStart) != 'undefined' ) {
 		
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var end = textarea.value.substr(textarea.selectionEnd);
 		var scrollPos = textarea.scrollTop;
 		
-		if (begin.charAt(begin.length-1) != "\n" && begin != '' && newLine){
+		if (begin.charAt(begin.length-1) != "\n" && begin != "" && newLine){
 			begin += "\n";
 		}
 		
@@ -450,6 +461,14 @@ function rp(text, textarea, newLine)
 		}
 		textarea.scrollTop = scrollPos;
 	} else {
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+		
+		if (previousChar !="\n"  && position != 0  && newLine){
+			text = "\n" + text;
+		}
+		
 		textarea.value += text;
 		textarea.focus(textarea.value.length - 1);
 	}
@@ -461,25 +480,31 @@ function s(text1, text2, textarea, newLine, multiline)
 {	
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
 	{					
-
+		
 		var caretPos = textarea.caretPos, temp_length = caretPos.text.length;
 		
 		if(caretPos.text != '' && caretPos.text.indexOf("\n") == -1 && text2 == '[/code]')  {
 			text1 = "`";
 			text2 = "`";
 		}
-				
-		if (caretPos.text.charAt(caretPos.text.length - 1) != "\n"  && newLine){
-			caretPos.text = caretPos.text + "\n" ;
-		}
+	
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+	
+		
+		if (previousChar !="\n"  && position != 0  && newLine){
+			text1 = "\n" + text1;
+		}	
 		
 		if(multiline) {
-			text1 = text1 + "\n";
+			if(getIEVersion()==10){
+				text1 = text1 + "\n";
+			}
 			text2 = "\n" + text2;
 		}
 		
 		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text1 + caretPos.text + text2 + ' ' : text1 + caretPos.text + text2;
-		
 		
 		if (temp_length == 0)
 		{
@@ -523,6 +548,23 @@ function s(text1, text2, textarea, newLine, multiline)
 		}
 		textarea.scrollTop = scrollPos;
 	} else {
+		
+		var textareaText = textarea.value;
+		var position = textareaText.length;
+		var previousChar = textareaText.charAt(position - 1);
+		
+		
+		if (previousChar != "\n"  && position != 0  && newLine){
+			text1 = "\n" + text1;
+		}	
+		
+		if(multiline) {
+			if(getIEVersion()==10){
+				text1 = text1 + "\n";
+			}
+			text2 = "\n" + text2;
+		}
+		
 		textarea.value += text1 + text2;
 		textarea.focus(textarea.value.length - 1);
 	}
