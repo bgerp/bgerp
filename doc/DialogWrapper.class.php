@@ -70,9 +70,6 @@ class doc_DialogWrapper extends core_Plugin
         
         // Добавяме css-файла
        	$res->push('doc/css/dialogDoc.css','CSS');
-       	
-        // Бутон X за затваряне
-        $res->append("<button onclick='javascript:window.close();' class='dialog-close'>X</button>");
         
         // Конфигурация на ядрото
         $conf = core_Packs::getConfig('core');

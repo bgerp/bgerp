@@ -7,3 +7,4 @@
 <div class='dialogDocTable'>
     [#tableContent#]
 </div>
+<button onclick='javascript:window.close();' class='dialog-close'>X</button>
