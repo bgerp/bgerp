@@ -2,8 +2,7 @@
 
 
 /**
- * Клас 'fileman_DialogWrapper' - опаковка на пакета 'fileman'
- *
+ * Клас 'fileman_GalleryDialogWrapper'
  *
  * @category  vendors
  * @package   fileman
