@@ -161,7 +161,7 @@ class doc_Log extends core_Manager
                 $resArr[$docId]['ROW_ATTR']['id'] = $attrId['id']; 
                 
                 // Заглавие на документа
-                $resArr[$docId]['title'] = str::limitLen($docRow->title, 35);
+                $resArr[$docId]['title'] = str::limitLen($docRow->title, 55);
                 
                 // Манипулатор на докуемнта
                 $handle = '#' . $document->getHandle();
@@ -169,14 +169,17 @@ class doc_Log extends core_Manager
                 // Данни за създаването на документа
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');
                 $resArr[$docId]['createdBy'] = doc_Containers::getVerbal($docRec, 'createdBy');
-                $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . ' ' . tr('от') . ' ' . $resArr[$docId]['createdBy'];
+                $resArr[$docId]['created'] = $resArr[$docId]['createdOn'] . "\n" . $resArr[$docId]['createdBy'];
                 $resArr[$docId]['created'] = "<div class='upload-doc-created'>" . $resArr[$docId]['created'] . "</div>";
                 
                 // Атрибутите на линковете
                 $attr = array('onclick' => "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();", "class" => "file-log-link");
                 
                 // Името на документа да се добави към текста, при натискане на линка
-                $resArr[$docId]['handle'] = ht::createLink($handle, '#', NULL, $attr); 
+                $resArr[$docId]['handle'] = ht::createLink($handle, '#', NULL, $attr);
+                
+                // Документа
+                $resArr[$docId]['document'] = $resArr[$docId]['handle'] . "\n<div class='addDocSubTitle'>{$resArr[$docId]['title']}</div>";
             } catch (Exception $e) {
                 continue;
             }
@@ -218,7 +221,7 @@ class doc_Log extends core_Manager
         $inst = cls::get('core_TableView');
         
         // Полета в таблицата
-        $tableCaptionArr = array('handle' => 'Хендлър', 'title' => 'Заглавие', 'created' => 'Създадено');
+        $tableCaptionArr = array('document' => 'Документ', 'created' => 'Създадено');
         
         // Вземаме таблицата с попълнени данни
         $tableTpl = $inst->get($data->docIdsArr, $tableCaptionArr);

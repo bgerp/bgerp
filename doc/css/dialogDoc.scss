@@ -30,11 +30,6 @@ body {
 	width: 130px;
 }
 
-.dialogDocTable {
-	overflow-y: auto;
-	max-height: 480px;
-}
-
 .dialogDocTable table {
 	width: 100%;
 	background-color: white;
@@ -62,3 +57,9 @@ body {
 	margin-top:-10px;
 }
 
+.addDocSubTitle {
+	font-size: 0.75em;
+	padding: 2px;
+	padding-bottom: 0px;
+	color: #353;
+}
