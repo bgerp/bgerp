@@ -1531,7 +1531,7 @@ fieldset.sharing-history {
 }
 
 .narrow .background-holder {
-	padding: 0;
+	padding: 10px 0 0;
 	background-color: black;
 }
 
@@ -2728,7 +2728,6 @@ body.narrow {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
-		margin-top:0;
 	}
 
 	.background-holder{
