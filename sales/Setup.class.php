@@ -2,6 +2,12 @@
 
 
 /**
+ * Толеранс за автоматичното затваряне на продажба за доставеното - платеното
+ */
+defIfNot('SALE_CLOSE_TOLERANCE', '0.01');
+
+
+/**
  * Максимален срок за бъдещи цени с които да работи офертата
  */
 defIfNot('SALE_MAX_FUTURE_PRICE', type_Time::SECONDS_IN_MONTH);
@@ -22,7 +28,7 @@ defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 /**
  * Продажби до колко дни назад без да са модифицирани да се затварят автоматично
  */
-defIfNot('SALE_CLOSE_OLD_SALES', 60 * 60 * 24 * 3);
+defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
 
 /**
@@ -81,9 +87,10 @@ class sales_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за пресрочване"),
+			'SALE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Продажби->Толеранс за приключване'),
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
-			'SALE_CLOSE_OLD_SALES'     => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
+			'SALE_CLOSE_OLDER_THAN'     => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
 			'INV_MIN_NUMBER'           => array('int', 'caption=Номер на фактура->Долна граница'),
 			'INV_MAX_NUMBER'           => array('int', 'caption=Номер на фактура->Горна граница'),
 	);

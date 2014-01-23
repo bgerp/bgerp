@@ -1165,18 +1165,33 @@ class sales_Sales extends core_Master
     function cron_CloseOldSales()
     {
     	$conf = core_Packs::getConfig('sales');
+    	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
+    	
+    	// Текущата дата
     	$now = dt::mysql2timestamp(dt::now());
-    	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLD_SALES);
+    	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLDER_THAN);
     	
     	$query = $this->getQuery();
     	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	$query->where("#state = 'active'");
-    	$query->where("#threadModifiedOn <= '{$oldBefore}'");
-    	$query->where("#amountDelivered != 0 AND #amountPaid != 0");
-    	$query->where("#amountDelivered - #amountPaid BETWEEN 0 AND 1");
     	
+    	// Закръглената оставаща сума за плащане
+    	$query->XPR('toPay', 'double', 'ROUND(#amountDelivered - #amountPaid, 2)');
+    	
+    	// Само активни продажби
+    	$query->where("#state = 'active'");
+    	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
+    	
+    	// На които треда им не е променян от определено време
+    	$query->where("#threadModifiedOn <= '{$oldBefore}'");
+    	
+    	// Доставеното - платеното трябва да е в допустимия толеранс
+    	$query->where("#toPay BETWEEN -{$tolerance} AND {$tolerance}");
+    	$query->orderBy('id', 'DESC');
+    	
+    	// Всяка намерена продажба, се приключва като платена
     	while($rec = $query->fetch()){
     		$rec->state = 'closed';
+    		$rec->paymentState = 'paid';
     		
     		try{
     			$this->save($rec);
