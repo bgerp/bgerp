@@ -425,6 +425,9 @@ class store_ShipmentOrders extends core_Master
         			}
         		}
         	}
+        	
+        	// Сетване на кеш полето че ЕН-то не е запълнено
+        	$rec->isFull = 'no';
         }
     }
     

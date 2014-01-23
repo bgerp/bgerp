@@ -658,4 +658,17 @@ class purchase_Services extends core_Master
     {
         return tr("|Приемателен протокол за услуги|* №") . $rec->id;
     }
+    
+    
+	/**
+     * След изпращане на формата
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+        	
+        	// Сетване на кеш полето че ЕН-то не е запълнено
+        	$form->rec->isFull = 'no';
+        }
+    }
 }
