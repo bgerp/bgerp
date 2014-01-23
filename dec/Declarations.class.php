@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -150,7 +150,6 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	
         $data->form->setSuggestions('materialId', cat_Products::getByGroup('materials'));
         
     	// Записваме оригиналното ид, ако имаме такова
@@ -175,10 +174,8 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareSingle($mvc, &$tpl, &$data)
     {
-    
-    	$row = $data->row;
-        
-        $rec = $data->rec;
+    	$row = &$data->row;
+        $rec = &$data->rec;
        
         // Зареждаме бланката в шаблона на документа
         $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
@@ -215,7 +212,6 @@ class dec_Declarations extends core_Master
 	    	$locationData = crm_Locations::fetch($rec->locationId);
 	    	$row->place = $locationData->title;
     	}
-    	
 
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
@@ -291,13 +287,6 @@ class dec_Declarations extends core_Master
 	static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	$tpl->removePlaces();
-    }
-
-    
-    static function act_Test()
-    {
-    	$id = 2;
-    	//bp(Mode::is('Printing'));
     }
 
     
@@ -455,6 +444,16 @@ class dec_Declarations extends core_Master
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата декларация за съответствие") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
+        
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        return tr("|Декларация|* №{$rec->id}");
     }
 }
