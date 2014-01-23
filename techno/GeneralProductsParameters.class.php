@@ -194,7 +194,7 @@ class techno_GeneralProductsParameters extends core_Manager
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
        if (isset($rec->generalProductId)){
-       		$masterState = $mvc->Master->fetchField($rec->generalProductId, 'state');
+       		$masterState = techno_GeneralProducts::fetchField($rec->generalProductId, 'state');
        		if ($masterState != 'draft'){
        			$res = 'no_one';
        		}
