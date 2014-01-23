@@ -336,16 +336,19 @@ class cal_Reminders extends core_Master
         
         $data->listFilter->input('selectedUsers', 'silent');
         
-    	$userId = core_Users::getCurrent();
+    	
         $data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-                
+        if(!$data->listFilter->rec->selectedUsers) {
+            $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
+	  	}
+                        
         if($data->listFilter->rec->selectedUsers) {
 	           
 	         if($data->listFilter->rec->selectedUsers != 'all_users') {
 	                $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
 	               
-	           }
+	         }
         }
     }
 
