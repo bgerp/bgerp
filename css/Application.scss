@@ -2613,6 +2613,13 @@ div.location.public {
 .blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
     border-bottom: none !important;
 }
+
+.distro-tools a{
+	margin: 0px 5px 0;
+	position:relative;
+	top:1px;
+	display: inline-block;
+}
 /*край на бъгфиксове*/
 
 

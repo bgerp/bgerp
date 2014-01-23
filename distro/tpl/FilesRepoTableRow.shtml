@@ -1,7 +1,7 @@
 <!--ET_BEGIN FileList-->
 	[#FileList#]
 	<tr class='nowrap'>
-		<td align='center'>[#tools#]</td>
+		<td align='center' class='distro-tools'>[#tools#]</td>
 		<td>[#file#]</td>
 		<td align='center'>[#modified#]</td>
 	</tr>
