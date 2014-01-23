@@ -202,7 +202,7 @@ class purchase_Purchases extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
+        $this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none, notNull, default=pending');
     }
     
     
