@@ -111,6 +111,8 @@ class doc_Search extends core_Manager
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
+        $data->listFilter->input();
+        
     	$filterRec = $data->listFilter->rec;
         
         $isFiltered =
