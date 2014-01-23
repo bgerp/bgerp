@@ -538,7 +538,7 @@ class fileman_Log extends core_Manager
         if (Mode::get('dialogOpened')) {
             
             // Заменяме плейсхолдера за страницира с празен стринг
-            $tpl->replace('', 'ListPagerTop');
+            $tpl->replace('', 'ListPagerBottom');
         }
     }
     
