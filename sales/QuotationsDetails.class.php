@@ -238,6 +238,12 @@ class sales_QuotationsDetails extends core_Detail {
 	    		
 	    	}
 	    	
+    		if($rec->optional == 'no' && !$rec->quantity){
+	    		$form->setError('quantity', 'Задължителния продукт не може да е без количество!');
+	    		
+	    		return;
+    		}
+	    	
 	    	$ProductMan = cls::get($rec->classId);
 	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
@@ -258,16 +264,23 @@ class sales_QuotationsDetails extends core_Detail {
 	    		$rec->price = $price->price;
 	    	} else {
 	    		
-	    		if($masterRec->chargeVat == 'yes'){
-	    			$rec->price = $rec->price / (1 + $rec->vatPercent);
-	    		}
-	    		$rec->price = $rec->price * $masterRec->currencyRate;
-	    	}
-	    	
-	    	if($rec->optional == 'no' && !$rec->quantity){
-	    		$form->setError('quantity', 'Задължителния продукт не може да е без количество!');
+	    		// Ако има цена, тя се конвертира до основна валута без ддс
+	    		$rec->price = static::getBasePrice($rec->price, $masterRec->currencyRate, $rec->vatPercent, $masterRec->chargeVat);
 	    	}
     	}
+    }
+    
+    
+    /**
+     * Помощна ф-я обръщаща въведената цена в основна валута без ддс
+     */
+    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
+    {
+    	if($chargeVat == 'yes'){
+	    	$price = $price / (1 + $vatPercent);
+	    }
+	    		
+	    return $price * $currencyRate;
     }
     
     
@@ -523,10 +536,14 @@ class sales_QuotationsDetails extends core_Detail {
     		$dRec->productId = $specRec->id;
     		$dRec->quantity = $row['left'];
     		$dRec->classId = $classId;
+    		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
     		
     		// Ако полето от формата има дясна част, това е цената
     		if($row['right']){
+    			
+    			// Въведената цена се обръща в основна валута без ддс
     			$dRec->price = $row['right'];
+    			$dRec->price = static::getBasePrice($dRec->price, $rec->currencyRate, $dRec->vatPercent, $rec->chargeVat);
     		} else {
     			
     			// Ако няма извлича се цената от спецификацията
@@ -536,7 +553,6 @@ class sales_QuotationsDetails extends core_Detail {
     		
     		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
-    		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
     		
     		$this->save($dRec);
     	}
