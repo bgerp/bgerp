@@ -603,7 +603,7 @@ class cal_Tasks extends core_Master
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
 	    	
-	    	$ganttType = self::getGanttTimeType($data);
+	    	
 	    	
 	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 	        
@@ -611,17 +611,23 @@ class cal_Tasks extends core_Master
 	    	$currUrl['Chart'] = 'List';
 	        $tabs->TAB('List', 'Таблица', $currUrl);
 	        
-	        $currUrl['Act'] = 'list';
-	        $currUrl['Chart'] = 'Gantt';
-	        $currUrl['View'] = $ganttType;
-	        $tabs->TAB('Gantt', 'Гант', $currUrl);
-
-	        if($chartType == 'Gantt') { 
-	        	
-	        	$tpl = static::getGantt($data);
-	        	
-	        }
-	        
+    		if(isset($data->recs->timeStart)){
+	    		$ganttType = self::getGanttTimeType($data);
+	    
+		        $currUrl['Act'] = 'list';
+		        $currUrl['Chart'] = 'Gantt';
+		        $currUrl['View'] = $ganttType;
+		        $tabs->TAB('Gantt', 'Гант', $currUrl);
+	
+		        if($chartType == 'Gantt') { 
+		        	
+		        	$tpl = static::getGantt($data);
+		        	
+		        }
+    		} else {
+    			 $tabs->TAB('Gantt', 'Гант', '');
+    		}
+    		
 	        $tpl = $tabs->renderHtml($tpl, $chartType);
 	               
 	        $mvc->currentTab = 'Задачи';
