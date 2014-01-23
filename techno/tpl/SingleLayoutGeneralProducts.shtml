@@ -55,12 +55,12 @@
 		<!-- ET_END image-->
 		<li class='clearfix21'></li>
 	<li>
-	<div>|Създаване|* [#createdOn#] |от|* [#createdBy#]</div>
 	<!--ET_BEGIN DETAILS-->
 	[#DETAILS#]
 	<!--ET_BEGIN DETAILS-->
 	</li>
 </ul>
+<div>|Създаване|* [#createdOn#] |от|* [#createdBy#]</div>
 <!--ET_END BODY-->
 </div>
 	<!--ET_BEGIN shareLog-->
