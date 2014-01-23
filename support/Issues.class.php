@@ -463,6 +463,9 @@ class support_Issues extends core_Master
         $data->listFilter->setField('systemIdShow', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('systemIdShow', array('mandatory' => FALSE));
         
+        // Инпутваме
+        $data->listFilter->input();
+        
         // id' то на системата
         $systemId = $data->listFilter->rec->systemIdShow;
         
