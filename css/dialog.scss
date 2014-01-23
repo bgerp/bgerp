@@ -18,12 +18,26 @@ body {
 	border: solid 1px red;
 	background-color: #ffc;
 }
+
 .dialog-еrror ul{
 	margin: 0;
 	padding: 5px;
 	list-style: none;
 	color: #F00;
 	font-size: 0.9em;
+}
+
+.filemanGallery .listTitle{
+	font-size: 1em;
+	font-weight: bold;
+}
+
+.chzn-container,  input[name='imgTitle'], select{
+	width: 100% !important;
+}
+
+.chzn-drop, .chzn-search input{
+	width: 99% !important;
 }
 
 .dialog-title {
@@ -43,8 +57,10 @@ body {
 	border: none;
 	color: #000;
 	font-weight: bold;
-	font-size: 1.1em; 
-	padding: 0 10px;
+	font-size: 1em; 
+	position:relative;
+	top: -5px;
+	padding: 0px;
 }
 
 .narrow .vertical .formTitle {
@@ -53,18 +69,25 @@ body {
 
 .vertical .formSection {
 	background: none !important;
+	padding: 0px;
 }
 
 .vertical .formTable{
 	-moz-box-shadow: none !important;
     -webkit-box-shadow: none !important;
     box-shadow: none !important;
+    width: 100%;
     td {
         border: none !important;
+        max-width: 220px;
     }
 }
 
 .vertical .formToolbar, .narrow .vertical .formToolbar {
 	background: none;
 	border: none !important;
+}
+
+.formFieldCaption{
+	font-size: 0.96em;
 }
