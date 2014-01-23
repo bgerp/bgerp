@@ -36,6 +36,10 @@ body {
 	width:60px;
 }
 
+.galleryListTable .file-log-link{
+	margin-left: 8px;
+}
+
 .galleryListTable .listTable tr td:last-child{
 	width:1%;
 }
