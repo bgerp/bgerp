@@ -199,7 +199,7 @@ class sales_Sales extends core_Master
         
         // Наш персонал
         $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор');
-        $this->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty)', 'caption=Наш персонал->Търговец');
+        $this->FLD('dealerId', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Наш персонал->Търговец');
         
         // Допълнително
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
@@ -207,13 +207,12 @@ class sales_Sales extends core_Master
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към');
         $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
 
-        
         $this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
         );
+        
     	$this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
-    	$this->fields['dealerId']->type->params['roles'] = $this->getRequiredRoles('add');
     }
     
     

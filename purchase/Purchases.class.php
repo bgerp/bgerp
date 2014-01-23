@@ -190,7 +190,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
         // Наш персонал
-        $this->FLD('dealerId', 'user(allowEmpty)', 'caption=Наш персонал->Закупчик');
+        $this->FLD('dealerId', 'user(rolesForAll=purchase|ceo,allowEmpty,roles=ceo|purchase)', 'caption=Наш персонал->Закупчик');
 
         // Допълнително
         $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
@@ -201,11 +201,13 @@ class purchase_Purchases extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
             'caption=Статус, input=none'
         );
+        
+        $this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     }
     
     
 	/**
-     * Екшън за приключване на продажба
+     * Екшън за приключване на покупка
      */
     function act_Close()
     {
