@@ -78,16 +78,19 @@ body{
 	top:9px;
 	background-color:#ddd !important; 
 }
-
+#add-file-info{
+	max-height:334px;
+    overflow:auto;
+}
 .uploaded-filenames{
 	display:block;
-	max-height:84px;
+	max-height:340px;
 	overflow:auto;
 }
 
 #add-success-info{
-	max-height:104px;
-	overflow:auto;
+	1max-height:104px;
+	1overflow:auto;
 }
 
 .uploaded-file > a {
@@ -109,7 +112,11 @@ body{
     text-decoration:none;
     color:#000066;
 }
-
+.dialogTitle {
+	font-weight:bold;
+	margin-top: -2px;
+	margin-bottom: 5px;
+}
 .upload-close{
 	position:absolute;
 	top:5px;
@@ -183,6 +190,10 @@ body{
 }
 
 .fileman_Log{
+	margin-top: 15px;
+	.horizontal .formToolbar{
+	   margin-bottom: 10px !important;
+	}
 	.listTable{
 		width:100%;
 		th {

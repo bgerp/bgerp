@@ -15,7 +15,7 @@ body {
    	font-family:Helvetica,Verdana,Sans-serif;
 }
 
-.tab A {
+.tab a {
     text-decoration:none;
     color:#000066;
 }
@@ -26,3 +26,17 @@ body {
      background-position: 0px center;
      font-size:1.1em;
 }
+
+.galleryListTable .listTable{
+	width: 100%;
+}
+
+.galleryListTable .listTable tr td:first-child{
+	text-align:center;
+	width:60px;
+}
+
+.galleryListTable .listTable tr td:last-child{
+	width:1%;
+}
+	

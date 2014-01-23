@@ -318,14 +318,14 @@ class fileman_Get extends core_Manager {
 
         }
         
-        $form->addAttr('url', array('style' => 'width:300px;'));
+        $form->addAttr('url', array('style' => 'width:100%;'));
         
         $form->layout = new ET("
             <form style='margin:0px;' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n 
             <!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->
             <!--ET_BEGIN FORM_WARNING--><div class=\"formWarning\">[#FORM_WARNING#]</div><!--ET_END FORM_WARNING-->
 
-            Линк към файла за вземане:<p>
+           <div style='margin: 10px 0;'> Линк към файла за вземане:</div>
             <!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->
             <p>[#FORM_TOOLBAR#]</p>
             <input name='Protected' type='hidden' value='[#Protected#]'/>

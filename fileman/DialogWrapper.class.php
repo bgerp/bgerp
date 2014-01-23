@@ -41,7 +41,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
-            $tpl->prepend("<button onclick='javascript:window.close();' class='upload-close'>X</button><b>{$this->info->title}</b>");
+            $tpl->prepend("<button onclick='javascript:window.close();' class='upload-close'>X</button><div class='dialogTitle'>{$this->info->title}</div>");
 
             $tpl->append("<ul><small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
             
@@ -77,7 +77,7 @@ class fileman_DialogWrapper extends core_Plugin
 
             $tpl = $tabs->renderHtml($tpl, $invoker->className);
             
-            $tpl->prepend('<br>');
+           // $tpl->prepend('<br>');
             
             $tpl->prepend($this->info->title . " « " . $conf->EF_APP_TITLE, 'PAGE_TITLE');
             

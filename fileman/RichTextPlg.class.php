@@ -43,7 +43,7 @@ class fileman_RichTextPlg extends core_Plugin
             if(Mode::is('screenMode', 'narrow')) {
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             } else {
-                $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+                $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             }
             
             $bucketId = fileman_Buckets::fetchField("#name = '" . $mvc->params['bucket'] . "'", 'id');

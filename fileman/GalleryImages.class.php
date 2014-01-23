@@ -558,14 +558,15 @@ class fileman_GalleryImages extends core_Manager
     {
         // Рендираме общия лейаут
         $tpl = new ET("
-            <div>
+          <div>
                 [#ListTitle#]
                 
                 <div class='top-pager'> 
                 	[#ListPagerTop#]
                 </div>
-                
-                [#ListTable#]
+                <div class='galleryListTable'>
+                	[#ListTable#]
+        		</div>
             </div>
           ");
         

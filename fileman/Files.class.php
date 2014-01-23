@@ -617,7 +617,7 @@ class fileman_Files extends core_Master
         if(Mode::is('screenMode', 'narrow')) {
             $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         } else {
-            $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            $args = 'width=400,height=530,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
         }
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
