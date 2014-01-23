@@ -1540,6 +1540,10 @@ fieldset.sharing-history {
 	@include border-radius4(10px, 10px, 0, 0);
 }
 
+#cmsTop{
+	margin-top: 10px;
+}
+
 #cmsMenu {
 	float: left;
 	width: 100%;
@@ -2721,6 +2725,7 @@ body.narrow {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
 		@include rounded(top, right, 0px);
+		margin-top:0;
 	}
 
 	.background-holder{
