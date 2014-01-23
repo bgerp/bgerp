@@ -465,7 +465,7 @@ class sales_Sales extends core_Master
     	$templateId = static::getTemplate($rec);
     	$templateName = doc_TplManager::getTitleById($templateId);
         
-    	return "{$templateName} №{$rec->id} / " . static::getVerbal($rec, 'valior');
+    	return "{$templateName} №{$rec->id}";
     }
 
 
