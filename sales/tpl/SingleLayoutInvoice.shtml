@@ -115,6 +115,7 @@
 		                        <div>|Начин|* / <i>Method</i> : [#paymentMethodId#]</div>
 		                        <!--ET_END paymentMethodId-->
 		                        <div>|Валута|* / <i>Currency</i> : [#currencyId#]</div>
+		                        <div>|Курс|* / <i>Rate</i> : [#rate#]</div>
 		                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
 		                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
 		                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
