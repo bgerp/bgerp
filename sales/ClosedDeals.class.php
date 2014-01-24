@@ -36,7 +36,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * Плъгини за зареждане
      */
     public $loadList = 'sales_Wrapper, acc_plg_Contable, plg_RowTools, plg_Sorting,
-                    doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry';
+                    doc_DocumentPlg, doc_plg_HidePrices, acc_plg_Registry, plg_Search';
     
     
     /**
@@ -85,6 +85,12 @@ class sales_ClosedDeals extends acc_ClosedDeals
      * Полета свързани с цени
      */
     public $priceFields = 'amount';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    protected $searchFields = 'notes,docId,classId';
     
     
     /**
@@ -169,6 +175,19 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	if($fields['-list']){
     		$row->type = $type;
     	}
+    }
+    
+    
+    /**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+        $data->listFilter->input(NULL, 'silent');
     }
     
     

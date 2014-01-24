@@ -318,6 +318,7 @@ class bgerp_Recently extends core_Manager
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = $mvc->searchInputField;
+    	$data->listFilter->input();
     	if(strtolower(Request::get('Act')) == 'show'){
         	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     	} else {

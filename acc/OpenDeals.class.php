@@ -111,7 +111,8 @@ class acc_OpenDeals extends core_Manager {
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     	}
-    	
+    	$data->listFilter->input(NULL, 'silent');
+        
     	$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
 		

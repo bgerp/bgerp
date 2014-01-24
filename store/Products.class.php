@@ -224,6 +224,7 @@ class store_Products extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'search';
+        $data->listFilter->input();
         
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");

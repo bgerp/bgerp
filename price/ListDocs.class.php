@@ -144,6 +144,7 @@ class price_ListDocs extends core_Master
     {
     	$data->listFilter->showFields = 'search';
     	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->input();
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
