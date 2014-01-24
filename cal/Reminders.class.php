@@ -276,7 +276,7 @@ class cal_Reminders extends core_Master
     	if ($form->isSubmitted()) {
         	if($form->rec->timeStart < $now){
         		// Добавяме съобщение за грешка
-                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). $now);
+                $form->setError('timeStart', tr("Датата за напомняне трябва да е след "). dt::mysql2verbal($now, 'smartTime'));
         	}
         	
         	if (!$form->gotErrors()){
