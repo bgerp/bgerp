@@ -110,6 +110,12 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Кой може да го контира?
+     */
+    public $canConto = 'ceo,sales,acc';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'number,folderId';
