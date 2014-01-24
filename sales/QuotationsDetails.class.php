@@ -492,7 +492,7 @@ class sales_QuotationsDetails extends core_Detail {
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
-    	if($action == 'add' || $action == 'delete' && isset($rec)){
+    	if(($action == 'add' || $action == 'delete') && isset($rec)){
     		$quoteState = $mvc->Master->fetchField($rec->quotationId, 'state');
     		if($quoteState != 'draft'){
     			$res = 'no_one';
