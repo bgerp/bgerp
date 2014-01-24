@@ -215,13 +215,11 @@ class sales_Quotations extends core_Master
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        } else {
-       	
-       		// Неможе да се сменя ДДС-то ако има вече детайли
-        	$dQuery = $mvc->sales_QuotationsDetails->getQuery();
-        	$dQuery->where("#quotationId = {$data->form->rec->id}");
-        	if($dQuery->count()){
-        		$data->form->setReadOnly('chargeVat');
-        	}
+       		if($mvc->sales_QuotationsDetails->fetch("#quotationId = {$data->form->rec->id}")){
+	       		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+	        		$data->form->setReadOnly($fld);
+	        	}
+	       	}
        }
       
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);

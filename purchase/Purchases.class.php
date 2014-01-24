@@ -253,7 +253,9 @@ class purchase_Purchases extends core_Master
         	
         	// Неможе да се сменя ДДС-то ако има вече детайли
         	if($mvc->purchase_PurchasesDetails->fetch("#requestId = {$form->rec->id}")){
-        		$form->setReadOnly('chargeVat');
+        		foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId') as $fld){
+        			$form->setReadOnly($fld);
+        		}
         	}
         }
         
