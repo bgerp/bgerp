@@ -543,9 +543,9 @@ class doc_Threads extends core_Manager
                         $haveRightForSingle = TRUE;
                     }
                 }
-            } 
+            }
             
-            // Ако е вдигнат флага
+            // Ако не е вдигнат флага - когато преместваме повече от една нишка или нямаме достъп до преместената нишка (когато е една)
             if (!$haveRightForSingle) {
                 
                 // Ако имаме достъп 
@@ -553,7 +553,7 @@ class doc_Threads extends core_Manager
                     
                     // да отидем в изходящата папка
                 	$exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderToRec->id)));
-                } elseif (!$exp->getValue('ret_url')) {
+                } else {
                     
                     // Ако няма ret_url, да редиректне в папката, от която се мести    
                     $exp->setValue('ret_url', toUrl(array('doc_Threads', 'list', 'folderId' => $folderFromRec->id)));
