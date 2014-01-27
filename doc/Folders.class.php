@@ -538,8 +538,9 @@ class doc_Folders extends core_Master
      *
      * @param core_Query $query
      * @param int $userId key(mvc=core_Users)
+     * @param boolean $fullAccess - Възможно най - много права за папката
      */
-    static function restrictAccess(&$query, $userId = NULL)
+    static function restrictAccess(&$query, $userId = NULL, $fullAccess=TRUE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -579,7 +580,10 @@ class doc_Folders extends core_Master
                     $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }
                 
-                $conditions[] = "#folderAccess != 'secret'";
+                // CEO да може да вижда private папките на друг `ceo`
+                if ($fullAccess) {
+                    $conditions[] = "#folderAccess != 'secret'";
+                }
                 
             break;
             case core_Users::haveRole('manager') :
