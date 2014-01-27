@@ -48,7 +48,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales';
+    public $canEdit = 'ceo,salesMaster';
     
     
     /**
@@ -202,5 +202,28 @@ class sales_ClosedDeals extends acc_ClosedDeals
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'add' && isset($rec)){
+    		
+    		// Ако има ориджин
+    		if($origin = $mvc->getOrigin($rec)){
+    			$originRec = $origin->fetch();
+    			$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
+    			$conf = core_Packs::getConfig('sales');
+    			
+    			// Ако разликата между доставеното/платеното е по голяма, се изисква
+    			// потребителя да има по-големи права за да създаде документа
+    			if(!($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE)){
+    				$res = 'ceo,salesMaster';
+    			}
+    		}
+    	}
     }
 }

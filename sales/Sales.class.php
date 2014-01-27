@@ -713,15 +713,21 @@ class sales_Sales extends core_Master
     	if($rec->state == 'active'){
     		
     		if($rec->amountPaid && $rec->amountDelivered){
+    			$closeArr = NULL;
+    		
 	    		if($diffAmount == 0){
 	    			$closeArr = array($mvc, 'close', $rec->id);
 	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
 	    		} else {
-	    			$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
-	    			$warning = '';
+	    			if(sales_ClosedDeals::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+	    				$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    				$warning = '';
+	    			}
 	    		}
 	    		
-	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата{$warning}");
+	    		if($closeArr){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата{$warning}");
+	    		}
     		}
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента

@@ -139,6 +139,9 @@ class sales_Setup extends core_ProtoSetup
         // Добавяме политиката "По последна продажна цена"
         core_Classes::add('sales_SalesLastPricePolicy');
         
+        // Добавяне на роля за старши продавач
+        $html .= core_Roles::addRole('salesMaster', 'sales') ? "<li style='color:green'>Добавена е роля <b>salesMaster</b></li>" : '';
+        
         return $html;
     }
     
