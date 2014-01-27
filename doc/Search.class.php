@@ -217,8 +217,14 @@ class doc_Search extends core_Manager
                 $data->query->where("#state != 'rejected'");    
             }
             
+            // id на текущия потребител
+            $currUserId = core_Users::getCurrent();
+            
             // Ограничаване на заявката само до достъпните нишки
-            doc_Threads::restrictAccess($data->query);
+            doc_Threads::restrictAccess($data->query, $currUserId);
+            
+            // Създател
+            $data->query->orWhere("#createdBy = '{$currUserId}'");
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
