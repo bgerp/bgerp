@@ -84,7 +84,7 @@ class doc_Notes extends core_Master
     /**
      * 
      */
-    var $canSingle = 'ceo';
+    var $canSingle = 'powerUser';
     
 
     /**

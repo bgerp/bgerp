@@ -79,7 +79,7 @@ class doc_Comments extends core_Master
     /**
      * 
      */
-    var $canSingle = 'ceo';
+    var $canSingle = 'powerUser';
     
 
     /**
