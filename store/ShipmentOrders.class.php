@@ -178,7 +178,7 @@ class store_ShipmentOrders extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
+        $this->FLD('isFull', 'enum(yes,no)', 'input=hidden,caption=Тегло,notNull,default=yes');
     }
 
 
