@@ -330,9 +330,9 @@ class bank_SpendingDocuments extends core_Master
 	    	
 	    	// Ако дебитната сметка е за работа с контрагент слагаме бутон за
 	    	// платежно нареждане ако е подочетно лице генерираме нареждане разписка
-	    	if(acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
+	    	if(bank_PaymentOrders::haveRightFor('add') && acc_Lists::getPosition($operation->debitAccount, 'crm_ContragentAccRegIntf')) {
 	    		$data->toolbar->addBtn('Платежно нареждане', array('bank_PaymentOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново платежно нареждане');
-	    	} elseif(acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
+	    	} elseif(bank_CashWithdrawOrders::haveRightFor('add') && acc_Lists::getPosition($operation->debitAccount, 'crm_PersonAccRegIntf')) {
 	    		$data->toolbar->addBtn('Нареждане разписка', array('bank_CashWithdrawOrders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), NULL, 'ef_icon = img/16/view.png,title=Създаване на ново нареждане разписка');
 	    	}
     	}

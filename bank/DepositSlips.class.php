@@ -240,9 +240,15 @@ class bank_DepositSlips extends core_Master
      */
 	public static function canAddToThread($threadId)
     {
-    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	// Ако няма ориджин в урл-то, документа неможе да се добави към нишката
+    	$originId = Request::get('originId');
+    	if(empty($originId)) return FALSE;
     	
-    	return $firstDoc->className == 'bank_IncomeDocuments' || $firstDoc->className == 'bank_SpendingDocuments';
+    	// Към кой документ се създава бланката
+    	$origin = doc_Containers::getDocument($originId);
+    	
+    	// Може да се поражда само от приходен или разходен банков документ
+    	return $origin->instance instanceof  bank_IncomeDocuments || $origin->instance instanceof bank_SpendingDocuments;
     }
     
     
