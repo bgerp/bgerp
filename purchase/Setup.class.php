@@ -76,7 +76,7 @@ class purchase_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_CLOSE_TOLERANCE' => array("double(decimals=2)", 'caption=Покупки->Толеранс за приключване'),
+			'PURCHASE_CLOSE_TOLERANCE' => array("double(decimals=2)", 'caption=Покупки->Толеранс за приключване'),
 		);
 		
 		
