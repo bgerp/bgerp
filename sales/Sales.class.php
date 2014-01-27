@@ -1183,7 +1183,7 @@ class sales_Sales extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
-    	$conf->SALE_CLOSE_OLDER_THAN = 0;
+    	
     	// Текущата дата
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLDER_THAN);
