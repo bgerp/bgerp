@@ -536,9 +536,11 @@ class doc_Folders extends core_Master
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
         $managers  = core_Users::getByRole('manager');
+        $ceos = core_Users::getByRole('ceo');
         
         // Подчинените в екипа (използва се само за мениджъри)
         $subordinates = array_diff($teammates, $managers);
+        $subordinates = array_diff($subordinates, $ceos);
         
         foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
             if (${$v}) {
@@ -561,16 +563,16 @@ class doc_Folders extends core_Master
         
         switch (true) {
             case core_Users::haveRole('ceo') :
-            // CEO вижда всичко с изключение на private и secret папките на другите CEO
-            if ($ceos) {
-                $conditions[] = "#folderInCharge NOT IN ({$ceos})";
-            }
+                // CEO вижда всичко с изключение на private и secret папките на другите CEO
+                if ($ceos) {
+                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
+                }
             break;
             case core_Users::haveRole('manager') :
-            // Manager вижда private папките на подчинените в екипите си
-            if ($subordinates) {
-                $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
-            }
+                // Manager вижда private папките на подчинените в екипите си
+                if ($subordinates) {
+                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
+                }
             break;
         }
         
