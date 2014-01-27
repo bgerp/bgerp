@@ -711,12 +711,19 @@ class sales_Sales extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
-	    	
-    		// Ако доставеното - платеното е точно
-    		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте, че искате да приключите сделката?,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
+    		
+    		if($rec->amountPaid && $rec->amountDelivered){
+	    		if($diffAmount == 0){
+	    			$closeArr = array($mvc, 'close', $rec->id);
+	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
+	    		} else {
+	    			$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    			$warning = '';
+	    		}
+	    		
+	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата{$warning}");
     		}
-	    	
+    		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
@@ -1168,7 +1175,7 @@ class sales_Sales extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
-    	
+    	$conf->SALE_CLOSE_OLDER_THAN = 0;
     	// Текущата дата
     	$now = dt::mysql2timestamp(dt::now());
     	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLDER_THAN);
@@ -1190,13 +1197,12 @@ class sales_Sales extends core_Master
     	$query->where("#toPay BETWEEN -{$tolerance} AND {$tolerance}");
     	$query->orderBy('id', 'DESC');
     	
+    	$ClosedDeals = cls::get('sales_ClosedDeals');
+    	
     	// Всяка намерена продажба, се приключва като платена
     	while($rec = $query->fetch()){
-    		$rec->state = 'closed';
-    		$rec->paymentState = 'paid';
-    		
     		try{
-    			$this->save($rec);
+    			$ClosedDeals->createAndClose($this, $rec);
     		} catch(Exception $e){
     			// Ако има проблем при обновяването
     		}
