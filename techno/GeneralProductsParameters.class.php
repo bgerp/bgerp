@@ -42,9 +42,15 @@ class techno_GeneralProductsParameters extends core_Manager
     
     
     /**
-     * Кой може да вижда списъчния изглед
+	 * Кой може да го разглежда?
+	 */
+	var $canList = 'no_one';
+    
+    
+    /**
+     * Кой може да пише?
      */
-    var $canList = 'no_one';
+    var $canWrite = 'techno, ceo';
     
     
     /**
