@@ -29,7 +29,6 @@
 		    </td>
 		    <td class="cell">
 		         <b>[#MyCompany#]</b><br>
-		         <b>[#MyCountry#]</b><br>
 		         [#MyAddress#] <br>
 		    </td>
 		</tr>

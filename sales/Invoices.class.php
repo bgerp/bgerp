@@ -163,7 +163,7 @@ class sales_Invoices extends core_Master
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
     	'caseId'              => 'lastDocUser|lastDoc',
-    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -673,14 +673,8 @@ class sales_Invoices extends core_Master
     private function prepareMyCompanyInfo(&$row)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }  
-        
         $row->MyCompany = $ownCompanyData->company;
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyAddress = $address;
+        $row->MyAddress = $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
