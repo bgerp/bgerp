@@ -297,7 +297,7 @@ class purchase_Purchases extends core_Master
 	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
 	    		} else {
 	    			if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    				$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    				$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
 	    				$warning = '';
 	    			}
 	    		}
