@@ -184,4 +184,27 @@ class purchase_ClosedDeals extends acc_ClosedDeals
         
         return $tpl->getContent();
     }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'add' && isset($rec)){
+    		
+    		// Ако има ориджин
+    		if($origin = $mvc->getOrigin($rec)){
+    			$originRec = $origin->fetch();
+    			$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
+    			$conf = core_Packs::getConfig('purchase');
+    			
+    			// Ако разликата между доставеното/платеното е по голяма, се изисква
+    			// потребителя да има по-големи права за да създаде документа
+    			if(!($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE)){
+    				$res = 'ceo,purchaseMaster';
+    			}
+    		}
+    	}
+    }
 }

@@ -289,6 +289,24 @@ class purchase_Purchases extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
+    		if($rec->amountPaid && $rec->amountDelivered){
+    			$closeArr = NULL;
+    		
+	    		if($diffAmount == 0){
+	    			$closeArr = array($mvc, 'close', $rec->id);
+	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
+	    		} else {
+	    			if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	    				$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    				$warning = '';
+	    			}
+	    		}
+	    		
+	    		if($closeArr){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката{$warning}");
+	    		}
+    		}
+    	
     		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
     			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
     		}
@@ -573,7 +591,7 @@ class purchase_Purchases extends core_Master
     		
     		// Ако има каса се нотифицира касиера
     		if($rec->caseId){
-    			$cashierId = store_Stores::fetchField($rec->caseId, 'cashier');
+    			$cashierId = cash_Cases::fetchField($rec->caseId, 'cashier');
     			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cashierId);
     		}
     		

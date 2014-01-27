@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Толеранс за автоматичното затваряне на покупките за доставеното - платеното
+ */
+defIfNot('PURCHASE_CLOSE_TOLERANCE', '0.01');
 
 
 /**
@@ -68,6 +72,14 @@ class purchase_Setup extends core_ProtoSetup
         );
 
 
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'SALE_CLOSE_TOLERANCE' => array("double(decimals=2)", 'caption=Покупки->Толеранс за приключване'),
+		);
+		
+		
 	/**
      * Инсталиране на пакета
      */
