@@ -740,6 +740,14 @@ class sales_Sales extends core_Master
 	    	if($rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
+		    
+		    if(cash_Pko::haveRightFor('add')){
+		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
+		    }
+		    
+    		if(bank_IncomeDocuments::haveRightFor('add')){
+		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+		    }
     	}
     	
     	if(haveRole('debug')){
