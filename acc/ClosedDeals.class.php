@@ -62,18 +62,6 @@ abstract class acc_ClosedDeals extends core_Master
     
     
     /**
-     * Плъгини за зареждане
-     */
-    public $loadList = 'plg_Search';
-    
-    
-    /**
-     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     */
-    protected $searchFields = 'notes,docId,classId';
-    
-    
-    /**
      * Работен кеш
      */
     protected static $cache = array();
@@ -390,5 +378,45 @@ abstract class acc_ClosedDeals extends core_Master
     		
     		$data->rejQuery->where("#docClassId = {$docClassId}");
     	}
+    }
+    
+    
+    /**
+     * Нов приключващ документ в същия тред на даден документ, и
+     * приключващ продажбата/покупката
+     * @param mixed $Class - покупка или продажба
+     * @param stdClass $docRec - запис на покупка или продажба
+     */
+    public function createAndClose($Class, $docRec)
+    {
+    	$Class = cls::get($Class);
+    	
+    	// Създаване на приключващ документ, само ако има остатък/излишък
+    	if($docRec->toPay != 0){
+    		$newRec = new stdClass();
+    	
+	    	$newRec->notes      = "Автоматично приключване";
+	    	$newRec->docClassId = $Class->getClassId();
+	    	$newRec->docId      = $docRec->id;
+	    	$newRec->amount     = $docRec->toPay;
+	    	$newRec->currencyId = $docRec->currencyId;
+	    	$newRec->rate       = $docRec->currencyRate;
+	    	$newRec->folderId   = $docRec->folderId;
+	    	$newRec->threadId   = $docRec->threadId;
+	    	$newRec->state      = 'draft';
+	    	$newRec->classId    = $this->getClassId();
+	    	
+	    	// Създаване на документа
+	    	$clId = static::save($newRec);
+	    	
+	    	// Осчетоводяване на приключването
+	    	acc_Journal::saveTransaction($this->getClassId(), $clId);
+    	}
+    	
+    	// Продажбата/покупката се отбелязват като птиключени и платени
+    	$docRec->state = 'closed';
+    	$docRec->paymentState = 'paid';
+    	
+    	$Class->save($docRec);
     }
 }
