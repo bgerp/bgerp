@@ -442,8 +442,11 @@ class sales_Invoices extends core_Master
 				$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
 			}
 			
-			// Сетване на кеш полето че ЕН-то не е запълнено
-        	$rec->isFull = 'no';
+        	if(empty($rec->isFull)){
+        		
+        		// Сетване на кеш полето че ЕН-то не е запълнено
+        		$rec->isFull = 'no';
+        	}
         }
 
         acc_Periods::checkDocumentDate($form);

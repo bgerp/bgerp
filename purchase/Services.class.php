@@ -667,8 +667,11 @@ class purchase_Services extends core_Master
     {
         if ($form->isSubmitted()) {
         	
-        	// Сетване на кеш полето че ЕН-то не е запълнено
-        	$form->rec->isFull = 'no';
+        	if(empty($rec->isFull)){
+        		
+        		// Сетване на кеш полето че ЕН-то не е запълнено
+        		$rec->isFull = 'no';
+        	}
         }
     }
 }

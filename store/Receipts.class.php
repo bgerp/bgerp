@@ -170,7 +170,7 @@ class store_Receipts extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
+        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Запълнен ли е,notNull,default=yes');
     }
 
 
@@ -424,8 +424,11 @@ class store_Receipts extends core_Master
         		}
         	}
         	
-        	// Сетване на кеш полето че ЕН-то не е запълнено
-        	$rec->isFull = 'no';
+        	if(empty($rec->isFull)){
+        		
+        		// Сетване на кеш полето че ЕН-то не е запълнено
+        		$rec->isFull = 'no';
+        	}
         }
     }
     

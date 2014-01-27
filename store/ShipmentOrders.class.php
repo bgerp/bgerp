@@ -178,7 +178,7 @@ class store_ShipmentOrders extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('isFull', 'enum(yes,no)', 'input=hidden,caption=Тегло,notNull,default=yes');
+        $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Запълнен ли е,notNull,default=yes');
     }
 
 
@@ -390,6 +390,7 @@ class store_ShipmentOrders extends core_Master
         
         // Ако създаваме нов запис и то базиран на предхождащ документ ...
         if (empty($form->rec->id)) {
+        	$form->setField('isFull', 'input=none');
         	
             // ... проверяваме предхождащия за bgerp_DealIntf
             $origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId);
@@ -426,8 +427,11 @@ class store_ShipmentOrders extends core_Master
         		}
         	}
         	
-        	// Сетване на кеш полето че ЕН-то не е запълнено
-        	$rec->isFull = 'no';
+        	if(empty($rec->isFull)){
+        		
+        		// Сетване на кеш полето че ЕН-то не е запълнено
+        		$rec->isFull = 'no';
+        	}
         }
     }
     
