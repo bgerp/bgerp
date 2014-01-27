@@ -1105,6 +1105,10 @@ class doc_DocumentPlg extends core_Plugin
                 
                     // Задаваме права
                     $requiredRoles = 'powerUser';
+                } else {
+                    
+                    // Никой не може да клонира
+                    $requiredRoles = 'no_one';
                 }
             }
         }
