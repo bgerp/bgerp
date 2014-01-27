@@ -302,6 +302,14 @@ class purchase_Purchases extends core_Master
     			$serviceUrl = array('purchase_Services', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);
 	            $data->toolbar->addBtn('Приемане', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
+	        
+    		if(cash_Pko::haveRightFor('add')){
+		    	$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер');
+		    }
+		    
+    		if(bank_IncomeDocuments::haveRightFor('add')){
+		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
+		    }
     	}
     	
     	if(haveRole('debug')){
