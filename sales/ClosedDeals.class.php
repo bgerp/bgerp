@@ -181,7 +181,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
