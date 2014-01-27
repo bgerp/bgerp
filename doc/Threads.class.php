@@ -1269,7 +1269,7 @@ class doc_Threads extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        doc_Folders::restrictAccess($query, $userId);
+        doc_Folders::restrictAccess($query, $userId, FALSE);
         
         if ($query->mvc->className != 'doc_Threads') {
             // Добавя необходимите полета от модела doc_Threads
