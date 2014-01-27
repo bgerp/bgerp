@@ -191,7 +191,7 @@ class bank_SpendingDocuments extends core_Master
         $options = acc_Operations::getPossibleOperations(get_called_class());
         $options = acc_Operations::filter($options, $contragentClassId);
         
-    	if($origin = $mvc->getOrigin($form->rec)) {
+    	if(empty($form->rec->id) && $origin = $mvc->getOrigin($form->rec)) {
     		 $mvc->setDefaultsFromOrigin($origin, $form, $options);
     	}
     	

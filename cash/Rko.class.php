@@ -210,7 +210,7 @@ class cash_Rko extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         
     	// Използваме помощната функция за намиране името на контрагента
-    	if($origin = $mvc->getOrigin($form->rec)) {
+    	if(empty($form->rec->id) && $origin = $mvc->getOrigin($form->rec)) {
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
