@@ -719,7 +719,7 @@ class sales_Sales extends core_Master
 	    			$closeArr = array($mvc, 'close', $rec->id);
 	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
 	    		} else {
-	    			if(sales_ClosedDeals::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+	    			if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    				$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
 	    				$warning = '';
 	    			}
