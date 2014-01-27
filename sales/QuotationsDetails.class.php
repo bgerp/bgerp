@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends core_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $masterRec->originId);
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -265,7 +265,7 @@ class sales_QuotationsDetails extends core_Detail {
 	    	} else {
 	    		
 	    		// Ако има цена, тя се конвертира до основна валута без ддс
-	    		$rec->price = static::getBasePrice($rec->price, $masterRec->currencyRate, $rec->vatPercent, $masterRec->chargeVat);
+	    		$rec->price = $mvc->getBasePrice($rec->price, $masterRec->currencyRate, $rec->vatPercent, $masterRec->chargeVat);
 	    	}
     	}
     }
