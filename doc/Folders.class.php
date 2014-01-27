@@ -157,6 +157,9 @@ class doc_Folders extends core_Master
             $data->listFilter->fields['search']->type->toVerbal($data->listFilter->rec->search) . '"</font>';
         }
         
+        // Ограничения при показване на папките
+        static::restrictAccess($data->query);
+        
         switch($data->listFilter->rec->order) {
             case 'last' :
                 $data->query->orderBy('#last', 'DESC');
@@ -190,12 +193,6 @@ class doc_Folders extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        // Вземаме членовете на екипа на потребителя (TODO:)
-        $teamMembers = core_Users::getTeammates($userId);
-        
-        // 'ceo' има достъп до всяка папка
-        if(core_Users::haveRole('ceo', $userId)) return TRUE;
-        
         // Всеки има право на достъп до папката за която отговаря
         if($rec->inCharge === $userId) return TRUE;
         
@@ -205,10 +202,24 @@ class doc_Folders extends core_Master
         // Всеки има право на достъп до общите папки
         if($rec->access == 'public') return TRUE;
         
+        // 'ceo' има достъп до всяка папка
+        if (core_Users::haveRole('ceo', $userId)) {
+            
+            // с изключение на личните и секретните на други CEO
+            if (core_Users::haveRole('ceo', $rec->inCharge) && (($rec->access == 'private') || ($rec->access == 'secret'))) {
+                return FALSE;
+            } else {
+                return TRUE;
+            }
+        }
+        
+        // Вземаме членовете на екипа на потребителя
+        $teamMembers = core_Users::getTeammates($userId);
+        
         // Дали обекта има отговорник - съекипник
         $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== FALSE;
         
-        // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer - има достъп
+        // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer или executive - има достъп
         if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer,executive', $userId)) return TRUE;
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
@@ -567,6 +578,9 @@ class doc_Folders extends core_Master
                 if ($ceos) {
                     $conditions[] = "#folderInCharge NOT IN ({$ceos})";
                 }
+                
+                $conditions[] = "#folderAccess != 'secret'";
+                
             break;
             case core_Users::haveRole('manager') :
                 // Manager вижда private папките на подчинените в екипите си
