@@ -23,7 +23,7 @@ class purchase_Services extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Pss';
+    public $abbr = 'Pps';
     
     
     /**
@@ -111,6 +111,12 @@ class purchase_Services extends core_Master
      * Полета свързани с цени
      */
     public $priceFields = 'amountDelivered';
+    
+    
+    /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/shipment.png';
     
     
     /**

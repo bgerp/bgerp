@@ -733,13 +733,13 @@ class sales_Sales extends core_Master
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Пр.услуги', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	            $data->toolbar->addBtn('Пр.услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
 	    	if (store_ShipmentOrders::haveRightFor('add') && store_ShipmentOrders::canAddToThread($rec->threadId)) {
 	    		$shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/star_2.png,title=Експедиране на артикулите от склада,order=9.21');
+	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/shipment.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура

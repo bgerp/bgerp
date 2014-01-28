@@ -114,6 +114,12 @@ class sales_Services extends core_Master
     
     
     /**
+     * Икона на единичния изглед
+     */
+    public $singleIcon = 'img/16/shipment.png';
+    
+    
+    /**
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
