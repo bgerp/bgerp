@@ -213,13 +213,13 @@ class doc_Containers extends core_Manager
         } else {
             if(isDebug()) {
                 if(!$rec->docClass) {
-                    $debug = 'Липсващ $docClass';
+                    $debug = 'Липсващ $docClass ';
                 }
                 if(!$rec->docId) {
-                    $debug .= 'Липсващ $docId';
+                    $debug .= 'Липсващ $docId ';
                 }
                 if(!$document) {
-                    $debug .= 'Липсващ $document';
+                    $debug .= 'Липсващ $document ';
                 }
             }
 
