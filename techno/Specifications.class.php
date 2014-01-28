@@ -204,7 +204,12 @@ class techno_Specifications extends core_Manager {
     {
     	if($fields['-list']){
 	    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    	$DocClass = cls::get($rec->docClassId);
+	    	try{
+	    		$DocClass = cls::get($rec->docClassId);
+	    	} catch(Exception $e){
+	    		return;
+	    	}
+	    	
 	    	$docThreadId = $DocClass->fetchField($rec->docId, 'threadId');
 	    	
 	    	if(doc_Threads::haveRightFor('single', $docThreadId)){
