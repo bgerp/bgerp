@@ -200,9 +200,9 @@ class core_App
      */
     public static function isDebug()
     {
+        // Временно решение за форсиране на debug mode чрез гет параметър, и ако има роля debug
         global $GET;
-        // Временно решение за форсиране на debug mode чрез гет параметър
-        if($_GET['debug']) {
+        if($_GET['debug'] && haveRole('debug')) {
 
             return TRUE;
         }
