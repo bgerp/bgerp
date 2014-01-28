@@ -665,12 +665,12 @@ class purchase_Services extends core_Master
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if ($form->isSubmitted()) {
+    	if ($form->isSubmitted()) {
         	
-        	if(empty($rec->isFull)){
+        	if(empty($form->rec->isFull)){
         		
-        		// Сетване на кеш полето че ЕН-то не е запълнено
-        		$rec->isFull = 'no';
+        		// Сетване на кеш полето че протокола е запълнен
+        		$form->rec->isFull = 'no';
         	}
         }
     }
