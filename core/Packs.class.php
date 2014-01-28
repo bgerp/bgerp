@@ -329,10 +329,6 @@ class core_Packs extends core_Manager
        	
        	$row->img = ht::createElement("img", array('src' => $imageUrl));
        	
-       	if ($rec->startCtr) {
-       		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
-       	}
-       	
         $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
         try {
@@ -349,6 +345,7 @@ class core_Packs extends core_Manager
         	$startCtrMvc = cls::get($rec->startCtr);
         	if($startCtrMvc->haveRightFor('list')){
         		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
+        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
         	}
         }
         
