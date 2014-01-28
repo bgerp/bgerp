@@ -199,6 +199,7 @@ class bank_OwnAccounts extends core_Master {
     	if(count($options) == 0) {
     		return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
     	}
+    	
     	return $options;
     }
     
@@ -324,8 +325,8 @@ class bank_OwnAccounts extends core_Master {
         	$account = bank_Accounts::fetch($rec->bankAccountId);
         	$cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object)array(
-                'num' => $rec->id,
-		'title' => $cCode . " - " . $rec->title,
+                'num'      => $rec->id,
+			    'title'    => $cCode . " - " . $rec->title,
                 'features' => 'foobar' // @todo!
             );
         }

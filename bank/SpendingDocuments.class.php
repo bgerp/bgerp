@@ -195,6 +195,7 @@ class bank_SpendingDocuments extends core_Master
     		 $mvc->setDefaultsFromOrigin($origin, $form, $options);
     	}
     	
+    	$form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
