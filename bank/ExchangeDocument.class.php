@@ -31,8 +31,8 @@ class bank_ExchangeDocument extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing,
-     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, acc_plg_Contable, doc_SharablePlg';
+    var $loadList = 'plg_RowTools, bank_Wrapper, bank_DocumentWrapper, plg_Printing, acc_plg_Contable,
+     	plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_MultiPrint, bgerp_plg_Blank, doc_SharablePlg';
     
     
     /**

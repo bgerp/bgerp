@@ -44,9 +44,9 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, plg_Search,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
-                    doc_plg_BusinessDoc2, acc_plg_Contable, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
+                    doc_plg_BusinessDoc2, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
     /**

@@ -37,8 +37,8 @@ class sales_Sales extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager,
-                    doc_DocumentPlg, acc_plg_Contable, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_Contable,
+                    doc_DocumentPlg, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_SharablePlg';
     
     

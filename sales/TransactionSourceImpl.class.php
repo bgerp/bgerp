@@ -73,7 +73,7 @@ class sales_TransactionSourceImpl
         if ($hasDeliveryPart || $hasPaymentPart) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-
+			
             if ($hasDeliveryPart) {
                 // Продажбата играе роля и на експедиционно нареждане.
                 // Контирането е същото като при ЕН
@@ -81,9 +81,13 @@ class sales_TransactionSourceImpl
                 // Записите от тип 1 (вземане от клиент)
                 $entries = array_merge($entries, $this->getTakingPart($rec));
                 
-                // Записите от тип 2 (експедиция)
-                $entries = array_merge($entries, $this->getDeliveryPart($rec));
+                $delPart = $this->getDeliveryPart($rec);
                 
+                if(is_array($delPart)){
+                	
+                	// Записите от тип 2 (експедиция)
+                	$entries = array_merge($entries, $delPart);
+                }
             }
             
             if ($hasPaymentPart) {
@@ -177,12 +181,6 @@ class sales_TransactionSourceImpl
      */
     protected function hasDeliveryPart($rec)
     {
-        // има ли зададен склад?
-        if (empty($rec->shipmentStoreId)) {
-            // няма зададен склад
-            return FALSE;
-        }
-        
         return $rec->isInstantShipment == 'yes';
     }
     
@@ -320,9 +318,11 @@ class sales_TransactionSourceImpl
     protected function getDeliveryPart($rec)
     {
         $entries = array();
-        
-        expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
             
+        if(empty($rec->shipmentStoreId)){
+        	return;
+        }
+        
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	$convertable = isset($pInfo->meta['canConvert']);
@@ -330,6 +330,7 @@ class sales_TransactionSourceImpl
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		$creditAccId = ($convertable) ? '302' : '321';
+        		//acc_journal_Exception::expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
         		
         		$entries[] = array(
 	                'debit' => array(

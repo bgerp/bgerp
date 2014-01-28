@@ -32,8 +32,8 @@ class cash_Rko extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,
-                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_Contable, acc_plg_DocumentSummary,
+    var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, doc_plg_BusinessDoc2,acc_plg_Contable,
+                     doc_DocumentPlg, plg_Printing, doc_SequencerPlg, acc_plg_DocumentSummary,
                      plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg, cond_plg_DefaultValues';
     
     
