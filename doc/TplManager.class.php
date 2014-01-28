@@ -309,16 +309,22 @@ class doc_TplManager extends core_Master
     {
     	$object = (object)$object;
     	
+    	// Ако има старо име на шаблона
+    	$name = ($object->oldName) ? $object->oldName : $object->name;
+    	
     	// Ако има вече такъв запис
-    	$exRec = static::fetch("#name = '{$object->name}'");
+    	$exRec = static::fetch("#name = '{$name}'");
     	if($exRec){
     		$object->id = $exRec->id;
     		$object->hash = $exRec->hash;
+    		
+    		// Обновяване на името
+    		$object->name = $object->name;
     	}
     	
     	// Ако файла на шаблона не е променян, то записа не се обновява
     	expect($fileHash = md5_file(getFullPath($object->content)));
-    	if(isset($object->hash) && $object->hash == $fileHash){
+    	if(empty($object->oldName) && isset($object->hash) && $object->hash == $fileHash){
     		$skipped++;
     		return;
     	}
