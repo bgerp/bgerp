@@ -143,6 +143,37 @@ abstract class acc_ClosedDeals extends core_Master
     }
     
 	
+    /**
+     * Обикаля документите в нишката и оттегля тези, които могат да
+     * променят данните на затворената покупка/продажба
+     * 
+     * @param stdClass $rec  - запис на приключващия документ
+     * @param core_Manager $DocClass - класа на затворения документ
+     * @param stdClass $firstRec - записа на затворения документ
+     */
+    private function rejectContableDrafts($rec, core_Manager $DocClass, $firstRec)
+    {
+    	// Кои са наследниците ?
+    	$firstRecDescendats = $DocClass->getDescendants($firstRec->id);
+	    
+    	// Обхождане на наследниците
+    	foreach ($firstRecDescendats as $doc){
+    		
+    		// ...ако имат 'bgerp_DealIntf' интерфейса
+	    	if($doc->haveInterface('bgerp_DealIntf')){
+	    		
+	    		// ...и са чернови
+	    		$docRec = $doc->fetch();
+	    		if($docRec->state == 'draft'){
+	    			
+	    			// ...оттеглят се
+	    			$doc->reject();
+	    		}
+	    	}
+	    }
+    }
+    
+    
 	/**
      * Може ли документ-продажба да се добави в посочената папка?
      */
@@ -235,18 +266,23 @@ abstract class acc_ClosedDeals extends core_Master
     
     
 	/**
-	 * След като документа се активира, се променя състоянието
-	 * на първия документ в треда на 'closed'
+	 * Изпълнява се след запис
 	 */
 	public static function on_AfterSave($mvc, &$id, $rec)
     {
+    	// При активация на документа
     	$rec = $mvc->fetch($id);
     	if($rec->state == 'active'){
+    		
+    		// Пораждащия документ става closed
     		$DocClass = cls::get($rec->docClassId);
 	    	$firstRec = $DocClass->fetch($rec->docId);
 	    	$firstRec->state = 'closed';
-	    	
 	    	$DocClass->save($firstRec);
+	    	
+	    	// След затварянето, се оттеглят всички чернови на документи, от същата нишка,
+	    	// генериращи сч. транзакция за да не променят данните по сделката
+	    	$mvc->rejectContableDrafts($rec, $DocClass, $firstRec);
     	}
     }
     
