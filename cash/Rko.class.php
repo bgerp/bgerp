@@ -612,4 +612,16 @@ class cash_Rko extends core_Master
 	    	}
         }
     }
+    
+    
+	/**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	// Документа неможе да се създава  в нова нишка, ако е възоснова на друг
+    	if(!empty($data->form->toolbar->buttons['btnNewThread'])){
+    		$data->form->toolbar->removeBtn('btnNewThread');
+    	}
+    }
 }
