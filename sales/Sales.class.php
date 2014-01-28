@@ -733,7 +733,7 @@ class sales_Sales extends core_Master
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Изпълнение', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	            $data->toolbar->addBtn('Пр.услуги', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
@@ -765,14 +765,14 @@ class sales_Sales extends core_Master
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
     			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контирате и плащането?');
+    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контира и плащането?');
     			}
     		}
     		
     		$storeId = store_Stores::getCurrent('id', FALSE);
     		if($rec->isInstantShipment == 'no'){
 	    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
-	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контирате и експедиране?');
+	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контира и експедиране?');
 	    		}
     		}
 	    }
