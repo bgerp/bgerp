@@ -97,8 +97,11 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     	$res = parent::canAddToThread($threadId);
     	if($res){
     		$firstDoc = doc_Threads::getFirstDocument($threadId);
+    		
     		$info = static::getDealInfo($firstDoc);
+    		
     		$res = $info->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE;
+    		
     		if(!$res){
 	    		return FALSE;
     		}
@@ -191,6 +194,9 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
+    	// Ако ролята е no_one се пропуска функцията
+    	if($res == 'no_one') return;
+    	
     	if($action == 'add' && isset($rec)){
     		
     		// Ако има ориджин
