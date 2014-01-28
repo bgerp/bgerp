@@ -101,8 +101,8 @@ class bgerp_Notifications extends core_Manager
         $rec->priority = $priority;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        // Ако искаме да тестваме нотификациите - дава си роля 'tester'
-        if (!haveRole('tester') && $userId == core_Users::getCurrent()) return;
+        // Ако искаме да тестваме нотификациите - дава си роля 'debug'
+        if (!haveRole('debug') && $userId == core_Users::getCurrent()) return;
         
         // Ако има такова съобщение - само му вдигаме флага че е активно
         $query = bgerp_Notifications::getQuery();
