@@ -899,7 +899,7 @@ class purchase_Purchases extends core_Master
     	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en');
-    	$tplArr[] = array('name' => 'Purchase of Service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en');
+    	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
