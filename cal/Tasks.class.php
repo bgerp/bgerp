@@ -599,7 +599,8 @@ class cal_Tasks extends core_Master
     static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {   
     	$currUrl = getCurrentUrl();
-
+        $needOneOnly = 0;
+        
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
 	    	
@@ -611,29 +612,44 @@ class cal_Tasks extends core_Master
 	    	$currUrl['Chart'] = 'List';
 	        $tabs->TAB('List', 'Таблица', $currUrl);
 	        
-    		if(isset($data->recs->timeStart)){
-	    		$ganttType = self::getGanttTimeType($data);
-	    
-		        $currUrl['Act'] = 'list';
-		        $currUrl['Chart'] = 'Gantt';
-		        $currUrl['View'] = $ganttType;
-		        $tabs->TAB('Gantt', 'Гант', $currUrl);
-	
-		        if($chartType == 'Gantt') { 
-		        	
-		        	$tpl = static::getGantt($data);
-		        	
-		        }
-    		} else {
-    			 $tabs->TAB('Gantt', 'Гант', '');
+	        // Обхождаме всички записи
+	        for($i = 0; $i <= count($data->recs); $i++){
+	        	// ако имаме дата за начало на задачата и тя е активна 
+	        	if(isset($data->recs[$i]->timeStart)  &&$data->recs[$i]->state == 'active'){
+	        		// ако тя има продължителност или край 
+	        		if(isset($data->recs[$i]->timeEnd) || isset($data->recs[$i]->timeDuration)){
+	        			// нужна ни е само една такава задача, но броим всичките
+	        			$needOneOnly++;
+	        		}
+	        	}
+	        }	
+
+	        // ако имаме поне една задача отговаряща на горните условия
+		    if($needOneOnly >= 1) {		
+	        	// ще може намерин типа на Ганта
+	        	$ganttType = self::getGanttTimeType($data);
+		            
+	        	// и ще имаме активен бутон за него
+			    $currUrl['Act'] = 'list';
+			    $currUrl['Chart'] = 'Gantt';
+			    $currUrl['View'] = $ganttType;
+			    $tabs->TAB('Gantt', 'Гант', $currUrl);
+		
+			    if($chartType == 'Gantt') { 
+			    // и ще го изчетаем
+			    	$tpl = static::getGantt($data);
+			        	
+			    }
+			    // в противен слувачай бутона ще е неактивен
+		    } else {
+    				$tabs->TAB('Gantt', 'Гант', '');
     		}
+	       
     		
 	        $tpl = $tabs->renderHtml($tpl, $chartType);
 	               
 	        $mvc->currentTab = 'Задачи';
     	}
-    	
-
     }
     
     
