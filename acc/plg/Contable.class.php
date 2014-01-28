@@ -33,6 +33,8 @@ class acc_plg_Contable extends core_Plugin
         if(empty($mvc->fields['isContable'])){
         	$mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,default=no');
         }
+        
+        setIfNot($mvc->canCorrection, 'ceo, accMaster');
     }
     
     
@@ -150,7 +152,7 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
         }
         
-        if (haveRole('acc') && $mvc->haveRightFor('correction', $rec)) {
+        if ($mvc->haveRightFor('correction', $rec)) {
             $correctionUrl = array(
                 'acc_Articles',
                 'RevertArticle',
@@ -220,13 +222,21 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'correction') {
+        	
+        	// Кой може да създава коригиращ документ
+        	$requiredRoles = $mvc->canCorrection;
+        	
+        	// Трябва да има запис
             if (!$rec) {
                 return;
             }
+            
+            // Черновите и оттеглените документи немогат да се коригират
             if ($rec->state == 'draft' || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
 
+            // Ако няма какво да се коригира в журнала, не може да се създаде корекция
             if(!acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id)){
             	$requiredRoles = 'no_one';
             }
