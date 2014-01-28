@@ -733,7 +733,7 @@ class sales_Sales extends core_Master
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {
     			$serviceUrl =  array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-	            $data->toolbar->addBtn('Изпълнение', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Продажба на услуги,order=9.22');
+	            $data->toolbar->addBtn('Пр.услуги', $serviceUrl, 'ef_icon = img/16/star_2.png,title=Протокол за извършени услуги,order=9.22');
 	        }
 	        
 	        // Ако ЕН може да се добавя към треда и не се експедира на момента
@@ -765,14 +765,14 @@ class sales_Sales extends core_Master
     		$caseId = cash_Cases::getCurrent('id', FALSE);
     		if($rec->isInstantPayment == 'no'){
     			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контирате и плащането?');
+    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контира и плащането?');
     			}
     		}
     		
     		$storeId = store_Stores::getCurrent('id', FALSE);
     		if($rec->isInstantShipment == 'no'){
 	    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
-	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контирате и експедиране?');
+	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контира и експедирането?');
 	    		}
     		}
 	    }
@@ -1289,155 +1289,4 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$mvc->setCron($res);
-    	$mvc->setTemplates($res);
-    }
-    
-    
-    /**
-     * Дебъг екшън показващ агрегираните бизнес данни
-     */
-    function act_AggregateDealInfo()
-    {
-    	requireRole('debug');
-    	expect($id = Request::get('id', 'int'));
-    	$info = $this->getAggregateDealInfo($id);
-    	bp($info);
-    }
-    
-    
-    /**
-     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
-     * @param int $id - ид на продажба
-     * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
-     * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
-     */
-    public function hasStorableProducts($id, $storable = TRUE)
-    {
-    	$rec = new sales_model_Sale(self::fetchRec($id));
-        $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
-        foreach ($detailRecs as $d){
-        	$info = cls::get($d->classId)->getProductInfo($d->productId);
-        	if($storable){
-        		
-        		// Връща се TRUE ако има поне един складируем продукт
-        		if(isset($info->meta['canStore'])) return TRUE;
-        	} else {
-        		
-        		// Връща се TRUE ако има поне един НЕ складируем продукт
-        		if(!isset($info->meta['canStore']))return TRUE;
-        	}
-        }
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Връща всички спецификации в продажбата
-     * @param int $id
-     * @return array $options
-     */
-    public function getSpecifications($id)
-    {
-    	$SpecClassId = techno_Specifications::getClassId();
-    	$dQuery = $this->sales_SalesDetails->getQuery();
-    	$dQuery->where("#saleId = {$id}");
-    	$dQuery->where("#classId = {$SpecClassId}");
-    	while($dRec = $dQuery->fetch()){
-    		$res[$dRec->productId] = techno_Specifications::getTitleById($dRec->productId);
-    	}
-    	
-    	return $res;
-    }
-    
-    
-	/**
-     * Проверява дали фактурите са пресрочени или платени
-     */
-    function cron_CheckSalesPayments()
-    {
-    	$conf = core_Packs::getConfig('sales');
-    	$now = dt::now();
-    	
-    	// Проверяват се всички активирани и продажби с чакащо плащане
-    	$query = $this->getQuery();
-    	$query->where("#paymentState = 'pending'");
-    	$query->where("#state = 'active'");
-    	$query->where("ADDDATE(#modifiedOn, INTERVAL {$conf->SALE_OVERDUE_CHECK_DELAY} SECOND) <= '{$now}'");
-    	
-    	while($rec = $query->fetch()){
-    		if($rec->state == 'closed'){
-    			
-    			// Ако състоянието е затворено, то приема че продажбата е платена
-    			$rec->paymentState = 'paid';
-    			$this->save($rec);
-    		} else {
-    			try{
-    				// Намира се метода на плащане от интерфейса
-    				$dealInfo = $this->getAggregateDealInfo($rec->id);
-    			} catch(Exception $e){
-    				
-    				// Ако има проблем при извличането се продължава
-    				continue;
-    			}
-    			
-    			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
-    			if($mId){
-    				// Намира се датата в реда фактура/експедиция/продажба
-    				foreach (array('invoiced', 'shipped', 'agreed') as $asp){
-    					if($date = $dealInfo->$asp->valior){
-    						break;
-    					}
-    				}
-    				
-    				// Извлича се платежния план
-    				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
-    				
-    				// Проверка дали продажбата е пресрочена
-    				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
-    				
-    					// Ако да, то продажбата се отбелязва като пресрочена
-    					$rec->paymentState = 'overdue';
-    					
-    					try{
-    						$this->save($rec);
-    					}catch(Exception $e){
-    						// Ако има проблем при ъпдейтването
-    					}
-    				}
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
-      */
-     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-     {
-     	// Тук ще генерираме всички ключови думи
-     	$detailsKeywords = '';
-
-     	// заявка към детайлите
-     	$query = sales_SalesDetails::getQuery();
-     	// точно на тази фактура детайлите търсим
-     	$query->where("#saleId  = '{$rec->id}'");
-     	
-	        while ($recDetails = $query->fetch()){
-	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
-    	$res = " " . $res . " " . $detailsKeywords;
-     }
-}
+     * Извиква се след Set
