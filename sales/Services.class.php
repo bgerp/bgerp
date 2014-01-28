@@ -684,4 +684,22 @@ class sales_Services extends core_Master
         	}
         }
     }
+    
+    
+	/**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+        // Ако резултата е 'no_one' пропускане
+    	if($res == 'no_one') return;
+    	
+    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
+    	if($action == 'conto' && isset($rec)){
+	    	$originState = $mvc->getOrigin($rec)->fetchField('state');
+	        if($originState === 'closed'){
+	        	$res = 'no_one';
+	        }
+        }
+    }
 }
