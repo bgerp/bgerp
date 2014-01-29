@@ -389,4 +389,22 @@ class acc_Journal extends core_Master
 	     	$res .= " " . plg_Search::normalizeText($title);
      	}
      }
+     
+     
+     /**
+      * Метод връщащ урл-то за контиране на документ
+      * @param core_Manager $mvc - мениджър
+      * @param int $recId - ид на записа, който ще се контира
+      */
+     public static function getContoUrl(core_Manager $mvc, $recId)
+     {
+     	$contoUrl = array('acc_Journal',
+	           			  'conto',
+	           			  'docId' => $recId,
+	           			  'docType' => $mvc->className,
+	           			  'ret_url' => TRUE
+            			 );
+            	
+        return $contoUrl;
+     }
 }
