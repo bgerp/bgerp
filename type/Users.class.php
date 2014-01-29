@@ -52,7 +52,12 @@ class type_Users extends type_Keylist
      */
     private function prepareOptions($defUser =  NULL)
     {
+        $mvc = cls::get($this->params['mvc']);
+        
+        $mvc->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
+        
         if (isset($this->options)) {
+            
             return;
         }
         
@@ -147,6 +152,8 @@ class type_Users extends type_Keylist
                 }
             }
         }
+        
+        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
     }
     
     
