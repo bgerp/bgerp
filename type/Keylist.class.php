@@ -290,6 +290,10 @@ class type_Keylist extends core_Type {
      */
     private function prepareSuggestions()
     {
+        $mvc = cls::get($this->params['mvc']);
+        
+        $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
+        
         if($select = $this->params['select']) {
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
@@ -392,6 +396,8 @@ class type_Keylist extends core_Type {
                 }
             }
         }
+        
+        $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
     }
     
     
