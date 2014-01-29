@@ -130,13 +130,9 @@ class acc_plg_Contable extends core_Plugin
         	}
 			
         	$caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-            $contoUrl = array(
-	           'acc_Journal',
-	           'conto',
-	           'docId' => $rec->id,
-	           'docType' => $mvc->className,
-	           'ret_url' => TRUE
-            	);
+            
+        	// Урл-то за контиране
+        	$contoUrl = $mvc->getContoUrl($rec->id);
         	
             $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
@@ -152,6 +148,7 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
         }
         
+        // Ако потребителя може да създава коригиращ документ, слагаме бутон
         if ($mvc->haveRightFor('correction', $rec)) {
             $correctionUrl = array(
                 'acc_Articles',
@@ -163,11 +160,22 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png");
         }
         
+        // Ако има запис в журнала и потребителя има права за него, слагаме бутон
         $journalRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
 		if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
     		$journalUrl = array('acc_Journal', 'single', $journalRec->id);
     		$data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на транзакцията в журнала');
     	}
+    }
+    
+    
+    /**
+     * Метод връщащ урл-то за контиране на документа.
+     * Може да се използва в мениджъра за подмяна на контиращото урл
+     */
+    public static function on_AfterGetContoUrl(core_Manager $mvc, &$res, $id)
+    {
+    	$res = acc_Journal::getContoUrl($mvc, $id);
     }
     
     
