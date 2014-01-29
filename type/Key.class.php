@@ -225,7 +225,7 @@ class type_Key extends type_Int {
                 }
             }
             
-            $this->options = $options;
+            $this->options = &$options;
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
             

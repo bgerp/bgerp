@@ -314,7 +314,7 @@ class type_CustomKey extends type_Key
                 }
             }
             
-            $this->options = $options;
+            $this->options = &$options;
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
             
