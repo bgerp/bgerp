@@ -2814,6 +2814,9 @@ body.narrow {
             margin-left: 1%;
        }
     }
+    .narrow .single-thread .scrolling-holder {
+        max-width: 760px;
+    }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
@@ -2833,6 +2836,9 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
+    }
+    .narrow .single-thread .scrolling-holder {
+        max-width: 720px;
     }
 }
 
@@ -2860,6 +2866,9 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
+    }
+    .narrow .single-thread .scrolling-holder {
+        max-width: 660px;
     }
 }
 
@@ -2893,6 +2902,9 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
+    }
+    .narrow .single-thread .scrolling-holder {
+        max-width: 600px;
     }
 }
 
