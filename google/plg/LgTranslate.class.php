@@ -18,7 +18,7 @@ class google_plg_LgTranslate extends core_Plugin
     /**
      * 
      */
-    static function on_AfterRenderWrapping($mvc, $res, &$tpl, $data)
+    static function on_AfterRenderWrapping($mvc, $res, &$tpl, $data=NULL)
     {
         // Ако има шаблон
         if ($data->form->tpl) {
