@@ -77,41 +77,17 @@ class type_Keylist extends core_Type {
                     return '???';
                 }
                 
-                if ($this->params['translate']) {
-                    $rec->{$part} = tr($rec->{$part});
-                }
-                
-                if ($this->params['transliterate']) {
-                    $rec->{$part} = transliterate($rec->{$part});
-                }
-                
                 $res = $mvc->getVerbal($rec, $part);
                 
                 return $res;
             } else {
                 $value = $mvc->getTitleById($k);
-                
-                if ($this->params['translate']) {
-                    $value = tr($value);
-                }
-                
-                if ($this->params['transliterate']) {
-                    $value = transliterate($value);
-                }
             }
         } elseif($this->params['function']) {
         
         } elseif($this->suggestions) {
             
             $value = $this->suggestions[$k];
-            
-            if ($this->params['translate']) {
-                $value = tr($value);
-            }
-            
-            if ($this->params['transliterate']) {
-                $value = transliterate($value);
-            }
         }
         
         return $value;
@@ -180,14 +156,6 @@ class type_Keylist extends core_Type {
                         $html .= '</tr>';
                     }
                     
-                    if ($this->params['translate']) {
-                        $v->title = tr($v->title);
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $v->title = transliterate($v->title);
-                    }
-                    
                     if ($groupOpen){
                     	$html .= "</table></td>";
                     }
@@ -228,14 +196,6 @@ class type_Keylist extends core_Type {
                     }
                     
                     $v = type_Key::getOptionTitle($v);
-
-                    if ($this->params['translate']) {
-                        $v = tr($v);
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $v = transliterate($v);
-                    }
                     
                     $cb = ht::createElement('input', $attrCB);
                     $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
