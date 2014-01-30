@@ -305,20 +305,6 @@ class core_Packs extends core_Manager
         $rowNum++;
         $row->id = $rowNum;
         
-        $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
-         
-        $row->name = new ET($row->name);
-        $row->name->append(' ' . str_replace(',', '.', $rec->version));
-        
-        if ($rec->deinstall == 'yes') {
-        	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
-        } else {
-        	$row->deinstall = "";
-        }
-        
-        $row->name .= $row->deinstall;
-        $row->name .= "<div><small>{$rec->info}</small></div>";
-        
         $imageUrl = sbf("img/100/default.png","");
         
         $filePath = getFullPath("{$rec->name}/icon.png");
@@ -329,6 +315,31 @@ class core_Packs extends core_Manager
        	
        	$row->img = ht::createElement("img", array('src' => $imageUrl));
        	
+        $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
+         
+        $row->name = new ET($row->name);
+        $row->name->append(' ' . str_replace(',', '.', $rec->version));
+        
+    	if ($rec->startCtr) {
+    		
+    		// Слага се линк към пакета, само ако потребителя има права за него
+        	$startCtrMvc = cls::get($rec->startCtr);
+        	if(method_exists($startCtrMvc, 'haveRightFor') && $startCtrMvc->haveRightFor('list')){
+        		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
+        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
+        	}
+        }
+        
+        
+        if ($rec->deinstall == 'yes') {
+        	$row->deinstall = ht::createLink(' ', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png'));
+        } else {
+        	$row->deinstall = "";
+        }
+        
+        $row->name .= $row->deinstall;
+        $row->name .= "<div><small>{$rec->info}</small></div>";
+       	
         $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install"));
         
         try {
@@ -337,16 +348,6 @@ class core_Packs extends core_Manager
             $row->install = 'Липсва кода на пакета!';
             $row->ROW_ATTR['style'] = 'background-color:red';
             return;
-        }
-
-    	if ($rec->startCtr) {
-    		
-    		// Слага се линк към пакета, само ако потребителя има права за него
-        	$startCtrMvc = cls::get($rec->startCtr);
-        	if($startCtrMvc->haveRightFor('list')){
-        		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
-        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
-        	}
         }
         
         if ($conf->getConstCnt()) {
