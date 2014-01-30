@@ -70,9 +70,9 @@ class core_Lg extends core_Manager
      */
     function description()
     {
-        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export');
-        $this->FLD('kstring', 'varchar(size=34)', 'caption=Стринг,export, width=100%');
-        $this->FLD('translated', 'text',  'caption=Превод,export, , width=100%, class=translated');
+        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export,mandatory');
+        $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
+        $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
         
         $this->setDbUnique('kstring,lg');
     }
@@ -174,7 +174,7 @@ class core_Lg extends core_Manager
         // Заместваме празните редове, за да може да превеждаме и multiline текстове
         $key = str_ireplace(array("\n\r", "\r\n", "\n", "\r"), '<br />', $key);
         
-        $key = str::convertToFixedKey($key, 32, 4);
+        $key = static::prepareKey($key);
         
         // Ако не е зададен език, превеждаме на текущия
         if (!$lg) {
@@ -340,6 +340,37 @@ class core_Lg extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            
+            // Подготвяме стринга
+            $form->rec->kstring = static::prepareKey($form->rec->kstring);
+        }
+    }
+    
+    
+    /**
+     * Подготвя стринга за ключа
+     * 
+     * @param string $key
+     * 
+     * @return string
+     */
+    static function prepareKey($key)
+    {
+        $key = str::convertToFixedKey($key, 32, 4);
+        
+        return $key;
+    }
+    
+    
+    /**
      * Транслитерира подадения стринг в латиница, ако текущия език не е кирилски и в текста има поне един символ на кирилица
      * 
      * @param string $str - Стринга, който ще се транслитерира
@@ -377,7 +408,7 @@ class core_Lg extends core_Manager
  	
 	public static function on_BeforeImportRec($mvc, $rec)
     {
-    	$rec->kstring = str::convertToFixedKey($rec->kstring, 32, 4);
+    	$rec->kstring = static::prepareKey($rec->kstring);
 		
 		if (isset($rec->csv_createdBy)) {
     		
