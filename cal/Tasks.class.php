@@ -586,6 +586,7 @@ class cal_Tasks extends core_Master
             
            // return FALSE;
         }
+
     }
     
     
@@ -612,20 +613,13 @@ class cal_Tasks extends core_Master
 	    	$currUrl['Chart'] = 'List';
 	        $tabs->TAB('List', 'Таблица', $currUrl);
 	        
-	        // Обхождаме всички записи
-	        for($i = 0; $i <= count($data->recs); $i++){
-	        	// ако имаме дата за начало на задачата и тя е активна 
-	        	if(isset($data->recs[$i]->timeStart)  &&$data->recs[$i]->state == 'active'){
-	        		// ако тя има продължителност или край 
-	        		if(isset($data->recs[$i]->timeEnd) || isset($data->recs[$i]->timeDuration)){
-	        			// нужна ни е само една такава задача, но броим всичките
-	        			$needOneOnly++;
-	        		}
-	        	}
-	        }	
-
-	        // ако имаме поне една задача отговаряща на горните условия
-		    if($needOneOnly >= 1) {		
+	        $queryClone = clone $data->listSummary->query;
+	        
+	        $queryClone->where("#state = 'active' AND #timeStart IS NOT NULL");
+	        $queryClone->orWhere("#timeEnd IS NOT NULL OR #timeDuration IS NOT NULL");
+	        
+	        if ($queryClone->fetch()) {
+	
 	        	// ще може намерин типа на Ганта
 	        	$ganttType = self::getGanttTimeType($data);
 		            
@@ -641,7 +635,7 @@ class cal_Tasks extends core_Master
 			        	
 			    }
 			    // в противен слувачай бутона ще е неактивен
-		    } else {
+		    } else { 
     				$tabs->TAB('Gantt', 'Гант', '');
     		}
 	       
