@@ -321,27 +321,32 @@ class core_Packs extends core_Manager
         $row->name->append(' ' . str_replace(',', '.', $rec->version));
         
     	if ($rec->startCtr) {
-    		$makeLink = FALSE;
+    	    try {
+        	    $makeLink = FALSE;
+        		
+            	$startCtrMvc = cls::get($rec->startCtr);
+            	
+            	// Слага се линк към пакета, само ако потребителя има права за него
+            	if(method_exists($startCtrMvc, 'haveRightFor')){
+            		
+            		//@TODO да се проверява имали права за default екшъна а не конкретно list
+            		if($startCtrMvc->haveRightFor('list')){
+            			$makeLink = TRUE;
+            		}
+            	} else {
+            		
+            		// Ако няма изискване за права се слага линк към пакета
+            		$makeLink = TRUE;
+            	}
+            	
+            	if($makeLink){
+            		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
+            		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
+            	}
+    	    } catch (Exception $e) {
+    	        // Възможно е да липсва кода на пакета
+    	    }
     		
-        	$startCtrMvc = cls::get($rec->startCtr);
-        	
-        	// Слага се линк към пакета, само ако потребителя има права за него
-        	if(method_exists($startCtrMvc, 'haveRightFor')){
-        		
-        		//@TODO да се проверява имали права за default екшъна а не конкретно list
-        		if($startCtrMvc->haveRightFor('list')){
-        			$makeLink = TRUE;
-        		}
-        	} else {
-        		
-        		// Ако няма изискване за права се слага линк към пакета
-        		$makeLink = TRUE;
-        	}
-        	
-        	if($makeLink){
-        		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
-        		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
-        	}
         }
         
         
