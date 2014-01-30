@@ -62,7 +62,7 @@ class core_Lg extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools';
+    var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools,plg_AutoFilter';
     
     
     /**
@@ -70,10 +70,10 @@ class core_Lg extends core_Manager
      */
     function description()
     {
-        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export,mandatory');
+        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export,mandatory,autoFilter');
         $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
-        
+
         $this->setDbUnique('kstring,lg');
     }
     
@@ -264,16 +264,16 @@ class core_Lg extends core_Manager
         $data->query->orderBy(array(
                 'id' => 'DESC'
             ));
-        
-        $data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');
-        
+
         $langArr = arr::make(EF_LANGUAGES, TRUE);
 
         // Превод
         foreach($langArr as $lg => &$lgName) {
             $lgName = tr($lgName);
         }
-
+            
+  		$data->listFilter->view = 'horizontal';
+  		$data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');          
         $data->listFilter->setOptions('lg', $langArr);
         
         $data->listFilter->showFields = 'filter,lg';
@@ -281,6 +281,10 @@ class core_Lg extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $filterRec = $data->listFilter->input();
+      
+        if(!$filterRec->lg) {
+        	$filterRec->lg = core_Lg::getCurrent();
+        }
         
         if ($filterRec) {
             if ($filterRec->lg) {
@@ -294,7 +298,7 @@ class core_Lg extends core_Manager
                     ));
             }
         }
-        $data->listFilter->view = 'horizontal';
+        
     }
     
     
