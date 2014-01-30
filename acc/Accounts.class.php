@@ -403,7 +403,7 @@ class acc_Accounts extends core_Manager
     static function on_AfterSetupMvc($mvc, &$res) 
     {
     	// Подготвяме пътя до файла с данните 
-    	$file = "acc/setup/csv/Accounts.csv";
+    	$file = "acc/csv/Accounts.csv";
     	
     	// Кои колонки ще вкарваме
     	$fields = array( 

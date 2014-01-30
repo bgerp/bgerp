@@ -295,7 +295,7 @@ class acc_Operations extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "acc/setup/csv/Operations.csv";
+    	$file = "acc/csv/Operations.csv";
     	$fields = array( 
 	    	0 => "name", 
 	    	1 => "csv_documentSrc", 

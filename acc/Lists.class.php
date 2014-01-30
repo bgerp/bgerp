@@ -623,4 +623,30 @@ class acc_Lists extends core_Manager {
     	
     	return $res;
     }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+    	// Подготвяме пътя до файла с данните 
+		$file = "acc/csv/Lists.csv";  
+		  	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+	    	0 => "num", 
+	    	1 => "name", 
+	    	2 => "regInterfaceId", 
+	    	3 => "systemId",
+	    	4 => "isDimensional"
+	    );
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+    }
 }

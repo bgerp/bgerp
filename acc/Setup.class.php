@@ -143,12 +143,6 @@ class acc_Setup extends core_ProtoSetup
         $Periods = cls::get('acc_Periods');
 
         //$html .= $Periods->loadSetupData();
-
-        //Зарежда данни за инициализация от CSV файл за acc_Lists
-        $html .= acc_setup_Lists::loadData();
-        
-        //Зарежда данни за инициализация от CSV файл за acc_Accounts
-        //$html .= acc_setup_Accounts::loadData();
         
         return $html;
     }
