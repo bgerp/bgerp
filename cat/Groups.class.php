@@ -33,7 +33,7 @@ class cat_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
-    				 doc_FolderPlg, plg_Search';
+    				 doc_FolderPlg, plg_Search, plg_Translate';
     
     
     /**
@@ -46,15 +46,6 @@ class cat_Groups extends core_Master
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'sysId, name, productCnt, info, meta';
-    
-    
-    /**
-     * Дали да се превежда, транслитерира singleField полето
-     * 
-     * translate - Превежда
-     * transliterate - Транслитерира
-     */
-    var $langSingleField = 'translate';
     
     
     /**
@@ -152,7 +143,7 @@ class cat_Groups extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
