@@ -33,7 +33,7 @@ class crm_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
-    				 plg_Rejected, doc_FolderPlg, plg_Search';
+    				 plg_Rejected, doc_FolderPlg, plg_Search, plg_Translate';
     
     
     /**
@@ -102,15 +102,6 @@ class crm_Groups extends core_Master
     
     
     /**
-     * Дали да се превежда, транслитерира singleField полето
-     * 
-     * translate - Превежда
-     * transliterate - Транслитерира
-     */
-    var $langSingleField = 'translate';
-    
-    
-    /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
@@ -128,7 +119,7 @@ class crm_Groups extends core_Master
     function description()
     {
         $this->FLD('sysId', 'varchar(16)', 'caption=СисИД,input=none,column=none');
-        $this->FLD('name', 'varchar(128)', 'caption=Група,width=100%,mandatory');
+        $this->FLD('name', 'varchar(128)', 'caption=Група,width=100%,mandatory,translate');
         $this->FLD('allow', 'enum(companies_and_persons=Фирми и лица,companies=Само фирми,persons=Само лица)', 'caption=Съдържание,notNull');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');
