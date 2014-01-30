@@ -61,9 +61,9 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
 	       
 	       if(in_array('web', $format)) {
 	       	     
-	       		$html = preg_replace_callback("/^\s*(((Web|WWW|Site|Сайт)\.?\:?\ *((http|https|ftp):\/\/[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+))((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       		$html = preg_replace_callback("/^\s*(((Web|WWW|Site|Сайт|Блог|Blog)\.?\:?\ *((http|https|ftp):\/\/[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+))((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
 	       	
-	       	    $html = preg_replace_callback("/^\s*((((http|https|ftp):\/\/)[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       	    //$html = preg_replace_callback("/^\s*((((http|https|ftp):\/\/)[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
 	       }
        } catch (core_Exception_Expect $exp) {  }
     } 
@@ -91,6 +91,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      */
     function catchCommunicationWebFormat($match)
     {
+    	//bp($match);
+    	
     	$icon = sbf("img/16/world_link.png",'');
 	         	    
         // добавяме иконата пред името на услугата
