@@ -26,39 +26,50 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        $conf = core_Packs::getConfig('bgerp'); 
        $format = explode(",", $conf->BGERP_COMMUNICATION_FORMAT);
       
-       if (in_array('tel', $format)) { 
-       		 // Ако намери съвпадение на регулярния израз изпълнява функцията
-			 // намира телефонните номера
-			 $html = preg_replace_callback("/^\s*((Тел|Телефон|tel\/fax|тел\/факс|Tel|Telephone|Phone|Тел.|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
-       }
-       
-       if (in_array('fax', $format)) {
-       		 $html = preg_replace_callback("/^\s*((Tel\/fax|Тел\/факс|Факс|Fax|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationFaxFormat'), $html);
-       	
-       }
-       
-       if (in_array('mob', $format)) {
-       		 $html = preg_replace_callback("/^\s*((M|Gsm|Mtel|Mobiltel|Vivacom|Vivatel|Globul|Mobile|Mob)\.?\:? *)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationMobFormat'), $html);
-       	
-       }
-       
-       if (in_array('email', $format)) {
-       		 // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
-	         $html = preg_replace_callback("/^\s*((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
-	         //$html = preg_replace_callback("/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, 'catchCommunicationEmail2Format'), $html);
-	         
-       }
-       
-       if (in_array('icq', $format)) {
-       		 // валидация на ICQ номер
-	       	 $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(-*[1-9][-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationICQFormat'), $html);
-       }
-       
-       if (in_array('social', $format)) {
-       		 $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:? *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
-       }
-
+       try {
+	       if (in_array('tel', $format)) { 
+	       		 // Ако намери съвпадение на регулярния израз изпълнява функцията
+				 // намира телефонните номера
+				 $html = preg_replace_callback("/^\s*((Тел|Телефон|tel\/fax|тел\/факс|Tel|Telephone|Phone|Тел.|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationTelFormat'), $html);
+	       }
+	       
+	       if (in_array('fax', $format)) {
+	       		 $html = preg_replace_callback("/^\s*((Tel\/fax|Тел\/факс|Факс|Fax|Тelefax)\.?\:? *)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationFaxFormat'), $html);
+	       	
+	       }
+	       
+	       if (in_array('mob', $format)) {
+	       		 $html = preg_replace_callback("/^\s*((M|Gsm|Mtel|Mobiltel|Vivacom|Vivatel|Globul|Mobile|Mob)\.?\:? *)[^0-9\(\+]{0,4}([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/umi", array($this, 'catchCommunicationMobFormat'), $html);
+	       	
+	       }
+	       
+	       if (in_array('email', $format)) {
+	       		 // искаме да намерим изрази като Email|E-mail|Mail|@ , за да сложим пред тях икона
+		         $html = preg_replace_callback("/^\s*(((Имейл|Емайл|Е-майл|Email|E-mail|Mail|@)\.?\:? *[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
+		         $html = preg_replace_callback("/^\s*(([\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+)/umi", array($this, 'catchCommunicationEmailFormat'), $html);
+		         
+	       }
+	       
+	       if (in_array('icq', $format)) {
+	       		 // валидация на ICQ номер
+		       	 $html = preg_replace_callback("/^\s*((ICQ)\.?\:? *)(\-*[1-9][\-0-9]*[0-9]+)/umi", array($this, 'catchCommunicationICQFormat'), $html);
+	       }
+	       
+	       if (in_array('social', $format)) { 
+	       		 $html = preg_replace_callback("/^\s*((AIM|YIM|MSNIM|MSN|XMPP|Jabber|Skype)\.?\:?\ *)([a-zA-Z0-9_\-\@\.]{3,64})/umi", array($this, 'catchCommunicationFormat'), $html);
+	       }
+	       
+	       if(in_array('web', $format)) {
+	       	     
+	       		$html = preg_replace_callback("/^\s*(((Web|WWW|Site|Сайт)\.?\:?\ *((http|https|ftp):\/\/[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+))((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       	
+	       	    $html = preg_replace_callback("/^\s*((((http|https|ftp):\/\/)[A-Za-z0-9\.\-]+|(?:www\.)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/umi", array($this, 'catchCommunicationWebFormat'), $html);
+	       }
+       } catch (core_Exception_Expect $exp) {  }
     } 
+       
+    //link + email
+    //((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)
     
     //drdata_address
     //(f|telefax|fax|faks)[^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])
@@ -68,6 +79,25 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
     
     //new
     //(Тел|Телефон|Tel|Telephone|Phone|Mobile|Mob|Факс|Fax|Тел.)[\.?\:? *][^0-9\(\+]{0,6}([\d\(\+][\d\- \(\)\.\+\/]{7,27}[\d\)])
+    
+    
+    /**
+     * Обработваме всички елементи в richText-а,
+     * които приличат на link
+     * и започват на нов ред.
+     * Добавяме пред тях икона за хипервръзка
+     * 
+     * @param array $match
+     */
+    function catchCommunicationWebFormat($match)
+    {
+    	$icon = sbf("img/16/world_link.png",'');
+	         	    
+        // добавяме иконата пред името на услугата
+        $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
+
+        return $communicationFormat;
+    }
     
     
     /**
@@ -269,7 +299,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      * @param array $match
      */
     function catchCommunicationFormat($match)
-    {   
+    {  
         if(!trim($match[3])) {
             return $match[0];
         }
@@ -361,8 +391,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         $matchElement = trim(mb_strtolower($match[2]));
         
         // Намираме иконата в sbf папката
-        $nameIcon = str::utf2ascii($matchElement);
-	    $icon = sbf("img/16/{$nameIcon}.png",'');
+        $nameIcon = str::utf2ascii($matchElement); 
+	    $icon = sbf("img/16/{$matchElement}.png",'');
 
 		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
 		href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
@@ -388,7 +418,7 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      */
     function catchCommunicationEmailFormat($match)
     {   
-    	
+    	//bp($match);
         if(!trim($match[2])) {
             return  $match[0];
         }
