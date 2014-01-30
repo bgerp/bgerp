@@ -61,7 +61,7 @@
 		<ol class ='spec-short'>
 			<!--ET_BEGIN COMPONENT-->
 			[#COMPONENT#]
-			<li>[#componentId#]<span style='margin-left:10px'>[#cquantity#] [#cMeasureId#]</span></li>
+			<li>[#componentId#]<span style='margin-left:10px'>[#cQuantity#] [#cMeasureId#]</span></li>
 			<!--ET_END COMPONENT-->
 		</ol>
 <!--ET_END COMPONENTS-->
