@@ -242,6 +242,7 @@ class bank_DepositSlips extends core_Master
     {
     	// Ако няма ориджин в урл-то, документа неможе да се добави към нишката
     	$originId = Request::get('originId');
+    	
     	if(empty($originId)) return FALSE;
     	
     	// Към кой документ се създава бланката

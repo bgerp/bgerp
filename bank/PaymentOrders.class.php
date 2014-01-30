@@ -32,7 +32,7 @@ class bank_PaymentOrders extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, bank_TemplateWrapper, plg_Printing, acc_plg_DocumentSummary, plg_Search,
-     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank, cond_plg_DefaultValues, doc_ActivatePlg, doc_EmailCreatePlg';
+     	plg_Sorting,doc_DocumentPlg,doc_plg_MultiPrint, bgerp_plg_Blank, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -120,21 +120,6 @@ class bank_PaymentOrders extends core_Master
     
     
     /**
-     * Стратегии за дефолт стойностти
-     */
-    public static $defaultStrategies = array(
-    
-    	'ordererIban' 		=> 'lastDocUser|lastDoc',
-    	'execBank' 			=> 'lastDocUser|lastDoc',
-        'execBankBic' 		=> 'lastDocUser|lastDoc',
-        'execBranch' 		=> 'lastDocUser|lastDoc',
-        'execBranchAddress' => 'lastDocUser|lastDoc',
-        'beneficiaryName' 	=> 'lastDocUser|lastDoc',
-        'beneficiaryIban' 	=> 'lastDocUser|lastDoc',
-    );
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -204,9 +189,9 @@ class bank_PaymentOrders extends core_Master
 	    $today = dt::verbal2mysql();
 	    $form->setDefault('valior', $today);
 	    $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
-    		
+    	
 	    // Използваме помощната функция за намиране името на контрагента
-	    $form->setReadOnly('beneficiaryName', cls::get($rec->contragentClassId)->getTitleById($rec->contragentId));
+	    $form->setReadOnly('beneficiaryName');
 	}
     
     
