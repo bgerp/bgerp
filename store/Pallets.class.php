@@ -733,11 +733,15 @@ class store_Pallets extends core_Manager
                 $palletPosition = $rackId . "-" . $rackRow . "-" . $rackColumn;
                 $palletDimensions = number_format($recPallet->width, 2) . "x" . number_format($recPallets->depth, 2) . "x" . number_format($recPallets->height, 2) . " м, max " . $recPallets->maxWeight . " кг";
                 
-                $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
+                $recProduct = store_Products::fetch("#id = {$recPallets->productId}");
                 
                 /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
-                $title = "Продукт ID " . $recProduct->id . ", " . $recProduct->name . ", " . $recPallets->quantity . " бр., палет ID: " . $recPallets->id;
+                
+		$pInfo = cat_Products::getProductInfo($recProduct->productId);
+		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+				
+		$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
                 
@@ -764,7 +768,11 @@ class store_Pallets extends core_Manager
                 
                 /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
-                $title = "Продукт ID " . $recProduct->id . ", " . $recProduct->name . ", " . $recPallets->quantity . " бр., палет Id: " . $recPallets->id;
+                                
+		$pInfo = cat_Products::getProductInfo($recProduct->productId);
+		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+				
+		$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements'] = $state;
