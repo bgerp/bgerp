@@ -310,10 +310,17 @@ class doc_TplManager extends core_Master
     	$object = (object)$object;
     	
     	// Ако има старо име на шаблона
-    	$name = ($object->oldName) ? $object->oldName : $object->name;
+    	if($object->oldName){
+    		
+    		// Извличане на записа на стария шаблон
+    		$exRec = static::fetch("#name = '{$object->oldName}'");
+    	}
     	
-    	// Ако има вече такъв запис
-    	$exRec = static::fetch("#name = '{$name}'");
+    	// Ако няма старо име проверка имали шаблон с текущото име
+    	if(!$exRec){
+    		$exRec = static::fetch("#name = '{$object->name}'");
+    	}
+    	
     	if($exRec){
     		$object->id = $exRec->id;
     		$object->hash = $exRec->hash;
