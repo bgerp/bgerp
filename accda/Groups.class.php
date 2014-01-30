@@ -34,7 +34,7 @@ class accda_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
-                    accda_Wrapper';
+                    accda_Wrapper, plg_Translate';
     
     
     /**
@@ -86,15 +86,6 @@ class accda_Groups extends core_Master
     
     
     /**
-     * Дали да се превежда, транслитерира singleField полето
-     * 
-     * translate - Превежда
-     * transliterate - Транслитерира
-     */
-    var $langSingleField = 'translate';
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
@@ -128,7 +119,7 @@ class accda_Groups extends core_Master
      */
     function description()
     {
-    	$this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory');
+    	$this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory, translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         $this->FLD('productCnt', 'int', 'input=none');
