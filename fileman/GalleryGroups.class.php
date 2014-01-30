@@ -82,6 +82,8 @@ class fileman_GalleryGroups extends core_Manager
         
         $this->FLD('width', 'int', 'caption=Картинка->Широчина');
         $this->FLD('height', 'int', 'caption=Картинка->Височина');
+        
+        $this->setDbUnique('title, position');
     }
     
     /**
@@ -90,5 +92,48 @@ class fileman_GalleryGroups extends core_Manager
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
      	$row->vid = "[gallery=#" . $rec->vid . "]";
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+    	// Пътя до файла с данните 
+    	$file = "fileman/csv/GalleryGroups.csv";
+    	
+    	// Кои колонки ще вкарваме
+    	$fields = array( 
+    		0 => "title", 
+    		1 => "position",
+    		2 => "tpl",
+    		3 => "style",
+    		4 => "columns",
+    		5 => "tWidth",
+    		6 => "tHeight",
+    		7 => "width",
+    		8 => "height",
+    	);
+    	    	
+    	// Импортираме данните от CSV файла. 
+    	// Ако той не е променян - няма да се импортират повторно 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, array('delimiter' => '|'), FALSE); 
+     	
+    	// Записваме в лога вербалното представяне на резултата от импортирането 
+    	$res .= $cntObj->html;
+    }
+    
+    
+    /**
+     * Връща id на групата по подразбиране
+     * 
+     * @return integer
+     */
+    static function getDefaultGroupId()
+    {
+        
+        // По подразбиране да се използва групата централни
+        return fileman_GalleryGroups::fetchField("#title = 'Централни'");
     }
 }
