@@ -111,6 +111,26 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        // Ако създаваме нов
+        if (!$data->form->rec->id) {
+            
+            // id на групата по подразбиране
+            $grId = fileman_GalleryGroups::getDefaultGroupId();
+            
+            // Да е избрана
+            $data->form->setDefault('groupId', $grId);
+        }
+    }
+    
+    
+    /**
      * допълнение към подготовката на вербално представяне
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
@@ -362,6 +382,11 @@ class fileman_GalleryImages extends core_Manager
             $form->setDefault('imgFile', $rec->src);
             $form->setDefault('imgGroupId', $rec->groupId);
             $form->setDefault('imgTitle', $rec->title); 
+        } else {
+            
+            // По подразбиране да е избрана id на група
+            $grId = fileman_GalleryGroups::getDefaultGroupId();
+            $form->setDefault('imgGroupId', $grId);
         }
         
         // Въвеждаме полето
