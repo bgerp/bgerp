@@ -202,7 +202,7 @@ class core_App
     {
         // Временно решение за форсиране на debug mode чрез гет параметър, и ако има роля debug
         global $GET;
-        if($_GET['debug'] && haveRole('debug')) {
+        if($_GET['debug']) {
 
             return TRUE;
         }
