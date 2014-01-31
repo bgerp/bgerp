@@ -77,12 +77,6 @@ class techno_GeneralProductsDetails extends core_Detail {
     
     
     /**
-     * Продуктите от кои групи могат да са компоненти
-     */
-    static $allowedGroups = 'prefabrications';
-    
-    
-    /**
      * Полета свързани с цени
      */
     var $priceFields = 'price,amount,bTaxes';
@@ -111,7 +105,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
+    	$products = array('-1' => tr('Основа')) + cat_Products::getByProperty('canConvert');
     	
     	if(empty($form->rec->id)){
     		$products = static::getRemainingOptions($rec->generalProductId, $products);
@@ -188,7 +182,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     public static function getRemainingOptions($generalProductId, $products = NULL)
     {
     	if(empty($products)){
-    		$products = array('-1' => tr('Основа')) + cat_Products::getByGroup(static::$allowedGroups);
+    		$products = array('-1' => tr('Основа')) + cat_Products::getByProperty('canConvert');
     	}
     	
     	$query = static::getQuery();
