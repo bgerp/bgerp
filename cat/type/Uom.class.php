@@ -13,7 +13,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -45,103 +45,106 @@ class cat_type_Uom extends type_Varchar {
     
     
     /**
-     * Конвертира от вербална стойност
+     * @type_Double
      */
-    function fromVerbal_($val)
-    {
-        $val = trim($val);
-        
-        // Трябва да има зададена дефолт мерна еденица по нейно sysId
-        expect($this->params['unit']);
-        $typeUomId = cat_UoM::fetchBySysId($this->params['unit'])->id;
-        
-        // Празна стойност се приема за NULL
-        if($val === '') return NULL;
-        
-        if(is_numeric($val)) {
-        	
-        	// Ако е въведено само число то се конвертира в основната мярка на мерната еденица
-        	$val = cat_UoM::convertToBaseUnit($val, $typeUomId);
-           
-            return $val;
-        }
-      
-        // Разделяме текста на число и име
-        preg_match("/(^[0-9 \.\,]+)([a-zа-я]*[\. ]*[a-zа-я]*)/umi", $val, $matches);
-        
-        // Първата намерена стойност е сумата на мярката
-        $val = $matches[1];
-        
-        // Намерения текс се обръща във вид лесен за работа
-        $ext = strtolower(str::utf2ascii($matches[2]));
-        
-        // Обръщане на стойността от вербална във вътрешна
-        $Double = cls::get('type_Double');
-        $val = $Double->fromVerbal($val);
-        
-    	if(!$val) {
-            $this->error = "Недопустими символи в число/израз";
-           
-            return FALSE;
-        }
-        
-        // Ако има разпозната текстова част
-        if(strlen($ext)){
-	        // Разпознава се на коя мерна еденица отговаря посочената дума
-	        $inputUom = cat_UoM::fetchBySinonim($ext);
-	        if(empty($inputUom)){
-	        	
-	        	// Задължително трябва да има разпознаване
-	        	$this->error = "Неразпозната мярка|* '{$matches[2]}'";
-	            
-	            return FALSE;
-	        }
-	        
-	        // Извличат се производните мерки на дефолт мярката
-	        $sameMeasures = cat_UoM::getSameTypeMeasures($typeUomId);
-	        if(empty($sameMeasures[$inputUom->id])){
-	        	
-	        	// Разпознатата мярка трябва да е от същия вид като дефолт мярката
-	        	// Така ако е зададено 'kg' неможе да се въведе примерно 'секунда'
-	        	$this->error = "Моля посочете мярка производна на|* '{$this->params['unit']}'";
-	           
-	            return FALSE;
-	        }
-	        
-	        // Въведената стойност се конвертира във основната си мярка
-        	$val = cat_UoM::convertToBaseUnit($val, $inputUom->id);
-        } else {
-        	
-        	// Ако няма разпозната текстова част
-        	$val = cat_UoM::convertToBaseUnit($val, $typeUomId);
-        }
-        
-        // Връщане на стойността
-        return $val;
-    }
+    protected $double;
+    
+    
+    /**
+     * ид на основната мярка на полето
+     */
+    protected $baseMeasureId;
     
     
 	/**
+     * Инициализиране на обекта
+     */
+    function init($params = array())
+    {
+        parent::init($params);
+        
+        // Инстанциране на type_Double
+        $this->double = cls::get('type_Double', $params);
+       
+        // Запомняне на ид-то отговарящо на основната мярка
+        $this->baseMeasureId = cat_UoM::fetchBySysId($this->params['unit'])->id;
+    	expect($this->baseMeasureId);
+    }
+    
+    
+    /**
+     * Конвертира от вербална стойност
+     */
+    function fromVerbal_($value)
+    {
+    	// Ако няма стойност
+    	if(!is_array($value)) return NULL;
+    	
+    	// Тримване на въведената числова стойност
+    	$left = trim($value['lP']);
+    	
+    	// Обръщане в невербален вид
+    	$left = $this->double->fromVerbal($left);
+    	
+    	// Ако има проблем при обръщането сетва се грешка
+    	if($left === FALSE){
+	        $this->error = "Не е въведено валидно число";
+	        	
+	        return FALSE;
+	    }
+	    
+	    // Конвертиране в основна мярка на числото от избраната мярка
+	    $left = cat_UoM::convertToBaseUnit($left, $value['rP']);
+	   
+	    // Връщане на сумата в основна мярка
+	    return $left;
+    }
+    
+    
+    /**
      * Рендиране на полето
      */
     function renderInput_($name, $value = '', &$attr = array())
 	{
-		if($value && empty($this->error)){
-			$value = cat_UoM::smartConvert($value, $this->params['unit'], FALSE);
-	    }
-
-       return ht::createTextInput($name, $value, $attr);
-     }
-    
-    
-    /**
+		// Ако има запис, конвертира се в удобен вид
+		if($value){
+			if(empty($this->error)){
+				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
+			} else {
+				$convObject = new stdClass();
+				$convObject->value = $value['lP'];
+				$convObject->measure = $value['rP'];
+			}
+		}
+		
+		// Рендиране на частта за въвеждане на числото
+		setIfNot($attr['size'], '7em');
+		$inputLeft = $this->double->renderInput($name . '[lP]', $convObject->value, $attr);
+		unset($attr['size']);
+		
+		// Извличане на всички производни мярки
+		$options = cat_UoM::getSameTypeMeasures($this->baseMeasureId, TRUE);
+        unset($options['']);
+        
+		$inputRight = " &nbsp;" . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
+		
+		// Добавяне на дясната част към лявата на полето
+        $inputLeft->append($inputRight);
+        
+        // Връщане на готовото поле
+        return $inputLeft;
+	}
+	
+	
+	/**
      * Форматира числото в удобна за четене форма
      */
-    function toVerbal_($val)
+    function toVerbal_($value)
     {
-        if(!isset($val) || !is_numeric($val)) return NULL;
-        $val = abs($val);
+    	
+    	if(!isset($value) || !is_numeric($value)) return NULL;
+        $value = abs($value);
         
-        return cat_UoM::smartConvert($val, $this->params['unit']);
+        return cat_UoM::smartConvert($value, $this->params['unit']);
     }
 }

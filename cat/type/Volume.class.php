@@ -24,22 +24,6 @@ class cat_type_Volume extends cat_type_Uom {
 	function init($params = array())
     {
     	$this->params['unit'] = 'cub.m';
-    }
-    
-    
-    /**
-     * Конвертира от вербална стойност
-     */
-    function fromVerbal_($val)
-    {
-    	$val = parent::fromVerbal_($val);
-    	
-    	if($val === FALSE){
-    		$this->error = "Моля въведете валидна мярка за обем";
-            
-            return FALSE;
-    	}
-    	
-    	return $val;
+    	parent::init($this->params);
     }
 }

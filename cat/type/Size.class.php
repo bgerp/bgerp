@@ -24,24 +24,6 @@ class cat_type_Size extends cat_type_Uom {
 	function init($params = array())
     {
     	$this->params['unit'] = 'm';
-    }
-    
-    
-    /**
-     * Конвертира от вербална стойност
-     */
-    function fromVerbal_($val)
-    {
-    	$this->params['unit'] = 'm';
-    	
-    	$val = parent::fromVerbal_($val);
-    	
-    	if($val === FALSE){
-    		$this->error = "Моля въведете валидна мярка за размер";
-            
-            return FALSE;
-    	}
-    	
-    	return $val;
+    	parent::init($this->params);
     }
 }

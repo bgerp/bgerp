@@ -24,22 +24,6 @@ class cat_type_Weight extends cat_type_Uom {
 	function init($params = array())
     {
     	$this->params['unit'] = 'kg';
-    }
-    
-    
-    /**
-     * Конвертира от вербална стойност
-     */
-    function fromVerbal_($val)
-    {
-    	$val = parent::fromVerbal_($val);
-    	
-    	if($val === FALSE){
-    		$this->error = "Моля въведете валидна мярка за тегло";
-            
-            return FALSE;
-    	}
-    	
-    	return $val;
+    	parent::init($this->params);
     }
 }
