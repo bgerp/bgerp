@@ -1537,6 +1537,11 @@ class doc_DocumentPlg extends core_Plugin
             $attachedDocs = array_combine($attachedDocs, $attachedDocs);    
         }
         
+        if (!is_array($attachedDocs)) {
+        	
+        	$attachedDocs = array(); 
+        }
+        
         $res = array_merge($attachedDocs, (array)$res);
         
         core_Users::exitSudo();
