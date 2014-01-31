@@ -45,7 +45,7 @@ class sales_model_Sale extends core_Model
      * @var double
      */
     public $amountInvoiced;
-        
+    
     /*
      * Контрагент
      */ 
@@ -85,14 +85,14 @@ class sales_model_Sale extends core_Model
      */
     public $shipmentStoreId;
         
-    /**
-     * @var enum(no, yes)
-     */
-    public $isInstantShipment;
-        
     /*
      * Плащане
      */
+    
+    /**
+     * Действия при контиране
+     */
+    public $contoActions;
     
     /**
      * @var int
@@ -120,11 +120,6 @@ class sales_model_Sale extends core_Model
      * @var int
      */
     public $caseId;
-    
-    /**
-     * @var enum(no,yes)
-     */
-    public $isInstantPayment;
         
     /*
      * Наш персонал

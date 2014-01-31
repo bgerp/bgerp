@@ -66,15 +66,13 @@ class sales_TransactionSourceImpl
     {
         $entries = array();
         $rec     = $this->class->fetchRec($id);
-        
-        $hasDeliveryPart = $this->hasDeliveryPart($rec);
-        $hasPaymentPart  = $this->hasPaymentPart($rec);
-        
-        if ($hasDeliveryPart || $hasPaymentPart) {
+        $actions = type_Set::toArray($rec->contoActions);
+       
+        if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
 			
-            if ($hasDeliveryPart) {
+            if ($actions['ship']) {
                 // Продажбата играе роля и на експедиционно нареждане.
                 // Контирането е същото като при ЕН
                 
@@ -90,7 +88,7 @@ class sales_TransactionSourceImpl
                 }
             }
             
-            if ($hasPaymentPart) {
+            if ($actions['pay']) {
                 // Продажбата играе роля и на платежен документ (ПКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
@@ -113,14 +111,15 @@ class sales_TransactionSourceImpl
     public function finalizeTransaction($id)
     {
         $rec = $this->class->fetchRec($id);
-
+		$actions = type_Set::toArray($rec->contoActions);
+        
         // Обновяване на кеша (платено)
-        if ($this->hasPaymentPart($rec)) {
+        if ($actions['pay']) {
             $rec->amountPaid = $rec->amountDeal;
         }
 
         // Обновяване на кеша (доставено)
-        if ($this->hasDeliveryPart($rec)) {
+        if ($actions['ship']) {
             $rec->amountDelivered = $rec->amountDeal;
             
             // Извличане на детайлите на продажбата
@@ -170,36 +169,6 @@ class sales_TransactionSourceImpl
         }
         
         return $rec;
-    }
-    
-    
-    /**
-     * Ще има ли транзакцията записи от тип 2 (експедиция)?
-     * 
-     * @param stdClass $rec
-     * @return boolean
-     */
-    protected function hasDeliveryPart($rec)
-    {
-        return $rec->isInstantShipment == 'yes';
-    }
-    
-    
-    /**
-     * Ще има ли транзакцията записи от тип 3 (плащане)?
-     *
-     * @param stdClass $rec
-     * @return boolean
-     */
-    protected function hasPaymentPart($rec)
-    {
-        // Плащане в брой?
-        if ($rec->paymentMethodId && cond_PaymentMethods::fetchField($rec->paymentMethodId, 'name') != 'COD') {
-            // Не е плащане в брой
-            return FALSE;
-        }
-        
-        return $rec->isInstantPayment == 'yes';
     }
     
     
@@ -308,6 +277,7 @@ class sales_TransactionSourceImpl
      * Експедиране на стоката от склада (в някой случаи)
      *
      *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Стоки и Продукти)
+     *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Суровини и материали)
      *    
      *    Ct: 321. Стоки и Продукти                           (Склад, Стоки и Продукти)
      *        302. Суровини и Материали                       (Склад, Суровини и Материали)
@@ -330,11 +300,11 @@ class sales_TransactionSourceImpl
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		$creditAccId = ($convertable) ? '302' : '321';
-        		//acc_journal_Exception::expect($rec->shipmentStoreId, 'Генериране на експедиционна част при липсващ склад!');
+        		$debitAccId = ($convertable) ? '706' : '701';
         		
         		$entries[] = array(
 	                'debit' => array(
-	                    '701',
+	                    $debitAccId,
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
         					array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка

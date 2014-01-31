@@ -187,7 +187,6 @@ class sales_Sales extends core_Master
         $this->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Обект до,silent,class=contactData'); // обект, където да бъде доставено (allowEmpty)
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до'); // до кога трябва да бъде доставено
         $this->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)',  'caption=Доставка->От склад'); // наш склад, от където се експедира стоката
-        $this->FLD('isInstantShipment', 'enum(no=Последващ,yes=Този)', 'input=none,notNull,default=no');
         
         // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=name,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethod');
@@ -195,7 +194,6 @@ class sales_Sales extends core_Master
         $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        $this->FLD('isInstantPayment', 'enum(no=Последващ,yes=Този)', 'input=none,notNull,default=no');
         
         // Наш персонал
         $this->FLD('initiatorId', 'user(roles=user,allowEmpty,rolesForAll=sales|ceo)', 'caption=Наш персонал->Инициатор');
@@ -212,6 +210,7 @@ class sales_Sales extends core_Master
             'caption=Статус, input=none'
         );
         
+        $this->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
     	$this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     }
     
@@ -381,17 +380,6 @@ class sales_Sales extends core_Master
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
         
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$form->formAttr['id']}'].elements['currencyRate'].value ='';"));
-    	
-        // Ако плащането или експедирането е на момента се забранява промяна на някои полета
-        if($form->rec->isInstantShipment == 'yes'){
-    		$form->setReadOnly('shipmentStoreId');
-    	}
-    	
-    	if($form->rec->isInstantPayment == 'yes'){
-    		$form->setReadOnly('caseId');
-    		$form->setReadOnly('paymentMethodId');
-    	}
-    	
     	$form->setField('sharedUsers', 'input=none');
     }
     
@@ -557,9 +545,9 @@ class sales_Sales extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		$amountType = $mvc->getField('amountDeal')->type;
-		$rec->amountToDeliver = $rec->amountDeal - $rec->amountDelivered;
-		$rec->amountToPay = $rec->amountDelivered - $rec->amountPaid;
-		$rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
+		$rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
+		$rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
+		$rec->amountToInvoice = round($rec->amountDelivered - $rec->amountInvoiced, 2);
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice') as $amnt) {
             if ($rec->{"amount{$amnt}"} == 0) {
@@ -585,14 +573,7 @@ class sales_Sales extends core_Master
 	    
 	    if($fields['-single']){
 	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
-	    	if ($rec->isInstantPayment == 'yes') {
-	            $row->caseId .= ' <span style="color:#060">(' . tr('платено') . ')</span>';
-	        }
-	        
-	        if ($rec->isInstantShipment == 'yes') {
-	            $row->shipmentStoreId .= ' <span style="color:#060">(' . tr('експедирано') . ')</span>';
-	        }
-	        
+	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
 	        
 	        if ($rec->currencyRate != 1) {
@@ -743,7 +724,7 @@ class sales_Sales extends core_Master
 	        }
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
-	    	if($rec->isInstantShipment == 'yes' && sales_Invoices::haveRightFor('add')){
+	    	if($rec->amountInstantDelivered && sales_Invoices::haveRightFor('add')){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
@@ -760,22 +741,14 @@ class sales_Sales extends core_Master
             $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
     	
-    	
-    	if($rec->state == 'draft'){
-    		$caseId = cash_Cases::getCurrent('id', FALSE);
-    		if($rec->isInstantPayment == 'no'){
-    			if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    				$data->toolbar->addBtn('Платено?', array($mvc, 'setMode', $rec->id, 'type' => 'pay'), 'warning=Желаете ли този документ да контира и плащането?');
-    			}
+    	// Ако има опции за избор на контирането, подмяна на бутона за контиране
+    	if(isset($data->toolbar->buttons['btnConto'])){
+    		$options = $mvc->getContoOptions($data->rec->id);
+    		if(count($options)){
+    			$data->toolbar->removeBtn('btnConto');
+    			$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $data->rec->id), "id=btnConto", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
     		}
-    		
-    		$storeId = store_Stores::getCurrent('id', FALSE);
-    		if($rec->isInstantShipment == 'no'){
-	    		if(isset($rec->shipmentStoreId) && $rec->isInstantShipment == 'no' && isset($storeId) && $rec->shipmentStoreId == $storeId){
-	    			$data->toolbar->addBtn('Експедиране?', array($mvc, 'setMode', $rec->id, 'type' => 'ship'), 'warning=Желаете ли този документ да контира и експедиране?');
-	    		}
-    		}
-	    }
+    	}
     }
     
     
@@ -791,25 +764,6 @@ class sales_Sales extends core_Master
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
-    }
-    
-    
-    /**
-     * Екшън отбелязващ че документа контира плащане и експедиране
-     */
-    function act_SetMode()
-    {
-    	expect($id = Request::get('id', 'int'));
-    	expect($type = Request::get('type', 'enum(pay,ship)'));
-    	expect($rec = static::fetch($id));
-    	expect($rec->state == 'draft');
-    	$field = ($type == 'pay') ? 'isInstantPayment' : 'isInstantShipment';
-    	expect($rec->$field == 'no');
-    	
-    	$rec->$field = 'yes';
-    	$this->save($rec);
-    	
-    	return Redirect(array($this, 'single', $id), FALSE, 'Продажбата вече контира и плащане');
     }
     
     
@@ -938,6 +892,7 @@ class sales_Sales extends core_Master
     public function getDealInfo($id)
     {
         $rec = new sales_model_Sale(self::fetchRec($id));
+        $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на продажбата
         $detailRecs = $rec->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
@@ -967,7 +922,7 @@ class sales_Sales extends core_Master
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
         
-        if ($rec->isInstantPayment == 'yes') {
+        if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
             $result->paid->currency 			  = $rec->currencyId;
             $result->paid->rate                   = $rec->currencyRate;
@@ -977,8 +932,8 @@ class sales_Sales extends core_Master
             $result->paid->payment->caseId        = $rec->caseId;
         }
 
-        if ($rec->isInstantShipment == 'yes') {
-            $result->shipped->amount             = $rec->amountDeal;
+        if (isset($actions['ship'])) {
+            $result->shipped->amount             = $rec->amountDelivered;
             $result->shipped->currency           = $rec->currencyId;
             $result->shipped->rate               = $rec->currencyRate;
             $result->shipped->vatType 			 = $rec->chargeVat;
@@ -1006,8 +961,8 @@ class sales_Sales extends core_Master
             
             $result->agreed->products[] = $p;
             
-            if ($rec->isInstantShipment == 'yes') {
-                $result->shipped->products[] = clone $p;
+            if (isset($actions['ship'])) {
+            	$result->shipped->products[] = clone $p;
             }
         }
         
@@ -1440,4 +1395,93 @@ class sales_Sales extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+    
+    
+    /**
+     * Избор на операции, които ще се извършат с контирането на продажбата
+     */
+    function act_ChooseAction()
+    {
+    	$id = Request::get('id', 'int');
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'draft');
+    	expect($this->sales_SalesDetails->fetch("#saleId = $id"));
+    	
+    	// Трябва потребителя да може да контира
+    	$this->requireRightFor('conto', $rec);
+    	
+    	// Подготовка на формата за избор на опция
+    	$form = cls::get('core_Form');
+    	$form->title = "|Контиране на|* <b>" . $this->getTitleById($id). "</b>";
+    	$form->info = 'Освен активиране, изберете действие';
+    	
+    	// Извличане на позволените операции
+    	$options = $this->getContoOptions($rec);
+    	
+    	// Трябва да има избор на действие
+    	expect(count($options));
+    	
+    	// Подготовка на полето за избор на операция и инпут на формата
+    	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Действия');
+    	$form->setDefault('action', implode(',', array_keys($options)));
+    	$form->input();
+    	
+    	// След като формата се изпрати
+    	if($form->isSubmitted()){
+    		
+    		// обновяване на записа с избраните операции
+    		$form->rec->action = 'activate' . (($form->rec->action) ? "," : "") . $form->rec->action;
+    		$rec->contoActions = $form->rec->action;
+    		$this->save($rec);
+    		
+    		// Пренасочване към екшъна за контиране на продажбата
+    		$contoUrl = acc_Journal::getContoUrl($this, $id);
+    		$contoUrl['ret_url'] = array($this, 'single', $id);
+    		
+    		return new Redirect($contoUrl);
+    	}
+    	
+    	$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+        
+        // Рендиране на формата
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	// Показване на формата
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Какви операции ще се изпълнят с контирането на документа
+     * @param int $id - ид на продажбата
+     * @return array $options - опции
+     */
+    private function getContoOptions($id)
+    {
+    	$options = array();
+    	$rec = $this->fetchRec($id);
+    	$hasStorable = $this->hasStorableProducts($rec->id);
+    	$hasServices = $this->hasStorableProducts($rec->id, FALSE);
+    	
+    	if($hasStorable){
+	    	$storeId = store_Stores::getCurrent('id', FALSE);
+	    	if(isset($rec->shipmentStoreId) && isset($storeId) && $rec->shipmentStoreId == $storeId){
+	    		if($this->hasStorableProducts($rec->id)){
+	    			$options['ship'] = 'Експедиране на продукти';
+	    		}
+	    	}
+    	} else {
+    		if($hasServices){
+    			$options['ship'] = 'Изпълнение на услуги';
+    		}
+    	}
+    	
+    	$caseId = cash_Cases::getCurrent('id', FALSE);
+    	if(isset($rec->caseId) && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
+    		$options['pay'] = 'Прието плащане в брой';
+    	} 
+    	
+    	return $options;
+    }
 }
