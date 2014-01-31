@@ -3,6 +3,8 @@
 Тегло,weight,,weight
 Дебелина,size,,thickness
 Обем,volume,,volume
+Плътност,density,,density
 Цвят,varchar,,color
 ДДС,percent,%,vat
 Н. такси,double,лв,bTax
+

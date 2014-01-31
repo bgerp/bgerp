@@ -84,6 +84,7 @@ class cat_Params extends core_Manager
     public static $typeMap = array('double'  => 'type_Double',
     							   'weight'  => 'cat_type_Weight',
         						   'size'    => 'cat_type_Size',
+    							   'density' => 'cat_type_Density',
         						   'volume'  => 'cat_type_Volume',
         						   'date'    => 'type_Date',
         						   'varchar' => 'type_Varchar',
@@ -99,7 +100,7 @@ class cat_Params extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим)', 'caption=Тип');
+        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
