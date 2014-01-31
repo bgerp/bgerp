@@ -291,8 +291,6 @@ class cat_UoM extends core_Manager
         	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
         	$val = ($verbal) ? $Double->toVerbal($val) : $val;
         	
-        	if($val == 0) return 0;
-        	
         	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . $typeUom->shortName;
         }
         
@@ -310,8 +308,6 @@ class cat_UoM extends core_Manager
 	        if($amount >= 1){
 	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
 	        	
-	        	if($all[$mId] == 0) return 0;
-	        	
 	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . static::getShortName($mId); 
         	}
         }
@@ -321,8 +317,6 @@ class cat_UoM extends core_Manager
         $uomId = key($all);
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
-        
-        if($all[$mId] == 0) return 0;
         
         return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
        

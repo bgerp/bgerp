@@ -107,7 +107,7 @@ class cat_type_Uom extends type_Varchar {
     function renderInput_($name, $value = '', &$attr = array())
 	{
 		// Ако има запис, конвертира се в удобен вид
-		if($value){
+		if(empty($value)){
 			if(empty($this->error)){
 				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 			} else {
@@ -144,7 +144,7 @@ class cat_type_Uom extends type_Varchar {
     	
     	if(!isset($value) || !is_numeric($value)) return NULL;
         $value = abs($value);
-        
+       	
         return cat_UoM::smartConvert($value, $this->params['unit']);
     }
 }
