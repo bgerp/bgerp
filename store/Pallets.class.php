@@ -549,7 +549,9 @@ class store_Pallets extends core_Manager
             store_Products::save($recProducts);
             
             /* ENDOF Change product quantity on pallets */
-            
+
+            $recMovements = new stdClass();
+                
             /* Създава движение за нов палет, който е 'Автоматично' позициониран */
             if ($rec->palletPlaceHowto == 'Автоматично') {
                 // Взема селектирания склад
@@ -572,7 +574,6 @@ class store_Pallets extends core_Manager
                 }
                 
                 // $recMovements
-                $recMovements = new stdClass();
                 $recMovements->storeId = $selectedStoreId;
                 $recMovements->palletId = $palletId;
                 $recMovements->positionOld = 'Зона: ' . $rec->zone;
