@@ -152,7 +152,7 @@ class labels_Default extends core_Master
 		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
 		$this->FLD('info', 'varchar', 'caption=Количество');
-		$this->FLD('groups', 'key(mvc=cat_Packagings, select=name, translate)', 'caption=Групи,maxColumns=2');
+		$this->FLD('groups', 'key(mvc=cat_Packagings, select=name)', 'caption=Групи,maxColumns=2');
         $this->FLD('date', 'date', 'caption=Дата,mandatory');
   
         $this->setDbUnique('code');

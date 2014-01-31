@@ -217,7 +217,7 @@ class crm_Persons extends core_Master
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
 
         // В кои групи е?
-        $this->FLD('groupList', 'keylist(mvc=crm_Groups,translate,select=name,where=#allow !\\= \\\'companies\\\')', 'caption=Групи->Групи,remember,silent');
+        $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,where=#allow !\\= \\\'companies\\\')', 'caption=Групи->Групи,remember,silent');
 
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');

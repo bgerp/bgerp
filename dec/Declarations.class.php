@@ -136,7 +136,7 @@ class dec_Declarations extends core_Master
 		
 		$this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Произведени в");
 		
-		$this->FLD('materialId', 'keylist(mvc=cat_Products, select=name, translate)', 'caption=Материали,maxColumns=2');
+		$this->FLD('materialId', 'keylist(mvc=cat_Products, select=name)', 'caption=Материали,maxColumns=2');
 		
 		$this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
     }
