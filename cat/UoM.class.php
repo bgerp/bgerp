@@ -121,7 +121,7 @@ class cat_UoM extends core_Manager
      * @return array $options - всички мярки от същата категория
      * като подадената
      */
-    static function getSameTypeMeasures($measureId)
+    static function getSameTypeMeasures($measureId, $short = FALSE)
     {
     	expect($rec = static::fetch($measureId), "Няма такава мярка");	
     	
@@ -132,7 +132,8 @@ class cat_UoM extends core_Manager
     	
     	$options = array("" => "");
     	while($op = $query->fetch()){
-    		$options[$op->id] = $op->name;	
+    		$cap = ($short) ? $op->shortName : $op->name;
+    		$options[$op->id] = $cap;	
     	}
     	
     	return $options;
@@ -269,9 +270,10 @@ class cat_UoM extends core_Manager
      * @param double $val - сума за закръгляне
      * @param string $sysId - системно ид на мярка
      * @param boolean $verbal - дали да са вербални числата
+     * @param boolean $asObject - да се върне обект със стойност, мярка или като стринг
      * @return string - закръглената сума с краткото име на мярката
      */
-    public static function smartConvert($val, $sysId, $verbal = TRUE)
+    public static function smartConvert($val, $sysId, $verbal = TRUE, $asObject = FALSE)
     {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
@@ -289,7 +291,9 @@ class cat_UoM extends core_Manager
         	$val = cat_UoM::convertFromBaseUnit($val, $typeUom->id);
         	$val = ($verbal) ? $Double->toVerbal($val) : $val;
         	
-        	return ($val == 0) ? 0 : $val . " " . $typeUom->shortName;
+        	if($val == 0) return 0;
+        	
+        	return ($asObject) ? (object)(array('value' => $val, 'measure' => $typeUom->id)) : $val . " " . $typeUom->shortName;
         }
         
         // При повече от една мярка, изчисляваме, колко е конвертираната сума на всяка една
@@ -305,8 +309,11 @@ class cat_UoM extends core_Manager
         foreach ($all as $mId => $amount){
 	        if($amount >= 1){
 	        	$all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
-	        	return ($all[$mId] == 0) ? 0 : $all[$mId] . " " . static::getShortName($mId);
-	        }
+	        	
+	        	if($all[$mId] == 0) return 0;
+	        	
+	        	return ($asObject) ? (object)(array('value' => $all[$mId], 'measure' => $mId)) : $all[$mId] . " " . static::getShortName($mId); 
+        	}
         }
         
         // Ако няма такава се връща последната (тази най-близо до 1)
@@ -314,6 +321,10 @@ class cat_UoM extends core_Manager
         $uomId = key($all);
         
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
-        return ($all[$uomId] == 0) ? 0 : $all[$uomId] . " " . static::getShortName($mId);
+        
+        if($all[$mId] == 0) return 0;
+        
+        return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
+       
     }
 }
