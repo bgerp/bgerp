@@ -192,16 +192,25 @@ efAjaxServer.prototype.get = function( params )
 }
 
 
+//връща информация за браузъра
+function getUserAgent()
+{
+	return navigator.userAgent;
+}
+
+
 // Проверява дали браузърът е IE
 function isIE()
 {
   return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
+
 function getIEVersion () {
 	  var myNav = navigator.userAgent.toLowerCase();
 	  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
 }
+
 
 // Инициализира комбобокса
 function comboBoxInit(id, suffix) 
