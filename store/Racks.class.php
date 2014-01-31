@@ -153,8 +153,7 @@ class store_Racks extends core_Master
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
+        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
         
         $data->title = "|Стелажи в СКЛАД|* \"{$selectedStoreName}\"";
     }

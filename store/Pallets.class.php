@@ -151,8 +151,7 @@ class store_Pallets extends core_Manager
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
+        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
         
         $data->title = "|Палети в СКЛАД|* \"{$selectedStoreName}\"";
     }
@@ -739,10 +738,10 @@ class store_Pallets extends core_Manager
                 /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
                 
-		$pInfo = cat_Products::getProductInfo($recProduct->productId);
-		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-				
-		$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
+				$pInfo = cat_Products::getProductInfo($recProduct->productId);
+				$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+						
+				$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
                 
@@ -770,10 +769,10 @@ class store_Pallets extends core_Manager
                 /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
                                 
-		$pInfo = cat_Products::getProductInfo($recProduct->productId);
-		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-				
-		$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
+				$pInfo = cat_Products::getProductInfo($recProduct->productId);
+				$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
+						
+				$title = "Палет: " . $recPallets->label . ", " . $recProduct->name . ", " . $recPallets->quantity . " " . $measureShortName . ", № на продукта в склада: " . $recProduct->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements'] = $state;

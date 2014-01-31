@@ -136,8 +136,7 @@ class store_Zones extends core_Manager
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-        $selectedStoreName = store_Stores::fetchField($selectedStoreId, 'name');
+        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
         
         $data->title = "|Зони в СКЛАД|* \"{$selectedStoreName}\"";
     }

@@ -138,7 +138,7 @@ class store_Products extends core_Manager
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreName = store_Stores::getCurrent('name');
+        $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
         
         $data->title = "|Продукти в СКЛАД|* \"{$selectedStoreName}\"";
     }

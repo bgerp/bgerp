@@ -170,7 +170,7 @@ class store_ShipmentOrders extends core_Master
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         
         // Допълнително
-        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('weight', 'cat_type_Weight2', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
