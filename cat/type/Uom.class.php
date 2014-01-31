@@ -114,7 +114,6 @@ class cat_type_Uom extends type_Varchar {
 				$convObject = new stdClass();
 				$convObject->value = $value['lP'];
 				$convObject->measure = $value['rP'];
-				
 			}
 		}
 		
@@ -142,7 +141,6 @@ class cat_type_Uom extends type_Varchar {
      */
     function toVerbal_($value)
     {
-    	
     	if(!isset($value) || !is_numeric($value)) return NULL;
         $value = abs($value);
        	
