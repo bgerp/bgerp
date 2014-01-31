@@ -35,6 +35,16 @@ class page_Internal extends page_Html {
         $this->push('css/common.css','CSS');
         $this->push('css/Application.css','CSS');
 
+        $browserInfo = Mode::get("getUserAgent");
+        
+		//добавяне на стил само за дефоултния андроидски браузър
+        if(strPos($browserInfo, 'Mozilla/5.0') !== FALSE && strPos($browserInfo,'Android') !== FALSE && 
+        strPos($browserInfo, 'AppleWebKit') !== FALSE && strPos($browserInfo,'Chrome') === FALSE){
+        	  $this->append("
+		       select {padding-left: 0.2em !important;}
+		         ", "STYLES");
+        }
+      
         $this->push('js/efCommon.js', 'JS');
         
         $this->push('Cache-Control: no-cache, must-revalidate', 'HTTP_HEADER');
