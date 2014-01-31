@@ -705,8 +705,15 @@ class store_Racks extends core_Master
     static function checkIfProductGroupsAreAllowed($rackId, $productId) {
         $selectedStoreId = store_Stores::getCurrent();
         
-        $productName = store_Products::fetchField($productId, 'name');
-        $productGroups = cat_Products::fetchField($productName, 'groups');
+        try {
+            $pRec = store_Products::fetch($productId);
+            $inst = cls::get($pRec->classId);
+            $groupField = ($inst->groupField) ? $inst->groupField : 'groups';
+            $productGroups = $inst->fetchField($pRec->productId, 'groups');
+        } catch (Exception $e) {
+            return FALSE;
+        }
+        
         $productGroupsArr = keylist::toArray($productGroups);
         
         $groupsAllowed = self::fetchField($rackId, 'groupsAllowed');
