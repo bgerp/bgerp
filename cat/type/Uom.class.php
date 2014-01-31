@@ -107,13 +107,14 @@ class cat_type_Uom extends type_Varchar {
     function renderInput_($name, $value = '', &$attr = array())
 	{
 		// Ако има запис, конвертира се в удобен вид
-		if(empty($value)){
+		if(isset($value)){
 			if(empty($this->error)){
 				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
 			} else {
 				$convObject = new stdClass();
 				$convObject->value = $value['lP'];
 				$convObject->measure = $value['rP'];
+				
 			}
 		}
 		
