@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_RichText
+ * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_Richtext
  *
  *
  * @category  bgerp

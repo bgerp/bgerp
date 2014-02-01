@@ -365,7 +365,7 @@ class cms_Articles extends core_Master
             $content->append($this->renderNavigation($navData), 'NAVIGATION');
         }
         
-        $richText = cls::get('type_RichText');
+        $richText = cls::get('type_Richtext');
         $desc = ht::escapeAttr(str::truncate(ht::extractText($desc), 200, FALSE));
 
         $content->replace($desc, 'META_DESCRIPTION');
@@ -497,7 +497,7 @@ class cms_Articles extends core_Master
 	    						 	);
         }
         				 
-    	$richText = cls::get('type_RichText');
+    	$richText = cls::get('type_Richtext');
     	$desc = ht::extractText($richText->toHtml($rec->body));
     		
     	// Ако преглеждаме единична статия зареждаме и нейния Ograph

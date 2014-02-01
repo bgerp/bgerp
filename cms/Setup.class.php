@@ -127,7 +127,7 @@ class cms_Setup extends core_ProtoSetup
      
         // Инсталираме плъгина  
         $html .= $Plugins->forcePlugin('Публична страница', 'cms_PagePlg', 'page_Wrapper', 'private');
-        $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_RichText', 'private');
+        $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         
         // Добавяме класа връщащ темата в core_Classes
         core_Classes::add('cms_DefaultTheme');

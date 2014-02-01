@@ -395,7 +395,7 @@ class blogm_Articles extends core_Master {
 	    				  'Url' =>toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
     	} else {
-    		$richText = cls::get('type_RichText');
+    		$richText = cls::get('type_Richtext');
     		$desc = ht::extractText($richText->toHtml($data->rec->body));
     		
     		// Ако преглеждаме единична статия зареждаме и нейния Ograph
@@ -780,7 +780,7 @@ class blogm_Articles extends core_Master {
     	$items = array();
     	
     	if($query->count()) {
-    		$richText = cls::get('type_RichText');
+    		$richText = cls::get('type_Richtext');
 	    	while($rec = $query->fetch()) {
 	    		
 	    		// Извличаме необходимите ни данни
