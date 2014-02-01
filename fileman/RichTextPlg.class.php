@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'fileman_RichTextPlg' - Добавя функционалност за поставяне на файлове в type_RichText
+ * Клас 'fileman_RichTextPlg' - Добавя функционалност за поставяне на файлове в type_Richtext
  *
  *
  * @category  vendors

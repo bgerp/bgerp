@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'fileman_GalleryRichTextPlg' - замества [img=#...] в type_RichText
+ * Клас 'fileman_GalleryRichTextPlg' - замества [img=#...] в type_Richtext
  *
  *
  * @category  bgerp
