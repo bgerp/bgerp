@@ -225,11 +225,12 @@ class acc_Lists extends core_Manager {
      */
     static function updateSummary($id)
     {
-        $rec = self::fetch($id);
+        expect($rec = self::fetch($id));
         
         $itemsQuery = acc_Items::getQuery();
         $itemsQuery->where("#state = 'active'");
         $itemsQuery->where("#lists LIKE '%|{$id}|%'");
+
         $rec->itemsCnt = $itemsQuery->count();
         
         $itemsQuery->XPR('maxNum', 'int', 'max(#num)');
