@@ -222,7 +222,7 @@ abstract class price_Helper
 		}
 		
 		$SpellNumber = cls::get('core_SpellNumber');
-    	$arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], NULL, FALSE);
+    	$arr['sayWords'] = $arr['currencyId'] . " " . $SpellNumber->asCurrency($arr['total'], NULL, FALSE);
 		
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0,00</span>";

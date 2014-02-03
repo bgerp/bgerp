@@ -80,13 +80,13 @@
                         <!--ET_END deliveryTime-->
                         
 						<!--ET_BEGIN withVat-->
-						<li>|Всички цени са с включено ДДС|*[#withVat#]</li>
+						<li>|Цените са с включен ДДС|*[#withVat#]</li>
 						<!--ET_END withVat-->
 						<!--ET_BEGIN sepVat-->
-						<li>|Всички цени са с отделно ДДС|*[#sepVat#]</li>
+						<li>|Цени са с отделно ДДС|*[#sepVat#]</li>
 						<!--ET_END sepVat-->
 						<!--ET_BEGIN noVat-->
-						<li>|Всички цени са без ДДС|*[#noVat#]</li>
+						<li>|Цените са без ДДС|*[#noVat#]</li>
 						<!--ET_END noVat-->
 						<!--ET_BEGIN notes-->
 							[#notes#]

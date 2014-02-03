@@ -206,7 +206,7 @@ class sales_Sales extends core_Master
         $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия', array('attr' => array('rows' => 3)));
 
         $this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 
             'caption=Статус, input=none'
         );
         
@@ -816,7 +816,7 @@ class sales_Sales extends core_Master
         	$subTitle .= ", Факт: " . (($row->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
         }
         
-        return strip_tags($subTitle);
+        return $subTitle;
     }
     
     
@@ -902,13 +902,24 @@ class sales_Sales extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
+        $allowedOperations = array('customer2caseAdvance',
+        						   'customer2bankAdvance',
+        						   'customer2case',
+        						   'customer2bank',
+        						   'case2customer',
+        						   'bank2customer');
+        
+        // Ако платежния метод няма авансова част, авансовите операции 
+        // не са позволени за платежните документи
+        $allowedOperations = array_combine($allowedOperations, $allowedOperations);
+        if($rec->paymentMethodId){
+        	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+        		unset($allowedOperations['customer2caseAdvance'], $allowedOperations['customer2bankAdvance']);
+        	}
+        }
+        
         // Кои са позволените операции за последващите платежни документи
-        $result->allowedPaymentOperations = array('customer2caseAdvance',
-        										  'customer2bankAdvance',
-        										  'customer2case',
-        										  'customer2bank',
-        										  'case2customer',
-        										  'bank2customer');
+        $result->allowedPaymentOperations = $allowedOperations;
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
@@ -1120,6 +1131,7 @@ class sales_Sales extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     		$tpl->removeBlock('STATISTIC_BAR');
+    		$tpl->removeBlock('shareLog');
     	}
     }
     

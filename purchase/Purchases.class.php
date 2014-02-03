@@ -198,7 +198,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Затворена)', 
+            'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворена)', 
             'caption=Статус, input=none'
         );
         
@@ -431,7 +431,7 @@ class purchase_Purchases extends core_Master
         	$subTitle .= ", Факт: " . (($row->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
         }
         
-        return strip_tags($subTitle);
+        return $subTitle;
     }
     
     
@@ -634,6 +634,22 @@ class purchase_Purchases extends core_Master
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_PURCHASE;
+        
+        $allowedPaymentOperations = array('case2supplierAdvance',
+        								  'bank2supplierAdvance',
+        								  'bank2supplier',
+        								  'case2supplier',
+        								  'supplier2bank',
+        								  'supplier2case');
+        
+        // Ако платежния метод няма авансова част, авансовите операции 
+        // не са позволени за платежните документи
+        $allowedOperations = array_combine($allowedOperations, $allowedOperations);
+        if($rec->paymentMethodId){
+        	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+        		unset($allowedOperations['case2supplierAdvance'], $allowedOperations['bank2supplierAdvance']);
+        	}
+        }
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = array('case2supplierAdvance',
