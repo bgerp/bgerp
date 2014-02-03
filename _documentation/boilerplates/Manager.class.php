@@ -142,7 +142,7 @@ class boilerplate_Manager extends core_Manager
      * @param int $id първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(coreMvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     }
     
