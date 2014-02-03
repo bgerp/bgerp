@@ -226,7 +226,7 @@ class fileman_GalleryImages extends core_Manager
         if ($rec && $userId) {
             
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
-            if ($action == 'edit' || $action == 'add' || $action == 'single' || $action == 'delete') {
+            if ($action == 'edit' || $action == 'single' || $action == 'delete') {
                 
                 // Ако няма права за админ на записа
                 if (!$mvc->haveRightFor('admin', $rec, $userId)) {
