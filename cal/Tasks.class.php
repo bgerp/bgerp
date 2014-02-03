@@ -1481,8 +1481,9 @@ class cal_Tasks extends core_Master
      * @param stdClass $data
      */
     public static function calcTasksMinStartMaxEndTime ($data)
-    {   
-      if($data->recs){
+    {  
+        if($data->recs){
+        	
     	// за всеки едиин запис от базата данни
     	foreach($data->recs as $rec){ 
     		
@@ -1511,8 +1512,13 @@ class cal_Tasks extends core_Master
     		}
     	}
     	
-    	$startTime = min($start);
-    	$endTime = max($end);
+    	if (count($start) >= 2 && count($end) >=2) {
+	    	$startTime = min($start);
+	    	$endTime = max($end);  
+    	} else {
+    		$startTime = $start;
+	    	$endTime = $end; 
+    	}
     	
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
