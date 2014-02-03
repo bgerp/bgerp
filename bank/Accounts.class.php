@@ -193,21 +193,6 @@ class bank_Accounts extends core_Master {
 	        }
 		}
     }
-
-
-    /**
-     * Преди запис на документ
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if(!$rec->bic){
-    		$rec->bic = bglocal_Banks::getBankBic($rec->iban);
-    	}
-    	
-    	if(!$rec->bank){
-    		$rec->bank = bglocal_Banks::getBankName($rec->iban);
-    	}
-    }
     
     
     /**
@@ -374,11 +359,13 @@ class bank_Accounts extends core_Master {
     	$IbanType = cls::get('iban_Type');
     	expect($IbanType->fromVerbal($iban));
     	
-    	if(!static::fetch("#iban = '{$iban}'")){
-    		bank_Accounts::save((object)array('iban'     => $iban, 
-    									 'contragentCls' => $contragentClsId, 
-    									 'contragentId'  => $contragentId, 
-    									 'currencyId'    => $currency));
+    	if(!static::fetch(array("#iban = '[#1#]'", $iban))){
+    		bank_Accounts::save((object)array('iban'          => $iban, 
+    									 	  'contragentCls' => $contragentClsId, 
+    									      'contragentId'  => $contragentId, 
+    									      'currencyId'    => $currency,
+    									      'bank'          => bglocal_Banks::getBankName($iban),
+    									      'bic'           => bglocal_Banks::getBankBic($iban)));
     	}
     }
 }
