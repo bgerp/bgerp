@@ -244,6 +244,9 @@ class sales_InvoiceDetails extends core_Detail
     			if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     				$res = 'no_one';
     			}
+    		} else {
+    			// Към ДИ и КИ немогат да се добавят детайли
+    			$res = 'no_one';
     		}
     	}
     }

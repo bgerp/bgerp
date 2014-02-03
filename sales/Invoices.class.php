@@ -622,6 +622,11 @@ class sales_Invoices extends core_Master
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
+    	if($data->rec->type != 'invoice'){
+    		$tpl->removeBlock('vatAmount');
+    	}
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -718,14 +723,28 @@ class sales_Invoices extends core_Master
     public function prepareSingle_($data)
     {
     	parent::prepareSingle_($data);
-    	
     	$rec = &$data->rec;
-    	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
-    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    	$address = ($rec->contragentPlace) ? $data->row->contragentPlace . ', ' : '';
+    	$address .= $data->row->contragentPCode . "<br />";
+    	$data->row->contragentAddress .= $data->row->contragentAddress;
     	
-    	 	if($rec->paymentMethodId) {
-                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $rec->rate ? ($rec->total / $rec->rate) : $rec->total + 0, $rec->date, TRUE);
+    	if(empty($data->noTotal)){
+    		if($rec->type != 'invoice'){
+    			$rec->_total = new stdClass();
+    			$rec->_total->amount = $rec->changeAmount;
+    		}
+    		
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
+    		if($rec->type != 'invoice'){
+    			//bp($data->summary);
+    		}
+    		
+    		$data->row = (object)((array)$data->row + (array)$data->summary);
+    		
+    	 	if($rec->paymentMethodId && $rec->type == 'invoice') {
+    	 		$total = $rec->_total->amount + $rec->_total->vat - $rec->_total->discount;
+                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $total, $rec->date, TRUE);
+                
                 if(count($plan)){
                     foreach ($plan as $pName => $pValue){
                         $data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " <b>{$pValue}</b>" : $pValue;
@@ -762,7 +781,7 @@ class sales_Invoices extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* #{$invHandle} |издадена на|* {$invDate}");
         
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state') as $key){
         	 unset($invArr[$key]);
         }
         
@@ -1041,6 +1060,8 @@ class sales_Invoices extends core_Master
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         
         $result = new bgerp_iface_DealResponse();
+        if($rec->type != 'invoice') return $result;
+        
         $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
         $result->invoiced->amount   = $total;
         $result->invoiced->currency = $rec->currencyId;

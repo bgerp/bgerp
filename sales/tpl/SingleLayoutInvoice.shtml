@@ -158,21 +158,13 @@
 		                    	<!--ET_END paymentAfterInvoice-->
 		                    </td>
 		       
-		                    <td class="topCell" align="right" valign="top" width="30%">
+		                    <td class="topCell" align="right" width="30%" style='vertical-align:bottom !important'>
 		                        <table>
 		                            <tbody>
-		                            <tr>
-		                                <td style="padding-top: 5px; text-align: right;">
-		                                    |Съставил|*: ..................................&nbsp;
-		                                    <br>
-		                             	</td>
-		                            </tr>
-		                            <tr>
-		                                <td align="RIGHT">[#username#]</td>
-		                            </tr>
 		                             <!--ET_BEGIN vatDate-->  
 		                            <tr>
-		                                <td class='invoice-vat-info'>|Дата на данъчното събитие|* / <i>Tax event date</i>:</td>
+		                                <td class='invoice-vat-info'>|Дата на данъчното събитие|* / <br />
+		                                <i>Tax event date</i>:</td>
 		                            </tr>
 		                             
 		                            <tr>
@@ -188,6 +180,15 @@
 		                                <td align="RIGHT"><b>[#VAT_REASON#]</b></td>
 		                            </tr>
 		                            <!--ET_END VAT_REASON--> 
+		                            <tr>
+		                                <td style="padding-top: 5px; text-align: right;">
+		                                    |Съставил|*: ..................................&nbsp;
+		                                    <br>
+		                             	</td>
+		                            </tr>
+		                            <tr>
+		                                <td align="RIGHT">[#username#]</td>
+		                            </tr>
 		                            </tbody>
 		                        </table>
 		                        <!--ET_BEGIN TO_SALES-->  

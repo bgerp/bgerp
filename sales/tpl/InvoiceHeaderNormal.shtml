@@ -24,8 +24,7 @@
 		    <td class="cell">
 		        <b>[#contragentName#]</b><br>
 		        <b>[#contragentCountryId#]</b><br>
-		        [#contragentPlace#], [#contragentPCode#]<br>
-		        [#contragentAddress#]<br>
+		        [#contragentAddress#]
 		    </td>
 		    <td class="cell">
 		         <b>[#MyCompany#]</b><br>
