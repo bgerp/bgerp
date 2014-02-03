@@ -45,7 +45,13 @@ class type_Richtext extends type_Blob
      * Шаблон за болдване на текст
      */
     static $boldPattern = NULL;
-
+    
+    
+    /**
+     * Максимална дължина на едноредов коментар
+     */
+    const ONE_LINE_CODE_LENGTH = 120;
+    
     
     /**
      * Шаблон за намиране на линкове в текст
@@ -228,7 +234,7 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
         // Обработваме едноредовите кодове: стрингове
-        $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1,120}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
+        $html = preg_replace_callback("/(?'ap'\`)(?'text'.{1," . static::ONE_LINE_CODE_LENGTH . "}?)(\k<ap>)/u", array($this, '_catchOneLineCode'), $html);
         
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]([\r\n]{0,2})/is", array($this, '_catchHeaders'), $html);
@@ -1168,7 +1174,7 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span id='{$attr['id']}-group5' class='richtext-emoticons5 richtext-holder-group {$emot5}'>", 'TBL_GROUP2');
          
-        	$toolbarArr->add("<a class=rtbutton title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'),1,1)\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
+        	$toolbarArr->add("<a class=rtbutton title='" . tr("Код") . "' onclick=\"s('[code=auto]', '[/code]', document.getElementById('{$formId}'),1,1," . static::ONE_LINE_CODE_LENGTH . ")\"><img src=" . sbf('img/16/script_code_red.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
         	
         	$toolbarArr->add("<a class=rtbutton title='" . tr('Цитат') .  "' onclick=\"s('[bQuote]', '[/bQuote]', document.getElementById('{$formId}'),1)\"><img src=" . sbf('img/16/quote.png') . " height='15' width='15'/></a>", 'TBL_GROUP2');
         	
