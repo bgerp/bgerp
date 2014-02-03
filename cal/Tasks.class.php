@@ -548,25 +548,24 @@ class cal_Tasks extends core_Master
         
         $data->listFilter->input('selectedUsers, Chart, View', 'silent');
 
-        if(!$data->listFilter->rec->selectedUsers) {
+        if (!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
-        
-	   	
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        if($data->action === "list"){
+        if ($data->action === "list") {
         	$data->listFilter->showFields = 'search, selectedUsers';
-        } else{
+        } else {
         	$data->listFilter->showFields = 'selectedUsers';
         }
         
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action === 'list'){  //bp($chart);
-            if($data->listFilter->rec->selectedUsers != 'all_users') {
+        if ($data->action === 'list') { 
+            if ($data->listFilter->rec->selectedUsers != 'all_users') {  
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
         }
@@ -958,7 +957,7 @@ class cal_Tasks extends core_Master
         			// ако няма продължителност на задачата
     	    		if(!$rec->timeDuration ) {
     	    			// продължителността на задачата е края - началото
-    	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
+    	    			$timeDuration = 1800;
     	    		} else {
     	    			$timeDuration = $rec->timeDuration;
     	    		}
@@ -1490,7 +1489,7 @@ class cal_Tasks extends core_Master
 	    		// ако няма продължителност на задачата
 	    		if(!$rec->timeDuration) {
 	    			// продължителността е края - началото
-	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
+	    			$timeDuration = 1800;
 	    		} else {
 	    			$timeDuration = $rec->timeDuration;
 	    		}
