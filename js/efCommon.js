@@ -192,16 +192,25 @@ efAjaxServer.prototype.get = function( params )
 }
 
 
+//връща информация за браузъра
+function getUserAgent()
+{
+	return navigator.userAgent;
+}
+
+
 // Проверява дали браузърът е IE
 function isIE()
 {
   return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
 
+
 function getIEVersion () {
 	  var myNav = navigator.userAgent.toLowerCase();
 	  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
 }
+
 
 // Инициализира комбобокса
 function comboBoxInit(id, suffix) 
@@ -1326,4 +1335,33 @@ function limitLen(string, maxLen)
 	}
 	
 	return string;
+}
+
+
+// добавяне на линк към текущата страница при копиране на текст
+function addLink() 
+{
+    var selection = window.getSelection();
+
+    if (("" + selection).length < 30) return;
+    
+    var htmlDiv = document.createElement("div");
+    for (var i = 0; i < selection.rangeCount; ++i) {
+        htmlDiv.appendChild(selection.getRangeAt(i).cloneContents());
+    }
+    var selectionHTML = htmlDiv.innerHTML;
+       
+    var pagelink = "<br /><br /> Прочети повече на: <a href='" + document.location.href+"'>" + document.location.href + "</a>";
+
+    var copytext = selectionHTML + pagelink;
+    
+    var newdiv = document.createElement('div');
+    newdiv.style.position = 'absolute';
+    newdiv.style.left = '-99999px';
+    
+    document.body.appendChild(newdiv);
+    newdiv.innerHTML = copytext;
+    selection.selectAllChildren(newdiv);
+    window.setTimeout(function () { document.body.removeChild(newdiv); }, 0);
+    
 }

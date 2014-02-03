@@ -50,7 +50,12 @@ class type_User extends type_Key
      */
     private function prepareOptions()
     {
+        $mvc = cls::get($this->params['mvc']);
+        
+        $mvc->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
+        
         if (isset($this->options)) {
+            
             return;
         }
         
@@ -121,6 +126,8 @@ class type_User extends type_Key
                 }
             }
         }
+        
+        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
     }
     
     

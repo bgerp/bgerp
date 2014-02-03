@@ -49,7 +49,12 @@ class type_UserList extends type_Keylist
      */
     private function prepareSuggestions($defUser =  NULL)
     {
+        $mvc = cls::get($this->params['mvc']);
+        
+        $mvc->invoke('BeforePrepareSuggestions', array(&$this->suggestions, $this));
+        
         if (isset($this->suggestions)) {
+            
             return;
         }
         
@@ -149,6 +154,8 @@ class type_UserList extends type_Keylist
                 $this->suggestions[$firstGroup]->autoOpen = TRUE;
             }
         }
+        
+        $mvc->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
      }
     
     

@@ -58,14 +58,6 @@ class type_Key extends type_Int {
                 
                 if(!$rec) return '??????????????';
                 
-                if ($this->params['translate']) {
-                    $rec->{$part} = tr($rec->{$part});
-                }
-                
-                if ($this->params['transliterate']) {
-                    $rec->{$part} = transliterate($rec->{$part});
-                }
-                
                 $v = $mvc->getVerbal($rec, $part);
                 
                 return $v;
@@ -76,25 +68,9 @@ class type_Key extends type_Int {
                     
                     if(!$value) return '??????????????';
                     
-                    if ($this->params['translate']) {
-                        $value = tr($value);
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $value = transliterate($value);
-                    }
-                    
                     $value = $mvc->fields[$field]->type->toVerbal($value);
                 } else { 
                     $value = $mvc->getTitleById($value);
-                    
-                    if ($this->params['translate']) {
-                        $value = tr($value);
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $value = transliterate($value);
-                    }
                 }
             }
         }
@@ -225,7 +201,7 @@ class type_Key extends type_Int {
                 }
             }
             
-            $this->options = $options;
+            $this->options = &$options;
 
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
             
@@ -290,14 +266,6 @@ class type_Key extends type_Int {
                     
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
-                    if ($this->params['translate']) {
-                        $v = tr($v);
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $v = transliterate($v);
-                    }
-                    
                     $selOpt[trim($key)] = $v;
                 }
 
@@ -321,14 +289,6 @@ class type_Key extends type_Int {
                     }
                     
                     return new Redirect(array($mvc, 'list'), tr($msg));
-                } else {
-                    if ($this->params['translate']) {
-                        $options = self::translateOptions($options); 
-                    }
-                    
-                    if ($this->params['transliterate']) {
-                        $options = self::transliterateOptions($options); 
-                    }
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,

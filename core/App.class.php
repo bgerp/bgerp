@@ -200,36 +200,44 @@ class core_App
      */
     public static function isDebug()
     {
-        global $GET;
-        // Временно решение за форсиране на debug mode чрез гет параметър
-        if($_GET['debug']) {
-
-            return TRUE;
-        }
-
-        if(defined('EF_DEBUG')) return EF_DEBUG;
-
-        static $noDebugIp = FALSE;
-
-        if(!$noDebugIp) {
-
-            $hosts = core_Array::make(EF_DEBUG_HOSTS);
-
-            if(in_array(core_Users::getRealIpAddr(), $hosts)){
-
-
-                /**
-                 * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
-                 */
-                DEFINE('EF_DEBUG', TRUE);
-                ini_set("display_errors", static::isDebug());
-                ini_set("display_startup_errors", static::isDebug());
-            } else {
-                $noDebugIp = TRUE;
+        // Ако не е дефинирана константата
+        if (!defined('EF_DEBUG')) return FALSE;
+        
+        // Ако e TRUE
+        if (EF_DEBUG === TRUE) return TRUE;
+        
+        // Дали трябва да се пусне дебъг
+        static $efDebug = FALSE;
+        
+        // Флаг, указващ дали сме търсили за хостове
+        static $hostsFlag = FALSE;
+        
+        // Ако за първи път флизаме във функцията
+        if (!$hostsFlag) {
+            
+            $debugArr = explode(':', EF_DEBUG);
+            
+            // Ако е зададен хоста
+            if (strtolower($debugArr[0]) == 'hosts') {
+                
+                // Масив с хостовете
+                $hostsArr = core_Array::make($debugArr[1]);
+                
+                // Ако IP-то на потребителя е в масива с допустимите
+                if(in_array(core_Users::getRealIpAddr(), $hostsArr)){
+                    
+                    // Пускаме дебъг режима
+                    ini_set("display_errors", TRUE);
+                    ini_set("display_startup_errors", TRUE);
+                    $efDebug = TRUE;
+                }
             }
+            
+            // Вдигаме флага
+            $hostsFlag = TRUE;
         }
-
-        return defined('EF_DEBUG') ? EF_DEBUG : FALSE;
+        
+        return $efDebug;
     }
 
 
