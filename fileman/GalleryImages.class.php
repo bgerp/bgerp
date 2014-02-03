@@ -223,7 +223,7 @@ class fileman_GalleryImages extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис и потребител
-        if ($rec && $userId) {
+        if ($rec->id && $userId) {
             
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
             if ($action == 'edit' || $action == 'single' || $action == 'delete') {
