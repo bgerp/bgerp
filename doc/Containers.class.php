@@ -1148,7 +1148,7 @@ class doc_Containers extends core_Manager
      * @param string $state - Състоянието на документите
      * @param string $order - ASC или DESC подредба по дата на модифициране или да не се подреждат
      * 
-     * @return array
+     * @return array - Двумерен масив с нишките и документите в тях
      */
     static function getAllDocIdFromThread($thread, $state=NULL, $order=NULL)
     {
@@ -1202,7 +1202,7 @@ class doc_Containers extends core_Manager
             if (!$cls->haveRightFor('single', $rec->docId)) continue;
             
             // Добавяме в масива
-            $arr[$rec->id] = $rec;
+            $arr[$rec->threadId][$rec->id] = $rec;
         }
         
         return $arr;

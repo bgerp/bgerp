@@ -556,7 +556,10 @@ class distro_Group extends core_Master
         $rec = static::fetch($id);
         
         // Вземаме id'тата на всички документи от нишката
-        $allDocIdArr = doc_Containers::getAllDocIdFromThread($rec->threadId, 'active');
+        $allDocThreadIdArr = doc_Containers::getAllDocIdFromThread($rec->threadId, 'active');
+        
+        // Вземаме записа за текущата нишка
+        $allDocIdArr = $allDocThreadIdArr[$rec->threadId];
         
         // Премахваме id' то на този документ
         unset($allDocIdArr[$rec->containerId]);

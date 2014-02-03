@@ -109,7 +109,17 @@ class doc_Log extends core_Manager
 	    $threadsArr = bgerp_Recently::getLastThreadsId(3);
 	    
 	    // Вземаме всички документи от нишката, до които потебителя има достъп
-        $docIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+        $docThreadIdsArr = doc_Containers::getAllDocIdFromThread($threadsArr, NULL, 'DESC');
+        
+        // Масив с документите
+        $docIdsArr = array();
+        
+        // Обхождаме масива с нишките
+        foreach ($threadsArr as $threadId => $dummy) {
+            
+            // Добавяме към документите
+            $docIdsArr += (array)$docThreadIdsArr[$threadId];
+        }
         
         // Задаваме броя на документите
         $data->itemsCnt = count((array)$docIdsArr);
