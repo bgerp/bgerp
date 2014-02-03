@@ -222,11 +222,20 @@ class bank_IncomeDocuments extends core_Master
     		 // Ако има банкова сметка по пдоразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
     		 	$bankRec = bank_OwnAccounts::fetch($bankId);
-    		 		
+    		 	$forcedLogin = FALSE;
+    		 	
     		 	// Ако потребителя е оператор на сметката, но не е логнат форсира се логването му в нея
 				if($bankId != bank_OwnAccounts::getCurrent('id', FALSE) && bank_OwnAccounts::haveRightFor('select', $bankRec)){
-    		 		Redirect(array('Ctr' => 'bank_OwnAccounts', 'Act' => 'SetCurrent', 'id' => $bankId, 'ret_url' => TRUE));
-    		 	}
+    		 		Request::forward(array('Ctr' => 'bank_OwnAccounts', 'Act' => 'SetCurrent', 'id' => $bankId, 'ret_url' => TRUE));
+					Request::pop();
+					$forcedLogin = TRUE;
+				}
+				
+    		 	// Слагане на статус за потребителя
+	    		if($forcedLogin){
+	    		 	$accName = bank_OwnAccounts::getTitleById($bankId);
+	    		 	core_Statuses::add(tr("|Успешно логване в сметка|* \"{$accName}\""));
+	    		}
     		 }
     		 	
     		 // Ако операциите на документа не са позволени от интерфейса, те се махат
@@ -238,7 +247,10 @@ class bank_IncomeDocuments extends core_Master
     		 	
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->rate       = $dealInfo->shipped->rate;
-    		 $form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 
+    		 if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE){
+    		 	$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 }
     	}
     }
     

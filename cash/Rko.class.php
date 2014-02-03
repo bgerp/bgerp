@@ -228,16 +228,28 @@ class cash_Rko extends core_Master
     		 	
     		 	if($caseId = $dealInfo->agreed->payment->caseId){
     		 		$cashRec = cash_Cases::fetch($caseId);
-	    		 	
+	    		 	$forcedLogin = FALSE;
+    		 		
     		 		// Ако потребителя може да избере касата, но не е логнат форсира се логването му в нея
 					if($caseId != cash_Cases::getCurrent('id', FALSE) && cash_Cases::haveRightFor('select', $cashRec)){
-	    		 		Redirect(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $caseId, 'ret_url' => TRUE));
+	    		 		Request::forward(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $caseId, 'ret_url' => TRUE));
+						Request::pop();
+						$forcedLogin = TRUE;
+	    		 	}
+	    		 	
+    		 		// Слагане на статус за потребителя
+	    		 	if($forcedLogin){
+	    		 		$caseName = cash_Cases::getTitleById($caseId);
+	    		 		core_Statuses::add(tr("|Успешно логване в каса|* \"{$caseName}\""));
 	    		 	}
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 	$form->rec->rate       = $dealInfo->shipped->rate;
-    		 	$form->rec->amount     = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 	
+    		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
+    		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
+    		 	}
     		 }
     	}
     	
