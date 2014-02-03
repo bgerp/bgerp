@@ -440,7 +440,7 @@ class cal_Tasks extends core_Master
         			
 	        // то изчисляваме края на задачата
 	        // като към началото добавяме продължителността
-	        $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration);
+	        $taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($data->rec->timeStart) + $data->rec->timeDuration); 
 	    } else {
 	        $taskEnd = $data->rec->timeEnd;
         }
@@ -536,7 +536,9 @@ class cal_Tasks extends core_Master
     {
     	
     	$cu = core_Users::getCurrent();
-
+    	
+        $chart = Request::get('Chart');
+        	
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
@@ -561,10 +563,9 @@ class cal_Tasks extends core_Master
         	$data->listFilter->showFields = 'selectedUsers';
         }
         
-    	$chart = Request::get('Chart');
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
         
-        if($data->action === 'list'){
+        if($data->action === 'list'){  //bp($chart);
             if($data->listFilter->rec->selectedUsers != 'all_users') {
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -604,9 +605,7 @@ class cal_Tasks extends core_Master
         
     	if($currUrl['Ctr'] == "cal_Tasks"){
 	    	$chartType = Request::get('Chart');
-	    	
-	    	
-	    	
+	    		    	
 	    	$tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
 	        
 	    	$currUrl['Act'] = 'list';
@@ -1155,7 +1154,7 @@ class cal_Tasks extends core_Master
     	//       [1] - часа
     	$startTasksTime = explode(" ", dt::timestamp2Mysql($dateTasks->minStartTaskTime));
     	$endTasksTime = explode(" ", dt::timestamp2Mysql($dateTasks->maxEndTaskTime));
-    	
+    
     	// Масив [0] - година
     	//       [1] - месец
     	//       [2] - ден
@@ -1516,10 +1515,10 @@ class cal_Tasks extends core_Master
 	    	$startTime = min($start);
 	    	$endTime = max($end);  
     	} else {
-    		$startTime = $start;
-	    	$endTime = $end; 
+    		$startTime = dt::mysql2timestamp($rec->timeStart);
+	    	$endTime = dt::mysql2timestamp($timeEnd); 
     	}
-    	
+
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
     }
