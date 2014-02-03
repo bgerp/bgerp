@@ -619,7 +619,7 @@ class fileman_GalleryImages extends core_Manager
         $table = cls::get('core_TableView', array('mvc' => $this));
         
         // Полетата, които ще се показва
-        $listFields = array('tools' => '✍','groupId' => 'Група', 'src' => 'Картинка');    
+        $listFields = array('tools' => '✍', 'src' => 'Картинка', 'groupId' => 'Група');    
         
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $listFields);
