@@ -233,6 +233,19 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
+     * Дали платежния метод има авансова част
+     * @param int $id - ид на метод
+     * @return boolean
+     */
+    public static function hasDownpayment($id)
+    {
+    	expect($rec = static::fetch($id));
+    	
+    	return ($rec->downpayment) ? TRUE : FALSE;
+    }
+    
+    
+    /**
      * Сортиране по name
      */
     static function on_BeforePrepareListFilter($mvc, &$res, $data)
