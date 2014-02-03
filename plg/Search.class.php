@@ -65,6 +65,7 @@ class plg_Search extends core_Plugin
      */
     static function getKeywords($mvc, $rec)
     {
+        $cRec = clone $rec;
         $searchKeywords = '';
         
         if (!empty($mvc->searchFields)) {
@@ -72,10 +73,10 @@ class plg_Search extends core_Plugin
             
             foreach($fieldsArr as $field => $fieldObj) {
                 if(get_class($fieldObj->type) == 'type_Text') {
-                    $searchKeywords .= ' ' . static::normalizeText($rec->{$field});
+                    $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {
                     Mode::push('text', 'plain');
-                    $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
+                    $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($cRec, $field)));
                     Mode::pop('text');
                 }
             }
