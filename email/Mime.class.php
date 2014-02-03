@@ -985,7 +985,8 @@ class email_Mime extends core_BaseClass
         
         // Ако липсва файл, името му е производно на хеша на съдържанието му
         if(!$fileName) {
-            $fileName = $partIndex . '_' . substr(md5($p->data), 0, 6);
+            $partIndexName = str_replace('.', '-', $partIndex);
+            $fileName = $partIndexName . '_' . substr(md5($p->data), 0, 6);
         }
 
         // Ако липсва файлово разширение се опитваме да го определим от 'Content-Type'
