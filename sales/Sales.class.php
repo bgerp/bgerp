@@ -1305,25 +1305,6 @@ class sales_Sales extends core_Master
     }
     
     
-    /**
-     * Връща всички спецификации в продажбата
-     * @param int $id
-     * @return array $options
-     */
-    public function getSpecifications($id)
-    {
-    	$SpecClassId = techno_Specifications::getClassId();
-    	$dQuery = $this->sales_SalesDetails->getQuery();
-    	$dQuery->where("#saleId = {$id}");
-    	$dQuery->where("#classId = {$SpecClassId}");
-    	while($dRec = $dQuery->fetch()){
-    		$res[$dRec->productId] = techno_Specifications::getTitleById($dRec->productId);
-    	}
-    	
-    	return $res;
-    }
-    
-    
 	/**
      * Проверява дали фактурите са пресрочени или платени
      */
