@@ -67,7 +67,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,vid=Код,groupId,src,createdOn,createdBy';
+    var $listFields = 'id,vid=Код,src,groupId,createdOn,createdBy';
 
     
     /**
