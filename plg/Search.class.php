@@ -72,6 +72,8 @@ class plg_Search extends core_Plugin
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
+            } elseif (is_numeric($rec)) {
+                $cRec = $mvc->fetch($rec);
             }
             
             foreach($fieldsArr as $field => $fieldObj) {
