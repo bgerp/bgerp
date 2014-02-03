@@ -374,8 +374,12 @@ class core_SpellNumber
         	
         	$text = $this->num2Text((int) $num) . $numBgn;
             $cents = round((($num - (int) $num) * 100));
-            if ($cents > 0)
+            if ($cents > 0){
             	$text .= " и " . ($cents) . " " . $centBgn;
+            } elseif($cents == 0){
+            	$text .= ", 00" . $centBgn;
+            }
+            	
             $text = str_replace(" и и ", " и ", $text);
             //$text .= " и " . $this->num2Text($cents) . $centBgn;
             
