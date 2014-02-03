@@ -85,7 +85,7 @@ class email_Incomings extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canSingle = 'ceo';
+    var $canSingle = 'powerUser';
     
      
     /**
