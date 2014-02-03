@@ -1400,6 +1400,8 @@ class sales_Sales extends core_Master
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'draft');
     	expect($this->sales_SalesDetails->fetch("#saleId = $id"));
+    	$curStoreId = store_Stores::getCurrent('id', FALSE);
+    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);
     	
     	// Трябва потребителя да може да контира
     	$this->requireRightFor('conto', $rec);
@@ -1417,7 +1419,26 @@ class sales_Sales extends core_Master
     	
     	// Подготовка на полето за избор на операция и инпут на формата
     	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Действия');
-    	$form->setDefault('action', implode(',', array_keys($options)));
+    	
+    	$selected = array();
+    	
+    	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
+    	if($options['ship'] && $rec->shipmentStoreId){
+    		if($rec->shipmentStoreId === $curStoreId){
+    			$selected[] = 'ship';
+    		}
+    	} elseif($options['ship']){
+    		$selected[] = 'ship';
+    	}
+    	
+    	// Ако има каса и потребителя е логнат в нея, Слагаме отметка
+    	if($options['pay'] && $rec->caseId){
+    		if($rec->caseId === $curCaseId){
+    			$selected[] = 'pay';
+    		}
+    	}
+    	
+    	$form->setDefault('action', implode(',', $selected));
     	$form->input();
     	
     	// След като формата се изпрати
@@ -1432,6 +1453,23 @@ class sales_Sales extends core_Master
     		$contoUrl = acc_Journal::getContoUrl($this, $id);
     		$contoUrl['ret_url'] = array($this, 'single', $id);
     		
+    		// Ако се експедира и има склад, форсира се логване
+    		if($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId){
+    			Request::forward(array('Ctr' => 'store_Stores', 'Act' => 'SetCurrent', 'id' => $rec->shipmentStoreId, 'ret_url' => TRUE));
+				Request::pop();
+				$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
+	    		core_Statuses::add(tr("|Успешно логване в склад|* \"{$storeName}\""));
+    		}
+    		
+    		// Ако има сметка и се експедира, форсира се логване
+    		if($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId){
+    			Request::forward(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $rec->caseId, 'ret_url' => TRUE));
+				Request::pop();
+				$cashName = cash_Cases::getTitleById($rec->caseId);
+	    		core_Statuses::add(tr("|Успешно логване в каса|* \"{$cashName}\""));
+    		}
+    		
+    		// Редирект
     		return new Redirect($contoUrl);
     	}
     	
@@ -1454,26 +1492,36 @@ class sales_Sales extends core_Master
     private function getContoOptions($id)
     {
     	$options = array();
+    	$cu = core_Users::getCurrent();
     	$rec = $this->fetchRec($id);
-    	$hasStorable = $this->hasStorableProducts($rec->id);
-    	$hasServices = $this->hasStorableProducts($rec->id, FALSE);
     	
+    	// Имали складируеми продукти
+    	$hasStorable = $this->hasStorableProducts($rec->id);
+    	
+    	// Ако има продукти за експедиране
     	if($hasStorable){
-	    	$storeId = store_Stores::getCurrent('id', FALSE);
-	    	if(isset($rec->shipmentStoreId) && isset($storeId) && $rec->shipmentStoreId == $storeId){
-	    		if($this->hasStorableProducts($rec->id)){
-	    			$options['ship'] = 'Експедиране на продукти';
-	    		}
+    		
+    		// ... и има избран склад, на който е отговорник текущия потребител
+	    	if(isset($rec->shipmentStoreId) && store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') == $cu){
+	    		
+	    		// .. продуктите може да бъдат експедирани
+	    		$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
+	    		$options['ship'] = "Експедиране на продукти, от склад \"{$storeName}\"";
 	    	}
     	} else {
-    		if($hasServices){
+    		
+    		// ако има услуги те могат да бъдат изпълнени
+    		if($this->hasStorableProducts($rec->id, FALSE)){
     			$options['ship'] = 'Изпълнение на услуги';
     		}
     	}
     	
-    	$caseId = cash_Cases::getCurrent('id', FALSE);
-    	if(isset($rec->caseId) && isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && $rec->caseId == $caseId){
-    		$options['pay'] = 'Прието плащане в брой';
+    	// ако има каса, метода за плащане е COD и текущия потрбеител е касиер на касата
+    	if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::fetchField($rec->caseId, 'cashier') == $cu){
+    		
+    		// може да се плати с продуктите
+    		$caseName = cash_Cases::getTitleById($rec->caseId);
+    		$options['pay'] = "Прието плащане в брой, в каса \"$caseName\"";
     	} 
     	
     	return $options;
