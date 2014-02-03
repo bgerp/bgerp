@@ -1336,3 +1336,32 @@ function limitLen(string, maxLen)
 	
 	return string;
 }
+
+
+// добавяне на линк към текущата страница при копиране на текст
+function addLink() 
+{
+    var selection = window.getSelection();
+
+    if (("" + selection).length < 30) return;
+    
+    var htmlDiv = document.createElement("div");
+    for (var i = 0; i < selection.rangeCount; ++i) {
+        htmlDiv.appendChild(selection.getRangeAt(i).cloneContents());
+    }
+    var selectionHTML = htmlDiv.innerHTML;
+       
+    var pagelink = "<br /><br /> Прочети повече на: <a href='" + document.location.href+"'>" + document.location.href + "</a>";
+
+    var copytext = selectionHTML + pagelink;
+    
+    var newdiv = document.createElement('div');
+    newdiv.style.position = 'absolute';
+    newdiv.style.left = '-99999px';
+    
+    document.body.appendChild(newdiv);
+    newdiv.innerHTML = copytext;
+    selection.selectAllChildren(newdiv);
+    window.setTimeout(function () { document.body.removeChild(newdiv); }, 0);
+    
+}
