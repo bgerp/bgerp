@@ -18,6 +18,9 @@
 						<tr><td class=\"quiet\" align=\"right\">|В сметка|*: </td><td><span class='cCode''>[#accCurrency#]</span>
 						<span style='color:darkblue'><b>[#ownAccount#]</b></span></td></tr>
 						<tr><td class=\"quiet\" align=\"right\">|От|*: </td><td style='color:darkgreen'><b>[#contragentName#]</b></td></tr>
+						<!--ET_BEGIN contragentIban-->
+						<tr><td class=\"quiet\" align=\"right\">|От сметка|*: </td><td><span class='cCode''>[#accCurrencyIban#]</span> <b style='color:darkblue'>[#contragentIban#]</b></td></tr>
+						<!--ET_END contragentIban-->
 						<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
 						<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> <b>[#createdDate#] </b><span class=\"quiet\">|от|*</span> <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
 					</table>

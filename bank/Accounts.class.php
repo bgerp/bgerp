@@ -111,7 +111,6 @@ class bank_Accounts extends core_Master {
         $this->setDbIndex('contragentCls,contragentId');
         $this->setDbUnique('iban');
     }
-    
      
     
     /**
@@ -196,6 +195,21 @@ class bank_Accounts extends core_Master {
     }
 
 
+    /**
+     * Преди запис на документ
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(!$rec->bic){
+    		$rec->bic = bglocal_Banks::getBankBic($rec->iban);
+    	}
+    	
+    	if(!$rec->bank){
+    		$rec->bank = bglocal_Banks::getBankName($rec->iban);
+    	}
+    }
+    
+    
     /**
      * Връща иконата за сметката
      */
@@ -343,5 +357,28 @@ class bank_Accounts extends core_Master {
 	    }
 	    
 	    return $suggestions;
+    }
+    
+    
+    /**
+     * Добавя нова банкова сметка
+     * 
+     * @param iban_Type(64) $iban - iban
+     * @param int $currency - валута
+     * @param int $contragentClsId - класа на контрагента
+     * @param int $contragentId - ид на контрагента
+     */
+    public static function add($iban, $currency, $contragentClsId, $contragentId)
+    {
+    	expect(cls::get($contragentClsId)->fetch($contragentId));
+    	$IbanType = cls::get('iban_Type');
+    	expect($IbanType->fromVerbal($iban));
+    	
+    	if(!static::fetch("#iban = '{$iban}'")){
+    		bank_Accounts::save((object)array('iban'     => $iban, 
+    									 'contragentCls' => $contragentClsId, 
+    									 'contragentId'  => $contragentId, 
+    									 'currencyId'    => $currency));
+    	}
     }
 }

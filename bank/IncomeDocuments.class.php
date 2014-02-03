@@ -153,6 +153,7 @@ class bank_IncomeDocuments extends core_Master
     	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
+    	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка,width=16em'); 
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=В->Сметка,mandatory,width=16em');
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');
     	$this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
@@ -164,6 +165,19 @@ class bank_IncomeDocuments extends core_Master
         );
     }
 	
+    
+	/**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->contragentIban){
+    		
+    		// Ако няма такава банкова сметка, тя автоматично се записва
+    		bank_Accounts::add($rec->contragentIban, $rec->currencyId, $rec->contragentClassId, $rec->contragentId);
+    	}
+    }
+    
     
 	/**
 	 *  Подготовка на филтър формата
@@ -196,6 +210,7 @@ class bank_IncomeDocuments extends core_Master
     	}
     	
     	$form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
+    	$form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
@@ -323,7 +338,10 @@ class bank_IncomeDocuments extends core_Master
     		
     		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);	
     		$row->accCurrency = currency_Currencies::getCodeById($ownAcc->currencyId);
-    	
+    		if($rec->contragentIban){
+    			$row->accCurrencyIban = $row->accCurrency;
+    		}
+    		
 	    	// Показваме заглавието само ако не сме в режим принтиране
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;

@@ -152,36 +152,42 @@ class bank_PaymentOrders extends core_Master
 	    
     	if($originId) {
     		$doc = doc_Containers::getDocument($originId);
-    		$rec = $doc->fetch();
+    		$docRec = $doc->fetch();
     		$cClass = $doc->className;
     		
     		$form->setDefault('originClassId', $cClass::getClassId());
-    		$form->setDefault('currencyId', $rec->currencyId);
-    		$form->setDefault('amount', $rec->amount);
-    		$form->setDefault('reason', $rec->reason);
-    		$form->setDefault('valior', $rec->valior);
+    		$form->setDefault('currencyId', $docRec->currencyId);
+    		$form->setDefault('amount', $docRec->amount);
+    		$form->setDefault('reason', $docRec->reason);
+    		$form->setDefault('valior', $docRec->valior);
     		$myCompany = crm_Companies::fetchOwnCompany();
-    		$contragentIbans = bank_Accounts::getContragentIbans($rec->contragentId, $rec->contragentClassId);
+    		$contragentIbans = bank_Accounts::getContragentIbans($docRec->contragentId, $docRec->contragentClassId);
     		
     		if($doc->className == 'bank_IncomeDocuments') {
     			
     			// Ако оригиналния документ е приходен, наредителя е контрагента
     			// а получателя е моята фирма
     			$form->setDefault('beneficiaryName', $myCompany->company);
-    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($docRec->ownAccount);
     			$form->setDefault('beneficiaryIban', $ownAcc->iban);
-    			$form->setDefault('orderer', $rec->contragentName);
+    			$form->setDefault('orderer', $docRec->contragentName);
     			$form->setSuggestions('ordererIban', $contragentIbans);
+    			if($docRec->contragentIban){
+    				$form->setDefault('ordererIban', $docRec->contragentIban);
+    			}
     		
     		} elseif($doc->className == 'bank_SpendingDocuments') {
     			
     			// Ако оригиналния документ е приходен, наредителя е моята фирма
     			// а получателя е контрагента
     			$form->setDefault('orderer', $myCompany->company);
-    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($docRec->ownAccount);
     			$form->setDefault('ordererIban', $ownAcc->iban);
     			$form->setSuggestions('beneficiaryIban', $contragentIbans);
-    			$form->setDefault('beneficiaryName', $rec->contragentName);
+    			if($docRec->contragentIban){
+    				$form->setDefault('beneficiaryIban', $docRec->contragentIban);
+    			}
+    			$form->setDefault('beneficiaryName', $docRec->contragentName);
     		}
     	}
     		
