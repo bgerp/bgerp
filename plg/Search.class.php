@@ -65,11 +65,16 @@ class plg_Search extends core_Plugin
      */
     static function getKeywords($mvc, $rec)
     {
-        $cRec = clone $rec;
         $searchKeywords = '';
         
         if (!empty($mvc->searchFields)) {
             $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
+            
+            if (is_object($rec)) {
+                $cRec = clone $rec;
+            } elseif (is_numeric($rec)) {
+                $cRec = $mvc->fetch($rec);
+            }
             
             foreach($fieldsArr as $field => $fieldObj) {
                 if(get_class($fieldObj->type) == 'type_Text') {
