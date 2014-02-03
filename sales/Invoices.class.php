@@ -735,9 +735,6 @@ class sales_Invoices extends core_Master
     		}
     		
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
-    		if($rec->type != 'invoice'){
-    			//bp($data->summary);
-    		}
     		
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
