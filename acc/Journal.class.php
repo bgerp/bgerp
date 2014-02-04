@@ -117,7 +117,7 @@ class acc_Journal extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
 
         // Пораждащ документ
-        $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
+        $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Документ,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
 
         // Обща сума

@@ -22,6 +22,12 @@
 	        			<td align="right" class="title-style">|Създаване|*:</td>
 	        			<td>|на|* <b>[#createdOn#]</b> |от|* <b>[#createdBy#]</b></td>
 	        		</tr>
+	        		<!--ET_BEGIN reason-->
+	        		<tr valign=top>
+	        			<td align="right" class="title-style">|Основание|*:</td>
+	        			<td><b>[#reason#]</b></td>
+	        		</tr>
+	        		<!--ET_END reason-->
        		 	</table>
 		       	<br>	
 	 	 </div>
