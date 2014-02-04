@@ -69,7 +69,6 @@ class plg_Current extends core_Plugin
     		
     		// Вътрешен редирект към екшъна за избиране
     		Request::forward(array('Ctr' => $mvc->className, 'Act' => 'SetCurrent', 'id' => $id));
-    		Request::pop();
     		
     		// Слагане на нотификация
     		$objectName = $mvc->getTitleById($id);
