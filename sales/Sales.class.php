@@ -902,24 +902,24 @@ class sales_Sales extends core_Master
         
         $result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
         
-        $allowedOperations = array('customer2caseAdvance',
-        						   'customer2bankAdvance',
-        						   'customer2case',
-        						   'customer2bank',
-        						   'case2customer',
-        						   'bank2customer');
+        $allowedPaymentOperations = array('customer2caseAdvance',
+		        						  'customer2bankAdvance',
+		        						  'customer2case',
+		        						  'customer2bank',
+		        						  'case2customer',
+		        						  'bank2customer');
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
-        $allowedOperations = array_combine($allowedOperations, $allowedOperations);
+        $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedOperations['customer2caseAdvance'], $allowedOperations['customer2bankAdvance']);
+        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance']);
         	}
         }
         
         // Кои са позволените операции за последващите платежни документи
-        $result->allowedPaymentOperations = $allowedOperations;
+        $result->allowedPaymentOperations = $allowedPaymentOperations;
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
