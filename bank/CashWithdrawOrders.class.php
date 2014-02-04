@@ -180,10 +180,11 @@ class bank_CashWithdrawOrders extends core_Master
     		$form->setDefault('amount', $rec->amount);
     		$form->setDefault('reason', $rec->reason);
     		$form->setDefault('valior', $rec->valior);
+    		$ownAcc = ($rec->ownAccount) ? $rec->ownAccount : $rec->creditBank;
     		
-    		$account = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
+    		$account = bank_OwnAccounts::getOwnAccountInfo($ownAcc);
     		$form->setDefault('execBank', $account->bank);
-    		$form->setReadOnly('ordererIban', $rec->ownAccount);
+    		$form->setReadOnly('ordererIban', $ownAcc);
     		
     		// Ако контрагента е лице, слагаме името му за получател
     		$coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
