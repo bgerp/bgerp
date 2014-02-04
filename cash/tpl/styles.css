@@ -73,6 +73,14 @@ th {
 	margin-right:15px;
 	font-size:20px;
 }
+.amount{
+	float:right;
+    font-size:18px;
+}
+
+.no-border > tbody > tr > td{
+	border: none;
+}
 
 #with-words {
 	background-color:rgba(200, 200, 200, 0.4);

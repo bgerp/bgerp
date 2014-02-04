@@ -100,7 +100,7 @@
 		                <div class='text border_r bg_white' style='width: 50px;height:30px'>
 		                    &nbsp;
 		                </div>
-		                <div class='text' style='width: 170px;'>
+		                <div class='text' style='width: 312px;'>
 		                   <span class='pos_abs small_text_top_left'>|BIC на банката на получателя|*</span><br>
 		                   [#contragentBankBic#]
 		                   
@@ -115,16 +115,16 @@
 		            </div>                              
 		        
 		            <div class='bg_blue line'>
-		                <div class='bg_white text a_center border_r' style='width: 574px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
+		                <div class='bg_white text a_center border_r' style='width: 454px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
 		                   <span class='b'>|ПЛАТЕЖНО НАРЕЖДАНЕ|*</span>
 		                   <br/>
 		                   <span style='text-transform: none;'>|за кредитен превод|*</span>
 		                </div>
-		                <div class='text bg_blue border_r'  style='width:9%'>
+		                <div class='text bg_blue border_r'  style='width:90px'>
 		                   <span class='pos_abs small_text_top_left'>|Вид валута|*</span><br>
 		                   [#currencyId#]
 		                </div>
-		                <div class='text bg_blue a_right' style='width: 148px;'>
+		                <div class='text bg_blue a_right' style='width: 265px;'>
 		                    <span class='pos_abs small_text_top_left'>|Сума|*</span><br>
 		                   [#amount#]
 		                </div>                                        
@@ -161,7 +161,7 @@
 		                <div class='text border_r bg_white' style='width: 50px;height:30px;'>
 		                    &nbsp;
 		                </div>
-		                <div class='text' style='width: 170px;'>
+		                <div class='text' style='width: 312px;'>
 		                <span class='pos_abs small_text_top_left'>|BIC на банката на наредителя|*</span><br>
 		                   [#execBankBic#]
 		                   
