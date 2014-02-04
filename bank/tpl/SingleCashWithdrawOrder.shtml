@@ -41,7 +41,7 @@
 		                <div class='label_left'>|Клон|*</div>
 		                <div class='right_block'>
 		                    <div class='text border_b'>
-		                        [#execBranch#] 
+		                        [#execBankBranch#] 
 		                    </div>
 		                    <div class='label_mid'>
 		                        |банка|*
@@ -65,7 +65,7 @@
 		                <div class='label_left'>|Адрес|*</div>
 		                <div class='right_block'>
 		                    <div class='text border_b'>
-		                        [#execBranchAddress#]
+		                        [#execBankAdress#]
 		                    </div>
 		                    <div class='label_mid'>
 		                        &nbsp;
@@ -144,7 +144,7 @@
 		            <div class='bg_red line'>
 		                <div class='text border_r' style='width: 250px;'>
 		                <span class='pos_abs small_text_top_left'>|Документ за самоличност №|*</span><br>
-		                   [#proxyIdcard#]
+		                   [#proxyIdCard#]
 		                   
 		                </div>
 		                <div class='text border_r' style='width: 249px;'>
