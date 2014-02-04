@@ -320,8 +320,11 @@ class email_Outgoings extends core_Master
             // Вземаме имейлите от cc
             $emailsCc = $groupEmailsArr['cc'][$key];
             
+            // Конфигурацията на пакета
+            $conf = core_Packs::getConfig('email');
+            
             // Проверяваме дали същия имейл е изпращан преди
-            $isSendedBefore = log_Documents::isSended($rec->containerId, $emailTo, $emailsCc);
+            $isSendedBefore = log_Documents::isSended($rec->containerId, $conf->EMAIL_RESENDING_TIME, $emailTo, $emailsCc);
 
             // Ако е изпращан преди
             if ($isSendedBefore) {
