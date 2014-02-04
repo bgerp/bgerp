@@ -54,6 +54,37 @@ class plg_Current extends core_Plugin
     
     
     /**
+     * Автоматично избиране на обект, ако потребителя има права
+     */
+    public static function on_AfterSelectSilent(core_Mvc $mvc, &$res, $id)
+    {
+    	// Трябва да има запис отговарящ на ид-то
+    	expect($rec = $mvc->fetch($id));
+    	
+    	// Кой е текущия потребител
+    	$cu = core_Users::getCurrent();
+    	
+    	// Ако потребителя може да избере обекта
+    	if($mvc->haveRightFor('select', $rec)){
+    		
+    		// Вътрешен редирект към екшъна за избиране
+    		Request::forward(array('Ctr' => $mvc->className, 'Act' => 'SetCurrent', 'id' => $id));
+    		Request::pop();
+    		
+    		// Слагане на нотификация
+    		$objectName = $mvc->getTitleById($id);
+    		core_Statuses::add(tr("|Успешно логване в {$mvc->singleTitle}|* \"{$objectName}\""));
+    		
+    		// Ако всичко е наред връща се ид-то на обекта
+    		return $res = $id;
+    	}
+    	
+    	// Ако не може да избере обект връща се FALSE
+    	$res = FALSE;
+    }
+    
+    
+    /**
      * Слага id-тo на даден мениджър в сесия
      *
      * @param core_Mvc $mvc
