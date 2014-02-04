@@ -140,13 +140,17 @@ class sales_InvoiceDetails extends core_Detail
     	$masterRec = $data->masterData->rec;
     	if($masterRec->type != 'invoice'){
     		
-    		// При дебитни и кредитни известия поакзваме основанието
+    		// При дебитни и кредитни известия показваме основанието
     		$data->listFields = array();
     		$data->listFields['reason'] = 'Основание';
     		$data->listFields['amount'] = 'Сума';
     		$data->rows = array();
+    		
+    		// Показване на сумата за промяна на известието
+    		$amount = $mvc->fields['amount']->type->toVerbal($masterRec->dealValue / $masterRec->rate); 
+    		
     		$data->rows[] = (object) array('reason' => $masterRec->reason,
-    									   'amount' => $masterRec->changeAmount);
+    									   'amount' => $amount);
     	} 
     }
     

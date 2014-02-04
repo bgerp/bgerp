@@ -429,10 +429,6 @@ class sales_Invoices extends core_Master
 	        } elseif(!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
-	        
-	        if($rec->type != 'invoice'){
-	        	$rec->dealValue = $rec->changeAmount * $rec->rate;
-			}
 			
 			if(empty($rec->number)){
 				$rec->number = $mvc->getNexNumber();
@@ -447,6 +443,19 @@ class sales_Invoices extends core_Master
         		// Сетване на кеш полето че ЕН-то не е запълнено
         		$rec->isFull = 'no';
         	}
+        	
+        	// Ако е ДИ или КИ
+	    	if($rec->type != 'invoice'){
+	    		
+	    		// Изчисляване на стойността на ддс-то
+	        	$vat = acc_Periods::fetchByDate()->vatRate;
+	        	$rec->vatAmount = ($rec->vatRate == 'yes') ? $rec->changeAmount * $vat / (1 + $vat) : $rec->changeAmount * $vat;
+	        	$rec->vatAmount *= $rec->rate;
+	        	
+	        	// Стойността е променената сума
+	        	$rec->dealValue = ($rec->vatRate == 'yes') ? $rec->changeAmount - $rec->vatAmount : $rec->changeAmount;
+	        	$rec->dealValue *= $rec->rate;
+	        }
         }
 
         acc_Periods::checkDocumentDate($form);
@@ -623,10 +632,6 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	if($data->rec->type != 'invoice'){
-    		$tpl->removeBlock('vatAmount');
-    	}
-    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
@@ -651,8 +656,6 @@ class sales_Invoices extends core_Master
 	    		unset($row->deliveryPlaceId, $row->deliveryId);
 	    	}
     		
-    		$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
-    		
 	    	if(doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons'){
     			$row->cNum = tr('|ЕГН|* / <i>Personal №</i>');
     		} else {
@@ -666,10 +669,12 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
-	    	$row->header = $mvc->singleTitle . " №<b>{$row->number}</b> ({$row->state})" ;
+	    	$row->header = "{$row->type} №<b>{$row->number}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     		
+			$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
+			
     		$mvc->prepareMyCompanyInfo($row);
 		}
     }
@@ -709,11 +714,11 @@ class sales_Invoices extends core_Master
     		if(dec_Declarations::haveRightFor('add')){
     			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/declarations.png, row=2');
     		}
-    		
-	    	if(haveRole('debug')){
-	    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
-	    	}
     	}
+    	
+    	if(haveRole('debug')){
+	    	$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+	    }
     }
     
     
@@ -731,11 +736,11 @@ class sales_Invoices extends core_Master
     	if(empty($data->noTotal)){
     		if($rec->type != 'invoice'){
     			$rec->_total = new stdClass();
-    			$rec->_total->amount = $rec->changeAmount;
+    			$rec->_total->amount = $rec->dealValue / $rec->rate;
+    			$rec->_total->vat = $rec->vatAmount / $rec->rate;
     		}
     		
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
-    		
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice') {
@@ -778,7 +783,7 @@ class sales_Invoices extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* #{$invHandle} |издадена на|* {$invDate}");
         
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount') as $key){
         	 unset($invArr[$key]);
         }
         
@@ -888,6 +893,12 @@ class sales_Invoices extends core_Master
     	$docState = $firstDoc->fetchField('state');
     
     	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    		
+    		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
+    		return TRUE;
+    	} elseif($firstDoc->instance instanceof sales_Invoices && $docState == 'active') {
+    		
+    		// или към нишка с начало активирана продажба
     		return TRUE;
     	}
     	
@@ -943,9 +954,9 @@ class sales_Invoices extends core_Master
                 
         if (self::save($rec)) {
 
-            // Нотификация към пораждащия документ, че нещо във веригата му от породени документи
-            // се е променило.
-            if ($origin = self::getOrigin($rec)) {
+            // Нотификация към пораждащия документ, че нещо във веригата 
+            // му от породени документи се е променило.
+            if ($origin = doc_Threads::getFirstDocument($rec->threadId)) {
                 $rec = new core_ObjectReference(get_called_class(), $rec);
                 $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
             }
@@ -968,6 +979,7 @@ class sales_Invoices extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetchRec($id));
+        
         $cloneRec = clone $rec;
         
         // Създаване / обновяване на перото за контрагента
@@ -975,39 +987,58 @@ class sales_Invoices extends core_Master
         $contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
         
         $result = (object)array(
-            'reason'  => "Фактура №{$cloneRec->number}", // основанието за ордера
+            'reason'  => strip_tags(static::getRecTitle($cloneRec)), // основанието за ордера
             'valior'  => $rec->date,   // датата на ордера
         	'entries' => array(),
         );
         
-        if(isset($cloneRec->docType) && isset($cloneRec->docId) || $rec->type != 'invoice') return $result;
-        
-        $entries = array();
-        
-    	$origin = static::getOrigin($rec);
-        $aggregateInfo = $origin->getAggregateDealInfo();
-        if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
-        	$debitAccId  = '411';
-        	$creditAccId = '4532';
-        } else {
-        	$debitAccId  = '401';
-        	$creditAccId = '4531';
+        // Ако е ДИ или КИ се посочва към коя фактура е то
+        if($rec->type != 'invoice') {
+        	$origin = static::getOrigin($rec);
+        	$result->reason .= " към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
         }
         
-        if($cloneRec->vatAmount){
+        // Ако фактурата е от пос продажба не се контира ддс
+        if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
+       
+        $entries = array();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        
+        // Ако има първи документ
+    	if(isset($firstDoc) && $firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+	    	$aggregateInfo = $firstDoc->getAggregateDealInfo();
+	    	if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
+	        	
+	        	// ако е продажба
+	        	$debitAccId  = '411';
+	        	$creditAccId = '4532';
+	        } else {
+	        	
+	        	// ако е покупка
+	        	$debitAccId  = '401';
+	        	$creditAccId = '4531';
+	        }
+    	} else {
+    		
+    		// ако е пос продажба
+    		$debitAccId  = '411';
+	        $creditAccId = '4532';
+    	}
+        
+    	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
-                'amount' => currency_Currencies::round($cloneRec->vatAmount),  // равностойноста на сумата в основната валута
+                'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
                     $debitAccId, // дебитната сметка
                         array($contragentClass, $contragentId),
                         array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount),
+                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 ),
                 
                 'credit' => array(
                     $creditAccId, // кредитна сметка;
-                    'quantity' => currency_Currencies::round($cloneRec->vatAmount),
+                    'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 )
     	    );
         }
@@ -1057,10 +1088,9 @@ class sales_Invoices extends core_Master
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         
         $result = new bgerp_iface_DealResponse();
-        if($rec->type != 'invoice') return $result;
         
         $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
-        $result->invoiced->amount   = $total;
+        $result->invoiced->amount   = ($rec->type == 'credit_note') ? -1 * $total : $total;
         $result->invoiced->currency = $rec->currencyId;
         $result->invoiced->rate 	= $rec->rate;
         $result->invoiced->valior   = $rec->date;
@@ -1160,6 +1190,9 @@ class sales_Invoices extends core_Master
     	// Ако няма ид, не може да се активира документа
     	if(empty($rec->id)) return $res = 'FALSE';
     	
+    	// ДИ и КИ могат да се активират винаги
+    	if($rec->type != 'invoice') return $res = 'TRUE';
+    	
     	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
@@ -1202,7 +1235,9 @@ class sales_Invoices extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        return tr("|Фактура|* №") . static::recToVerbal($rec, 'number,-single')->number;
+        $row = static::recToVerbal($rec, 'type,number,-list');
+        
+    	return tr("|{$row->type}|* №{$row->number}");
     }
     
     
