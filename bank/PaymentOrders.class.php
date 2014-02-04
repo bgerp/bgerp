@@ -133,7 +133,7 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
     	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
     	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
-    	$this->FLD('execBankBic', 'varchar(255)', 'caption=Наредител->BIC,width=16em');
+    	$this->FLD('execBankBic', 'varchar(12)', 'caption=Наредител->BIC,width=16em');
     	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');
         $this->FLD('execBranchAddress', 'varchar(255)', 'caption=Наредител->Адрес,width=16em');
         $this->FLD('beneficiaryName', 'varchar(255)', 'caption=Получател->Име,mandatory,width=16em');
