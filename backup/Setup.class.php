@@ -4,7 +4,7 @@
 /**
  * Уникален префикс за имената на архивираните файлове
  */
-defIfNot('BACKUP_PREFIX', 'bgerp.local-mitko');
+defIfNot('BACKUP_PREFIX', 'bgerp.localhost');
 
 
 /**
