@@ -116,7 +116,9 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)
     {
     	// Ако няма шаблон, за шаблон се приема първия такъв за модела
-    	$rec->template = $mvc->getTemplate($rec->id);
+    	if($rec->id){
+    		$rec->template = $mvc->getTemplate($rec->id);
+    	}
     }
     
     
