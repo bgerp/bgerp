@@ -2173,31 +2173,34 @@ class log_Documents extends core_Manager
      * Проверява дали е изпратен имейл от този контейнер към имейлите
      * 
      * @param integer $containerId - id на контейнера
+     * @param integer $resendingSecs - Секунди, преди които ще се счита за изпратено
      * @param string $emailTo - Имейли в to
      * @param string $emailCc - Имейли в cc
+     * 
+     * @return boolean
      */
-    static function isSended($containerId, $emailTo=FALSE, $emailCc=NULL)
+    static function isSended($containerId, $resendingSecs=NULL, $emailTo=FALSE, $emailCc=NULL)
     {
         // Ако не е подадено $containerId
         if (!$containerId) return FALSE;
         
-        // Конфигурацията на пакета
-        $conf = core_Packs::getConfig('email');
-        
-        // Датата след което ще се брои за повторно изпращане
-        $resendingTime = time() - $conf->EMAIL_RESENDING_TIME;
-        
-        // В MYSQL вид
-        $resendingTime = dt::timestamp2Mysql($resendingTime);
-        
         // Екшъна за изпращане
         $sendAction = static::ACTION_SEND;
         
-        // Извличаме всички изпратени имейли от този контейнер изпратени преди датата за повторно изпращане
+        // Извличаме всички изпратени имейли от този контейнер
         $query = static::getQuery();
         $query->where("#containerId = '{$containerId}'");
         $query->where("#action = '{$sendAction}'");
-        $query->where("#createdOn < '{$resendingTime}'");
+        
+        // Ако са зададени секунди
+        if ($resendingSecs) {
+            
+            // Премахваме секундите
+            $resendingTime = dt::removeSecs($resendingSecs);
+            
+            // изпратени преди датата за повторно изпращане
+            $query->where("#createdOn < '{$resendingTime}'");
+        }
         
         // Обхождаме всички записи
         while ($rec = $query->fetch()) {
