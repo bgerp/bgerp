@@ -237,20 +237,9 @@ class bank_SpendingDocuments extends core_Master
     		 // Ако има банкова сметка по пдоразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
     		 	$bankRec = bank_OwnAccounts::fetch($bankId);
-    		 	$forcedLogin = FALSE;
     		 	
-    		 	// Ако потребителя е оператор на сметката, но не е логнат форсира се логването му в нея
-				if($bankId != bank_OwnAccounts::getCurrent('id', FALSE) && bank_OwnAccounts::haveRightFor('select', $bankRec)){
-    		 		Request::forward(array('Ctr' => 'bank_OwnAccounts', 'Act' => 'SetCurrent', 'id' => $bankId, 'ret_url' => TRUE));
-					Request::pop();
-					$forcedLogin = TRUE;
-    		 	}
-    		 	
-    		 	// Слагане на статус за потребителя
-	    		if($forcedLogin){
-	    		 	$accName = bank_OwnAccounts::getTitleById($bankId);
-	    		 	core_Statuses::add(tr("|Успешно логване в сметка|* \"{$accName}\""));
-	    		}
+    		 	// Ако потребителя има права, логва се тихо
+    		 	bank_OwnAccounts::selectSilent($bankId);
     		 }
     		 	
     		 // Ако операциите на документа не са позволени от интерфейса, те се махат

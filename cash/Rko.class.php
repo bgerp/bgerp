@@ -228,20 +228,9 @@ class cash_Rko extends core_Master
     		 	
     		 	if($caseId = $dealInfo->agreed->payment->caseId){
     		 		$cashRec = cash_Cases::fetch($caseId);
-	    		 	$forcedLogin = FALSE;
-    		 		
-    		 		// Ако потребителя може да избере касата, но не е логнат форсира се логването му в нея
-					if($caseId != cash_Cases::getCurrent('id', FALSE) && cash_Cases::haveRightFor('select', $cashRec)){
-	    		 		Request::forward(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $caseId, 'ret_url' => TRUE));
-						Request::pop();
-						$forcedLogin = TRUE;
-	    		 	}
 	    		 	
-    		 		// Слагане на статус за потребителя
-	    		 	if($forcedLogin){
-	    		 		$caseName = cash_Cases::getTitleById($caseId);
-	    		 		core_Statuses::add(tr("|Успешно логване в каса|* \"{$caseName}\""));
-	    		 	}
+    		 		// Ако потребителя има права, логва се тихо
+    		 		cash_Cases::selectSilent($caseId);
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
