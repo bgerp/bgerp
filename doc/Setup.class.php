@@ -14,6 +14,18 @@ defIfNot('BGERP_PDF_GENERATOR', 'dompdf_Converter');
 
 
 /**
+ * Начално време на нотифициране за незавършени действия с докуемнти
+ */
+defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_FROM', '7200');
+
+
+/**
+ * Крайно време на нотифициране за незавършени действия с докуемнти
+ */
+defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
+
+
+/**
  * class dma_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -59,9 +71,11 @@ class doc_Setup
      */
     var $configDescription = array(
     
-            // Кой пакет да използваме за генериране на PDF от HTML ?
-            'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
-        );
+        // Кой пакет да използваме за генериране на PDF от HTML ?
+        'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да използваме за генериране на PDF от HTML->Пакет'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Начално време на нотифициране за незавършени действия с докуемнти->Време'),
+        'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Крайно време на нотифициране за незавършени действия с докуемнти->Време'),
+    );
     
         
     /**

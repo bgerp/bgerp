@@ -1249,4 +1249,134 @@ class doc_Containers extends core_Manager
         
         return new Redirect($url);
     }
+    
+    
+    /**
+     * Нотифицира за неизпратени имейли или чернови документи
+     */
+    function cron_notifyForIncompleteDoc()
+    {
+        $this->notifyForIncompleteDoc();
+    }
+    
+    
+    /**
+     * Нотифицира за неизпратени имейли или чернови документи
+     */
+    function notifyForIncompleteDoc()
+    {
+        // Конфигураця
+        $conf = core_Packs::getConfig('doc');
+        
+        // Текущото време
+        $now = dt::now();
+        
+        // Масив с датите между които ще се извлича
+        $dateRange = array();
+        $dateRange[0] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_FROM, $now); 
+        $dateRange[1] = dt::removeSecs($conf->DOC_NOTIFY_FOR_INCOMPLETE_TO, $now); 
+        
+        // Подреждаме масива
+        sort($dateRange);
+        
+        // Всички документи създадени от потребителите, между датите
+        $query = static::getQuery();
+        $query->where(array("#createdOn >= '[#1#]'", $dateRange[0]));
+        $query->where(array("#createdOn <= '[#1#]'", $dateRange[1]));
+        $query->where("#createdBy > 0");
+        
+        // Инстанция на класа
+        $Outgoings = cls::get('email_Outgoings');
+        
+        // id на класа
+        $outgoingsClassId = $Outgoings->getClassId();
+        
+        // Без оттеглените
+        $query->where("#state != 'rejected'");
+        
+        // Само черновите
+        $query->where("#state = 'draft'");
+        
+        // Или, ако са имейли, активните
+        $query->orWhere(array("#state = 'active' AND #docClass = '[#1#]'", $outgoingsClassId));
+        
+        // Поредедени по дата
+        $query->orderBy('createdOn', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            
+            // Нулираме данните
+            $message = '';
+            $urlArr = array();
+            
+            // Ако е чернова
+            if ($rec->state == 'draft') {
+                
+                // Инстанция на класа
+                $docMvc = cls::get($rec->docClass);
+                
+                // Типа на докуемнта
+                $docSingleTitle = ucfirst(mb_strtolower($docMvc->singleTitle));
+                
+                // Съобщение
+                $message = "|Незавършени действия с|* |{$docSingleTitle}|*";
+                
+                // Линк към сингъла
+                $urlArr = array($docMvc, 'single', $rec->docId);
+            } else {
+                
+                // Ако не е чернова, следователно е активиран имейл
+                
+                // Ако имейла не е бил изпратен
+                if (!log_Documents::isSended($rec->id)) {
+                    
+                    // Съобщение
+                    $message = "|Активиран но неизпратен имейл";
+                    
+                    // Линк към сингъла на имейла
+                    $urlArr = array($Outgoings, 'single', $rec->docId);
+                }
+            }
+            
+            // Ако има съобщените
+            if ($message) {
+                
+                // Добавяме нотификация
+                bgerp_Notifications::add($message, $urlArr, $rec->createdBy, 'normal');
+            }
+        }
+        
+        return ;
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+	 * 
+	 * @param unknown_type $mvc
+	 * @param unknown_type $res
+	 */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'notifyForIncompleteDoc';
+        $rec->description = 'Нотифицира за незавършени действия с документи';
+        $rec->controller = $mvc->className;
+        $rec->action = 'notifyForIncompleteDoc';
+        $rec->period = 60;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да нотифицира за незавършени действия с документи.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да нотифицира за незавършени действия с документи</li>";
+        }
+    }
 }
