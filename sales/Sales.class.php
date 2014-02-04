@@ -1455,18 +1455,12 @@ class sales_Sales extends core_Master
     		
     		// Ако се експедира и има склад, форсира се логване
     		if($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId){
-    			Request::forward(array('Ctr' => 'store_Stores', 'Act' => 'SetCurrent', 'id' => $rec->shipmentStoreId, 'ret_url' => TRUE));
-				Request::pop();
-				$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
-	    		core_Statuses::add(tr("|Успешно логване в склад|* \"{$storeName}\""));
+    			store_Stores::selectSilent($rec->shipmentStoreId);
     		}
     		
     		// Ако има сметка и се експедира, форсира се логване
     		if($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId){
-    			Request::forward(array('Ctr' => 'cash_Cases', 'Act' => 'SetCurrent', 'id' => $rec->caseId, 'ret_url' => TRUE));
-				Request::pop();
-				$cashName = cash_Cases::getTitleById($rec->caseId);
-	    		core_Statuses::add(tr("|Успешно логване в каса|* \"{$cashName}\""));
+    			cash_Cases::selectSilent($rec->caseId);
     		}
     		
     		// Редирект
