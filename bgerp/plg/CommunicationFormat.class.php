@@ -91,9 +91,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
      */
     function catchCommunicationWebFormat($match)
     {
-    	//bp($match);
-    	
-    	$icon = sbf("img/16/world_link.png",'');
+    	if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/world_link.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/world_link.png",''); 
+        }
 	         	    
         // добавяме иконата пред името на услугата
         $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
@@ -134,7 +141,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         }
 	
 		// му задаваме друга икона
-		$icon = sbf("img/16/telephone2.png", ''); 
+		if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/telephone2.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/telephone2.png",''); 
+        } 
 
 	    // ако сме в тесен режим
 	    if (Mode::is('screenMode', 'narrow')) {	
@@ -174,7 +190,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
         
-    	$icon = sbf("img/16/fax2.png",'');
+    	if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/fax2.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/fax2.png",''); 
+        }
         				       	                
 		// ако сме в тесен режим и имаме възможност за изпращане на факсове
 		if (Mode::is('screenMode', 'narrow') && email_FaxSent::haveRightFor('send')) {
@@ -253,7 +278,16 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         }
         
         // иконка
-		$icon = sbf("img/16/mobile2.png", ''); 
+		if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/mobile2.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/mobile2.png",''); 
+        }
 		
         // намираме мястото, което ще заместваме
         $place = $this->mvc->getPlace();
@@ -315,7 +349,17 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         
         // Намираме иконата в sbf папката
         $nameIcon = str::utf2ascii($matchElement);
-	    $icon = sbf("img/16/{$nameIcon}.png",'');
+	  	    
+    	if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/{$nameIcon}.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/{$nameIcon}.png",''); 
+        }
         
         // в зависимост от услугата, правим различни линкове
         switch ($matchElement) {
@@ -394,7 +438,17 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         
         // Намираме иконата в sbf папката
         $nameIcon = str::utf2ascii($matchElement); 
-	    $icon = sbf("img/16/{$matchElement}.png",'');
+	    
+    	if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/{$matchElement}.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/{$matchElement}.png",''); 
+        }
 
 		$this->mvc->_htmlBoard[$place] = "<span class='communication'><a class='url' type='application/x-icq' 
 		href='http://www.icq.com/people/cmd.php?uin={$match[3]}&action=message'>{$match[3]}</a></span>";
@@ -424,8 +478,17 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
         if(!trim($match[2])) {
             return  $match[0];
         }
-
-       	$icon = sbf("img/16/email.png",''); 
+        
+        if (Mode::is('text', 'xhtml')) {
+        	// Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+        	$isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+        
+        	// Иконата на класа
+        	$icon = sbf("img/16/email.png", '', $isAbsolute);
+        
+        } else {
+        	$icon = sbf("img/16/email.png",''); 
+        }
 	         	    
         // добавяме иконата пред името на услугата
         $communicationFormat = str_replace($match[1], "<img class='communicationImg' src='{$icon}' />{$match[1]}", $match[0]);
