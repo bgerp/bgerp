@@ -166,15 +166,10 @@ class techno_Specifications extends core_Manager {
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $containerId = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
-    	
-    	if($containerId){
-    		$origin = doc_Containers::getDocument($containerId);
-    		$originClassId = $origin->getClassId();
-    	}
     	
     	$products = array();
     	$query = $this->getQuery();
@@ -184,9 +179,9 @@ class techno_Specifications extends core_Manager {
     	while($rec = $query->fetch()){
     		try{
     			$DocClass = cls::get($rec->docClassId);
-    			if($rec->docClassId != $originClassId && $rec->docId != $origin->that){
-    				if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
-    			}    			
+    			
+    			if($DocClass->fetchField($rec->docId, 'state') != 'active') continue;
+    			
     			$products[$rec->id] = $this->recToVerbal($rec, 'title')->title;
     		} catch(Exception $e){
     			continue;
