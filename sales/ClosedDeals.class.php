@@ -69,6 +69,12 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	public $canSingle = 'ceo,sales';
     
 	
+	/**
+	 * Кой може да контира документите?
+	 */
+	public $canConto = 'ceo,salesMaster';
+	
+	
     /**
      * Заглавие в единствено число
      */

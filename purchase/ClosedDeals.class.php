@@ -58,6 +58,12 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
   
     /**
+	 * Кой може да контира документите?
+	 */
+	public $canConto = 'ceo,purchaseMaster';
+	
+	
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,purchase';
