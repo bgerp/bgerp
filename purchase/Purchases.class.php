@@ -81,6 +81,12 @@ class purchase_Purchases extends core_Master
 
     
     /**
+     * Кой може да затваря?
+     */
+    public $canClose = 'ceo, purchase';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid,dealerId,createdOn, createdBy';
@@ -213,6 +219,7 @@ class purchase_Purchases extends core_Master
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('close', $rec);
     	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
     	$rec->state = 'closed';
     	$this->save($rec);
@@ -292,7 +299,7 @@ class purchase_Purchases extends core_Master
     		if($rec->amountPaid && $rec->amountDelivered){
     			$closeArr = NULL;
     		
-	    		if($diffAmount == 0){
+	    		if($diffAmount == 0  && $mvc->haveRightFor('close', $rec)){
 	    			$closeArr = array($mvc, 'close', $rec->id);
 	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
 	    		} else {
