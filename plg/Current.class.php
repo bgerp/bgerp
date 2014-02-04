@@ -73,7 +73,8 @@ class plg_Current extends core_Plugin
     		
     		// Слагане на нотификация
     		$objectName = $mvc->getTitleById($id);
-    		core_Statuses::add(tr("|Успешно логване в {$mvc->singleTitle}|* \"{$objectName}\""));
+    		$singleTitle = mb_strtolower($mvc->singleTitle);
+    		core_Statuses::add(tr("|Успешно логване в {$singleTitle}|* \"{$objectName}\""));
     		
     		// Ако всичко е наред връща се ид-то на обекта
     		return $res = $id;
