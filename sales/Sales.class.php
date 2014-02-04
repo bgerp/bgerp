@@ -1415,8 +1415,8 @@ class sales_Sales extends core_Master
     	
     	// Подготовка на формата за избор на опция
     	$form = cls::get('core_Form');
-    	$form->title = "|Контиране на|* <b>" . $this->getTitleById($id). "</b>";
-    	$form->info = 'Освен активиране, изберете действие';
+    	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
+    	$form->info = '<b>Контиране на извършени на момента действия</b> (опционално):';
     	
     	// Извличане на позволените операции
     	$options = $this->getContoOptions($rec);
@@ -1425,7 +1425,7 @@ class sales_Sales extends core_Master
     	expect(count($options));
     	
     	// Подготовка на полето за избор на операция и инпут на формата
-    	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Действия');
+    	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
     	
     	$selected = array();
     	
@@ -1474,7 +1474,7 @@ class sales_Sales extends core_Master
     		return new Redirect($contoUrl);
     	}
     	
-    	$form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
+    	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
         $form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
         
         // Рендиране на формата
