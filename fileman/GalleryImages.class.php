@@ -67,7 +67,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,vid=Код,groupId,src,createdOn,createdBy';
+    var $listFields = 'id,vid=Код,src,groupId,createdOn,createdBy';
 
     
     /**
@@ -223,10 +223,10 @@ class fileman_GalleryImages extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако има запис и потребител
-        if ($rec && $userId) {
+        if ($rec->id && $userId) {
             
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
-            if ($action == 'edit' || $action == 'add' || $action == 'single' || $action == 'delete') {
+            if ($action == 'edit' || $action == 'single' || $action == 'delete') {
                 
                 // Ако няма права за админ на записа
                 if (!$mvc->haveRightFor('admin', $rec, $userId)) {
@@ -619,7 +619,7 @@ class fileman_GalleryImages extends core_Manager
         $table = cls::get('core_TableView', array('mvc' => $this));
         
         // Полетата, които ще се показва
-        $listFields = array('tools' => '✍','groupId' => 'Група', 'src' => 'Картинка');    
+        $listFields = array('tools' => '✍', 'src' => 'Картинка', 'groupId' => 'Група');    
         
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $listFields);

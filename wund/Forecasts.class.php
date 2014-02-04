@@ -79,9 +79,10 @@ class wund_Forecasts extends core_Manager {
         $conf = core_Packs::getConfig('wund');
         $location = $conf->WUND_DEFAULT_LOCATION;
         $apiKey   = $conf->WUND_API_KEY;
-
-        $jsonRes = file_get_contents("http://api.wunderground.com/api/{$apiKey}/forecast/q/{$location}.json");
-
+        
+        $locationEsc = str_replace(' ', '%20', $location);
+        $jsonRes = file_get_contents("http://api.wunderground.com/api/{$apiKey}/forecast/q/{$locationEsc}.json");
+        
         $weather = json_decode($jsonRes);
 
         $forecastday = $weather->forecast->simpleforecast->forecastday;

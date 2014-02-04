@@ -27,6 +27,11 @@ body {
      font-size:1.1em;
 }
 
+.galleryListTable{
+	max-height: 470px;
+	overflow: auto;
+}
+
 .galleryListTable .listTable{
 	width: 100%;
 }
