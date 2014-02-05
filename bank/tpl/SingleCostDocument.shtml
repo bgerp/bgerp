@@ -1,60 +1,95 @@
 [#SingleToolbar#]
+<!-- BEGIN container -->
 <div class='document'>
-	
-	<!--ET_BEGIN blank-->
-		[#blank#]
-	<!--ET_END blank-->
-	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
-	</div>
-	<div class='scrolling-holder'>
-	<div class='fleft'>
-		<table class='nowrap'>
-			<tr>
-				<td valign="top" >
-					<table cellpadding='2px'>
-						<tr><td class=\"quiet\" align=\"right\">|Вальор|*: </td><td><b>[#valior#]</b></td></tr>
-						<tr><td class=\"quiet\" align=\"right\">|Операция|*: </td><td><b>[#operationSysId#]</b></td></tr>
-						<tr><td class=\"quiet\" align=\"right\">|От сметка|*: </td><td><span class='cCode'>[#accCurrency#]</span>
-						<span style='color:darkblue'><b>[#ownAccount#]</b></span></td></tr>
-						<tr><td class=\"quiet\" align=\"right\">|Платено на|*: </td><td style='color:darkgreen'><b>[#contragentName#]</b></td></tr>
-						<!--ET_BEGIN contragentIban-->
-						<tr><td class=\"quiet\" align=\"right\">|В сметка|*: </td><td><span class='cCode''>[#accCurrencyIban#]</span> <b style='color:darkblue'>[#contragentIban#]</b></td></tr>
-						<!--ET_END contragentIban-->
-						<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
-						<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> <b>[#createdDate#] </b><span class=\"quiet\">|от|*</span> <b>[#createdBy#]</b></td></tr><!--ET_END createdBy-->	
-					</table>
-				</td>
-			</tr>
-		</table>
-		</div>
-		<div class='fleft fleft-special'>
-		<table>
-			<tr>	
-				<td valign="top">
-					<div class="amounts nowrap">
-						|Сума|*: <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#currencyId#]</span> &nbsp;
-						<b><span style='color:darkgreen'>[#amount#]</span></b>
-					</div>
-					<!--ET_BEGIN equals-->
-						|Равностойност|*: &nbsp; <span style='border:solid 1px #ccc;background-color:#eee;padding:2px;font-size:12px;vertical-align:middle;'>[#baseCurrency#]</span> &nbsp;
-						<b><span style='color:darkgreen'>[#equals#]</span></b><br>
-						<!--ET_END equals-->
-					<!--ET_BEGIN rate-->
-					<div class="amounts">
-						|Курс|*: <b><span style='color:darkgreen'>[#rate#]</span></b>
-					</div>
-					<!--ET_END rate-->
-				</td>
-			</tr>
-		</table>
-		</div>
-	</div>
-	<!--ET_BEGIN DETAILS-->
-		<div class='details'>
-			[#DETAILS#]
-		</div>
-	<!--ET_END DETAILS-->
-	
-	<br>
+    <!--ET_BEGIN blank-->
+        [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+    </div>
+    <!--ET_END header-->
+    <div class='scrolling-holder'>
+        <div class='display-table'>
+                    <table border='1px' class='order-table' cellpadding='4px'>
+                    <tr>
+                        <td class='top-head'>
+                            <b>|Получател|*</b>
+                        </td>
+                        <td  rowspan='2' class='title-order'>
+                            <h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</h2>
+                            |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
+                        </td>
+                        <td class='top-head'><b>|Организация|*</b></td>
+                    </tr>
+                    <tr>
+                        <td style='padding-top:10px;'>
+                            <b>[#contragentName#]</b>
+                        </td>
+                        <td style='padding-top:10px;' class='align-top-td'>
+                            <b>[#companyName#]</b>
+                        </td>
+                    </tr>
+                    </table>
+                    <div class='lines'></div>
+                    <table border='1px' cellpadding='5px'  class='border-table'>
+                        <tr>
+                            <td width='67%' align='left' style='padding-left:10px;'>
+                                <table class='no-border' cellpadding=0 cellspacing=0>
+                                    <tr>
+                                        <td width=98px>|От сметка|*: </td>
+                                        <td><b>[#ownAccount#]</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>|Към сметка|*:</td>
+                                        <td><b>[#contragentIban#]</b> </td>
+                                    </tr>
+                                    <tr>
+                                        <td>|Основание|*: </td>
+                                        <td> [#reason#]</td>
+                                    </tr>
+                                </table>
+                            
+                            </td>
+                            <td>
+                            
+                            <table class='no-border' cellpadding=0 cellspacing=0>
+                               <tr>
+                                   <td width='20%'>|Сума|*: </td>
+                                   <td><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b >[#amount#]</b></span></td>
+                               </tr>
+                               <!--ET_BEGIN equals-->
+                               <tr>
+                                   <td>|Курс|*:</td>
+                                   <td><b class='amount'>[#rate#]</b></td>
+                               </tr>
+                               <tr>
+                                   <td>|Равностойност|*:</td>
+                                   <td> <span  class='amount'><span class='cCode'>[#baseCurrency#]</span>&nbsp;&nbsp;<b >[#equals#]</b></span></td>
+                               </tr>
+                               <!--ET_END equals-->
+                            </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table border='1px' cellpadding='2' class="pko-notes">
+                        <tr>
+                            <td colspan='2'>
+                            <table border='0'>
+                            <tr>
+                                <td id='notes' style='height: auto; padding-bottom: 5px;'><span style='display:inline-block; width: 100px;'>|Операция|*:</span>&nbsp;[#operationSysId#]</td>
+                            </tr>
+                            </table>
+                        </tr>
+                       
+                    </table>
+            </div>
+    </div>
+    <!--ET_BEGIN DETAILS-->
+        <div class='details'>
+            [#DETAILS#]
+        </div>
+    <!--ET_END DETAILS-->
+    
 </div>
+<!-- END container -->
