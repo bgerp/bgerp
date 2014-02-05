@@ -208,7 +208,7 @@ class type_Users extends type_Keylist
     function fromVerbal_($value)
     {
         $this->prepareOptions('all');
-//        bp($this->options, $value);
+        
         return $this->options[$value]->keylist;
     }
     
