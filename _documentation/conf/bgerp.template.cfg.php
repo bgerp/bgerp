@@ -289,9 +289,13 @@
 
 
 // По подразбиране от локалния хост се работи в режим DEBUG
- # defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1,::1');
+   DEFINE('EF_DEBUG', 'hosts: localhost, 127.0.0.1');
+// Разрешава дебъг от всички.   
+//   DEFINE('EF_DEBUG', TRUE);
+//  FALSE или нещо различно - не може да се дебъгва.
+//   DEFINE('EF_DEBUG', FALSE);
 
-
+   
 // Базовото име на директорията за статичните браузърни файлове
  # defIfNot('EF_SBF', 'sbf');
 
