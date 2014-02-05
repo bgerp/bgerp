@@ -251,7 +251,7 @@ class bank_IncomeDocuments extends core_Master
     		 }
     		 	
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 $form->rec->rate       = $dealInfo->shipped->rate;
+    		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
     		 if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE){
     		 	$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
@@ -282,9 +282,12 @@ class bank_IncomeDocuments extends core_Master
 	   	 	
 	   	 	// Ако няма валутен курс, взимаме този от системата
     		if(!$rec->rate && !$form->gotErrors()) {
-	    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, $baseCurrencyCode);
+    			if($rec->tempRate){
+    				$rec->rate = $rec->tempRate;
+    			} else {
+    				$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+		    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+    			}
 	    	}
     	}
     }

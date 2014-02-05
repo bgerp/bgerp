@@ -232,7 +232,7 @@ class cash_Pko extends core_Master
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 	$form->rec->rate       = $dealInfo->shipped->rate;
+    		 	$form->rec->tempRate = $dealInfo->shipped->rate;
     		 	
     		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE){
     		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
@@ -278,9 +278,13 @@ class cash_Pko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 		    if(!$rec->rate){
-		    	
-		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+		    	if($rec->tempRate){
+		    		$rec->rate = $rec->tempRate;
+		    	} else {
+		    		
+		    		// Изчисляваме курса към основната валута ако не е дефиниран
+		    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+		    	}
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', $msg);
