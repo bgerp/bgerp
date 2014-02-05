@@ -37,6 +37,9 @@ class iban_Type extends type_Varchar
         
         $res = new stdClass();
         
+        // Допускане на записване на непопълнен ИБАН
+        if($value === '') return NULL;
+        
         if (empty($value)) {
             $res->error = 'Липсващ IBAN';
         } elseif($value{0} == '#') {
