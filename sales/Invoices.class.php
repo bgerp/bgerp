@@ -374,9 +374,9 @@ class sales_Invoices extends core_Master
         		$form->setField('paymentMethodId', 'input=hidden');
         	}
         	
-        	$form->rec->deliveryId = $aggregateInfo->shipped->delivery->term;
-        	if($aggregateInfo->shipped->delivery->location){
-        		$form->rec->deliveryPlaceId = $aggregateInfo->shipped->delivery->location;
+        	$form->rec->deliveryId = $aggregateInfo->agreed->delivery->term;
+        	if($aggregateInfo->agreed->delivery->location){
+        		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
         }
@@ -675,6 +675,7 @@ class sales_Invoices extends core_Master
     		
 			$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
 			
+			//if($rec->id == 223) bp($rec);
     		$mvc->prepareMyCompanyInfo($row);
 		}
     }
