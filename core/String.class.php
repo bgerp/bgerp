@@ -52,8 +52,19 @@ class core_String
         return $text;
     }
 
+    
+    /**
+     * Прави първия символ на стринга главна буква (за многобайтови символи)
+     * @param string $string - стринга който ще се рансформира
+     */
+	public static function mb_ucfirst($string) 
+	{
+        $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+        
+        return $string;
+    }
 
-
+    
     /**
      * Превръща UTF-9 в каноничен стринг, съдържащ само латински букви и числа
      * Всички символи, които не могат да се конвертират, се заместват с втория аргумент
