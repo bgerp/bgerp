@@ -136,7 +136,6 @@ class bank_IncomeDocuments extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'operationSysId' => 'lastDocUser|lastDoc',
     	'currencyId'     => 'lastDocUser|lastDoc',
     );
     

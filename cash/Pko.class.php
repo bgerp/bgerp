@@ -138,7 +138,6 @@ class cash_Pko extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'operationSysId' => 'lastDocUser|lastDoc',
     	'currencyId' 	 => 'lastDocUser|lastDoc',
     	'depositor'      => 'lastDocUser|lastDoc',
     );
