@@ -30,6 +30,11 @@ body {
 	width: 130px;
 }
 
+.dialogDocTable{
+	max-height: 434px;
+	overflow-y: auto;
+}
+
 .dialogDocTable table {
 	width: 100%;
 	background-color: white;
