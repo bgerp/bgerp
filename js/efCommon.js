@@ -988,7 +988,7 @@ function getBackgroundColor(el)
 		var bgColor = $(el).css('background-color');
 	} else {
 		
-		bgColor = 'transparent';
+		bgColor = el.style.backgroundColor;
 	}
 	
 	if (bgColor == 'transparent'){

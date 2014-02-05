@@ -600,6 +600,17 @@ class core_DateTime
     }
     
     
+	/**
+     * Премахва секунди от датата
+     */
+    static function removeSecs($secs, $date = NULL)
+    {
+        $secs *= -1;
+        
+        return static::addSecs($secs, $date);
+    }
+    
+    
     /**
      * Дали датата е събота или неделя?
      */
