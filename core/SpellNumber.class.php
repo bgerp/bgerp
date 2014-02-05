@@ -348,7 +348,7 @@ class core_SpellNumber
      * @param boolean $displayCurrency Дали да върне валутата
      * @return text $text подадената сума изписана с думи
      */
-    function asCurrency($num, $lg = NULL, $displayCurrency = TRUE)
+    function asCurrency($num, $lg = NULL, $displayCurrency = TRUE, $showCurrencyCode = NULL)
     {
         // Ако не е зададен език, взима се текущия от сесията
     	if(empty($lg)){
@@ -374,6 +374,9 @@ class core_SpellNumber
         	
         	$text = $this->num2Text((int) $num) . $numBgn;
             $cents = round((($num - (int) $num) * 100));
+            if($showCurrencyCode){
+            	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
+            }
             if ($cents > 0){
             	$text .= " и " . ($cents) . " " . $centBgn;
             } elseif($cents == 0){
