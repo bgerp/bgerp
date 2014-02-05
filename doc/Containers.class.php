@@ -1281,9 +1281,9 @@ class doc_Containers extends core_Manager
         
         // Всички документи създадени от потребителите, между датите
         $query = static::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $dateRange[0]));
-        $query->where(array("#createdOn <= '[#1#]'", $dateRange[1]));
-        $query->where("#createdBy > 0");
+        $query->where(array("#modifiedOn >= '[#1#]'", $dateRange[0]));
+        $query->where(array("#modifiedOn <= '[#1#]'", $dateRange[1]));
+        $query->where("#modifiedBy > 0");
         
         // Инстанция на класа
         $Outgoings = cls::get('email_Outgoings');
@@ -1301,7 +1301,7 @@ class doc_Containers extends core_Manager
         $query->orWhere(array("#state = 'active' AND #docClass = '[#1#]'", $outgoingsClassId));
         
         // Поредедени по дата
-        $query->orderBy('createdOn', 'ASC');
+        $query->orderBy('modifiedOn', 'ASC');
         
         while ($rec = $query->fetch()) {
             
