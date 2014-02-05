@@ -415,7 +415,9 @@ class acc_Items extends core_Manager
     {
     	if(($action == 'add' || $action == 'edit') && isset($rec->classId)){
     		$Class = cls::get($rec->classId);
-    		$res = $Class->getRequiredRoles('edit', (object)array( 'id' => $rec->objectId));
+    		if(!$Class->haveRightFor('edit', (object)array( 'id' => $rec->objectId))){
+    			$res = 'no_one';
+    		}
     	}
     }
     
