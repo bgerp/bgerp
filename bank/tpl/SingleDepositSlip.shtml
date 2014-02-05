@@ -41,10 +41,7 @@
 	                <div class='right_block'>
 	                    <div class='text border_b'>
 	                        [#execBankBranch#]
-	                    </div>
-	                    <div class='label_mid'>
-	                        банка
-	                    </div>                
+	                    </div>      
 	                </div>
 	            </div>
 	            
