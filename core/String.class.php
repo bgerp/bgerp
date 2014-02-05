@@ -57,7 +57,7 @@ class core_String
      * Прави първия символ на стринга главна буква (за многобайтови символи)
      * @param string $string - стринга който ще се рансформира
      */
-	public static function mb_ucfirst($string) 
+	public static function mbUcfirst($string) 
 	{
         $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
         
