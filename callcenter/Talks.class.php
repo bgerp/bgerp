@@ -784,10 +784,11 @@ class callcenter_Talks extends core_Master
         $url = array('callcenter_Talks', 'list');
         $customUrl = $url;
         
-        $internalNum = $rec->internalNum;
+        // Линка да сочи към всички пропуснати повиквания
+        $customUrl['dialStatusType'] = 'incoming_MISSED';
         
         // Вземаме потребителите, които отговарят за съответния номер
-        $usersArr = callcenter_Numbers::getUserForNum($internalNum);
+        $usersArr = callcenter_Numbers::getUserForNum($rec->internalNum);
         
         // Обхождаме всички потребители
         foreach ((array)$usersArr as $user) {
@@ -830,6 +831,7 @@ class callcenter_Talks extends core_Master
         $statusOptions['incoming_NO ANSWER'] = tr('Без отговор');
         $statusOptions['incoming_BUSY'] = tr('Заето');
         $statusOptions['incoming_FAILED'] = tr('Прекъснато');
+        $statusOptions['incoming_MISSED'] = tr('Пропуснати');
         
         // Опциите за изходящи разговоири
         $outgoingsOptions = new stdClass();
@@ -929,9 +931,14 @@ class callcenter_Talks extends core_Master
                 
                 // Ако е избран статуса на разговора
                 if ($dialStatus) {
-                    
-                    // Търсим по статус на обаждане
-                    $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
+                    // Ако статуса е пропуснат
+                    if ($dialStatus == 'MISSED') {
+                        // Показва всички обаждания, които не са отговорени
+                        $data->query->where("#dialStatus != 'ANSWERED'");
+                    } else {
+                        // Търсим по статус на обаждане
+                        $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
+                    }
                 }
             }
             
