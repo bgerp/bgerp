@@ -5,6 +5,8 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
+	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА ПРОДАЖБА|* </h3>
+	<br>
 	
 	 [#text#]
 	<!--ET_BEGIN currencyId-->
@@ -21,7 +23,7 @@
 	 [#baseAmount#] )
 	 </span>
 	 <!--ET_END baseAmount-->
-	<br />
+	<br>
 	
 	<!--ET_BEGIN modifiedOn-->
 	|Дата|*: [#modifiedOn#]
