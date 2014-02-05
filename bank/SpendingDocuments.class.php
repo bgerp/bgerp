@@ -588,4 +588,13 @@ class bank_SpendingDocuments extends core_Master
     		$data->form->toolbar->removeBtn('btnNewThread');
     	}
     }
+    
+    
+	/**
+     * Вкарваме css файл за единичния изглед
+     */
+	static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	$tpl->push('bank/tpl/css/styles.css', 'CSS');
+    }
 }
