@@ -706,7 +706,8 @@ class sales_Invoices extends core_Master
     	$rec = &$data->rec;
     	
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    		if($mvc->haveRightFor('add')){
+    		
+    		if($mvc->haveRightFor('add') && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
     			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     		}
