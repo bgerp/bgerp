@@ -111,7 +111,7 @@ class doc_Search extends core_Manager
         $data->listFilter->showFields = 'search, scopeFolderId, docClass, state, author, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $data->listFilter->input();
+        $data->listFilter->input(NULL, 'silent');
         
     	$filterRec = $data->listFilter->rec;
         
@@ -161,7 +161,7 @@ class doc_Search extends core_Manager
         }
         
         // Има зададен условия за търсене - генерираме SQL заявка.
-        if($data->listFilter->isSubmitted()) {
+        if(!$data->listFilter->gotErrors()) {
             
             // Търсене на определен тип документи
             if (!empty($filterRec->docClass)) {
@@ -183,7 +183,7 @@ class doc_Search extends core_Manager
             }
             
             // Ако е избран автор или не са избрани всичките
-            if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($maintainers, '|-1|') === FALSE)) {
+            if (!empty($filterRec->author) && $filterRec->author != 'all_users' && (strpos($filterRec->author, '|-1|') === FALSE)) {
                 
                 // Масив с всички избрани автори
                 $authorArr = keylist::toArray($filterRec->author);
@@ -229,10 +229,18 @@ class doc_Search extends core_Manager
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
             $data->query->orderBy('#modifiedOn=DESC');
-
+            
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
+            
+            // Ако ще се филтира по състояни и текущия потребител (автор)
+            if ($filterRec->state && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+                
+                // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
+                $url = array($mvc, 'state' => $filterRec->state, 'author' => core_Users::getCurrent());
+                bgerp_Notifications::clear($url);
+            }
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where("0 = 1");
@@ -287,7 +295,7 @@ class doc_Search extends core_Manager
      */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->listFilter->isSubmitted()) {
+        if ($data->listFilter->gotErrors()) {
             
             return FALSE;
         }
