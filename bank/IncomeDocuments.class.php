@@ -336,6 +336,11 @@ class bank_IncomeDocuments extends core_Master
 	    	if(!Mode::is('printing')){
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
+	    	
+	    	$row->companyName = crm_Companies::fetchOwnCompany()->company;
+	    	
+	    	
+	    	
     	}
     }
     
