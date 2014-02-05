@@ -40,10 +40,12 @@
                                         <td width=98px>|От сметка|*: </td>
                                         <td><b>[#ownAccount#]</b></td>
                                     </tr>
+                                    <!--ET_BEGIN contragentIban-->
                                     <tr>
                                         <td>|Към сметка|*:</td>
                                         <td><b>[#contragentIban#]</b> </td>
                                     </tr>
+                                    <!--ET_END contragentIban-->
                                     <tr>
                                         <td>|Основание|*: </td>
                                         <td> [#reason#]</td>
