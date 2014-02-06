@@ -646,7 +646,10 @@ div.acc-detail {
 	border: solid 1px #ccc;
 	background-color: $gray1;
 }
-
+ .acc_ArticleDetails .listTable th{
+    white-space: nowrap;
+ }
+ 
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
