@@ -60,56 +60,64 @@
             		[#store_ShipmentOrderDetails#]
            	</div>
            	<div class="lines"></div>		
-            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+            <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell first" valign="top">
-                        <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            Del. time: <b>[#deliveryTime#]</b>
-                        </div>
-                        <!--ET_END deliveryTime-->
-    
-                        <!--ET_BEGIN storeId-->
-                        <div>
-                            From store: <b>[#storeId#]</b>
-                        </div>
-                        <!--ET_END storeId-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	Delivery place: <b>[#locationId#]</b>
-                        </div>
-                        <!--ET_END locationId-->
-        				
-        				<!--ET_BEGIN lineId-->
-        				<div>
-                            Transport: <br /><b>[#lineId#]</b>
-                        </div>
-        				<!--ET_END lineId-->
-        				
-        				<div>
-        				Weight: <b>[#weight#]</b>
-        				</div>
-        				
-        				<div>
-        				Volume: <b>[#volume#]</b>
-        				</div>
-                        <!--ET_BEGIN note-->
-	                        <hr />
-	                        [#note#]
-                        <!--ET_END note-->
-                        
-                        <!--ET_BEGIN colletsCount-->
-                        <div>
-                        Collets count: <b>[#colletsCount#]</b>
-                        </div>  
-                        <!--ET_END colletsCount-->   
+                    
+                    <table class='shipment-table' >
+                    <!--ET_BEGIN deliveryTime-->
+                        <tr>
+                            <td width='1%' class='nowrap'>Delivery time:</td>
+                            <td><b>[#deliveryTime#]</b></td>
+                        </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN storeId-->
+                        <tr>
+                            <td class='nowrap'>From store:</td>
+                            <td><b>[#storeId#]</b></td>
+                        </tr>
+                    <!--ET_END storeId-->
+                    <!--ET_BEGIN locationId-->
+                        <tr>
+                            <td class='nowrap'>Delivery place:</td>
+                            <td><b>[#locationId#]</b></td>
+                        </tr>
+                    <!--ET_END locationId-->
+                    <!--ET_BEGIN lineId-->
+                        <tr>
+                            <td class='nowrap'>Transport: </td>
+                            <td><b>[#lineId#]</b></td>
+                        </tr>
+                    <!--ET_END lineId--> 
+                    </table>
                     </td>
-                </tr>           
+                    <td width='30%'>
+                    <table class='shipment-table' > 
+	                  <tr>
+	                      <td class='nowrap' width=1%>Total weight:</td>
+	                      <td><b>[#weight#]</b></td>
+	                 </tr>
+	                 <tr>
+	                      <td class='nowrap'>Total volume:</td>
+	                      <td><b>[#volume#]</b></td>
+	                 </tr>   
+	                 <tr>
+                          <td class='nowrap'>Collets count:</td>
+                          <td><b>[#colletsCount#]</b></td>
+                     </tr>      
+	               </table>       
+                    
+                    </td>
+                </tr> 
+                    <tr>
+                        <td colspan=2>
+                            [#note#]
+                        </td>
+                    
+                    </tr>          
                 </tbody>
             </table>
-            </div>
-            </div>
+            
  				<!--ET_BEGIN DETAILS-->
 				<div class='details'>
 					[#DETAILS#]
