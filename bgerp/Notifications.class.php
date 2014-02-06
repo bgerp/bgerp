@@ -79,6 +79,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('url', 'varchar', 'caption=URL->Ключ');
         $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
+        $this->FLD('closedOn', 'datetime', 'caption=Затворено на,notNull');
 
         $this->setDbUnique('url, userId');
     }
@@ -148,7 +149,32 @@ class bgerp_Notifications extends core_Manager
         
         while($rec = $query->fetch()) {
             $rec->state = 'closed';
-            bgerp_Notifications::save($rec, 'state,modifiedOn');
+            $rec->closedOn = dt::now();
+            bgerp_Notifications::save($rec, 'state,modifiedOn,closedOn');
+        }
+    }
+
+
+    /**
+     * Връща кога за последен път е затваряна нотификацията с дадено URL от даден потребител
+     */
+    static function getLastClosedTime($urlArr, $userId = NULL)
+    {
+        $url = toUrl($urlArr, 'local', FALSE);
+        
+        $query = self::getQuery();
+
+        $query->where("");
+
+        if (!$userId) { 
+            $userId = core_Users::getCurrent();
+        }
+
+        $query->where("#url = '{$url}' AND #userId = '{$userId}'");
+
+        if($rec = $query->fetch()) {
+
+            return $rec->closed;
         }
     }
     
@@ -157,7 +183,7 @@ class bgerp_Notifications extends core_Manager
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    static function setHidden($urlArr, $hidden = 'yes', $userId=NULL) 
+    static function setHidden($urlArr, $hidden = 'yes', $userId = NULL) 
     {
         $url = toUrl($urlArr, 'local', FALSE);
         
@@ -248,6 +274,8 @@ class bgerp_Notifications extends core_Manager
         
         // Създаваме заявката
         $data->query = $Notifications->getQuery();
+
+        $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords"); 
         
         // Подготвяме полетата за показване
         $data->listFields = 'modifiedOn=Време,msg=Съобщение';
