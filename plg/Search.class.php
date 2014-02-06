@@ -284,7 +284,12 @@ class plg_Search extends core_Plugin
             $query = $mvc->getQuery();
             while($rec = $query->fetch()) {
             	try{
-                	$mvc->save($rec);
+            	    
+            	    // Всички полета без modified - за да не се променят modified полетата
+            	    $saveFields = $mvc->selectFields("#name!='modifiedOn' && #name!='modifiedBy'");
+            	    
+            	    // Записваме всички полета, без 
+                	$mvc->save($rec, $saveFields);
                 } catch(Exception $e) {
             		continue;
             	}
