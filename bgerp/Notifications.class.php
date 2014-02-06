@@ -164,8 +164,6 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
 
-        $query->where("");
-
         if (!$userId) { 
             $userId = core_Users::getCurrent();
         }
@@ -174,7 +172,7 @@ class bgerp_Notifications extends core_Manager
 
         if($rec = $query->fetch()) {
 
-            return $rec->closed;
+            return $rec->closedOn;
         }
     }
     
