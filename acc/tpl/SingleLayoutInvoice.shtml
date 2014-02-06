@@ -18,7 +18,7 @@
 					
 					<!--ET_BEGIN sales_InvoiceDetails-->
 						<div class='details'>
-							[#sales_InvoiceDetails#]
+							[#acc_InvoiceDetails#]
 						</div>
 					<!--ET_END sales_InvoiceDetails-->
 					

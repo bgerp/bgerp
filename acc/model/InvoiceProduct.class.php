@@ -5,12 +5,12 @@
  * @author developer
  * @property core_Manager $productClass клас (мениджър) на продукта, описан с този ред
  */
-class sales_model_InvoiceProduct extends core_Model
+class acc_model_InvoiceProduct extends core_Model
 {
     /**
      * @var string|int|core_Mvc
      */
-    public static $mvc = 'sales_InvoiceDetails';
+    public static $mvc = 'acc_InvoiceDetails';
     
     
     /**

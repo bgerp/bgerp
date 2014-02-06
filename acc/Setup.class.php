@@ -16,6 +16,18 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Начален номер на фактурите
+ */
+defIfNot('ACC_INV_MIN_NUMBER', '0');
+
+
+/**
+ * Краен номер на фактурите
+ */
+defIfNot('ACC_INV_MAX_NUMBER', '10000000');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -79,6 +91,8 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
         	'acc_Operations',
     		'acc_OpenDeals',
+    		'acc_Invoices',
+            'acc_InvoiceDetails',
         );
     
 
@@ -97,7 +111,15 @@ class acc_Setup extends core_ProtoSetup
         );
  
     
-    
+    /**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'ACC_INV_MIN_NUMBER' => array('int', 'caption=Номер на фактура->Долна граница'),
+			'ACC_INV_MAX_NUMBER' => array('int', 'caption=Номер на фактура->Горна граница'),
+	);
+	
+	
     /**
      * Инсталиране на пакета
      */
@@ -126,6 +148,12 @@ class acc_Setup extends core_ProtoSetup
 		
         // Добавяне на роля за старши касиер
         $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('invoicer') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
+        // acc наследява invoicer
+        core_Roles::addRole('acc', 'invoicer');
         
         $html .= $this->loadSetupData();
 

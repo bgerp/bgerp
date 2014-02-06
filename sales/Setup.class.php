@@ -32,18 +32,6 @@ defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
 
 /**
- * Начален номер на фактурите
- */
-defIfNot('INV_MIN_NUMBER', '0');
-
-
-/**
- * Краен номер на фактурите
- */
-defIfNot('INV_MAX_NUMBER', '10000000');
-
-
-/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -91,8 +79,6 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
-			'INV_MIN_NUMBER'           => array('int', 'caption=Номер на фактура->Долна граница'),
-			'INV_MAX_NUMBER'           => array('int', 'caption=Номер на фактура->Горна граница'),
 	);
 	
 	
@@ -100,8 +86,6 @@ class sales_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'sales_Invoices',
-            'sales_InvoiceDetails',
             'sales_Sales',
             'sales_SalesDetails',
         	'sales_Routes',
@@ -141,6 +125,9 @@ class sales_Setup extends core_ProtoSetup
         
         // Добавяне на роля за старши продавач
         $html .= core_Roles::addRole('salesMaster', 'sales') ? "<li style='color:green'>Добавена е роля <b>salesMaster</b></li>" : '';
+        
+        //sales наследява invoicer
+        core_Roles::addRole('sales', 'invoicer');
         
         return $html;
     }

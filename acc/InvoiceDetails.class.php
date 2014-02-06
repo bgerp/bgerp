@@ -6,13 +6,13 @@
  *
  *
  * @category  bgerp
- * @package   sales
- * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @package   acc
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_InvoiceDetails extends core_Detail
+class acc_InvoiceDetails extends core_Detail
 {
     
     
@@ -31,9 +31,15 @@ class sales_InvoiceDetails extends core_Detail
     
     
     /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'sales_InvoiceDetails';
+    
+    
+    /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
     
     
     /**
@@ -63,13 +69,13 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'sales, ceo';
+    public $canWrite = 'invoicer, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'sales, ceo';
+    public $canRead = 'invoicer, ceo';
     
     
     /**
@@ -98,7 +104,7 @@ class sales_InvoiceDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
+        $this->FLD('invoiceId', 'key(mvc=acc_Invoices)', 'caption=Фактура, input=hidden, silent');
         $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');

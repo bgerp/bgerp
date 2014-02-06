@@ -4,12 +4,12 @@
  * 
  * @author developer
  */
-class sales_model_Invoice extends core_Model
+class acc_model_Invoice extends core_Model
 {
     /**
      * @var string|int|core_Mvc
      */
-    public static $mvc = 'sales_Invoices';
+    public static $mvc = 'acc_Invoices';
     
     
     /**

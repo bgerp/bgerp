@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   sales
- * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @package   acc
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Invoices extends core_Master
+class acc_Invoices extends core_Master
 {
     
     
@@ -44,7 +44,7 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
+    public $loadList = 'plg_RowTools, acc_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
                     doc_plg_BusinessDoc2, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
@@ -64,7 +64,13 @@ class sales_Invoices extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_InvoiceDetails' ;
+    public $details = 'acc_InvoiceDetails' ;
+    
+    
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'sales_Invoices';
     
     
     /**
@@ -76,25 +82,25 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRead = 'ceo,invoicer';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales';
+    public $canEdit = 'ceo,invoicer';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,invoicer';
     
     
 	/**
@@ -106,13 +112,13 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,invoicer';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,sales,acc';
+    public $canConto = 'ceo,invoicer';
     
     
     /**
@@ -124,7 +130,7 @@ class sales_Invoices extends core_Master
     /**
      * Нов темплейт за показване
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleLayoutInvoice.shtml';
     
     
     /**
@@ -145,6 +151,9 @@ class sales_Invoices extends core_Master
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
     
     
+    /**
+     * Поле за филтриране по дата
+     */
     public $filterDateField = 'date';
     
     
@@ -253,8 +262,8 @@ class sales_Invoices extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'acc/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'acc/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
     	
     	$skipped = $added = $updated = 0;
     	foreach ($tplArr as $arr){
@@ -296,7 +305,7 @@ class sales_Invoices extends core_Master
     public function updateMaster($id)
     {
     	$rec = $this->fetchRec($id);
-    	$query = $this->sales_InvoiceDetails->getQuery();
+    	$query = $this->acc_InvoiceDetails->getQuery();
         $query->where("#invoiceId = '{$id}'");
         $recs = $query->fetchAll();
         if(count($recs)){
@@ -305,7 +314,7 @@ class sales_Invoices extends core_Master
 	        }
         }
     	
-        price_Helper::fillRecs($recs, $rec, sales_InvoiceDetails::$map);
+        price_Helper::fillRecs($recs, $rec, acc_InvoiceDetails::$map);
         
         $rec->dealValue = $rec->_total->amount * $rec->rate;
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
@@ -381,7 +390,7 @@ class sales_Invoices extends core_Master
         	}
         }
 	        
-	    if($origin->className  == 'sales_Invoices'){
+	    if($origin->className  == 'acc_Invoices'){
 	        $mvc->populateNoteFromInvoice($form, $origin);
 	        $flag = TRUE;
 	    }
@@ -466,7 +475,7 @@ class sales_Invoices extends core_Master
 	 * Генерира фактура от пораждащ документ: може да се породи от:
 	 * 1. Продажба (@see sales_Sales)
 	 * 2. POS Продажба (@see pos_Receipts)
-	 * 3. Фактура (@see sales_Invoices) - тоест се прави ДИ или КИ
+	 * 3. Фактура (@see acc_Invoices) - тоест се прави ДИ или КИ
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
@@ -494,7 +503,7 @@ class sales_Invoices extends core_Master
 		    		$dRec->quantityInPack = $packQuantity;
 		    		$dRec->quantity       = $product->quantity / $packQuantity;
 		    		
-		    		$mvc->sales_InvoiceDetails->save($dRec);
+		    		$mvc->acc_InvoiceDetails->save($dRec);
 		    	}
     		}
     	}
@@ -632,7 +641,7 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	$tpl->push('acc/tpl/invoiceStyles.css', 'CSS');
     }
     
     
@@ -823,7 +832,7 @@ class sales_Invoices extends core_Master
      * Данните на контрагент, записани в съществуваща фактура
      * Интерфейсен метод на @see doc_ContragentDataIntf.
      * 
-     * @param int $id key(mvc=sales_Invoices)
+     * @param int $id key(mvc=acc_Invoices)
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      *  
      */
@@ -906,7 +915,7 @@ class sales_Invoices extends core_Master
     		
     		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
     		return TRUE;
-    	} elseif($firstDoc->instance instanceof sales_Invoices && $docState == 'active') {
+    	} elseif($firstDoc->instance instanceof acc_Invoices && $docState == 'active') {
     		
     		// или към нишка с начало активирана продажба
     		return TRUE;
@@ -1049,8 +1058,8 @@ class sales_Invoices extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->sales_InvoiceDetails->getQuery();
-    	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
+    	$dQuery = $this->acc_InvoiceDetails->getQuery();
+    	$dQuery->EXT('state', 'acc_Invoices', 'externalKey=invoiceId');
     	$dQuery->where("#invoiceId = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
@@ -1073,10 +1082,9 @@ class sales_Invoices extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Invoice($id);
+        $rec = new acc_model_Invoice($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-        
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
@@ -1087,8 +1095,8 @@ class sales_Invoices extends core_Master
         $result->invoiced->vatType  = $rec->vatRate;
         $result->invoiced->payment->method  = $rec->paymentMethodId;
         
-        /* @var $dRec sales_model_InvoiceProduct */
-        foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
+        /* @var $dRec acc_model_InvoiceProduct */
+        foreach ($rec->getDetails('acc_InvoiceDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;
@@ -1145,9 +1153,9 @@ class sales_Invoices extends core_Master
     {
     	if(empty($number)) return FALSE;
     	
-    	$conf = core_Packs::getConfig('sales');
+    	$conf = core_Packs::getConfig('acc');
     	
-    	return ($conf->INV_MIN_NUMBER <= $number && $number <= $conf->INV_MAX_NUMBER);
+    	return ($conf->ACC_INV_MIN_NUMBER <= $number && $number <= $conf->ACC_INV_MAX_NUMBER);
     }
     
     
@@ -1157,16 +1165,16 @@ class sales_Invoices extends core_Master
      */
     private function getNexNumber()
     {
-    	$conf = core_Packs::getConfig('sales');
+    	$conf = core_Packs::getConfig('acc');
     	
     	$query = $this->getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#number)');
     	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->INV_MIN_NUMBER;
+    		$maxNum = $conf->ACC_INV_MIN_NUMBER;
     	}
     	$nextNum = $maxNum + 1;
     	
-    	if($nextNum > $conf->INV_MAX_NUMBER) return NULL;
+    	if($nextNum > $conf->ACC_INV_MAX_NUMBER) return NULL;
     	
     	return $nextNum;
     }
@@ -1183,7 +1191,7 @@ class sales_Invoices extends core_Master
     	// ДИ и КИ могат да се активират винаги
     	if($rec->type != 'invoice') return $res = 'TRUE';
     	
-    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+    	$dQuery = $mvc->acc_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
     	
@@ -1204,7 +1212,7 @@ class sales_Invoices extends core_Master
      	$detailsKeywords = '';
 
      	// заявка към детайлите
-     	$query = sales_InvoiceDetails::getQuery();
+     	$query = acc_InvoiceDetails::getQuery();
      	// точно на тази фактура детайлите търсим
      	$query->where("#invoiceId = '{$rec->id}'");
      	
@@ -1242,7 +1250,7 @@ class sales_Invoices extends core_Master
     	// Обикновения продавач неможе да създава ДИ и КИ
     	if($action == 'add' && isset($rec)){
     		if($rec->type != 'invoice'){
-    			$res = 'ceo,salesMaster,acc';
+    			$res = 'ceo,acc';
     		}
     	}
     	

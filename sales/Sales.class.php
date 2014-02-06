@@ -731,8 +731,8 @@ class sales_Sales extends core_Master
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
-	    	if($actions['ship'] && sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	if($actions['ship'] && acc_Invoices::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Фактура", array('acc_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
 		    if(cash_Pko::haveRightFor('add')){
@@ -1011,8 +1011,12 @@ class sales_Sales extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        $saleRec = new sales_model_Sale($id);
-        
+        //try{
+    	$saleRec = new sales_model_Sale($id);
+        //}catch(Exception $e){
+        	//bp();
+       // }
+    	
     	$saleDocuments = $this->getDescendants($saleRec->id);
         
         // Извличаме dealInfo от самата продажба

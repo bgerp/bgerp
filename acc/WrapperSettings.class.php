@@ -32,7 +32,7 @@ class acc_WrapperSettings extends plg_ProtoWrapper
         $this->TAB('acc_Accounts', 'Сметки', 'ceo,acc');
         $this->TAB('acc_Limits', 'Лимити', 'ceo,acc');
         $this->TAB('acc_Operations', 'Операции', 'ceo,acc');
-            
+          
         $this->title = 'Настройки « Счетоводство';
         Mode::set('menuPage','Счетоводство:Настройки');
     }

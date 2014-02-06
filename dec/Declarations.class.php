@@ -416,7 +416,7 @@ class dec_Declarations extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-    	if(sales_Invoices::fetch("#threadId = {$threadId} AND #state = 'active'")){
+    	if(acc_Invoices::fetch("#threadId = {$threadId} AND #state = 'active'")){
     		return TRUE;
     	}
     	

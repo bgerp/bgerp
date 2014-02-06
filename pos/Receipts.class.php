@@ -587,6 +587,6 @@ class pos_Receipts extends core_Master {
     	$folderId = $contragentClass->forceCoverAndFolder($client->id);
     	
     	$this->createNew();
-    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
+    	return redirect(array('acc_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
     }
 }
