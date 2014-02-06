@@ -640,7 +640,7 @@ class store_Receipts extends core_Master
     	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
-    	$row->address = $oldRow->contragentName;
+    	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
     	trim($row->address, ', ');
     	

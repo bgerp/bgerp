@@ -174,7 +174,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->text = ($rec->state == 'draft') ? tr("Продажбата ще бъде приключена с ") : tr("Продажбата е приключена с ");
+    	$row->text = ($rec->state == 'draft') ? tr("Продажбата ще бъде приключена с извънреден ") : tr("Продажбата е приключена с ");
     	$amount = static::getClosedDealAmount($rec->threadId);
     	$type = (($amount < 0) ? tr('разход') : tr('приход'));
     	$row->text .= " " . $type . " " . tr("от");

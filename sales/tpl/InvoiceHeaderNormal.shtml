@@ -1,7 +1,7 @@
 <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 	<tbody>
 		<tr>
-			<td class="cell custom-header-bg" width="35%"><b>|Получател|* / <i>Buyer</i></b></td>
+			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|* / <i>Buyer</i></b></td>
 		    <td class="cell" rowspan="3" align="center" width="30%">
 		        <div class='invoiceTitle'><span id='invType'>[#type#]</span></div><br>
 		        <div class='invInfo'>|Номер|* / Number</div>
@@ -11,14 +11,17 @@
 		    	<div class='invInfo'>|Място|* / Place</div>
 		        <div class="bigData">[#place#]</div>
 				<div class='invInfo bigData'>
-		            <div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div><br />
+		            <div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div>
+		            	<!--ET_BEGIN POS-->
 		                <span style='font-weight:normal;'>[#POS#]</span>
-		                <!--ET_BEGIN origin-->
-		                <div id='origin-title'>|към Фактура|* <b>№[#origin#]</b> |от|* [#invDate#]</div>
-		                <!--ET_END origin-->
-		            </div>
+		                <!--ET_END POS-->
+		                <!--ET_BEGIN originInv-->
+		                <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
+		                <br />
+		                <!--ET_END originInv-->
+		       </div>
 		    </td>
-		    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|* / <i>Seller</i></b> </td>
+		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|* / <i>Seller</i></b> </td>
 		</tr>           
 		<tr>
 		    <td class="cell">

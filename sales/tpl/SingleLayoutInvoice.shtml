@@ -91,12 +91,12 @@
 		                <tbody>
 		                <tr>
 		                   <td class="topCell" valign="top" width="30%">
-		                   <div>|Доставка|* / <i>Delivery</i></div>
+		                   <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
 		                   <!--ET_BEGIN deliveryId-->
-		                   <div>|Условие|* / <i>Term</i> : [#deliveryId#]</div>
+		                   <div>|Условие|* / <i>Term</i> : <b>[#deliveryId#]</b></div>
 		                   <!--ET_END deliveryId-->
 		                   <!--ET_BEGIN deliveryPlaceId-->
-		                   <div>|Място|* / <i>Place</i><br />[#deliveryPlaceId#]</div>
+		                   <div>|Място|* / <i>Place</i><br /><b>[#deliveryPlaceId#]</b></div>
 		                   <!--ET_END deliveryPlaceId-->
 		                   <!--ET_BEGIN additionalInfo-->
 		                   <hr>
@@ -110,25 +110,25 @@
 		                        </div>
 		                  </td>
 		                   <td class="topCell" valign="top" width="40%">
-		                        <div>|Плащане|* / <i>Payment</i></div>
+		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
-		                        <div>|Начин|* / <i>Method</i> : [#paymentMethodId#]</div>
+		                        <div>|Начин|* / <i>Method</i> : <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
-		                        <div>|Валута|* / <i>Currency</i> : [#currencyId#]</div>
-		                        <div>|Курс|* / <i>Rate</i> : [#rate#]</div>
+		                        <div>|Валута|* / <i>Currency</i> : <b>[#currencyId#]</b></div>
+		                        <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
 		                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
 		                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
 		                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
 		                        <!--ET_END OVERDUE_INTEREST_RATE-->
 		                        <!--ET_BEGIN accountId-->
 		                        <div>
-			                        <hr>|Банкова с-ка|*: [#accountId#]
+			                        <hr>|Банкова с-ка|*: <b>[#accountId#]</b>
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
-			                        <div>|Банка|*: [#bank#]</div>
+			                        <div>[#bank#]</div>
 			                        <!--ET_BEGIN bank-->
 			                        <!--ET_BEGIN bic-->
-			                        <div>BIC(SWIFT): [#bic#]</div>
+			                        <div>BIC(SWIFT): <b>[#bic#]</b></div>
 			                        <!--ET_BEGIN bic-->
 			                        </div>
 				                </div>
@@ -190,13 +190,7 @@
 		                                <td align="RIGHT">[#username#]</td>
 		                            </tr>
 		                            </tbody>
-		                        </table>
-		                        <!--ET_BEGIN TO_SALES-->  
-		                        <div style="padding:10px;">
-		                            <div style="padding-top:5px;">|Към продажба|* / <i>To sale</i></div>
-		                            <div class="bigData">[#TO_SALES#]</div>
-		                        </div>
-		                        <!--ET_END TO_SALES-->  
+		                        </table> 
 		                    </td>
 		                </tr>        
 		                </tbody>

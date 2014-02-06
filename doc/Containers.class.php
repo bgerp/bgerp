@@ -1279,10 +1279,10 @@ class doc_Containers extends core_Manager
         // Подреждаме масива
         sort($dateRange);
         
-        // Всички документи създадени от потребителите, между датите
+        // Всички документи създадени от потребителите и редактирани между датите
         $query = static::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $dateRange[0]));
-        $query->where(array("#createdOn <= '[#1#]'", $dateRange[1]));
+        $query->where(array("#modifiedOn >= '[#1#]'", $dateRange[0]));
+        $query->where(array("#modifiedOn <= '[#1#]'", $dateRange[1]));
         $query->where("#createdBy > 0");
         
         // Инстанция на класа
@@ -1291,59 +1291,45 @@ class doc_Containers extends core_Manager
         // id на класа
         $outgoingsClassId = $Outgoings->getClassId();
         
-        // Без оттеглените
-        $query->where("#state != 'rejected'");
-        
         // Само черновите
         $query->where("#state = 'draft'");
         
         // Или, ако са имейли, активните
         $query->orWhere(array("#state = 'active' AND #docClass = '[#1#]'", $outgoingsClassId));
         
-        // Поредедени по дата
-        $query->orderBy('createdOn', 'ASC');
+        // Групираме по създаване и състояние
+        $query->groupBy('createdBy, state');
         
         while ($rec = $query->fetch()) {
             
-            // Нулираме данните
-            $message = '';
-            $urlArr = array();
+            // Масив с екипите на съответния потребител
+            $authorTemasArr[$rec->createdBy] = type_Users::getUserFromTeams($rec->createdBy);
+            
+            // Вземаме първия екип, в който участва
+            $firstTeamAuthor = key($authorTemasArr[$rec->createdBy]);
+            
+            // URL-то което ще служи за премахване на нотификацията
+            $urlArr = array('doc_Search', 'state' => $rec->state, 'author' => $rec->createdBy);
             
             // Ако е чернова
             if ($rec->state == 'draft') {
                 
-                // Инстанция на класа
-                $docMvc = cls::get($rec->docClass);
-                
-                // Типа на докуемнта
-                $docSingleTitle = ucfirst(mb_strtolower($docMvc->singleTitle));
-                
                 // Съобщение
-                $message = "|Незавършени действия с|* |{$docSingleTitle}|*";
+                $message = "|Чернови документи";
                 
-                // Линк към сингъла
-                $urlArr = array($docMvc, 'single', $rec->docId);
+                // Линк, където ще сочи нотификацията
+                $customUrl = array('doc_Search', 'state' => 'draft', 'author' => $firstTeamAuthor);
             } else {
                 
-                // Ако не е чернова, следователно е активиран имейл
+                // Съобщение
+                $message = "|Активирани но неизпратени имейли";
                 
-                // Ако имейла не е бил изпратен
-                if (!log_Documents::isSended($rec->id)) {
-                    
-                    // Съобщение
-                    $message = "|Активиран но неизпратен имейл";
-                    
-                    // Линк към сингъла на имейла
-                    $urlArr = array($Outgoings, 'single', $rec->docId);
-                }
+                // Линк, където ще сочи нотификацията
+                $customUrl = array('doc_Search', 'state' => 'active', 'docClass' => $outgoingsClassId, 'author' => $firstTeamAuthor);
             }
             
-            // Ако има съобщените
-            if ($message) {
-                
-                // Добавяме нотификация
-                bgerp_Notifications::add($message, $urlArr, $rec->createdBy, 'normal');
-            }
+            // Добавяме нотификация
+            bgerp_Notifications::add($message, $urlArr, $rec->createdBy, 'normal', $customUrl);
         }
         
         return ;

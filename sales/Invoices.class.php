@@ -374,9 +374,9 @@ class sales_Invoices extends core_Master
         		$form->setField('paymentMethodId', 'input=hidden');
         	}
         	
-        	$form->rec->deliveryId = $aggregateInfo->shipped->delivery->term;
-        	if($aggregateInfo->shipped->delivery->location){
-        		$form->rec->deliveryPlaceId = $aggregateInfo->shipped->delivery->location;
+        	$form->rec->deliveryId = $aggregateInfo->agreed->delivery->term;
+        	if($aggregateInfo->agreed->delivery->location){
+        		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
         }
@@ -449,11 +449,11 @@ class sales_Invoices extends core_Master
 	    		
 	    		// Изчисляване на стойността на ддс-то
 	        	$vat = acc_Periods::fetchByDate()->vatRate;
-	        	$rec->vatAmount = ($rec->vatRate == 'yes') ? $rec->changeAmount * $vat / (1 + $vat) : $rec->changeAmount * $vat;
+	        	$rec->vatAmount = $rec->changeAmount * $vat;
 	        	$rec->vatAmount *= $rec->rate;
 	        	
 	        	// Стойността е променената сума
-	        	$rec->dealValue = ($rec->vatRate == 'yes') ? $rec->changeAmount - $rec->vatAmount : $rec->changeAmount;
+	        	$rec->dealValue = $rec->changeAmount;
 	        	$rec->dealValue *= $rec->rate;
 	        }
         }
@@ -675,6 +675,13 @@ class sales_Invoices extends core_Master
     		
 			$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
 			
+			if($rec->type != 'invoice'){
+				$originRec = $mvc->getOrigin($rec)->fetch();
+				$originRow = $mvc->recToVerbal($originRec, 'number,date');
+				$row->originInv = $originRow->number;
+				$row->originInvDate = $originRow->date;
+			}
+			
     		$mvc->prepareMyCompanyInfo($row);
 		}
     }
@@ -706,7 +713,8 @@ class sales_Invoices extends core_Master
     	$rec = &$data->rec;
     	
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    		if($mvc->haveRightFor('add')){
+    		
+    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note')) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
     			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     		}
@@ -795,6 +803,8 @@ class sales_Invoices extends core_Master
         $form->setDefault('date', dt::today());
         $form->setField('reason', 'input');
 		$form->setField('changeAmount', 'input');
+		$form->setField('changeAmount', 'unit=без ДДС');
+		$form->setField('vatRate', 'input=hidden');
 		$form->setField('reason', 'input,mandatory');
 		$form->setField('deliveryId', 'input=none');
 		$form->setField('deliveryPlaceId', 'input=none');
@@ -1248,6 +1258,13 @@ class sales_Invoices extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
+    	
+    	// Обикновения продавач неможе да създава ДИ и КИ
+    	if($action == 'add' && isset($rec)){
+    		if($rec->type != 'invoice'){
+    			$res = 'ceo,salesMaster,acc';
+    		}
+    	}
     	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){

@@ -19,3 +19,7 @@
 "Връщане от Доставчик","cash_Pko","501","401","supplier2case"
 "Връщане към Клиент","cash_Rko","411","501","case2customer"
 "Връщане към Клиент","bank_SpendingDocuments","411","503","bank2customer"
+"Връщане на аванс от Доставчик","cash_Pko","501","402","supplierAdvance2case"
+"Връщане на аванс от Доставчик","bank_IncomeDocuments","503","402","supplierAdvance2bank"
+"Върнат аванс на Клиент","cash_Rko","412","501","caseAdvance2customer"
+"Върнат аванс на Клиент","bank_SpendingDocuments","412","503","bankAdvance2customer"
