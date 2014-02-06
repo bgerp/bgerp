@@ -20,6 +20,10 @@
 		                <br />
 		                <!--ET_END originInv-->
 		       </div>
+		       <!--ET_BEGIN state-->
+                  <br/>
+                  <div class="[#STATE_CLASS#]">[#state#]</div>
+               <!--ET_END state-->
 		    </td>
 		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|* / <i>Seller</i></b> </td>
 		</tr>           
