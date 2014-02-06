@@ -71,7 +71,7 @@ class bgerp_Notifications extends core_Manager
      */
     function description()
     {
-        $this->FLD('msg', 'varchar(128)', 'caption=Съобщение, mandatory');
+        $this->FLD('msg', 'varchar(255)', 'caption=Съобщение, mandatory');
         $this->FLD('state', 'enum(active=Активно, closed=Затворено)', 'caption=Състояние');
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Отговорник');
         $this->FLD('priority', 'enum(normal, warning, alert)', 'caption=Приоритет');
