@@ -30,6 +30,14 @@ class bgerp_iface_DealResponse
     
     
     /**
+     * Дали има авансово плащане
+     *
+     * @var boolean
+     */
+    public $hasDownpayment;
+    
+    
+    /**
      * Информация за запитване
      * 
      * @var bgerp_iface_DealAspect

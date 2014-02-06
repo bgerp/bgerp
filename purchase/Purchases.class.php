@@ -647,7 +647,9 @@ class purchase_Purchases extends core_Master
 		        						  'bank2supplier',
 		        						  'case2supplier',
 		        						  'supplier2bank',
-		        						  'supplier2case');
+		        						  'supplier2case',
+        								  'case2supplierAdvance',
+		        						  'bank2supplierAdvance');
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи

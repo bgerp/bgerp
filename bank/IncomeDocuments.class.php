@@ -136,7 +136,7 @@ class bank_IncomeDocuments extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'currencyId'     => 'lastDocUser|lastDoc',
+    	'currencyId' => 'lastDocUser|lastDoc',
     );
     
     
@@ -205,7 +205,7 @@ class bank_IncomeDocuments extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         
         if(empty($form->rec->id) && $origin = $mvc->getOrigin($form->rec)) {
-        	$mvc->setDefaultsFromOrigin($origin, $form, $options);
+        	$mvc->setDefaultsFromOrigin($origin, $form, $options, $defaultOperation);
     	}
     	
     	$form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
@@ -214,6 +214,10 @@ class bank_IncomeDocuments extends core_Master
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setOptions('operationSysId', $options);
+    	if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
+    		$form->rec->operationSysId = $form->defaultOperation;	
+        }
+    	
      	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -236,7 +240,6 @@ class bank_IncomeDocuments extends core_Master
     		 // Ако има банкова сметка по пдоразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
     		 	$bankRec = bank_OwnAccounts::fetch($bankId);
-    		 	$forcedLogin = FALSE;
     		 	
     		 	// Ако потребителя има права, логва се тихо
     		 	bank_OwnAccounts::selectSilent($bankId);
@@ -248,7 +251,13 @@ class bank_IncomeDocuments extends core_Master
     		 		unset($options[$index]);
     		 	}
     		 }
-    		 	
+
+        	 if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		 	$form->defaultOperation = (!$dealInfo->hasDownpayment) ? 'customer2bankAdvance' : 'customer2bank';
+    		 } else {
+    		 	$form->defaultOperation = (!$dealInfo->hasDownpayment) ? 'supplierAdvance2bank' : 'supplier2bank';
+    		 }
+    		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
@@ -558,7 +567,11 @@ class bank_IncomeDocuments extends core_Master
         $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = $rec->ownAccount;
-                
+		$result->paid->operationSysId         = $rec->operationSysId;
+        
+		$hasDownpayment = ($rec->operationSysId == 'customer2bankAdvance') ? TRUE : FALSE;
+    	$result->hasDownpayment = $hasDownpayment;
+    	
         return $result;
     }
     

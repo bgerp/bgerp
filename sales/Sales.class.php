@@ -914,7 +914,9 @@ class sales_Sales extends core_Master
 		        						  'customer2case',
 		        						  'customer2bank',
 		        						  'case2customer',
-		        						  'bank2customer');
+		        						  'bank2customer',
+		        						  'caseAdvance2customer',
+		        						  'bankAdvance2customer');
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
@@ -927,6 +929,7 @@ class sales_Sales extends core_Master
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->currency               = $rec->currencyId;
@@ -1031,6 +1034,7 @@ class sales_Sales extends core_Master
             if ($d->haveInterface('bgerp_DealIntf')) {
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
+                $aggregateInfo->hasDownpayment = $aggregateInfo->hasDownpayment || $dealInfo->hasDownpayment;
                 
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);

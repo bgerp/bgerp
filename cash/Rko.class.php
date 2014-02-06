@@ -218,6 +218,12 @@ class cash_Rko extends core_Master
     		 		$amount = 0;
     		 	}
     		 	
+    		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		 		$defaultOperation = ($dealInfo->hasDownpayment) ? 'caseAdvance2customer' : 'case2customer';
+    		 	} else {
+    		 		$defaultOperation = ($dealInfo->hasDownpayment) ? 'case2supplierAdvance' : 'case2supplier';
+    		 	}
+    		 	
     		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
     		 	foreach ($options as $index => $op){
     		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
@@ -249,6 +255,9 @@ class cash_Rko extends core_Master
     	}
         
         $form->setOptions('operationSysId', $options);
+    	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
+    		$form->rec->operationSysId = $defaultOperation;	
+        }
         $form->setReadOnly('peroCase', cash_Cases::getCurrent());
         $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         
@@ -554,6 +563,10 @@ class cash_Rko extends core_Master
         $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
+    	$result->paid->operationSysId  = $rec->operationSysId;
+        
+        $hasDownpayment = ($rec->operationSysId == 'case2supplierAdvance') ? TRUE : FALSE;
+    	$result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

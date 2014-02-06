@@ -214,6 +214,11 @@ class bank_SpendingDocuments extends core_Master
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setOptions('operationSysId', $options);
+    	
+    	if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
+    		$form->rec->operationSysId = $form->defaultOperation;
+    	}
+        
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
     }
@@ -248,6 +253,12 @@ class bank_SpendingDocuments extends core_Master
     		 	}
     		 }
     		 	
+       		 if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		 	$form->defaultOperation = ($dealInfo->hasDownpayment) ? 'bankAdvance2customer' : 'bank2customer';
+    		 } else {
+    		 	$form->defaultOperation = ($dealInfo->hasDownpayment) ? 'bank2supplierAdvance' : 'bank2supplier';
+    		 }
+    		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
@@ -516,7 +527,10 @@ class bank_SpendingDocuments extends core_Master
         $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = $rec->ownAccount;
+        $result->paid->operationSysId         = $rec->operationSysId;
         
+    	$hasDownpayment = ($rec->operationSysId == 'bank2supplierAdvance') ? TRUE : FALSE;
+    	$result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }
