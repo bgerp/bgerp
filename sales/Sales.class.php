@@ -1011,11 +1011,7 @@ class sales_Sales extends core_Master
      */
     public function getAggregateDealInfo($id)
     {
-        //try{
-    	$saleRec = new sales_model_Sale($id);
-        //}catch(Exception $e){
-        	//bp();
-       // }
+        $saleRec = new sales_model_Sale($id);
     	
     	$saleDocuments = $this->getDescendants($saleRec->id);
         
