@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_plg_CommunicationFormat extends core_Plugin
+class communicationformat_Plugin extends core_Plugin
 {
 
 	/**
@@ -23,8 +23,8 @@ class bgerp_plg_CommunicationFormat extends core_Plugin
        
        $this->mvc = $mvc;
        
-       $conf = core_Packs::getConfig('bgerp'); 
-       $format = explode(",", $conf->BGERP_COMMUNICATION_FORMAT);
+       $conf = core_Packs::getConfig('communicationformat'); 
+       $format = explode(",", $conf->COMMUNICATION_FORMAT);
       
        try {
 	       if (in_array('tel', $format)) { 
