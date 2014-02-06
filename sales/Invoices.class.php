@@ -902,7 +902,7 @@ class sales_Invoices extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof sales_Sales){
     		
     		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
     		return TRUE;
@@ -1012,28 +1012,8 @@ class sales_Invoices extends core_Master
         if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        
-        // Ако има първи документ
-    	if(isset($firstDoc) && $firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-	    	$aggregateInfo = $firstDoc->getAggregateDealInfo();
-	    	if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
-	        	
-	        	// ако е продажба
-	        	$debitAccId  = '411';
-	        	$creditAccId = '4532';
-	        } else {
-	        	
-	        	// ако е покупка
-	        	$debitAccId  = '401';
-	        	$creditAccId = '4531';
-	        }
-    	} else {
-    		
-    		// ако е пос продажба
-    		$debitAccId  = '411';
-	        $creditAccId = '4532';
-    	}
+    	$debitAccId  = '411';
+	    $creditAccId = '4532';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
