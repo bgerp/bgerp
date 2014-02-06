@@ -149,6 +149,42 @@ class callcenter_Numbers extends core_Manager
     
     
     /**
+     * Връща вербалното име на позвъняващия за съответния запис в модела
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    static function getCallerName($id)
+    {
+        // Ако не е подадено id
+        if (!$id) return ;
+        
+        // Вземаме записа
+        $numRec = callcenter_Numbers::fetch($id);
+        
+        // Ако няма клас или id на контрагент
+        if (!$numRec->classId || !$numRec->contragentId) return ;
+        
+        // Инстанция на съответния клас
+        $class = cls::get($numRec->classId);
+        
+        // Ако класа е инстанция на профилите
+        if (($class instanceof crm_Profiles)) {
+            
+            // Вземаме името от профила
+            $name = $class->getVerbal($numRec->contragentId, 'userId');
+        } else {
+            
+            // Вербалното име
+            $name = $class->getVerbal($numRec->contragentId, 'name');
+        }
+        
+        return $name;
+    }
+    
+    
+    /**
      * Добавяме посочения номер в модела
      * 
      * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
