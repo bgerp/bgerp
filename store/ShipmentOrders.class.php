@@ -731,7 +731,7 @@ class store_ShipmentOrders extends core_Master
     		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за експедиционни нареждания, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
     
     
