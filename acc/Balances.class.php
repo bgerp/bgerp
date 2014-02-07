@@ -246,9 +246,7 @@ class acc_Balances extends core_Master
     private function prepareStoredata()
     {
     	$all = array();
-    	$query = static::getQuery();
-    	$query->orderBy('#lastCalculate', 'DESC');
-    	$balanceRec = $query->fetch();
+    	$balanceRec = $this->getLastBalance();
     	
     	// Извличане на сметките по които ще се ситематизират данните
     	$conf = core_Packs::getConfig('store');
@@ -362,5 +360,84 @@ class acc_Balances extends core_Master
         }
         
         $this->extractStoreData();
+        acc_Journal::clearDrafts();
+    }
+    
+    
+    /**
+     * Връща последно калкулирания баланс
+     */
+    public static function getLastBalance()
+    {
+    	$query = static::getQuery();
+    	$query->orderBy('#lastCalculate', 'DESC');
+    	
+    	return $query->fetch();
+    }
+    
+    
+    /**
+     * Ф-я връщаща записи от последния баланс отговарящ ма следните условия
+     * 
+     * @param mixed $accs     - списък от систем ид-та на сметките
+     * @param mixed $itemsAll - списък от пера, за които може да са на произволна позиция
+     * @param mixed $items1   - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2   - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3   - списък с пера, от които поне един може да е на трета позиция
+     * @return array          - масив със всички извлечени записи
+     */
+    public static function fetchCurrent($accs, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    {
+    	// Трябва да има поне една зададена сметка
+    	$accounts = arr::make($accs);
+    	expect(count($accounts) >= 1);
+    	
+    	// Кой е последния баланс
+    	$balanceRec = static::getLastBalance();
+    	
+    	// Извличане на данните от баланса в които участват зададените сметки
+    	$dQuery = acc_BalanceDetails::getQuery();
+	    foreach ($accounts as $sysId){
+	    	$dQuery->orWhere("#accountNum = {$sysId}");
+	    }
+    	
+	    // ... само детайлите от последния баланс
+	    $dQuery->where("#balanceId = {$balanceRec->id}");
+	    
+	    // Перата които може да са на произволна позиция
+    	$itemsAll = arr::make($itemsAll);
+    	
+    	if(count($itemsAll)){
+    		foreach ($itemsAll as $itemId){
+    			
+    			// Трябва да инт число
+    			expect(ctype_digit($itemId));
+    			
+    			// .. и перото да участва на произволна позиция
+		    	$dQuery->where("#ent1Id = {$itemId}");
+		    	$dQuery->orWhere("#ent2Id = {$itemId}");
+		    	$dQuery->orWhere("#ent3Id = {$itemId}");
+    		}
+    	}
+    	
+    	// Проверка на останалите параметри от 1 до 3
+    	foreach (range(1, 3) as $i){
+    		$var = ${"items{$i}"};
+    		
+    		// Ако е NULL продалжаваме
+    		if(!$var) continue;
+    		$varArr = arr::make($var);
+    		
+    		// За перата се изисква поне едно от тях да е на текущата позиция
+    		$j = 0;
+    		foreach($varArr as $itemId){
+    			$or = ($j == 0) ? FALSE : TRUE;
+    			$dQuery->where("#ent{$i}Id = {$itemId}", $or);
+    			$j++;
+    		}
+    	}
+	   
+    	// Връщане на всички намерени записи
+	    return $dQuery->fetchAll();
     }
 }
