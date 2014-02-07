@@ -123,6 +123,18 @@ class crm_Persons extends core_Master
     var $canRead = 'powerUser';
     
     
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'crm_ContragentAccRegIntf';
+    
+    
 	/**
 	 * Кой може да го разглежда?
 	 */
@@ -159,7 +171,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails';
     
 
     /**
