@@ -285,8 +285,12 @@ class plg_Search extends core_Plugin
             while($rec = $query->fetch()) {
             	try{
             	    
+            	    // Полетата, които да се записват
+                    $saveFields = arr::make($mvc->searchFields);
+                    $saveFields[] = 'searchKeywords';
+                    
             	    // Записваме всички полета, без 
-                	$mvc->save($rec, 'searchKeywords');
+                	$mvc->save($rec, $saveFields);
                 } catch(Exception $e) {
             		continue;
             	}
