@@ -9,8 +9,7 @@
 	<p class='centered'>№ [#number#] / [#modifiedOn#]</p>
 	<br>
 	
-	<table class='border-table' border=1 cellpadding="5" >
-	   
+	<table class='border-table' border=1 cellpadding="5" width=100%>
 	   <tr>
 	       <th>
 	           |Извънреден приход|*

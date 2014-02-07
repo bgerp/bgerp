@@ -899,6 +899,9 @@ td.portal-date {
 	    border:1px solid #999;
 	    padding:3px;
 	}
+	.border-table th{
+	   background-color: rgba(200, 200, 200, 0.4);
+	}
 	&.print-letter {
 		page-break-after: always;
 		max-width: 850px;
