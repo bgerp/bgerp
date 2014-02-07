@@ -9,7 +9,7 @@
 	<p class='centered'>№ [#number#] / [#modifiedOn#]</p>
 	<br>
 	
-	<table border=1 cellpadding="5">
+	<table class='border-table' border=1 cellpadding="5" >
 	   
 	   <tr>
 	       <th>

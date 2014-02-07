@@ -18,7 +18,7 @@ h2{
 .order-table td {
 	padding-left:15px;
 	border-bottom-style:none;
-	border:1px solid #000;
+	border:1px solid #999;
 	padding:4px;
 }
 
@@ -30,7 +30,6 @@ h2{
 }
 
 .title-order{
-	
 	width:33%;
 	text-align:center;
 	vertical-align:top;
@@ -78,10 +77,6 @@ th {
     font-size:18px;
 }
 
-.no-border > tbody > tr > td{
-	border: none;
-}
-
 #with-words {
 	background-color:rgba(200, 200, 200, 0.4);
 	text-align:right;
@@ -108,21 +103,13 @@ th {
 .labels {
 	font-size:14px;
 }
-.border-table td{
-	border:1px solid #000;
-	padding:3px;
-}
-
-.sign_names {
-	margin-left:15%;
-}
 
 .pko-notes{
 	border:none;
 	border-collapse:collapse;
 }
 .pko-notes td{
-	border:1px solid #000;
+	border:1px solid #999;
 	border-top:none;
 }
 .pko-notes table td{

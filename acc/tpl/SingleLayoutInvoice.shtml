@@ -28,14 +28,16 @@
 		                <tbody>
 		                <tr>
 		                <td>
-		                <div>
+		                     <div>
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
 		                        <div>|Начин|* / <i>Method</i> : <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
 		                        <div>|Валута|* / <i>Currency</i> : <b>[#currencyId#]</b></div>
 		                        <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
+		                        <!--ET_BEGIN DUE_DATE-->
 		                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
+		                        <!--ET_END DUE_DATE-->
 		                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
 		                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
 		                        <!--ET_END OVERDUE_INTEREST_RATE-->
@@ -142,38 +144,38 @@
 		                <tbody>
 		                <tr>
 		                   <td class="topCell" valign="top" width="30%">
-		                   <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
-		                   <!--ET_BEGIN deliveryId-->
-		                   <div>|Условие|* / <i>Term</i> : <b>[#deliveryId#]</b></div>
-		                   <!--ET_END deliveryId-->
-		                   <!--ET_BEGIN deliveryPlaceId-->
-		                   <div>|Място|* / <i>Place</i><br /><b>[#deliveryPlaceId#]</b></div>
-		                   <!--ET_END deliveryPlaceId-->
-		                   <!--ET_BEGIN additionalInfo-->
-		                   <hr>
-		                   <div>|Бележки|* / <i>Notes</i></div>
-		                   <div>[#additionalInfo#]</div>
-		                   <!--ET_END additionalInfo-->
-		                   <hr>
 		                   <div>|Отговорен за стопанската операция|*:<br><br>
 		                        ...........................................................
-		                        [#responsible#]
-		                        </div>
+		                        <div class='centered'>[#responsible#]</div>
+		                  </div>
 		                  </td>
-		       
+		                    <td class="topCell" valign="top">
+		                    
+			                    <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
+	                           <!--ET_BEGIN deliveryId-->
+	                           <div>|Условие|* / <i>Term</i>: <b>[#deliveryId#]</b></div>
+	                           <!--ET_END deliveryId-->
+	                           <!--ET_BEGIN deliveryPlaceId-->
+	                           <div>|Място|* / <i>Place</i>: <b>[#deliveryPlaceId#]</b></div>
+	                           <!--ET_END deliveryPlaceId-->
+	                           <!--ET_BEGIN additionalInfo-->
+	                           <hr>
+	                           <div>|Бележки|* / <i>Notes</i></div>
+	                           <div>[#additionalInfo#]</div>
+	                           <!--ET_END additionalInfo-->
+		                    </td>
 		                    <td class="topCell" align="right" width="30%" style='vertical-align:bottom !important'>
 		                        <table>
 		                            <tbody>
 		                             <!--ET_BEGIN vatDate-->  
 		                            <tr>
-		                                <td class='invoice-vat-info'><div style='float:right'></span>|Дата на данъчното събитие|* / <br />
-		                                <i>Tax event date</i>:</div></td>
+		                                <td class='invoice-vat-info'>|Дата на данъчното събитие|* / <br>
+		                                <i>Tax event date</i>: <b>[#vatDate#]</b> </td>
 		                            </tr>
+		                            <!--ET_END vatDate-->  
+		                            
+		                           
 		                             
-		                            <tr>
-		                                <td align="RIGHT"><b>[#vatDate#]</b></td>
-		                            </tr>
-		                             <!--ET_END vatDate--> 
 		                             
 		                             <!--ET_BEGIN VAT_REASON--> 
 		                            <tr>
@@ -184,17 +186,28 @@
 		                            </tr>
 		                            <!--ET_END VAT_REASON-->
 		                            <tr>
-		                            <td style='height:50px'></td>
+                                      <td class='invoice-vat-info'>|Място|* / <i>Place</i>: <b>[#place#]</b>
+                                       
+                                        </td>
+                                    </tr>
+		                            <tr>
+		                            <td style='height:35px'></td>
 		                            </tr> 
 		                            <tr>
 		                                <td style="padding-top: 5px; text-align: right;">
-		                                    |Съставил|*: ..................................&nbsp;
-		                                    <br>
+		                                  <table>
+			                                   <tr>
+			                                        <td width="1%">|Съставил|*:  </td><td></td>
+			                                    </tr>
+			                                    <tr>
+			                                        <td></td>
+			                                        <td><span class="sign_names">[#username#]</span></td>
+			                                        
+			                                    </tr>
+			                                
+                                            </table>
 		                             	</td>
-		                            </tr>
-		                            <tr>
-		                                <td align="RIGHT">[#username#]</td>
-		                            </tr>
+		                            
 		                            </tbody>
 		                        </table> 
 		                    </td>

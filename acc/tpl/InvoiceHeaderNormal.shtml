@@ -3,13 +3,12 @@
 		<tr>
 			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|* / <i>Buyer</i></b></td>
 		    <td class="cell" rowspan="3" align="center" width="30%">
-		        <div class='invoiceTitle'><span id='invType'>[#type#]</span></div><br>
+		        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>[#type#]</span></div>
 		        <div class='invInfo'>|Номер|* / Number</div>
 		        <div class="bigData">[#number#]</div>
 		        <div class='invInfo'>|Дата|* / Date</div>
 		        <div class="bigData">[#date#]</div>
-		    	<div class='invInfo'>|Място|* / Place</div>
-		        <div class="bigData">[#place#]</div>
+		    	<!--  -->
 				<div class='invInfo bigData'>
 		            <div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div>
 		            	<!--ET_BEGIN POS-->
@@ -17,12 +16,12 @@
 		                <!--ET_END POS-->
 		                <!--ET_BEGIN originInv-->
 		                <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
-		                <br />
+		                
 		                <!--ET_END originInv-->
 		       </div>
 		       <!--ET_BEGIN state-->
-                  <br/>
-                  <div class="[#STATE_CLASS#]">[#state#]</div>
+                 
+                  <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                <!--ET_END state-->
 		    </td>
 		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|* / <i>Seller</i></b> </td>
