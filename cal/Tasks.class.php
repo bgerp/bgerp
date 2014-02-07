@@ -582,7 +582,7 @@ class cal_Tasks extends core_Master
 
         if ($data->action === 'list') { 
         	$chart = Request::get('Chart');
-        	//bp($chart, $data->listFilter->rec->Chart);
+        	
             if ($data->listFilter->rec->selectedUsers != 'all_users') {  
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -606,20 +606,11 @@ class cal_Tasks extends core_Master
 	        if (count($dateRange) == 2) {
 	            sort($dateRange);
 	        }
-	       
-			if($dateRange[0]) {
-				$data->query->where(array("#timeStart >= '[#1#]'", $dateRange[0]));
-    			if($data->listFilter->rec->to){
-    				$data->query->orWhere(array("#timeStart IS NULL", $dateRange[0]));
-    			}
-    		}
-    		
-			if($dateRange[1]) {
-				$data->query->where(array("#timeEnd <= '[#1#] 23:59:59'", $dateRange[1]));
-    			if($data->listFilter->rec->from){
-    				$data->query->orWhere(array("#timeEnd IS NULL", $dateRange[1]));
-    			}
-    		}
+	        
+	        $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+        		              OR
+        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+        		              ");
         }
     }
 
