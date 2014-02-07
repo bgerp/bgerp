@@ -551,4 +551,19 @@ class core_String
 	    // Ако е съгласна
 	    return (boolean)$consonentArr[$char];
 	}
+	
+	
+	/**
+	 * Всеки символ след празен да е в горния регистър
+	 * 
+	 * @param string $str
+	 * 
+	 * @return string
+	 */
+	static function stringToNameCase($str)
+	{
+	    $str = mb_convert_case($str, MB_CASE_TITLE, 'UTF-8');
+	    
+	    return $str;
+	}
 }
