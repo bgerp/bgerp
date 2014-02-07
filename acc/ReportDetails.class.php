@@ -4,7 +4,11 @@
 
 /**
  * Клас показващ счетоводна информация за даден мениджър който е перо в счетоводството
- *
+ * За да работи трябва да се добави като детайл на съответния мениджър
+ * В мениджъра е нужно да има следните класови променливи:
+ * 
+ * 		$balanceRefAccounts - систем ид-та на сч. сметки, от които ще се правят справки
+ * 		$balanceRefGroupBy - инт на сч. перо по което ще се групират(този на мениджъра)
  *
  * @category  bgerp
  * @package   acc
@@ -32,7 +36,11 @@ class acc_ReportDetails extends core_Manager
     	if(haveRole('ceo,reports')){
     		
     		// Подготовка на данните
+    		
+    		// Информацията за перата
     		$this->ObjectLists->prepareObjectLists($data);
+    		
+    		// Извличане на счетоводните записи
     		$this->prepareBalanceReports($data);
     	} else {
     		
@@ -51,7 +59,7 @@ class acc_ReportDetails extends core_Manager
     public function renderAccReports(&$data)
     {
     	// Взима се шаблона
-    	$tpl = new ET();
+    	$tpl = new ET("");
     	
     	// Рендиране на данните за номенклатурата
     	$itemsTpl = $this->ObjectLists->renderObjectLists($data);
@@ -70,10 +78,14 @@ class acc_ReportDetails extends core_Manager
     
     /**
      * Подготовка на данните на баланса
+     * 
+     * @param stdClass $data - обект с данни от мастъра
      */
     private function prepareBalanceReports(&$data)
     {
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
+    	
+    	// Перото с което мастъра фигурира в счетоводството
     	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
     	
     	// Ако мастъра не е перо, няма какво да се показва
@@ -82,8 +94,11 @@ class acc_ReportDetails extends core_Manager
     	// По коя номенклатура ще се групира
     	$groupBy = $data->masterMvc->balanceRefGroupBy;
     	
+    	// Взимане на данните от текущия баланс в който участват посочените сметки
+    	// и ид-то на перото е на произволна позиция
     	$dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
-    	;
+    	
+    	// Ако няма записи, не се прави нищо
     	if(!count($dRecs)) return;
     	
     	$rows = array();
@@ -91,6 +106,7 @@ class acc_ReportDetails extends core_Manager
 	    $Double->params['decimals'] = 2;
 	    
     	foreach ($dRecs as $dRec){
+    		
     		// На коя позиция се намира, перото на мастъра
 	    	$gPos = acc_Lists::getPosition($dRec->accountNum, $groupBy);
 	    	
@@ -109,6 +125,7 @@ class acc_ReportDetails extends core_Manager
 	    		}
 	    	}
 	    	
+	    	// Ако има повече от едно перо, несе показва това на мениджъра
 	    	if(count($row) > 1) {
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
@@ -129,6 +146,9 @@ class acc_ReportDetails extends core_Manager
     
     /**
      * Рендиране на данните за баланса
+     * 
+     * @param stdClass $data - обект с данни от мастъра
+     * @return core_ET - шаблона на детайла
      */
     private function renderBalanceReports(&$data)
     {
@@ -175,6 +195,7 @@ class acc_ReportDetails extends core_Manager
     		$tpl->append(tr("Няма справки"), 'CONTENT');
     	}
     	
+    	// Връщане на шаблона
     	return $tpl;
     }
 }
