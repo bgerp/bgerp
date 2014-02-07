@@ -93,7 +93,6 @@ class acc_Setup extends core_ProtoSetup
     		'acc_OpenDeals',
     		'acc_Invoices',
             'acc_InvoiceDetails',
-    		'acc_ReportDetails',
         );
     
 
