@@ -346,8 +346,8 @@ class doc_Containers extends core_Manager
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
             $fields .= ',searchKeywords';
         }
-                
-        foreach(arr::make($fields) as $field) {
+        $fieldsArr = arr::make($fields);        
+        foreach($fieldsArr as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;
