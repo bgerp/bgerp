@@ -52,8 +52,19 @@ class core_String
         return $text;
     }
 
+    
+    /**
+     * Прави първия символ на стринга главна буква (за многобайтови символи)
+     * @param string $string - стринга който ще се рансформира
+     */
+	public static function mbUcfirst($string) 
+	{
+        $string = mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
+        
+        return $string;
+    }
 
-
+    
     /**
      * Превръща UTF-9 в каноничен стринг, съдържащ само латински букви и числа
      * Всички символи, които не могат да се конвертират, се заместват с втория аргумент
@@ -539,5 +550,20 @@ class core_String
 	    
 	    // Ако е съгласна
 	    return (boolean)$consonentArr[$char];
+	}
+	
+	
+	/**
+	 * Всеки символ след празен да е в горния регистър
+	 * 
+	 * @param string $str
+	 * 
+	 * @return string
+	 */
+	static function stringToNameCase($str)
+	{
+	    $str = mb_convert_case($str, MB_CASE_TITLE, 'UTF-8');
+	    
+	    return $str;
 	}
 }

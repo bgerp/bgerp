@@ -63,9 +63,10 @@ class plg_Current extends core_Plugin
     	
     	// Кой е текущия потребител
     	$cu = core_Users::getCurrent();
+    	$currentObject = $mvc->getCurrent('id', FALSE);
     	
-    	// Ако потребителя може да избере обекта
-    	if($mvc->haveRightFor('select', $rec)){
+    	// Ако потребителя може да избере обекта, и той вече не е избран
+    	if($mvc->haveRightFor('select', $rec) && $currentObject != $id){
     		
     		// Вътрешен редирект към екшъна за избиране
     		Request::forward(array('Ctr' => $mvc->className, 'Act' => 'SetCurrent', 'id' => $id));

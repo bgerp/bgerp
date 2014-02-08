@@ -43,7 +43,7 @@ class plg_Search extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields=NULL)
     {
-        if(!$fields || arr::haveSection($fields, $mvc->searchFields)) {
+        if(!$fields || arr::haveSection($fields, $mvc->getSearchFields())) {
 
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
@@ -66,9 +66,9 @@ class plg_Search extends core_Plugin
     static function getKeywords($mvc, $rec)
     {
         $searchKeywords = '';
-        
-        if (!empty($mvc->searchFields)) {
-            $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
+        $searchFields = $mvc->getSearchFields();
+        if (!empty($searchFields)) {
+            $fieldsArr = $mvc->selectFields("", $searchFields);
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
@@ -168,8 +168,8 @@ class plg_Search extends core_Plugin
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);
-        $str = preg_replace('/[^a-zа-я0-9\*]+/', ' ', " {$str} ");
-
+        $str = preg_replace('/[^a-z0-9\*]+/', ' ', " {$str} ");
+        
         return trim($str);
     }
     
@@ -284,7 +284,17 @@ class plg_Search extends core_Plugin
             $query = $mvc->getQuery();
             while($rec = $query->fetch()) {
             	try{
-                	$mvc->save($rec);
+            	    
+            	    // Ако има полета от които да се генери ключ за търсене
+                    if ($saveFields = $mvc->getSearchFields()) {
+                        
+                        // Към полетата, които ще се записват, добавяме и полето за търсене
+                        $saveFields[] = 'searchKeywords';
+                        
+                        // Записваме само определени полета, от масива
+                        $mvc->save($rec, $saveFields);
+                    }
+                    
                 } catch(Exception $e) {
             		continue;
             	}
@@ -297,5 +307,15 @@ class plg_Search extends core_Plugin
         }
     }
 
-   
+    
+    /**
+     * Полета, по които да се генерират ключове за търсене
+     * 
+     * @param core_Mvc $mvc
+     * @param array $searchFieldsArr
+     */   
+    function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
+    {
+        $searchFieldsArr = arr::make($mvc->searchFields);
+    }
 }
