@@ -44,8 +44,10 @@ class core_Model
     }
     
     
-    public function init(stdClass $rec)
+    public function init($rec)
     {
+        expect(is_object($rec));
+
         foreach (array_keys(get_object_vars($this)) as $prop) {
             if (isset($rec->{$prop})) {
                 $this->{$prop} = $rec->{$prop};
