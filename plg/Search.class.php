@@ -43,7 +43,7 @@ class plg_Search extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields=NULL)
     {
-        if(!$fields || arr::haveSection($fields, $mvc->searchFields)) {
+        if(!$fields || arr::haveSection($fields, $mvc->getSearchFields())) {
 
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
@@ -66,9 +66,9 @@ class plg_Search extends core_Plugin
     static function getKeywords($mvc, $rec)
     {
         $searchKeywords = '';
-        
-        if (!empty($mvc->searchFields)) {
-            $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
+        $searchFields = $mvc->getSearchFields();
+        if (!empty($searchFields)) {
+            $fieldsArr = $mvc->selectFields("", $searchFields);
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
@@ -285,8 +285,16 @@ class plg_Search extends core_Plugin
             while($rec = $query->fetch()) {
             	try{
             	    
-            	    // Записваме всички полета, без 
-                	$mvc->save($rec, 'searchKeywords');
+            	    // Ако има полета от които да се генери ключ за търсене
+                    if ($saveFields = $mvc->getSearchFields()) {
+                        
+                        // Към полетата, които ще се записват, добавяме и полето за търсене
+                        $saveFields[] = 'searchKeywords';
+                        
+                        // Записваме само определени полета, от масива
+                        $mvc->save($rec, $saveFields);
+                    }
+                    
                 } catch(Exception $e) {
             		continue;
             	}
@@ -299,5 +307,15 @@ class plg_Search extends core_Plugin
         }
     }
 
-   
+    
+    /**
+     * Полета, по които да се генерират ключове за търсене
+     * 
+     * @param core_Mvc $mvc
+     * @param array $searchFieldsArr
+     */   
+    function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
+    {
+        $searchFieldsArr = arr::make($mvc->searchFields);
+    }
 }

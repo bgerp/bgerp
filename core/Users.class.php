@@ -1378,4 +1378,24 @@ class core_Users extends core_Manager
     	return $newUrl;
     }
     
+    
+    /**
+     * Подготвяме ника
+     * Всички точки и долни черти ги правим на празен символ
+     * 
+     * @param string $nick
+     * 
+     * @return string
+     */
+    static function prepareNick($nick)
+    {
+        // Всички точки и долни черти ги правим на празен символ
+        $nick = str_replace(array('_', '.'), array(' ', ' '), $nick);
+        
+        // Преобразуваме в показване като име
+        $nick = str::stringToNameCase($nick);
+        
+        return $nick;
+    }
+    
 }
