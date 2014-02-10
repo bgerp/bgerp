@@ -223,8 +223,35 @@ class bank_SpendingDocuments extends core_Master
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
+    
 	
-	
+	/**
+     * Помощна ф-я връщаща дефолт операцията за документа
+     */
+    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
+    {
+    	$paid = $dealInfo->paid;
+    	$agreed = $dealInfo->agreed;
+    	
+    	// Ако е продажба пораждащия документ
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'bankAdvance2customer' : 'bank2customer';
+    		} else {
+    			$defaultOperation = 'bank2customer';
+    		}
+    	} else {
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'bank2supplierAdvance' : 'bank2supplier';
+    		} else {
+    			$defaultOperation = 'bank2supplier';
+    		}
+    	}
+    	
+    	return $defaultOperation;	
+    }
+    
+    
 	/**
      * Задава стойности по подразбиране от продажба/покупка
      * @param core_ObjectReference $origin - ориджин на документа
@@ -254,12 +281,8 @@ class bank_SpendingDocuments extends core_Master
     		 	}
     		 }
     		 	
-       		 if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 	$form->defaultOperation = ($dealInfo->hasDownpayment) ? 'bankAdvance2customer' : 'bank2customer';
-    		 } else {
-    		 	$form->defaultOperation = ($dealInfo->hasDownpayment) ? 'bank2supplierAdvance' : 'bank2supplier';
-    		 }
-    		 
+    		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
+       		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
