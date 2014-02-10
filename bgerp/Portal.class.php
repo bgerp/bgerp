@@ -75,9 +75,20 @@ class bgerp_Portal extends core_Manager
             ");
         }
         
-        // Добавяме "Наскоро" - документи и папки с които е работено наскоро
-        $tpl->append(bgerp_Recently::render(), 'LEFT_COLUMN');
+        $Recently = cls::get('bgerp_Recently');
         
+        // Задаваме екшъна за обновяване на URL
+        $Recently->refreshRowsUrl = array($Recently, 'render');
+        
+        // Добавяме "Наскоро" - документи и папки с които е работено наскоро
+        $tpl->append($Recently->render(), 'LEFT_COLUMN');
+        
+        $Notifications = cls::get('bgerp_Notifications');
+        
+        // Задаваме екшъна за обновяване на URL
+        $Notifications->refreshRowsUrl = array($Notifications, 'render');
+        
+        // Добавяме нотификации
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
 		
         

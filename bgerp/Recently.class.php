@@ -21,12 +21,18 @@ class bgerp_Recently extends core_Manager
      * Максимална дължина на показваните заглавия 
      */
     const maxLenTitle = 70;
-
-
+    
+    
+    /**
+     * 
+     */
+    var $refreshRowsTime = 15000;
+    
+    
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search';
+    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, plg_RefreshRows';
 
 
     /**
@@ -219,6 +225,19 @@ class bgerp_Recently extends core_Manager
     	}
     	
     	return $objectTitle;
+    }
+    
+    
+    /**
+     * Екшън за рендиране блок с последни за текущия
+     */
+    function act_Render()
+    {
+        requireRole('powerUser');
+        
+        $userId = core_Users::getCurrent();
+        
+        return static::render($userId);
     }
     
     

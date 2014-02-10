@@ -21,9 +21,15 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, plg_RefreshRows';
     
-
+    
+    /**
+     * 
+     */
+    var $refreshRowsTime = 7000;
+    
+    
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
@@ -253,6 +259,19 @@ class bgerp_Notifications extends core_Manager
         $row->msg = tr("|*{$row->msg}");
         
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
+    }
+    
+    
+    /**
+     * Екшън за рендиране блок с нотификации за текущия
+     */
+    function act_Render()
+    {
+        requireRole('powerUser');
+        
+        $userId = core_Users::getCurrent();
+        
+        return static::render($userId);
     }
     
     
