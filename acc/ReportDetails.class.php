@@ -99,7 +99,7 @@ class acc_ReportDetails extends core_Manager
     	$dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
     	
     	// Ако няма записи, не се прави нищо
-    	if(!count($dRecs)) return;
+    	if(empty($dRecs) || !count($dRecs)) return;
     	
     	$rows = array();
 	    $Double = cls::get('type_Double');
