@@ -33,8 +33,6 @@
 		                        <!--ET_BEGIN paymentMethodId-->
 		                        <div>|Начин|* / <i>Method</i> : <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
-		                        <div>|Валута|* / <i>Currency</i> : <b>[#currencyId#]</b></div>
-		                        <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
 		                        <!--ET_BEGIN DUE_DATE-->
 		                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
 		                        <!--ET_END DUE_DATE-->
@@ -77,63 +75,87 @@
 		                        <!--ET_BEGIN paymentAfterInvoice-->
 		                        <div>|Окончателно|*: &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
 		                    	<!--ET_END paymentAfterInvoice-->
+		                    	
+		                    	<!--ET_BEGIN vatDate-->  
+                                 <div>|Данъчното събитие|*: <b>[#vatDate#]</b>  </div>
+                                <!--ET_END vatDate-->  
+                                
+                                <!--ET_BEGIN rate--> 
+		                    	 <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
+		                    	<!--END rate-->  
+		                     <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
+                               
+                               <!--ET_BEGIN deliveryId-->
+                               <b>[#deliveryId#]</b>,
+                               <!--ET_END deliveryId-->
+                               <!--ET_BEGIN deliveryPlaceId-->
+                               [#deliveryPlaceId#]
+                               <!--ET_END deliveryPlaceId-->
+                               
 		                    </div>
 		                </td>
 		                <td id='invoice-info' width='40%'>
-		                <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
-				     <tr class='nowrap'>
-				      <td align='right'>|Стойност|* / <i>Subtotal</i>:</td>
-				      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
-				      <td align='right' width='1%'> <b>[#value#]</b></td>
-				     </tr>
-				     <!--ET_BEGIN discount-->
-				     <tr class='nowrap'>
-				     	<td align='right'>|Отстъпка|* / <i>Discount</i>:</td>
-				     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-				     	<td align='right'><b>[#discount#]</b></td>
-				     </tr>
-				     <!--ET_END discount-->
-				     <!--ET_BEGIN neto-->
-				     <tr class='nowrap'>
-				     	<td align='right'>|Нето|* / <i>Neto</i>:</td>
-				     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-				     	<td align='right'><b>[#neto#]</b></td>
-				     </tr>
-				     <!--ET_END neto-->
-				     
-				     <!--ET_BEGIN baseAmount-->
-				     <tr class='nowrap'>
-				     	<td align='right'>|Данъчна основа|* / <i>Tax base</i> :</td>
-				     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-				     	<td align='right'><b>[#baseAmount#]</b></td>
-				     </tr>
-				     <!--ET_END baseAmount-->
-				      
-				     <tr>
-				     	<td colspan='3' style='padding:0px'><hr /></td>
-				     </tr>
-				     <!--ET_BEGIN vatAmount-->
-				     <tr class='nowrap'>
-				    	<td align='right'>|ДДС|* / <i>VAT</i> &nbsp;<b>[#vat#]</b> :</td>
-				    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-				    	<td align='right'><b>[#vatAmount#]</b></td>
-				     </tr>
-				     <!--ET_END vatAmount-->
-				     <tr class='nowrap'>
-				    	<td align='right'>|Общо|* / <i>Total</i>:</td>
-				    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-				    	<td align='right'><b>[#total#]</b></td>
-				     </tr>
-				     <tr>
-				     	<td colspan='3' style='text-align:right'>
-				     	<!--ET_BEGIN sayWords-->
-				     	<br />
-		                |С думи|*:
-		                [#sayWords#]
-		                <!--ET_END sayWords-->
-				     	</td>
-				     </tr>
-				</table>
+				          <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
+						     <tr class='nowrap'>
+						      <td align='right'>|Стойност|* / <i>Subtotal</i>:</td>
+						      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
+						      <td align='right' width='1%'> <b>[#value#]</b></td>
+						     </tr>
+						     <!--ET_BEGIN discount-->
+						     <tr class='nowrap'>
+						     	<td align='right'>|Отстъпка|* / <i>Discount</i>:</td>
+						     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+						     	<td align='right'><b>[#discount#]</b></td>
+						     </tr>
+						     <!--ET_END discount-->
+						     <!--ET_BEGIN neto-->
+						     <tr class='nowrap'>
+						     	<td align='right'>|Нето|* / <i>Neto</i>:</td>
+						     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+						     	<td align='right'><b>[#neto#]</b></td>
+						     </tr>
+						     <!--ET_END neto-->
+						     
+						     <!--ET_BEGIN baseAmount-->
+						     <tr class='nowrap'>
+						     	<td align='right'>|Данъчна основа|* / <i>Tax base</i> :</td>
+						     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+						     	<td align='right'><b>[#baseAmount#]</b></td>
+						     </tr>
+						     <!--ET_END baseAmount-->
+						      
+						     <tr>
+						     	<td colspan='3' style='padding:0px'><hr /></td>
+						     </tr>
+						     <!--ET_BEGIN vatAmount-->
+						     <tr class='nowrap'>
+						    	<td align='right'>|ДДС|* / <i>VAT</i> &nbsp;<b>[#vat#]</b> :</td>
+						    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+						    	<td align='right'><b>[#vatAmount#]</b></td>
+						     </tr>
+						     <!--ET_END vatAmount-->
+						     
+		                      <tr>
+		                          <td align='right'>|Основание за ДДС|*:</td>
+		                      
+		                          <td align="right" colspan=2>[#vatReason#]</td>
+		                      </tr>
+		                     
+						     <tr class='nowrap'>
+						    	<td align='right'>|Общо|* / <i>Total</i>:</td>
+						    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+						    	<td align='right'><b>[#total#]</b></td>
+						     </tr>
+						     <tr>
+						     	<td colspan='3' style='text-align:right'>
+						     	<!--ET_BEGIN sayWords-->
+						     	<hr>
+				                |С думи|*:
+				                [#sayWords#]
+				                <!--ET_END sayWords-->
+						     	</td>
+						     </tr>
+						  </table>
 		                </td>
 		                </tr>
 		                </tbody>
@@ -144,74 +166,35 @@
 		                <tbody>
 		                <tr>
 		                   <td class="topCell" valign="top" width="30%">
-		                   <div>|Отговорен за стопанската операция|*:<br><br>
-		                        ...........................................................
-		                        <div class='centered'>[#responsible#]</div>
-		                  </div>
+		                        <table>
+                                   <tr>
+                                        <td width="1%">|Получил|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td><span class="sign_names">[#responsible#]</span></td>
+                                        
+                                    </tr>           
+                                </table> 
 		                  </td>
+		                    <!--ET_BEGIN additionalInfo-->
 		                    <td class="topCell" valign="top">
-		                    
-			                    <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
-	                           <!--ET_BEGIN deliveryId-->
-	                           <div>|Условие|* / <i>Term</i>: <b>[#deliveryId#]</b></div>
-	                           <!--ET_END deliveryId-->
-	                           <!--ET_BEGIN deliveryPlaceId-->
-	                           <div>|Място|* / <i>Place</i>: <b>[#deliveryPlaceId#]</b></div>
-	                           <!--ET_END deliveryPlaceId-->
-	                           <!--ET_BEGIN additionalInfo-->
-	                           <hr>
 	                           <div>|Бележки|* / <i>Notes</i></div>
 	                           <div>[#additionalInfo#]</div>
-	                           <!--ET_END additionalInfo-->
 		                    </td>
-		                    <td class="topCell" align="right" width="30%" style='vertical-align:bottom !important'>
-		                        <table>
-		                            <tbody>
-		                             <!--ET_BEGIN vatDate-->  
-		                            <tr>
-		                                <td class='invoice-vat-info'>|Дата на данъчното събитие|* / <br>
-		                                <i>Tax event date</i>: <b>[#vatDate#]</b> </td>
-		                            </tr>
-		                            <!--ET_END vatDate-->  
-		                            
-		                           
-		                             
-		                             
-		                             <!--ET_BEGIN VAT_REASON--> 
-		                            <tr>
-		                                <td class='invoice-vat-info'>|Основание за размера на ДДС|*:</td>
-		                            </tr>
-		                            <tr>
-		                                <td align="RIGHT"><b>[#VAT_REASON#]</b></td>
-		                            </tr>
-		                            <!--ET_END VAT_REASON-->
-		                            <tr>
-                                      <td class='invoice-vat-info'>|Място|* / <i>Place</i>: <b>[#place#]</b>
-                                       
-                                        </td>
+		                    <!--ET_END additionalInfo-->
+		                    <td class="topCell" align="right" width="30%" style='vertical-align:top !important'>
+                                 <table width='1%' class='fright'>
+                                   <tr>
+                                        <td width="1%">|Съставил|*:  </td><td></td>
                                     </tr>
-		                            <tr>
-		                            <td style='height:35px'></td>
-		                            </tr> 
-		                            <tr>
-		                                <td style="padding-top: 5px; text-align: right;">
-		                                  <table>
-			                                   <tr>
-			                                        <td width="1%">|Съставил|*:  </td><td></td>
-			                                    </tr>
-			                                    <tr>
-			                                        <td></td>
-			                                        <td><span class="sign_names">[#username#]</span></td>
-			                                        
-			                                    </tr>
-			                                
-                                            </table>
-		                             	</td>
-		                            
-		                            </tbody>
-		                        </table> 
+                                    <tr>
+                                        <td></td>
+                                        <td class='nowrap'><span class="sign_names">[#username#]</span></td>
+                                    </tr>
+                                 </table>
 		                    </td>
-		                </tr>        
+		                  </tr>        
 		                </tbody>
 		            </table>
 		        </td>

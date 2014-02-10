@@ -8,7 +8,8 @@
 		        <div class="bigData">[#number#]</div>
 		        <div class='invInfo'>|Дата|* / Date</div>
 		        <div class="bigData">[#date#]</div>
-		    	<!--  -->
+		    	<div class='invInfo'>|Място|* / Place</div>
+                <div class="bigData">[#place#]</div>
 				<div class='invInfo bigData'>
 		            <div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div>
 		            	<!--ET_BEGIN POS-->
