@@ -886,7 +886,7 @@ td.portal-date {
 		.listToolbar {
 			padding: 5px 0px;
 			margin: 0;
-			border-bottom: 1px solid #000;
+			border-bottom: 1px solid #999;
 			.toolbar {
 				padding-left: 0;
 			}
@@ -1036,7 +1036,7 @@ pre.document {
 .sign_names {
     display:inline-block;
     text-align: center;
-    border-top: 2px dotted #000;
+    border-top: 2px dotted #666;
     margin-left:5px;
     padding: 5px 10px;
     min-width: 110px;
@@ -1067,7 +1067,11 @@ pre.document {
 
 .dec-document{
     line-height: 150%;
+    table.signiture{
+        width: 10% !important;
+    }
 }
+
 
 /*край на стилове за документи*/
 
