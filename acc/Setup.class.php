@@ -91,8 +91,6 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
         	'acc_Operations',
     		'acc_OpenDeals',
-    		'acc_Invoices',
-            'acc_InvoiceDetails',
         );
     
 
@@ -109,15 +107,6 @@ class acc_Setup extends core_ProtoSetup
             array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
             array(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
         );
- 
-    
-    /**
-	 * Описание на конфигурационните константи
-	 */
-	var $configDescription = array(
-			'ACC_INV_MIN_NUMBER' => array('int', 'caption=Номер на фактура->Долна граница'),
-			'ACC_INV_MAX_NUMBER' => array('int', 'caption=Номер на фактура->Горна граница'),
-	);
 	
 	
     /**

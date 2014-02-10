@@ -8,6 +8,18 @@ defIfNot('SALE_CLOSE_TOLERANCE', '0.01');
 
 
 /**
+ * Начален номер на фактурите
+ */
+defIfNot('SALE_INV_MIN_NUMBER', '0');
+
+
+/**
+ * Краен номер на фактурите
+ */
+defIfNot('SALE_INV_MAX_NUMBER', '10000000');
+
+
+/**
  * Максимален срок за бъдещи цени с които да работи офертата
  */
 defIfNot('SALE_MAX_FUTURE_PRICE', type_Time::SECONDS_IN_MONTH);
@@ -79,6 +91,8 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
+			'SALE_INV_MIN_NUMBER'       => array('int', 'caption=Номер на фактура->Долна граница'),
+			'SALE_INV_MAX_NUMBER'       => array('int', 'caption=Номер на фактура->Горна граница'),
 	);
 	
 	
@@ -96,6 +110,8 @@ class sales_Setup extends core_ProtoSetup
     		'sales_ClosedDeals',
     		'sales_Services',
     		'sales_ServicesDetails',
+    		'sales_Invoices',
+            'sales_InvoiceDetails',
         );
 
         
