@@ -54,7 +54,7 @@
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
 	                        <b>|Conditions|*</b>
-							<ol style = ';margin-top:1px'>
+							<ol style = 'margin-top:1px'>
 							
 							<!--ET_BEGIN deliveryTermId-->
 							<li>
