@@ -2096,13 +2096,30 @@ fieldset.sharing-history {
 	}
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar {
+.narrow .details .groupList{
+	width: 100% !important;
+    overflow-x: scroll !important;
+    _overflow: auto !important;
+    height: auto;
+    display: block;
+    margin-bottom: 3px;
+    .listTable{
+        width: 100% !important;
+        height: 100%;
+        td{
+            white-space: nowrap;
+        }
+    }
+}
+
+
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb {
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
 	@include border-radius(8px);
 	background-color: rgba(0, 0, 0, .2);
 }
@@ -2843,7 +2860,7 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 760px;
     }
 }
@@ -2866,7 +2883,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 720px;
     }
 }
@@ -2896,7 +2913,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 660px;
     }
 }
@@ -2932,7 +2949,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 600px;
     }
 }
@@ -2955,7 +2972,7 @@ body.narrow {
     .narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 530px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 560px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
@@ -2985,7 +3002,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 463px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 493px;
 	}
 	.narrow #all {
@@ -3018,7 +3035,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 430px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder{
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details{
 		max-width: 460px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
@@ -3048,7 +3065,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 410px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 440px;
 	}
 	.narrow #all {
@@ -3081,7 +3098,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 290px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 310px;
 	}
 	.narrow #all {
@@ -3115,7 +3132,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 250px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 280px;
 	}
 	.narrow #all {
@@ -3148,7 +3165,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 170px;
 	}
-	.narrow .single-thread .scrolling-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .details {
 		max-width: 200px;
 	}
 	.narrow #all {
