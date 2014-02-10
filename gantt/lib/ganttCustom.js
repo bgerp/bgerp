@@ -63,10 +63,14 @@ function ganttRender(elem,ganttData) {
 	        
 	        //получаване на всички колони, които трябва да има таблицата
 	        cols = cols + h2Count;
+	        if(h2Count > 2){
+		        //генериране на реда с големите деления на периода
+		        firstRow += '<th colspan='+ h2Count + '>' + val['mainHeader'] + '</th>';
+	        }else{
+	        	
+	        	firstRow += '<th colspan='+ h2Count + ' class="overflow-cell">' + val['mainHeader'] + '</th>';
+	        }
 	        
-	        //генериране на реда с големите деления на периода
-	        firstRow += '<th colspan='+ h2Count + '>' + val['mainHeader'] + '</th>';
-	      
 	        //обхождане на малките деления на хедъра на таблицата
 	        jQuery.each( val['subHeader'], function( j, children ) {
 	        	buildSecondRow +='<th>' + children + '</th>';
@@ -127,7 +131,10 @@ function ganttRender(elem,ganttData) {
 		var customWidth = winw - ganttTaskWidth - 2 * ganttTaskOffset;
 		
 		//пресмятане на ширината на клетка
-		var tdWidth = currentGraphChart.find('tbody tr:last td:last').outerWidth() ;
+		var tdWidth = currentGraphChart.find('tbody tr:last td:first').outerWidth() + 1 ;
+		
+		$('.overflow-cell').css('max-width', tdWidth - 3);
+		
 		
 		//свиване на получената ширина на scroll-table, ако "реже" колона
 		if(customWidth % tdWidth != 0){
@@ -167,22 +174,48 @@ function ganttRender(elem,ganttData) {
 		var currentTime = parseInt(ganttData['otherParams']['currentTime']);
 		var timeLineOffset = (currentTime - start) / secPerPX ;
 		
-		//елемент със сив фон за миналия период
-		var currentTimeLine = document.createElement( "div" );
-		$(currentTimeLine).css('top', headerHeight - 5);
-		$(currentTimeLine).css('height', tdHeight*rows);
-		$(currentTimeLine).addClass('current-line');
-		$(currentTimeLine).css('width', parseInt(timeLineOffset));
-		$(currentTable).append( $( currentTimeLine ) );
-		
-		//елемент със зелен фон за бъдещия период
-		var futureBlock = document.createElement( "div" );
-		$(futureBlock).css('left', parseInt(timeLineOffset)+1);
-		$(futureBlock).css('top', headerHeight - 4);
-		$(futureBlock).css('height', tdHeight*rows -1);
-		$(futureBlock).addClass('future-block');
-		$(futureBlock).css('width', durationTableSec/secPerPX - 1 -parseInt(timeLineOffset));
-		$(currentTable).append( $( futureBlock ) );
+		// сега е между старта и края на ганта
+		if(currentTime > start && currentTime < end){
+			//елемент със сив фон за миналия период
+			var currentTimeLine = document.createElement( "div" );
+			$(currentTimeLine).css('top', headerHeight - 5);
+			$(currentTimeLine).css('height', tdHeight*rows);
+			$(currentTimeLine).css('border-right', '1px dashed #c00');
+			$(currentTimeLine).addClass('current-line');
+			$(currentTimeLine).css('width', parseInt(timeLineOffset));
+			$(currentTable).append( $( currentTimeLine ) );
+			
+			//елемент със зелен фон за бъдещия период
+			var futureBlock = document.createElement( "div" );
+			$(futureBlock).css('left', parseInt(timeLineOffset)+1);
+			$(futureBlock).css('top', headerHeight - 4);
+			$(futureBlock).css('height', tdHeight*rows -1);
+			$(futureBlock).addClass('future-block');
+			$(futureBlock).css('width', parseInt(durationTableSec/secPerPX) - 1 -parseInt(timeLineOffset));
+			$(currentTable).append( $( futureBlock ) );
+			
+			// сега е след края на ганта
+		} else if(currentTime >= end){  
+			//елемент със сив фон за миналия период
+			var currentTimeLine = document.createElement( "div" );
+			$(currentTimeLine).css('top', headerHeight - 5);
+			$(currentTimeLine).css('height', tdHeight*rows);
+			$(currentTimeLine).addClass('current-line');
+			$(currentTimeLine).css('width', parseInt(durationTableSec/secPerPX) );
+			$(currentTable).append( $( currentTimeLine ) );
+			
+			
+			// сега е преди началото на ганта
+		} else if(currentTime <= start){
+			//елемент със зелен фон за бъдещия период
+			var futureBlock = document.createElement( "div" );
+			$(futureBlock).css('left', 0);
+			$(futureBlock).css('top', headerHeight - 4);
+			$(futureBlock).css('height', tdHeight*rows -1);
+			$(futureBlock).addClass('future-block');
+			$(futureBlock).css('width', parseInt(durationTableSec/secPerPX));
+			$(currentTable).append( $( futureBlock ) );
+		}
 		
 		//за всяка задача
 		jQuery.each( ganttData['tasksData'], function( i, val ) {

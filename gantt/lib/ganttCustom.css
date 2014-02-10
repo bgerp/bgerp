@@ -155,7 +155,7 @@
     z-index:1;
     left:0;
     background-color:rgba(0,0,0,0.05);
-    border-right:1px dashed #c00;
+   
 }
 
 .future-block{
@@ -164,7 +164,10 @@
 	background-color:rgba(120, 255, 120, 0.2);
 }
 
-
+.overflow-cell{
+	overflow: hidden;
+	white-space: nowrap;
+}
 @media print{
 	.task{
 		box-shadow:none;
