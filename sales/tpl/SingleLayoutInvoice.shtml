@@ -77,12 +77,13 @@
 		                    	<!--ET_END paymentAfterInvoice-->
 		                    	
 		                    	<!--ET_BEGIN vatDate-->  
-                                 <div>|Данъчното събитие|*: <b>[#vatDate#]</b>  </div>
+                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b>  </div>
                                 <!--ET_END vatDate-->  
                                 
                                 <!--ET_BEGIN rate--> 
 		                    	 <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
 		                    	<!--END rate-->  
+		                    	<hr>
 		                     <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryId-->
