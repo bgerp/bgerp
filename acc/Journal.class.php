@@ -412,4 +412,30 @@ class acc_Journal extends core_Master
             	
         return $contoUrl;
      }
+     
+     
+     /**
+      * Ф-я извикваща се след генерирането на баланса, чисти всички замърсени данни
+      */
+     public static function clearDrafts()
+     {
+     	// Избиране на всички чернови в журнала
+     	$query = self::getQuery();
+     	$query->where("#state = 'draft'");
+     	
+     	while($rec = $query->fetch()){
+     		
+     		// От кой обект са генерирани
+     		$document = new core_ObjectReference($rec->docType, $rec->docId);
+     		
+     		// Ако състоянието на документа е чернова
+     		$state = $document->fetchField('state');
+     		if($state == 'draft'){
+     			
+     			// Изтриване на замърсените данни
+     			acc_JournalDetails::delete("#journalId = {$rec->id}");
+     			acc_Journal::delete("#id = {$rec->id}");
+     		}
+     	}
+     }
 }

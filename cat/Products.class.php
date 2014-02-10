@@ -53,7 +53,19 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,ObjectLists=acc_Items,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules';
+    var $details = 'Packagings=cat_products_Packagings,Params=cat_products_Params,Files=cat_products_Files,PriceGroup=price_GroupOfProducts,PriceList=price_ListRules,AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '301,302,304,305,306,309,321';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
     
     
     /**

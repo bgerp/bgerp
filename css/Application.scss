@@ -893,7 +893,14 @@ td.portal-date {
 		}
 	}
 	.listTable th, .listTable td{
-		border: 1px solid #000 !important;
+		border: 1px solid #999;
+	}
+	.border-table td, .border-table th{
+	    border:1px solid #999;
+	    padding:3px;
+	}
+	.border-table th{
+	   background-color: rgba(200, 200, 200, 0.4);
 	}
 	&.print-letter {
 		page-break-after: always;
@@ -907,6 +914,10 @@ td.portal-date {
 	.custom-header-bg {
 		background-color: rgba(200, 200, 200, 0.4);
 	}
+}
+
+.no-border > tbody > tr > td{
+    border: none !important;
 }
 
 .wide .document table.listTable {
@@ -980,7 +991,7 @@ pre.document {
 }
 
 .cell {
-	border: 1px solid #000;
+	border: 1px solid #999;
 }
 
 .topCell {
@@ -993,6 +1004,9 @@ pre.document {
 
 .innerTable {
 	border-collapse: collapse;
+	> tbody > tr > td{
+	   border: 1px solid #999;
+	}
 }
 
 .rowData {
@@ -1003,12 +1017,12 @@ pre.document {
 	padding: 1px !important;
 }
 
-.footer-notes {
-	border: 1px solid #000;
+.footer-notes > tbody > tr > td{
+	border: 1px solid #999;
 }
 
 #invoice-info {
-	border-left: 1px solid #000;
+	border-left: 1px solid #999;
 }
 
 .document .lines {
@@ -1016,8 +1030,16 @@ pre.document {
 	background: url('../img/thumb.png');  
 	background-repeat: repeat-x;
 	background-position: center;
-	border-left: 1px solid #000;
-	border-right: 1px solid #000;
+	border-left: 1px solid #999;
+	border-right: 1px solid #999;
+}
+.sign_names {
+    display:inline-block;
+    text-align: center;
+    border-top: 2px dotted #000;
+    margin-left:5px;
+    padding: 5px 10px;
+    min-width: 110px;
 }
 
 .nowrap {

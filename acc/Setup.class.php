@@ -125,7 +125,10 @@ class acc_Setup extends core_ProtoSetup
      */
     function install()
     {
-        $html = parent::install();
+        // Добавяне на класа за репорти
+    	core_Classes::add('acc_ReportDetails');
+    	
+    	$html = parent::install();
 
         //Данни за работата на cron
         $rec = new stdClass();

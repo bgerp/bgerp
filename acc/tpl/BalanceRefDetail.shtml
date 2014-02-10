@@ -1,0 +1,9 @@
+<fieldset class='detail-info portal'>
+    <legend class='groupTitle'>|Счетоводни справки|*</legend>
+    [#LISTS#]
+    <div class='groupList clearfix21' style='max-width: 730px;'>
+        <!--ET_BEGIN CONTENT-->
+        [#CONTENT#]
+        <!--ET_END CONTENT-->
+    </div>
+</fieldset>

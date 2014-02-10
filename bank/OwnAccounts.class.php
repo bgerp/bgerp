@@ -127,6 +127,26 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Детайли на този мастър обект
+     * 
+     * @var string|array
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '503';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'bank_OwnAccRegIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

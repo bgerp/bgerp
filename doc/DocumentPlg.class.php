@@ -1473,6 +1473,20 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Полета, по които да се генерират ключове за търсене
+     * 
+     * @param core_Mvc $mvc
+     * @param array $searchFieldsArr
+     */   
+    function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
+    {
+        if (!$searchFieldsArr) {
+            $searchFieldsArr = arr::make($mvc->searchFields);
+        }
+    }
+    
+    
     static function getMidPlace() 
     {
         return '__MID__';        
