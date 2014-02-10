@@ -37,6 +37,9 @@ class csstoinline_CssToInline extends core_Manager
      */
     function convert($html, $css)
     {
+        // За да не се разваля кирилицата
+        $html = mb_convert_encoding($html, 'html-entities', 'UTF-8'); 
+        
         // Вземаме конфигурационните константи
         $conf = core_Packs::getConfig('csstoinline');
         
@@ -51,6 +54,9 @@ class csstoinline_CssToInline extends core_Manager
         
         //Вкарва CSS във html, като inline
         $processedHTML = $cssToInlineStyles->convert();
+        
+        // Връщаме към UTF-8
+        $html = mb_convert_encoding($html, 'UTF-8', 'html-entities');
         
         return $processedHTML;
     }
