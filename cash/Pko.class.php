@@ -169,6 +169,7 @@ class cash_Pko extends core_Master
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -259,7 +260,7 @@ class cash_Pko extends core_Master
     	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
     	
-    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
 
     
@@ -611,8 +612,12 @@ class cash_Pko extends core_Master
         $result->paid->payment->caseId = $rec->peroCase;
         $result->paid->operationSysId  = $rec->operationSysId;
         
-        $hasDownpayment = ($rec->operationSysId == 'customer2caseAdvance') ? TRUE : FALSE;
-    	$result->hasDownpayment = $hasDownpayment;
+        if($rec->operationSysId == 'customer2caseAdvance' || $rec->operationSysId == 'supplierAdvance2case'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+    	
+    	$hasDownpayment = ($rec->operationSysId == 'customer2caseAdvance') ? TRUE : FALSE;
+        $result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

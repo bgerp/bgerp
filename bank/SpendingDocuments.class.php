@@ -150,6 +150,7 @@ class bank_SpendingDocuments extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Б. сметка,mandatory,width=16em');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
@@ -220,7 +221,7 @@ class bank_SpendingDocuments extends core_Master
     	}
         
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
 	
 	
@@ -530,6 +531,10 @@ class bank_SpendingDocuments extends core_Master
         $result->paid->operationSysId         = $rec->operationSysId;
         
     	$hasDownpayment = ($rec->operationSysId == 'bank2supplierAdvance') ? TRUE : FALSE;
+    	if($rec->operationSysId == 'bank2supplierAdvance' || $rec->operationSysId == 'bankAdvance2customer'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+    	
     	$result->hasDownpayment = $hasDownpayment;
     	
         return $result;

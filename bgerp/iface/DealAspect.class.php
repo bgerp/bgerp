@@ -128,6 +128,9 @@ class bgerp_iface_DealAspect
         }
         
         $this->amount += $aspect->amount;
+        if($aspect->downpayment){
+        	$this->downpayment += $aspect->downpayment;
+        }
     }
     
     
