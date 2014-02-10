@@ -89,7 +89,7 @@ class bgerp_Portal extends core_Manager
         $Notifications->refreshRowsUrl = array($Notifications, 'render');
         
         // Добавяме нотификации
-        $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
+        $tpl->replace($Notifications->render(), 'NOTIFICATIONS');
 		
         
 		// Задачи
