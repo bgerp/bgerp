@@ -657,7 +657,10 @@ class purchase_Purchases extends core_Master
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['case2supplierAdvance'], $allowedPaymentOperations['bank2supplierAdvance']);
+        		unset($allowedPaymentOperations['case2supplierAdvance'], 
+        			  $allowedPaymentOperations['bank2supplierAdvance'],
+        		      $allowedPaymentOperations['supplierAdvance2case'],
+        		      $allowedPaymentOperations['bank2supplierAdvance']);
         	} else {
         		// Колко е очакваото авансово плащане
         		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
