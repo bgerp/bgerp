@@ -19,7 +19,10 @@
 <!--ET_BEGIN place-->
 	<div><b>произведени в</b> [#place#],</div>
 <!--ET_END place-->
-<div><b>доставени на фирма:</b> [#contragentCompany#], с адрес [#contragentCountry#], гр. [#contragentAddress#], с ЕИН [#contragentCompanyVatNo#][#contragentUicId#], с фактура <b>№ [#invoiceNo#]</b>, </div>
+<div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
+<!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
+<!--ET_BEGIN contragentCompanyVatNo-->с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
+с фактура <b>№ [#invoiceNo#]</b>, </div>
 <br>
 <!--ET_BEGIN material-->
 	<div><b>произведени от</b> [#material#]</div>
@@ -45,14 +48,14 @@
  <br>
  <br>
  <br>
-     <table width=100%>
+     <table class='signiture'>
         <tr>
-        <td>Декларатор: .........................................................</td>
+        <td width=1%>Декларатор: </td>
         <td> </td>
         </tr>
         <tr>
-        <td style='padding-left:85px'>/име и фамилия, длъжност и подпис/ </td>
         <td></td>
+        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declatorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
      

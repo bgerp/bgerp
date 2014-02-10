@@ -17,7 +17,9 @@
 <!--ET_BEGIN place-->
 	<div><b>produced in</b> [#place#],</div>
 <!--ET_END place-->
-<div><b>delivered to:</b> [#contragentCompany#], with address  [#contragentCountry#], city [#contragentAddress#], with VAT ID [#contragentCompanyVatNo#][#contragentUicId#], 
+<div><b>delivered to:</b> [#contragentCompany#],<!--ET_BEGIN contragentCountry--> with address  [#contragentCountry#],<!--ET_END contragentCountry--> 
+<!--ET_BEGIN contragentAddress-->city [#contragentAddress#],<!--ET_END contragentAddress--> 
+<!--ET_BEGIN contragentCompanyVatNo-->with VAT ID [#contragentCompanyVatNo#][#contragentUicId#], <!--ET_END contragentCompanyVatNo-->
 evidenced by invoice <b>№ [#invoiceNo#]</b>,</div>
 <!--ET_BEGIN material-->
 	<div><b>are made of:</b> [#material#]</div>
@@ -43,15 +45,14 @@ evidenced by invoice <b>№ [#invoiceNo#]</b>,</div>
  <br>
  <br>
  <br>
-     <table width=100%>
+     <table class='signiture'>
         <tr>
-        <td>Declarer: .........................................................</td>
+        <td width=1%>Declarer: </td>
         <td> </td>
         </tr>
         <tr>
-        <td style='padding-left:85px'>/name and surname, position and signature/ </td>
         <td></td>
+        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declatorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
-     
 </div>
