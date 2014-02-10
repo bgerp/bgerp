@@ -395,6 +395,9 @@ class acc_Balances extends core_Master
     	// Кой е последния баланс
     	$balanceRec = static::getLastBalance();
     	
+    	// Ако няма запис на последния баланс не се връща нищо
+    	if(empty($balanceRec)) return FALSE;
+    	
     	// Извличане на данните от баланса в които участват зададените сметки
     	$dQuery = acc_BalanceDetails::getQuery();
 	    foreach ($accounts as $sysId){
