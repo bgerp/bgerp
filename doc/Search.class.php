@@ -321,12 +321,11 @@ class doc_Search extends core_Manager
     {
         try {
             $docProxy = doc_Containers::getDocument($rec->id);
+            $docRow = $docProxy->getDocumentRow();
         } catch (core_Exception_Expect $expect) {
     
             return;
         }
-        
-        $docRow = $docProxy->getDocumentRow();
     
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon()) . ');';
