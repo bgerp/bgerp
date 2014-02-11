@@ -21,7 +21,7 @@
                 <tr>
                     <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|СКЛАДОВА РАЗПИСКА|*</b> </font><br>
+                        <div class="document-title">|СКЛАДОВА РАЗПИСКА|*</div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 

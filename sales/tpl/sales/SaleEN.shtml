@@ -9,7 +9,7 @@
 	                    <td width='33%' class='custom-header-bg'><b>Receiver</b></td>
 	                    
 	                    <td class="cell" align="center" width='34%' rowspan = '2'>
-	                        <font style="font-size:16pt;"><b>SALES CONTRACT</b> </font><br>
+	                        <div class="document-title">SALES CONTRACT</div>
 	                        <div style="padding-top:5px;">
 	                        	№ <span class="bigData">[#id#]</span> / 
 	                        	<span class="bigData">[#valior#]</span>

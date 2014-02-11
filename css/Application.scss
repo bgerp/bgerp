@@ -916,6 +916,15 @@ td.portal-date {
 	}
 }
 
+.document-title{
+	font-size: 16pt;
+	font-weight: bold;
+	margin-top: 4px;
+	span{
+	   font-size: 12pt;
+	}
+}
+
 .no-border > tbody > tr > td{
     border: none !important;
 }

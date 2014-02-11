@@ -7,7 +7,7 @@
                 <tr>
                     <td class="cell custom-header-bg" valign="top" width="35%"><b>|Supplier|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|PURCHASE OF SERVICE CONTRACT|*</b> </font><br>
+                        <div class="document-title">|PURCHASE OF SERVICE CONTRACT|*</div>
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span>
                         	<span class="bigData">[#valior#]</span>
