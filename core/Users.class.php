@@ -1398,4 +1398,39 @@ class core_Users extends core_Manager
         return $nick;
     }
     
+    
+    /**
+     * Връща ника, който съответсва на зададаното id
+     * 
+     * @param mixed $userId - id на ника или запис от модела
+     * 
+     * @return string
+     */
+    static function getNick($userId)
+    {
+        // Ако е обект
+        if (is_object($userId)) {
+            
+            // Вземаме id-то от записа
+            $userId = $userId->id;
+            
+        }
+        
+        // Ако е id на потребител от модела
+        if ($userId > 0) {
+            
+            // Вземаме ника от записа
+            $nick = static::fetchField($userId, 'nick');
+        } elseif($userId == -1) {
+            
+            // Ако е сустемния потребител
+            $nick = "@system" ;
+        } else {
+            
+            // Ако е непознат потребител
+            $nick = '@anonymous';
+        }
+        
+        return $nick;
+    }
 }
