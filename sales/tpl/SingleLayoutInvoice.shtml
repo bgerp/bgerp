@@ -83,10 +83,10 @@
 		                     <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryId-->
-                               <b>[#deliveryId#]</b>,
+                               <b>[#deliveryId#]</b>
                                <!--ET_END deliveryId-->
                                <!--ET_BEGIN deliveryPlaceId-->
-                               [#deliveryPlaceId#]
+                                [#deliveryPlaceId#]
                                <!--ET_END deliveryPlaceId-->
                                
 		                    </div>
@@ -132,11 +132,13 @@
 						     </tr>
 						     <!--ET_END vatAmount-->
 						     
+						     <!--ET_BEGIN vatReason-->
 		                      <tr>
 		                          <td align='right'>|Основание за ДДС|*:</td>
 		                      
 		                          <td align="right" colspan=2>[#vatReason#]</td>
 		                      </tr>
+		                     <!--ET_END vatReason-->
 		                     
 						     <tr class='nowrap'>
 						    	<td align='right'>|Общо|* / <i>Total</i>:</td>
@@ -163,7 +165,7 @@
 		                <tbody>
 		                <tr>
 		                   <td class="topCell" valign="top" width="30%">
-		                        <table>
+		                        <table class='signature-table'>
                                    <tr>
                                         <td width="1%">|Получил|*:  </td><td></td>
                                     </tr>
@@ -181,7 +183,7 @@
 		                    </td>
 		                    <!--ET_END additionalInfo-->
 		                    <td class="topCell" align="right" width="30%" style='vertical-align:top !important'>
-                                 <table width='1%' class='fright'>
+                                 <table width='1%' class='fright signature-table'>
                                    <tr>
                                         <td width="1%">|Съставил|*:  </td><td></td>
                                     </tr>
