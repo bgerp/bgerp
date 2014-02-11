@@ -94,17 +94,17 @@ class type_Time extends type_Varchar {
         }
         
         // Извличаме секундите от текста
-        if(preg_match(str::utf2ascii('/(\d+)[ ]*(s|secundes|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(s|second|seconds|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
             $secundes = $matches[1];
         }
         
         // Извличаме минутите от текста
-        if(preg_match(str::utf2ascii('/(\d+)[ ]*(m|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(m|minute|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
             $minutes = $matches[1];
         }
         
         // Извличаме часовете от текста
-        if(preg_match(str::utf2ascii('/(\d+)[ ]*(h|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(h|hour|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
             $hours = $matches[1];
         }
         

@@ -55,15 +55,21 @@ class plg_RefreshRows extends core_Plugin
             
             shutdown();
         } else {
-            $params = getCurrentUrl();
+            
+            // Ако не е зададено, URL-то да сочи към текущото
+            $params = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
             $params['ajax_mode'] = 1;
             $url = toUrl($params);
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
             $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
+            $attr = array('name' => 'rowsContainer');
             
-            $tpl->appendOnce("\n runOnLoad(function(){setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'rowsContainer');}, {$time});});", 'JQRUN');
-            $tpl->prepend("<div id='rowsContainer'>");
+            // Генерираме уникално id
+            ht::setUniqId($attr);
+            
+            $tpl->appendOnce("\n runOnLoad(function(){setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'{$attr['id']}');}, {$time});});", 'JQRUN');
+            $tpl->prepend("<div id='{$attr['id']}'>");
             $tpl->append("</div>");
         }
     }
