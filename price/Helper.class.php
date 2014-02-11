@@ -236,7 +236,7 @@ abstract class price_Helper
 		$Double->params['decimals'] = 2;
 		
 		foreach ($arr as $index => $el){
-			if(is_double($el)){
+			if(is_numeric($el)){
 				$arr[$index] = $Double->toVerbal($el);
 			}
 		}
