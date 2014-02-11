@@ -649,21 +649,31 @@ class purchase_Purchases extends core_Master
 		        						  'supplier2bank',
 		        						  'supplier2case',
         								  'case2supplierAdvance',
-		        						  'bank2supplierAdvance');
+		        						  'bank2supplierAdvance',
+        								  'supplierAdvance2case');
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['case2supplierAdvance'], $allowedPaymentOperations['bank2supplierAdvance']);
+        		unset($allowedPaymentOperations['case2supplierAdvance'], 
+        			  $allowedPaymentOperations['bank2supplierAdvance'],
+        		      $allowedPaymentOperations['supplierAdvance2case'],
+        		      $allowedPaymentOperations['bank2supplierAdvance']);
+        	} else {
+        		// Колко е очакваото авансово плащане
+        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
+        		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
         }
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate                   = $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;

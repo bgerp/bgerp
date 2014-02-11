@@ -169,6 +169,7 @@ class cash_Pko extends core_Master
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -216,11 +217,7 @@ class cash_Pko extends core_Master
     		 		$amount = 0;
     		 	}
     		 	
-    		 	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 		$defaultOperation = (!$dealInfo->hasDownpayment) ? 'customer2caseAdvance' : 'customer2case';
-    		 	} else {
-    		 		$defaultOperation = (!$dealInfo->hasDownpayment) ? 'supplierAdvance2case' : 'supplier2case';
-    		 	}
+    		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
     		 	
     		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
     		 	foreach ($options as $index => $op){
@@ -259,9 +256,36 @@ class cash_Pko extends core_Master
     	$form->setReadOnly('peroCase', cash_Cases::getCurrent());
     	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
     	
-    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+    	$form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
 
+    
+	/**
+     * Помощна ф-я връщаща дефолт операцията за документа
+     */
+    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
+    {
+    	$paid = $dealInfo->paid;
+    	$agreed = $dealInfo->agreed;
+    	
+    	// Ако е продажба пораждащия документ
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'supplierAdvance2case' : 'supplier2case';
+    		} else {
+    			$defaultOperation = 'supplier2case';
+    		}
+    	} else {
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'customer2caseAdvance' : 'customer2case';
+    		} else {
+    			$defaultOperation = 'customer2case';
+    		}
+    	}
+    	
+    	return $defaultOperation;	
+    }
+    
     
     /**
      * Проверка и валидиране на формата
@@ -611,8 +635,12 @@ class cash_Pko extends core_Master
         $result->paid->payment->caseId = $rec->peroCase;
         $result->paid->operationSysId  = $rec->operationSysId;
         
-        $hasDownpayment = ($rec->operationSysId == 'customer2caseAdvance') ? TRUE : FALSE;
-    	$result->hasDownpayment = $hasDownpayment;
+        if($rec->operationSysId == 'customer2caseAdvance' || $rec->operationSysId == 'supplierAdvance2case'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+    	
+    	$hasDownpayment = ($rec->operationSysId == 'customer2caseAdvance') ? TRUE : FALSE;
+        $result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

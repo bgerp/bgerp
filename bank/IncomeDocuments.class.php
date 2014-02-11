@@ -150,6 +150,7 @@ class bank_IncomeDocuments extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка,width=16em'); 
@@ -219,9 +220,36 @@ class bank_IncomeDocuments extends core_Master
         }
     	
      	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
      
+    
+	/**
+     * Помощна ф-я връщаща дефолт операцията за документа
+     */
+    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
+    {
+    	$paid = $dealInfo->paid;
+    	$agreed = $dealInfo->agreed;
+    	
+    	// Ако е продажба пораждащия документ
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'supplierAdvance2bank' : 'supplier2bank';
+    		} else {
+    			$defaultOperation = 'supplier2bank';
+    		}
+    	} else {
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'customer2bankAdvance' : 'customer2bank';
+    		} else {
+    			$defaultOperation = 'customer2bank';
+    		}
+    	}
+    	
+    	return $defaultOperation;	
+    }
+    
     
     /**
      * Задава стойности по подразбиране от продажба/покупка
@@ -252,12 +280,8 @@ class bank_IncomeDocuments extends core_Master
     		 	}
     		 }
 
-        	 if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
-    		 	$form->defaultOperation = (!$dealInfo->hasDownpayment) ? 'customer2bankAdvance' : 'customer2bank';
-    		 } else {
-    		 	$form->defaultOperation = (!$dealInfo->hasDownpayment) ? 'supplierAdvance2bank' : 'supplier2bank';
-    		 }
-    		 
+    		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
+        	 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
@@ -570,7 +594,11 @@ class bank_IncomeDocuments extends core_Master
 		$result->paid->operationSysId         = $rec->operationSysId;
         
 		$hasDownpayment = ($rec->operationSysId == 'customer2bankAdvance') ? TRUE : FALSE;
-    	$result->hasDownpayment = $hasDownpayment;
+    	if($rec->operationSysId == 'customer2bankAdvance' || $rec->operationSysId == 'supplierAdvance2bank'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+		
+		$result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

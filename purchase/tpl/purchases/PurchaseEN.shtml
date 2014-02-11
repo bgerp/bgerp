@@ -9,7 +9,7 @@
                     <td class="cell" align="center" width="30%" rowspan='2'>
                         <font style="font-size:16pt;"><b>|PURCHASE CONTRACT|*</b> </font><br>
                         <div style="padding-top:5px;">
-                        	№ <span class="bigData">[#id#]</span>
+                        	№ <span class="bigData">[#id#]</span> /
                         	<span class="bigData">[#valior#]</span>
                         </div>
                         
@@ -54,7 +54,7 @@
 	                     [#purchaseConditions#]
 	                    <td class="topCell first" valign="top">
 	                        <b>|Conditions|*</b>
-							<ol style = ';margin-top:1px'>
+							<ol style = 'margin-top:1px'>
 							
 							<!--ET_BEGIN deliveryTermId-->
 							<li>

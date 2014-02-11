@@ -64,31 +64,37 @@
                 <tbody><tr>
                     <!--ET_BEGIN deliveryInfo-->
                     [#deliveryInfo#]
-                    <td class="topCell first" valign="top">
+                    <td class="topCell first" valign="top" width='50%'>
+                        <table class='shipment-table'>
                         <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
+                            <tr>
+                                <td>|Срок до|*:</td>
+                                <td><b>[#deliveryTime#]</b></td>
+                            </tr>
                         <!--ET_END deliveryTime-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	|До|*: <b>[#locationId#]</b>
-                        </div>
+                      
+                        <!--ET_BEGIN locationId-->
+                            <tr>
+                                <td>|До|*:</td>
+                                <td><b>[#locationId#]</b></td>
+                            </tr>
                         <!--ET_END locationId-->
-        				
-                        <!--ET_BEGIN note-->
-	                        <hr />
+                        <!--ET_BEGIN currencyId-->
+                            <tr>
+                                <td>|Валута|*: </td>
+                                <td><span class='cCode'>[#currencyId#]</span></td>
+                            </tr>
+                        <!--ET_END currencyId--> 
+                        
+                        
+                        </table>
+                        
+	                        <hr>
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
                      <!--ET_END deliveryInfo-->
-                    <td class="topCell" valign="top">
-                    <!--ET_BEGIN currencyId-->
-			             <div>|Валута|*:  <b>[#currencyId#]</b></div>
-			        <!--ET_END currencyId-->
-                    </td>
-       
+                    
                     <td class="topCell" align="right" valign="top">
                         <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
 				     <tr class='nowrap'>

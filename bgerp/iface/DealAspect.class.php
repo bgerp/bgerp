@@ -63,6 +63,14 @@ class bgerp_iface_DealAspect
 
 
     /**
+     * Обща сума на авансовото плащане (ако има)
+     *
+     * @var double
+     */
+    public $downpayment = NULL;
+    
+    
+    /**
      * Информация за доставката
      *
      * @var bgerp_iface_DealDelivery
@@ -120,6 +128,9 @@ class bgerp_iface_DealAspect
         }
         
         $this->amount += $aspect->amount;
+        if($aspect->downpayment){
+        	$this->downpayment += $aspect->downpayment;
+        }
     }
     
     

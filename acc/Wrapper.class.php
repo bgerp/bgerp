@@ -30,7 +30,6 @@ class acc_Wrapper extends plg_ProtoWrapper
         $this->TAB('acc_Balances', 'Оборотни ведомости', 'ceo,acc');
         $this->TAB('acc_Articles', 'Мемориални Ордери', 'acc,ceo');
         $this->TAB('acc_Journal', 'Журнал', 'ceo,acc');
-        $this->TAB('acc_Invoices', 'Фактури', 'ceo,acc');
         
         $this->title = 'Книги « Счетоводство';
         Mode::set('menuPage','Счетоводство:Книги');

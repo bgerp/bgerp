@@ -568,7 +568,7 @@ class doc_Containers extends core_Manager
     static function getUserNick($userId)
     {
         // Вземаме ника на потребителя
-        $nick = core_Users::fetchField($userId, 'nick');
+        $nick = core_Users::getNick($userId);
         
         // Обработваме ника
         $nick = core_Users::prepareNick($nick);

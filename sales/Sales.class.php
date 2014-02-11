@@ -731,8 +731,8 @@ class sales_Sales extends core_Master
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
-	    	if($actions['ship'] && acc_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('acc_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	if($actions['ship'] && sales_Invoices::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
 		    if(cash_Pko::haveRightFor('add')){
@@ -923,7 +923,11 @@ class sales_Sales extends core_Master
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance']);
+        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
+        	} else {
+        		// Колко е очакваото авансово плащане
+        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
+        		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
         }
         
@@ -932,6 +936,7 @@ class sales_Sales extends core_Master
         $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
@@ -946,6 +951,7 @@ class sales_Sales extends core_Master
         
         if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
+            $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
             $result->paid->currency 			  = $rec->currencyId;
             $result->paid->rate                   = $rec->currencyRate;
             $result->paid->vatType 				  = $rec->chargeVat;
@@ -956,6 +962,7 @@ class sales_Sales extends core_Master
 
         if (isset($actions['ship'])) {
             $result->shipped->amount             = $rec->amountDeal;
+            $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
             $result->shipped->currency           = $rec->currencyId;
             $result->shipped->rate               = $rec->currencyRate;
             $result->shipped->vatType 			 = $rec->chargeVat;

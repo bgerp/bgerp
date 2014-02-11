@@ -62,44 +62,56 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="topCell first" valign="top">
-                        <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
-                        <!--ET_END deliveryTime-->
-    
-                        <!--ET_BEGIN storeId-->
-                        <div>
-                            |От склад|*: <b>[#storeId#]</b>
-                        </div>
-                        <!--ET_END storeId-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	|До|*: <b>[#locationId#]</b>
-                        </div>
-                        <!--ET_END locationId-->
-        				
-        				<!--ET_BEGIN lineId-->
-        				<div>
-                            |Транспорт|*: <br /><b>[#lineId#]</b>
-                        </div>
-        				<!--ET_END lineId-->
-        				
-        				<div>
-        				|Тегло|*: <b>[#weight#]</b>
-        				</div>
-        				
-        				<div>
-        				|Обем|*: <b>[#volume#]</b>
-        				</div>
-                        <!--ET_BEGIN note-->
-	                        <hr />
+                    <td class="topCell first" valign="top" width='50%'>
+                    
+                    <table class='shipment-table' >
+                    <!--ET_BEGIN deliveryTime-->
+                        <tr>
+                            <td>|Срок до|*:</td>
+                            <td><b>[#deliveryTime#]</b></td>
+                        </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN storeId-->
+                        <tr>
+                            <td>|От склад|*:</td>
+                            <td><b>[#storeId#]</b></td>
+                        </tr>
+                    <!--ET_END storeId-->
+                    <!--ET_BEGIN locationId-->
+                        <tr>
+                            <td>|До|*:</td>
+                            <td><b>[#locationId#]</b></td>
+                        </tr>
+                    <!--ET_END locationId-->
+                    <!--ET_BEGIN lineId-->
+                        <tr>
+                            <td>|Транспорт|*: </td>
+                            <td><b>[#lineId#]</b></td>
+                        </tr>
+                    <!--ET_END lineId--> 
+                    </table>
+                   </td>
+                   <td>
+                      <table class='shipment-table' >   
+		                  <tr>
+		                      <td class='nowrap' width=1%>|Общо тегло|*:</td>
+		                      <td><b>[#weight#]</b></td>
+		                 </tr>
+		                 <tr>
+		                      <td>|Общ обем|*:</td>
+		                      <td><b>[#volume#]</b></td>
+		                 </tr>      
+		              </table>   
+		          </td>
+		          </tr>
+		           <!--ET_BEGIN note-->
+		          <tr>
+		                <td colspan=2>    
 	                        [#note#]
-                        <!--ET_END note-->     
-                    </td>
-                </tr>           
+                        </td>
+                    
+                  </tr>    
+                 <!--ET_END note-->            
                 </tbody>
             </table>
             </div>

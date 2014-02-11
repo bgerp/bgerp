@@ -121,11 +121,15 @@ class doc_Search extends core_Manager
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->state) ||
-        !empty($filterRec->author) ||
-        !empty($filterRec->toDate);
+        !empty($filterRec->fromDate) ||
+        !empty($filterRec->toDate) ||
+        $filterRec->author != 'all_users';
+        
+        // Флаг, указващ дали се филтрира
+        $mvc->isFiltered = $isFiltered;
         
         // Ако формата е субмитната
-        if($data->listFilter->isSubmitted()) {
+        if($isFiltered && ($filterRec->fromDate || $filterRec->toDate)) {
             
             // Ако са попълнени полетата От и До
             if ($filterRec->fromDate && $filterRec->toDate) {
@@ -161,7 +165,7 @@ class doc_Search extends core_Manager
         }
         
         // Има зададен условия за търсене - генерираме SQL заявка.
-        if(!$data->listFilter->gotErrors()) {
+        if($isFiltered && !$data->listFilter->gotErrors()) {
             
             // Търсене на определен тип документи
             if (!empty($filterRec->docClass)) {
@@ -295,7 +299,7 @@ class doc_Search extends core_Manager
      */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if ($data->listFilter->gotErrors()) {
+        if (!$mvc->isFiltered) {
             
             return FALSE;
         }
