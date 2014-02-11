@@ -55,7 +55,7 @@
         </tr>
         <tr>
         <td></td>
-        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declatorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
+        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
      

@@ -1,5 +1,5 @@
 <div class='dec-document'>
-<br><div class='indent'>The undersigned, manufacturer/supplier: <br>[#MyCompany#], with address <!--ET_BEGIN MyCountry-->[#MyCountry#],<!--ET_END MyCountry--><!--ET_BEGIN MyAddress--> city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
+<br><div class='indent'>The undersigned, manufacturer/supplier: <br>[#MyCompany#],  <!--ET_BEGIN MyCountry-->with address[#MyCountry#],<!--ET_END MyCountry--><!--ET_BEGIN MyAddress--> city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
 	<div>represented by [#manager#] <!--ET_BEGIN manager--> – with personal number: <b>[#managerЕGN#]</b> </div><!--ET_END manager-->
 
@@ -52,7 +52,7 @@ evidenced by invoice <b>№ [#invoiceNo#]</b>,</div>
         </tr>
         <tr>
         <td></td>
-        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declatorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
+        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
 </div>

@@ -41,7 +41,7 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, bgerp_plg_Blank, dec_Wrapper, doc_ActivatePlg, plg_Printing, 
+    var $loadList = 'sales_Wrapper, bgerp_plg_Blank, dec_Wrapper, recently_Plugin, doc_ActivatePlg, plg_Printing, 
     				 plg_RowTools, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
     
     
@@ -132,13 +132,17 @@ class dec_Declarations extends core_Master
     	    	
 		$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
 		
-		$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Декларатор');
+		$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Представлявана от');
 		
-		$this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Произведени в");
+		$this->FLD('locationId', 'varchar', "caption=Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
 		
-		$this->FLD('materialId', 'keylist(mvc=cat_Products, select=name)', 'caption=Материали,maxColumns=2');
+		$this->FLD('materialId', 'varchar', 'caption=Материали, recently');
 		
-		$this->FLD('date', 'datetime(format=smartTime)', 'caption=Дата');
+		$this->FLD('date', 'date', 'caption=Дата');
+		
+		$this->FLD('declaratorId', 'varchar', 'caption=Декларатор->Име и Фамилия, recently');
+		
+		$this->FLD('declaratorPosition', 'varchar', 'caption=Декларатор->Позиция, recently');
     }
 
     
@@ -150,7 +154,7 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $data->form->setSuggestions('materialId', cat_Products::getByGroup('materials'));
+        //$data->form->setSuggestions('materialId', cat_Products::getByGroup('materials'));
         
     	// Записваме оригиналното ид, ако имаме такова
     	if($data->form->rec->originId){
@@ -176,10 +180,12 @@ class dec_Declarations extends core_Master
     {
     	$row = &$data->row;
         $rec = &$data->rec;
-       
+        $recDec = $tpl->rec;
+        
         // Зареждаме бланката в шаблона на документа
         $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
-        
+        $decContent = $row->content;
+          	
     	// Зареждаме данните за собствената фирма
         $ownCompanyData = crm_Companies::fetchOwnCompany();
 
@@ -206,31 +212,24 @@ class dec_Declarations extends core_Master
     	$row->manager = $managerData->name;
     	$row->managerEGN = $managerData->egn;
 
-    	if($rec->locationId){
+    	if ($rec->locationId) {
     		
     		// информация за локацията/ мястото на производство
-	    	$locationData = crm_Locations::fetch($rec->locationId);
-	    	$row->place = $locationData->title;
+	    	//$locationData = crm_Locations::fetch($rec->locationId);
+	    	$row->place = $rec->locationId;
     	}
 
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
     	}
     	
-    	if($data->rec->materialId){
-    		$materials = type_Keylist::toArray($data->rec->materialId);
-    		$row->material = "<ol>";
-    		
-    		foreach($materials as $materialId){
-    			$material = cat_Products::fetchField($materialId, 'name');
-        		$row->material .= "<li>$material</li>";
-			}
-        	
-			$row->material .= "</ol>";
+    	if ($rec->materialId) {
+    		        	
+			$row->material = $rec->materialId;
     	}
     	
     	// ако декларацията е към документ
-    	if($data->rec->originId){
+    	if ($data->rec->originId) {
 			// и е по  документ фактура намираме кой е той
     		$doc = doc_Containers::getDocument($data->rec->originId);
     		$class = $doc->className;
@@ -257,7 +256,7 @@ class dec_Declarations extends core_Master
 	        $row->contragentAddress = $addressContragent;
 	        
 	        $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-	        if($uic != $rec->contragentVatNo){
+	        if ($uic != $rec->contragentVatNo) {
 	        	$row->contragentCompanyVatNo = $rec->contragentVatNo;
 	    	} 
 	    	$row->contragentUicId = $uicContragent;
@@ -266,7 +265,7 @@ class dec_Declarations extends core_Master
        		$row->invoiceNo = $invoiceNo;
             
 	       	// Продуктите
-	       	if(count($deal->invoiced->products)){
+	       	if (count($deal->invoiced->products)) {
 	       		$row->products = "<ol>";
 	       		
 		       	foreach($deal->invoiced->products as $iProduct){
@@ -277,7 +276,14 @@ class dec_Declarations extends core_Master
 				
 				$row->products .= "</ol>";
 	       	}
+	    
     	}
+    	
+    	$cTpl = $decContent->getBlock("declaratorInfo");
+    	$cTpl->replace($recDec->declaratorId, 'declaratorName');
+	    $cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
+	    $cTpl->append2master();
+
     }
 
     
