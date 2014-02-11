@@ -75,7 +75,7 @@ class dec_Statements extends core_Master
      */
     function description()
     {
-		$this->FLD('title', 'varchar', 'caption=Заглавие');
+		$this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
 		$this->FLD('text', 'richtext', 'caption=Текст');
     }
     
