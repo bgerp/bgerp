@@ -419,6 +419,9 @@ class doc_Containers extends core_Manager
         
         static $threadTitleArr = array();
         
+        // Броя на потребителите, които ще се показват в съобщението на нотификацията
+        $maxUsersToShow = 2;
+        
         // Масив с нотифицираниете потребители
         // За предпазване от двойно нотифициране
         static $notifiedUsersArr = array();
@@ -439,7 +442,7 @@ class doc_Containers extends core_Manager
         if (!$threadTitleArr[$rec->threadId]) {
             
             // Определяме заглавието и добавяме в масива
-            $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), 70);
+            $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), doc_Threads::maxLenTitle);
         }
         
         // Текущия потребител да не се нотифицира
@@ -469,26 +472,41 @@ class doc_Containers extends core_Manager
             // Ника на текущия потребител
             $currUserNickMsg = $currUserNick;
             
-            // Ако текущия потребител е добавил повече от един документ
-            if ($authorArr[$currUserId] > 1) {
-                
-                // Добавяме броя след името
-                $currUserNickMsg .= "({$authorArr[$currUserId]})";
-                
-                // Изполваме заглавието на документа
-                $docTitle = $docMvc->title;
-            } else {
-                
-                // Ако има само един добавен документ
-                // Използваме титлата на сингъла на документа
-                $docTitle = $docMvc->singleTitle;
-            }
-
+            // Сингъл типа на документиа
+            $docTitle = $docMvc->singleTitle;
+            
             // Името да е в долния регистър
             $docTitle = mb_strtolower($docTitle);
             
             // Генерираме съобщението
-            $message = "{$currUserNickMsg} |{$action}|* |{$docTitle}|* |в|* \"{$threadTitleArr[$rec->threadId]}\"";
+            $message = "{$currUserNickMsg} |{$action}|* |{$docTitle}|*";
+            
+            // Други добавки от съответния потребител
+            $currUserOther = '';
+            
+            // Ако текущия потребител е добавил повече от един документ
+            if ($authorArr[$currUserId] > 1) {
+                
+                // В зависимост от текста определяме началния текст
+                if ($action != 'добави') {
+                    $currUserOther = 'и добави';
+                } else {
+                    $currUserOther = 'и';
+                }
+                
+                // В зависимост от броя документи, определяме текста
+                if ($authorArr[$currUserId] == 2) {
+                    $currUserOther .= " друг документ";
+                } elseif ($authorArr[$currUserId] > 2) {
+                    $currUserOther .= " други документи";
+                }
+                
+                // Добавяме текста към съобщението
+                $message .= " |{$currUserOther}|*";
+            }
+            
+            // Добавяме останалата част от съобщението
+            $message .= " |в|* \"{$threadTitleArr[$rec->threadId]}\"";
             
             // Никове, на другите потребители, които са добавили нещо
             $otherNick = '';
@@ -501,17 +519,23 @@ class doc_Containers extends core_Manager
             // Флаг, който указва, че има добавени повече от един документ за някой потребител
             $haveMore = FALSE;
             
+            // Нулираме брояча
+            $usersCount = 0;
+            
             // Обхождаме всички останали потребители в масива
             foreach ((array)$authorArr as $author => $count) {
+                
+                // Увеличаваме брояча
+                $usersCount++;
+                
+                // Ако сме достигнали максималния лимит, прекъсваме
+                if ($usersCount > $maxUsersToShow) break;
                 
                 // Вземаме ника на автора
                 $uNick = static::getUserNick($author);
                 
                 // Ако е добавил повече от един документ, от последтово виждане
                 if ($count > 1) {
-                    
-                    // Добавяме броя на вижданията след името
-                    $uNick .= "($count)";
                     
                     // Вдигаме флага
                     $haveMore = TRUE;
@@ -528,10 +552,17 @@ class doc_Containers extends core_Manager
                 $otherNick = rtrim($otherNick, ', ');
                 
                 // Ограничаваме дължината
-                $otherNick = str::limitLen($otherNick, 110);
+                $otherNick = str::limitLen($otherNick, 50);
                 
                 // Броя на авторите, които са добавили нещо
                 $cntAuthorArr = count($authorArr);
+                
+                // Ако има други, които са добавили документи
+                if ($cntAuthorArr > $maxUsersToShow) {
+                    
+                    // Добавяме съобщението
+                    $otherNick .= ' |и други|*';
+                }
                 
                 // В зависимост от броя на документите и авторите, определяме стринга
                 if ($cntAuthorArr > 1) {
