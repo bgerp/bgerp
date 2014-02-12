@@ -65,9 +65,11 @@
                                 <!--ET_BEGIN rate--> 
                                  <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
                                 <!--END rate-->  
-                                <hr>
+                               
 		                        <!--ET_BEGIN accountId-->
+		                        <hr>
 		                        <div>
+		                       
 			                        |Банкова с-ка|*: <b>[#accountId#]</b>
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
