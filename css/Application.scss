@@ -925,6 +925,22 @@ td.portal-date {
 	}
 }
 
+.document .listTable th{
+	white-space: nowrap;
+}
+
+.document  .listTable  tr > th:first-child{
+	width:1%;
+}
+
+.small-field{
+	width:1%;
+}
+
+.large-field{
+	width: 50%;
+}
+
 .no-border > tbody > tr > td{
     border: none !important;
 }
