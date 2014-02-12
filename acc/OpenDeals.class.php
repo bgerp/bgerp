@@ -279,8 +279,9 @@ class acc_OpenDeals extends core_Manager {
     public static function on_BeforeAction(core_Mvc $mvc, &$res, $action)
     {
     	if($action != 'list') return;
-    	
     	$show = Request::get('show', 'enum(store,bank,cash)');
+    	
+    	$mvc->requireRole('powerUser');
     	expect(haveRole("ceo,{$show}"));
     	
     	switch($show){
