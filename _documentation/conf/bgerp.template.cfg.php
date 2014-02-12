@@ -47,19 +47,19 @@
    defIfNot('BGERP_GIT_PATH', '[#BGERP_GIT_PATH#]');
       
 // Имейла по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_FROM', '[#BGERP_DEFAULT_EMAIL_FROM#]');
 
 // Домейн  по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '[#BGERP_DEFAULT_EMAIL_DOMAIN#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '[#BGERP_DEFAULT_EMAIL_DOMAIN#]');
 
 // Пощенска кутия по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_USER', '[#BGERP_DEFAULT_EMAIL_USER#]');
 
 // Хост по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_HOST', '[#BGERP_DEFAULT_EMAIL_HOST#]');
 
 // Парола по подразбиране
-   defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
+// defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '[#BGERP_DEFAULT_EMAIL_PASSWORD#]');
    
 
 
