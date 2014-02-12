@@ -124,9 +124,9 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('info', "varchar(125)", 'caption=Колети,hint=В кои колети се намира продукта');
         $this->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory');
+        $this->FLD('productId', 'int(cellAttr=left)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none', 'tdClass=small-field');
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         
@@ -143,7 +143,7 @@ class store_ShipmentOrderDetails extends core_Detail
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
         
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory', 'tdClass=small-field');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
