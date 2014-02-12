@@ -307,7 +307,7 @@ class doc_RichTextPlg extends core_Plugin
         $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
         
         // Бутон за отвяряне на прозореца
-        $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
+        $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ/и от системата") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
         
         
         // JS функцията
