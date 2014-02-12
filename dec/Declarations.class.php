@@ -41,7 +41,7 @@ class dec_Declarations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, bgerp_plg_Blank, dec_Wrapper, recently_Plugin, doc_ActivatePlg, plg_Printing, 
+    var $loadList = 'sales_Wrapper, bgerp_plg_Blank, dec_Wrapper, recently_Plugin, doc_ActivatePlg, plg_Printing, cond_plg_DefaultValues, 
     				 plg_RowTools, doc_DocumentIntf, doc_DocumentPlg, doc_EmailCreatePlg';
     
     
@@ -122,6 +122,16 @@ class dec_Declarations extends core_Master
      */
     var $searchFields = 'typeId, doc, managerId, locationId, materialId';
 
+     
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    
+    	'statementId'   => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'materialId'    => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    );
+    
     
     /**
      * Описание на модела
@@ -134,15 +144,22 @@ class dec_Declarations extends core_Master
 		
 		$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Представлявана от');
 		
-		$this->FLD('locationId', 'varchar', "caption=Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения');
 		
-		$this->FLD('materialId', 'varchar', 'caption=Материали, recently');
+		$this->FLD('location', 'varchar', "caption=Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
+		//стетейтмънт
+		$this->FLD('materials', 'varchar', 'caption=Материали, recently');
 		
 		$this->FLD('date', 'date', 'caption=Дата');
+				
+		$this->FLD('productId', 'keylist(mvc=sales_InvoiceDetails,select=productId)', 'caption=Продукти');
 		
-		$this->FLD('declaratorId', 'varchar', 'caption=Декларатор->Име и Фамилия, recently');
+		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Пояснения');
+	
+		// по подразбиране на вземе мениджъра и позицията му
+		//$this->FLD('declaratorId', 'varchar', 'caption=Декларатор->Име и Фамилия, recently');
 		
-		$this->FLD('declaratorPosition', 'varchar', 'caption=Декларатор->Позиция, recently');
+		//$this->FLD('declaratorPosition', 'varchar', 'caption=Декларатор->Позиция, recently');
     }
 
     
@@ -154,13 +171,38 @@ class dec_Declarations extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        //$data->form->setSuggestions('materialId', cat_Products::getByGroup('materials'));
         
     	// Записваме оригиналното ид, ако имаме такова
     	if($data->form->rec->originId){
     		$data->form->setDefault('doc', $data->form->rec->originId);
+    		
+    		// и е по  документ фактура намираме кой е той
+    		$doc = doc_Containers::getDocument($data->form->rec->originId);
+    		$class = $doc->className;
+    		$dId = $doc->that;
+    		$rec = $class::fetch($dId);
+    		
+    		// съдържа обобщена информация за сделките в нишката
+    		$firstDoc = doc_Threads::getFirstDocument($data->form->rec->threadId);
+    		if($firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
+    			$deal = $firstDoc->getAggregateDealInfo();
+    		} elseif($firstDoc->haveInterface('bgerp_DealIntf')){
+    			$deal = $firstDoc->getDealInfo();
+    		}
+    		expect($deal);
+    		
+    		
+	       	// Продуктите
+	       	if (count($deal->invoiced->products)) {
+	       		
+		       	foreach($deal->invoiced->products as $iProduct){
+		    		$ProductMan = cls::get($iProduct->classId);
+		        	$productName [] = $ProductMan::getTitleById($iProduct->productId);
+				}
+				
+				$data->form->setSuggestions('productId', $productName);
+	       	}
     	}
-
     }
     
     
@@ -212,20 +254,20 @@ class dec_Declarations extends core_Master
     	$row->manager = $managerData->name;
     	$row->managerEGN = $managerData->egn;
 
-    	if ($rec->locationId) {
+    	if ($rec->location) {
     		
     		// информация за локацията/ мястото на производство
 	    	//$locationData = crm_Locations::fetch($rec->locationId);
-	    	$row->place = $rec->locationId;
+	    	$row->place = $rec->location;
     	}
 
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
     	}
     	
-    	if ($rec->materialId) {
+    	if ($rec->materials) {
     		        	
-			$row->material = $rec->materialId;
+			$row->material = $rec->materials;
     	}
     	
     	// ако декларацията е към документ
@@ -280,7 +322,7 @@ class dec_Declarations extends core_Master
     	}
     	
     	$cTpl = $decContent->getBlock("declaratorInfo");
-    	$cTpl->replace($recDec->declaratorId, 'declaratorName');
+    	$cTpl->replace($managerData->name, 'declaratorName');
 	    $cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
 	    $cTpl->append2master();
 
