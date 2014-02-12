@@ -128,8 +128,8 @@ class dec_Declarations extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'statementId'   => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    	'materialId'    => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'statements'   => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'materials'    => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
