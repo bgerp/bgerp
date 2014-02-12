@@ -120,7 +120,7 @@ class dec_Declarations extends core_Master
    	/**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'typeId, doc, managerId, locationId, materialId';
+    var $searchFields = 'typeId, doc, managerId, location, materials';
 
      
     /**
