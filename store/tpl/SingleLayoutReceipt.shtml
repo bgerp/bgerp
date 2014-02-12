@@ -104,14 +104,7 @@
 		              </table>   
 		          </td>
 		          </tr>
-		           <!--ET_BEGIN note-->
-		          <tr>
-		                <td colspan=2>    
-	                        [#note#]
-                        </td>
-                    
-                  </tr>    
-                 <!--ET_END note-->            
+		                  
                 </tbody>
             </table>
             </div>
@@ -122,7 +115,50 @@
 				</div>
 				<!--ET_END DETAILS-->
         </td>
-    </tr>
+      </tr>
+        <tr>
+            <td>
+             <div class='lines'></div>
+        <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
+                        <tbody>
+                        <tr>
+                           <td class="topCell" valign="top" width="30%">
+                                <table class='signature-table'>
+                                   <tr>
+                                        <td width="1%">|Получил|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td><span class="sign_names">[#responsible#]</span></td>
+                                        
+                                    </tr>           
+                                </table> 
+                          </td>
+                          <!--ET_BEGIN note--> 
+                          <td>
+                          |Бележки|*: 
+                            [#note#]
+                          </td>
+                             <!--ET_END note--> 
+                            <td class="topCell" align="right" width="30%" style='vertical-align:top !important'>
+                                 <table width='1%' class='fright signature-table'>
+                                   <tr>
+                                        <td width="1%">|Съставил|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td class='nowrap'><span class="sign_names">[#username#]</span></td>
+                                    </tr>
+                                 </table>
+                            </td>
+                          </tr>        
+                        </tbody>
+               </table>
+            
+            </td>
+        
+        </tr>
+   
     </tbody>
 </table>
 </div>

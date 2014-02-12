@@ -69,7 +69,7 @@
 						<tr>
 							<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 								<br>
-								<table>
+								<table class='signature-table'>
 								    <tr>
 								        <td width=1%>|Получил|*:  </td><td></td>
 								    </tr>
@@ -84,7 +84,7 @@
 							</td>
 							<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 							 <br>
-								<table>
+								<table class='signature-table'>
                                     <tr>
                                         <td width=1%>|Касиер|*:  </td><td></td>
                                     </tr>
