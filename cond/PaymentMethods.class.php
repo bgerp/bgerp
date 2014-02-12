@@ -239,6 +239,9 @@ class cond_PaymentMethods extends core_Master
      */
     public static function hasDownpayment($id)
     {
+    	// Ако няма избран метод, се приема че няма авансово плащане
+    	if(!$id) return FALSE;
+    	
     	expect($rec = static::fetch($id));
     	
     	return ($rec->downpayment) ? TRUE : FALSE;
