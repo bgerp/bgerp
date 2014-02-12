@@ -37,7 +37,7 @@ class dec_Statements extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'sales_Wrapper, dec_Wrapper, plg_Created, plg_RowTools,  plg_Printing, plg_SaveAndNew';
+    var $loadList = 'sales_Wrapper, dec_Wrapper, plg_Created, plg_RowTools, plg_State2, plg_Printing, plg_SaveAndNew';
     
     
     /**
@@ -75,7 +75,7 @@ class dec_Statements extends core_Master
      */
     function description()
     {
-		$this->FLD('title', 'varchar', 'caption=Заглавие');
+		$this->FLD('title', 'varchar', 'caption=Заглавие, width=100%');
 		$this->FLD('text', 'richtext', 'caption=Текст');
     }
     

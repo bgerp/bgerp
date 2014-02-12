@@ -169,7 +169,11 @@ class cal_Tasks extends core_Master
     						'Years'=> 7,
     				
     				);
+    				
+     var $filterFieldDateFrom = 'timeStart';
+     var $filterFieldDateTo = 'timeEnd';
     
+     
     /**
      * Описание на модела (таблицата)
      */
@@ -537,37 +541,76 @@ class cal_Tasks extends core_Master
     	
     	$cu = core_Users::getCurrent();
     	
-        $chart = Request::get('Chart');
-        	
+       
+   
         // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
+        $data->listFilter->FNC('to', 'date', 'caption=До,input,silent');
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
           
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->input('selectedUsers, Chart, View', 'silent');
+        $data->listFilter->view = 'vertical';
+        $data->listFilter->title = 'Задачи';
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 
         if (!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
-
+	  	
+    	if (!$data->listFilter->rec->stateTask) {
+            $data->listFilter->rec->stateTask = 'all';
+	  	}
+	  	
+	  	$data->listFilter->setDefault('from', date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+		$data->listFilter->setDefault('to', date("Y-m-t",strtotime("+1 months", dt::mysql2timestamp(dt::now()))));
+	  	
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         if ($data->action === "list") {
-        	$data->listFilter->showFields = 'search, selectedUsers';
+        	
+        	$data->listFilter->showFields .= 'search, from, to, selectedUsers, stateTask';
         } else {
-        	$data->listFilter->showFields = 'selectedUsers';
+        	$data->listFilter->showFields .= 'selectedUsers';
         }
+        $data->listFilter->input('from, to, selectedUsers, Chart, View, stateTask', 'silent');
         
     	$data->query->orderBy("#timeStart=ASC,#state=DESC");
-        
+
         if ($data->action === 'list') { 
+        	$chart = Request::get('Chart');
+        	
             if ($data->listFilter->rec->selectedUsers != 'all_users') {  
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
+            
+        	if ($data->listFilter->rec->stateTask != 'all') {  
+	            $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
+            } else {
+            	$data->query->fetchAll();
+            }
+            
+        	$dateRange = array();
+	        
+	        if ($data->listFilter->rec->from) {
+	            $dateRange[0] = $data->listFilter->rec->from; 
+	        }
+	        
+	        if ($data->listFilter->rec->to) {
+	            $dateRange[1] = $data->listFilter->rec->to; 
+	        }
+	        
+	        if (count($dateRange) == 2) {
+	            sort($dateRange);
+	        }
+	        
+	        $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+        		              OR
+        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+        		              ");
         }
     }
 
@@ -615,8 +658,8 @@ class cal_Tasks extends core_Master
 	        
 	        $queryClone->where("#state = 'active' AND #timeStart IS NOT NULL");
 	        $queryClone->orWhere("#timeEnd IS NOT NULL OR #timeDuration IS NOT NULL");
-	        
-	        if ($queryClone->fetch()) {
+	       
+	        if ($queryClone->fetch()) { 
 	
 	        	// ще може намерин типа на Ганта
 	        	$ganttType = self::getGanttTimeType($data);
@@ -636,8 +679,7 @@ class cal_Tasks extends core_Master
 		    } else { 
     				$tabs->TAB('Gantt', 'Гант', '');
     		}
-	       
-    		
+
 	        $tpl = $tabs->renderHtml($tpl, $chartType);
 	               
 	        $mvc->currentTab = 'Задачи';
@@ -955,12 +997,22 @@ class cal_Tasks extends core_Master
         	foreach($data->recs as $v=>$rec){ 
         		if($rec->state == 'active' && $rec->timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$rec->timeDuration ) {
+    	    		if(!$rec->timeDuration && !$rec->timeEnd) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
+    	    		} elseif(!$rec->timeDuration && $rec->timeEnd ) {
+    	    			$timeDuration = dt::mysql2timestamp($rec->timeEnd) - dt::mysql2timestamp($rec->timeStart);
     	    		} else {
     	    			$timeDuration = $rec->timeDuration;
     	    		}
+    	    		
+	        		// ако нямаме край на задачата
+		    		if(!$rec->timeEnd){
+		    			// изчисляваме края, като начало + продължителност
+		    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
+		    		} else {
+		    			$timeEnd = $rec->timeEnd;
+		    		}
     	    	            
     	    		// масив с шернатите потребители
     	    		$sharedUsers[$rec->sharedUsers] = keylist::toArray($rec->sharedUsers);
@@ -983,25 +1035,29 @@ class cal_Tasks extends core_Master
     			    	);
         		}
         	} 
-        	 
-        	// правим масив с ресурсите или в нашия случай това са потребителитя
-        	foreach($sharedUsers as $key=>$users){
-        		if(count($users) >=2 ) {
-        			unset ($sharedUsers[$key]);
-        		}
-        		
-        		// има 2 полета ид = номера на потребителя
-        		// и линк към профила му
-        		foreach($users as $id => $resors){
-                    $link = crm_Profiles::createLink($resors);
-    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
-    	    		$resorses[$id]['id'] = $resors;
-        		}
+        	
+        	if (is_array($sharedUsers)) {
+	        	// правим масив с ресурсите или в нашия случай това са потребителитя
+	        	foreach($sharedUsers as $key=>$users){
+	        		if(count($users) >=2 ) {
+	        			unset ($sharedUsers[$key]);
+	        		}
+	        		
+	        		// има 2 полета ид = номера на потребителя
+	        		// и линк към профила му
+	        		foreach($users as $id => $resors){
+	                    $link = crm_Profiles::createLink($resors);
+	    	    		$resorses[$id]['name'] = (string) crm_Profiles::createLink($resors);
+	    	    		$resorses[$id]['id'] = $resors;
+	        		}
+	        	}
         	}
         	
-        	// номерирваме ги да почват от 0
-        	foreach($resorses as $res) {
-        		$resUser[] = $res;
+        	if(is_array($resorses)) {
+	        	// номерирваме ги да почват от 0
+	        	foreach($resorses as $res) {
+	        		$resUser[] = $res;
+	        	}
         	}
         	
         	// правим помощен масив = на "rowId" от "resTasks"
@@ -1009,17 +1065,18 @@ class cal_Tasks extends core_Master
         		$rowArr[] = $resTask[$i]['rowId'];
         	}
         	
-        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
-        	foreach($rowArr as $k => $v){
-        		
-        		foreach($v as $a=>$t){
-        			foreach($resUser as $key=>$value){
-        				if($t == $value['id']) {
-        					$resTask[$k]['rowId'][$a] = $key; 
-        				}
-        
-        			}
-        		}
+        	if (is_array($rowArr)) {
+	        	// за всяко едно ид от $rowArr търсим отговарящия му ключ от $resUser
+	        	foreach($rowArr as $k => $v){
+	        		
+	        		foreach($v as $a=>$t){
+	        			foreach($resUser as $key=>$value){
+	        				if($t == $value['id']) {
+	        					$resTask[$k]['rowId'][$a] = $key; 
+	        				}
+	        			}
+	        		}
+	        	}
         	}
         }
     	
@@ -1031,7 +1088,7 @@ class cal_Tasks extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    $res = (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resUser, 'otherParams' => $params);
-//bp($resTask, $res);
+//bp($resTask, $res, dt::timestamp2mysql(1388527200), dt::timestamp2mysql(1393970399));
 
 	    $chart = gantt_Adapter::render_($res);
 	//bp($chart);
@@ -1371,7 +1428,7 @@ class cal_Tasks extends core_Master
 	    		// таблицата започва от 1 ден на намерения за начало месец
 	    		$otherParams['startTime'] = mktime(0, 0, 0, $startExplode[1], $startExplode[2], $startExplode[0]);
 	    		// до последния ден на намерения за край месец
-	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2], $endExplode[0]);
+	    		$otherParams['endTime'] = mktime(23, 59, 59, $endExplode[1], $endExplode[2] + 3, $endExplode[0]);
 	    		
 	    		// урл-тата на стрелките
 	    		$otherParams['smallerPeriod'] = ht::createLink($imgPlus, $url->prevUrl)->getContent();
@@ -1381,8 +1438,8 @@ class cal_Tasks extends core_Master
 	    		$otherParams['currentTime'] = dt::mysql2timestamp(dt::now());
 	    		
 	    		$curDate = $startTasksTime[0]. " 00:00:00"; 
-	    		$toDate = $endTasksTime[0]. " 23:59:59"; 
-	
+	    		$toDate = dt::addDays(3, $endTasksTime[0]). " 23:59:59"; 
+	            // bp($curDate, $toDate, );
 	    		// генерираме номерата на седмиците между началото и края
 	    		while ($curDate < $toDate){
 	    		    $color = cal_Calendar::getColorOfDay($curDate);
@@ -1391,9 +1448,9 @@ class cal_Tasks extends core_Master
 	    		 	$res[$w]['mainHeader'] = $w;
 	    		 	
 	    		 	if(isset($color)){
-	    		 		$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m. ", dt::mysql2timestamp($curDate)) . "</span>";
+	    		 		$res[$w]['subHeader'][] =	"<span class='{$color}'>" . date("d.m ", dt::mysql2timestamp($curDate)) . "</span>";
 	    		 	} else {
-	    		 		$res[$w]['subHeader'][] = date("d.m. ", dt::mysql2timestamp($curDate));
+	    		 		$res[$w]['subHeader'][] = date("d.m ", dt::mysql2timestamp($curDate));
 	    		 	}
 	    		 	$curDate = dt::addDays(1, $curDate); 
 	    		}
@@ -1480,7 +1537,7 @@ class cal_Tasks extends core_Master
      */
     public static function calcTasksMinStartMaxEndTime ($data)
     {  
-        if($data->recs){
+        if($data->recs){ 
         	
     	// за всеки едиин запис от базата данни
     	foreach($data->recs as $rec){ 
@@ -1517,7 +1574,7 @@ class cal_Tasks extends core_Master
     		$startTime = dt::mysql2timestamp($rec->timeStart);
 	    	$endTime = dt::mysql2timestamp($timeEnd); 
     	}
-
+       
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
     }

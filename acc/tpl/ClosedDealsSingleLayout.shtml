@@ -6,30 +6,38 @@
 	</div>
 	<!--ET_END header-->
 	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА ПРОДАЖБА|* </h3>
+	<p class='centered'>№ [#number#] / [#modifiedOn#]</p>
 	<br>
 	
-	 [#text#]
-	<!--ET_BEGIN currencyId-->
-	: &nbsp;<span class = 'cCode'>[#currencyId#]</span>
-	<!--ET_END currencyId-->
-	
-	<!--ET_BEGIN amount-->
-	<b>[#amount#]</b>
-	<!--ET_END amount-->
-	
-	<!--ET_BEGIN baseAmount-->
-	<span style='margin-left:15px'>
-	( <span class='cCode'>[#baseCurrencyId#]</span> &nbsp;
-	 [#baseAmount#] )
-	 </span>
-	 <!--ET_END baseAmount-->
-	<br>
-	
-	<!--ET_BEGIN modifiedOn-->
-	|Дата|*: [#modifiedOn#]
-	<!--ET_END modifiedOn-->
-		
-	<!--ET_BEGIN notes-->
-		[#notes#]
-	<!--ET_END notes-->
+	<table class='border-table' border=1 cellpadding="5" width=100%>
+	   <tr>
+	       <th>
+	           |Извънреден приход|*
+	       </th>
+	       <th>
+               |Извънреден разход|*
+           </th>
+	   </tr>
+	   <tr>
+	       <td  align='center'>
+            <!--ET_BEGIN currencyId-->
+                <span class = 'cCode'>[#currencyId#]</span>
+            <!--ET_END currencyId-->
+	       <b>[#incomeAmount#]</b>
+	       </td>
+	       <td align='center'>
+	        <!--ET_BEGIN currencyId-->
+                <span class = 'cCode'>[#currencyId#]</span>
+            <!--ET_END currencyId-->
+	           <b>[#costAmount#]</b>
+	       </td>
+	   </tr>
+	   <!--ET_BEGIN notes-->
+	   <tr>
+	      <td colspan = 2 >
+                  <i>[#notes#]</i>
+           </td>
+       </tr>
+       <!--ET_END notes-->
+	</table>
 </div>

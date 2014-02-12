@@ -346,8 +346,8 @@ class doc_Containers extends core_Manager
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
             $fields .= ',searchKeywords';
         }
-                
-        foreach(arr::make($fields) as $field) {
+        $fieldsArr = arr::make($fields);        
+        foreach($fieldsArr as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;
@@ -384,44 +384,266 @@ class doc_Containers extends core_Manager
             
             // Нотификации на абонираните и споделените потребители
             if($flagJustActived) {
-                // Подготвяме няколко стринга, за употреба по-после
-                $docSingleTitle = mb_strtolower($docMvc->singleTitle);  
-                $docHnd = $docMvc->getHandle($rec->docId);
-                $threadTitle = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), 90);
-                $nick = core_Users::getCurrent('nick');
-                $nick = str_replace(array('_', '.'), array(' ', ' '), $nick);
-                $nick = mb_convert_case($nick, MB_CASE_TITLE, 'UTF-8');
-                 
-                // Нотифицираме всички споделени потребители на този контейнер
+                
+                // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
-                if(count($sharedArr)) {
-                    $message = "{$nick} |сподели|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
-                    $priority = 'normal';
-                    foreach($sharedArr as $userId) {
-                        bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        $notifiedUsers[$userId] = $userId;
-                    }
-                }
-
-                // Нотифицираме всички абонати на дадената нишка
+                
+                // Нотифицираме споделените
+                static::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                
+                // Всички абонирани потребилите
                 $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
                 $subscribedArr = keylist::toArray($subscribed);
-                if(count($subscribedArr)) { 
-                    $message = "{$nick} |добави|* |{$docSingleTitle}|* |в|* \"{$threadTitle}\"";
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
-                    $priority = 'normal';
-                    foreach($subscribedArr as $userId) {  
-                        if($userId > 0  && (!$notifiedUsers[$userId]) && 
-                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
-                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
-                        }
-                    }
-                }
+                
+                // Нотифицираме абонираните потребители
+                static::addNotifiactions($subscribedArr, $docMvc, $rec, 'добави');
             }
         }
+    }
+    
+    
+    /**
+     * Добавя нотификация за съответното действие на потребителите
+     * 
+     * @param array $usersArr - Масив с потребителите, които да се нотифицират
+     * @param core_Mvc $docMvc - Класа на документа
+     * @param object $rec - Запис за контейнера
+     * @param string $action - Действието
+     * @param boolean $checkThreadRight - Дали да се провери за достъп до нишката
+     * @param string $priority - Приоритет на нотификацията
+     */
+    static function addNotifiactions($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
+    {
+        // Ако няма потребители за нотифирциране
+        if (!$usersArr) return ;
+        
+        static $threadTitleArr = array();
+        
+        // Броя на потребителите, които ще се показват в съобщението на нотификацията
+        $maxUsersToShow = 2;
+        
+        // Масив с нотифицираниете потребители
+        // За предпазване от двойно нотифициране
+        static $notifiedUsersArr = array();
+        
+        // Преобразуваме в масив, ако не е
+        $usersArr = arr::make($usersArr);
+        
+        // Ник на текущия потребител
+        $currUserNick = core_Users::getCurrent('nick');
+        
+        // Подготвяме ника
+        $currUserNick = core_Users::prepareNick($currUserNick);
+        
+        // id на текущия потребител
+        $currUserId = core_Users::getCurrent();
+        
+        // Ако заглавието на нишката не е определяна преди
+        if (!$threadTitleArr[$rec->threadId]) {
+            
+            // Определяме заглавието и добавяме в масива
+            $threadTitleArr[$rec->threadId] = str::limitLen(doc_Threads::getThreadTitle($rec->threadId, FALSE), doc_Threads::maxLenTitle);
+        }
+        
+        // Текущия потребител да не се нотифицира
+//        unset($usersArr[$currUserId]);
+        
+        // Кой линк да се използва за изичстване на нотификация
+        $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+        
+        // Къде да сочи линка при натискане на нотификацията
+        $customUrl = array($docMvc, 'single', $rec->docId);
+        
+        // Обхождаме масива с всички потребители, които ще имат съответната нотификация
+        foreach((array)$usersArr as $userId) {
+            
+            // Ако текущия потребител, е някой от системните, няма да се нотифицира
+            if ($userId < 1) continue; 
+            
+            // Ако потребителя, вече е бил нотифициран
+            if ($notifiedUsersArr[$userId]) continue;
+            
+            // Ако е зададено да се проверява и няма права до сингъла на нишката, да не се нотифицира
+            if ($checkThreadRight && !doc_Threads::haveRightFor('single', $rec->threadId, $userId)) continue;
+            
+            // Вземаме всички, които са писали в нишката след последното виждане
+            $authorArr = static::getLastAuthors($url, $userId, $rec->threadId);
+            
+            // Ника на текущия потребител
+            $currUserNickMsg = $currUserNick;
+            
+            // Сингъл типа на документиа
+            $docTitle = $docMvc->singleTitle;
+            
+            // Името да е в долния регистър
+            $docTitle = mb_strtolower($docTitle);
+            
+            // Генерираме съобщението
+            $message = "{$currUserNickMsg} |{$action}|* |{$docTitle}|*";
+            
+            // Други добавки от съответния потребител
+            $currUserOther = '';
+            
+            // Ако текущия потребител е добавил повече от един документ
+            if ($authorArr[$currUserId] > 1) {
+                
+                // В зависимост от текста определяме началния текст
+                if ($action != 'добави') {
+                    $currUserOther = 'и добави';
+                } else {
+                    $currUserOther = 'и';
+                }
+                
+                // В зависимост от броя документи, определяме текста
+                if ($authorArr[$currUserId] == 2) {
+                    $currUserOther .= " друг документ";
+                } elseif ($authorArr[$currUserId] > 2) {
+                    $currUserOther .= " други документи";
+                }
+                
+                // Добавяме текста към съобщението
+                $message .= " |{$currUserOther}|*";
+            }
+            
+            // Добавяме останалата част от съобщението
+            $message .= " |в|* \"{$threadTitleArr[$rec->threadId]}\"";
+            
+            // Никове, на другите потребители, които са добавили нещо
+            $otherNick = '';
+            
+            // Да няма допълнителна нотификация за добавени документи от
+            // текущия потребител и потребителя, който ще се нотифицира
+            unset($authorArr[$currUserId]);
+            unset($authorArr[$userId]);
+            
+            // Флаг, който указва, че има добавени повече от един документ за някой потребител
+            $haveMore = FALSE;
+            
+            // Нулираме брояча
+            $usersCount = 0;
+            
+            // Обхождаме всички останали потребители в масива
+            foreach ((array)$authorArr as $author => $count) {
+                
+                // Увеличаваме брояча
+                $usersCount++;
+                
+                // Ако сме достигнали максималния лимит, прекъсваме
+                if ($usersCount > $maxUsersToShow) break;
+                
+                // Вземаме ника на автора
+                $uNick = static::getUserNick($author);
+                
+                // Ако е добавил повече от един документ, от последтово виждане
+                if ($count > 1) {
+                    
+                    // Вдигаме флага
+                    $haveMore = TRUE;
+                }
+                
+                // Добавяме към другите никове
+                $otherNick .= $uNick . ', ';
+            }
+            
+            // Ако има други потребители, които са добавили нещо преди последното виждане
+            if ($otherNick) {
+                
+                // Премахваме от края
+                $otherNick = rtrim($otherNick, ', ');
+                
+                // Ограничаваме дължината
+                $otherNick = str::limitLen($otherNick, 50);
+                
+                // Броя на авторите, които са добавили нещо
+                $cntAuthorArr = count($authorArr);
+                
+                // Ако има други, които са добавили документи
+                if ($cntAuthorArr > $maxUsersToShow) {
+                    
+                    // Добавяме съобщението
+                    $otherNick .= ' |и други|*';
+                }
+                
+                // В зависимост от броя на документите и авторите, определяме стринга
+                if ($cntAuthorArr > 1) {
+                    $msgText = 'също добавиха документи';
+                } elseif ($haveMore) {
+                    $msgText = 'също добави документи';
+                } else {
+                    $msgText = 'също добави документ';
+                }
+                
+                // Събираме стринга
+                $messageN = $message . '. ' . $otherNick . " |{$msgText}";
+            } else {
+                
+                $messageN = $message;
+            }
+
+            // Нотифицираме потребителя
+            bgerp_Notifications::add($messageN, $url, $userId, $priority, $customUrl);
+            
+            // Добавяме в масива, за да не се нотифицара повече
+            $notifiedUsersArr[$userId] = $userId;
+        }
+    }
+    
+    
+    /**
+     * Връща ника за съответния потребител
+     * 
+     * @param integer $userId - id на потребител
+     * 
+     * @return string
+     */
+    static function getUserNick($userId)
+    {
+        // Вземаме ника на потребителя
+        $nick = core_Users::getNick($userId);
+        
+        // Обработваме ника
+        $nick = core_Users::prepareNick($nick);
+        
+        return $nick;
+    }
+    
+    
+    /**
+     * Връща масив с всички потребители( и броя на документите),
+     * които са писали след последното виждане
+     * от съответния потребител
+     * 
+     * @param array $url
+     * @param integer $userId
+     * @param integer $threadId
+     * 
+     * @return array
+     */
+    static function getLastAuthors($url, $userId, $threadId)
+    {
+        // Време на последното виждане, за съответния потребител
+        $lastClosedOn = bgerp_Notifications::getLastClosedTime($url, $userId);
+        
+        // Вземаме всички записи
+        // Които не са чернови или оттеглени
+        // И са променени след последното разглеждане
+        $query = static::getQuery();
+        $query->where(array("#modifiedOn > '[#1#]'", $lastClosedOn));
+        $query->where(array("#threadId = '[#1#]'", $threadId));
+        $query->where("#state != 'draft'");
+        $query->where("#state != 'rejected'");
+        $query->orderBy('modifiedOn', 'DESC');
+        
+        // Масив с потребителите
+        $authorArr = array();
+        
+        while($rec = $query->fetch()) {
+            
+            // Увеличаваме броя на документите за съответния потребител, който е активирал документа
+            $authorArr[$rec->activatedBy]++;
+        }
+        
+        return $authorArr;
     }
     
     
@@ -1279,10 +1501,10 @@ class doc_Containers extends core_Manager
         // Подреждаме масива
         sort($dateRange);
         
-        // Всички документи създадени от потребителите, между датите
+        // Всички документи създадени от потребителите и редактирани между датите
         $query = static::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $dateRange[0]));
-        $query->where(array("#createdOn <= '[#1#]'", $dateRange[1]));
+        $query->where(array("#modifiedOn >= '[#1#]'", $dateRange[0]));
+        $query->where(array("#modifiedOn <= '[#1#]'", $dateRange[1]));
         $query->where("#createdBy > 0");
         
         // Инстанция на класа
@@ -1291,59 +1513,45 @@ class doc_Containers extends core_Manager
         // id на класа
         $outgoingsClassId = $Outgoings->getClassId();
         
-        // Без оттеглените
-        $query->where("#state != 'rejected'");
-        
         // Само черновите
         $query->where("#state = 'draft'");
         
         // Или, ако са имейли, активните
         $query->orWhere(array("#state = 'active' AND #docClass = '[#1#]'", $outgoingsClassId));
         
-        // Поредедени по дата
-        $query->orderBy('createdOn', 'ASC');
+        // Групираме по създаване и състояние
+        $query->groupBy('createdBy, state');
         
         while ($rec = $query->fetch()) {
             
-            // Нулираме данните
-            $message = '';
-            $urlArr = array();
+            // Масив с екипите на съответния потребител
+            $authorTemasArr[$rec->createdBy] = type_Users::getUserFromTeams($rec->createdBy);
+            
+            // Вземаме първия екип, в който участва
+            $firstTeamAuthor = key($authorTemasArr[$rec->createdBy]);
+            
+            // URL-то което ще служи за премахване на нотификацията
+            $urlArr = array('doc_Search', 'state' => $rec->state, 'author' => $rec->createdBy);
             
             // Ако е чернова
             if ($rec->state == 'draft') {
                 
-                // Инстанция на класа
-                $docMvc = cls::get($rec->docClass);
-                
-                // Типа на докуемнта
-                $docSingleTitle = ucfirst(mb_strtolower($docMvc->singleTitle));
-                
                 // Съобщение
-                $message = "|Незавършени действия с|* |{$docSingleTitle}|*";
+                $message = "|Чернови документи";
                 
-                // Линк към сингъла
-                $urlArr = array($docMvc, 'single', $rec->docId);
+                // Линк, където ще сочи нотификацията
+                $customUrl = array('doc_Search', 'state' => 'draft', 'author' => $firstTeamAuthor);
             } else {
                 
-                // Ако не е чернова, следователно е активиран имейл
+                // Съобщение
+                $message = "|Активирани но неизпратени имейли";
                 
-                // Ако имейла не е бил изпратен
-                if (!log_Documents::isSended($rec->id)) {
-                    
-                    // Съобщение
-                    $message = "|Активиран но неизпратен имейл";
-                    
-                    // Линк към сингъла на имейла
-                    $urlArr = array($Outgoings, 'single', $rec->docId);
-                }
+                // Линк, където ще сочи нотификацията
+                $customUrl = array('doc_Search', 'state' => 'active', 'docClass' => $outgoingsClassId, 'author' => $firstTeamAuthor);
             }
             
-            // Ако има съобщените
-            if ($message) {
-                
-                // Добавяме нотификация
-                bgerp_Notifications::add($message, $urlArr, $rec->createdBy, 'normal');
-            }
+            // Добавяме нотификация
+            bgerp_Notifications::add($message, $urlArr, $rec->createdBy, 'normal', $customUrl);
         }
         
         return ;

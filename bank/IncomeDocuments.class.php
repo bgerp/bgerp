@@ -136,8 +136,7 @@ class bank_IncomeDocuments extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'operationSysId' => 'lastDocUser|lastDoc',
-    	'currencyId'     => 'lastDocUser|lastDoc',
+    	'currencyId' => 'lastDocUser|lastDoc',
     );
     
     
@@ -151,6 +150,7 @@ class bank_IncomeDocuments extends core_Master
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
     	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка,width=16em'); 
@@ -206,7 +206,7 @@ class bank_IncomeDocuments extends core_Master
         $options = acc_Operations::filter($options, $contragentClassId);
         
         if(empty($form->rec->id) && $origin = $mvc->getOrigin($form->rec)) {
-        	$mvc->setDefaultsFromOrigin($origin, $form, $options);
+        	$mvc->setDefaultsFromOrigin($origin, $form, $options, $defaultOperation);
     	}
     	
     	$form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
@@ -215,10 +215,41 @@ class bank_IncomeDocuments extends core_Master
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
     	$form->setDefault('ownAccount', bank_OwnAccounts::getCurrent());
     	$form->setOptions('operationSysId', $options);
+    	if(isset($form->defaultOperation) && array_key_exists($form->defaultOperation, $options)){
+    		$form->rec->operationSysId = $form->defaultOperation;	
+        }
+    	
      	$form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
     }
      
+    
+	/**
+     * Помощна ф-я връщаща дефолт операцията за документа
+     */
+    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
+    {
+    	$paid = $dealInfo->paid;
+    	$agreed = $dealInfo->agreed;
+    	
+    	// Ако е продажба пораждащия документ
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'supplierAdvance2bank' : 'supplier2bank';
+    		} else {
+    			$defaultOperation = 'supplier2bank';
+    		}
+    	} else {
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'customer2bankAdvance' : 'customer2bank';
+    		} else {
+    			$defaultOperation = 'customer2bank';
+    		}
+    	}
+    	
+    	return $defaultOperation;	
+    }
+    
     
     /**
      * Задава стойности по подразбиране от продажба/покупка
@@ -237,7 +268,6 @@ class bank_IncomeDocuments extends core_Master
     		 // Ако има банкова сметка по пдоразбиране
     		 if($bankId = $dealInfo->agreed->payment->bankAccountId){
     		 	$bankRec = bank_OwnAccounts::fetch($bankId);
-    		 	$forcedLogin = FALSE;
     		 	
     		 	// Ако потребителя има права, логва се тихо
     		 	bank_OwnAccounts::selectSilent($bankId);
@@ -249,9 +279,11 @@ class bank_IncomeDocuments extends core_Master
     		 		unset($options[$index]);
     		 	}
     		 }
-    		 	
+
+    		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
+        	 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 $form->rec->rate       = $dealInfo->shipped->rate;
+    		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
     		 if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_PURCHASE){
     		 	$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
@@ -282,9 +314,12 @@ class bank_IncomeDocuments extends core_Master
 	   	 	
 	   	 	// Ако няма валутен курс, взимаме този от системата
     		if(!$rec->rate && !$form->gotErrors()) {
-	    		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-	    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-	    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, $baseCurrencyCode);
+    			if($rec->tempRate){
+    				$rec->rate = $rec->tempRate;
+    			} else {
+    				$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+		    		$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+    			}
 	    	}
     	}
     }
@@ -556,7 +591,15 @@ class bank_IncomeDocuments extends core_Master
         $result->paid->currency               = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	              = $rec->rate;
         $result->paid->payment->bankAccountId = $rec->ownAccount;
-                
+		$result->paid->operationSysId         = $rec->operationSysId;
+        
+		$hasDownpayment = ($rec->operationSysId == 'customer2bankAdvance') ? TRUE : FALSE;
+    	if($rec->operationSysId == 'customer2bankAdvance' || $rec->operationSysId == 'supplierAdvance2bank'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+		
+		$result->hasDownpayment = $hasDownpayment;
+    	
         return $result;
     }
     

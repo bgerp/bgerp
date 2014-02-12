@@ -19,9 +19,9 @@
             <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
                 <tbody>
                 <tr>
-                    <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" valign="top" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <div class="document-title">|ПРИЕМАТЕЛЕН|*<br /><span>|ПРОТОКОЛ ЗА УСЛУГИ|*</span></div>
+                        <div class="document-title">|СКЛАДОВА РАЗПИСКА|*</div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
@@ -33,9 +33,16 @@
                         <div class="[#STATE_CLASS#]">[#state#]</div>
                         <!--ET_END state-->
                     </td>
-                    <td class="cell custom-header-bg" width="35%"><b>|Доставчик|*</b></td>
+                    <td class="cell custom-header-bg" width="35%" valign="top"><b>|Доставчик|*</b></td>
                     </tr>
                     <tr>
+                    <td class="cell">
+                    	<!--ET_BEGIN supplier-->
+	                        <b>[#MyCompany#]</b><br>
+	                        <br>
+	                        [#MyAddress#] <br>
+                    	<!--ET_END supplier-->
+                    </td>
                     <td class="cell">
                     <!--ET_BEGIN contragent-->
                         <b>[#contragentName#]</b><br>
@@ -43,57 +50,64 @@
                         <!--ET_BEGIN contragentAddress-->
                             [#contragentAddress#]<br>
                         <!--ET_END contragentAddress-->
-					<!--ET_END contragent-->
 					</td>
-					<td class="cell">
-                    <!--ET_BEGIN supplier-->
-                        <b>[#MyCompany#]</b><br>
-                        <br>
-                        [#MyAddress#] <br>
-                    <!--ET_END supplier-->
-                    </td>
+					<!--ET_END contragent-->
                 </tr>
                 </tbody>
             </table>
 			<div class="lines"></div>
 			<div class="details">
-            	[#purchase_ServicesDetails#]
+            	[#store_ReceiptDetails#]
            	</div>
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <!--ET_BEGIN deliveryInfo-->
-                    [#deliveryInfo#]
-                    <td class="topCell first" valign="top" width='50%'>
-                        <table class='shipment-table'>
-                        <!--ET_BEGIN deliveryTime-->
-                            <tr>
-                                <td>|Срок до|*:</td>
-                                <td><b>[#deliveryTime#]</b></td>
-                            </tr>
-                        <!--ET_END deliveryTime-->
-                      
-                        <!--ET_BEGIN locationId-->
-                            <tr>
-                                <td>|До|*:</td>
-                                <td><b>[#locationId#]</b></td>
-                            </tr>
-                        <!--ET_END locationId-->
-                        <!--ET_BEGIN currencyId-->
-                            <tr>
-                                <td>|Валута|*: </td>
-                                <td><span class='cCode'>[#currencyId#]</span></td>
-                            </tr>
-                        <!--ET_END currencyId--> 
-                        
-                        
-                        </table>
-                        
-	                        <hr>
+                    <td class="topCell first" valign="top" width="50%">
+                       <table class='shipment-table' >
+	                    <!--ET_BEGIN deliveryTime-->
+	                        <tr>
+	                            <td>|Срок до|*:</td>
+	                            <td><b>[#deliveryTime#]</b></td>
+	                        </tr>
+	                    <!--ET_END deliveryTime-->
+	                    <!--ET_BEGIN storeId-->
+	                        <tr>
+	                            <td>|От склад|*:</td>
+	                            <td><b>[#storeId#]</b></td>
+	                        </tr>
+	                    <!--ET_END storeId-->
+	                    <!--ET_BEGIN locationId-->
+	                        <tr>
+	                            <td>|До|*:</td>
+	                            <td><b>[#locationId#]</b></td>
+	                        </tr>
+	                    <!--ET_END locationId-->
+	                    <!--ET_BEGIN lineId-->
+	                        <tr>
+	                            <td>|Транспорт|*: </td>
+	                            <td><b>[#lineId#]</b></td>
+	                        </tr>
+	                    <!--ET_END lineId--> 
+	                        <tr>
+	                           <td colspan=2><hr> </td>
+	                        </tr>
+	                     </table>
+	                     <table>
+		                     <tr>
+	                              <td class='nowrap' width=1%>|Общо тегло|*:</td>
+	                              <td><b>[#weight#]</b></td>
+	                         </tr>
+	                         <tr>
+	                              <td>|Общ обем|*:</td>
+	                              <td><b>[#volume#]</b></td>
+	                         </tr>      
+	                    </table>
+        				
+                        <!--ET_BEGIN note-->
+	                        <hr />
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
-                     <!--ET_END deliveryInfo-->
                     
                     <td class="topCell" align="right" valign="top">
                         <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
@@ -141,7 +155,7 @@
 				    	<td align='right'><b>[#total#]</b></td>
 				     </tr>
 				     <tr>
-				      <td colspan = '3' ><hr>|Словом|*: [#sayWords#]</td>
+				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
 				</table>
                     </td>

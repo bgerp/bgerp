@@ -9,14 +9,11 @@
 	text-transform:uppercase;
 }
 
-.order-table td{
-	padding:10px;
-}
-
 .order-table td {
+	padding:10px;
 	padding-left:15px;
 	border-bottom-style:none;
-	border:1px solid #000;
+	border:1px solid #999;
 	padding:4px;
 }
 
@@ -60,7 +57,7 @@ th {
 }
 
 .border-table td{
-	border:1px solid #000;
+	border:1px solid #999;
 	padding:3px;
 }
 
@@ -70,7 +67,7 @@ th {
 }
 
 .no-border-top td{
-	border:1px solid #000;
+	border:1px solid #999;
 	border-top:none;
 }
 

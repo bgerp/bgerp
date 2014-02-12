@@ -1,12 +1,15 @@
-<br><p class='indent'>Долуподписаният, производител/доставчик: <br>[#MyCompany#], с адрес [#MyCountry#], гр. [#MyAddress#], с ЕИН [#MyCompanyVatNo#][#uicId#],</p>
+<div class='dec-document'>
 
-	<p>представляван от [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </p><!--ET_END manager-->
+<br><div class='indent'>Долуподписаният, производител/доставчик: <br>
+[#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
+
+	<div>представляван от [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </div><!--ET_END manager-->
 
 
-<br>
+<br><br>
 <p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
 <br>
-<p>на собствена отговорност, че <b>изделията: </b></p>
+<div>на собствена отговорност, че <b>изделията: </b></div>
 
 	
 		<!--ET_BEGIN products-->
@@ -14,14 +17,17 @@
 		<!--ET_END products-->
 	
 <!--ET_BEGIN place-->
-	<p><b>произведени в</b> [#place#],</p>
+	<div><b>произведени в</b> [#place#],</div>
 <!--ET_END place-->
-<p>доставени на фирма: [#contragentCompany#], с адрес [#contragentCountry#], гр. [#contragentAddress#], с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],  </p>
-<p>с фактура <b>№ [#invoiceNo#]</b>,</p>
+<div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
+<!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
+<!--ET_BEGIN contragentCompanyVatNo-->с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
+с фактура <b>№ [#invoiceNo#]</b>, </div>
+<br>
 <!--ET_BEGIN material-->
-	<p><b>произведени от</b> [#material#]</p>
+	<div><b>произведени от</b> [#material#]</div>
 <!--ET_END material-->
-<p>за които се отнася тази декларация <b>отговарят на изискванията</b>:</p>
+<div>за които се отнася тази декларация <b>отговарят на изискванията</b>:</div>
 
 <!--ET_BEGIN DETAILS-->
 	<div class='details'>
@@ -30,27 +36,29 @@
 <!--ET_END DETAILS-->
 
 <!--ET_BEGIN certificate-->
-	Декларацията се издава въз основа на (сертификат на продукт или сертификат на система за производствен контрол, или протокол(и) от първоначално изпитване на типа):
-	[#certificate#]</br>
+	<div>Декларацията се издава въз основа на (сертификат на продукт или сертификат на система за производствен контрол, или протокол(и) от първоначално изпитване на типа):
+	[#certificate#]</div>
 <!--ET_END certificate-->
 		<!--ET_BEGIN certifyingAuthority-->
-		издаден(и) от: [#certifyingAuthority#] </br>
+		<div>издаден(и) от: [#certifyingAuthority#]</div>
 		<!--ET_END certifyingAuthority-->
 
-Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.
+<div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
 
  <br>
  <br>
  <br>
- <br>
- <br>
-     <table width=100%>
+     <table class='signiture'>
         <tr>
-        <td>Декларатор: .........................................................</td>
+        <td width=1%>Декларатор: </td>
         <td> </td>
         </tr>
         <tr>
-        <td style='padding-left:85px'>/име и фамилия, длъжност и подпис/ </td>
         <td></td>
+        <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
+     
+
+
+</div>

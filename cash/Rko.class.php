@@ -143,7 +143,6 @@ class cash_Rko extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-    	'operationSysId' => 'lastDocUser|lastDoc',
     	'currencyId'     => 'lastDocUser|lastDoc',
     	'beneficiary'    => 'lastDocUser|lastDoc',
     );
@@ -172,6 +171,7 @@ class cash_Rko extends core_Master
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
     	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
+    	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 
@@ -219,6 +219,8 @@ class cash_Rko extends core_Master
     		 		$amount = 0;
     		 	}
     		 	
+    		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 	
     		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
     		 	foreach ($options as $index => $op){
     		 		if(!in_array($index, $dealInfo->allowedPaymentOperations)){
@@ -234,7 +236,7 @@ class cash_Rko extends core_Master
     		 	}
     		 	
     		 	$form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
-    		 	$form->rec->rate       = $dealInfo->shipped->rate;
+    		 	$form->rec->tempRate = $dealInfo->shipped->rate;
     		 	
     		 	if($dealInfo->dealType != bgerp_iface_DealResponse::TYPE_SALE){
     		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
@@ -250,10 +252,40 @@ class cash_Rko extends core_Master
     	}
         
         $form->setOptions('operationSysId', $options);
+    	if(isset($defaultOperation) && array_key_exists($defaultOperation, $options)){
+    		$form->rec->operationSysId = $defaultOperation;	
+        }
         $form->setReadOnly('peroCase', cash_Cases::getCurrent());
         $form->setReadOnly('contragentName', cls::get($contragentClassId)->getTitleById($contragentId));
         
-        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['rate'].value ='';"));
+        $form->addAttr('currencyId', array('onchange' => "document.forms['{$data->form->formAttr['id']}'].elements['tempRate'].value ='';"));
+    }
+    
+    
+    /**
+     * Помощна ф-я връщаща дефолт операцията за документа
+     */
+    private function getDefaultOperation(bgerp_iface_DealResponse $dealInfo)
+    {
+    	$paid = $dealInfo->paid;
+    	$agreed = $dealInfo->agreed;
+    	
+    	// Ако е продажба пораждащия документ
+    	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'caseAdvance2customer' : 'case2customer';
+    		} else {
+    			$defaultOperation = 'case2customer';
+    		}
+    	} else {
+    		if(isset($agreed->downpayment)){
+    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'case2supplierAdvance' : 'case2supplier';
+    		} else {
+    			$defaultOperation = 'case2supplier';
+    		}
+    	}
+    	
+    	return $defaultOperation;	
     }
     
     
@@ -282,9 +314,12 @@ class cash_Rko extends core_Master
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
         	if(!$rec->rate){
-		    	
-		    	// Изчисляваме курса към основната валута ако не е дефиниран
-		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+		    	if($rec->tempRate){
+		    		$rec->rate = $rec->tempRate;
+		    	} else {
+		    		// Изчисляваме курса към основната валута ако не е дефиниран
+		    		$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+		    	}
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', $msg);
@@ -552,6 +587,14 @@ class cash_Rko extends core_Master
         $result->paid->currency        = currency_Currencies::getCodeById($rec->currencyId);
         $result->paid->rate 	       = $rec->rate;
         $result->paid->payment->caseId = $rec->peroCase;
+    	$result->paid->operationSysId  = $rec->operationSysId;
+        
+        if($rec->operationSysId == 'case2supplierAdvance' || $rec->operationSysId == 'caseAdvance2customer'){
+    		$result->paid->downpayment = $result->paid->amount;
+    	} 
+    	
+    	$hasDownpayment = ($rec->operationSysId == 'case2supplierAdvance') ? TRUE : FALSE;
+    	$result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

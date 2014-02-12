@@ -646,7 +646,10 @@ div.acc-detail {
 	border: solid 1px #ccc;
 	background-color: $gray1;
 }
-
+ .acc_ArticleDetails .listTable th{
+    white-space: nowrap;
+ }
+ 
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
@@ -883,14 +886,21 @@ td.portal-date {
 		.listToolbar {
 			padding: 5px 0px;
 			margin: 0;
-			border-bottom: 1px solid #000;
+			border-bottom: 1px solid #999;
 			.toolbar {
 				padding-left: 0;
 			}
 		}
 	}
 	.listTable th, .listTable td{
-		border: 1px solid #000 !important;
+		border: 1px solid #999;
+	}
+	.border-table td, .border-table th{
+	    border:1px solid #999;
+	    padding:3px;
+	}
+	.border-table th{
+	   background-color: rgba(200, 200, 200, 0.4);
 	}
 	&.print-letter {
 		page-break-after: always;
@@ -904,6 +914,35 @@ td.portal-date {
 	.custom-header-bg {
 		background-color: rgba(200, 200, 200, 0.4);
 	}
+}
+
+.document-title{
+	font-size: 16pt;
+	font-weight: bold;
+	margin-top: 4px;
+	span{
+	   font-size: 12pt;
+	}
+}
+
+.document .listTable th{
+	white-space: nowrap;
+}
+
+.document  .listTable  tr > th:first-child{
+	width:1%;
+}
+
+.small-field{
+	width:1%;
+}
+
+.large-field{
+	width: 50%;
+}
+
+.no-border > tbody > tr > td{
+    border: none !important;
 }
 
 .wide .document table.listTable {
@@ -977,7 +1016,7 @@ pre.document {
 }
 
 .cell {
-	border: 1px solid #000;
+	border: 1px solid #999;
 }
 
 .topCell {
@@ -990,6 +1029,9 @@ pre.document {
 
 .innerTable {
 	border-collapse: collapse;
+	> tbody > tr > td{
+	   border: 1px solid #999;
+	}
 }
 
 .rowData {
@@ -1000,25 +1042,39 @@ pre.document {
 	padding: 1px !important;
 }
 
-.footer-notes {
-	border: 1px solid #000;
+.footer-notes > tbody > tr > td{
+	border: 1px solid #999;
 }
 
 #invoice-info {
-	border-left: 1px solid #000;
+	border-left: 1px solid #999;
 }
 
 .document .lines {
-	height: 5px;
-	background: url('../img/thumb.png');  
-	background-repeat: repeat-x;
-	background-position: center;
-	border-left: 1px solid #000;
-	border-right: 1px solid #000;
+	border-left: 1px solid #999;
+	border-right: 1px solid #999;
+	border-bottom: 3px solid #ddd;
+}
+
+.signature-table{
+	margin-top: 5px;
+}
+
+.sign_names {
+    display:inline-block;
+    text-align: center;
+    border-top: 2px dotted #666;
+    margin-left:5px;
+    padding: 5px 10px;
+    min-width: 110px;
 }
 
 .nowrap {
 	white-space: nowrap;
+}
+
+.shipment-table tr td{
+	padding:1px  3px !important;
 }
 
 .narrow .document .half_block {
@@ -1035,6 +1091,15 @@ pre.document {
 		border: none !important;
 	}
 }
+
+.dec-document{
+    line-height: 150%;
+    table.signiture{
+        width: 10% !important;
+    }
+}
+
+
 /*край на стилове за документи*/
 
 
@@ -2067,13 +2132,30 @@ fieldset.sharing-history {
 	}
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar {
+.narrow .details .groupList{
+	width: 100% !important;
+    overflow-x: scroll !important;
+    _overflow: auto !important;
+    height: auto;
+    display: block;
+    margin-bottom: 3px;
+    .listTable{
+        width: 100% !important;
+        height: 100%;
+        td{
+            white-space: nowrap;
+        }
+    }
+}
+
+
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
 	-webkit-appearance: none;
 	width: 10px;
 	height: 10px;
 }
 
-.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb {
+.narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar-thumb, .overflow-scroll::-webkit-scrollbar-thumb, .narrow .details .groupList::-webkit-scrollbar-thumb {
 	@include border-radius(8px);
 	background-color: rgba(0, 0, 0, .2);
 }
@@ -2814,7 +2896,7 @@ body.narrow {
             margin-left: 1%;
        }
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 760px;
     }
 }
@@ -2837,7 +2919,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 720px;
     }
 }
@@ -2867,7 +2949,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 660px;
     }
 }
@@ -2903,7 +2985,7 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .single-thread .scrolling-holder {
+    .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 600px;
     }
 }
@@ -2926,7 +3008,7 @@ body.narrow {
     .narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 530px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 560px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
@@ -2956,7 +3038,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 463px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 493px;
 	}
 	.narrow #all {
@@ -2989,7 +3071,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 430px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder{
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details{
 		max-width: 460px;
 	}
 	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
@@ -3019,7 +3101,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 410px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 440px;
 	}
 	.narrow #all {
@@ -3052,7 +3134,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 290px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 310px;
 	}
 	.narrow #all {
@@ -3086,7 +3168,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 250px;
 	}
-	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 280px;
 	}
 	.narrow #all {
@@ -3119,7 +3201,7 @@ body.narrow {
 	.narrow .single-thread .listTable .rich-text, .narrow .single-thread .listTable .richtext-quote {
 		max-width: 170px;
 	}
-	.narrow .single-thread .scrolling-holder {
+	.narrow .single-thread .scrolling-holder, .narrow .details {
 		max-width: 200px;
 	}
 	.narrow #all {

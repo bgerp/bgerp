@@ -21,7 +21,7 @@
                 <tr>
                     <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <font style="font-size:16pt;"><b>|ПРОТОКОЛ|*<br /><span style='font-size:12pt;'>|ЗА ИЗВЪРШЕНИ УСЛУГИ|*</span></b> </font><br>
+                        <div class="document-title">|ПРОТОКОЛ|*<br /><span>|ЗА ИЗВЪРШЕНИ УСЛУГИ|*</span></div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
@@ -85,7 +85,7 @@
                     </td>
        			<!--ET_END LEFT_COLUMN-->
        			
-                    <td class="topCell" align="right" valign="top">
+                    <td class="topCell" align="right" valign="top" width=50%>
                         <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
 				     <tr class='nowrap'>
 				      <td align='right'>|Стойност|* :</td>

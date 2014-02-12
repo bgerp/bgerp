@@ -644,7 +644,7 @@ class store_ShipmentOrders extends core_Master
     	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
-    	$row->address = $oldRow->contragentName;
+    	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
     	trim($row->address, ', ');
     	
@@ -731,7 +731,7 @@ class store_ShipmentOrders extends core_Master
     		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
     	}
     	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за продажби, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за експедиционни нареждания, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
     
     

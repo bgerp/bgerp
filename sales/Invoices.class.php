@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -68,6 +68,12 @@ class sales_Invoices extends core_Master
     
     
     /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'acc_Invoices';
+    
+    
+    /**
      * В кой плейсхолдър ще се слага шаблона от doc_plg_TplManager
      */
     public $templateFld = 'INVOICE_HEADER';
@@ -76,13 +82,13 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRead = 'ceo,invoicer';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales';
+    public $canEdit = 'ceo,invoicer';
     
     
     /**
@@ -94,7 +100,7 @@ class sales_Invoices extends core_Master
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,invoicer';
     
     
 	/**
@@ -106,13 +112,13 @@ class sales_Invoices extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,sales';
+    public $canAdd = 'ceo,invoicer';
     
     
     /**
      * Кой може да го контира?
      */
-    public $canConto = 'ceo,sales,acc';
+    public $canConto = 'ceo,invoicer';
     
     
     /**
@@ -145,6 +151,9 @@ class sales_Invoices extends core_Master
     public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
     
     
+    /**
+     * Поле за филтриране по дата
+     */
     public $filterDateField = 'date';
     
     
@@ -340,7 +349,7 @@ class sales_Invoices extends core_Master
     {
         $form = &$data->form;
         $form->rec->date = dt::today();
-        if(!haveRole('ceo,acc')){
+        if(!haveRole('ceo,sales')){
         	$form->setField('number', 'input=none');
         }
         
@@ -374,9 +383,9 @@ class sales_Invoices extends core_Master
         		$form->setField('paymentMethodId', 'input=hidden');
         	}
         	
-        	$form->rec->deliveryId = $aggregateInfo->shipped->delivery->term;
-        	if($aggregateInfo->shipped->delivery->location){
-        		$form->rec->deliveryPlaceId = $aggregateInfo->shipped->delivery->location;
+        	$form->rec->deliveryId = $aggregateInfo->agreed->delivery->term;
+        	if($aggregateInfo->agreed->delivery->location){
+        		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
         }
@@ -449,11 +458,11 @@ class sales_Invoices extends core_Master
 	    		
 	    		// Изчисляване на стойността на ддс-то
 	        	$vat = acc_Periods::fetchByDate()->vatRate;
-	        	$rec->vatAmount = ($rec->vatRate == 'yes') ? $rec->changeAmount * $vat / (1 + $vat) : $rec->changeAmount * $vat;
+	        	$rec->vatAmount = $rec->changeAmount * $vat;
 	        	$rec->vatAmount *= $rec->rate;
 	        	
 	        	// Стойността е променената сума
-	        	$rec->dealValue = ($rec->vatRate == 'yes') ? $rec->changeAmount - $rec->vatAmount : $rec->changeAmount;
+	        	$rec->dealValue = $rec->changeAmount;
 	        	$rec->dealValue *= $rec->rate;
 	        }
         }
@@ -673,7 +682,14 @@ class sales_Invoices extends core_Master
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     		
-			$row->type .= " <br /> <i>" . str_replace('_', " ", $rec->type) . "</i>";
+			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
+			
+			if($rec->type != 'invoice'){
+				$originRec = $mvc->getOrigin($rec)->fetch();
+				$originRow = $mvc->recToVerbal($originRec, 'number,date');
+				$row->originInv = $originRow->number;
+				$row->originInvDate = $originRow->date;
+			}
 			
     		$mvc->prepareMyCompanyInfo($row);
 		}
@@ -706,7 +722,8 @@ class sales_Invoices extends core_Master
     	$rec = &$data->rec;
     	
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    		if($mvc->haveRightFor('add')){
+    		
+    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note')) && $mvc->canAddToThread($rec->threadId)){
     			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note'), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
     			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note'), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
     		}
@@ -795,6 +812,8 @@ class sales_Invoices extends core_Master
         $form->setDefault('date', dt::today());
         $form->setField('reason', 'input');
 		$form->setField('changeAmount', 'input');
+		$form->setField('changeAmount', 'unit=без ДДС');
+		$form->setField('vatRate', 'input=hidden');
 		$form->setField('reason', 'input,mandatory');
 		$form->setField('deliveryId', 'input=none');
 		$form->setField('deliveryPlaceId', 'input=none');
@@ -892,7 +911,7 @@ class sales_Invoices extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active'){
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof sales_Sales){
     		
     		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
     		return TRUE;
@@ -1002,28 +1021,8 @@ class sales_Invoices extends core_Master
         if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        
-        // Ако има първи документ
-    	if(isset($firstDoc) && $firstDoc->haveInterface('bgerp_DealAggregatorIntf')){
-	    	$aggregateInfo = $firstDoc->getAggregateDealInfo();
-	    	if($aggregateInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){ 
-	        	
-	        	// ако е продажба
-	        	$debitAccId  = '411';
-	        	$creditAccId = '4532';
-	        } else {
-	        	
-	        	// ако е покупка
-	        	$debitAccId  = '401';
-	        	$creditAccId = '4531';
-	        }
-    	} else {
-    		
-    		// ако е пос продажба
-    		$debitAccId  = '411';
-	        $creditAccId = '4532';
-    	}
+    	$debitAccId  = '411';
+	    $creditAccId = '4532';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
@@ -1086,7 +1085,6 @@ class sales_Invoices extends core_Master
         $rec = new sales_model_Invoice($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
-        
         $result = new bgerp_iface_DealResponse();
         
         $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
@@ -1157,7 +1155,7 @@ class sales_Invoices extends core_Master
     	
     	$conf = core_Packs::getConfig('sales');
     	
-    	return ($conf->INV_MIN_NUMBER <= $number && $number <= $conf->INV_MAX_NUMBER);
+    	return ($conf->SALE_INV_MIN_NUMBER <= $number && $number <= $conf->SALE_INV_MAX_NUMBER);
     }
     
     
@@ -1172,11 +1170,11 @@ class sales_Invoices extends core_Master
     	$query = $this->getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#number)');
     	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->INV_MIN_NUMBER;
+    		$maxNum = $conf->SALE_INV_MIN_NUMBER;
     	}
     	$nextNum = $maxNum + 1;
     	
-    	if($nextNum > $conf->INV_MAX_NUMBER) return NULL;
+    	if($nextNum > $conf->SALE_INV_MAX_NUMBER) return NULL;
     	
     	return $nextNum;
     }
@@ -1248,6 +1246,13 @@ class sales_Invoices extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
+    	
+    	// Обикновения продавач неможе да създава ДИ и КИ
+    	if($action == 'add' && isset($rec)){
+    		if($rec->type != 'invoice'){
+    			$res = 'ceo,sales';
+    		}
+    	}
     	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){

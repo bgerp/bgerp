@@ -914,21 +914,29 @@ class sales_Sales extends core_Master
 		        						  'customer2case',
 		        						  'customer2bank',
 		        						  'case2customer',
-		        						  'bank2customer');
+		        						  'bank2customer',
+		        						  'caseAdvance2customer',
+		        						  'bankAdvance2customer');
         
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
         if($rec->paymentMethodId){
         	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance']);
+        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
+        	} else {
+        		// Колко е очакваото авансово плащане
+        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
+        		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
         }
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
+        $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
+        $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
         $result->agreed->currency               = $rec->currencyId;
         $result->agreed->rate               	= $rec->currencyRate;
         $result->agreed->vatType 				= $rec->chargeVat;
@@ -943,6 +951,7 @@ class sales_Sales extends core_Master
         
         if (isset($actions['pay'])) {
             $result->paid->amount   			  = $rec->amountDeal;
+            $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
             $result->paid->currency 			  = $rec->currencyId;
             $result->paid->rate                   = $rec->currencyRate;
             $result->paid->vatType 				  = $rec->chargeVat;
@@ -953,6 +962,7 @@ class sales_Sales extends core_Master
 
         if (isset($actions['ship'])) {
             $result->shipped->amount             = $rec->amountDeal;
+            $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
             $result->shipped->currency           = $rec->currencyId;
             $result->shipped->rate               = $rec->currencyRate;
             $result->shipped->vatType 			 = $rec->chargeVat;
@@ -1009,7 +1019,7 @@ class sales_Sales extends core_Master
     public function getAggregateDealInfo($id)
     {
         $saleRec = new sales_model_Sale($id);
-        
+    	
     	$saleDocuments = $this->getDescendants($saleRec->id);
         
         // Извличаме dealInfo от самата продажба
@@ -1031,6 +1041,7 @@ class sales_Sales extends core_Master
             if ($d->haveInterface('bgerp_DealIntf')) {
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
+                $aggregateInfo->hasDownpayment = $aggregateInfo->hasDownpayment || $dealInfo->hasDownpayment;
                 
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);

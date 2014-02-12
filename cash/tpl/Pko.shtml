@@ -68,14 +68,32 @@
 					</tr>
 					<tr>
 						<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
-							<br>
-							|Броил|* &nbsp;&nbsp;..........................<br>
-							<span class='sign_names'>( <b>[#depositor#]</b> )</span>
+						    <br>
+							<table class='signature-table'>
+                                    <tr>
+                                        <td width=1%>|Получил|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td><span class='sign_names'>( <b>[#depositor#]</b> )</span></td>
+                                        
+                                    </tr>
+                                
+                             </table>
 						</td>
 						<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 							<br>
-							|Касиер|* &nbsp;&nbsp;..........................<br>
-							<span class='sign_names'>( <b>[#cashier#]</b> )</span>
+							<table class='signature-table'>
+                                    <tr>
+                                        <td width=1%>|Касиер|*:  </td><td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td><span class='sign_names'>( <b>[#cashier#]</b> )</span></td>
+                                        
+                                    </tr>
+                                
+                                </table>
 						</td>
 					</tr>
 				</table>

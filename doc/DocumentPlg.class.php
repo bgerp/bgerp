@@ -867,6 +867,9 @@ class doc_DocumentPlg extends core_Plugin
             	$data->form->toolbar->addSbBtn('Нова нишка', 'save_new_thread', 'id=btnNewThread,order=9.99985','ef_icon = img/16/save_and_new.png');
             }
         }
+        
+        // Преименуване на бутона на чернова (хак)
+        $data->form->toolbar->buttons['save']->title = 'Чернова';
     }
 
     
@@ -1470,6 +1473,20 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $res = plg_Search::getKeywords($mvc, $rec);
+    }
+    
+    
+    /**
+     * Полета, по които да се генерират ключове за търсене
+     * 
+     * @param core_Mvc $mvc
+     * @param array $searchFieldsArr
+     */   
+    function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
+    {
+        if (!$searchFieldsArr) {
+            $searchFieldsArr = arr::make($mvc->searchFields);
+        }
     }
     
     

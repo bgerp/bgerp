@@ -110,6 +110,26 @@ class cash_Cases extends core_Master {
 	var $inChargeField = 'cashier';
 	
 	
+	/**
+     * Детайли на този мастър обект
+     * 
+     * @var string|array
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '501';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'cash_CaseAccRegIntf';
+    
+    
     /**
      * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
      * $autoList.

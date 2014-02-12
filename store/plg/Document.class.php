@@ -75,10 +75,12 @@ class store_plg_Document extends core_Plugin
     	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
-	    	$originState = $mvc->getOrigin($rec)->fetchField('state');
-	        if($originState === 'closed'){
-	        	$res = 'no_one';
-	        }
+    		if($mvc->getOrigin($rec)){
+	    		$originState = $mvc->getOrigin($rec)->fetchField('state');
+		        if($originState === 'closed'){
+		        	$res = 'no_one';
+		        }
+    		}
         }
     }
 }

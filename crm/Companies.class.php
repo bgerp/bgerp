@@ -128,7 +128,19 @@ class crm_Companies extends core_Master
      * Детайли, на модела
      */
     var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,ObjectLists=acc_Items,CourtReg=crm_ext_CourtReg,CustomerSalecond=cond_ConditionsToCustomers';
+                    ContragentBankAccounts=bank_Accounts,CourtReg=crm_ext_CourtReg,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'crm_ContragentAccRegIntf';
     
     
     /**

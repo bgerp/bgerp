@@ -426,6 +426,25 @@ class email_Outgoings extends core_Master
             
             // Добавяме статус
             core_Statuses::add($msg, $statusType);
+            
+            // Ако имейла е активен или чернова
+            if ($rec->state == 'active' || $rec->state == 'draft') {
+                
+                // Сменяме състоянието на затворено
+                $nRec = new stdClass();
+                $nRec->id = $rec->id;
+                $nRec->state = 'closed';
+                
+                // Инстанция на изходящи имейли
+                $inst = cls::get('email_Outgoings');
+                
+                // Нулираме флага, защото имейла вече е изпратен
+                // Проверява се в on_AfterSave
+                $inst->flagSendIt = FALSE;
+                
+                // Записваме
+                $inst->save($nRec);
+            }
         } 
         
         // Ако има провалено изпращане
@@ -797,7 +816,7 @@ class email_Outgoings extends core_Master
         }
     }
     
-
+    
     /**
      * @todo Чака за документация...
      */

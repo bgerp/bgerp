@@ -16,6 +16,18 @@ defIfNot('BASE_CURRENCY_CODE', 'BGN');
 
 
 /**
+ * Начален номер на фактурите
+ */
+defIfNot('ACC_INV_MIN_NUMBER', '0');
+
+
+/**
+ * Краен номер на фактурите
+ */
+defIfNot('ACC_INV_MAX_NUMBER', '10000000');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -95,15 +107,17 @@ class acc_Setup extends core_ProtoSetup
             array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
             array(2.1, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
         );
- 
-    
-    
+	
+	
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        $html = parent::install();
+        // Добавяне на класа за репорти
+    	core_Classes::add('acc_ReportDetails');
+    	
+    	$html = parent::install();
 
         //Данни за работата на cron
         $rec = new stdClass();
@@ -126,6 +140,12 @@ class acc_Setup extends core_ProtoSetup
 		
         // Добавяне на роля за старши касиер
         $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('invoicer') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
+        // acc наследява invoicer
+        core_Roles::addRole('acc', 'invoicer');
         
         $html .= $this->loadSetupData();
 

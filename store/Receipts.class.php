@@ -37,7 +37,7 @@ class store_Receipts extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
-                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper,
+                    doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, store_DocumentWrapper, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_plg_BusinessDoc2, store_plg_Document';
 
     
@@ -354,11 +354,6 @@ class store_Receipts extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
-    	
-    	if($rec->state == 'active' && sales_Invoices::haveRightFor('add') && sales_Invoices::canAddToThread($rec->threadId)){
-    		$originId = doc_Threads::getFirstContainerId($data->rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
-	    }
 	}
     
     
@@ -640,7 +635,7 @@ class store_Receipts extends core_Master
     	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->fields['amountDelivered']->type->toVerbal($amount);
     	$row->rowNumb = $rec->rowNumb;
     	
-    	$row->address = $oldRow->contragentName;
+    	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
     	trim($row->address, ', ');
     	
@@ -729,5 +724,36 @@ class store_Receipts extends core_Master
     static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Складова разписка|* №") . $rec->id;
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Складова разписка', 
+    					  'content' => 'store/tpl/SingleLayoutReceipt.shtml', 'lang' => 'bg', 
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Складова разписка с цени', 
+    					  'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за складови разписки, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }

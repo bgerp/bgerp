@@ -7,8 +7,8 @@
  *
  * @category  bgerp
  * @package   sales
- * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,6 +28,12 @@ class sales_InvoiceDetails extends core_Detail
      * @var string
      */
     public $singleTitle = 'Артикул';
+    
+    
+    /**
+     * Старо име на класа
+     */
+    public $oldClassName = 'acc_InvoiceDetails';
     
     
     /**
@@ -63,13 +69,13 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'sales, ceo';
+    public $canWrite = 'invoicer, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'sales, ceo';
+    public $canRead = 'invoicer, ceo';
     
     
     /**

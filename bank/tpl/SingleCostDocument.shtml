@@ -17,8 +17,14 @@
                             <b>|Получател|*</b>
                         </td>
                         <td  rowspan='2' class='title-order'>
-                            <h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</h2>
+                            <h2 style='margin-bottom:8px;margin-top:0px'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</h2>
                             |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
+                            <!--ET_BEGIN state-->
+			                  <br />
+			                  <br />
+			                  <div class="[#STATE_CLASS#]">[#state#]</div>
+			                  <br />
+			               <!--ET_END state-->
                         </td>
                         <td class='top-head'><b>|Организация|*</b></td>
                     </tr>

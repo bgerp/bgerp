@@ -36,33 +36,8 @@
 						</table>
 					</div>
 				</fieldset>
-				
-				<fieldset class="detail-info">
-			    <legend class="groupTitle">|Права|*</legend>
-			    <div class="groupList">
-					<table>
-					<tr>
-						<td class='dt'>|Отговорник|*:</td>
-						<td> <b>[#inCharge#]</b></td>
-					</tr>
-					<tr>
-						<td class='dt'>|Достъп|*:</td>
-						<td> <b>[#access#]</b></td>
-					</tr>
-					<tr>
-						<!--ET_BEGIN shareBlock-->
-							<td class='dt'>|Споделяне|*:</td>
-							<td> <b>[#shared#]</b></td>
-						<!--ET_END shareBlock-->
-					</tr>
-					<tr>
-						<td class='dt'>|Създаване|*: </td>
-						<td> |от|* <b>[#createdBy#]</b> |на|* <b>[#createdOn#]</b></td>
-					</tr>
-					</table>
-					
-			     </div>
-			</fieldset>
+			[#DETAILS#]
+        <div style="clear:both;"></div>
 			</div>
 		</div>
 	</div>

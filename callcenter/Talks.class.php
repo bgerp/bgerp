@@ -779,20 +779,92 @@ class callcenter_Talks extends core_Master
         if ($rec->dialStatus == 'ANSWERED' || $rec->callType == 'outgoing') return;
         
         // Параметри на нотификацията
-        $message = "|Имате пропуснато повикване";
         $priority = 'normal';
         $url = array('callcenter_Talks', 'list');
         $customUrl = $url;
         
-        $internalNum = $rec->internalNum;
+        // Линка да сочи към всички пропуснати повиквания
+        $customUrl['dialStatusType'] = 'incoming_MISSED';
         
         // Вземаме потребителите, които отговарят за съответния номер
-        $usersArr = callcenter_Numbers::getUserForNum($internalNum);
+        $usersArr = callcenter_Numbers::getUserForNum($rec->internalNum);
         
         // Обхождаме всички потребители
         foreach ((array)$usersArr as $user) {
             
-            // Добавяме им нотификация
+            // Времето на последно виждане на листовия изглед
+            $lastClosedTime = bgerp_Notifications::getLastClosedTime($url, $user);
+            
+            // Вземаме всички неотоговрени входящи обаждания към съответния номер след последното време за листване
+            $query = static::getQuery();
+            $query->where(array("#startTime > '[#1#]' AND #internalNum = '[#2#]'", $lastClosedTime, $rec->internalNum));
+            $query->where("#dialStatus != 'ANSWERED' AND #callType = 'incoming'");
+            
+            // Последните обаждания са с по голям приоритет
+            $query->orderBy('startTime', 'DESC');
+            
+            // Броя на пропуснатите обажданият от резултата
+            $qCnt = $query->count();
+            
+            // В зависимост от броя, определяме стринга за съобещение
+            if ($qCnt > 1) {
+                $message = "|Имате| {$qCnt} |пропуснати повиквания от|*";
+            } else {
+                $message = "|Имате пропуснато повикване от|*";
+            }
+            
+            // Нулираме стойностите
+            $CallerArr = array();
+            $namesStr = '';
+            
+            while ($nRec = $query->fetch()) {
+                
+                // Името, на позвъняващия
+                $callerName = callcenter_Numbers::getCallerName($nRec->externalData);
+                
+                // Ако не може да се определи име
+                if (!$callerName) {
+                    
+                    // Използваме номера му
+                    $callerName = $nRec->externalNum;
+                }
+                
+                // Ако все още няма име, прескачаме
+                if (!$callerName) continue;
+                
+                // Увеличваме брояча за номера в масива
+                $CallerArr[$callerName]++;
+            }
+            
+            // Броят на позвъняващите хора/номера
+            $arrCnt = count($CallerArr);
+            
+            foreach ($CallerArr as $name => $cnt) {
+                
+                // Добавяме името към стринга
+                $namesStr .= $name;
+                
+                // Ако има повече от едно позвъняване от съответния номер и
+                // Ако има повече от един различен номер, който звъни
+                if (($cnt > 1) && ($arrCnt > 1)) {
+                    
+                    // Добавяме броя на обажданият след името
+                    $namesStr .= '(' . $cnt . ')';
+                }
+                
+                $namesStr .= ', ';
+            }
+            
+            // Премахваме, ненужните символи след края
+            $namesStr = rtrim($namesStr, ', ');
+            
+            // Ограничаваме дължината, за да може да се побере в полето, което е 255
+            $namesStr = str::limitLen($namesStr, 200);
+            
+            // Добавяме номерата/имената към съобщението
+            $message = $message . ' ' . $namesStr;
+            
+            // Нотифицираме съответния потребител
             bgerp_Notifications::add($message, $url, $user, $priority, $customUrl);
         }
     }
@@ -830,6 +902,7 @@ class callcenter_Talks extends core_Master
         $statusOptions['incoming_NO ANSWER'] = tr('Без отговор');
         $statusOptions['incoming_BUSY'] = tr('Заето');
         $statusOptions['incoming_FAILED'] = tr('Прекъснато');
+        $statusOptions['incoming_MISSED'] = tr('Пропуснати');
         
         // Опциите за изходящи разговоири
         $outgoingsOptions = new stdClass();
@@ -929,9 +1002,14 @@ class callcenter_Talks extends core_Master
                 
                 // Ако е избран статуса на разговора
                 if ($dialStatus) {
-                    
-                    // Търсим по статус на обаждане
-                    $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
+                    // Ако статуса е пропуснат
+                    if ($dialStatus == 'MISSED') {
+                        // Показва всички обаждания, които не са отговорени
+                        $data->query->where("#dialStatus != 'ANSWERED'");
+                    } else {
+                        // Търсим по статус на обаждане
+                        $data->query->where(array("#dialStatus = '[#1#]'", $dialStatus));
+                    }
                 }
             }
             
