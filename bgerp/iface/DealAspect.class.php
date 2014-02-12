@@ -71,6 +71,14 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Обща сума на приспаднатото авансово плащане (ако има)
+     *
+     * @var double
+     */
+    public $downpaymentDeducted = NULL;
+    
+    
+    /**
      * Информация за доставката
      *
      * @var bgerp_iface_DealDelivery
@@ -130,6 +138,9 @@ class bgerp_iface_DealAspect
         $this->amount += $aspect->amount;
         if($aspect->downpayment){
         	$this->downpayment += $aspect->downpayment;
+        }
+        if($aspect->downpaymentDeducted){
+        	$this->downpaymentDeducted += $aspect->downpaymentDeducted;
         }
     }
     
