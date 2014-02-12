@@ -1035,19 +1035,21 @@ pre.document {
 }
 
 .document .lines {
-	height: 5px;
-	background: url('../img/thumb.png');  
-	background-repeat: repeat-x;
-	background-position: center;
 	border-left: 1px solid #999;
 	border-right: 1px solid #999;
+	border-bottom: 3px solid #ddd;
 }
+
+.signature-table{
+	margin-top: 5px;
+}
+
 .sign_names {
     display:inline-block;
     text-align: center;
     border-top: 2px dotted #666;
     margin-left:5px;
-    padding: 10px;
+    padding: 5px 10px;
     min-width: 110px;
 }
 
