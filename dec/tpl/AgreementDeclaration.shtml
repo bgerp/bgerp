@@ -5,29 +5,27 @@
 
 	<div>представляван от [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </div><!--ET_END manager-->
 
+<div>във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на изделията 
 
-<br><br>
-<p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
-<br>
-<div>на собствена отговорност, че <b>изделията: </b></div>
-
-	
-		<!--ET_BEGIN products-->
+	<!--ET_BEGIN products-->
 			[#products#]
-		<!--ET_END products-->
-	
-<!--ET_BEGIN place-->
+	<!--ET_END products-->
+	<!--ET_BEGIN place-->
 	<div><b>произведени в</b> [#place#],</div>
+	<!--ET_BEGIN material-->
+	<div><b>произведени от</b> [#material#]</div>
+<!--ET_END material-->
 <!--ET_END place-->
 <div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
 <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
 <!--ET_BEGIN contragentCompanyVatNo-->с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
-с фактура <b>№ [#invoiceNo#]</b>, </div>
+</div>
+<br><br>
+<p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
 <br>
-<!--ET_BEGIN material-->
-	<div><b>произведени от</b> [#material#]</div>
-<!--ET_END material-->
-<div>за които се отнася тази декларация <b>отговарят на изискванията</b>:</div>
+<div>на собствена отговорност, че изделията, за които се отнася тази декларация <b>отговарят на</b>:</div>
+
+<br>
 
 <!--ET_BEGIN DETAILS-->
 	<div class='details'>
