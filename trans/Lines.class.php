@@ -130,7 +130,7 @@ class trans_Lines extends core_Master
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Допълнително->Превозвач');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Допълнително->Транспортна фирма');
-    	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Допълнително->Подочетно лице');
+    	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Допълнително->Подотчетно лице');
     	
     	$this->setDbUnique('title');
     }
@@ -320,7 +320,7 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Дали има свързано подочетно лице към линията
+     * Дали има свързано подотчетно лице към линията
      * @param int $id - ид на линията
      * @return boolean
      */
