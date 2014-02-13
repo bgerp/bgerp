@@ -23,7 +23,7 @@ class dec_Declarations extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Декларации за съответствия";
+    var $title = "Декларации за съответствие";
     
     
     /**
