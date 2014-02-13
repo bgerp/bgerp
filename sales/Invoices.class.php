@@ -825,7 +825,7 @@ class sales_Invoices extends core_Master
         $form->setDefault('date', dt::today());
         $form->setField('reason', 'input');
 		$form->setField('changeAmount', 'input');
-		$form->setField('changeAmount', 'unit=без ДДС');
+		$form->setField('changeAmount', "unit={$form->rec->currencyId} без ДДС");
 		$form->setField('vatRate', 'input=hidden');
 		$form->setField('reason', 'input,mandatory');
 		$form->setField('deliveryId', 'input=none');

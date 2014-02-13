@@ -148,6 +148,7 @@ class sales_InvoiceDetails extends core_Detail
     		
     		// При дебитни и кредитни известия показваме основанието
     		$data->listFields = array();
+    		$data->listFields['number'] = '№';
     		$data->listFields['reason'] = 'Основание';
     		$data->listFields['amount'] = 'Сума';
     		$data->rows = array();
@@ -155,7 +156,8 @@ class sales_InvoiceDetails extends core_Detail
     		// Показване на сумата за промяна на известието
     		$amount = $mvc->fields['amount']->type->toVerbal($masterRec->dealValue / $masterRec->rate); 
     		
-    		$data->rows[] = (object) array('reason' => $masterRec->reason,
+    		$data->rows[] = (object) array('number' => 1,
+    									   'reason' => $masterRec->reason,
     									   'amount' => $amount);
     	} 
     }
