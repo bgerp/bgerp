@@ -67,12 +67,6 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Кой може да затваря?
-     */
-    public $canClose = 'ceo,sales';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales';
@@ -700,20 +694,9 @@ class sales_Sales extends core_Master
     	if($rec->state == 'active'){
     		
     		if($rec->amountPaid && $rec->amountDelivered){
-    			$closeArr = NULL;
-    		
-	    		if($diffAmount == 0 && $mvc->haveRightFor('close', $rec)){
-	    			$closeArr = array($mvc, 'close', $rec->id);
-	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
-	    		} else {
-	    			if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    				$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
-	    				$warning = '';
-	    			}
-	    		}
-	    		
-	    		if($closeArr){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата{$warning}");
+    			if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	    			$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
 	    		}
     		}
     		
@@ -731,7 +714,8 @@ class sales_Sales extends core_Master
 	        
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
-	    	if($actions['ship'] && sales_Invoices::haveRightFor('add')){
+	    	
+	        if($actions['ship'] && sales_Invoices::haveRightFor('add')){
 	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
@@ -771,22 +755,6 @@ class sales_Sales extends core_Master
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
-    }
-    
-    
-    /**
-     * Екшън за приключване на продажба
-     */
-    function act_Close()
-    {
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('close', $rec);
-    	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
-    	$rec->state = 'closed';
-    	$this->save($rec);
-    	
-    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е приключена');
     }
     
     
@@ -921,19 +889,16 @@ class sales_Sales extends core_Master
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
-        if($rec->paymentMethodId){
-        	if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-        		unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
-        	} else {
-        		// Колко е очакваото авансово плащане
-        		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
-        		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
-        	}
+        
+        if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+        	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
+        } else {
+        	// Колко е очакваото авансово плащане
+        	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
         }
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
-        $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;
@@ -1041,8 +1006,6 @@ class sales_Sales extends core_Master
             if ($d->haveInterface('bgerp_DealIntf')) {
                 /* @var $dealInfo bgerp_iface_DealResponse */
                 $dealInfo = $d->getDealInfo();
-                $aggregateInfo->hasDownpayment = $aggregateInfo->hasDownpayment || $dealInfo->hasDownpayment;
-                
                 $aggregateInfo->shipped->push($dealInfo->shipped);
                 $aggregateInfo->paid->push($dealInfo->paid);
                 $aggregateInfo->invoiced->push($dealInfo->invoiced);
@@ -1516,9 +1479,18 @@ class sales_Sales extends core_Master
     		// ... и има избран склад, на който е отговорник текущия потребител
 	    	if(isset($rec->shipmentStoreId) && store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') == $cu){
 	    		
-	    		// .. продуктите може да бъдат експедирани
-	    		$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
-	    		$options['ship'] = "Експедиране на продукти, от склад \"{$storeName}\"";
+	    		// Ако има очаквано авансово плащане, неможе да се експедира на момента
+	    		if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
+	    			$hasDp = TRUE;
+	    		}
+	    		
+	    		if(empty($hasDp)){
+	    			
+	    			// .. продуктите може да бъдат експедирани
+	    			$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
+	    			$options['ship'] = "Експедиране на продукти, от склад \"{$storeName}\"";
+	    		}
+	    		
 	    	}
     	} else {
     		

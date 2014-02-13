@@ -78,12 +78,6 @@ class purchase_Purchases extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, purchase';
-
-    
-    /**
-     * Кой може да затваря?
-     */
-    public $canClose = 'ceo, purchase';
     
     
     /**
@@ -297,20 +291,9 @@ class purchase_Purchases extends core_Master
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
     		if($rec->amountPaid && $rec->amountDelivered){
-    			$closeArr = NULL;
-    		
-	    		if($diffAmount == 0  && $mvc->haveRightFor('close', $rec)){
-	    			$closeArr = array($mvc, 'close', $rec->id);
-	    			$warning = ',warning=Сигурни ли сте, че искате да приключите сделката?';
-	    		} else {
-	    			if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    				$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
-	    				$warning = '';
-	    			}
-	    		}
-	    		
-	    		if($closeArr){
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката{$warning}");
+    			if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	    			$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
 	    		}
     		}
     	
@@ -670,7 +653,6 @@ class purchase_Purchases extends core_Master
         
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
-        $result->hasDownpayment = FALSE;
         
         $result->agreed->amount                 = $rec->amountDeal;
         $result->agreed->downpayment            = ($downPayment) ? $downPayment : NULL;

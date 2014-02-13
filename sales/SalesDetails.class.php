@@ -460,6 +460,11 @@ class sales_SalesDetails extends core_Detail
     {
         $ProductManager = cls::get($rec->classId);
         $row->productId = $ProductManager->getTitleById($rec->productId);
+       
+        if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+        	$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
+        }
+        
         if($ProductManager instanceof techno_Specifications){
         	
         	//@TODO да махна изискването да има дебъг

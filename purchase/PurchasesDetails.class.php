@@ -229,6 +229,10 @@ class purchase_PurchasesDetails extends core_Detail
                 $ProductManager = cls::get($rec->classId);
         		$row->productId = $ProductManager->getTitleById($rec->productId);
                 
+            	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+        			$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
+        		}
+        		
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
     
                 if (empty($rec->packagingId)) {

@@ -192,29 +192,6 @@ abstract class acc_ClosedDeals extends core_Master
 			unset($data->toolbar->buttons['btnAdd']);
 		}
 	}
-	
-	
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function getTransaction($id)
-    {
-    	// Извличаме мастър-записа
-        expect($rec = self::fetchRec($id));
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-		$amount = abs(static::getClosedDealAmount($firstDoc));
-        
-        $result = (object)array(
-            'reason'      => $firstDoc->getHandle(),
-            'valior'      => dt::now(),
-            'totalAmount' => currency_Currencies::round($amount),
-            'entries'     => array()
-        );
-       
-        return $result;
-    }
     
     
     /**
@@ -330,31 +307,11 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'conto' && isset($rec)){
-    		if(!static::getClosedDealAmount($rec->threadId)){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	if(($action == 'restore' || $action == 'reject') && isset($rec)){
     		if(!haveRole('ceo,sales')){
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function finalizeTransaction($id)
-    {
-        $rec = self::fetchRec($id);
-        $rec->state = 'active';
-        
-        return self::save($rec);
     }
     
     
@@ -393,31 +350,30 @@ abstract class acc_ClosedDeals extends core_Master
     	$Class = cls::get($Class);
     	
     	// Създаване на приключващ документ, само ако има остатък/излишък
-    	if($docRec->toPay != 0){
-    		$newRec = new stdClass();
+    	$newRec = new stdClass();
     	
-	    	$newRec->notes      = "Автоматично приключване";
-	    	$newRec->docClassId = $Class->getClassId();
-	    	$newRec->docId      = $docRec->id;
-	    	$newRec->amount     = $docRec->toPay;
-	    	$newRec->currencyId = $docRec->currencyId;
-	    	$newRec->rate       = $docRec->currencyRate;
-	    	$newRec->folderId   = $docRec->folderId;
-	    	$newRec->threadId   = $docRec->threadId;
-	    	$newRec->state      = 'draft';
-	    	$newRec->classId    = $this->getClassId();
+	    $newRec->notes      = "Автоматично приключване";
+	    $newRec->docClassId = $Class->getClassId();
+	    $newRec->docId      = $docRec->id;
+	    $newRec->amount     = $docRec->toPay;
+	    $newRec->currencyId = $docRec->currencyId;
+	    $newRec->rate       = $docRec->currencyRate;
+	    $newRec->folderId   = $docRec->folderId;
+	    $newRec->threadId   = $docRec->threadId;
+	    $newRec->state      = 'draft';
+	    $newRec->classId    = $this->getClassId();
 	    	
-	    	// Създаване на документа
-	    	$clId = static::save($newRec);
+	    // Създаване на документа
+	    $clId = static::save($newRec);
 	    	
-	    	// Осчетоводяване на приключването
-	    	acc_Journal::saveTransaction($this->getClassId(), $clId);
-    	}
+	    // Осчетоводяване на приключването
+	    acc_Journal::saveTransaction($this->getClassId(), $clId);
     	
     	// Продажбата/покупката се отбелязват като птиключени и платени
     	$docRec->state = 'closed';
     	$docRec->paymentState = 'paid';
     	
+    	// Запис на документа
     	$Class->save($docRec);
     }
 }

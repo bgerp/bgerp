@@ -29,7 +29,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=acc_ClosedDealsTransactionImpl';
     
     
     /**
@@ -94,6 +94,20 @@ class sales_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * Какви ще са контировките на надплатеното/отписаното и авансите
+     */
+    public $contoAccounts = array('income' => array(
+    										'debit' => '411', 
+    										'credit' => '7911'),
+    							  'spending' => array(
+    								 		'debit' => '6911', 
+    								 		'credit' => '411'),
+    							  'downpayments' => array(
+    										'debit' => '412',
+    										'credit' => '411'));
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'notes,docId,classId';
@@ -117,40 +131,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
     	}
     	
     	return $res;
-    }
-    
-    
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function getTransaction($id)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	// Извличане на транзакцията
-    	$result = parent::getTransaction($id);
-    	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
-    	$suppliers = array('411', 
-                        array($docRec->contragentClassId, $docRec->contragentId), 
-                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-                       'quantity' => $result->totalAmount,
-                      );
-    	
-        $entry['amount'] = $result->totalAmount;
-        $amount = static::getClosedDealAmount($rec->threadId);
-        if($amount < 0){
-        	$entry['debit'] = array('6911', 'quantity' => $result->totalAmount);
-        	$entry['credit'] = $suppliers;
-    	} else {
-    		$entry['credit'] = array('7911', 'quantity' => $result->totalAmount);
-            $entry['debit'] = $suppliers;
-    	}
-    	
-    	$result->entries[] = $entry;
-    	
-        return $result;
     }
     
     
@@ -218,9 +198,6 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	// Ако ролята е no_one се пропуска функцията
-    	if($res == 'no_one') return;
-    	
     	if($action == 'add' && isset($rec)){
     		
     		// Ако има ориджин
@@ -229,10 +206,14 @@ class sales_ClosedDeals extends acc_ClosedDeals
     			$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
     			$conf = core_Packs::getConfig('sales');
     			
+    			if($originRec->state != 'active') return $res = 'no_one';
+    			
     			// Ако разликата между доставеното/платеното е по голяма, се изисква
     			// потребителя да има по-големи права за да създаде документа
     			if(!($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE)){
     				$res = 'ceo,salesMaster';
+    			} else {
+    				$res = 'ceo,sales';
     			}
     		}
     	}

@@ -29,7 +29,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=acc_ClosedDealsTransactionImpl';
     
     
     /**
@@ -94,6 +94,20 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
+     * Какви ще са контировките на надплатеното/отписаното и авансите
+     */
+    public $contoAccounts = array('income' => array(
+    									'debit' => '401', 
+    									'credit' => '7912'),
+    							  'spending' => array(
+    								 	'debit' => '6912', 
+    								 	'credit' => '401'),
+    							  'downpayments' => array(
+    									'debit' => '401',
+    									'credit' => '402'));
+    
+    
+    /**
      * В какъв тред може да се добавя документа
      * Трябва да е продажба и разликата на платеното 
      * и експедираното да е положителна
@@ -117,40 +131,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     }
     
     
-	/**
-     * @param int $id
-     * @return stdClass
-     * @see acc_TransactionSourceIntf::getTransaction
-     */
-    public static function getTransaction($id)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	// Извличане на транзакцията
-    	$result = parent::getTransaction($id);
-    	$docRec = cls::get($rec->docClassId)->fetch($rec->docId);
-    	$suppliers = array('411', 
-                        array($docRec->contragentClassId, $docRec->contragentId), 
-                        array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
-                       'quantity' => $result->totalAmount,
-                      );
-    	
-        $entry['amount'] = $result->totalAmount;
-        $amount = static::getClosedDealAmount($rec->threadId);
-        if($amount > 0){
-        	$entry['debit'] = array('6912', 'quantity' => $result->totalAmount);
-        	$entry['credit'] = $suppliers;
-    	} else {
-    		$entry['debit'] = $suppliers;
-    		$entry['credit'] = array('7912', 'quantity' => $result->totalAmount);
-        }
-    	
-    	$result->entries[] = $entry;
-    	
-        return $result;
-    }
-    
-    
     /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
@@ -171,12 +151,14 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->text = ($rec->state == 'draft') ? tr("Покупката ще бъде приключена с извънреден ") : tr("Покупката е приключена с ");
     	$amount = static::getClosedDealAmount($rec->threadId);
-    	$type = (($amount > 0) ? tr('разход') : tr('приход'));
-    	$row->text .= " " . $type . " " . tr("от");
-    	if($fields['-list']){
-    		$row->type = $type;
+    	
+    	if($amount < 0){
+    		$row->costAmount = $amount;
+    		$row->incomeAmount = 0;
+    	} else{
+    		$row->incomeAmount = $amount;
+    		$row->costAmount = 0;
     	}
     }
     
@@ -200,22 +182,23 @@ class purchase_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	// Ако ролята е no_one се пропуска функцията
-    	if($res == 'no_one') return;
-    	
     	if($action == 'add' && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
-    			$originRec = $origin->fetch();
-    			$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
-    			$conf = core_Packs::getConfig('purchase');
-    			
-    			// Ако разликата между доставеното/платеното е по голяма, се изисква
-    			// потребителя да има по-големи права за да създаде документа
-    			if(!($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE)){
-    				$res = 'ceo,purchaseMaster';
-    			}
+	    		$originRec = $origin->fetch();
+	    		$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
+	    		$conf = core_Packs::getConfig('sales');
+	    			
+	    		if($originRec->state != 'active') return $res = 'no_one';
+	    			
+	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
+	    		// потребителя да има по-големи права за да създаде документа
+	    		if(!($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE)){
+	    			$res = 'ceo,purchaseMaster';
+	    		} else {
+	    			$res = 'ceo,purchase';
+	    		}
     		}
     	}
     }
