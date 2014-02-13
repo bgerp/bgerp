@@ -63,7 +63,7 @@
             <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell first" valign="top" width='50%'>
-                    <table class='shipment-table' >
+                    <table class='shipment-table' width=100%>
                     <!--ET_BEGIN deliveryTime-->
                         <tr>
                             <td>|Срок до|*:</td>
@@ -88,31 +88,39 @@
                             <td><b>[#lineId#]</b></td>
                         </tr>
                     <!--ET_END lineId--> 
+                     <!--ET_BEGIN note-->
+                        <tr>
+                            <td colspan=2 > 
+                                    <hr>
+                                    [#note#]
+                            </td>
+                        </tr>
+                     <!--ET_END note-->
                     </table>
+                   
                       
         		</td>
         		<td>	
-        		<table class='shipment-table' >	
-        		  <tr>
-        		      <td class='nowrap' width=1%>|Общо тегло|*:</td>
-        		      <td><b>[#weight#]</b></td>
-        		 </tr>
-        		 <tr>
-                      <td>|Общ обем|*:</td>
-                      <td><b>[#volume#]</b></td>
-                 </tr>		
-               </table>       
+        		
+                <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Общ обем|*:&nbsp;<b>[#volume#]</b></div>
+                        <hr>
+                              <table align=center width='100%'>
+                                   <tr>
+                                        <td width='50%' align=center style='border-right:1px solid #999'>|Получил|*:</td>
+                                        <td align=center>|Съставил|*:</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
+                                    </tr>
+                                    <tr>
+                                       
+                                        <td align=center style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                          <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
+                                        
+                                    </tr>           
+                              </table>       
                     </td>
                 </tr>
-                 <!--ET_BEGIN note-->
-                <tr>
-                    <td colspan=2>
-                   
-                            [#note#]
-                        
-                    </td>  
-                <!--ET_END note--> 
-                </tr>           
                 </tbody>
             </table>
             </div>

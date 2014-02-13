@@ -62,7 +62,7 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="topCell first" valign="top">
+                    <td class="topCell first" valign="top" width=50%>
                     
                     <table class='shipment-table' >
                     <!--ET_BEGIN deliveryTime-->
@@ -89,32 +89,38 @@
                             <td><b>[#lineId#]</b></td>
                         </tr>
                     <!--ET_END lineId--> 
+                    <!--ET_BEGIN note-->
+                        <tr>
+                            <td colspan=2 > 
+                                    <hr>
+                                    [#note#]
+                            </td>
+                        </tr>
+                     <!--ET_END note-->
                     </table>
                     </td>
-                    <td width='30%'>
-                    <table class='shipment-table' > 
-	                  <tr>
-	                      <td class='nowrap' width=1%>Total weight:</td>
-	                      <td><b>[#weight#]</b></td>
-	                 </tr>
-	                 <tr>
-	                      <td class='nowrap'>Total volume:</td>
-	                      <td><b>[#volume#]</b></td>
-	                 </tr>   
-	                 <tr>
-                          <td class='nowrap'>Collets count:</td>
-                          <td><b>[#colletsCount#]</b></td>
-                     </tr>      
-	               </table>       
-                    
+                    <td>
+                        <div>Total weight:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;<b>[#volume#]</b> &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;<b>[#colletsCount#]</b></div>
+	                
+	                    <hr>
+                           
+                              <table align=center width='100%'>
+                                   <tr>
+                                        <td width='50%' align=center style='border-right:1px solid #999'>Received:</td>
+                                        <td align=center>Created by:</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
+                                    </tr>
+                                    <tr>
+                                       
+                                        <td align=center style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                          <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
+                                        
+                                    </tr>           
+                              </table> 
                     </td>
-                </tr> 
-                    <tr>
-                        <td colspan=2>
-                            [#note#]
-                        </td>
-                    
-                    </tr>          
+                       
                 </tbody>
             </table>
             
