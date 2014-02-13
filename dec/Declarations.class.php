@@ -120,7 +120,7 @@ class dec_Declarations extends core_Master
    	/**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'typeId, doc, managerId, location, materials';
+    var $searchFields = 'typeId, doc, managerId, location';
 
      
     /**
@@ -138,23 +138,21 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
-    	$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-    	    	
-		$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
-		
-		$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Представлявана от');
+    	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
+    	
+    	$this->FLD('date', 'date', 'caption=Дата');
+    	
+    	$this->FLD('managerId', 'key(mvc=crm_Persons,select=name, group=managers)', 'caption=Представлявана от');
+    	
+    	$this->FLD('productId', 'set()', 'caption=Продукти');
+    	
+    	$this->FLD('location', 'varchar', "caption=Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
 		
 		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения');
-		
-		$this->FLD('location', 'varchar', "caption=Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
-		//стетейтмънт
-		$this->FLD('materials', 'varchar', 'caption=Материали, recently');
-		
-		$this->FLD('date', 'date', 'caption=Дата');
-				
-		$this->FLD('productId', 'keylist(mvc=sales_InvoiceDetails,select=productId)', 'caption=Продукти');
-		
+
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Пояснения');
+		
+		$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
 	
 		// по подразбиране на вземе мениджъра и позицията му
 		//$this->FLD('declaratorId', 'varchar', 'caption=Декларатор->Име и Фамилия, recently');
@@ -223,7 +221,7 @@ class dec_Declarations extends core_Master
     	$row = &$data->row;
         $rec = &$data->rec;
         $recDec = $tpl->rec;
-        
+      // bp($recDec, $rec);
         // Зареждаме бланката в шаблона на документа
         $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
         $decContent = $row->content;
@@ -265,9 +263,32 @@ class dec_Declarations extends core_Master
     		$row->date = $rec->createdOn;
     	}
     	
-    	if ($rec->materials) {
-    		        	
-			$row->material = $rec->materials;
+    	/*if ($rec->materials) {
+    		$material = explode(",", $rec->materials); 
+    		
+    		$row->material = "<ol>"; 
+
+    		foreach($material as $m) {
+    		$row->material .= "<li>$m</li>";
+    		}
+    		$row->material .= "</ol>";  	
+			
+    	}*/
+    	
+    	if ($recDec->productId) { 
+    		
+    		$products = explode(",", $recDec->productId);
+    		 
+    		$row->products = "<ol>";
+	       		
+		       	foreach($products as $iProduct=>$name){
+		    		//$ProductMan = cls::get($iProduct->classId);
+		        	//$productName = $ProductMan::getTitleById($iProduct->productId);
+		        	$row->products .= "<li>$mvc->toVerbal($iProduct)</li>";
+			}
+				
+				$row->products .= "</ol>";
+//    		/bp($recDec->productId);
     	}
     	
     	// ако декларацията е към документ
@@ -305,22 +326,44 @@ class dec_Declarations extends core_Master
     		
        		$invoiceNo = str_pad($rec->number, '10', '0', STR_PAD_LEFT) . " / " . dt::mysql2verbal($rec->date, "d.m.Y");
        		$row->invoiceNo = $invoiceNo;
-            
+           // bp($rec->productId, $decContent, $rec);
 	       	// Продуктите
-	       	if (count($deal->invoiced->products)) {
+	       /*	if (count($deal->invoiced->products)) {
 	       		$row->products = "<ol>";
 	       		
 		       	foreach($deal->invoiced->products as $iProduct){
 		    		$ProductMan = cls::get($iProduct->classId);
 		        	$productName = $ProductMan::getTitleById($iProduct->productId);
-		        	$row->products .= "<li>$productName</li>";
+		        	$row->products .= "<li>$rec->productId</li>";
 				}
 				
 				$row->products .= "</ol>";
-	       	}
+	       	}*/
 	    
     	}
+    	//bp($recDec->statements);
+    	if ($recDec->statements) { 
+    		
+    		$statements = arr::make($recDec->statements, TRUE);
+            $cTpl = $decContent->getBlock("statements");
+    		foreach ($statements as $statement) {
+    			
+    			$s = dec_Statements::fetch($statement);
+    			$text = "<ul><li>изделията отговарят на ". $s->title. " ". $s->text ."</li></ul>";
+    			$cTpl->replace($text, 'statements');
+    			$cTpl->append2master();
+    			//$row->statements = "<li>$text</li>";
+    		}//bp($statement, $s);
+    		$row->statements = "</ol>";
+    	}
     	
+    	
+    	if($recDec->note) { 
+    		$cTpl = $decContent->getBlock("note");
+    		$cTpl->replace($recDec->note, 'note');
+    	    $cTpl->append2master();
+    	}
+    	//bp($row->note);
     	$cTpl = $decContent->getBlock("declaratorInfo");
     	$cTpl->replace($managerData->name, 'declaratorName');
 	    $cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');

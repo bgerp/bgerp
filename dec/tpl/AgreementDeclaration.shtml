@@ -1,19 +1,20 @@
 <div class='dec-document'>
 
-<br><div class='indent'>Долуподписаният, производител/доставчик: <br>
+<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </div><!--ET_END manager--> ,
+<div>представляващ производителя/доставчика:
 [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
-	<div>представляван от [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </div><!--ET_END manager-->
+	
 
-<div>във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на изделията 
+<div>във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на продуктите 
 
 	<!--ET_BEGIN products-->
 			[#products#]
 	<!--ET_END products-->
 	<!--ET_BEGIN place-->
-	<div><b>произведени в</b> [#place#],</div>
+	<div><b>произведени в</b> [#place#],
 	<!--ET_BEGIN material-->
-	<div><b>произведени от</b> [#material#]</div>
+<b>произведени от</b> [#material#]</div>
 <!--ET_END material-->
 <!--ET_END place-->
 <div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
@@ -23,23 +24,18 @@
 <br><br>
 <p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
 <br>
-<div>на собствена отговорност, че изделията, за които се отнася тази декларация <b>отговарят на</b>:</div>
+<div>на собствена отговорност, че:</div>
 
-<br>
-
-<!--ET_BEGIN DETAILS-->
-	<div class='details'>
-		[#DETAILS#]
+<!--ET_BEGIN statements-->
+	<div>
+		[#statements#]
 	</div>
-<!--ET_END DETAILS-->
+<!--ET_END statements-->
 
-<!--ET_BEGIN certificate-->
-	<div>Декларацията се издава въз основа на (сертификат на продукт или сертификат на система за производствен контрол, или протокол(и) от първоначално изпитване на типа):
-	[#certificate#]</div>
-<!--ET_END certificate-->
-		<!--ET_BEGIN certifyingAuthority-->
-		<div>издаден(и) от: [#certifyingAuthority#]</div>
-		<!--ET_END certifyingAuthority-->
+<!--ET_BEGIN note-->
+	
+	<div>[#note#]</div>
+<!--ET_END note-->
 
 <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
 
