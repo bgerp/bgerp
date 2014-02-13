@@ -236,13 +236,13 @@ class bank_SpendingDocuments extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'bankAdvance2customer' : 'bank2customer';
+    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'bankAdvance2customer' : 'bank2customer';
     		} else {
     			$defaultOperation = 'bank2customer';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'bank2supplierAdvance' : 'bank2supplier';
+    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'bank2supplierAdvance' : 'bank2supplier';
     		} else {
     			$defaultOperation = 'bank2supplier';
     		}
@@ -282,7 +282,10 @@ class bank_SpendingDocuments extends core_Master
     		 }
     		 	
     		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
-       		 
+        	if($form->defaultOperation == 'bank2supplierAdvance'){
+    		 		$amount = $dealInfo->agreed->downpayment / $dealInfo->agreed->rate;
+    		 }
+    		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
     		 $form->rec->tempRate = $dealInfo->shipped->rate;
     		 
@@ -553,12 +556,11 @@ class bank_SpendingDocuments extends core_Master
         $result->paid->payment->bankAccountId = $rec->ownAccount;
         $result->paid->operationSysId         = $rec->operationSysId;
         
-    	$hasDownpayment = ($rec->operationSysId == 'bank2supplierAdvance') ? TRUE : FALSE;
     	if($rec->operationSysId == 'bank2supplierAdvance' || $rec->operationSysId == 'bankAdvance2customer'){
     		$result->paid->downpayment = $result->paid->amount;
+    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
+    															  'amountBase' => $result->paid->amount);
     	} 
-    	
-    	$result->hasDownpayment = $hasDownpayment;
     	
         return $result;
     }

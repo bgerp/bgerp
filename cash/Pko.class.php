@@ -218,6 +218,9 @@ class cash_Pko extends core_Master
     		 	}
     		 	
     		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
+    		 	if($defaultOperation == 'customer2caseAdvance'){
+    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
+    		 	}
     		 	
     		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
     		 	foreach ($options as $index => $op){
@@ -271,13 +274,13 @@ class cash_Pko extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = ($paid->downpayment === $paid->amount) ? 'supplierAdvance2case' : 'supplier2case';
+    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'supplierAdvance2case' : 'supplier2case';
     		} else {
     			$defaultOperation = 'supplier2case';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = ($paid->downpayment <= $agreed->downpayment) ? 'customer2caseAdvance' : 'customer2case';
+    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'customer2caseAdvance' : 'customer2case';
     		} else {
     			$defaultOperation = 'customer2case';
     		}
@@ -637,10 +640,9 @@ class cash_Pko extends core_Master
         
         if($rec->operationSysId == 'customer2caseAdvance' || $rec->operationSysId == 'supplierAdvance2case'){
     		$result->paid->downpayment = $result->paid->amount;
-    	} 
-    	
-    	$hasDownpayment = ($rec->operationSysId == 'customer2caseAdvance') ? TRUE : FALSE;
-        $result->hasDownpayment = $hasDownpayment;
+    		$result->paid->downpayments[$rec->currencyId] = array('amount' => $sign * $rec->amount, 
+    															  'amountBase' => $result->paid->amount);
+    	}
     	
         return $result;
     }
