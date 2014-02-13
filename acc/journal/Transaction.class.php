@@ -110,7 +110,7 @@ class acc_journal_Transaction
         
         if (isset($this->rec->totalAmount)) {
             $sumItemsAmount = $this->amount();
-            acc_journal_Exception::expect($this->rec->totalAmount == $sumItemsAmount,
+            acc_journal_Exception::expect(trim($this->rec->totalAmount) == trim($sumItemsAmount),
                 "Несъответствие между изчислената ({$sumItemsAmount}) и зададената ({$this->rec->totalAmount}) суми на транзакция");
         }
         
