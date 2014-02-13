@@ -657,7 +657,7 @@ class sales_Invoices extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->number){
-    		$rec->number = $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+    		$rec->number = $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	}
     	
     	if($fields['-list']){
