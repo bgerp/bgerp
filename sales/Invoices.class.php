@@ -657,12 +657,14 @@ class sales_Invoices extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->number){
-    		$rec->number = $row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+    		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->number = ht::createLink($rec->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
+    		if($rec->number){
+    			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
+    		}
     	}
     	
     	if($fields['-single']){
@@ -1264,6 +1266,7 @@ class sales_Invoices extends core_Master
     static function getRecTitle($rec, $escaped = TRUE)
     {
         $row = static::recToVerbal($rec, 'type,number,-list');
+        $row->number = strip_tags($row->number);
         
     	return tr("|{$row->type}|* №{$row->number}");
     }
