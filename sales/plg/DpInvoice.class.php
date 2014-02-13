@@ -26,7 +26,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	if($mvc instanceof sales_Invoices){
     		
     		// Сума на авансовото плащане (ако има)
-	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName,unit=без ДДС');
+	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
 	    	
 	    	// Операция с авансовото плащане начисляване/намаляване
 	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
@@ -58,7 +58,7 @@ class sales_plg_DpInvoice extends core_Plugin
         if(empty($dealInfo->agreed->downpayment)) return;
         
         // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount','input,mandatory');
+        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} без ДДС");
         $form->setField('dpOperation','input');
         
         if(empty($form->rec->id)){
@@ -184,6 +184,9 @@ class sales_plg_DpInvoice extends core_Plugin
     {
     	$masterRec = $data->masterData->rec;
     	
+    	// Ако е ДИ или КИ не правим нищо
+    	if($masterRec->type != 'invoice') return;
+    	
     	// Ако има сума на авансовото плащане и тя не е "0"
     	if($masterRec->dpAmount){
     		
@@ -215,13 +218,14 @@ class sales_plg_DpInvoice extends core_Plugin
     	// Ако няма данни за показване на авансово плащане
     	if(empty($data->dpInfo)) return;
     	
+    	// Добавяне на ред под детайла, показващ авансовото плащане
+    	$masterRec = $data->masterData->rec;
+    	
     	// Ако няма записи, да не се показва реда "няма записи"
     	if(empty($data->rows)){
     		$tpl->removeBlock('NO_ROWS');
     	}
     	
-    	// Добавяне на ред под детайла, показващ авансовото плащане
-    	$masterRec = $data->masterData->rec;
     	$colspan = count($data->listFields) - 2;
     	
     	$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>[#dpOperation#]<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
@@ -237,6 +241,9 @@ class sales_plg_DpInvoice extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
     	if($mvc->Master) return;
+    	
+    	// Ако е ДИ или КИ не правим нищо
+    	if($masterRec->type != 'invoice') return;
     	
     	// Ако има авансово плащане
     	if(isset($rec->dpAmount) && $rec->dpOperation == 'accrued'){
