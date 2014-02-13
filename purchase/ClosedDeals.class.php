@@ -108,30 +108,6 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     
     
     /**
-     * В какъв тред може да се добавя документа
-     * Трябва да е продажба и разликата на платеното 
-     * и експедираното да е положителна
-     */
-	static function canAddToThread($threadId)
-    {
-    	$res = parent::canAddToThread($threadId);
-    	if($res){
-    		$firstDoc = doc_Threads::getFirstDocument($threadId);
-    		
-    		$info = static::getDealInfo($firstDoc);
-    		
-    		$res = $info->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE;
-    		
-    		if(!$res){
-	    		return FALSE;
-    		}
-    	}
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Имплементиране на интерфейсен метод
      * @see acc_ClosedDeals::getDocumentRow()
      */
@@ -192,6 +168,12 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    			
 	    		if($originRec->state != 'active') return $res = 'no_one';
 	    			
+	    		// Ако няма експедирано или платено неможе да се приключва
+    			if($originRec->amountDelivered == 0 || $originRec->amountPaid == 0) return $res = 'no_one';
+    			
+    			// Може да се добавя само към тред с покупка
+    			if($origin->instance instanceof sales_Sales) return $res = 'no_one';
+    			
 	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    		// потребителя да има по-големи права за да създаде документа
 	    		if(!($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE)){
