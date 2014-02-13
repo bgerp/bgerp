@@ -32,7 +32,7 @@ class acc_ReportDetails extends core_Manager
      */
     public function prepareAccReports(&$data)
     {
-    	// Ако има роля право
+    	// Ако потребителя има достъп до репортите
     	if(haveRole('ceo,reports')){
     		
     		// Подготовка на данните
@@ -42,10 +42,12 @@ class acc_ReportDetails extends core_Manager
     		
     		// Извличане на счетоводните записи
     		$this->prepareBalanceReports($data);
+    		$data->Order = 1;
     	} else {
     		
     		// Ако няма права дисейлбваме таба
     		$data->disabled = TRUE;
+    		$data->Order = 80;
     	}
     	
     	// Име на таба
@@ -63,12 +65,17 @@ class acc_ReportDetails extends core_Manager
     	
     	// Рендиране на данните за номенклатурата
     	$itemsTpl = $this->ObjectLists->renderObjectLists($data);
+    	
+    	// Добаяне на информацията за номенклатурите в шаблона
     	$tpl->append($itemsTpl);
     	
+    	// Добавяне на интервал между двата детайла
     	$tpl->append("<br />");
     	
     	// Рендиране на баланс репортите
     	$balanceTpl = $this->renderBalanceReports($data);
+    	
+    	// Добавяне на репорта в шаблона
     	$tpl->append($balanceTpl);
     	
     	// Връщане на шаблона
