@@ -640,7 +640,7 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Пресрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
+        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
        
 		$data->listFilter->showFields .= ',search,type';
 		$data->listFilter->input();
@@ -1174,7 +1174,7 @@ class sales_Sales extends core_Master
     
     
     /**
-     * Нагласяне на крон да приключва продажби и да проверява дали са пресрочени
+     * Нагласяне на крон да приключва продажби и да проверява дали са просрочени
      */
     private function setCron(&$res)
     {
@@ -1287,7 +1287,7 @@ class sales_Sales extends core_Master
     
     
 	/**
-     * Проверява дали фактурите са пресрочени или платени
+     * Проверява дали фактурите са просрочени или платени
      */
     function cron_CheckSalesPayments()
     {
