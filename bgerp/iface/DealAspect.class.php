@@ -27,7 +27,7 @@ class bgerp_iface_DealAspect
      *
      * @var array of bgerp_iface_DealProduct
      */
-    public $dawnpayments = array();
+    public $downpayments = array();
     
     
     /**
@@ -131,8 +131,9 @@ class bgerp_iface_DealAspect
             $this->pushProduct($p);
         }
         
-    	foreach ($aspect->dawnpayments as $currencyId => $d) {
-            $this->dawnpayments[$currencyId] += $d;
+    	foreach ($aspect->downpayments as $currencyId => $d) {
+    		$this->downpayments[$currencyId]['amount'] += $d['amount'];
+            $this->downpayments[$currencyId]['amountBase'] += $d['amountBase'];
         }
         
         if (isset($aspect->delivery)) {
@@ -151,6 +152,7 @@ class bgerp_iface_DealAspect
         if($aspect->downpayment){
         	$this->downpayment += $aspect->downpayment;
         }
+        
         if($aspect->downpaymentDeducted){
         	$this->downpaymentDeducted += $aspect->downpaymentDeducted;
         }
