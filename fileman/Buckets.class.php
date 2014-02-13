@@ -26,6 +26,12 @@ class fileman_Buckets extends core_Manager {
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
+	
+	
+	/**
+	 * 
+	 */
+    var $loadList = 'plg_Translate';
     
 	
     /**
@@ -37,7 +43,7 @@ class fileman_Buckets extends core_Manager {
         $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
 
         // Информация за кофата
-        $this->FLD("info", "varchar", 'caption=Информация');
+        $this->FLD("info", "varchar", 'caption=Информация, translate');
 
         // Файлови разширения
         $this->FLD("extensions", "text", 'caption=Допустими разширения');
