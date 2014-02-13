@@ -268,7 +268,7 @@ class type_Time extends type_Varchar {
 
         if($weeks > 0) {
             if($days == 0) {
-                $res .=  "{$weeks} " . tr('сед.');
+                $res .=  "{$weeks} " . tr('седм.');
             } else {
                 $days += $weeks * 7;
             }
