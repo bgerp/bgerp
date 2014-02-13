@@ -165,7 +165,7 @@
 	                </tr> 
 	                <tr>
                         <td>
-                            <table width='1%' class='signature-table'>
+                            <table style='width:1%'  class='signature-table'>
                                 <tr>
                                     <td width="1%">Receiver:  </td><td></td>
                                 </tr>

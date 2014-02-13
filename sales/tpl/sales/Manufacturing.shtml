@@ -178,7 +178,7 @@
                     </td>
                     
                     <td>
-                         <table width='1%' class='fright signature-table'>
+                         <table style='width:1%'  class='fright signature-table'>
                             <tr>
                                 <td width="1%">|Съставил|*:  </td><td></td>
                             </tr>
