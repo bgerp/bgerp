@@ -276,4 +276,31 @@ class cond_PaymentMethods extends core_Master
     	
     	return $res;
     }
+    
+    
+    /**
+     * Връща очакваното авансово плащане
+     * 
+     * @param int $id - ид на платежен метод
+     * @param double $amount - сума
+     * @return double $amount - сумата на авансовото плащане
+     */
+    public static function getDownpayment($id, $amount)
+    {
+    	// Ако няма ид, няма очакван аванс
+    	if(!$id) return NULL;
+    	
+    	// Трябва да са подадени валидни данни
+    	expect(is_numeric($amount));
+    	expect($rec = static::fetch($id));
+    	
+    	// Ако няма авансово плащане в метода, няма очакван аванс
+    	if(empty($rec->downpayment)) return NULL;
+    	
+    	// Изчисляване на очаквания аванс
+    	$amount = $rec->downpayment * $amount;
+    	
+    	// Връщане на аванса
+    	return $amount;
+    }
 }
