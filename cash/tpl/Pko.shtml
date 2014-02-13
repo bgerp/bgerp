@@ -52,7 +52,13 @@
 						<td colspan='2'>
 						<table border='0'>
 						<tr>
-							<td colspan='2' id='notes' >|Бележки|*: &nbsp;&nbsp;[#notes#]</td>
+						   
+							<td colspan='2' id='notes' >
+								<b>|Операция|*:</b>&nbsp; [#operationSysId#]
+								<!--ET_BEGIN notes-->
+							    <div>|Бележки|*: &nbsp;&nbsp;[#notes#]</div>
+								<!--ET_END notes-->
+							</td>
 							<td style='vertical-align:middle !important'>
 							<!--ET_BEGIN equals-->
 								<div id ='misc'>
@@ -83,17 +89,17 @@
 						</td>
 						<td style='padding-left:1%;padding-bottom:1%;text-align:left;width:50%;'>
 							<br>
-							<table class='signature-table'>
+							<table class='signature-table fright' style='width:1%'>
                                     <tr>
                                         <td width=1%>|Касиер|*:  </td><td></td>
                                     </tr>
                                     <tr>
                                         <td></td>
-                                        <td><span class='sign_names'>( <b>[#cashier#]</b> )</span></td>
+                                        <td><span class='sign_names nowrap'>( <b>[#cashier#]</b> )</span></td>
                                         
                                     </tr>
                                 
-                                </table>
+                             </table>
 						</td>
 					</tr>
 				</table>
