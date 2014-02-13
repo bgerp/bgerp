@@ -21,7 +21,15 @@ class bgerp_iface_DealAspect
      */
     public $products = array();
 
-
+	
+    /**
+     * Списък от направените авансови плащания по валути
+     *
+     * @var array of bgerp_iface_DealProduct
+     */
+    public $dawnpayments = array();
+    
+    
     /**
      * 3-буквен ISO код на валута
      *
@@ -123,6 +131,10 @@ class bgerp_iface_DealAspect
             $this->pushProduct($p);
         }
         
+    	foreach ($aspect->dawnpayments as $currencyId => $d) {
+            $this->dawnpayments[$currencyId] += $d;
+        }
+        
         if (isset($aspect->delivery)) {
             $this->delivery = $aspect->delivery;
         }
@@ -151,6 +163,11 @@ class bgerp_iface_DealAspect
             $this->popProduct($p);
         }
         
+    }
+    
+    protected function pushDownpayment($currencyId, $d)
+    {
+    	
     }
     
     protected function pushProduct(bgerp_iface_DealProduct $p)
