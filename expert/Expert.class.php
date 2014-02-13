@@ -1697,6 +1697,7 @@ class expert_Expert extends core_FieldSet {
      */
     static function getLink($title, $url, $attr = array())
     {
+        $attr = arr::make($attr, TRUE);
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';
         
@@ -1718,6 +1719,7 @@ class expert_Expert extends core_FieldSet {
      */
     static function getButton($title, $url, $attr = array())
     {
+        $attr = arr::make($attr, TRUE);
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';
         
