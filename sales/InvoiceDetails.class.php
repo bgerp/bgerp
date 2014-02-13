@@ -39,7 +39,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_AlignDecimals, doc_plg_HidePrices, sales_plg_DpInvoice';
     
     
     /**
@@ -201,17 +201,27 @@ class sales_InvoiceDetails extends core_Detail
         $recs = &$data->recs;
         $invRec = &$data->masterData->rec;
         
+        $mvc->calculateAmount($recs, $invRec);
+        
         if (empty($recs)) return;
+        
         foreach ($recs as &$rec){
         	$rec->price = $rec->price * $rec->quantityInPack;
         	$haveDiscount = $haveDiscount || !empty($rec->discount);
         }
         
-        price_Helper::fillRecs($recs, $invRec, static::$map);
-        
     	if(!$haveDiscount) {
             unset($data->listFields['discount']);
         }
+    }
+    
+    
+    /**
+     * След калкулиране на общата сума
+     */
+    public function calculateAmount_(&$recs, &$rec)
+    {
+    	price_Helper::fillRecs($recs, $rec, static::$map);
     }
     
     
@@ -240,7 +250,7 @@ class sales_InvoiceDetails extends core_Detail
     	}
     }
     
-    
+   
     /**
      * След проверка на ролите
      */
@@ -253,6 +263,11 @@ class sales_InvoiceDetails extends core_Detail
       			$masterRec = $mvc->Master->fetch($rec->invoiceId);
     			if($masterRec->state != 'draft' || $masterRec->isFull == 'yes'){
     				$res = 'no_one';
+    			} else {
+    				// При начисляване на авансово плащане неможе да се добавят други продукти
+    				if($masterRec->dpOperation == 'accrued'){
+    					$res = 'no_one';
+    				}
     			}
     		} else {
     			// Към ДИ и КИ немогат да се добавят детайли

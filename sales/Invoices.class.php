@@ -45,7 +45,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,sales_plg_DpInvoice,
                     doc_plg_BusinessDoc2, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
     
@@ -240,7 +240,6 @@ class sales_Invoices extends core_Master
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
-		//$data->listFilter->view = 'horizontal';
 		$data->listFilter->FNC('invType','enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input,silent');
 		$data->listFilter->setDefault('invType','invoice');
@@ -314,7 +313,7 @@ class sales_Invoices extends core_Master
 	        }
         }
     	
-        price_Helper::fillRecs($recs, $rec, sales_InvoiceDetails::$map);
+        $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
         
         $rec->dealValue = $rec->_total->amount * $rec->rate;
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
@@ -405,6 +404,9 @@ class sales_Invoices extends core_Master
 	    }
 	   	
 	   	$form->setReadOnly('vatRate');
+	   	
+	   	// Метод който да бъде прихванат от sales_plg_DpInvoice
+	   	$mvc->prepareDpInvoicePlg($data);
     }
     
     
@@ -439,14 +441,6 @@ class sales_Invoices extends core_Master
 	        	$form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
 	        }
 			
-			if(empty($rec->number)){
-				$rec->number = $mvc->getNexNumber();
-			} 
-			
-			if(!$mvc->isNumberInRange($rec->number)){
-				$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
-			}
-			
         	if(empty($rec->isFull)){
         		
         		// Сетване на кеш полето че ЕН-то не е запълнено
@@ -464,6 +458,12 @@ class sales_Invoices extends core_Master
 	        	// Стойността е променената сума
 	        	$rec->dealValue = $rec->changeAmount;
 	        	$rec->dealValue *= $rec->rate;
+	        }
+	        
+	        if($rec->number){
+		        if(!$mvc->isNumberInRange($rec->number)){
+					$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
+				}
 	        }
         }
 
@@ -616,18 +616,24 @@ class sales_Invoices extends core_Master
             $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         }
         
-        if(empty($rec->place) && $rec->state == 'active'){
-        	$inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
-        	$inChargeRec = crm_Profiles::getProfile($inCharge);
-        	$myCompany = crm_Companies::fetchOwnCompany();
-        	$place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
-        	$countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
-        	
-        	$rec->place = $place;
-        	if($rec->contragentCountryId != $countryId){
-        		$cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
-        		$rec->place .= (($place) ? ", " : "") . $cCountry;
+        if($rec->state == 'active'){
+        	if(empty($rec->number)){
+        		$rec->number = $mvc->getNexNumber();
         	}
+        	
+	        if(empty($rec->place) && $rec->state == 'active'){
+	        	$inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
+	        	$inChargeRec = crm_Profiles::getProfile($inCharge);
+	        	$myCompany = crm_Companies::fetchOwnCompany();
+	        	$place = empty($inChargeRec->place) ? $myCompany->place : $inChargeRec->place;
+	        	$countryId = empty($inChargeRec->country) ? $myCompany->countryId : $inChargeRec->country;
+	        	
+	        	$rec->place = $place;
+	        	if($rec->contragentCountryId != $countryId){
+	        		$cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+	        		$rec->place .= (($place) ? ", " : "") . $cCountry;
+	        	}
+	        }
         }
     }
     
@@ -650,10 +656,13 @@ class sales_Invoices extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+    	if($rec->number){
+    		$rec->number = $rec->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+    	}
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id));
+    		$row->number = ht::createLink($rec->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     	}
     	
     	if($fields['-single']){
@@ -678,7 +687,7 @@ class sales_Invoices extends core_Master
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}
 	    	
-	    	$row->header = "{$row->type} №<b>{$row->number}</b> ({$row->state})" ;
+	    	$row->header = "{$row->type} №<b>{$rec->id}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     		
@@ -689,6 +698,10 @@ class sales_Invoices extends core_Master
 				$originRow = $mvc->recToVerbal($originRec, 'number,date');
 				$row->originInv = $originRow->number;
 				$row->originInvDate = $originRow->date;
+			}
+			
+			if($rec->rate == 1){
+				unset($row->rate);
 			}
 			
     		$mvc->prepareMyCompanyInfo($row);
@@ -998,7 +1011,6 @@ class sales_Invoices extends core_Master
     {
        	// Извличаме записа
         expect($rec = self::fetchRec($id));
-        
         $cloneRec = clone $rec;
         
         // Създаване / обновяване на перото за контрагента
@@ -1094,6 +1106,18 @@ class sales_Invoices extends core_Master
         $result->invoiced->valior   = $rec->date;
         $result->invoiced->vatType  = $rec->vatRate;
         $result->invoiced->payment->method  = $rec->paymentMethodId;
+        if(isset($rec->dpAmount)){
+        	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+    		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    			$vat = 0;
+    		}
+        	
+        	if($rec->dpOperation == 'accrued'){
+        		$result->invoiced->downpayment  = $total;
+        	} elseif($rec->dpOperation == 'deducted') {
+        		$result->invoiced->downpaymentDeducted = $total;
+        	}
+        }
         
         /* @var $dRec sales_model_InvoiceProduct */
         foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
@@ -1151,8 +1175,7 @@ class sales_Invoices extends core_Master
      */
     private static function isNumberInRange($number)
     {
-    	if(empty($number)) return FALSE;
-    	
+    	expect($number);
     	$conf = core_Packs::getConfig('sales');
     	
     	return ($conf->SALE_INV_MIN_NUMBER <= $number && $number <= $conf->SALE_INV_MAX_NUMBER);
@@ -1186,10 +1209,17 @@ class sales_Invoices extends core_Master
     public static function on_AfterCanActivate($mvc, &$res, $rec)
     {
     	// Ако няма ид, не може да се активира документа
-    	if(empty($rec->id)) return $res = 'FALSE';
+    	if(empty($rec->id) && !isset($rec->dpAmount)) return $res = FALSE;
     	
     	// ДИ и КИ могат да се активират винаги
-    	if($rec->type != 'invoice') return $res = 'TRUE';
+    	if($rec->type != 'invoice') return $res = TRUE;
+    	
+    	// Ако има Авансово плащане може да се активира
+    	if(isset($rec->dpAmount)){
+    		$res = ($rec->dealValue <= 0) ? FALSE : TRUE;
+    		$res = ($rec->dpOperation == 'deducted' && $rec->dealValue == 0) ? TRUE : $res; 
+    		return;
+    	}
     	
     	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");

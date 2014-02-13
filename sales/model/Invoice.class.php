@@ -192,6 +192,18 @@ class sales_model_Invoice extends core_Model
     
     
     /**
+     * Авансова сума
+     */
+    public $dpAmount;
+    
+    
+    /**
+     * Авансова операция
+     */
+    public $dpOperation;
+    
+    
+    /**
      * @var int class(interface=store_ShipmentIntf)
      */
     public $docType;
