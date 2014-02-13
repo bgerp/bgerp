@@ -28,44 +28,51 @@
 		                <tbody>
 		                <tr>
 		                <td>
-		                     <div>
+		                        <!--ET_BEGIN vatReason-->
+                                <div>|Основание за ДДС|*: <b>[#vatReason#]</b></div>
+                              
+                                <!--ET_END vatReason-->
+                             
+                                <!--ET_BEGIN vatDate-->  
+                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b>
+                                <!--ET_END vatDate-->  
+                                
+                                <!--ET_BEGIN rate--> 
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
+                                <!--ET_END rate-->  
+                                <hr>
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
 		                        <div>|Начин|* / <i>Method</i> : <b>[#paymentMethodId#]</b></div>
 		                        <!--ET_END paymentMethodId-->
 		                        
-		                        <!--ET_BEGIN DUE_DATE-->
-		                        <div>|Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b></div>
-		                        <!--ET_END DUE_DATE-->
+		                        <!--ET_BEGIN deadline-->
+		                        [#deadline#]
+		                        <div>
+			                        <!--ET_BEGIN DUE_DATE-->
+			                        |Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b><!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+			                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
+	                                <span class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</span>
+	                                <!--ET_END OVERDUE_INTEREST_RATE-->
+		                        </div>
+		                        <!--ET_END deadline-->
 		                        
-		                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-		                        <div class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</div>
-		                        <!--ET_END OVERDUE_INTEREST_RATE-->
-		                        
+		                        <div>
 		                        <!--ET_BEGIN downpayment-->
-                                <div>|Авансово|*: &nbsp;[#downpayment#]</div>
+                                |Авансово|*: &nbsp;[#downpayment#]  &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END downpayment-->
                                 
                                 <!--ET_BEGIN paymentBeforeShipping-->
-                                <div>|Преди експедиция|*: &nbsp;[#paymentBeforeShipping#]</div>
+                                |Преди експедиция|*: &nbsp;[#paymentBeforeShipping#]  &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END paymentBeforeShipping-->
                                 
                                 <!--ET_BEGIN paymentOnDelivery-->
-                                <div>|При получаване|*: &nbsp;[#paymentOnDelivery#]</div>
+                                |При получаване|*: &nbsp;[#paymentOnDelivery#] &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END paymentOnDelivery-->
-                                
+                                </div>
                                 <!--ET_BEGIN paymentAfterInvoice-->
                                 <div>|Окончателно|*: &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
                                 <!--ET_END paymentAfterInvoice-->
-                                
-                                <!--ET_BEGIN vatDate-->  
-                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b>  </div>
-                                <!--ET_END vatDate-->  
-                                
-                                <!--ET_BEGIN rate--> 
-                                 <div>|Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
-                                <!--END rate-->  
-                               
 		                        <!--ET_BEGIN accountId-->
 		                        <hr>
 		                        <div>
@@ -73,17 +80,16 @@
 			                        |Банкова с-ка|*: <b>[#accountId#]</b>
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
-			                        <div>[#bank#]</div>
+			                        <div><b>[#bank#]</b>
 			                        <!--ET_BEGIN bank-->
 			                        <!--ET_BEGIN bic-->
-			                        <div>BIC(SWIFT): <b>[#bic#]</b></div>
+			                        , BIC(SWIFT): <b>[#bic#]</b></div>
 			                        <!--ET_BEGIN bic-->
 			                        </div>
 				                </div>
 		                        <!--ET_END accountId-->
-		                        
-		                    	<hr>
-		                     <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
+		                        <hr>
+		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryId-->
                                <b>[#deliveryId#]</b>
@@ -92,10 +98,15 @@
                                 [#deliveryPlaceId#]
                                <!--ET_END deliveryPlaceId-->
                                
-		                    </div>
+                             <!--ET_BEGIN additionalInfo-->
+                             <hr>
+                               <div>|Бележки|* / <i>Notes</i></div>
+                               <div>[#additionalInfo#]</div>
+                                <!--ET_END additionalInfo-->
+		                    
 		                </td>
 		                <td id='invoice-info' width='40%'>
-				          <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
+				          <table border='0'cellpadding='3px' cellspacing='0px' style='float:right;margin-bottom: 30px;' id='business-doc-summary-table' width='100%' >
 						     <tr class='nowrap'>
 						      <td align='right'>|Стойност|* / <i>Subtotal</i>:</td>
 						      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
@@ -135,14 +146,7 @@
 						     </tr>
 						     <!--ET_END vatAmount-->
 						     
-						     <!--ET_BEGIN vatReason-->
-		                      <tr>
-		                          <td align='right'>|Основание за ДДС|*:</td>
-		                      
-		                          <td align="right" colspan=2>[#vatReason#]</td>
-		                      </tr>
-		                     <!--ET_END vatReason-->
-		                     
+						    
 						     <tr class='nowrap'>
 						    	<td align='right'>|Общо|* / <i>Total</i>:</td>
 						    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
@@ -157,48 +161,30 @@
 				                <!--ET_END sayWords-->
 						     	</td>
 						     </tr>
+						     
 						  </table>
+						   <hr>
+						   
+						      <table align=center width='100%'>
+                                   <tr>
+                                        <td width='50%' align=center style='border-right:1px solid #999'>|Получил|*:</td><td align=center>|Съставил|*:</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
+                                    </tr>
+                                    <tr>
+                                       
+                                        <td align=center style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                          <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
+                                        
+                                    </tr>           
+                                </table> 
+                            
 		                </td>
 		                </tr>
 		                </tbody>
 		            </table>
-		            <div class="lines"></div>
-		            
-		            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
-		                <tbody>
-		                <tr>
-		                   <td class="topCell" valign="top" width="30%">
-		                        <table class='signature-table'>
-                                   <tr>
-                                        <td width="1%">|Получил|*:  </td><td></td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td><span class="sign_names">[#responsible#]</span></td>
-                                        
-                                    </tr>           
-                                </table> 
-		                  </td>
-		                    <!--ET_BEGIN additionalInfo-->
-		                    <td class="topCell" valign="top">
-	                           <div>|Бележки|* / <i>Notes</i></div>
-	                           <div>[#additionalInfo#]</div>
-		                    </td>
-		                    <!--ET_END additionalInfo-->
-		                    <td class="topCell" align="right" width="30%" style='vertical-align:top !important'>
-                                 <table width='1%' class='fright signature-table'>
-                                   <tr>
-                                        <td width="1%">|Съставил|*:  </td><td></td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td class='nowrap'><span class="sign_names">[#username#]</span></td>
-                                    </tr>
-                                 </table>
-		                    </td>
-		                  </tr>        
-		                </tbody>
-		            </table>
+		           
 		        </td>
 		    </tr>
 		    </tbody> 
