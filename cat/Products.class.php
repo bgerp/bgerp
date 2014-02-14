@@ -997,4 +997,31 @@ class cat_Products extends core_Master {
     	
     	return $volume;
     }
+    
+    
+    /**
+     * Предефиниране на метода getTitleById
+     * 
+     * @param int $id - ид на продукт
+     * @param boolean $escaped - дали да е ескейпнато
+     * @param string(2) $lang - език
+     * @return string $title - заглавието на продукта, ако има параметър за име на
+     * зададения език, връща него.
+     */
+    public static function getTitleById($id, $escaped = TRUE, $lang = 'bg')
+    {
+     	// Ако езика е различен от българския
+    	if($lang != 'bg'){
+     		
+    		// Проверяваме имали сетнат параметър "title<LG>" за името на продукта
+     		$paramSysId = "title" . strtoupper('rrrr');
+     		$title = cat_products_Params::fetchParamValue($id, $paramSysId);
+     		
+     		// ако има се връща
+     		if($title) return $title;
+     	}
+     	
+     	// Ако няма зададено заглавие за този език, връща дефолтното
+     	return parent::getTitleById($id, $escaped);
+    }
 }

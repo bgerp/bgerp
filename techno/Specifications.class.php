@@ -318,7 +318,7 @@ class techno_Specifications extends core_Manager {
      {
 	    $TechnoClass = static::getDriver($id);
      	
-     	if(!$full) {
+     	if($full !== TRUE) {
     		return $TechnoClass->getTitleById($escaped);
     	}
     	
