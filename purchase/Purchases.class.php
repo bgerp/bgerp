@@ -206,22 +206,6 @@ class purchase_Purchases extends core_Master
     }
     
     
-	/**
-     * Екшън за приключване на покупка
-     */
-    function act_Close()
-    {
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('close', $rec);
-    	expect($rec->state == 'active' && $rec->amountDeal && ($rec->amountPaid - $rec->amountDelivered) == 0);
-    	$rec->state = 'closed';
-    	$this->save($rec);
-    	
-    	return Redirect(array($this, 'single', $id), FALSE, 'Сделката е приключена');
-    }
-    
-    
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -290,16 +274,17 @@ class purchase_Purchases extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
-    		if($rec->amountPaid && $rec->amountDelivered){
-    			if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    			$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
+    		$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
+    		
+    		if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
+	    	} else {
+	    		
+	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но неможе да го използва
+	    		if(!purchase_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('purchase')){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
 	    		}
-    		}
-    	
-    		if($rec->amountDeal && $rec->amountPaid && $rec->amountDelivered && $diffAmount == 0){
-    			$data->toolbar->addBtn('Приключване', array($mvc, 'close', $rec->id), 'warning=Сигурни ли сте че искате да приключите сделката,ef_icon=img/16/closeDeal.png,title=Приключване на продажбата');
-    		}
+	    	}
     		
 	    	if (store_Receipts::haveRightFor('add') && store_Receipts::canAddToThread($data->rec->threadId)) {
 	    		$receiptUrl = array('store_Receipts', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true);

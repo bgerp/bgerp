@@ -692,13 +692,17 @@ class sales_Sales extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
+    		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
     		
-    		if($rec->amountPaid && $rec->amountDelivered){
-    			if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    			$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
-	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
+    		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
+	    	} else {
+	    		
+	    		// Ако разликата е над допустимата но потребителя има права 'sales', той вижда бутона но неможе да го използва
+	    		if(!sales_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('sales')){
+	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата,error=Нямате право да приключите продажба с разлика над допустимото");
 	    		}
-    		}
+	    	}
     		
     		// Ако протокол може да се добавя към треда и не се експедира на момента
     		if (sales_Services::haveRightFor('add') && sales_Services::canAddToThread($rec->threadId)) {

@@ -172,6 +172,20 @@ class sales_ClosedDeals extends acc_ClosedDeals
     }
     
     
+
+    /**
+     * Дали разликата на доставеното - платеното е в допустимите граници
+     */
+    public static function isSaleDiffAllowed($saleRec)
+    {
+    	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
+    	$conf = core_Packs::getConfig('sales');
+    	$res = ($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE);
+    	
+    	return $res;
+    }
+    
+    
 	/**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -182,20 +196,15 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
-    			$diff = round($originRec->amountDelivered - $originRec->amountPaid, 2);
-    			$conf = core_Packs::getConfig('sales');
     			
     			if($originRec->state != 'active') return $res = 'no_one';
     			
     			// Може да се добавя само към тред с продажба
     			if($origin->instance instanceof purchase_Purchases) return $res = 'no_one';
     			
-    			// Ако няма експедирано или платено неможе да се приключва
-    			if($originRec->amountDelivered == 0 || $originRec->amountPaid == 0) return $res = 'no_one';
-    			
     			// Ако разликата между доставеното/платеното е по голяма, се изисква
     			// потребителя да има по-големи права за да създаде документа
-    			if(!($diff >= -1 * $conf->SALE_CLOSE_TOLERANCE && $diff <= $conf->SALE_CLOSE_TOLERANCE)){
+    			if(!self::isSaleDiffAllowed($originRec)){
     				$res = 'ceo,salesMaster';
     			} else {
     				$res = 'ceo,sales';
