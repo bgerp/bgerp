@@ -601,7 +601,7 @@ en,Експедиция,Shipping
 en,Липсват потреб_199b,Missing users for choice
 en,Към документ №,To document №
 en,сигнал,signal
-en,Ресто,Change
+en,en,Ресто,Change
 en,Продадено,Sold
 en,Точка,Point
 en,Средства за пл_92d8c,Means of payment
@@ -712,13 +712,13 @@ en,Смесена,Mixed
 en,Активна,Active
 en,Пасивна,Passive
 en,Макс. ном.,Max. number
-en,Пера в номенкл_8048c,Feathers in the nomenclature
+en,Пера в номенкл_8048c,Items in the nomenclature
 en,Справки,Reports
 en,Последен запис,Last record
 en,%ДДС,%VAT
 en,Счетоводни пер_b160,Accounting periods
 en,Наистина ли же_42ad1,Do you really want to finish the period?
-en,Приключване,Closing
+en,Приключване,Complete
 en,Инвентарна книга,Inventory book
 en,ГАН,YDR
 en,В употреба от,In use from
@@ -727,7 +727,7 @@ en,Наш,Our
 en,Регистър на дъ_da20c,Fixed assets register
 en,ценоразпис,Price list
 en,Наистина ли же_2a886,Do you really want the document to be accounted?
-en,Контиране,Accounting
+en,Контиране,Posting
 en,Всички експеди_f789,All shipping orders
 en,Мярка / Опаковка,Measure/Packaging
 en,ЕАН,EAN
@@ -769,7 +769,7 @@ en,Мярка/Опак.,Measure/Pack.
 en,Продукт,Product
 en,Експедиране,Shipping
 en,Всички продажби,All sales
-en,Контиран,Accounted
+en,Контиран,Posted
 en,Последващ,Subsequent
 en,с ДДС,VAT included
 en,без,without
@@ -847,15 +847,13 @@ en,Палитри,Palettes
 en,Задания,Assignments
 en,Задания за про_80703,Assignments for production
 en,В процес на раз_26e5,Under construction
-en,Универсален пр_b8e9,Universal product
+en,Универсален пр_b8e9,General product
 en,Технолог,Technologist
 en,Мастила,Inks
 en,Покупки,Purchases
 en,Несъответсвия,Inconsistencies
 en,Рекламация,Reclamation
 en,ЛС,HR
-en,Операции-Каси,Operations-Cash
-en,Операции-Банки,Operations-Banks
 en,Колцентър,Callcenter
 en,просрочване с,overdue with
 en,Добавяне на но_ef55d,Adding a New Task
@@ -866,7 +864,7 @@ en,Трябва да сте л_645c,You must be logged in to edit this entry.
 en,Лица отговарящ_ed86,Persons meeting the filter
 en,Редактиран док_a26d,Edited document
 en,Покупка,Purchase
-en,Оферта,Offer
+en,Оферта,Quotation
 en,Фактура,Invoice
 en,Непознат форма_627b,Unknown format for duration
 en,Времена->Продъ_1a71e,Times-> Duration
@@ -1122,8 +1120,8 @@ en,Касова обмяна _25076,Cash currency exchange
 en,Банкова обмяна_8e6b,Bank currency exchange
 en,Вътрешен касов_c9c7,Internal cash transfer
 en,Вътрешен банко_0366,Internal bank transfer
-en,Разходен банко_9860,Expenditure bank document
-en,Приходен банко_ac29,Revenue bank document
+en,Разходен банко_9860,Outgoing bank transfer
+en,Приходен банко_ac29,Incoming bank transfer
 en,Разходен касов_5ac8,Debit cash order
 en,Приходен касов_9be4,Credit cash order
 en,Поддържани сис_2c07,Supported systems
@@ -1140,7 +1138,7 @@ en,Болничен лист,Hospital list
 en,Трудов договор,Labor contract
 en,Ценоразпис,Price list
 en,Отчет за бързи _7c74,Report for quick sales
-en,Оферта от дост_b4b32,Offer from a supplier
+en,Оферта от дост_b4b32,Supplier Quotation
 en,Експедиционно _da6c,Shipping order
 en,Циркулярно писмо,Circular letter
 en,Циркулярен имейл,Circular email
@@ -1244,14 +1242,14 @@ en,Списъци с конт_d23a7,Contact lists
 en,Сигнали,Signals
 en,Резолюция на с_c297a,Resolution on the signal
 en,Разходни касов_8e6a,Debit cash orders
-en,Разходни банко_a3df,Expenditure bank documents
+en,Разходни банко_a3df,Outgoing bank transfers
 en,Разходни Норми,Consumption norms
 en,Приходни касов_b832,Credit cash orders
-en,Приходни банко_d760,Revenue bank documents
+en,Приходни банко_d760,Incoming bank transfers
 en,Превантивни де_876d,Preventive action
 en,Платежни нареж_731d,Payment orders
 en,Оценка на сигнал,Rating of the signal
-en,Оферти за покупки,Offers for purchases
+en,Оферти за покупки,Quotations for purchases
 en,Отчети за бърз_50379,Reports for quick sales
 en,Нареждане разп_4678,Cash payment order
 en,Коригиращи дей_d8b4,Correcting actions
@@ -1297,7 +1295,7 @@ en,Освободено,Freed
 en,Събудено,Awaken
 en,Оттеглено,Withdrawed
 en,Скрито,Hidden
-en,Приключено,Finished
+en,Приключено,Closed
 en,Отворено,Opened
 en,Активирано,Acivated
 en,Чакащо,Waiting
@@ -1325,7 +1323,7 @@ en,Списък,List
 en,Операции,Operations
 en,Лимити,Limits
 en,Периоди,Periods
-en,Пера,Feathers
+en,Пера,Items
 en,Не е включен в _a3d49,It is not in lists
 en,Промяна,Change
 en,Дебитори,Debtors
@@ -1484,3 +1482,163 @@ en,К-во: Д / П,Qty: D / O
 en,Остатък,Balance
 en,Фактурирано,Invoiced
 en,Срок до,Date to
+en,Спиране,Stop
+en,Списък с контакти,Contact List
+en,Админ,Admin
+en,Хранилища,Repositories
+en,Последни файлове,Latest Files
+en,Име на файл,Filename
+en,Картинки в Галерията,Pictures in the Gallery
+en,Картинки,Pictures
+en,Кофи за файлове,File Buckets
+en,Допустими разширения,Allowed extensions
+en,за добавяне,for adding
+en,за сваляне,for download
+en,Файлове в хранилищата,Files in repositories
+en,Прикачени файлове в коментарите,Attachments in comments
+en,PDF-и на документи,PDFs of documents
+en,Лого на хранилката,Feeder logo
+en,Снимки,Pictures
+en,Качени от архив,Uploaded from archive
+en,Генерирани от разглеждането на файловете,Generated by the file views
+en,Прикачени файлове в постингите,Attachments in Postings
+en,Прикачени файлове в имейлите,E-mail attachments
+en,CRM Файлове,CRM files
+en,Прикачени файлове в масовите имейли,Attachments in Mass emails
+en,CSV контактни данни,CSV contact data
+en,Прикачени файлове в човешки ресурси,Attachments in HR
+en,Прикачени файлове в болнични листи,Attachments in Hospital lists
+en,Прикачени файлове в задачи,Attachments in Tasks
+en,Прикачени файлове в напомнянията,Attachments in Reminders
+en,Файлове към блог-статиите,Files to Blog articles
+en,Файлове във входящите документи,Files in incoming documents
+en,Прикачени файлове в поддръжка,Attachments in Support
+en,Прикачени файлове в социални мрежи,Attachments in Social networks
+en,Аватари на потребители,Users avatars
+en,Файлове към продукта,Files to the product
+en,Илюстрация на продукта,Product illustration
+en,Прикачени файлове в бележки,Attachments in Notes
+en,CSV за импорт,CSV for import
+en,Тестови файлове,Test files
+en,Универсални продукти,General products
+en,Чернови документи,Draft documents
+en,също добави документ,also add a document
+en,и добави други документи,and add other documents
+en,и друг документ,and other document
+en,Транспортна линия,Transport line
+en,Транспортни линии,Transport lines
+en,транспортна линия,transport line
+en,Заповед за отпуск,Leave order
+en,Командировка,Business trip
+en,Дестинация,Destination
+en,Допълнително,Additionally
+en,Превозвач,Carrier
+en,Транспортна фирма,Transport company
+en,Подотчетно лице,Accountable person
+en,седм.,week
+en,мес.,month
+en,Превозни средства,Vehicles
+en,Родители,Parents
+en,Майка,Mother
+en,Баща,Father
+en,Населено място: град или село и община,Location: town or village and municipality
+en,Усмивка,Smile
+en,Усмивки,Smiles
+en,Широка усмивка,Big smile
+en,Супер!,Super!
+en,Бира,Beer
+en,Въпрос?,Question?
+en,Сърце,Heart
+en,Мисля,Think
+en,Удебелен текст,Bold
+en,Наклонен текст,Italic
+en,Подчертан текст,Underline
+en,Цвят на буквите,Letters color
+en,Сини букви,Blue letters
+en,Червени букви,Red letters
+en,Зелени букви,Green letters
+en,Сиви букви,Gray letters
+en,Цвят на фона,Background color
+en,Жълт фон,Yellow background
+en,Зелен фон,Green background
+en,Червен фон,Red background
+en,Черен фон,Black background
+en,Заглавие 1,Title 1
+en,Заглавие 2,Title 2
+en,Заглавие 3,Title 3
+en,Заглавие 4,Title 4
+en,Заглавие 5,Title 5
+en,Заглавие 6,Title 6
+en,Блок,Block
+en,Цитат,Quote
+en,Успех,Success
+en,Съвет,Advice
+en,Неномериран списък,Unnumbered list
+en,Номериран списък,Numbered list
+en,Добавяне на файлове/документи,Add files/documents
+en,Сложи,Put
+en,Черта,Line
+en,Добавяне на картинка,Add a picture
+en,Добавяне на документ/и от системата,Add document/s from the system
+en,Просрочени,Overdue
+en,Продажби « Търговия,Sales « Commerce
+en,Протокол,Protocol
+en,Протоколи,Protocols
+en,Декларации,Declarations
+en,Приключени сделки,Completed deals
+en,Протоколи за извършени услуги,Protocols for services
+en,Търговски маршрути,Trade routes
+en,Посещения,Visits
+en,Декларации за съответствие,Declaration of conformity
+en,Към документ,For document
+en,Твърдения,Assertions
+en,Приключване на продажба,Sale Complete
+en,Наш персонал,Our staff
+en,Приемателни протоколи за услуги,Protocols for receiving services
+en,Приключване на покупка,Purchase Complete
+en,Продаваеми,Marketable
+en,Купуваеми,Buyable
+en,Складируеми,Storable
+en,Вложими,Convertible
+en,ДМА,TFA
+en,Дълготрайни материални активи,Tangible fixed assets
+en,Производими,Producible
+en,Настройки « Счетоводство,Settings « Accounting
+en,Пропуснати,Missed
+en,Титла,Title
+en,ДА « Счетоводство,LTA « Accounting
+en,Книги « Счетоводство,Books « Accounting
+en,Бъдещ,Future
+en,Чакащ,Pending
+en,Приключен,Closed
+en,Професия,Profession
+en,Липсва избор за,Missing choice for
+en,Таблица,Table
+en,Графика,Chart
+en,Професии,Professions
+en,Бюджетиране « Финанси,Budget « Finances
+en,Валути « Финанси,Currencies « Finances
+en,ТРЗ « Персонал,Payroll « Staff
+en,Обяснение,Explanation
+en,Плащания,Payments
+en,Падеж,Maturity
+en,Транспортни средства,Means of transport
+en,Рег. номер,Reg. number
+en,Блог статии,Blog articles
+en,Категория,Category
+en,Категории,Categories
+en,Препратки,References
+en,Форуми,Forums
+en,Форумни дъски,Forum boards
+en,Темите,The subjects
+en,кога,when
+en,къде,where
+en,кой,who
+en,Дъски,Boards
+en,Постинги,Postings
+en,История на хитовете,The hits history
+en,Рефериране,Reference
+en,Ресурси,Resources
+en,Ресурс,Resource
+en,SNM « Сайт,SNM « Site
+en,Няма продаваеми Спецификации,No marketable Specifications
