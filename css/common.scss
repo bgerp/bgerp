@@ -2210,11 +2210,10 @@ div.richtext ol ol {
 
 .richtext-question a, .richtext-info a, .richtext-error a, .richtext-success a,
 .richtext-warning a, .richtext-tip a, .richtext-text a {
-	text-decoration: underline;
-	font-weight: bold;
 	color: inherit;
+	text-decoration: underline;
 	&:hover{
-		text-decoration: none;
+		  text-decoration: none;
 	}
 }
 
