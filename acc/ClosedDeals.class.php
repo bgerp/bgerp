@@ -203,8 +203,8 @@ abstract class acc_ClosedDeals extends core_Master
     public static function getClosedDealAmount($threadId)
     {
     	expect($info = static::getDealInfo($threadId));
-        $paidAmount = $info->paid->amount;
-        $shippedAmount = $info->shipped->amount;
+        $paidAmount = currency_Currencies::round($info->paid->amount, 2);
+        $shippedAmount = currency_Currencies::round($info->shipped->amount, 2);
 		
         // Разликата между платеното и доставеното
         return $paidAmount - $shippedAmount;
@@ -345,7 +345,7 @@ abstract class acc_ClosedDeals extends core_Master
      * @param mixed $Class - покупка или продажба
      * @param stdClass $docRec - запис на покупка или продажба
      */
-    public function createAndClose($Class, $docRec)
+    public function create($Class, $docRec)
     {
     	$Class = cls::get($Class);
     	
@@ -364,16 +364,6 @@ abstract class acc_ClosedDeals extends core_Master
 	    $newRec->classId    = $this->getClassId();
 	    	
 	    // Създаване на документа
-	    $clId = static::save($newRec);
-	    	
-	    // Осчетоводяване на приключването
-	    acc_Journal::saveTransaction($this->getClassId(), $clId);
-    	
-    	// Продажбата/покупката се отбелязват като птиключени и платени
-    	$docRec->state = 'closed';
-    	$docRec->paymentState = 'paid';
-    	
-    	// Запис на документа
-    	$Class->save($docRec);
+	    return static::save($newRec);
     }
 }

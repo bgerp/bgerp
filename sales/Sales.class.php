@@ -651,21 +651,21 @@ class sales_Sales extends core_Master
 					case "all":
 						break;
 					case 'paid':
-						$data->query->orWhere("#amountPaid = #amountDeal");
+						$data->query->where("#amountPaid = #amountDeal");
 						break;
 					case 'overdue':
-						$data->query->orWhere("#paymentState = 'overdue'");
+						$data->query->where("#paymentState = 'overdue'");
 						break;
 					case 'delivered':
-						$data->query->orWhere("#amountDelivered = #amountDeal");
+						$data->query->where("#amountDelivered = #amountDeal");
 						break;
 					case 'undelivered':
 						$data->query->orWhere("#amountDelivered != #amountDeal");
 						break;
 					case 'unpaid':
-						$data->query->orWhere("#amountPaid != #amountDelivered");
-						$data->query->orWhere("#amountPaid IS NULL");
-						$data->query->Where("#state = 'active'");
+						$data->query->where("#amountPaid != #amountDelivered");
+						$data->query->where("#amountPaid IS NULL");
+						$data->query->where("#state = 'active'");
 						break;
 				}
 			}
@@ -1142,38 +1142,11 @@ class sales_Sales extends core_Master
     {
     	$conf = core_Packs::getConfig('sales');
     	$tolerance = $conf->SALE_CLOSE_TOLERANCE;
-    	
-    	// Текущата дата
-    	$now = dt::mysql2timestamp(dt::now());
-    	$oldBefore = dt::timestamp2mysql($now - $conf->SALE_CLOSE_OLDER_THAN);
-    	
-    	$query = $this->getQuery();
-    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	
-    	// Закръглената оставаща сума за плащане
-    	$query->XPR('toPay', 'double', 'ROUND(#amountDelivered - #amountPaid, 2)');
-    	
-    	// Само активни продажби
-    	$query->where("#state = 'active'");
-    	$query->where("#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL");
-    	
-    	// На които треда им не е променян от определено време
-    	$query->where("#threadModifiedOn <= '{$oldBefore}'");
-    	
-    	// Доставеното - платеното трябва да е в допустимия толеранс
-    	$query->where("#toPay BETWEEN -{$tolerance} AND {$tolerance}");
-    	$query->orderBy('id', 'DESC');
-    	
+    	$olderThan = $conf->SALE_CLOSE_OLDER_THAN;
     	$ClosedDeals = cls::get('sales_ClosedDeals');
     	
-    	// Всяка намерена продажба, се приключва като платена
-    	while($rec = $query->fetch()){
-    		try{
-    			$ClosedDeals->createAndClose($this, $rec);
-    		} catch(Exception $e){
-    			// Ако има проблем при обновяването
-    		}
-    	}
+    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
+    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals);
     }
     
     
@@ -1291,62 +1264,15 @@ class sales_Sales extends core_Master
     
     
 	/**
-     * Проверява дали фактурите са просрочени или платени
+     * Проверява дали продажбата е просрочена или платени
      */
     function cron_CheckSalesPayments()
     {
     	$conf = core_Packs::getConfig('sales');
-    	$now = dt::now();
+    	$overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
     	
-    	// Проверяват се всички активирани и продажби с чакащо плащане
-    	$query = $this->getQuery();
-    	$query->where("#paymentState = 'pending'");
-    	$query->where("#state = 'active'");
-    	$query->where("ADDDATE(#modifiedOn, INTERVAL {$conf->SALE_OVERDUE_CHECK_DELAY} SECOND) <= '{$now}'");
-    	
-    	while($rec = $query->fetch()){
-    		if($rec->state == 'closed'){
-    			
-    			// Ако състоянието е затворено, то приема че продажбата е платена
-    			$rec->paymentState = 'paid';
-    			$this->save($rec);
-    		} else {
-    			try{
-    				// Намира се метода на плащане от интерфейса
-    				$dealInfo = $this->getAggregateDealInfo($rec->id);
-    			} catch(Exception $e){
-    				
-    				// Ако има проблем при извличането се продължава
-    				continue;
-    			}
-    			
-    			$mId = ($dealInfo->agreed->payment->method) ? $dealInfo->agreed->payment->method : $dealInfo->invoiced->payment->method;
-    			if($mId){
-    				// Намира се датата в реда фактура/експедиция/продажба
-    				foreach (array('invoiced', 'shipped', 'agreed') as $asp){
-    					if($date = $dealInfo->$asp->valior){
-    						break;
-    					}
-    				}
-    				
-    				// Извлича се платежния план
-    				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
-    				
-    				// Проверка дали продажбата е пресрочена
-    				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
-    				
-    					// Ако да, то продажбата се отбелязва като пресрочена
-    					$rec->paymentState = 'overdue';
-    					
-    					try{
-    						$this->save($rec);
-    					}catch(Exception $e){
-    						// Ако има проблем при ъпдейтването
-    					}
-    				}
-    			}
-    		}
-    	}
+    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
+    	$CronHelper->checkPayments($overdueDelay);
     }
     
     

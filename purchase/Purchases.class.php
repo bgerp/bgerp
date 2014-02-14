@@ -83,7 +83,7 @@ class purchase_Purchases extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid,dealerId,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid,dealerId,paymentState,createdOn, createdBy';
 
 
     /**
@@ -262,6 +262,8 @@ class purchase_Purchases extends core_Master
 			    	$form->setWarning('currencyRate', $msg);
 				}
 			}
+			
+			$form->rec->paymentState = 'pending';
     	}
     }
     
@@ -460,6 +462,10 @@ class purchase_Purchases extends core_Master
         	$row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
         
+    	if($rec->paymentState == 'overdue'){
+        	$row->amountDelivered = "<span style='color:red'>{$row->amountDelivered}</span>";
+        }
+        
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    }
@@ -494,10 +500,46 @@ class purchase_Purchases extends core_Master
 			}
 			$row->$fld = ' ';
 	    }
-	    
     }
 
 
+    /**
+     * Филтър на продажбите
+     */
+    static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    {
+        $data->listFilter->FNC('type', 'enum(all=Всички,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=10em,silent,allowEmpty');
+       
+		$data->listFilter->showFields .= ',search,type';
+		$data->listFilter->input();
+		
+		if($filter = $data->listFilter->rec) {
+			if($filter->type) {
+				switch($filter->type){
+					case "all":
+						break;
+					case 'paid':
+						$data->query->where("#amountPaid = #amountDeal");
+						break;
+					case 'overdue':
+						$data->query->where("#paymentState = 'overdue'");
+						break;
+					case 'delivered':
+						$data->query->where("#amountDelivered = #amountDeal");
+						break;
+					case 'undelivered':
+						$data->query->where("#amountDelivered != #amountDeal");
+						break;
+					case 'unpaid':
+						$data->query->where("#amountPaid != #amountDelivered");
+						$data->query->where("#amountPaid IS NULL");
+						break;
+				}
+			}
+		}
+    }
+    
+    
 	/**
      * Подготвя данните на хедъра на документа
      */
@@ -884,7 +926,78 @@ class purchase_Purchases extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	$mvc->setCron($res);
     	$mvc->setTemplates($res);
+    }
+    
+    
+    /**
+     * Нагласяне на крон да приключва продажби и да проверява дали са просрочени
+     */
+    private function setCron(&$res)
+    {
+    	// Крон метод за затваряне на остарели продажби
+    	$rec = new stdClass();
+        $rec->systemId = "Close purchases";
+        $rec->description = "Затваря приключените покупки";
+        $rec->controller = "purchase_Purchases";
+        $rec->action = "CloseOldPurchases";
+        $rec->period = 1440;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        
+        // Проверка по крон дали продажбата е пресрочена
+        $rec2 = new stdClass();
+        $rec2->systemId = "IsPurchaseOverdue";
+        $rec2->description = "Проверява дали покупката е пресрочена";
+        $rec2->controller = "purchase_Purchases";
+        $rec2->action = "CheckPurchasePayments";
+        $rec2->period = 60;
+        $rec2->offset = 0;
+        $rec2->delay = 0;
+        $rec2->timeLimit = 100;
+        
+        $Cron = cls::get('core_Cron');
+    	if($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да приключва стари покупки.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да приключва стари покупки.</li>";
+        }
+        
+    	if($Cron->addOnce($rec2)) {
+            $res .= "<li><font color='green'>Задаване на крон да проверява дали покупката е пресрочена.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали покупката е пресрочена.</li>";
+        }
+    }
+    
+    
+    /**
+     * Проверява дали покупки е просрочена или платени
+     */
+    function cron_CheckPurchasePayments()
+    {
+    	$conf = core_Packs::getConfig('purchase');
+    	$overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
+    	
+    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
+    	$CronHelper->checkPayments($overdueDelay);
+    }
+    
+    
+    /**
+     * Приключва всички приключени покупки
+     */
+    function cron_CloseOldPurchases()
+    {
+    	$conf = core_Packs::getConfig('purchase');
+    	$tolerance = $conf->PURCHASE_CLOSE_TOLERANCE;
+    	$olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
+    	$ClosedDeals = cls::get('purchase_ClosedDeals');
+    	
+    	$CronHelper = cls::get('acc_CronDealsHelper', array('className' => $this->className));
+    	$CronHelper->closeOldDeals($olderThan, $tolerance, $ClosedDeals);
     }
     
     
