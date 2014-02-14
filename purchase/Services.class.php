@@ -37,7 +37,7 @@ class purchase_Services extends core_Master
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_TplManager, doc_plg_HidePrices,
                     doc_plg_BusinessDoc2, plg_LastUsedKeys, plg_Search';
 
     
@@ -692,5 +692,36 @@ class purchase_Services extends core_Master
 	        	$res = 'no_one';
 	        }
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Приемателен протокол за услуги', 
+    					  'content' => 'purchase/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Приемателен протокол за услуги с цени', 
+    					  'content' => 'purchase/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'purchase_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за приемателен протокол за услуги, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }

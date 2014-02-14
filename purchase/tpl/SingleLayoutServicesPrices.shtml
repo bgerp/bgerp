@@ -21,7 +21,7 @@
                 <tr>
                     <td class="cell custom-header-bg" width="35%"><b>|Получател|*</b></td>
                     <td class="cell" align="center" width="30%" rowspan='2'>
-                        <div class="document-title">|ПРОТОКОЛ|*<br /><span>|ЗА ИЗВЪРШЕНИ УСЛУГИ|*</span></div>
+                        <div class="document-title">|ПРИЕМАТЕЛЕН|*<br /><span>|ПРОТОКОЛ ЗА УСЛУГИ|*</span></div>
                         
                         <div style="padding-top:5px;">
                         	№ <span class="bigData">[#id#]</span> / 
@@ -57,35 +57,95 @@
             </table>
 			<div class="lines"></div>
 			<div class="details">
-            		[#sales_ServicesDetails#]
+            	[#purchase_ServicesDetails#]
            	</div>
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                
-                <!--ET_BEGIN LEFT_COLUMN-->
-                [#LEFT_COLUMN#]
-                    <td class="topCell first" valign="top">
+                    <!--ET_BEGIN deliveryInfo-->
+                    [#deliveryInfo#]
+                    <td class="topCell first" valign="top" width='50%'>
+                        <table class='shipment-table'>
                         <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
+                            <tr>
+                                <td>|Срок до|*:</td>
+                                <td><b>[#deliveryTime#]</b></td>
+                            </tr>
                         <!--ET_END deliveryTime-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	|До|*: <b>[#locationId#]</b>
-                        </div>
+                      
+                        <!--ET_BEGIN locationId-->
+                            <tr>
+                                <td>|До|*:</td>
+                                <td><b>[#locationId#]</b></td>
+                            </tr>
                         <!--ET_END locationId-->
-        				
-                        <!--ET_BEGIN note-->
-	                        <hr />
+                        <!--ET_BEGIN currencyId-->
+                            <tr>
+                                <td>|Валута|*: </td>
+                                <td><span class='cCode'>[#currencyId#]</span></td>
+                            </tr>
+                        <!--ET_END currencyId--> 
+                        
+                        
+                        </table>
+                       <!--ET_BEGIN note-->      
+	                        <hr>
 	                        [#note#]
                         <!--ET_END note-->     
                     </td>
-       			<!--ET_END LEFT_COLUMN-->
-       			
-                    <td class="topCell" align="right" valign="top" width=50%>
+                     <!--ET_END deliveryInfo-->
+                    
+                    <td class="topCell" align="right" valign="top">
+                        <table border='0'cellpadding='3px' cellspacing='0px' style='margin-bottom:20px' id='business-doc-summary-table' width='100%'>
+					     <tr class='nowrap'>
+					      <td align='right'>|Стойност|* :</td>
+					      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
+					      <td align='right' width='1%'> <b>[#value#]</b></td>
+					     </tr>
+					     <!--ET_BEGIN discount-->
+					     <tr class='nowrap'>
+					     	<td align='right'>|Отстъпка|* :</td>
+					     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+					     	<td align='right'><b>[#discount#]</b></td>
+					     </tr>
+					     <!--ET_END discount-->
+					     <!--ET_BEGIN neto-->
+					     <tr class='nowrap'>
+					     	<td align='right'>|Нето|* :</td>
+					     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+					     	<td align='right'><b>[#neto#]</b></td>
+					     </tr>
+					     <!--ET_END neto-->
+					     
+					     <!--ET_BEGIN baseAmount-->
+					     <tr class='nowrap'>
+					     	<td align='right'>|Данъчна основа|* :</td>
+					     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+					     	<td align='right'><b>[#baseAmount#]</b></td>
+					     </tr>
+					     <!--ET_END baseAmount-->
+					      
+					     <tr>
+					     	<td colspan='3' style='padding:0px'><hr /></td>
+					     </tr>
+					     <!--ET_BEGIN vatAmount-->
+					     <tr class='nowrap'>
+					    	<td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
+					    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+					    	<td align='right'><b>[#vatAmount#]</b></td>
+					     </tr>
+					     <!--ET_END vatAmount-->
+					     <tr class='nowrap'>
+					    	<td align='right'>|Общо|* :</td>
+					    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+					    	<td align='right'><b>[#total#]</b></td>
+					     </tr>
+					     <tr>
+					      <td colspan = '3' ><hr>|Словом|*: [#sayWords#]</td>
+					     </tr>
+				    </table>
+				   
+				    <hr>
                            
                               <table align=center width='100%'>
                                    <tr>
@@ -102,8 +162,8 @@
                                     </tr>           
                                 </table> 
                     </td>
-                </tr>  
                 
+                </tr>       
                 </tbody>
             </table>
             </div>

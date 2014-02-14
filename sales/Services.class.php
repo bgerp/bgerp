@@ -37,7 +37,7 @@ class sales_Services extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_TplManager, doc_plg_HidePrices,
                     doc_plg_BusinessDoc2, plg_LastUsedKeys';
 
     
@@ -578,6 +578,37 @@ class sales_Services extends core_Master
             $rec = new core_ObjectReference($this, $rec);
             $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Протокол за извършени услуги', 
+    					  'content' => 'sales/tpl/SingleLayoutServices.shtml', 'lang' => 'bg', 
+    					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,weight,volume'));
+    	$tplArr[] = array('name' => 'Протокол за извършени услуги с цени', 
+    					  'content' => 'sales/tpl/SingleLayoutServicesPrices.shtml', 'lang' => 'bg',
+    					  'toggleFields' => array('masterFld' => NULL, 'sales_ServicesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за протоколи за извършени услуги, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
     
     

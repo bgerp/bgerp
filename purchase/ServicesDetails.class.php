@@ -81,6 +81,12 @@ class purchase_ServicesDetails extends core_Detail
     
     
     /**
+     * Полета за скриване/показване от шаблоните
+     */
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума,weight=Обем,volume=Тегло,info=Инфо';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
