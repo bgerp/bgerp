@@ -135,6 +135,12 @@ class crm_Persons extends core_Master
     public $balanceRefGroupBy = 'crm_ContragentAccRegIntf';
     
     
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canReports = 'ceo,sales,purchase,acc';
+    
+    
 	/**
 	 * Кой може да го разглежда?
 	 */

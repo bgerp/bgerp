@@ -101,6 +101,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canReports = 'ceo,sales,purchase,acc';
+    
+    
+    /**
      * Кой  може да пише?
      */
     var $canWrite = 'powerUser';

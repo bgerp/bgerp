@@ -69,6 +69,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canReports = 'ceo,sales,purchase,store,acc';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Артикул";

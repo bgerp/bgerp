@@ -135,6 +135,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canReports = 'ceo,bank,acc';
+    
+    
+    /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '503';

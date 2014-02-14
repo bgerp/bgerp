@@ -44,8 +44,11 @@ class acc_ReportDetails extends core_Manager
      */
     public function prepareAccReports(&$data)
     {
+    	// Роли по подразбиране
+    	setIfNot($data->masterMvc->canReports, 'ceo,reports');
+    	
     	// Ако потребителя има достъп до репортите
-    	if(haveRole('ceo,reports')){
+    	if(haveRole($data->masterMvc->canReports)){
     		
     		// Подготовка на данните
     		
