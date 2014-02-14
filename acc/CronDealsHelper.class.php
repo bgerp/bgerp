@@ -37,7 +37,7 @@ class acc_CronDealsHelper
     public function checkPayments($overdueDelay)
     {
     	$Class = cls::get($this->className);
-    	$overdueDelay = 0;
+    	
     	$now = dt::now();
     	expect(cls::haveInterface('bgerp_DealAggregatorIntf', $Class));
     	
