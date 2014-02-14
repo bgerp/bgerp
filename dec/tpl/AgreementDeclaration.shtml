@@ -1,6 +1,6 @@
 <div class='dec-document'>
 
-<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b> </div><!--ET_END manager--> ,
+<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b>, </div><!--ET_END manager-->
 <div>представляващ производителя/доставчика:
 [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
@@ -33,10 +33,11 @@
 <!--ET_END statements-->
 
 <!--ET_BEGIN note-->
-	
-	<div>[#note#]</div>
+	<div>
+		[#note#]
+	</div>
 <!--ET_END note-->
-
+<br>
 <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
 
  <br>
