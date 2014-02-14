@@ -88,7 +88,7 @@
                         
                         
                         </table>
-                        
+                       <!--ET_BEGIN note-->      
 	                        <hr>
 	                        [#note#]
                         <!--ET_END note-->     
@@ -145,7 +145,7 @@
 					     </tr>
 				    </table>
 				   
-				   <hr>
+				    <hr>
                            
                               <table align=center width='100%'>
                                    <tr>
