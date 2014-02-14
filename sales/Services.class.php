@@ -334,9 +334,9 @@ class sales_Services extends core_Master
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
     	
-    	if($data->rec->state == 'active' && acc_Invoices::haveRightFor('add') && acc_Invoices::canAddToThread($rec->threadId)){
+    	if($data->rec->state == 'active' && sales_Invoices::haveRightFor('add') && sales_Invoices::canAddToThread($rec->threadId)){
     		$originId = doc_Threads::getFirstContainerId($rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('acc_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
 	}
     
