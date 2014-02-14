@@ -28,6 +28,18 @@ class acc_ReportDetails extends core_Manager
 	
 	
 	/**
+	 * Кой има достъп до списъчния изглед
+	 */
+	public $canList = 'no_one';
+	
+	
+	/**
+	 * Кой може да пише
+	 */
+	public $canWrite = 'no_one';
+	
+	
+	/**
      * Подготовка на данните за справка
      */
     public function prepareAccReports(&$data)
