@@ -1014,7 +1014,7 @@ class cat_Products extends core_Master {
     	if($lang != 'bg'){
      		
     		// Проверяваме имали сетнат параметър "title<LG>" за името на продукта
-     		$paramSysId = "title" . strtoupper('rrrr');
+     		$paramSysId = "title" . strtoupper($lang);
      		$title = cat_products_Params::fetchParamValue($id, $paramSysId);
      		
      		// ако има се връща
