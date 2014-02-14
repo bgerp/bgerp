@@ -141,7 +141,15 @@
 		                </tbody>
 		            </table>
 		            <ol>
-						<li>|Всички цени са|* <span style = 'text-transform:lowercase'>[#chargeVat#]</span> |ДДС|*</li>
+						<!--ET_BEGIN withVat-->
+                        <li>|Цените са с включен ДДС|*[#withVat#]</li>
+                        <!--ET_END withVat-->
+                        <!--ET_BEGIN sepVat-->
+                        <li>|Цени са с отделно ДДС|*[#sepVat#]</li>
+                        <!--ET_END sepVat-->
+                        <!--ET_BEGIN noVat-->
+                        <li>|Цените са без ДДС|*[#noVat#]</li>
+                        <!--ET_END noVat-->
 						<!--ET_BEGIN others-->
 							[#others#]
 						<!--ET_END others-->
