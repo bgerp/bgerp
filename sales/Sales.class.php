@@ -211,7 +211,7 @@ class sales_Sales extends core_Master
         );
         
         $this->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
-    	$this->FLD('paymentState', 'enum(pending=Чакащo,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
+    	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     }
     
     
