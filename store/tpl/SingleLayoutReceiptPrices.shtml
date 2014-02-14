@@ -66,40 +66,38 @@
                        <table class='shipment-table' >
 	                    <!--ET_BEGIN deliveryTime-->
 	                        <tr>
-	                            <td>|Срок до|*:</td>
-	                            <td><b>[#deliveryTime#]</b></td>
+	                            <td class='quiet' align="right">|Срок до|*:</td>
+	                            <td>[#deliveryTime#]</td>
 	                        </tr>
 	                    <!--ET_END deliveryTime-->
 	                    <!--ET_BEGIN storeId-->
 	                        <tr>
-	                            <td>|От склад|*:</td>
-	                            <td><b>[#storeId#]</b></td>
+	                            <td class='quiet' align="right">|От склад|*:</td>
+	                            <td>[#storeId#]</td>
 	                        </tr>
 	                    <!--ET_END storeId-->
 	                    <!--ET_BEGIN locationId-->
 	                        <tr>
-	                            <td>|До|*:</td>
-	                            <td><b>[#locationId#]</b></td>
+	                            <td class='quiet' align="right">|До|*:</td>
+	                            <td>[#locationId#]</td>
 	                        </tr>
 	                    <!--ET_END locationId-->
 	                    <!--ET_BEGIN lineId-->
 	                        <tr>
-	                            <td>|Транспорт|*: </td>
-	                            <td><b>[#lineId#]</b></td>
+	                            <td class='quiet' align="right">|Транспорт|*: </td>
+	                            <td>[#lineId#]</td>
 	                        </tr>
 	                    <!--ET_END lineId--> 
 	                        <tr>
 	                           <td colspan=2><hr> </td>
 	                        </tr>
-	                     </table>
-	                     <table>
 		                     <tr>
-	                              <td class='nowrap' width=1%>|Общо тегло|*:</td>
-	                              <td><b>[#weight#]</b></td>
+	                              <td class='quiet' align="right">|Общо тегло|*:</td>
+	                              <td>[#weight#]</td>
 	                         </tr>
 	                         <tr>
-	                              <td>|Общ обем|*:</td>
-	                              <td><b>[#volume#]</b></td>
+	                              <td class='quiet' align="right">|Общ обем|*:</td>
+	                              <td>[#volume#]</td>
 	                         </tr>      
 	                    </table>
         				
@@ -157,9 +155,33 @@
 				     <tr>
 				      <td colspan = '3' style='text-align:right'><hr>|Словом|*: [#sayWords#]</td>
 				     </tr>
-				</table>
+				</table>    
                     </td>
-                </tr>           
+                </tr>         
+                <tr>
+                     <td>
+                        <table width='1%' class='signature-table'>
+                            <tr>
+                                <td width="1%">|Получил|*:  </td><td></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                    
+                    <td>
+                         <table style='width:1%' class='fright signature-table'>
+                            <tr>
+                                <td width="1%">|Съставил|*:  </td><td></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td class='nowrap'><span class="sign_names">[#username#]</span></td>
+                            </tr>
+                        </table>
+                    </td>  
                 </tbody>
             </table>
             </div>

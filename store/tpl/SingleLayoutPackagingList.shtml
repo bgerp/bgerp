@@ -67,26 +67,26 @@
                     <table class='shipment-table' >
                     <!--ET_BEGIN deliveryTime-->
                         <tr>
-                            <td width='1%' class='nowrap'>Delivery time:</td>
-                            <td><b>[#deliveryTime#]</b></td>
+                            <td width='1%' class='nowrap quiet' align=right>Delivery time:</td>
+                            <td>[#deliveryTime#]</td>
                         </tr>
                     <!--ET_END deliveryTime-->
                     <!--ET_BEGIN storeId-->
                         <tr>
-                            <td class='nowrap'>From store:</td>
-                            <td><b>[#storeId#]</b></td>
+                            <td class='nowrap quiet' align=right>From store:</td>
+                            <td>[#storeId#]</td>
                         </tr>
                     <!--ET_END storeId-->
                     <!--ET_BEGIN locationId-->
                         <tr>
-                            <td class='nowrap'>Delivery place:</td>
-                            <td><b>[#locationId#]</b></td>
+                            <td class='nowrap quiet' align=right>Delivery place:</td>
+                            <td>[#locationId#]</td>
                         </tr>
                     <!--ET_END locationId-->
                     <!--ET_BEGIN lineId-->
                         <tr>
-                            <td class='nowrap'>Transport: </td>
-                            <td><b>[#lineId#]</b></td>
+                            <td class='nowrap quiet' align=right>Transport: </td>
+                            <td>[#lineId#]</td>
                         </tr>
                     <!--ET_END lineId--> 
                     <!--ET_BEGIN note-->
@@ -100,7 +100,7 @@
                     </table>
                     </td>
                     <td>
-                        <div>Total weight:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;<b>[#volume#]</b> &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;<b>[#colletsCount#]</b></div>
+                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
 	                
 	                    <hr>
                            

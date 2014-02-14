@@ -66,41 +66,39 @@
                         <table class='shipment-table' >
 	                        <!--ET_BEGIN deliveryTime-->
 	                        <tr>
-	                            <td class='nowrap'>|Срок до|*:</td>
-	                            <td><b>[#deliveryTime#]</b></td>
+	                            <td class='nowrap quiet' align=right>|Срок до|*:</td>
+	                            <td>[#deliveryTime#]</td>
 	                        </tr>
 	                        <!--ET_END deliveryTime-->
 	                        <!--ET_BEGIN storeId-->
 	                        <tr>
-	                            <td class='nowrap'>|От склад|*:</td>
-	                            <td><b>[#storeId#]</b></td>
+	                            <td class='nowrap quiet' align=right>|От склад|*:</td>
+	                            <td>[#storeId#]</td>
 	                        </tr>
 	                        <!--ET_END storeId-->
 	                        <!--ET_BEGIN locationId-->
 	                        <tr>
-	                            <td>|До|*:</td>
-	                            <td><b>[#locationId#]</b></td>
+	                            <td class='nowrap quiet' align=right>|До|*:</td>
+	                            <td>[#locationId#]</td>
 	                        </tr>
 	                        <!--ET_END locationId-->
 	                        <!--ET_BEGIN lineId-->
 	                        <tr>
-	                            <td>|Транспорт|*: </td>
-	                            <td><b>[#lineId#]</b></td>
+	                            <td class='nowrap quiet' align=right>|Транспорт|*: </td>
+	                            <td>[#lineId#]</td>
 	                        </tr>
 	                        <!--ET_END lineId--> 
 	                        <tr>
 	                            <td colspan=2> <hr /></td>
 	                        </tr>
-                        </table>
-                        <table class='shipment-table'>
-			                  <tr>
+                            <tr>
 			                  
-			                      <td class='nowrap' width=1%>|Общо тегло|*:</td>
-			                      <td><b>[#weight#]</b></td>
+			                      <td class='nowrap quiet' align=right>|Общо тегло|*:</td>
+			                      <td>[#weight#]</td>
 			                 </tr>
 			                 <tr>
-			                      <td class='nowrap'>|Общ обем|*:</td>
-			                      <td><b>[#volume#]</b></td>
+			                      <td class='nowrap quiet' align=right>|Общ обем|*:</td>
+			                      <td>[#volume#]</td>
 			                 </tr>      
                         </table>       
                         <!--ET_BEGIN note-->
