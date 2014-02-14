@@ -673,10 +673,17 @@ class callcenter_Talks extends core_Master
                 }
             }
             
+            // Ако не е подаден статус на обаждането
+            if (!($dialStatus = Request::get('dialstatus'))) {
+                
+                // Добавяме грешката
+                $errArr[] = 'Не е подаден статус на обаждането';
+            }
+            
             // Добавяме в rec
             $rec->answerTime = $answerTime;
             $rec->endTime = $endTime;
-            $rec->dialStatus = Request::get('dialstatus');
+            $rec->dialStatus = $dialStatus;
             
             // Обновяваме записа
             $savedId = static::save($rec, NULL, 'UPDATE');
@@ -1346,14 +1353,21 @@ class callcenter_Talks extends core_Master
         
         // Вземаме всички записи, които нямат dialStatus и са по стари от посоченото време
         $query = static::getQuery();
-        $query->where("#dialStatus IS NULL");
+        $query->where("#dialStatus IS NULL OR #dialStatus = ''");
         $query->where("#startTime < '$before'");
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {
             
-            // Променяне статуса
-            $rec->dialStatus = 'NO ANSWER';
+            // Ако е отговрено на обаждането
+            if ($rec->answerTime && $rec->endTime) {
+                
+                // Променяме статуса на отговорено
+                $rec->dialStatus = 'ANSWERED';
+            } else {
+                // Променяме статуса на пропуснат
+                $rec->dialStatus = 'NO ANSWER';
+            }
             
             // Записваме
             static::save($rec);
