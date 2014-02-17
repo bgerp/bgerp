@@ -54,23 +54,42 @@
 	                <tr>
 	                 
 	                    <td class="topCell" valign="top" width='33%'>
-	                        <!--ET_BEGIN paymentMethodId-->
-	                            <div>Payment: <b>[#paymentMethodId#]</b></div>
-	                        <!--ET_END paymentMethodId-->
-	                        
-	                        <!--ET_BEGIN currencyId-->
-	                            <div>Currency:  <b>[#currencyId#]</b> [#currencyRateText#]</div>
-	                        <!--ET_END currencyId-->
-	                        
-	                        <!--ET_BEGIN bankAccountId-->
-	                            <hr />
-	                            <div>Bank account :  <b>[#bankAccountId#]</b></div>
-	                        <!--ET_END bankAccountId-->
-	                        
-	                        <!--ET_BEGIN caseId-->
-	                        <hr/>
-	                        <div>Case: <b>[#caseId#]</b></div>
-	                        <!--ET_END caseId-->
+	                         <table width=100%>
+                               <!--ET_BEGIN paymentMethodId-->
+                               <tr>
+                                    <td class='quiet nowrap' align="right" width=1%>Payment: </td>
+                                    <td>[#paymentMethodId#]</td>
+                                </tr>
+                                <!--ET_END paymentMethodId-->
+                                
+                                <!--ET_BEGIN currencyId-->
+                                <tr>
+                                    <td class='quiet nowrap' align="right">Currency: </td>
+                                    <td> [#currencyId#] [#currencyRateText#]</td>
+                                </tr>
+                                <!--ET_END currencyId-->
+                                
+                                <!--ET_BEGIN bankAccountId-->
+                                <tr>
+                                   <td colspan=2><hr></td>
+                                </tr>
+                                <tr>
+                                    <td class='quiet nowrap' align="right">Bank account: </td>
+                                    <td>[#bankAccountId#]</td>
+                                </tr> 
+                                <!--ET_END bankAccountId-->
+                                
+                                <!--ET_BEGIN caseId-->
+                                <tr>
+                                   <td colspan=2><hr></td>
+                                </tr>
+                                <tr>
+                                    <td class='quiet nowrap' align="right">Case: </td>
+                                    <td>[#caseId#]</td>
+                                </tr> 
+                                <!--ET_END caseId-->
+                            </table>
+                            
 	                    </td>
 	                    <!--ET_BEGIN conditions-->
                           [#conditions#]
