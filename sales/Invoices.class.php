@@ -348,7 +348,7 @@ class sales_Invoices extends core_Master
     {
         $form = &$data->form;
         $form->rec->date = dt::today();
-        if(!haveRole('ceo,sales')){
+        if(!haveRole('ceo,acc')){
         	$form->setField('number', 'input=none');
         }
         
@@ -674,6 +674,7 @@ class sales_Invoices extends core_Master
     	}
     	
     	if($fields['-single']){
+    		
 	    	if($rec->docType && $rec->docId){
 	    		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
 	    	}
