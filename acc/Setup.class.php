@@ -141,12 +141,6 @@ class acc_Setup extends core_ProtoSetup
         // Добавяне на роля за старши касиер
         $html .= core_Roles::addRole('accMaster', 'acc') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
         
-        // Добавяне на роля за старши касиер
-        $html .= core_Roles::addRole('invoicer') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
-        
-        // acc наследява invoicer
-        core_Roles::addRole('acc', 'invoicer');
-        
         $html .= $this->loadSetupData();
 
         return $html;

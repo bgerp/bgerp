@@ -142,7 +142,13 @@ class sales_Setup extends core_ProtoSetup
         // Добавяне на роля за старши продавач
         $html .= core_Roles::addRole('salesMaster', 'sales') ? "<li style='color:green'>Добавена е роля <b>salesMaster</b></li>" : '';
         
-        //sales наследява invoicer
+        // Добавяне на роля за старши касиер
+        $html .= core_Roles::addRole('invoicer') ? "<li style='color:green'>Добавена е роля <b>accMaster</b></li>" : '';
+        
+        // acc наследява invoicer
+        core_Roles::addRole('acc', 'invoicer');
+        
+        // sales наследява invoicer
         core_Roles::addRole('sales', 'invoicer');
         
         return $html;
