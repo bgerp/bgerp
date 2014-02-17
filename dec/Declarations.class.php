@@ -390,10 +390,7 @@ class dec_Declarations extends core_Master
                 if (empty($rec->id)) {
                     // не се допуска активиране на незаписани декларации
                     $requiredRoles = 'no_one';
-                } elseif (dec_DeclarationDetails::count("#declarationId = {$rec->id}") == 0) { 
-                    // Не се допуска активирането на празни декларации без детайли
-                    $requiredRoles = 'no_one';
-                }
+                } 
                 break;
     	}
     }
