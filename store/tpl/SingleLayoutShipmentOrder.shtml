@@ -66,25 +66,25 @@
                     <table class='shipment-table' width=100%>
                     <!--ET_BEGIN deliveryTime-->
                         <tr>
-                            <td align='right' class='quiet' width=1%>|Срок до|*:</td>
+                            <td align='right' class='quiet nowrap' width=1%>|Срок до|*:</td>
                             <td>[#deliveryTime#]</td>
                         </tr>
                     <!--ET_END deliveryTime-->
                     <!--ET_BEGIN storeId-->
                         <tr>
-                            <td align='right' class='quiet'>|От склад|*:</td>
+                            <td align='right' class='quiet nowrap'>|От склад|*:</td>
                             <td>[#storeId#]</td>
                         </tr>
                     <!--ET_END storeId-->
                     <!--ET_BEGIN locationId-->
                         <tr>
-                            <td align='right' class='quiet'>|До|*:</td>
+                            <td align='right' class='quiet nowrap'>|До|*:</td>
                             <td>[#locationId#]</td>
                         </tr>
                     <!--ET_END locationId-->
                     <!--ET_BEGIN lineId-->
                         <tr>
-                            <td align='right' class='quiet'>|Транспорт|*: </td>
+                            <td align='right' class='quiet nowrap'>|Транспорт|*: </td>
                             <td>[#lineId#]</td>
                         </tr>
                     <!--ET_END lineId--> 
