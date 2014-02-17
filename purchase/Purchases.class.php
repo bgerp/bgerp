@@ -377,8 +377,8 @@ class purchase_Purchases extends core_Master
     
 
     /**
-     * Може ли документ-продажба да се добави в посочената папка?
-     * Документи-продажба могат да се добавят само в папки с корица контрагент.
+     * Може ли документ-покупка да се добави в посочената папка?
+     * Документи-покупка могат да се добавят само в папки с корица контрагент.
      *
      * @param $folderId int ид на папката
      * @return boolean
@@ -880,7 +880,7 @@ class purchase_Purchases extends core_Master
     
     
 	/**
-     * Помощна ф-я показваща дали в продажбата има поне един складируем/нескладируем артикул
+     * Помощна ф-я показваща дали в покупката има поне един складируем/нескладируем артикул
      * @param int $id - ид на покупката
      * @param boolean $storable - дали се търсят складируеми или нескладируеми артикули
      * @return boolean TRUE/FALSE - дали има поне един складируем/нескладируем артикул
@@ -936,7 +936,7 @@ class purchase_Purchases extends core_Master
      */
     private function setCron(&$res)
     {
-    	// Крон метод за затваряне на остарели продажби
+    	// Крон метод за затваряне на остарели покупки
     	$rec = new stdClass();
         $rec->systemId = "Close purchases";
         $rec->description = "Затваря приключените покупки";
@@ -947,7 +947,7 @@ class purchase_Purchases extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
-        // Проверка по крон дали продажбата е пресрочена
+        // Проверка по крон дали покупката е пресрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsPurchaseOverdue";
         $rec2->description = "Проверява дали покупката е пресрочена";
