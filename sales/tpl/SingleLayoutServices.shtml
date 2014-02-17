@@ -66,22 +66,31 @@
                 <!--ET_BEGIN LEFT_COLUMN-->
                 [#LEFT_COLUMN#]
                     <td class="topCell first" valign="top">
-                        <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
-                        <!--ET_END deliveryTime-->
-                        
-                        <!--ET_BEGIN locationId--> 
-                        <div>
-                        	|До|*: <b>[#locationId#]</b>
-                        </div>
-                        <!--ET_END locationId-->
-        				
-                        <!--ET_BEGIN note-->
-	                        <hr />
-	                        [#note#]
-                        <!--ET_END note-->     
+                        <table width='100%'>
+                             <!--ET_BEGIN deliveryTime-->
+                             <tr>
+		                        <td class='quiet nowrap' align=right width=1%>|Срок до|*:</td>
+		                        <td>[#deliveryTime#]</td>
+	                        </tr>
+	                        <!--ET_END deliveryTime-->
+	                        
+	                        <!--ET_BEGIN locationId--> 
+	                        <tr>
+	                           <td class='quiet' align=right>|До|*:</td>
+	                           <td>[#locationId#]</td>
+	                        </tr>
+	                        <!--ET_END locationId-->
+	                        
+	                        <!--ET_BEGIN note-->
+	                        <tr>
+	                         <td class='quiet' colspan=2>
+	                            <hr />
+	                            [#note#]
+	                         </td>
+	                         </tr>
+	                        <!--ET_END note-->   
+                        </table>
+                         
                     </td>
        			<!--ET_END LEFT_COLUMN-->
        			
