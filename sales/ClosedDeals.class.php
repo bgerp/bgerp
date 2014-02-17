@@ -133,15 +133,21 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$amount = static::getClosedDealAmount($rec->threadId);
-    	
-    	if($amount < 0){
-    		$row->costAmount = $amount;
-    		$row->incomeAmount = 0;
-    	} else{
-    		$row->incomeAmount = $amount;
-    		$row->costAmount = 0;
+    	$row->DOC_NAME = tr("ПРОДАЖБА");
+    	if($rec->amount == 0){
+    		$costAmount = $incomeAmount = 0;
+    	} elseif($rec->amount > 0){
+    		$incomeAmount = $rec->amount;
+    		$costAmount = 0;
+    		$row->type = tr('Приход');
+    	} elseif($rec->amount < 0){
+    		$costAmount = $rec->amount;
+    		$incomeAmount = 0;
+    		$row->type = tr('Разход');
     	}
+    	
+    	$row->costAmount = $mvc->fields['amount']->type->toVerbal($costAmount);
+    	$row->incomeAmount = $mvc->fields['amount']->type->toVerbal($incomeAmount);
     }
     
     

@@ -52,7 +52,7 @@ abstract class acc_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, saleId=Документ, type=Вид, amount, createdBy, createdOn';
+    protected $listFields = 'id, docId=Документ, type=Вид, amount, createdBy, createdOn';
 	
 	
 	/**
@@ -246,42 +246,44 @@ abstract class acc_ClosedDeals extends core_Master
     }
     
     
-	/**
-     * След преобразуване на записа в четим за хора вид.
+    /**
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function recToVerbal_($rec, &$fields = '*')
     {
+    	$row = parent::recToVerbal_($rec, $fields);
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     	if(!$rec->amount){
     		$info = static::getDealInfo($rec->threadId);
-    		$rec->baseAmount = abs(static::getClosedDealAmount($rec->threadId));
-    		$amount = abs($rec->baseAmount / $info->agreed->rate);
+    		$baseAmount = static::getClosedDealAmount($rec->threadId);
+    		
+    		$amount = $baseAmount / $info->agreed->rate;
     		$row->currencyId = $info->agreed->currency;
-    		$row->baseAmount = $mvc->fields['amount']->type->toVerbal($rec->baseAmount);
     	} else {
-    		$row->baseAmount = $mvc->fields['amount']->type->toVerbal(abs($rec->amount));
-    		@$amount =  abs($rec->amount / $rec->rate);
+    		@$amount =  $rec->amount / $rec->rate;
     	}
     	
-    	$row->amount = $mvc->fields['amount']->type->toVerbal($amount);
-    	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->lastModifiedOn);
-    	if($row->baseCurrencyId == $row->currencyId){
-    		unset($row->baseAmount, $row->baseCurrencyId);
-    	}
-
-    	if($rec->state == 'draft'){
-    		unset($row->modifiedOn);
-    	}
+    	$rec->amount = round($amount, 4);
+    	if(abs($rec->amount) == 0){
+    		$rec->amount = 0;
+    	} 
+    	
+    	$row->amount = $Double->toVerbal($amount);
     	
     	$docRec = $firstDoc->fetch();
     	if($firstDoc->instance()->haveRightFor('single', $docRec->id)){
-	    	$icon = $firstDoc->instance()->getIcon($docRec->id);
-	    	$attr['class'] = 'linkWithIcon';
-	        $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-	    	$row->saleId = ht::createLink($firstDoc->getHandle(), array('sales_Sales', 'single', $rec->docId), NULL, $attr);
+	        $row->docId = $firstDoc->getLink();
 	    }
 	    
 	    $row->header = $mvc->singleTitle . " №<b>{$firstDoc->getHandle()}</b> ({$row->state})";
+	    
+	    return $row;
     }
     
     

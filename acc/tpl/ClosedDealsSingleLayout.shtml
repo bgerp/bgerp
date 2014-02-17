@@ -5,7 +5,7 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
-	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА ПРОДАЖБА|* </h3>
+	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
 	<p class='centered'>№ [#number#] / [#modifiedOn#]</p>
 	<br>
 	
