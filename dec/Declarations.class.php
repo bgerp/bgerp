@@ -110,12 +110,6 @@ class dec_Declarations extends core_Master
      */
     var $abbr = "Dec";
     
-    
-    /**
-     * Групиране на документите
-     */ 
-   	var $newBtnGroup = "3.8|Търговия";
-    
    	
    	/**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
@@ -542,4 +536,5 @@ class dec_Declarations extends core_Master
     {
         return tr("|Декларация|* №{$rec->id}");
     }
+
 }
