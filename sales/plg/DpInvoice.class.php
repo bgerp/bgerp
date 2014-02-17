@@ -140,9 +140,11 @@ class sales_plg_DpInvoice extends core_Plugin
         	if($rec->dpOperation == 'accrued'){
         		
         		$downpayment = (empty($paid->downpayment)) ? $agreed->downpayment : $paid->downpayment;
+        		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+        		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
         		
 	        	if($rec->dpAmount > $downpayment){
-	            	$form->setError('dpAmount', "Въведената сума е по-голяма от очаквания аванс");
+	            	$form->setError('dpAmount', "Въведената сума е по-голяма от очаквания аванс от '{$downpayment}' без ДДС");
 	            }
 	            
         		if($rec->dpAmount < 0){
@@ -246,7 +248,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	if($mvc->Master) return;
     	
     	// Ако е ДИ или КИ не правим нищо
-    	if($masterRec->type != 'invoice') return;
+    	if($rec->type != 'invoice') return;
     	
     	// Ако има авансово плащане
     	if(isset($rec->dpAmount) && $rec->dpOperation == 'accrued'){
