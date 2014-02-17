@@ -52,7 +52,7 @@ class sales_Invoices extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, type, dealValue, vatAmount';
+    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type';
     
     
     /**
@@ -658,8 +658,6 @@ class sales_Invoices extends core_Master
     {
     	if($rec->number){
     		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-    		@$dealValue = $rec->dealValue / $rec->rate;
-    		$row->dealValue = $mvc->fields['dealValue']->type->toVerbal($dealValue);
     	}
     	
     	if($fields['-list']){
@@ -667,6 +665,12 @@ class sales_Invoices extends core_Master
     		if($rec->number){
     			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		}
+    		
+    		@$row->dealValue = $mvc->fields['dealValue']->type->toVerbal($rec->dealValue / $rec->rate);
+    		$row->dealValue = "<span class='cCode' style='float:left'>{$rec->currencyId}</span>" . $row->dealValue;
+    		
+    		$baseCode = acc_Periods::getBaseCurrencyCode($rec->date);
+    		$row->vatAmount = "<span class='cCode' style='float:left'>{$baseCode}</span>" . $row->vatAmount;
     	}
     	
     	if($fields['-single']){
