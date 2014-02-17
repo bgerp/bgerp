@@ -139,7 +139,9 @@ class sales_plg_DpInvoice extends core_Plugin
         	
         	if($rec->dpOperation == 'accrued'){
         		
-	        	if($rec->dpAmount > (($agreed->downpayment) ? $paid->downpayment : $agreed->downpayment)){
+        		$downpayment = (empty($paid->downpayment)) ? $agreed->downpayment : $paid->downpayment;
+        		
+	        	if($rec->dpAmount > $downpayment){
 	            	$form->setError('dpAmount', "Въведената сума е по-голяма от очаквания аванс");
 	            }
 	            
