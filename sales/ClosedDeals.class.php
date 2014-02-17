@@ -84,7 +84,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Групиране на документите
      */ 
-    public $newBtnGroup = "3.8|Търговия";
+    public $newBtnGroup = "3.9|Търговия";
    
     
     /**

@@ -254,7 +254,8 @@ class sales_SalesDetails extends core_Detail
     	$recs = &$data->recs;
         $salesRec = $data->masterData->rec;
         
-        price_Helper::fillRecs($recs, $salesRec);
+        $map = ($data->masterData->fromProforma) ? array('alwaysHideVat' => TRUE) : array();
+        price_Helper::fillRecs($recs, $salesRec, $map);
     }
     
     
@@ -290,7 +291,6 @@ class sales_SalesDetails extends core_Detail
                 
                 $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $row->quantity->placeObject($row);
-                $row->quantity->removeBlocks(); 
             }
         }
 

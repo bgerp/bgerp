@@ -756,7 +756,9 @@ class sales_Sales extends core_Master
     	
     	$rec = &$data->rec;
     	if(empty($data->noTotal)){
-    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
+    		
+    		$fromProforma = ($data->fromProforma) ? TRUE : FALSE;
+    		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, $fromProforma);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
     }

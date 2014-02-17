@@ -20,6 +20,18 @@ defIfNot('SALE_INV_MAX_NUMBER', '10000000');
 
 
 /**
+ * Начален номер на проформите
+ */
+defIfNot('SALE_PROFORMA_MIN_NUMBER', '0');
+
+
+/**
+ * Краен номер на проформите
+ */
+defIfNot('SALE_PROFORMA_MAX_NUMBER', '10000000');
+
+
+/**
  * Максимален срок за бъдещи цени с които да работи офертата
  */
 defIfNot('SALE_MAX_FUTURE_PRICE', type_Time::SECONDS_IN_MONTH);
@@ -38,7 +50,7 @@ defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
- * Продажби до колко дни назад без да са модифицирани да се затварят автоматично
+ * Колко време да се изчака след активиране на продажба, преди да се провери дали е пресрочена
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
@@ -91,8 +103,10 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
-			'SALE_INV_MIN_NUMBER'       => array('int', 'caption=Номер на фактура->Долна граница'),
-			'SALE_INV_MAX_NUMBER'       => array('int', 'caption=Номер на фактура->Горна граница'),
+			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
+			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
+			'SALE_PROFORMA_MIN_NUMBER' => array('int', 'caption=Номер на проформа->Долна граница'),
+			'SALE_PROFORMA_MAX_NUMBER' => array('int', 'caption=Номер на проформа->Горна граница'),
 	);
 	
 	
@@ -112,6 +126,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_ServicesDetails',
     		'sales_Invoices',
             'sales_InvoiceDetails',
+    		'sales_Proforma',
         );
 
         
