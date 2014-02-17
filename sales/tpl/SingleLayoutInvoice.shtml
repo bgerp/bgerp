@@ -34,11 +34,11 @@
                                 <!--ET_END vatReason-->
                              
                                 <!--ET_BEGIN vatDate-->  
-                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b>
+                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <!--ET_END vatDate-->  
                                 
                                 <!--ET_BEGIN rate--> 
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
+                                 |Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
                                 <!--ET_END rate-->  
                                 <hr>
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
@@ -81,10 +81,10 @@
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
 			                        <div><b>[#bank#]</b>
-			                        <!--ET_BEGIN bank-->
+			                        <!--ET_END bank-->
 			                        <!--ET_BEGIN bic-->
 			                        , BIC(SWIFT): <b>[#bic#]</b></div>
-			                        <!--ET_BEGIN bic-->
+			                        <!--ET_END bic-->
 			                        </div>
 				                </div>
 		                        <!--ET_END accountId-->
