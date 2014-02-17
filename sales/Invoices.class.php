@@ -970,9 +970,8 @@ class sales_Invoices extends core_Master
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $number = $self->fetchField($id, 'number');
         
-        return $self->abbr . $number;
+        return $self->abbr . $id;
     } 
     
     
