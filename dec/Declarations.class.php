@@ -374,6 +374,17 @@ class dec_Declarations extends core_Master
 
     
     /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$tpl->removeBlock('header');
+    	}
+    }
+    
+    
+    /**
      * След проверка на ролите
      */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
