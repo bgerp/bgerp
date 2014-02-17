@@ -658,6 +658,8 @@ class sales_Invoices extends core_Master
     {
     	if($rec->number){
     		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+    		@$dealValue = $rec->dealValue / $rec->rate;
+    		$row->dealValue = $mvc->fields['dealValue']->type->toVerbal($dealValue);
     	}
     	
     	if($fields['-list']){
