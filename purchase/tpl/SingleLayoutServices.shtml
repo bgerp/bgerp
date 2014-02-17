@@ -68,20 +68,20 @@
                         <table class='shipment-table'>
                         <!--ET_BEGIN deliveryTime-->
                             <tr>
-                                <td>|Срок до|*:</td>
-                                <td><b>[#deliveryTime#]</b></td>
+                                <td class='quiet nowrap' align=right width=1%>|Срок до|*:</td>
+                                <td>[#deliveryTime#]</td>
                             </tr>
                         <!--ET_END deliveryTime-->
                       
                         <!--ET_BEGIN locationId-->
                             <tr>
-                                <td>|До|*:</td>
-                                <td><b>[#locationId#]</b></td>
+                                <td class='quiet nowrap' align=right width=1%>|До|*:</td>
+                                <td>[#locationId#]</td>
                             </tr>
                         <!--ET_END locationId-->
                         <!--ET_BEGIN currencyId-->
                             <tr>
-                                <td>|Валута|*: </td>
+                                <td class='quiet nowrap' align=right width=1%>|Валута|*: </td>
                                 <td><span class='cCode'>[#currencyId#]</span></td>
                             </tr>
                         <!--ET_END currencyId--> 
