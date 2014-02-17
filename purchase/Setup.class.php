@@ -15,7 +15,7 @@ defIfNot('PURCHASE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 /**
  * Колко време да се изчака след активиране на покупка, преди да се провери дали е пресрочена
  */
-defIfNot('PURCHASE_OVERDUE_CHECK_DELAY', 60 * 60 * 24 * 3);
+defIfNot('PURCHASE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
