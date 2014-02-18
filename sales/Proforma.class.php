@@ -32,7 +32,7 @@ class sales_Proforma extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Проформи фактура';
+    public $title = 'Проформа фактури';
     
     
     /**
@@ -100,7 +100,7 @@ class sales_Proforma extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'number,folderId,saleId';
+    public $searchFields = 'folderId,saleId';
     
     
     /**
@@ -146,10 +146,7 @@ class sales_Proforma extends core_Master
     {
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=hidden,mandatory');
     	$this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv');
         $this->FLD('note', 'text(rows=3)', 'caption=Допълнително->Условия,width=100%');
-    	
-        $this->setDbUnique('number');
     }
     
     
@@ -158,56 +155,38 @@ class sales_Proforma extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+    	// Попълване на дефолт данни
     	$form = &$data->form;
     	
-    	$form->rec->date = dt::today();
-        if(!haveRole('ceo,sales')){
-        	$form->setField('number', 'input=none');
-        }
-        
     	$origin = $mvc->getOrigin($form->rec);
     	$form->rec->saleId = $origin->that;
+    	$form->rec->date = dt::today();
     	
+    	// Да не може да се активира при редакция
     	$form->toolbar->removeBtn('activate');
-    }
-    
-    
-    /**
-     * След изпращане на формата
-     */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    {
-    	if ($form->isSubmitted()) {
-        	$rec = &$form->rec;
-        	
-    		if($rec->number){
-		        if(!$mvc->isNumberInRange($rec->number)){
-					$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
-				}
-	        }
-    	}
     }
     
     
 	/**
      * След подготовка на еденичния изглед
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
      */
     static function on_AfterPrepareSingle($mvc, &$data)
     {
     	$rec = &$data->rec;
     	$row = &$data->row;
     	
-    	$Double = cls::get('type_Double');
-    	
+    	// Подготвяне на данни за подготовка на продажбата
     	$sData = new stdClass();
     	$sData->rec = $mvc->Sale->fetch($rec->saleId);
+    	
+    	// Флаг че се създава извиква от проформа
     	$sData->fromProforma = TRUE;
     	
+    	// Подготвяне на сингъл данните на продажбата за използване в проформата
         $mvc->Sale->prepareSingle($sData);
         $data->saleData = $sData;
+        
+        // Премахване на някои специфични неща от продажбата, които нетрябва да се показват в проформа
     	$dRows = &$sData->sales_SalesDetails->rows;
     	if(count($dRows)){
     		foreach ($dRows as $id  => &$dRow){
@@ -216,15 +195,17 @@ class sales_Proforma extends core_Master
     		}
     	}
     	
+    	// Добавяне към проформата готовите данни от продажбата
     	$rec = (object)((array)$data->rec + (array)$sData->rec);
     	$row = (object)((array)$data->row + (array)$sData->row);
     	
+    	// Допълнителни обработки по представянето
     	$mvc->prepareSale($row, $rec);
     }
     
     
     /**
-     * Филтър на продажбите
+     * Филтър на проформите
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
@@ -237,6 +218,7 @@ class sales_Proforma extends core_Master
      */
     private function prepareSale(&$row, $rec)
     {
+    	// Показване на името и бика на банката, ако има б. сметка
     	if($rec->bankAccountId){
 	    	$Varchar = cls::get('type_Varchar');
 	    	$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
@@ -248,6 +230,7 @@ class sales_Proforma extends core_Master
 	    $userRec = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
 		
+		// Ако курса е 1-ца, несе показва
 		if($rec->currencyRate == 1){
 			unset($row->currencyRate);
 		}
@@ -257,20 +240,13 @@ class sales_Proforma extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид.
      */	
-    		
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->number){
-    		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
-    	}
+    	$row->number = str_pad($rec->id, '10', '0', STR_PAD_LEFT);
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		
-    		if($rec->number){
-    			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
-    		}
-    		
+    		$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		$row->saleId = $mvc->Sale->getLink($rec->saleId);
     	}
     }
@@ -284,29 +260,20 @@ class sales_Proforma extends core_Master
      */
     static function on_AfterRenderSingle($mvc, &$tpl, &$data)
     {
+    	// Премахване на блока 'header'
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
     	}
+    	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     	
+    	// Рендиране на детайлите на продажбата, за показване в проформата
     	$saleDetails = $data->saleData->sales_SalesDetails;
     	$dTpl = $mvc->Sale->sales_SalesDetails->renderDetailLayout($saleDetails);
         $dTpl->append($mvc->Sale->sales_SalesDetails->renderListTable($saleDetails), 'ListTable');
     	
+        // Добавяне на детайлите на продажбата в шаблона на проформата
         $tpl->append($dTpl, 'PRODUCTS');
-    }
-    
-    
-    /**
-     * Преди запис в модела
-     */
-    public static function on_BeforeSave($mvc, $id, $rec)
-    {
-    	if($rec->state == 'active'){
-        	if(empty($rec->number)){
-        		$rec->number = $mvc->getNexNumber();
-        	}
-    	}
     }
     
     
@@ -327,6 +294,7 @@ class sales_Proforma extends core_Master
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
+    	// От лист изгледа неможе да се добавя проформа
     	if(!empty($data->toolbar->buttons['btnAdd'])){
     		$data->toolbar->removeBtn('btnAdd');
     	}
@@ -340,14 +308,20 @@ class sales_Proforma extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        // Кой е първия документ в нишката
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
         
+    	// Ако е продажба
         if($firstDoc->instance instanceof sales_Sales){
+        	
+        	// Ако е активирана продажба
         	$state = $firstDoc->fetchField('state');
         	
+        	// Може да се добавя само към активирана продажба
         	return ($state != 'active') ? FALSE : TRUE;
         }
         
+        // Ако първия документ не е продажба, връщаме FALSE
         return FALSE;
     }
     
@@ -366,40 +340,6 @@ class sales_Proforma extends core_Master
         $row->recTitle = $row->title;
         
         return $row;
-    }
-    
-    
-	/**
-     * Дали подадения номер е в позволения диапазон за номера на фактури
-     * @param $number - номера на фактурата
-     */
-    private static function isNumberInRange($number)
-    {
-    	expect($number);
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	return ($conf->SALE_PROFORMA_MIN_NUMBER <= $number && $number <= $conf->SALE_PROFORMA_MAX_NUMBER);
-    }
-    
-    
-	/**
-     * Ф-я връщаща следващия номер на проформата, ако той е в границите
-     * @return int - следващия номер на проформата
-     */
-    private function getNexNumber()
-    {
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	$query = $this->getQuery();
-    	$query->XPR('maxNum', 'int', 'MAX(#number)');
-    	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->SALE_PROFORMA_MIN_NUMBER;
-    	}
-    	$nextNum = $maxNum + 1;
-    	
-    	if($nextNum > $conf->SALE_PROFORMA_MAX_NUMBER) return NULL;
-    	
-    	return $nextNum;
     }
     
     
