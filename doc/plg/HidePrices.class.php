@@ -60,10 +60,23 @@ class doc_plg_HidePrices extends core_Plugin
      * След рендиране на изгледа се скриват ценовите данни от мастъра
      * ако потребителя няма права
      */
-    public static function on_AfterPrepareSingle($mvc, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	
     	$mvc->hidePriceFields($data);
+    }
+    
+    
+    /**
+     * Преди подготовка на сингъла
+     */
+    public function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
+    {
+    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	
+    	// Флаг да не се подготвя общата сума
+    	$data->noTotal = TRUE;
     }
     
     
@@ -75,6 +88,9 @@ class doc_plg_HidePrices extends core_Plugin
     {
     	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
     	$mvc->hidePriceFields($data);
+    	
+    	// Флаг да не се подготвя общата сума
+    	$data->noTotal = TRUE;
     }
     
     
@@ -99,9 +115,6 @@ class doc_plg_HidePrices extends core_Plugin
         if(!$data) {
             $data = new stdClass();
         }
-
-    	// Флаг да не се подготвя общата сума
-    	$data->noTotal = TRUE;
     }
     
     
