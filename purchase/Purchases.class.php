@@ -27,13 +27,13 @@ class purchase_Purchases extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_TransactionSourceImpl';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_ActivatePlg, doc_plg_TplManager,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_DealsChooseOperation, acc_plg_Contable,
 				        doc_DocumentPlg, plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, plg_Search';
     
@@ -308,7 +308,7 @@ class purchase_Purchases extends core_Master
     	}
     	
     	if(haveRole('debug')){
-    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
+    		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
     	}
     }
     
@@ -1032,6 +1032,7 @@ class purchase_Purchases extends core_Master
 
      	// заявка към детайлите
      	$query = purchase_PurchasesDetails::getQuery();
+     	
      	// точно на тази фактура детайлите търсим
      	$query->where("#requestId = '{$rec->id}'");
      	

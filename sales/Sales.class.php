@@ -37,7 +37,7 @@ class sales_Sales extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_Contable,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_DealsChooseOperation, acc_plg_Contable,
                     doc_DocumentPlg, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_SharablePlg';
     
@@ -210,7 +210,6 @@ class sales_Sales extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
     	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
     }
     
@@ -738,15 +737,6 @@ class sales_Sales extends core_Master
     	
     	if(haveRole('debug')){
             $data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
-    	}
-    	
-    	// Ако има опции за избор на контирането, подмяна на бутона за контиране
-    	if(isset($data->toolbar->buttons['btnConto'])){
-    		$options = $mvc->getContoOptions($data->rec->id);
-    		if(count($options)){
-    			$data->toolbar->removeBtn('btnConto');
-    			$data->toolbar->addBtn('Активиране', array($mvc, 'chooseAction', $data->rec->id), "id=btnConto", 'ef_icon = img/16/tick-circle-frame.png,title=Активиране на документа');
-    		}
     	}
     }
     
@@ -1306,144 +1296,4 @@ class sales_Sales extends core_Master
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
-    
-    
-    /**
-     * Избор на операции, които ще се извършат с контирането на продажбата
-     */
-    function act_ChooseAction()
-    {
-    	$id = Request::get('id', 'int');
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
-    	expect($this->sales_SalesDetails->fetch("#saleId = $id"));
-    	$curStoreId = store_Stores::getCurrent('id', FALSE);
-    	$curCaseId  = cash_Cases::getCurrent('id', FALSE);
-    	
-    	// Трябва потребителя да може да контира
-    	$this->requireRightFor('conto', $rec);
-    	
-    	// Подготовка на формата за избор на опция
-    	$form = cls::get('core_Form');
-    	$form->title = "|Активиране на|* <b>" . $this->getTitleById($id). "</b>" . " ?";
-    	$form->info = '<b>Контиране на извършени на момента действия</b> (опционално):';
-    	
-    	// Извличане на позволените операции
-    	$options = $this->getContoOptions($rec);
-    	
-    	// Трябва да има избор на действие
-    	expect(count($options));
-    	
-    	// Подготовка на полето за избор на операция и инпут на формата
-    	$form->FNC('action', cls::get('type_Set', array('suggestions' => $options)), 'columns=1,input,caption=Изберете');
-    	
-    	$selected = array();
-    	
-    	// Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
-    	if($options['ship'] && $rec->shipmentStoreId){
-    		if($rec->shipmentStoreId === $curStoreId){
-    			$selected[] = 'ship';
-    		}
-    	} elseif($options['ship']){
-    		$selected[] = 'ship';
-    	}
-    	
-    	// Ако има каса и потребителя е логнат в нея, Слагаме отметка
-    	if($options['pay'] && $rec->caseId){
-    		if($rec->caseId === $curCaseId){
-    			$selected[] = 'pay';
-    		}
-    	}
-    	
-    	$form->setDefault('action', implode(',', $selected));
-    	$form->input();
-    	
-    	// След като формата се изпрати
-    	if($form->isSubmitted()){
-    		
-    		// обновяване на записа с избраните операции
-    		$form->rec->action = 'activate' . (($form->rec->action) ? "," : "") . $form->rec->action;
-    		$rec->contoActions = $form->rec->action;
-    		$this->save($rec);
-    		
-    		// Пренасочване към екшъна за контиране на продажбата
-    		$contoUrl = acc_Journal::getContoUrl($this, $id);
-    		$contoUrl['ret_url'] = array($this, 'single', $id);
-    		
-    		// Ако се експедира и има склад, форсира се логване
-    		if($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId){
-    			store_Stores::selectSilent($rec->shipmentStoreId);
-    		}
-    		
-    		// Ако има сметка и се експедира, форсира се логване
-    		if($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId){
-    			cash_Cases::selectSilent($rec->caseId);
-    		}
-    		
-    		// Редирект
-    		return new Redirect($contoUrl);
-    	}
-    	
-    	$form->toolbar->addSbBtn('Активиране/Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
-        
-        // Рендиране на формата
-    	$tpl = $this->renderWrapping($form->renderHtml());
-    	
-    	// Показване на формата
-    	return $tpl;
-    }
-    
-    
-    /**
-     * Какви операции ще се изпълнят с контирането на документа
-     * @param int $id - ид на продажбата
-     * @return array $options - опции
-     */
-    private function getContoOptions($id)
-    {
-    	$options = array();
-    	$cu = core_Users::getCurrent();
-    	$rec = $this->fetchRec($id);
-    	
-    	// Имали складируеми продукти
-    	$hasStorable = $this->hasStorableProducts($rec->id);
-    	
-    	// Ако има продукти за експедиране
-    	if($hasStorable){
-    		
-    		// ... и има избран склад, на който е отговорник текущия потребител
-	    	if(isset($rec->shipmentStoreId) && store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') == $cu){
-	    		
-	    		// Ако има очаквано авансово плащане, неможе да се експедира на момента
-	    		if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
-	    			$hasDp = TRUE;
-	    		}
-	    		
-	    		if(empty($hasDp)){
-	    			
-	    			// .. продуктите може да бъдат експедирани
-	    			$storeName = store_Stores::getTitleById($rec->shipmentStoreId);
-	    			$options['ship'] = "Експедиране на продукти, от склад \"{$storeName}\"";
-	    		}
-	    		
-	    	}
-    	} else {
-    		
-    		// ако има услуги те могат да бъдат изпълнени
-    		if($this->hasStorableProducts($rec->id, FALSE)){
-    			$options['ship'] = 'Изпълнение на услуги';
-    		}
-    	}
-    	
-    	// ако има каса, метода за плащане е COD и текущия потрбеител е касиер на касата
-    	if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::fetchField($rec->caseId, 'cashier') == $cu){
-    		
-    		// може да се плати с продуктите
-    		$caseName = cash_Cases::getTitleById($rec->caseId);
-    		$options['pay'] = "Прието плащане в брой, в каса \"$caseName\"";
-    	} 
-    	
-    	return $options;
-    }
 }
