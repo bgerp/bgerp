@@ -31,7 +31,7 @@ class page_InternalLayout extends core_ET
             "</div>" .
             "<div id=\"maincontent\"><div>" .
             "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
-            " <!--ET_BEGIN STATUSES-->[#STATUSES#]<!--ET_END STATUSES-->" .
+            "<div id='statuses'>[#STATUSES#]</div>" .
             "[#PAGE_CONTENT#]" .
             "</div></div>" .
             "<div id=\"framecontentBottom\" class=\"container\">" .
