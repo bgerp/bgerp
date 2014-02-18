@@ -1273,8 +1273,9 @@ class sales_Invoices extends core_Master
     {
         $row = static::recToVerbal($rec, 'type,number,-list');
         $row->number = strip_tags($row->number);
+        $num = ($row->number) ? $row->number : $rec->id;
         
-    	return tr("|{$row->type}|* №{$row->number}");
+    	return tr("|{$row->type}|* №{$num}");
     }
     
     
