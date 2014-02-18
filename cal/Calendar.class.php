@@ -251,7 +251,7 @@ class cal_Calendar extends core_Master
     	$cu = core_Users::getCurrent();
 
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px');
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
@@ -1394,7 +1394,7 @@ class cal_Calendar extends core_Master
     	$selectedUsers = self::getSelectedUsers($data);
     	$from = self::getFromToMonth($data);
     	$monthDate = self::generateMonth($data);
-        	
+      
      	// От началото на деня
         $fromDate = $from['fromDate'];
        
@@ -1534,8 +1534,8 @@ class cal_Calendar extends core_Master
     {
     	
     	//$date = $data->listFilter->rec->from;
-    	$date = explode("-", $data);
-	  
+    	$date = explode("-", $data); 
+	 
         // Разбиваме я на ден, месец и година
         $day = $date[2];
         $month = $date[1];
@@ -1567,16 +1567,16 @@ class cal_Calendar extends core_Master
         }
         $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
         
-        $link = getCurrentUrl();
+        $urlMonth = toUrl(array('cal_Calendar', 'month'));
         
-        $headerLink['nextLink'] = toUrl($link['from'] = $day . '.' . $nm . '.' . $ny);
+        $headerLink['nextLink'] = toUrl(array('cal_Calendar', 'month', 'from' => $day . '.' . $nm . '.' . $ny), 'absolute');
         
-        $headerLink['prevtLink'] = toUrl($link['from'] = $day . '.' . $pm . '.' . $py);
+        $headerLink['prevtLink'] = toUrl(array('cal_Calendar', 'month', 'from' => $day . '.' . $pm . '.' . $py), 'absolute');
         
         $headerLink['currentMonth'] = $currentMonth;
         $headerLink['nextMonth'] = $nextMonth;
         $headerLink['prevMonth'] = $prevMonth;
-    	
+
         return $headerLink;
     }
     
@@ -1882,7 +1882,7 @@ class cal_Calendar extends core_Master
         	$cTpl->placeArray($monthArr->colorTitle[$weekNum]);
         	$cTpl->placeArray($monthArr->tdCssClass[$weekNum]);
         	$cTpl->placeArray($monthArr->dateJs[$weekNum]);
-
+           
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);
         	
@@ -1895,8 +1895,8 @@ class cal_Calendar extends core_Master
         $tpl->placeArray(static::$weekDays);
         
         $date = $data->listFilter->rec->from;
-        $link = static::prepareMonhtHeader($date);
-
+        $link = static::prepareMonhtHeader($date); 
+      
         // Добавяне на първия хедър
         $tpl->replace($link['prevtLink'], 'prevtLink');
         $tpl->replace($link['prevMonth'], 'prevMonth');
