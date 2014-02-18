@@ -46,7 +46,7 @@ class sales_Proforma extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_BusinessDoc2, doc_plg_HidePrices, acc_plg_DocumentSummary, doc_ActivatePlg';
+                    doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_ActivatePlg';
     
     
     /**
@@ -124,7 +124,7 @@ class sales_Proforma extends core_Master
     /**
      * Полета свързани с цени
      */
-    //public $priceFields = 'dealValue,vatAmount,baseAmount,total,vatPercent,discountAmount';
+    public $priceFields = 'vatAmount';
     
     
     /**
@@ -181,6 +181,7 @@ class sales_Proforma extends core_Master
     	
     	// Флаг че се създава извиква от проформа
     	$sData->fromProforma = TRUE;
+    	$sData->noTotal = $data->noTotal;
     	
     	// Подготвяне на сингъл данните на продажбата за използване в проформата
         $mvc->Sale->prepareSingle($sData);
