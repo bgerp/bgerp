@@ -1652,3 +1652,44 @@ efae.prototype.resetTimeout = function()
 {
 	this.timeout = this.defTimeout;
 }
+
+
+/**
+ * Функция, която добавя даден текст в съответния таг
+ * Може да се комбинира с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.id - id на таг
+ * data.html - текста
+ * data.replace - дали да се замести текста или да се добави след предишния
+ */
+function render_html(data)
+{
+	// Неоходимите параметри
+	var id = data.id;
+	var html = data.html;
+	var replace = data.replace;
+	
+	// Ако няма HTML, да не се изпуълнява
+	if ((typeof html == 'undefined') || !html) return ;
+	
+	// Ако има JQuery
+	if (typeof jQuery != 'undefined') {
+		
+		var idObj = $('#'+id);
+		
+		// Ако няма такъв таг
+		if (!idObj.length) console.log('Липсва таг с id: ' + id);
+		
+		// Ако е зададено да се замества
+		if ((typeof replace != 'undefined') && (replace)) {
+			
+			// Заместваме
+			idObj.html(html);
+		} else {
+			
+			// Добавяме след последния запис
+			idObj.append(html);
+		}
+	}
+}
