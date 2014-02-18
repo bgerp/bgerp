@@ -790,4 +790,65 @@ class acc_BalanceDetails extends core_Detail
      //   set id = (@id := @id + 1)
      //   order by id;
     }
+    
+    
+    /**
+     * Филтрира заявка към модела за показване на определени данни
+     * 
+     * @param core_Query $query - Заявка към модела
+     * @param mixed $accs       - списък от систем ид-та на сметките
+     * @param mixed $itemsAll   - списък от пера, за които може да са на произволна позиция
+     * @param mixed $items1     - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
+     * @return array            - масив със всички извлечени записи
+     */
+	public static function filterQuery(core_Query &$query, $id, $accs, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    {
+    	expect($query->mvc instanceof acc_BalanceDetails);
+    	
+    	// Трябва да има поне една зададена сметка
+    	$accounts = arr::make($accs);
+    	expect(count($accounts) >= 1);
+    	
+    	foreach ($accounts as $sysId){
+	    	$query->orWhere("#accountNum = {$sysId}");
+	    }
+    	
+	    // ... само детайлите от последния баланс
+	    $query->where("#balanceId = {$id}");
+	    
+	    // Перата които може да са на произволна позиция
+    	$itemsAll = arr::make($itemsAll);
+    	
+    	if(count($itemsAll)){
+    		foreach ($itemsAll as $itemId){
+    			
+    			// Трябва да инт число
+    			expect(ctype_digit($itemId));
+    			
+    			// .. и перото да участва на произволна позиция
+		    	$query->where("#ent1Id = {$itemId}");
+		    	$query->orWhere("#ent2Id = {$itemId}");
+		    	$query->orWhere("#ent3Id = {$itemId}");
+    		}
+    	}
+    	
+    	// Проверка на останалите параметри от 1 до 3
+    	foreach (range(1, 3) as $i){
+    		$var = ${"items{$i}"};
+    		
+    		// Ако е NULL продалжаваме
+    		if(!$var) continue;
+    		$varArr = arr::make($var);
+    		
+    		// За перата се изисква поне едно от тях да е на текущата позиция
+    		$j = 0;
+    		foreach($varArr as $itemId){
+    			$or = ($j == 0) ? FALSE : TRUE;
+    			$query->where("#ent{$i}Id = {$itemId}", $or);
+    			$j++;
+    		}
+    	}
+    }
 }
