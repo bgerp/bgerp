@@ -995,7 +995,7 @@ class cal_Tasks extends core_Master
         if($data->recs){
     	    // за всеки едиин запис от базата данни
         	foreach($data->recs as $v=>$rec){ 
-        		if($rec->state == 'active' && $rec->timeStart){
+        		if($rec->timeStart){
         			// ако няма продължителност на задачата
     	    		if(!$rec->timeDuration && !$rec->timeEnd) {
     	    			// продължителността на задачата е края - началото
@@ -1542,7 +1542,7 @@ class cal_Tasks extends core_Master
     	// за всеки едиин запис от базата данни
     	foreach($data->recs as $rec){ 
     		
-    		if($rec->state == 'active' && $rec->timeStart){
+    		if($rec->timeStart){
 	    		// ако няма продължителност на задачата
 	    		if(!$rec->timeDuration) {
 	    			// продължителността е края - началото
