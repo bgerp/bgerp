@@ -64,7 +64,7 @@
 	                            
 	                            <!--ET_BEGIN currencyId-->
 	                            <tr>
-	                                <td class='quiet nowrap' align="right">Currency: </td>
+	                                <td class='quiet nowrap' align="right" width=1%>Currency: </td>
 	                                <td> [#currencyId#] [#currencyRateText#]</td>
 	                            </tr>
 	                            <!--ET_END currencyId-->
@@ -74,7 +74,7 @@
 	                               <td colspan=2><hr></td>
 	                            </tr>
 	                            <tr>
-	                                <td class='quiet nowrap' align="right">Bank account: </td>
+	                                <td class='quiet nowrap' align="right" width=1%>Bank account: </td>
 	                                <td>[#bankAccountId#]</td>
 	                            </tr> 
 	                            <!--ET_END bankAccountId-->
@@ -84,7 +84,7 @@
 	                               <td colspan=2><hr></td>
 	                            </tr>
 	                            <tr>
-	                                <td class='quiet nowrap' align="right">Case: </td>
+	                                <td class='quiet nowrap' align="right" width=1%>Case: </td>
 	                                <td>[#caseId#]</td>
 	                            </tr> 
 	                            <!--ET_END caseId-->
