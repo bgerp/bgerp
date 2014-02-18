@@ -90,7 +90,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amount';
+    public $priceFields = 'costAmount, incomeAmount';
     
     
     /**
