@@ -71,7 +71,8 @@ class sales_TransactionSourceImpl
         if ($actions['ship'] || $actions['pay']) {
             
             $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
-			
+			price_Helper::fillRecs($rec->details, $rec);
+            
             if ($actions['ship']) {
                 // Продажбата играе роля и на експедиционно нареждане.
                 // Контирането е същото като при ЕН
@@ -189,8 +190,7 @@ class sales_TransactionSourceImpl
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        price_Helper::fillRecs($rec->details, $rec);
-        
+       
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	
@@ -242,14 +242,13 @@ class sales_TransactionSourceImpl
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-        expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
-        price_Helper::fillRecs($rec->details, $rec);  
+        expect($rec->caseId, 'Генериране на платежна част при липсваща каса!'); 
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
         	
             $entries[] = array(
-                'amount' => currency_Currencies::round($amount), // В основна валута
+                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
