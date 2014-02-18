@@ -46,7 +46,7 @@ class sales_Proforma extends core_Master
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_BusinessDoc2, acc_plg_DocumentSummary, doc_ActivatePlg';
+                    doc_plg_BusinessDoc2, doc_plg_HidePrices, acc_plg_DocumentSummary, doc_ActivatePlg';
     
     
     /**
@@ -119,12 +119,6 @@ class sales_Proforma extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "3.8|Търговия";
-    
-    
-    /**
-     * Полета свързани с цени
-     */
-    public $priceFields = 'vatAmount';
     
     
     /**
