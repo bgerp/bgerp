@@ -2,26 +2,33 @@
 /**
  * Клас 'doc_plg_BusinessDoc'
  *
- * Плъгин реализиращ потребителски интерфейс за въвеждане на основание за създаването на
- * някакъв бизнес документ в случаите, когато това основание не е ясно априори.
+ * Плъгин за избор на папка в която да се въздава документ.
+ * Класа трябва да има метод getAllowedFolders който връща масив от интерфейси
+ * на които трябва да отговарят папките които могат да са корици на документи.
+ * След това се рендира форма за избор на запис от всеки клас отговарящ на
+ * интерфейса. Трябва да се определи точно една папка, не е позволено да се 
+ * изберат повече от една. След като папката се уточни се отива в екшъна за
+ * добавяне на нов запис в мениджъра на документа
  *
  *
  * @category  bgerp
  * @package   doc
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class doc_plg_BusinessDoc extends core_Plugin
 {
+    
+    
     /**
      * След инициализирането на модела
      * 
      * @param core_Mvc $mvc
      * @param core_Mvc $data
      */
-    public static function on_AfterDescription($mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
@@ -35,7 +42,7 @@ class doc_plg_BusinessDoc extends core_Plugin
      * @param core_Et $tpl
      * @param core_Mvc $data
      */
-    public static function on_BeforeAction($mvc, &$tpl, $action)
+    public static function on_BeforeAction(core_Mvc $mvc, &$tpl, $action)
     {
         if ($action != 'add') {
             // Плъгина действа само при добавяне на документ
@@ -46,42 +53,45 @@ class doc_plg_BusinessDoc extends core_Plugin
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
         }
-
-        // Има ли вече зададено основание? 
-        // Ако в заявката има зададено поне едно от folderId, threadId или originId - да
-
-        if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
+        
+    	if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
+            Request::get('cloneId', 'key(mvc=doc_Containers)') ||
             Request::get('originId', 'key(mvc=doc_Containers)') ) {
             // Има основание - не правим нищо
             return;
         }
         
-        // Генерираме форма за основание и "обличаме" я във wrapper-а на $mvc.
+        // Генериране на форма за основание
+        $form = static::prepareReasonForm($mvc);
         
-        $form = static::prepareReasonForm();
+        // Ако няма форма - не правим нищо
+        if(!$form) return;
         
+        // Формата се инпутва
         $form->input();
-        
         if ($form->isSubmitted()) {
-            // @TODO валидиране и редирект с определения folderId или originId
             if ($p = static::getReasonParams($form)) {
                 $tpl = new Redirect(
+                
+                	// Редирект към създаването на документа в ясната папка
                     toUrl(array($mvc, $action) + $p + array('retUrl' => static::getRetUrl($mvc)))
                 );
-                
-                // За да прекъснем веригата от събития (on_BeforeAction и act_Action)
                 return FALSE;
             }
         }
         
-        $form->title = 'Избор на папка';
-        $form->toolbar->addSbBtn('Напред', 'default', array('class'=>'btn-next'), 'ef_icon = img/16/move.png');
+        // Ако няма поне едно поле key във формата
+        if(!count($form->selectFields("#key"))){ 
+        	$msg = tr('Не може да се добави документ в папка, защото възможните списъци за избор са празни');
+        	return Redirect(core_Message::getErrorUrl($msg, 'page_Error'));
+        }
         
+        $form->title = 'Избор на папка';
+        $form->toolbar->addSbBtn('Напред', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/move.png');
         $form->toolbar->addBtn('Отказ', static::getRetUrl($mvc), 'ef_icon = img/16/close16.png');
         
         $form = $form->renderHtml();
-        
         $tpl = $mvc->renderWrapping($form);
         
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
@@ -89,13 +99,151 @@ class doc_plg_BusinessDoc extends core_Plugin
     }
     
     
-    /**
-     * Проверява дали този плъгин е приложим към зададен мениджър
+	/**
+     * Помощен метод за определяне на URL при успешен запис или отказ
      * 
      * @param core_Mvc $mvc
-     * @return boolean
+     * @return string
      */
-    protected static function checkApplicability($mvc)
+    protected static function getRetUrl(core_Mvc $mvc)
+    {
+        if (!$retUrl = getRetUrl()) {
+            $retUrl = toUrl(array($mvc, 'list'));
+        }
+        
+        return $retUrl;
+    }
+    
+    
+    /**
+     * Подготвя формата за избор на папка
+     * @param core_Mvc $mvc
+     * @return core_Form $form
+     */
+    private static function prepareReasonForm(core_Mvc $mvc)
+    {
+    	// Между какви корици трябва да се избира
+    	$interfaces = $mvc::getAllowedFolders();
+    	
+    	// Ако няма корици се прескача плъгина
+    	if(!count($interfaces)) return NULL;
+    	
+    	// Ако има '*' се показват всички класове които могат да са корици
+    	if(in_array('*', $interfaces)){
+    		$interfaces = array('doc_FolderIntf');
+    	}
+    	
+    	// Намират се всички класове отговарящи на тези интерфейси
+    	$coversArr = array();
+    	foreach ($interfaces as $int){
+    		$coversArr +=  core_Classes::getOptionsByInterface($int);
+    	}
+    	
+    	// Подготовка на формата за избор на папка
+    	$form = cls::get('core_Form');
+    	static::getFormFields($mvc, $form, $coversArr);
+    	
+    	return $form;
+    }
+    
+    
+    /**
+     * Подготвя полетата на формата
+     */
+	private static function getFormFields(core_Mvc $mvc, &$form, $coversArr)
+    {
+    	core_Debug::$isLogging = FALSE;
+    	
+    	
+    	foreach ($coversArr as $coverId){
+    		
+    		// Подадената корица, трябва да е съществуващ 
+    		// клас и да може да бъде корица на папка
+    		if(cls::haveInterface('doc_FolderIntf', $coverId)){
+    			
+    			// Създаване на поле за избор от дадения клас
+    			$Class = cls::get($coverId);
+    			
+    			$options = $mvc->getCoverOptions($Class);
+	    		$optionList = implode(", ", array_keys($options));
+    			
+	    		// Показват се само обектите до които има достъп потребителя
+	    		$query = $Class::getQuery();
+	    		$newOptions = array();
+	    		$query->where("#id IN ({$optionList})");
+	    		$query->show('inCharge,access,shared');
+	    		while($rec = $query->fetch()){
+	    			if(doc_Folders::haveRightToObject($rec)){
+	    				$newOptions[$rec->id] = $options[$rec->id];
+	    			}
+	    		}
+	    		
+	    		list($pName, $coverName) = explode('_', $coverId);
+	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
+	    		if ($newOptions) {
+	    			
+	    			// Ако има достъпни корици, слагат се като опции
+	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
+	    			$form->setOptions($coverName, $newOptions);
+	    		} else {
+	    			
+	    			// Ако няма нито една достъпна корица, полето става readOnly
+	    			$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
+	    			$form->setReadOnly($coverName);
+	    			continue;
+	    		}
+    		}
+    	}
+    	
+	    core_Debug::$isLogging = TRUE;
+    }
+    
+    
+    /**
+     * Връща ид-то на избраната папка,
+     * проверява дали е избрана само една папка
+     */
+    private static function getReasonParams(core_Form $form)
+    {
+    	$selectedField = $value = NULL;
+    	$errFields = array();
+    	
+    	// Обхождат се всички попълнени полета
+    	$fields = $form->selectFields('');
+    	foreach ($fields as $name => $fld){
+    		$fldValue = $form->rec->{$name};
+    		if($fldValue){
+	    		if(!$value){
+	    			$value = $fldValue;
+	    			$selectedField = $fld->type->params['mvc'];
+	    		} else {
+	    			$errFields[] = $name;
+	    		}
+    		}
+    	}
+
+    	// Ако няма избран нито един обект, се показва грешка
+		if(!$selectedField){
+    		$form->setError(',', 'Не е избрана папка');
+    		return;
+    	}
+
+    	// Ако има избран повече от един обект, се показва грешка
+    	if(count($errFields)){
+    		array_unshift($errFields, $selectedField);
+    		$form->setError(implode(',', $errFields), 'Трябва да е избрана една папка');
+    		return;
+    	}
+    	
+    	// При избран точно един обект се форсира неговата папка и се връща
+    	return array('folderId' => $selectedField::forceCoverAndFolder($value));
+    }
+    
+    
+	/**
+     * Проверява дали този плъгин е приложим към зададен мениджър
+     */
+    protected static function checkApplicability(core_Mvc $mvc)
     {
         // Прикачане е допустимо само към наследник на core_Manager ...
         if (!$mvc instanceof core_Manager) {
@@ -110,96 +258,5 @@ class doc_plg_BusinessDoc extends core_Plugin
         } 
         
         return TRUE;
-    }
-    
-    
-    /**
-     * Форма за въвеждане на основание за създаване на документ
-     * 
-     * @return core_Form
-     */
-    protected static function prepareReasonForm()
-    {
-        $form = cls::get('core_Form');
-        
-        $form->FNC('originDoc', 'varchar(15)', 'input,caption=Към документ');
-        $form->FNC('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'input,caption=Фирма');
-        $form->FNC('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'input,caption=Лице');
-        
-        return $form;
-    }
-    
-
-    /**
-     * Помощен метод за определяне на URL при успешен запис или отказ
-     * 
-     * @param core_Mvc $mvc
-     * @return string
-     */
-    protected static function getRetUrl($mvc)
-    {
-        if (!$retUrl = getRetUrl()) {
-            $retUrl = toUrl(array($mvc, 'list'));
-        }
-        
-        return $retUrl;
-    }
-    
-    
-    /**
-     * Намира реалното основание за документа - folderId или originId 
-     *  
-     * @param core_Form $form
-     * @return array FALSE ако има формата не се валидира. Грешките са отбелязани в полетата
-     */
-    protected static function getReasonParams($form)
-    {
-        $rec = $form->rec;
-        
-        // Валидация - точно едно попълнено поле
-        $fields = array('originDoc', 'companyId', 'personId');
-        $nonEmptyFields = array();
-        foreach ($fields as $f) {
-            if (!empty($rec->{$f})) {
-                $nonEmptyFields[] = $f;
-            }
-        }
-        if (count($nonEmptyFields) !== 1) {
-            if (count($nonEmptyFields) == 0) {
-                $nonEmptyFields = $fields;
-            }
-            $form->setError($nonEmptyFields, 'Задължително е попълването на точно едно поле');
-            return FALSE;
-        }
-        
-        // "Изчисляване" на folderId или originId в зависимост от това кое поле на формата е 
-        // попълнено
-        
-        $field = reset($nonEmptyFields); // Името на попълненото поле
-        $value = $rec->{$field};         // Стойността на попълненото поле 
-        
-        switch ($field) {
-            case 'originDoc':
-                $originRef = doc_Containers::getDocumentByHandle($value, 'doc_DocumentIntf');
-                $originContainer = $originRef->getContainer();
-                
-                if (!$originContainer) {
-                    $form->setError('originDoc', 'Липсва такъв документ');
-                    return FALSE;
-                }
-                
-                //
-                // @TODO проверка дали класа на документа-основание ($originRef->className) е
-                // допустим като основание за създаване на документи от клас $mvc
-                //
-                return array('originId' => $originContainer->id);
-            case 'companyId':
-                return array('folderId' => crm_Companies::forceCoverAndFolder($value));
-            case 'personId':
-                return array('folderId' => crm_Persons::forceCoverAndFolder($value));
-        }
-        
-        // Не би трябвало да стигаме до тук!
-        return FALSE;
     }
 }

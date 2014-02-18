@@ -37,7 +37,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'techno_plg_SpecificationProduct,doc_DocumentPlg,plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank, doc_plg_BusinessDoc2,
+    public $loadList = 'techno_plg_SpecificationProduct,doc_DocumentPlg,plg_RowTools, techno_Wrapper, plg_Printing, bgerp_plg_Blank, doc_plg_BusinessDoc,
                     doc_ActivatePlg, plg_Search, doc_SharablePlg';
     
     

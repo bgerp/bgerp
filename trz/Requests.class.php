@@ -39,7 +39,7 @@ class trz_Requests extends core_Master
      */
     var $loadList = 'plg_RowTools, trz_Wrapper, trz_LeavesWrapper, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing, doc_plg_BusinessDoc2,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
+    				 plg_Printing, doc_plg_BusinessDoc,plg_AutoFilter,doc_SharablePlg,bgerp_plg_Blank';
     
     
     /**

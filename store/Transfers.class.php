@@ -36,7 +36,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc2, store_DocumentWrapper';
+                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, store_DocumentWrapper';
 
     
     /**

@@ -28,7 +28,7 @@ class trz_Fines extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    trz_Wrapper, doc_plg_BusinessDoc2';
+                    trz_Wrapper, doc_plg_BusinessDoc';
     
     
     /**

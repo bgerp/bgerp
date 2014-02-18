@@ -38,7 +38,7 @@ class purchase_Services extends core_Master
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable,
                     doc_DocumentPlg, plg_ExportCsv, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_TplManager, doc_plg_HidePrices,
-                    doc_plg_BusinessDoc2, plg_LastUsedKeys, plg_Search';
+                    doc_plg_BusinessDoc, plg_LastUsedKeys, plg_Search';
 
     
     /**
