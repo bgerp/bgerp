@@ -116,9 +116,7 @@ class pos_ReceiptDetails extends core_Detail {
 	        $contoUrl = array('ret_url' => array($this->Master, 'new')) + $contoUrl;
 	        
 	        if($client = $this->hasClient($data->masterData->rec->id)){
-	        	$confInvUrl = $contoUrl;
-	        	$invArray = array('pos_Receipts', 'makeInvoice', $data->masterData->rec->id);
-	        	$confInvUrl = array('ret_url' => $invArray) + $confInvUrl;
+	        	$confInvUrl = array('pos_Receipts', 'makeInvoice', $data->masterData->rec->id);
 	        }
 	        
 	        // Скриваме бутона "Контиране"

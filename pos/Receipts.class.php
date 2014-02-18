@@ -581,12 +581,20 @@ class pos_Receipts extends core_Master {
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'active');
+    	expect($rec->state == 'draft');
+    	
+    	// Контиране на документа
+    	$msg = $this->conto($id);
+    	
+    	// Форсиране на папката на клиента
     	$client = $this->pos_ReceiptDetails->hasClient($id);
     	$contragentClass = cls::get($client->class);
     	$folderId = $contragentClass->forceCoverAndFolder($client->id);
     	
+    	// Създаване на нова чернова бележка
     	$this->createNew();
-    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
+    	
+    	// Редирект към създаването на нова фактура;
+    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id), FALSE, $msg);
     }
 }
