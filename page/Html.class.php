@@ -102,11 +102,9 @@ class page_Html extends core_ET {
         // Добавяме в JS timestamp на извикване на страницата
         $invoker->append("var hitTime = {$hitTime};", 'SCRIPTS');
         
-        // Ако има такава функция - това е във vendors
-        if (method_exists('status_Messages', 'show')) {
-            
-            // Извикваме показването на статусите
+        try {
+            // Извикваме показването на статусите - във vendors
             $invoker->append(status_Messages::show($hitTime), 'STATUSES');
-        }
+        } catch (Exception $e) { }
     }
 }
