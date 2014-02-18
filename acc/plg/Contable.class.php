@@ -157,7 +157,7 @@ class acc_plg_Contable extends core_Plugin
             	'docId' => $rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png");
+            $data->toolbar->addBtn('Корекция', $correctionUrl, "id=btnCorrection-{$rec->id},class=btn-correction,warning=Наистина ли желаете да коригирате документа?,title=Създаване на обратен мемориален ордер,ef_icon=img/16/page_red.png,row=2");
         }
         
         // Ако има запис в журнала и потребителя има права за него, слагаме бутон
