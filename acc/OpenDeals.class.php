@@ -49,7 +49,7 @@ class acc_OpenDeals extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Search, plg_Sorting, plg_Rejected, acc_plg_DocumentSummary';
+    public $loadList = 'acc_plg_DocumentSummary, plg_Search, plg_Sorting, plg_Rejected';
     
     
     /**
@@ -107,7 +107,7 @@ class acc_OpenDeals extends core_Manager {
     	$data->listFilter->FNC('sState', 'enum(all=Всички, active=Активни, closed=Приключени)', 'caption=Състояние,input');
     	$data->listFilter->setDefault('show', Request::get('show'));
     	
-    	$data->listFilter->showFields = 'from,to,search';
+    	$data->listFilter->showFields = 'search,from,to';
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->showFields .= ', sState';
     	}

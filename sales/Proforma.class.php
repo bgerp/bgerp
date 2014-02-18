@@ -44,9 +44,9 @@ class sales_Proforma extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Search,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
-                    doc_plg_BusinessDoc2, doc_plg_HidePrices, acc_plg_DocumentSummary, doc_ActivatePlg';
+                    doc_plg_BusinessDoc2, doc_plg_HidePrices, doc_ActivatePlg';
     
     
     /**
@@ -202,9 +202,11 @@ class sales_Proforma extends core_Master
     /**
      * Филтър на проформите
      */
-    static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
     {
-		$data->listFilter->showFields .= ',search';
+		$data->listFilter->showFields .= ', search';
+		$data->listFilter->input(null, 'silent');
+		//$data->listFilter->setField('search','after=from');
     }
     
     
