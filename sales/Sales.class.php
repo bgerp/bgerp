@@ -716,6 +716,10 @@ class sales_Sales extends core_Master
 	            $data->toolbar->addBtn('Експедиране', $shipUrl, 'ef_icon = img/16/shipment.png,title=Експедиране на артикулите от склада,order=9.21');
 	        }
 	        
+    		if(sales_Proforma::haveRightFor('add')){
+	    		$data->toolbar->addBtn("Проформа", array('sales_Proforma', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
+		    }
+		    
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
 	    	
