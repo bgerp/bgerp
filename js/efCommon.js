@@ -1501,11 +1501,21 @@ efae.prototype.process = function()
 		// Преобразуваме обекта в JSON вид
 		var subscribedStr = JSON.stringify(subscribedObj);
 		
+		// Обекст с данните, които ще изпращаме
+		var dataObj = {subscribed : subscribedStr};
+		
+		// Ако е зададено времето на извикване на страницата
+		if (typeof(hitTime) != 'undefined') {
+			
+			// Добавяме в масива
+			dataObj['hitTime'] = hitTime;
+		}
+		
 		// Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
 		$.ajax({
 			  type: "POST",
 			  url: efaeUrl,
-			  data: {subscribed : subscribedStr},
+			  data: dataObj,
 	  		  dataType: 'json',
 			}).done(function(res) {
 				
