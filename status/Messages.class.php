@@ -71,6 +71,7 @@ class status_Messages extends core_Manager
         $this->FLD('text', 'html', 'caption=Текст');
         $this->FLD('type', 'enum(success=Успех, notice=Известие, warning=Предупреждение, error=Грешка)', 'caption=Тип');
         $this->FLD('userId', 'user', 'caption=Потребител');
+        $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
         $this->FLD('lifeTime', 'time', 'caption=Живот');
     }
     
@@ -87,14 +88,12 @@ class status_Messages extends core_Manager
      */
     static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60)
     {
-        // Ако не е подадено id на потребител, използваме текущия
-        if (!$userId) {
-            
-            $userId = core_Users::getCurrent('id');
-        }
+        // Ако не подаден потребител, тогава използваме текущия
+        $userId = ($userId) ? ($userId) : (core_Users::getCurrent());
         
         // Стойности за записа
         $rec = new stdClass();
+        $rec->sid = static::getSid();
         $rec->text = $text;
         $rec->type = $type;
         $rec->userId = $userId;
@@ -103,6 +102,27 @@ class status_Messages extends core_Manager
         $id = static::save($rec);
         
         return $id;
+    }
+    
+    
+    /**
+     * Генерира sid на текущия потребител
+     * 
+     * @return string - md5 стойността на sid
+     */
+    static function getSid()
+    {
+        //Перманентния ключ на текущия потребител
+        $permanentKey = Mode::getPermanentKey();
+        
+        // Стойността на солта на константата
+        $conf = core_Packs::getConfig('status');
+        $salt = $conf->STATUS_SALT;
+        
+        //Вземаме md5'а на sid
+        $sid = md5($salt . $permanentKey);
+        
+        return $sid;
     }
     
     
@@ -127,8 +147,20 @@ class status_Messages extends core_Manager
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
         $query = static::getQuery();
-        $query->where(array("#createdOn <= '[#1#]'", $hitTime));
-        $query->where(array("#createdBy = '[#1#]'", $userId));
+        $query->where(array("#createdOn >= '[#1#]'", $hitTime));
+        
+        // Ако потребителя е логнат
+        if ($userId > 0) {
+            
+            // Статусите за него
+            $query->where(array("#userId = '[#1#]'", $userId));
+        } else {
+            
+            // Статусите за съответния SID
+            $sid = static::getSid();
+            $query->where(array("#sid = '[#1#]'", $sid));
+        }
+        
         $query->orderBy('createdOn', 'ASC');
         
         while ($rec = $query->fetch()) {
@@ -148,7 +180,7 @@ class status_Messages extends core_Manager
      * 
      * @return string - Всички активни статуси за текущия потребител, групирани в div таг
      */
-    static function show($hitTime)
+    static function show_($hitTime)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
         $statusArr = static::getStatuses($hitTime);

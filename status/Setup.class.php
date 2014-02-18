@@ -2,6 +2,12 @@
 
 
 /**
+ * SALT ключа за генериране на уникален sid (status id)
+ */
+defIfNot('STATUS_SALT', md5(EF_SALT . 'status'));
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с status
  *
