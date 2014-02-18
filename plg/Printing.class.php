@@ -85,8 +85,11 @@ class plg_Printing extends core_Plugin
 
         self::addCmdParams($url);
 
-        // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        if($mvc->haveRightFor('single', $data->rec)){
+        	
+        	// Бутон за отпечатване
+        	$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        }
     }
     
     
