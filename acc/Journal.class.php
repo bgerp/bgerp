@@ -231,8 +231,8 @@ class acc_Journal extends core_Master
 		// Слагане на статус за потребителя
         core_Statuses::add(tr($message));
         
-        // Редирект към сингъла, ако не е зададен друг ret_url
-        return followRetUrl(array($mvc, 'single', $docId));
+        // Редирект към сингъла
+        return redirect(array($mvc, 'single', $docId));
     }
     
     
