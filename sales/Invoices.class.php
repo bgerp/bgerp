@@ -618,7 +618,7 @@ class sales_Invoices extends core_Master
         
         if($rec->state == 'active'){
         	if(empty($rec->number)){
-        		$rec->number = $mvc->getNexNumber();
+        		$rec->number = static::getNexNumber();
         	}
         	
 	        if(empty($rec->place) && $rec->state == 'active'){
@@ -1026,7 +1026,7 @@ class sales_Invoices extends core_Master
         $contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
         
         $result = (object)array(
-            'reason'  => strip_tags(static::getRecTitle($cloneRec)), // основанието за ордера
+            'reason'  => "Фактура №{$rec->id}", // основанието за ордера
             'valior'  => $rec->date,   // датата на ордера
         	'entries' => array(),
         );
@@ -1194,11 +1194,11 @@ class sales_Invoices extends core_Master
      * Ф-я връщаща следващия номер на фактурата, ако той е в границите
      * @return int - следващия номер на фактура
      */
-    private function getNexNumber()
+    private static function getNexNumber()
     {
     	$conf = core_Packs::getConfig('sales');
     	
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#number)');
     	if(!$maxNum = $query->fetch()->maxNum){
     		$maxNum = $conf->SALE_INV_MIN_NUMBER;
