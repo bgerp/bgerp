@@ -23,6 +23,9 @@ class core_Ajax extends core_Mvc
         // Масив с URL-та в JSON формат
         $subscribed = Request::get('subscribed');
         
+        // Времето на извикване на страницата
+        $hitTime = Request::get('hitTime', 'int');
+        
         // Декодираме масива
         $subscribedArr = json_decode($subscribed);
         
@@ -41,8 +44,15 @@ class core_Ajax extends core_Mvc
             // Вземаме масива от локолното URL
             $urlArr = core_App::parseLocalUrl($url);
             
-            // добавяме параметър, който указва, че е стартиран по AJAX
+            // Добавяме параметър, който указва, че е стартиран по AJAX
             $urlArr['ajax_mode'] = 1;
+            
+            // Ако е зададен hitTime
+            if ($hitTime) {
+                
+                // Да се добави в URL-то
+                $urlArr['hitTime'] = $hitTime;
+            }
             
             try {
                 // Извикваме URL-то
