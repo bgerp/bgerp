@@ -332,9 +332,9 @@ class store_Transfers extends core_Master
         expect($rec = self::fetchRec($id));
 
         $result = (object)array(
-            'reason' => $rec->reason,
+            'reason' => "Междускладов трансфер №{$rec->id}",
             'valior' => $rec->valior,
-            'totalAmount' => $rec->totalAmount,
+            'totalAmount' => NULL,
             'entries' => array()
         );
         
