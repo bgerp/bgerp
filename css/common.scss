@@ -1716,6 +1716,9 @@ div.alphabet div.tab-page {
 			border: 1px dotted $gray4 !important;
 			text-align: center;
 			padding: 2px;
+			&:first-child{
+			    white-space:nowrap;
+			}
 		}
 		.listTable tr:last-child td {
 			&:first-child {
