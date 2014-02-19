@@ -93,7 +93,9 @@ class status_Messages extends core_Manager
         
         // Стойности за записа
         $rec = new stdClass();
-        $rec->sid = static::getSid();
+        if (!$userId) {
+            $rec->sid = static::getSid();
+        }
         $rec->text = $text;
         $rec->type = $type;
         $rec->userId = $userId;
@@ -155,7 +157,6 @@ class status_Messages extends core_Manager
             // Статусите за него
             $query->where(array("#userId = '[#1#]'", $userId));
         } else {
-            
             // Статусите за съответния SID
             $sid = static::getSid();
             $query->where(array("#sid = '[#1#]'", $sid));
@@ -165,34 +166,76 @@ class status_Messages extends core_Manager
         
         while ($rec = $query->fetch()) {
             
+            // Проверяваме дали е изличан преди
+            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $sid, $userId);
+            
+            // Ако е извличан преди в съответния таб, да не се показва пак
+            if ($isRetrived) continue;
+            
             // Двумерен масив с типа и текста
             $resArr[$rec->id]['text'] = $rec->text;
             $resArr[$rec->id]['type'] = $rec->type;
+            
+            // Добавяме в извличанията
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $sid, $userId);
         }
         
         return $resArr;
-        
     }
     
     
     /**
      * Извлича статусите за текущия потребител и ги добавя в div таг
      * 
-     * @return string - Всички активни статуси за текущия потребител, групирани в div таг
+     * @param integer $hitTime - Timestamp на показване на страницата
+     * @param boolean $subscribe - Дали да се абонира системата, да извлича други записи по AJAX
+     * 
+     * @return core_ET - Всички активни статуси за текущия потребител, групирани в div таг
      */
-    static function show_($hitTime)
+    static function show_($hitTime, $subscribe=TRUE)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
         $statusArr = static::getStatuses($hitTime);
         
-        $res = '';
+        $res = new ET();
         
         foreach ($statusArr as $value) {
 
             // Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res .= "<div class='statuses-{$value['type']}'> {$value['text']} </div>";
+            $res->append("<div class='statuses-{$value['type']}'> {$value['text']} </div>");
+        }
+        
+        if ($subscribe) {
+            
+            // Абонираме да се извличат стойности по AJAX
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+//            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses', 'hitTime'=>Mode::get('hitTime')), 'status', 5);
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Връща статус съобщенията
+     */
+    static function act_getStatuses()
+    {
+        // Ако се вика по AJAX
+        if (Request::get('ajax_mode')) {
+            
+            // Времето на отваряне на таба
+            $hitTime = Request::get('hitTime', 'int');
+            
+            // Вземаме непоказаните статус съобщения
+            $html = static::show($hitTime, FALSE)->getContent();
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id'=>'statuses', 'html' => $html, 'replace' => FALSE);
+            
+            return array($resObj);
+        }
     }
 }
