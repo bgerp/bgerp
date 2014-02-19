@@ -95,9 +95,12 @@ class page_Html extends core_ET {
             }
         }
         
-        $date = dt::verbal2mysql();
-        
-        $hitTime = dt::mysql2timestamp($date);
+        // Ако не е сетнато времето на извикване
+        if (!$hitTime = Mode::get('hitTime')) {
+            
+            // Използваме текущото
+            $hitTime = dt::nowTimestamp();
+        }
         
         // Добавяме в JS timestamp на извикване на страницата
         $invoker->append("var hitTime = {$hitTime};", 'SCRIPTS');
