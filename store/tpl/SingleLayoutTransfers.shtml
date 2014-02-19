@@ -54,30 +54,36 @@
            	<div class="lines"></div>		
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
-                    <td class="topCell first" valign="top" style='min-width:70%'>
-                        
-                        <!--ET_BEGIN deliveryTime-->
-                        <div>
-                            |Срок до|*: <b>[#deliveryTime#]</b>
-                        </div>
-                        <!--ET_END deliveryTime-->
-                         
-        				<!--ET_BEGIN lineId-->
-        				<div>
-                            |Транспорт|*: <br /><b>[#lineId#]</b>
-                        </div>
-        				<!--ET_END lineId-->
-        				
-                        <!--ET_BEGIN note-->
-	                        <hr />
-	                        [#note#]
-                        <!--ET_END note-->
+                <!--ET_BEGIN leftColum-->
+                [#leftColum#]
+                    <td class="topCell first" valign="top" width=50%>
+                        <table class='shipment-table' width=100%>
+		                    <!--ET_BEGIN deliveryTime-->
+		                        <tr>
+		                            <td align='right' class='quiet nowrap' width=1%>|Срок до|*:</td>
+		                            <td>[#deliveryTime#]</td>
+		                        </tr>
+		                    <!--ET_END deliveryTime-->
+		                    <!--ET_BEGIN lineId-->
+		                        <tr>
+		                            <td align='right' class='quiet nowrap' width=1%>|Транспорт|*: </td>
+		                            <td>[#lineId#]</td>
+		                        </tr>
+		                    <!--ET_END lineId--> 
+		                     <!--ET_BEGIN note-->
+		                        <tr>
+		                            <td colspan=2 > 
+		                                    <hr>
+		                                    [#note#]
+		                            </td>
+		                        </tr>
+		                     <!--ET_END note-->
+		                </table>
+                
                         </td>
+                      <!--ET_END leftColum-->
                         <td>
-                        <div style='float:right'>
-                        |Тегло|*: <b style='float:right'>[#weight#]</b><br/>
-                        |Обем|*: &nbsp;<b style='float:right'>[#volume#]</b>
-                        </div>
+                        <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Общ обем|*:&nbsp;<b>[#volume#]</b></div>
                         </td>
                 </tr>           
                 </tbody>
