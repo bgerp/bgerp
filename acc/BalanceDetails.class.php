@@ -529,12 +529,13 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
-    function loadBalance($balanceId)
+    function loadBalance($balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {  
         $query = $this->getQuery();
-        $query->where("#balanceId = {$balanceId}");
-        $query->where('#blQuantity != 0 OR #blAmount != 0');
         
+        static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
+        $query->where('#blQuantity != 0 OR #blAmount != 0');
+       
         while ($rec = $query->fetch()) {  
             $accId = $rec->accountId;
             
@@ -558,9 +559,7 @@ class acc_BalanceDetails extends core_Detail
             $b['baseAmount'] += $rec->blAmount;
             $b['blQuantity'] += $rec->blQuantity;
             $b['blAmount'] += $rec->blAmount;
-
         }
-        
     }
     
     
@@ -803,17 +802,18 @@ class acc_BalanceDetails extends core_Detail
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
      * @return array            - масив със всички извлечени записи
      */
-	public static function filterQuery(core_Query &$query, $id, $accs, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+	public static function filterQuery(core_Query &$query, $id, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
     	expect($query->mvc instanceof acc_BalanceDetails);
     	
     	// Трябва да има поне една зададена сметка
     	$accounts = arr::make($accs);
-    	expect(count($accounts) >= 1);
     	
-    	foreach ($accounts as $sysId){
-	    	$query->orWhere("#accountNum = {$sysId}");
-	    }
+    	if(count($accounts) >= 1){
+	    	foreach ($accounts as $sysId){
+		    	$query->orWhere("#accountNum = {$sysId}");
+		    }
+    	}
     	
 	    // ... само детайлите от последния баланс
 	    $query->where("#balanceId = {$id}");
