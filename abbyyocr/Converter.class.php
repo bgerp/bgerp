@@ -108,7 +108,7 @@ class abbyyocr_Converter extends core_Manager
         if (fileman_Indexes::isProcessStarted($params)) {
             
             // Добавяме съобщение
-            core_Statuses::add(tr('Процеса вече е бил стартиран'));
+            status_Messages::newStatus(tr('Процеса вече е бил стартиран'));
         } else {
             
             // Заключваме процеса за определено време
@@ -181,7 +181,7 @@ class abbyyocr_Converter extends core_Manager
         $Script->run($params['asynch']);
         
         // Добавяме съобщение
-        core_Statuses::add(tr('Стартирано е извличането на текст с OCR'), 'success');
+        status_Messages::newStatus(tr('Стартирано е извличането на текст с OCR'), 'success');
     }
     
     
