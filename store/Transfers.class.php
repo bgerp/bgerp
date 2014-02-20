@@ -36,7 +36,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, store_DocumentWrapper';
+                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, store_DocumentWrapper, plg_Search';
 
     
     /**
@@ -49,6 +49,12 @@ class store_Transfers extends core_Master
      * Кой има право да чете?
      */
     public $canRead = 'ceo,store';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'fromStore, toStore, folderId';
     
     
     /**
@@ -84,7 +90,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, fromStore, toStore, folderId, volume, weight, createdOn, createdBy';
+    public $listFields = 'id, valior, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -151,6 +157,17 @@ class store_Transfers extends core_Master
     }
     
     
+	/**
+     * Малко манипулации след подготвянето на формата за филтриране
+     */
+	static function on_AfterPrepareListFilter($mvc, $data)
+	{
+		$data->listFilter->showFields = 'from,to,search';
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+		$data->listFilter->input();
+	}
+	
+	
     /**
      * След изпълнение на скрипта, обновява записите, които са за ъпдейт
      */
@@ -219,6 +236,18 @@ class store_Transfers extends core_Master
 	    		$row->toAdress = crm_Locations::getAddress($toStoreLocation);
 	    	}
     	}
+    	
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		
+    		foreach (array('fromStore', 'toStore') as $storeFld){
+	    		if(store_Stores::haveRightFor('single', $rec->{$storeFld})){
+	    			$attr['class'] = "linkWithIcon";
+	    			$attr['style'] = "background-image:url('" . sbf('img/16/home-icon.png', "") . "');";
+	    			$row->{$storeFld} = ht::createLink($row->{$storeFld}, array('store_Stores', 'single', $rec->{$storeFld}), NULL, $attr);
+	    		}
+    		}
+    	}
     }
     
     
@@ -273,7 +302,7 @@ class store_Transfers extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Междускладов трансфер №{$rec->id} / " . $this->getVerbal($rec, 'valior');
+        $title = $this->getRecTitle($rec);
         
         $row = (object)array(
             'title'    => $title,
