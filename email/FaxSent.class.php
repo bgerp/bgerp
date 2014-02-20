@@ -250,7 +250,7 @@ class email_FaxSent extends core_Manager
             }
             
             // Добавяме статус
-            core_Statuses::add($msg, $statusType);
+            status_Messages::newStatus($msg, $statusType);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
