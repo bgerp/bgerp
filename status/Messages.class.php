@@ -134,7 +134,6 @@ class status_Messages extends core_Manager
      * @param integer $hitTime - timestamp на изискване на страницата
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
-     * @access protected
      */
     static function getStatuses($hitTime)
     {
@@ -209,7 +208,6 @@ class status_Messages extends core_Manager
             
             // Абонираме да се извличат стойности по AJAX
             core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
-//            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses', 'hitTime'=>Mode::get('hitTime')), 'status', 5);
         }
         
         return $res;
