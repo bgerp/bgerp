@@ -1436,7 +1436,7 @@ class distro_Files extends core_Detail
         if (!$haveSuggRepos) {
             
             // Добавяме статус съобщение
-            core_Statuses::add(tr('Няма други файлове за добавяне'));
+            status_Messages::newStatus(tr('Няма други файлове за добавяне'));
             
             // Редиректваме
             return new Redirect($retUrl);
