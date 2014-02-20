@@ -229,7 +229,7 @@ class acc_Journal extends core_Master
 		$message = $mvc->conto($docId);
 		
 		// Слагане на статус за потребителя
-        core_Statuses::add(tr($message));
+        status_Messages::newStatus(tr($message));
         
         // Редирект към сингъла
         return redirect(array($mvc, 'single', $docId));
