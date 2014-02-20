@@ -113,6 +113,19 @@ class status_Retrieving extends core_Manager
     
     
     /**
+     * Изтрива информацията за изтеглянията за съответното статус събщение
+     * 
+     * @param integer $messageId - id на съобщението
+     */
+    static function removeRetrieving($messageId)
+    {
+        $cnt = static::delete("#messageId = '{$messageId}'");
+        
+        return $cnt;
+    }
+    
+    
+    /**
      * Проверява дали съобщението и извлеченоо за даден потребител в съответния таб
      * 
      * @param integer $messageId

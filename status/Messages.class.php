@@ -236,4 +236,55 @@ class status_Messages extends core_Manager
             return array($resObj);
         }
     }
+    
+    
+    /**
+     * Извиква се от крона. Премахва старите статус съобщения
+     */
+    function cron_removeOldStatuses()
+    {
+        // Текущото време
+        $now = dt::verbal2mysql();
+        
+        // Вземаме всички статус съобщения, на които име е свършил lifeTime
+        $query = static::getQuery();
+        $query->where("ADDTIME(#createdOn, SEC_TO_TIME(#lifeTime)) < '{$now}'");
+        
+        while ($rec = $query->fetch()) {
+            
+            // Изтриваме информцията за изтегляния
+            status_Retrieving::removeRetrieving($rec->id);
+            
+            // Изтриваме записа
+            static::delete($rec->id);
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'removeOldStatuses';
+        $rec->description = 'Премахва старите статус съобщения';
+        $rec->controller = $mvc->className;
+        $rec->action = 'removeOldStatuses';
+        $rec->period = 5;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 40;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да премахва старите статус съобщения.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да премахва старите статус съобщения.</li>";
+        }
+    }
 }
