@@ -88,6 +88,13 @@ class status_Messages extends core_Manager
      */
     static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60)
     {
+        // Ако не е бил сетнат преди
+        if (!Mode::get('hitTime')) {
+            
+            // Задаваме текущото време
+            Mode::set('hitTime', dt::nowTimestamp());
+        }
+        
         // Ако не подаден потребител, тогава използваме текущия
         $userId = ($userId) ? ($userId) : (core_Users::getCurrent());
         
