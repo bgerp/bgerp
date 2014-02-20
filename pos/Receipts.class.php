@@ -472,7 +472,9 @@ class pos_Receipts extends core_Master {
         
         Mode::set('wrapper', 'page_Empty');
         $tpl = $this->renderSingle($data);
-        $tpl->append(pos_Points::fetchField(pos_Points::getCurrent(), 'name'), 'PAGE_TITLE');
+        if($posPoint = pos_Points::getCurrent('id', FALSE)){
+        	$tpl->append(pos_Points::fetchField(pos_Points::getCurrent(), 'name'), 'PAGE_TITLE');
+        }
         
         if(Request::get('ajax_mode')){
         	echo json_encode($tpl->getContent());
