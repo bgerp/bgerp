@@ -1693,3 +1693,19 @@ function render_html(data)
 		}
 	}
 }
+
+
+/**
+ * Функция, която изпълнява подадения JS
+ * Може да се комбинира с efae
+ * 
+ * @param string js - javascript, който да се изпълни
+ */
+function render_js(js)
+{
+	// Ако няма JS, да не се изпуълнява
+	if ((typeof js == 'undefined') || !js) return ;
+	
+	// Изпълнявама функцията
+	eval(js);
+}
