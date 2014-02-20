@@ -131,4 +131,55 @@ class acc_JournalDetails extends core_Detail
             }
         }
     }
+    
+    
+	/**
+     * Филтрира заявка към модела за показване на определени данни
+     * 
+     * @param core_Query $query - Заявка към модела
+     * @param mixed $accs       - списък от систем ид-та на сметките
+     * @param mixed $items1     - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
+     */
+	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    {
+    	expect($query->mvc instanceof acc_JournalDetails);
+    	
+    	$query->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('state', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('docType', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('docId', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('reason', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('jid', 'acc_Journal', 'externalName=id');
+        $query->where("#state = 'active'");
+        $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
+        $query->orderBy('valior', 'ASC');
+    	
+    	// Трябва да има поне една зададена сметка
+    	$accounts = arr::make($accs);
+    	
+    	if(count($accounts) >= 1){
+	    	foreach ($accounts as $sysId){
+	    		$acc = acc_Accounts::getRecBySystemId($sysId);
+		    	$query->where("#debitAccId = {$acc->id}");
+		    	$query->orWhere("#creditAccId = {$acc->id}");
+		    }
+    	}
+    	
+    	// Проверка на останалите параметри от 1 до 3
+    	foreach (range(1, 3) as $i){
+    		$var = ${"items{$i}"};
+    		
+    		// Ако е NULL продалжаваме
+    		if(!$var) continue;
+    		$varArr = arr::make($var);
+    		
+    		// За перата се изисква поне едно от тях да е на текущата позиция
+    		foreach($varArr as $itemId){
+    			$query->where("#debitItem{$i} = {$itemId}");
+    			$query->orWhere("#creditItem{$i} = {$itemId}");
+    		}
+    	}
+    }
 }
