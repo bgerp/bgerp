@@ -265,7 +265,7 @@ class callcenter_SMS extends core_Master
         if ($sendStatusArr['msg']) {
             
             // Показваме го
-            core_Statuses::add($sendStatusArr['msg']);
+            status_Messages::newStatus($sendStatusArr['msg']);
         }
     }
     
