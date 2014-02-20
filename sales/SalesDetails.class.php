@@ -459,10 +459,8 @@ class sales_SalesDetails extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $ProductManager = cls::get($rec->classId);
-        $tplLang = $mvc->Master->getTemplate($rec->saleId);
-        $lang = doc_TplManager::fetchField($tplLang, 'lang');
         
-        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, $lang);
+        $row->productId = $ProductManager->getTitleById($rec->productId, TRUE, $rec->tplLang);
        
         if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
         	$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));

@@ -226,8 +226,9 @@ class purchase_PurchasesDetails extends core_Detail
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
+                
                 $ProductManager = cls::get($rec->classId);
-        		$row->productId = $ProductManager->getTitleById($rec->productId);
+        		$row->productId = $ProductManager->getTitleById($rec->productId, TRUE, $rec->tplLang);
                 
             	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
         			$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));

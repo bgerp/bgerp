@@ -50,6 +50,19 @@ class doc_plg_TplManagerDetail extends core_Plugin
     }
     
     
+	/**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)
+    {
+    	// Ако няма шаблон, за шаблон се приема първия такъв за модела
+    	if($rec->id){
+    		$template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
+    		$rec->tplLang = doc_TplManager::fetchField($template, 'lang');
+    	}
+    }
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */

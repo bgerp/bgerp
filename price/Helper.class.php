@@ -183,7 +183,7 @@ abstract class price_Helper
 	 * 		->sayWords   - крайната сума изписана с думи
 	 * 
 	 */
-	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE)
+	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
 	{
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$values = (array)$values;
@@ -222,7 +222,7 @@ abstract class price_Helper
 		}
 		
 		$SpellNumber = cls::get('core_SpellNumber');
-    	$arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], NULL, FALSE, $currencyId);
+    	$arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], $lang, FALSE, $currencyId);
 		$arr['sayWords'] = str::mbUcfirst($arr['sayWords']);
     	
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0,00</span>";

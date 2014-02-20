@@ -118,6 +118,7 @@ class doc_plg_TplManager extends core_Plugin
     	// Ако няма шаблон, за шаблон се приема първия такъв за модела
     	if($rec->id){
     		$rec->template = $mvc->getTemplate($rec->id);
+    		$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
     	}
     }
     
