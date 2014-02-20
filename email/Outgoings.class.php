@@ -425,7 +425,7 @@ class email_Outgoings extends core_Master
             $statusType = 'notice';
             
             // Добавяме статус
-            core_Statuses::add($msg, $statusType);
+            status_Messages::newStatus($msg, $statusType);
             
             // Ако имейла е активен или чернова
             if ($rec->state == 'active' || $rec->state == 'draft') {
@@ -453,7 +453,7 @@ class email_Outgoings extends core_Master
             $statusType = 'warning';   
             
             // Добавяме статус
-            core_Statuses::add($msg, $statusType);
+            status_Messages::newStatus($msg, $statusType);
         }
     }
     
@@ -1030,7 +1030,7 @@ class email_Outgoings extends core_Master
                 } else {
                     
                     //Ако не е валидемимейал, добавяме статус съобщения, че не е валиден имейл
-                    core_Statuses::add("Невалиден имейл: {$emailTo}", 'warning');   
+                    status_Messages::newStatus("Невалиден имейл: {$emailTo}", 'warning');   
                 }
             }
     
