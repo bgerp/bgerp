@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -94,6 +94,12 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Поле за единичен изглед
+     */
+    public $rowToolsSingleField = 'periodId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -116,23 +122,6 @@ class acc_Balances extends core_Master
         }
         
         return parent::act_Single();
-    }
-    
-    
-    /**
-     * След подготовка на записите за листовия изглед
-     */
-    public static function on_AfterPrepareListRows($mvc, $data)
-    {
-        if (empty($data->rows)) {
-            return;
-        }
-        
-        foreach ($data->rows as $i=>$row) {
-            $data->rows[$i]->periodId = ht::createLink(
-                $row->periodId, array($mvc, 'single', $data->recs[$i]->id)
-            );
-        }
     }
     
     
