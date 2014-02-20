@@ -63,7 +63,7 @@
                             
                             <!--ET_BEGIN currencyId-->
                             <tr>
-                                <td class='quiet nowrap' align=right>|Валута|*: </td>
+                                <td class='quiet nowrap' width=1% align=right>|Валута|*: </td>
                                 <td>[#currencyId#] [#currencyRateText#]</td>
                             </tr>
                             <!--ET_END currencyId-->
@@ -73,7 +73,7 @@
                                <td colspan=2> <hr></td>
                             </tr>
                             <tr>
-                               <td class='quiet nowrap' align=right>|Банкова с-ка|*:</td>
+                               <td class='quiet nowrap' width=1% align=right>|Банкова с-ка|*:</td>
                                <td>[#bankAccountId#]</td>
                             </tr>
                             <!--ET_END bankAccountId-->
@@ -83,7 +83,7 @@
                                <td colspan=2> <hr></td>
                             </tr>
                             <tr>
-                               <td class='quiet nowrap' align=right>|Каса|*:</td>
+                               <td class='quiet nowrap' width=1% align=right>|Каса|*:</td>
                                <td>[#caseId#]</td>
                             </tr>
                             <!--ET_END caseId-->
