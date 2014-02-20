@@ -337,7 +337,7 @@ class support_Issues extends core_Master
         if (!$components) {
             
             // Добавяме съобщение за грешка
-            core_Statuses::add(tr('Няма въведен компонент на системата.'));
+            status_Messages::newStatus(tr('Няма въведен компонент на системата.'));
             
             // Ако има права за добавяне на компонент
             if (support_Components::haveRightFor('add')) {
