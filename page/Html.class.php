@@ -49,6 +49,21 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .
             "\n</body>" .
             "\n</html>");
+    
+        // Ако не е сетнато времето на извикване
+        if (!$hitTime = Mode::get('hitTime')) {
+            
+            // Използваме текущото
+            $hitTime = dt::nowTimestamp();
+        }
+        
+        // Добавяме в JS timestamp на извикване на страницата
+        $this->append("var hitTime = {$hitTime};", 'SCRIPTS');
+        
+        try {
+            // Извикваме показването на статусите - във vendors
+            $this->append(status_Messages::show($hitTime), 'STATUSES');
+        } catch (Exception $e) { }
     }
     
     
@@ -94,20 +109,5 @@ class page_Html extends core_ET {
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         }
-        
-        // Ако не е сетнато времето на извикване
-        if (!$hitTime = Mode::get('hitTime')) {
-            
-            // Използваме текущото
-            $hitTime = dt::nowTimestamp();
-        }
-        
-        // Добавяме в JS timestamp на извикване на страницата
-        $invoker->append("var hitTime = {$hitTime};", 'SCRIPTS');
-        
-        try {
-            // Извикваме показването на статусите - във vendors
-            $invoker->append(status_Messages::show($hitTime), 'STATUSES');
-        } catch (Exception $e) { }
     }
 }
