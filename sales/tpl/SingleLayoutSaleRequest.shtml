@@ -62,30 +62,46 @@
 		           	<div class="lines"></div>		
 		            <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
 		                <tbody><tr>
-		                    <td class="topCell first" valign="top" width="30%">
-		                        <!--ET_BEGIN deliveryTermId-->
-		                    	<div>
-		                            |Условие|*: <b>[#deliveryTermId#]</b>
-		                       	</div>
-		                       	<!--ET_END deliveryTermId-->
-		                       	
-		                        <!--ET_BEGIN deliveryPlaceId-->
-		                        <div>
-		                            |Място|*: <b>[#deliveryPlaceId#]</b>
-		                        </div>
-		        				<!--ET_END deliveryPlaceId-->
-		        				
-		                        <!--ET_BEGIN note-->
-			                        <hr />
-			                        [#note#]
-		                        <!--ET_END note-->     
+		                    <td class="topCell first" valign="top" width="50%">
+		                    <table width=100%>
+                           <!--ET_BEGIN deliveryTermId-->
+                           <tr>
+                                <td class='quiet nowrap' align="right" width=1%>|Условие|*: </td>
+                                <td>[#deliveryTermId#]</td>
+                            </tr>
+                            <!--ET_END deliveryTermId-->
+                            
+                            <!--ET_BEGIN deliveryPlaceId-->
+                            <tr>
+                                <td class='quiet nowrap' align="right" width=1%>|Място|*: </td>
+                                <td>[#deliveryPlaceId#]</td>
+                            </tr>
+                            <!--ET_END deliveryPlaceId-->
+                            
+                            <!--ET_BEGIN paymentMethodId-->
+                            <tr>
+                               <td colspan=2><hr></td>
+                            </tr>
+                            <tr>
+                                <td class='quiet nowrap' align="right" width=1%>|Плащане|*: </td>
+                                <td>[#paymentMethodId#]</td>
+                            </tr> 
+                            <!--ET_END paymentMethodId-->
+                            
+                            <tr>
+                                <td class='quiet nowrap' align="right" width=1%>|Валута|*: </td>
+                                <td> [#currencyId#] [#currencyRate#]</td>
+                            </tr> 
+                            
+                            <!--ET_BEGIN note-->
+                            <tr>
+                               <td colspan=2><hr>[#note#]</td>
+                            </tr>
+                            <!--ET_END note-->
+                        </table>
+		                      
 		                    </td>
-		                    <td class="topCell" valign="top" width='30%'>
-		                        <!--ET_BEGIN paymentMethodId-->
-		                            <div>|Плащане|*: <b>[#paymentMethodId#]</b></div>
-		                        <!--ET_END paymentMethodId-->
-		                       <div>|Валута|*:  <b>[#currencyId#]</b> [#currencyRate#]</div>
-		                    </td>
+		                   
 		       
 		                    <td class="topCell noWrap" align="right" valign="top">
 		                     	 <table border='0'cellpadding='3px' cellspacing='0px' style='float:right' id='business-doc-summary-table' width='100%'>
