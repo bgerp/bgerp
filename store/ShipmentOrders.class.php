@@ -510,7 +510,8 @@ class store_ShipmentOrders extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Експедиционно нареждане №{$rec->id} / " . $this->getVerbal($rec, 'valior');
+        $title = $this->getRecTitle($rec);
+        
         $row = (object)array(
             'title'    => $title,
             'authorId' => $rec->createdBy,

@@ -51,7 +51,7 @@ class store_transactionIntf_Receipt
         }
         
         $transaction = (object)array(
-            'reason'  => 'Складова разписка #' . $rec->id,
+            'reason'  => 'Складова разписка №' . $rec->id,
             'valior'  => $rec->valior,
             'entries' => $entries, 
         );

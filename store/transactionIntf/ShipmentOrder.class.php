@@ -65,7 +65,7 @@ class store_transactionIntf_ShipmentOrder
         }
         
         $transaction = (object)array(
-            'reason'  => 'ЕН #' . $rec->id,
+            'reason'  => 'Експедиционно нареждане №' . $rec->id,
             'valior'  => $rec->valior,
             'entries' => $entries, 
         );

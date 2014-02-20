@@ -134,7 +134,7 @@ class store_Receipts extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId';
+    public $searchFields = 'storeId, locationId, deliveryTime, lineId, contragentClassId, contragentId, weight, volume, folderId';
     
     
     /**
@@ -348,9 +348,6 @@ class store_Receipts extends core_Master
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
-    	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
@@ -500,7 +497,7 @@ class store_Receipts extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Складова разписка №{$rec->id} / " . $this->getVerbal($rec, 'valior');
+        $title = $this->getRecTitle($rec);
         
         $row = (object)array(
             'title'    => $title,
