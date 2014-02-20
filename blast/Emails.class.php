@@ -830,7 +830,7 @@ class blast_Emails extends core_Master
             $link = array('blast_Emails', 'single', $rec->id);
             
             // Добавяме съобщение в статуса
-            core_Statuses::add(tr("Успешно активирахте бласт имейл-а"));
+            status_Messages::newStatus(tr("Успешно активирахте бласт имейл-а"));
             
             // Редиректваме
             return redirect($link);
@@ -984,7 +984,7 @@ class blast_Emails extends core_Master
         blast_Emails::save($recUpd);
         
         // Добавяме съобщение в статуса
-        core_Statuses::add(tr("Успешно спряхте бласт имейл-а"));
+        status_Messages::newStatus(tr("Успешно спряхте бласт имейл-а"));
         
         // Редиректваме
         return redirect($link);
