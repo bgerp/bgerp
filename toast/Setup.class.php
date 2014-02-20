@@ -39,6 +39,7 @@ class toast_Setup extends core_ProtoSetup
         'TOAST_MESSAGE_VERSION' => array ('enum(0.3.0f)', 'caption=Версия на `ToastMessage`->Версия'),                
     );
     
+    
     /**
      * Инсталиране на пакета
      */
@@ -55,3 +56,4 @@ class toast_Setup extends core_ProtoSetup
         return $html;
     }
 }
+
