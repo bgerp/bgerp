@@ -1,6 +1,12 @@
 <?php
-    
-    
+
+
+/**
+ * 
+ */
+defIfNot('ABBYYOCR_LANGUAGES', 'Bulgarian English');  
+
+
 /**
  * Инсталатор на плъгин за добавяне на бутона за разпознаване на текст с abbyyocr
  *
@@ -47,6 +53,18 @@ class abbyyocr_Setup extends core_ProtoSetup
         );
     
     
+        
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+           
+       'ABBYYOCR_LANGUAGES' => array ('varchar', 'caption=Езици за търсене'),
+
+     );
+     
+     
     /**
      * Де-инсталиране на пакета
      */

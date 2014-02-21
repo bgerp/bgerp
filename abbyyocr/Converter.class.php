@@ -141,6 +141,9 @@ class abbyyocr_Converter extends core_Manager
      */
     static function getText($fileHnd, $params)
     {
+        // Конфигурацията
+        $conf = core_Packs::getConfig('abbyyocr');
+        
         // Вземам записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
@@ -161,7 +164,7 @@ class abbyyocr_Converter extends core_Manager
         $Script->setFile('OUTPUTF', $textPath);
         
         // Задаваме параметрите
-        $Script->setParam('LANGUAGE', 'Bulgarian English', TRUE);
+        $Script->setParam('LANGUAGE', $conf->ABBYYOCR_LANGUAGES, TRUE);
         
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
