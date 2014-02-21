@@ -85,5 +85,9 @@ class page_Internal extends page_Html {
             
             Mode::setPermanent('NotificationType_' . $Nid, NULL);
         }
+        
+        // Добавя статус съобщенията
+        // Ако се вика parent::on_Output няма да има нужда от това
+        $invoker->showStatus();
     }
 }
