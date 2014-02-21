@@ -156,6 +156,7 @@ class pos_Receipts extends core_Master {
     function act_New()
     {
     	$id = $this->createNew();
+    	
     	return Redirect(array($this, 'single', $id));
     }
     
@@ -174,6 +175,10 @@ class pos_Receipts extends core_Master {
     	$rec->pointId = $posId;
     	$rec->valior = dt::now();
     	$this->requireRightFor('add', $rec);
+    	
+    	// Слагане на статус за потребителя
+    	status_Messages::newStatus(tr("Успешно е създадена нова чернова бележка"));
+    	
     	return $this->save($rec);
     }
     
@@ -577,19 +582,27 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Създава нова бележка и пренасочва към създаването на фактура
+     * Контира документа и ако е зададено пренасочва към създаването на нова фактура
      */
-    function act_MakeInvoice()
+    function act_Close()
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'draft');
+    	$makeInvoice = Request::get('makeInvoice', 'int');
     	
     	// Контиране на документа
-    	$msg = $this->conto($id);
+    	$this->conto($id);
+    	
+    	// Ако не трябва да се прави фактура редирект към новата бележка
+    	if(empty($makeInvoice)){
+    		
+    		// Създаване на нова чернова бележка
+    		return redirect(array($this, 'new'));
+    	}
     	
     	// Форсиране на папката на клиента
-    	$client = $this->pos_ReceiptDetails->hasClient($id);
+    	expect($client = $this->pos_ReceiptDetails->hasClient($id));
     	$contragentClass = cls::get($client->class);
     	$folderId = $contragentClass->forceCoverAndFolder($client->id);
     	
@@ -597,6 +610,6 @@ class pos_Receipts extends core_Master {
     	$this->createNew();
     	
     	// Редирект към създаването на нова фактура;
-    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id), FALSE, $msg);
+    	return redirect(array('sales_Invoices', 'add', 'folderId' => $folderId, 'docType' => $this->getClassId(), 'docId' => $id));
     }
 }
