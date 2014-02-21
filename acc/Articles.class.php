@@ -414,12 +414,12 @@ class acc_Articles extends core_Master
         $mvc = cls::get($journlRec->docType);
         
         $articleRec = (object)array(
-            'reason'      => tr('Сторниране на') . " " . $journlRec->reason . ' / ' . acc_Journal::recToVerbal($journlRec, 'valior')->valior,
+            'reason'      => tr('Сторниране на') . " " .  mb_strtolower($mvc->singleTitle) . " №{$journlRec->docId} / " . acc_Journal::recToVerbal($journlRec, 'valior')->valior,
             'valior'      => dt::now(),
             'totalAmount' => $journlRec->totalAmount,
             'state'       => 'draft',
         );
-       
+      
         $journalDetailsQuery = acc_JournalDetails::getQuery();
         $entries = $journalDetailsQuery->fetchAll("#journalId = {$journlRec->id}");
         
