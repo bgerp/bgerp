@@ -494,13 +494,9 @@ class pos_Receipts extends core_Master {
     /**
      * Имплементиране на интерфейсен метод ( @see acc_TransactionSourceIntf )
      */
-    static function on_AfterGetLink($mvc, &$res, $id)
-    {bp($res);
-    	if(!$res) {
-            $title = sprintf('%s&nbsp;№%d',
-                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle, $id);
-            $res = ht::createLink($title, array($mvc, 'single', $id));
-        }
+    static function getLink($id)
+    {
+    	return static::recToVerbal(static::fetchRec($id), 'title,-list')->title;
     }
     
      
