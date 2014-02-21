@@ -6,7 +6,7 @@
 	</div>
 	<!--ET_END header-->
 	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
-	<p class='centered'>№ [#number#] / [#modifiedOn#]</p>
+	<p class='centered'>№ [#id#] / [#createdDate#]</p>
 	<br>
 	
 	<table class='border-table' border=1 cellpadding="5" width=100%>

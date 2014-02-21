@@ -281,7 +281,7 @@ abstract class acc_ClosedDeals extends core_Master
 	        $row->docId = $firstDoc->getLink();
 	    }
 	    
-	    $row->header = $mvc->singleTitle . " №<b>{$firstDoc->getHandle()}</b> ({$row->state})";
+	    $row->header = cls::get(get_called_class())->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    
 	    return $row;
     }
