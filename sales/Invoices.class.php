@@ -1034,7 +1034,8 @@ class sales_Invoices extends core_Master
         // Ако е ДИ или КИ се посочва към коя фактура е то
         if($rec->type != 'invoice') {
         	$origin = static::getOrigin($rec);
-        	$result->reason .= " към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
+        	$type = static::getVerbal($rec, 'type');
+        	$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
         }
         
         // Ако фактурата е от пос продажба не се контира ддс
