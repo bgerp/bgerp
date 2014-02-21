@@ -68,7 +68,7 @@ class toast_Toast extends core_Plugin
         $toastJS= static::getStatusesJS($hitTime);
         
         // Стартираме в JQuery
-        jquery_Jquery::run($tpl, $toastJS);
+        jquery_Jquery::run($tpl, $toastJS, TRUE);
         
         // Ако е зададено да се абонира
         if ($subscribe) {
