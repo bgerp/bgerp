@@ -112,7 +112,6 @@ class pos_ReceiptDetails extends core_Detail {
 	    
         // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if (!empty($data->masterData->toolbar->buttons['btnConto'])) {
-	    	//$contoUrl = $data->masterData->toolbar->buttons['btnConto']->url;
 	        $contoUrl = array('pos_Receipts', 'close', $data->masterData->rec->id);
 	    	
 	        if($client = $this->hasClient($data->masterData->rec->id)){
