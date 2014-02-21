@@ -191,7 +191,7 @@ class pos_Receipts extends core_Master {
     	$row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	
     	if($fields['-list']){
-    		$row->title = "Бърза продажба №{$row->id}";
+    		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	}
     	
@@ -495,7 +495,7 @@ class pos_Receipts extends core_Master {
      * Имплементиране на интерфейсен метод ( @see acc_TransactionSourceIntf )
      */
     static function on_AfterGetLink($mvc, &$res, $id)
-    {
+    {bp($res);
     	if(!$res) {
             $title = sprintf('%s&nbsp;№%d',
                 empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle, $id);

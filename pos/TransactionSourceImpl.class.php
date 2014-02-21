@@ -41,7 +41,7 @@ class pos_TransactionSourceImpl
         }
         
         $transaction = (object)array(
-            'reason'  => 'POS Продажба #' . $rec->id,
+            'reason'  => 'Бележка за продажба №' . $rec->id,
             'valior'  => $rec->createdOn,
             'entries' => $entries, 
         );
