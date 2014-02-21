@@ -21,17 +21,13 @@ class page_Empty extends page_Html
     
     
     /**
-     * Генериране на изход, съдържащ само $content, без никакви доп. елементи
+     * Конструктор
      */
-    function output($content = '', $place = "PAGE_CONTENT")
+    function page_Empty()
     {
+        $this->page_Html();
         $this->replace("UTF-8", 'ENCODING');
-        $this->push('css/Application.css', 'CSS');
         $this->push('css/common.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
-        
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
-        
-        parent::output($content, 'PAGE_CONTENT');
     }
 }
