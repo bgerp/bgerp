@@ -289,9 +289,10 @@ class sales_SalesDetails extends core_Detail
                     $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '  ' . $shortUomName . '</small>';
                 }
                 
-                $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
-                $row->quantity->placeObject($row);
-                $row->quantity->removeBlocks();
+                $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
+                $quantity->placeObject($row);
+                $row->quantity = $quantity;
+                $row->quantity->removePlaces();
             }
         }
 
