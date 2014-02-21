@@ -138,7 +138,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
 	    		}
 	    		
 	    		// Контиране на документа
-	    		$mvc->conto($id);
+	    		Request::forward(array('Ctr' => 'acc_Journal', 'Act' => 'Conto', 'docId' => $id, 'docType' => $mvc->className));
 	    		
 	    		// Редирект
 	    		return redirect(array($mvc, 'single', $id));
