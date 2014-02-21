@@ -36,7 +36,7 @@ class acc_ClosedDealsTransactionImpl
         
 		// Създаване на обекта за транзакция
         $result = (object)array(
-            'reason'      => $firstDoc->getHandle(),
+            'reason'      => $this->class->singleTitle . " #" . $firstDoc->getHandle(),
             'valior'      => dt::now(),
             'totalAmount' => currency_Currencies::round(abs($amount)),
             'entries'     => array()
