@@ -8,6 +8,12 @@ defIfNot('STATUS_SALT', md5(EF_SALT . 'status'));
 
 
 /**
+ * Колко време преди създаването да се показват статус съобщеният
+ */
+defIfNot('STATUS_TIME_BEFORE', 2);
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с status
  *
@@ -46,6 +52,15 @@ class status_Setup
     var $info = "Статуси";
     
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+           
+       'STATUS_TIME_BEFORE' => array ('time', 'caption=Колко време преди създаването'),
+     );
+     
+     
     /**
      * Инсталиране на пакета
      */

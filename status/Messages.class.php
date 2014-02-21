@@ -149,6 +149,12 @@ class status_Messages extends core_Manager
         // id на текущия потребител
         $userId = core_Users::getCurrent();
         
+        // Конфигурационния пакет
+        $conf = core_Packs::getConfig('status');
+        
+        // Намяляме времето
+        $hitTime -= $conf->STATUS_TIME_BEFORE;
+        
         // Време на извикване на страницата
         $hitTime = dt::timestamp2Mysql($hitTime);
         
