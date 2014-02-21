@@ -116,7 +116,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'");
+//            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'");
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {

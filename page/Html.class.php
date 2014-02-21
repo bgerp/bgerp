@@ -105,6 +105,8 @@ class page_Html extends core_ET {
      */
     function showStatus()
     {
+        static $i = 0;
+        
         // Ако не е сетнато времето на извикване
         if (!$hitTime = Mode::get('hitTime')) {
             
@@ -112,12 +114,17 @@ class page_Html extends core_ET {
             $hitTime = dt::nowTimestamp();
         }
         
+        // При всяко извикване да има различно време
+        $hitTime -= $i;
+        
         // Добавяме в JS timestamp на извикване на страницата
         $this->append("var hitTime = {$hitTime};", 'SCRIPTS');
-        
+        core_Logs::log(get_called_class(), $hitTime);
         try {
             // Извикваме показването на статусите - във vendors
             $this->append(status_Messages::show($hitTime), 'STATUSES');
         } catch (Exception $e) { }
+        
+        $i++;
     }
 }
