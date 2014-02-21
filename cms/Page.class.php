@@ -112,6 +112,10 @@ class cms_Page extends page_Html {
 
         // Добавяне на включвания външен код
         cms_Includes::insert($invoker);
+        
+        // Добавя статус съобщенията
+        // Ако се вика parent::on_Output няма да има нужда от това
+        $invoker->showStatus();
     }
 
 
