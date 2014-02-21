@@ -291,8 +291,8 @@ class sales_SalesDetails extends core_Detail
                 
                 $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
                 $quantity->placeObject($row);
+                $quantity->removeBlocks();
                 $row->quantity = $quantity;
-                $row->quantity->removePlaces();
             }
         }
 

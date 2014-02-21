@@ -185,7 +185,7 @@ class sales_Proforma extends core_Master
     	$dRows = &$sData->sales_SalesDetails->rows;
     	if(count($dRows)){
     		foreach ($dRows as $id  => &$dRow){
-    			$dRow->quantity->removeBlock('packQuantityDelivered');
+    			$dRow->quantity = $dRow->packQuantity;
     			$dRow->productId = strip_tags($dRow->productId);
     		}
     	}
