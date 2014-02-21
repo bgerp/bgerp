@@ -2256,7 +2256,6 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
     display: table;
 	border: solid 1px $orange;
 	text-align: center;
-    margin: 10px auto 0; 
     padding-top: 15px !important;
     padding-bottom: 15px !important;
     font-size: 1.3em; 
@@ -2266,7 +2265,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 
 div.statuses-warning {
 	@include richtext-message();
-	margin: 10px auto 0; 
+	margin: 10px auto; 
     color: #9F6000;
     border-color: lighten(#9F6000, 30%);
     background-color: #ffdc7a;
@@ -2275,7 +2274,7 @@ div.statuses-warning {
 
 div.statuses-success {
     @include richtext-message();
-    margin: 10px auto 0; 
+    margin: 10px auto; 
     color: #4F8A10;
     border-color: lighten(#4F8A10, 30%);
     background-color: #DFF2BF;
@@ -2284,7 +2283,7 @@ div.statuses-success {
 
 div.statuses-notice {
     @include richtext-message();
-    margin: 10px auto 0; 
+    margin: 10px auto; 
     color: #00529B;
     border-color: lighten(#00529B, 30%);
     background-color: #BDE5F8;
@@ -2293,7 +2292,7 @@ div.statuses-notice {
 
 div.statuses-error {
     @include richtext-message();
-    margin: 10px auto 0; 
+    margin: 10px auto; 
     color: #D8000C;
     border-color: lighten(#D8000C, 30%);
     background-color: #FFBABA;
