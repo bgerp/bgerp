@@ -17,6 +17,6 @@ class cms_CopyTextPlg extends core_Plugin
 {
 	static function on_Output(&$invoker)
 	{
-		$invoker->append("document.oncopy = addLink;", "JQRUN");
+		$invoker->append("\n runOnLoad(document.oncopy = addLink)", "JQRUN");
 	}
 }
