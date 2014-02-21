@@ -119,7 +119,7 @@ class page_Html extends core_ET {
         
         // Добавяме в JS timestamp на извикване на страницата
         $this->append("var hitTime = {$hitTime};", 'SCRIPTS');
-        core_Logs::log(get_called_class(), $hitTime);
+        
         try {
             // Извикваме показването на статусите - във vendors
             $this->append(status_Messages::show($hitTime), 'STATUSES');
