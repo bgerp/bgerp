@@ -15,18 +15,14 @@ class page_Dialog extends page_Html
     
     
     /**
-     * Изпраща към изхода съдържанието, като преди това го опакова
+     * Конструктор
      */
-    function output($content = '', $place = 'CONTENT')
+    function page_Dialog()
     {
+        $this->page_Html();
         $this->replace("UTF-8", 'ENCODING');
-        
-        $this->append("<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("css/common.css") . "/>\n", "HEAD");
-        
-        $this->append("<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("css/dialog.css") . "/>\n", "HEAD");
-        
-        $this->append("<script type=\"text/javascript\" src=" . sbf("js/efCommon.js") . "></script>\n", "HEAD");
-        
-        parent::output($content, 'PAGE_CONTENT');
+        $this->push('css/common.css', 'CSS');
+        $this->push('css/dialog.css', 'CSS');
+        $this->push('js/efCommon.js', 'JS');
     }
 }
