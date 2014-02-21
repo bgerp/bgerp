@@ -223,13 +223,8 @@ class acc_Journal extends core_Master
         
         $mvc = cls::get($docClassId);
         
-        $mvc->requireRightFor('conto', $docId);
-        
         // Контиране на документа
-		$message = $mvc->conto($docId);
-		
-		// Слагане на статус за потребителя
-        status_Messages::newStatus(tr($message));
+		$mvc->conto($docId);
         
         // Редирект към сингъла
         return redirect(array($mvc, 'single', $docId));

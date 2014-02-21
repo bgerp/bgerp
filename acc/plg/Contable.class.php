@@ -288,12 +288,18 @@ class acc_plg_Contable extends core_Plugin
     { 
         $rec = $mvc->fetchRec($id);
         
+        // Дали имаме права за контиране
+        $mvc->requireRightFor('conto', $rec->id);
+        
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
         $period = acc_Periods::fetchByDate($rec->valior);
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
         $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         
         $res = !empty($res) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
+        
+        // Слагане на статус за потребителя
+        status_Messages::newStatus(tr($res));
     }
     
     
