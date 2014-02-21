@@ -57,6 +57,9 @@ class page_Html extends core_ET {
      */
     static function on_Output(&$invoker)
     {
+        // Добавя статус съобщенията
+        $invoker->showStatus();
+        
         // Дали линковете да са абсолютни
         $absolute = (boolean)(Mode::is('text', 'xhtml'));
 
@@ -94,9 +97,6 @@ class page_Html extends core_ET {
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         }
-        
-        // Добавя статус съобщенията
-        $invoker->showStatus();
     }
     
     
