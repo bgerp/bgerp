@@ -65,8 +65,6 @@ class page_Internal extends page_Html {
             Mode::setPermanent('lastNotificationTime', time());    
         }
         
-        $invoker->append(core_Statuses::show(), 'STATUSES');
-        
         $Nid = Request::get('Nid', 'int');
         
         if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
@@ -87,5 +85,9 @@ class page_Internal extends page_Html {
             
             Mode::setPermanent('NotificationType_' . $Nid, NULL);
         }
+        
+        // Добавя статус съобщенията
+        // Ако се вика parent::on_Output няма да има нужда от това
+        $invoker->showStatus();
     }
 }

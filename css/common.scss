@@ -1716,6 +1716,9 @@ div.alphabet div.tab-page {
 			border: 1px dotted $gray4 !important;
 			text-align: center;
 			padding: 2px;
+			&:first-child{
+			    white-space:nowrap;
+			}
 		}
 		.listTable tr:last-child td {
 			&:first-child {
@@ -2210,11 +2213,10 @@ div.richtext ol ol {
 
 .richtext-question a, .richtext-info a, .richtext-error a, .richtext-success a,
 .richtext-warning a, .richtext-tip a, .richtext-text a {
-	text-decoration: underline;
-	font-weight: bold;
 	color: inherit;
+	text-decoration: underline;
 	&:hover{
-		text-decoration: none;
+		  text-decoration: none;
 	}
 }
 
@@ -2253,14 +2255,50 @@ div.notification-info {
 div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-error {
     display: table;
 	border: solid 1px $orange;
-	background-color: $beige;
 	text-align: center;
-	font-weight: bold;
-    margin: 10px auto 0; 
-    padding: 10px; 
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
     font-size: 1.3em; 
+    min-height: 21px !important;
     @include border-radius(15px);
 }
+
+div.statuses-warning {
+	@include richtext-message();
+	margin: 10px auto; 
+    color: #9F6000;
+    border-color: lighten(#9F6000, 30%);
+    background-color: #ffdc7a;
+    background-image: url('../img/dialog_warning.png');
+}
+
+div.statuses-success {
+    @include richtext-message();
+    margin: 10px auto; 
+    color: #4F8A10;
+    border-color: lighten(#4F8A10, 30%);
+    background-color: #DFF2BF;
+    background-image: url('../img/ok.png');
+}
+
+div.statuses-notice {
+    @include richtext-message();
+    margin: 10px auto; 
+    color: #00529B;
+    border-color: lighten(#00529B, 30%);
+    background-color: #BDE5F8;
+    background-image: url('../img/info_blue.png');
+}
+
+div.statuses-error {
+    @include richtext-message();
+    margin: 10px auto; 
+    color: #D8000C;
+    border-color: lighten(#D8000C, 30%);
+    background-color: #FFBABA;
+    background-image: url('../img/dialog_error.png');
+}
+    
 
 .narrow div.statuses-notice, .narrow div.statuses-success, 
 .narrow div.statuses-warning, .narrow div.statuses-error {
@@ -2271,7 +2309,7 @@ div.statuses-notice, div.statuses-success, div.statuses-warning, div.statuses-er
 }
 
 div.statuses-success , div.statuses-error, div.statuses-warning{
-	background-color: $beige;	
+	`background-color: $beige;	
 }
 /*край на нотификации*/
 

@@ -1376,3 +1376,336 @@ function addLink()
     window.setTimeout(function () { document.body.removeChild(newdiv); }, 0);
     
 }
+
+
+/**
+ * EFAE - Experta Framework Ajax Engine
+ * 
+ * @category  ef
+ * @package   js
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+function efae()
+{
+	// Инстанция на класа
+	var efaeInst = this;
+	
+	// При мърдане на мишката или натискане на бутон да се ресетне интервала за циклена в начална стойност
+	document.onmousemove = function(){
+		efaeInst.resetTimeout();
+	};
+	document.onkeypress = function(){
+		efaeInst.resetTimeout();
+	};
+	
+	// Масив с всички абонирани
+	efae.prototype.subscribedArr = new Array();
+	
+	// Масив с името на записаното URL и времето на последното стартиране
+	efae.prototype.checkedArr = new Array();
+	
+	// Цикъла на времето откакто е стартиран скрипта
+	efae.prototype.time = 0;
+	
+	// През колко време да се вика функцията `run`
+	efae.prototype.timeout = efae.prototype.defTimeout = 1000;
+	
+	// URL-то, което ще се вика по AJAX
+	efae.prototype.url;
+	
+	// Префикса, за рендиращата функция
+	efae.prototype.renderPrefix = 'render_';
+	
+	// Времето в милисекунди, с което ще се увеличава времето на изпълнение
+	efae.prototype.increaseInterval = 10;
+	
+	// Горната граница (в милисекунди), до която може да се увеличи брояча
+	efae.prototype.maxIncreaseInterval = 60000;
+	
+	// Флаг, който указва, че процеса все още не е стартиран - да не се стартира веднага след отаряне на страницата
+	efae.prototype.firstTime = true;
+}
+
+
+/**
+ * Функция, която абонира дадено URL да извлича данни в определен интервал
+ * 
+ * @param string name - Името
+ * @param string url - URL-то, което да се използва за извличане на информация
+ * @param integer interval - Интервала на извикване в милисекунди
+ */
+efae.prototype.subscribe = function(name, url, interval) {
+	
+	// Създаваме масив с името и добавяме неоходимите данни в масива
+	this.subscribedArr[name] = new Array();
+	this.subscribedArr[name]['url'] = url;
+	this.subscribedArr[name]['interval'] = interval;
+}
+
+
+/**
+ * Фунцкция, която се самозацикля и извиква извличането на данни
+ */
+efae.prototype.run = function()
+{
+	try {
+		// Стартираме процеса
+		this.process();
+		
+		// Увеличаваме брояча
+		this.increaseTimeout();
+	} catch(err) {
+		// Ако възникне грешка
+		console.log('Грешка при стартиране на процеса');
+	} finally {
+		// Инстанция на класа
+		var efaeInst = this;
+		
+		// Задаваме да се самостартира
+		setTimeout(function(){efaeInst.run()}, this.timeout);
+	}
+}
+
+
+/**
+ * Извиква URL, който стартира абонираните URL-та на които им е дошло времето да се стартират
+ * и рендира функциите от резултата
+ */
+efae.prototype.process = function()
+{
+	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
+	var subscribedObj = this.getSubscribed();
+	
+	// Ако няма URL, което трябва да се извика, връщаме
+	if (!Object.keys(subscribedObj).length) return;
+	
+	// URL-то, което да се вика
+	var efaeUrl = this.getUrl();
+	
+	// Ако не е дефинирано URL
+	if (!efaeUrl) {
+		
+		// Изкарваме грешката в лога
+		console.log('Не е дефинирано URL, което да се вика');
+	}
+	
+	// Инстанция на класа
+	var efaeInst = this;
+	
+	// Ако има дефиниран JQuery
+	if (typeof jQuery != 'undefined') {
+		
+		// Преобразуваме обекта в JSON вид
+		var subscribedStr = JSON.stringify(subscribedObj);
+		
+		// Обекст с данните, които ще изпращаме
+		var dataObj = {subscribed : subscribedStr};
+		
+		// Ако е зададено времето на извикване на страницата
+		if (typeof(hitTime) != 'undefined') {
+			
+			// Добавяме в масива
+			dataObj['hitTime'] = hitTime;
+		}
+		
+		// Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
+		$.ajax({
+			  type: "POST",
+			  url: efaeUrl,
+			  data: dataObj,
+	  		  dataType: 'json',
+			}).done(function(res) {
+				
+				// Обхождаме всички получени данни
+			    for (n in res) {
+			    	
+			    	// Фунцкцията, която да се извика
+			    	func = res[n].func;
+			    	
+			    	// Аргументи на функцията
+			    	arg = res[n].arg;
+			    	
+			    	// Ако няма функция
+		    		if (!func) {
+		    			// Изкарваме грешката в лога
+						console.log('Не е подадена функция');
+		    			
+		    			continue;
+		    		}
+		    		
+		    		// Името на функцията с префикаса
+		    		func = efaeInst.renderPrefix + func;
+		    		
+		    		try {
+		    			
+		    			// Извикваме функцията
+		    			window[func](arg);
+		    		} catch(err) {
+		    			
+		    			// Ако възникне грешка
+		    			console.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
+		    		}
+			    }
+			    
+			}).fail(function(res) {
+				
+				// Ако възникне грешка
+				console.log('Грешка при извличане на данни по AJAX');
+			});
+	} else {
+		
+		// Изкарваме грешката в лога
+		console.log('JQuery не е дефиниран');
+	}
+}
+
+
+/**
+ * Намира абонираните URL-та на които им е време да се стартират
+ * 
+ * @return object - Обект с абонираните URL-та на които им е време да се стартират
+ */
+efae.prototype.getSubscribed = function()
+{
+	// Обект с резултатите
+	resObj = new Object();
+	
+	// Ако до сега не е бил стартиране
+	// За да не се стартира веднага след рефреш
+	if (this.firstTime) {
+		
+		// Променяме флага
+		this.firstTime = false;
+		
+		// Връщаме празен обект
+		return resObj;
+	}
+	
+	// Към времето добавяме таймаута за изпълнение
+	this.time += this.timeout;
+	
+	// Обхождаме всички абонирани URL-та
+	for (name in this.subscribedArr) {
+		
+		// Разделяме целочислено времето на интервала
+		mInterval = parseInt(this.time/this.subscribedArr[name]['interval']);
+		
+		// Ако има интервал и съответното URL не е било извикане за този интервал
+		if (mInterval && (!this.checkedArr[name] || this.checkedArr[name] < mInterval)) {
+			
+			// Добавяме в масива с интервалите
+			this.checkedArr[name] = [mInterval];
+			
+			// Добавяме линка в масива с абонираните
+			resObj[name] = this.subscribedArr[name]['url'];
+		}
+	}
+	
+	return resObj;
+}
+
+
+/**
+ * Сетваме URL-то, което ще се вика по AJAX
+ * 
+ * @param string - Локолното URL, което да се извика по AJAX
+ */
+efae.prototype.setUrl = function(url)
+{
+	this.url = url;
+}
+
+
+/**
+ * Връща локалното URL, което да се извика
+ * 
+ * @return - Локолното URL, което да се извикa по AJAX
+ */
+efae.prototype.getUrl = function()
+{
+	
+	return this.url;
+}
+
+
+/**
+ * Увеличава времето за стартиране 
+ */
+efae.prototype.increaseTimeout = function()
+{
+	// Ако не сме достигнали горната граница
+	if (this.timeout < this.maxIncreaseInterval) {
+		
+		// Увеличаваме брояча
+		this.timeout += this.increaseInterval;
+	}
+}
+
+
+/**
+ * Връща стойността на брояча в началната стойност
+ */
+efae.prototype.resetTimeout = function()
+{
+	this.timeout = this.defTimeout;
+}
+
+
+/**
+ * Функция, която добавя даден текст в съответния таг
+ * Може да се комбинира с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.id - id на таг
+ * data.html - текста
+ * data.replace - дали да се замести текста или да се добави след предишния
+ */
+function render_html(data)
+{
+	// Неоходимите параметри
+	var id = data.id;
+	var html = data.html;
+	var replace = data.replace;
+	
+	// Ако няма HTML, да не се изпуълнява
+	if ((typeof html == 'undefined') || !html) return ;
+	
+	// Ако има JQuery
+	if (typeof jQuery != 'undefined') {
+		
+		var idObj = $('#'+id);
+		
+		// Ако няма такъв таг
+		if (!idObj.length) console.log('Липсва таг с id: ' + id);
+		
+		// Ако е зададено да се замества
+		if ((typeof replace != 'undefined') && (replace)) {
+			
+			// Заместваме
+			idObj.html(html);
+		} else {
+			
+			// Добавяме след последния запис
+			idObj.append(html);
+		}
+	}
+}
+
+
+/**
+ * Функция, която изпълнява подадения JS
+ * Може да се комбинира с efae
+ * 
+ * @param string js - javascript, който да се изпълни
+ */
+function render_js(js)
+{
+	// Ако няма JS, да не се изпуълнява
+	if ((typeof js == 'undefined') || !js) return ;
+	
+	// Изпълнявама функцията
+	eval(js);
+}

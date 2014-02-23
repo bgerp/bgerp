@@ -15,12 +15,6 @@ defIfNot('CORE_OVERWRITE_HTAACCESS', TRUE);
 
 
 /**
- * SALT ключа за генериране на уникален sid (status id)
- */
-defIfNot('EF_STATUSE_SALT', '');
-
-
-/**
  * Формат по подразбиране за датите
  */
 defIfNot('EF_DATE_FORMAT', 'd.m.YEAR');

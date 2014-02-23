@@ -137,7 +137,7 @@ class type_Minutes extends type_Int {
         
         if($weeks > 0) {
             if($days == 0) {
-                $res .=  "{$weeks} сед.";
+                $res .=  "{$weeks} седм.";
             } else {
                 $days += $weeks * 7;
             }

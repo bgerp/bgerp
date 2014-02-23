@@ -57,6 +57,9 @@ class page_Html extends core_ET {
      */
     static function on_Output(&$invoker)
     {
+        // Добавя статус съобщенията
+        $invoker->showStatus();
+        
         // Дали линковете да са абсолютни
         $absolute = (boolean)(Mode::is('text', 'xhtml'));
 
@@ -94,5 +97,34 @@ class page_Html extends core_ET {
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         }
+    }
+    
+    
+    /**
+     * Показва статус съобщението
+     */
+    function showStatus()
+    {
+        static $i = 0;
+        
+        // Ако не е сетнато времето на извикване
+        if (!$hitTime = Mode::get('hitTime')) {
+            
+            // Използваме текущото
+            $hitTime = dt::nowTimestamp();
+        }
+        
+        // При всяко извикване да има различно време
+        $hitTime -= $i;
+        
+        // Добавяме в JS timestamp на извикване на страницата
+        $this->append("var hitTime = {$hitTime};", 'SCRIPTS');
+        
+        try {
+            // Извикваме показването на статусите - във vendors
+            $this->append(status_Messages::show($hitTime), 'STATUSES');
+        } catch (Exception $e) { }
+        
+        $i++;
     }
 }

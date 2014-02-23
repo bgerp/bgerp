@@ -384,7 +384,6 @@ class core_SpellNumber
             }
             	
             $text = str_replace(" и и ", " и ", $text);
-            //$text .= " и " . $this->num2Text($cents) . $centBgn;
             
             return $text;
         } else {
@@ -392,9 +391,13 @@ class core_SpellNumber
             $text = $this->int_to_words((int) $num) . $numEuro;
             $cents = round((($num - (int) $num) * 100));
             
-            if ($cents > 0)
+        	if($showCurrencyCode){
+            	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
+            }
+            
+            if ($cents > 0){
             	$text .= " and " . $cents. " " . $centEuro;
-            //$text .= " and " . $this->int_to_words($cents) . $centEuro;
+            }
             
             return $text;
         }

@@ -261,6 +261,15 @@ class core_Request
      */
     static function forward($vars = array(), $prefix = 'act_')
     {
+        try {
+            // Ако не е бил сетнат
+            if (!Mode::get('hitTime')) {
+                
+                // Записваме времето на извикване
+                Mode::set('hitTime', dt::nowTimestamp());
+            }
+        } catch (Exception $e) { }
+        
         $Request = & cls::get('core_Request');
         
         $vars = arr::make($vars, TRUE);

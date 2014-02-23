@@ -28,23 +28,24 @@ class plg_RefreshRows extends core_Plugin
     function on_AfterRenderListTable($mvc, &$tpl)
     {
         $ajaxMode = Request::get('ajax_mode');
+        $refreshUrl = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
         
         if ($ajaxMode) {
-
+            
             $tpl->removePlaces();
-
+            
             $status = $tpl->getContent();
-
-            $statusHash = md5($status);
             
-            $savedName = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
-            $savedHash = Mode::get($savedName);
+            $statusHash = md5(strip_tags($status));
+            $urlHash = md5(toUrl($refreshUrl));
             
-            if(empty($savedHash)) $savedHash = md5($savedHash);
+            $savedName = "REFRESH_ROWS";
+            $refreshRowsArr = Mode::get($savedName);
             
-            if($statusHash != $savedHash) {
+            if(!$refreshRowsArr[$urlHash][$statusHash]) {
+                $refreshRowsArr[$urlHash][$statusHash] = TRUE;
                 
-                Mode::setPermanent($savedName, $statusHash);
+                Mode::setPermanent($savedName, $refreshRowsArr);
                 
                 $res = new stdClass();
 
@@ -57,7 +58,7 @@ class plg_RefreshRows extends core_Plugin
         } else {
             
             // Ако не е зададено, URL-то да сочи към текущото
-            $params = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
+            $params = $refreshUrl;
             $params['ajax_mode'] = 1;
             $url = toUrl($params);
             
