@@ -13,10 +13,9 @@
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/115
  */
-class email_Mime extends core_BaseClass
+class email_Mime extends core_Mvc
 {
-    
-    
+
     /**
      * Текстоватана имейл-а
      */
@@ -174,7 +173,7 @@ class email_Mime extends core_BaseClass
         } else {
             $fromEmlArr = type_Email::extractEmails($fromEmlStr);
         }
-        
+       
         $this->fromEmail = $fromEmlArr[0];
     }
     
@@ -214,6 +213,19 @@ class email_Mime extends core_BaseClass
 
         return $this->lg;
     }
+
+
+    /**
+     * Дали сървърът от който е изпратен имейла е публичен?
+     */
+    function isFromPublicMailServer()
+    {
+        if(!isset($this->isFromPublicMailServer)) {
+            $this->isFromPublicMailServer = drdata_Domains::isPublic($this->getFromEmail());
+        }
+
+        return $this->isFromPublicMailServer;
+    }
     
     
     /**
@@ -228,21 +240,22 @@ class email_Mime extends core_BaseClass
                 $ip = trim($this->getHeader('X-Sender-IP', 1, -1), '[]');
             }
          
-            if(empty($ip) || (!type_Ip::isPublic($ip))) {
+            if((empty($ip) || (!type_Ip::isPublic($ip))) && true) {
                 $regExp = '/Received:.*\[((?:\d+\.){3}\d+)\]/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
                 
                 if($ipCnt = count($matches[1])) {
                     for($i = $ipCnt - 1; $i >= 0; $i--) {
                         if(type_Ip::isPublic($matches[1][$i])) {
+                            if(strpos($matches[0][$i], '.google.com')) continue;
                             $ip = $matches[1][$i];
                             break;
                         }
                     }
                 }
             }
-            
-            if(empty($ip) || (!type_Ip::isPublic($ip))) {
+
+            if((empty($ip) || (!type_Ip::isPublic($ip))) && true) {
                 $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
                 
@@ -273,11 +286,11 @@ class email_Mime extends core_BaseClass
         $ip   = $this->getSenderIp();
 
         // Вземаме топ-левъл-домейна на имейл-а на изпращача
-        $tld = substr($from, strrpos($from, '.'));
+        $tld = strtolower(substr($from, strrpos($from, '.')));
         
         // Двубуквен код на държава, според домейна, на изпращача на имейл-а
-        if($tld) {
-            if($ccByEmail = drdata_Countries::fetchField("#domain = '{$tld}'", 'letterCode2')) {
+        if(strlen($tld) == 2) {
+            if($ccByEmail = strtolower(drdata_Countries::fetchField("#domain = '{$tld}'", 'letterCode2'))) {
                 switch($ccByEmail) {
                     case 'us' :
                         $rate = 10;
@@ -295,7 +308,7 @@ class email_Mime extends core_BaseClass
         
         // Двубуквен код на държава според $ip-то на изпращача
         if($ip) {
-            if($ccByIp = drdata_ipToCountry::get($ip)) {
+            if($ccByIp = strtolower(drdata_ipToCountry::get($ip))) {
                 switch($ccByIp) {
                     case 'us' :
                         $rate = 30;
@@ -307,6 +320,12 @@ class email_Mime extends core_BaseClass
                     default :
                     $rate = 60;
                 }
+                
+                // Намаме голямо доверие на IP-то получено от публична услуга
+                if($this->isFromPublicMailServer()) {
+                    $rate = $rate / 1.2;
+                }
+
                 $countries[$ccByIp] += $rate;
             }
         }
@@ -317,10 +336,10 @@ class email_Mime extends core_BaseClass
         if($lg) {
             $countries[$lg] += 30;
         }
-        
+    
         // Намираме страната с най-много събрани точки
         if(count($countries)) {
-            $firstCountry = arr::getMaxValueKey($countries);
+            $firstCountry = strtoupper(arr::getMaxValueKey($countries));
             $countryId = drdata_Countries::fetchField("#letterCode2 = '{$firstCountry}'", 'id');
             
             return $countryId;
