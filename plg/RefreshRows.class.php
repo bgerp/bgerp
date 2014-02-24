@@ -29,23 +29,22 @@ class plg_RefreshRows extends core_Plugin
     {
         $ajaxMode = Request::get('ajax_mode');
         $refreshUrl = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
-        
         if ($ajaxMode) {
-            
+
             $tpl->removePlaces();
-            
+
             $status = $tpl->getContent();
-            
+
             $statusHash = md5(strip_tags($status));
-            $urlHash = md5(toUrl($refreshUrl));
             
-            $savedName = "REFRESH_ROWS";
-            $refreshRowsArr = Mode::get($savedName);
+            $savedName = "REFRESH_ROWS_" . md5(toUrl($refreshUrl));
+            $savedHash = Mode::get($savedName);
             
-            if(!$refreshRowsArr[$urlHash][$statusHash]) {
-                $refreshRowsArr[$urlHash][$statusHash] = TRUE;
+            if(empty($savedHash)) $savedHash = md5($savedHash);
+            
+            if($statusHash != $savedHash) {
                 
-                Mode::setPermanent($savedName, $refreshRowsArr);
+                Mode::setPermanent($savedName, $statusHash);
                 
                 $res = new stdClass();
 
