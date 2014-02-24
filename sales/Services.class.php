@@ -327,16 +327,13 @@ class sales_Services extends core_Master
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
-    	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
     	
     	if($data->rec->state == 'active' && sales_Invoices::haveRightFor('add') && sales_Invoices::canAddToThread($rec->threadId)){
     		$originId = doc_Threads::getFirstContainerId($rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
 	}
     

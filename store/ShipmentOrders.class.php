@@ -360,7 +360,7 @@ class store_ShipmentOrders extends core_Master
     	
     	if($rec->state == 'active' && sales_Invoices::haveRightFor('add') && sales_Invoices::canAddToThread($rec->threadId)){
     		$originId = doc_Threads::getFirstContainerId($rec->threadId);
-	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    	$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $originId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 	    }
 	}
     
