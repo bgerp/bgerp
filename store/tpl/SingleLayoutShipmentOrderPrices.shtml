@@ -63,7 +63,7 @@
             <table class="innerTable footer-notes" border="0" cellpadding="5" cellspacing="0" width="100%">
                 <tbody><tr>
                     <td class="topCell first" valign="top">
-                        <table class='shipment-table' >
+                        <table class='shipment-table' width=100%>
 	                        <!--ET_BEGIN deliveryTime-->
 	                        <tr>
 	                            <td class='nowrap quiet' align=right width='1%'>|Срок до|*:</td>

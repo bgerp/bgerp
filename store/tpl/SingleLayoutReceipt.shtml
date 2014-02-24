@@ -64,7 +64,7 @@
                 <tbody><tr>
                     <td class="topCell first" valign="top" width='50%'>
                     
-                    <table class='shipment-table' >
+                    <table class='shipment-table' width=100%>
                     <!--ET_BEGIN deliveryTime-->
                         <tr>
                             <td class='quiet' align="right">|Срок до|*:</td>
