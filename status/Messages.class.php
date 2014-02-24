@@ -200,34 +200,19 @@ class status_Messages extends core_Manager
     
     
     /**
-     * Извлича статусите за текущия потребител и ги добавя в div таг
+     * Абонира за извличане на статус съобщения
      * 
-     * @param integer $hitTime - Timestamp на показване на страницата
-     * @param boolean $subscribe - Дали да се абонира системата, да извлича други записи по AJAX
-     * 
-     * @return core_ET - Всички активни статуси за текущия потребител, групирани в div таг
+     * @return core_ET
      */
-    static function show_($hitTime, $subscribe=TRUE)
+    static function subscribe_()
     {
-        // Всички статуси за текущия потребител преди времето на извикване на страницата
-        $statusArr = static::getStatuses($hitTime);
-        
         $res = new ET();
-        
-        foreach ($statusArr as $value) {
-
-            // Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res->append("<div class='statuses-{$value['type']}'> {$value['text']} </div>");
-        }
-        
-        if ($subscribe) {
             
-            // Абонираме да се извличат стойности по AJAX
-            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
-            
-            // Показва статус съобщението след зареждане на страницата
-            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1, TRUE);
-        }
+        // Абонираме да се извличат стойности по AJAX
+        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+        
+        // Показва статус съобщението след зареждане на страницата
+        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1, TRUE);
         
         return $res;
     }
@@ -245,7 +230,7 @@ class status_Messages extends core_Manager
             $hitTime = Request::get('hitTime', 'int');
             
             // Вземаме непоказаните статус съобщения
-            $html = static::show($hitTime, FALSE)->getContent();
+            $html = static::getStatusesDiv($hitTime);
             
             // Добавяме резултата
             $resObj = new stdClass();
@@ -254,6 +239,30 @@ class status_Messages extends core_Manager
             
             return array($resObj);
         }
+    }
+    
+    
+    /**
+     * Връща 'div' със статус съобщенията
+     * 
+     * @param integer $hitTime - Timestamp на показване на страницата
+     * 
+     * @return string - 'div' със статус съобщенията
+     */
+    static function getStatusesDiv($hitTime)
+    {
+        // Всички статуси за текущия потребител преди времето на извикване на страницата
+        $statusArr = static::getStatuses($hitTime);
+        
+        $res = '';
+        
+        foreach ($statusArr as $value) {
+
+            // Записваме всеки статус в отделен div и класа се взема от типа на статуса
+            $res .= "<div class='statuses-{$value['type']}'> {$value['text']} </div>";
+        }
+        
+        return $res;
     }
     
     
