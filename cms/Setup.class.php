@@ -28,6 +28,19 @@ defIfNot('CMS_LANGS', '');
  */
 defIfNot('CMS_BROWSER_CACHE_EXPIRES', 3600);
 
+
+/**
+ * допълнителен текст при копиране
+ */
+defIfNot('CMS_COPY_DEFAULT_TEXT', 'Прочети повече на');
+
+
+/**
+ * Добавка при копиране изключване за определени роли
+ */
+defIfNot('CMS_COPY_DISABLE_FOR', '');
+
+
 /**
  * class cms_Setup
  *
@@ -38,7 +51,7 @@ defIfNot('CMS_BROWSER_CACHE_EXPIRES', 3600);
  * @category  bgerp
  * @package   cms
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -81,6 +94,10 @@ class cms_Setup extends core_ProtoSetup
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Тема по подразбиране->Тема'),
 
             'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
+			
+            'CMS_COPY_DEFAULT_TEXT' => array ('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),
+	
+			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
 	);
 
 	
@@ -121,6 +138,9 @@ class cms_Setup extends core_ProtoSetup
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '6MB', 'user', 'every_one');
+        
+        $disableFor = keylist::addKey('', core_Roles::fetchByName('powerUser'));
+        core_Packs::setConfig('cms', array('CMS_COPY_DISABLE_FOR' => $disableFor));
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
