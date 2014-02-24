@@ -1366,13 +1366,15 @@ function efae()
  * @param string name - Името
  * @param string url - URL-то, което да се използва за извличане на информация
  * @param integer interval - Интервала на извикване в милисекунди
+ * @param integer once - Дали да се вика само веднъж или в цикъл
  */
-efae.prototype.subscribe = function(name, url, interval) {
+efae.prototype.subscribe = function(name, url, interval, once) {
 	
 	// Създаваме масив с името и добавяме неоходимите данни в масива
 	this.subscribedArr[name] = new Array();
 	this.subscribedArr[name]['url'] = url;
 	this.subscribedArr[name]['interval'] = interval;
+	this.subscribedArr[name]['once'] = once;
 }
 
 
@@ -1526,11 +1528,15 @@ efae.prototype.getSubscribed = function()
 		// Ако има интервал и съответното URL не е било извикане за този интервал
 		if (mInterval && (!this.checkedArr[name] || this.checkedArr[name] < mInterval)) {
 			
-			// Добавяме в масива с интервалите
-			this.checkedArr[name] = [mInterval];
-			
-			// Добавяме линка в масива с абонираните
-			resObj[name] = this.subscribedArr[name]['url'];
+			// Ако ще се вика само веднъж, да не се вика след първото стартиране
+			if (!this.subscribedArr[name]['once'] || (typeof this.checkedArr[name] == 'undefined')) {
+				
+				// Добавяме в масива с интервалите
+				this.checkedArr[name] = [mInterval];
+				
+				// Добавяме линка в масива с абонираните
+				resObj[name] = this.subscribedArr[name]['url'];
+			}
 		}
 	}
 	
