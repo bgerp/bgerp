@@ -22,14 +22,12 @@ class toast_Toast extends core_Plugin
      * Ако javascript' а не е активен, прескача изпълнението на метода.
      * Ако е активен тогава се изпълнява.
      * 
-     * @param object $mvc - 
-     * @param core_ET $tpl - 
-     * @param integer $hitTime - Timestamp на показване на страницата
-     * @param boolean $subscribe - Дали да се абонира системата, да извлича други записи по AJAX
+     * @param object $mvc
+     * @param core_ET $tpl
      *  
      * @return FALSE - За да не изпълняват други функции (show_)
      */
-    function on_BeforeShow(&$mvc, &$tpl, $hitTime, $subscribe=TRUE)
+    function on_BeforeSubscribe(&$mvc, &$tpl)
     {
         //Проверяваме дали е включн javascript'a.
         //Ако не е връщаме TRUE, за да може да се изпълнят другите функции
@@ -64,15 +62,11 @@ class toast_Toast extends core_Plugin
                                 	}, data.timeOut);
                             }", 'SCRIPTS');
         
-        // Ако е зададено да се абонира
-        if ($subscribe) {
-            
-            // Абонираме, за да се вика по JS
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
-            
-            // Показва статус събщениет само веднъж
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
-        }
+        // Абонираме, за да се вика по JS
+        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
+        
+        // Показва статус събщениет само веднъж
+        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
         
         // Връщаме FALSE за да не се изпълнява метода
         return FALSE;
