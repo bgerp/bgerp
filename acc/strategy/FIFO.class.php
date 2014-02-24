@@ -29,10 +29,6 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
             return false;
         }
         
-        // Сега не е ясно дали изобщо е допустимо отрицателно количество.
-        // Ясно е обаче, че кода не е готов да обработи този случай.
-        assert($quantity > 0);
-        
         $amount = 0;
         
         while (!empty($this->data) && $quantity > 0) {
