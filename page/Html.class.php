@@ -47,6 +47,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
             "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .
+            "[#page_Html::subscribeStatus#]" .
             "\n</body>" .
             "\n</html>");
     }
@@ -57,9 +58,6 @@ class page_Html extends core_ET {
      */
     static function on_Output(&$invoker)
     {
-        // Добавя статус съобщенията
-        $invoker->showStatus();
-        
         // Дали линковете да са абсолютни
         $absolute = (boolean)(Mode::is('text', 'xhtml'));
 
@@ -102,8 +100,10 @@ class page_Html extends core_ET {
     
     /**
      * Показва статус съобщението
+     * 
+     * @return core_ET
      */
-    function showStatus()
+    static function subscribeStatus()
     {
         static $i = 0;
         
@@ -114,17 +114,21 @@ class page_Html extends core_ET {
             $hitTime = dt::nowTimestamp();
         }
         
+        $tpl = new ET();
+        
         // При всяко извикване да има различно време
         $hitTime -= $i;
         
         // Добавяме в JS timestamp на извикване на страницата
-        $this->append("var hitTime = {$hitTime};", 'SCRIPTS');
+        $tpl->append("var hitTime = {$hitTime};", 'SCRIPTS');
         
         try {
             // Извикваме показването на статусите - във vendors
-            $this->append(status_Messages::show($hitTime), 'STATUSES');
+            $tpl->append(status_Messages::subscribe(), 'STATUSES');
         } catch (Exception $e) { }
         
         $i++;
+        
+        return $tpl;
     }
 }

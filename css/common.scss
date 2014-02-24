@@ -545,6 +545,12 @@ body {
 	font-size: 16px; 
 }
 
+hr{
+	border-color: #eee;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+    opacity: 0.8;
+}
+
 a img {
 	border: none;
 }
@@ -2211,8 +2217,8 @@ div.richtext ol ol {
 	font-size: 0.9em;
 }
 
-.richtext-question a, .richtext-info a, .richtext-error a, .richtext-success a,
-.richtext-warning a, .richtext-tip a, .richtext-text a {
+.richtext-question a[href], .richtext-info a[href], .richtext-error a[href], .richtext-success a[href],
+.richtext-warning a[href], .richtext-tip a[href], .richtext-text a[href] {
 	color: inherit;
 	text-decoration: underline;
 	&:hover{

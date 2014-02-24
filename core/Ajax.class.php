@@ -104,8 +104,9 @@ class core_Ajax extends core_Mvc
      * @param array $urlArr - Масив, от който ще се генерира локално URL
      * @param string $name - Уникално име
      * @param integer $interval - Интервал на извикване в секунди
+     * @param boolean $once - Дали да се вика в цикъл през определен интервал или само веднъж
      */
-    static function subscribe(&$tpl, $urlArr, $name, $interval=5)
+    static function subscribe(&$tpl, $urlArr, $name, $interval=5, $once=FALSE)
     {
         // Масив с всички използвани имена
         static $nameArr=array();
@@ -141,8 +142,10 @@ class core_Ajax extends core_Mvc
         // Ескейпваме
         $localUrl = urlencode($localUrl);
         
+        $once = (int)$once;
+        
         // Добавяме стринга, който субскрайбва съответното URL
-        $subscribeStr = "efae.subscribe('{$name}', '{$localUrl}', {$interval});";
+        $subscribeStr = "efaeInst.subscribe('{$name}', '{$localUrl}', {$interval}, {$once});";
         
         // Добавяме само веднъж
         $tpl->appendOnce($subscribeStr, 'SCRIPTS');
@@ -157,7 +160,7 @@ class core_Ajax extends core_Mvc
     protected static function enable(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce('efae = new efae();', 'SCRIPTS');
+        $tpl->appendOnce("\n efaeInst = new efae();\n", 'SCRIPTS');
         
         // Този пакет е във vendors
         if (method_exists('jquery_Jquery', 'enable')) {
@@ -186,17 +189,17 @@ class core_Ajax extends core_Mvc
         $url = toUrl(array('core_Ajax', 'Get'));
         
         // Добавяме променливата
-        $tpl->appendOnce("efae.setUrl('{$url}');", 'SCRIPTS');
+        $tpl->appendOnce("efaeInst.setUrl('{$url}');", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {
             
             // Стартираме извикването на `run` фунцкцията на efae
-            jquery_Jquery::run($tpl, 'efae.run();', TRUE);
+            jquery_Jquery::run($tpl, 'efaeInst.run();', TRUE);
         } else {
             
             // Стартираме извикването на run
-            $tpl->appendOnce("\n runOnLoad(function(){efae.run();});", 'JQRUN');
+            $tpl->appendOnce("\n runOnLoad(function(){efaeInst.run();});", 'JQRUN');
             
             // Добавяме грешката
             core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`');
