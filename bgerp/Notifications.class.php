@@ -27,7 +27,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * 
      */
-    var $refreshRowsTime = 7000;
+    var $refreshRowsTime = 5000;
     
     
     /**
