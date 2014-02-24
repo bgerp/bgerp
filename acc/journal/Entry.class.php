@@ -105,7 +105,7 @@ class acc_journal_Entry
         $this->debit->checkItems() && $this->credit->checkItems();
         
         // Цена по кредита е позволена единствено и само, когато кредит-сметка няма зададена 
-        // стратегия (LIFO, FIFO, MAP).
+        // стратегия (LIFO, FIFO, WAC).
         if ($this->credit->account->hasStrategy()) {
             acc_journal_Exception::expect(
                 $this->credit->account->isDimensional(), 
