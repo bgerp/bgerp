@@ -545,6 +545,12 @@ body {
 	font-size: 16px; 
 }
 
+hr{
+	border-color: #eee;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+    opacity: 0.8;
+}
+
 a img {
 	border: none;
 }
