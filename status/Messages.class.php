@@ -224,6 +224,9 @@ class status_Messages extends core_Manager
             
             // Абонираме да се извличат стойности по AJAX
             core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+            
+            // Показва статус съобщението след зареждане на страницата
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1);
         }
         
         return $res;
