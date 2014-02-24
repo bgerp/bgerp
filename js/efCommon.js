@@ -1109,76 +1109,6 @@ function onmouseUpSelect()
 
 
 /**
- * Показване на статус съобщения през определен интервал
- */
-function getStatuses(url, timeout) {
-	$.get(url,
-    	function(data){
-        	$.each(data, function(index, value) { 
-             	var id = (value.id);
-             	var text = (value.statusText);
-             	var type = (value.statusType);
-             	if(type == 'open') {
-					var title = document.title;
-					var numbArr = title.match(/\(([^) ]+)\)/);
-					if(numbArr) {
-						numb = numbArr[1];
-					} else {
-						numb = '0';
-					}
-					
-					 
-					var textSpace =  "  " ;
-					
-
-					if( parseInt(numb) > 0) {
-						if(parseInt(text) > 0) {
-							title = title.replace("(" + numb + ") ", "(" + text + ") ");
-						} else {
-							title = title.replace("(" + numb + ") ", "");
-						}
-						
-					} else {
-						if(parseInt(text) > 0) {
-							title = "(" + text + ") " + title;
-						}
-					}
-
-					document.title = title;
-					
-					var link = "";
-					
-					var nCntLink = get$('nCntLink');
-					
-					if(nCntLink != null) {
-						nCntLink.innerHTML = text;
-
-						if(parseInt(text) > 0) {
-							nCntLink.className = 'haveNtf';
-						} else {
-							nCntLink.className = 'noNtf';
-						}
-					}
-
-				} else {
-					$().toastmessage('showToast', {
-						text            : text,
-						sticky          : true,
-						stayTime        : 10000,
-						inEffectDuration: 1800,
-						type            : type,
-						position        :'bottom-right'
-					});
-				}
-                
-            });
-		}, 'json');
-   		
-		setTimeout(function(){getStatuses(url, timeout)}, timeout);
-}
-
-
-/**
  * Записва избрания текст в сесията и текущото време
  * 
  * @param string handle - Манипулатора на докуемента
@@ -1708,4 +1638,80 @@ function render_js(js)
 	
 	// Изпълнявама функцията
 	eval(js);
+}
+
+
+/**
+ * Функция, която променя броя на нотификациите
+ * Може да се комбинира с efae
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.id - id на таг
+ * data.cnt - броя на нотификациите
+ */
+function render_notificationsCnt(data)
+{	
+	changeTitleCnt(data.cnt);
+	
+	changeNotificationsCnt(data);
+}
+
+
+/**
+ * Променя броя на нотификациите в титлата на таба
+ * 
+ * @param cnt - броя на нотификациите
+ */
+function changeTitleCnt(cnt)
+{
+	var title = document.title;
+	var numbArr = title.match(/\(([^) ]+)\)/);
+	cnt = parseInt(cnt);
+	
+	if(numbArr) {
+		numb = numbArr[1];
+	} else {
+		numb = '0';
+	}
+	
+	var textSpace =  "  " ;
+	
+	if( parseInt(numb) > 0) {
+		if(parseInt(cnt) > 0) {
+			title = title.replace("(" + numb + ") ", "(" + cnt + ") ");
+		} else {
+			title = title.replace("(" + numb + ") ", "");
+		}
+		
+	} else {
+		if(cnt > 0) {
+			title = "(" + cnt + ") " + title;
+		}
+	}
+	
+	document.title = title;
+}
+
+
+/**
+ * Променя броя на нотификациите
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.id - id на таг
+ * data.cnt - броя на нотификациите
+ */
+function changeNotificationsCnt(data)
+{
+	render_html({'id': data.id, 'html': data.cnt, 'replace': 1});
+	
+	var nCntLink = get$(data.id);
+	
+	if(nCntLink != null) {
+		
+		if(parseInt(data.cnt) > 0) {
+			nCntLink.className = 'haveNtf';
+		} else {
+			nCntLink.className = 'noNtf';
+		}
+	}
 }
