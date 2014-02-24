@@ -47,7 +47,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
             "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .
-            "[#page_Html::showStatus#]" .
+            "[#page_Html::subscribeStatus#]" .
             "\n</body>" .
             "\n</html>");
     }
@@ -103,7 +103,7 @@ class page_Html extends core_ET {
      * 
      * @return core_ET
      */
-    static function showStatus()
+    static function subscribeStatus()
     {
         static $i = 0;
         
@@ -124,7 +124,7 @@ class page_Html extends core_ET {
         
         try {
             // Извикваме показването на статусите - във vendors
-            $tpl->append(status_Messages::show($hitTime), 'STATUSES');
+            $tpl->append(status_Messages::subscribe(), 'STATUSES');
         } catch (Exception $e) { }
         
         $i++;
