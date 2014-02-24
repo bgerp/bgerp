@@ -64,17 +64,14 @@ class toast_Toast extends core_Plugin
                                 	}, data.timeOut);
                             }", 'SCRIPTS');
         
-        // JS за стартиране на toast
-        $toastJS= static::getStatusesJS($hitTime);
-        
-        // Стартираме в JQuery
-        jquery_Jquery::run($tpl, $toastJS, TRUE);
-        
         // Ако е зададено да се абонира
         if ($subscribe) {
             
             // Абонираме, за да се вика по JS
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5);
+            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
+            
+            // Показва статус събщениет само веднъж
+            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
         }
         
         // Връщаме FALSE за да не се изпълнява метода
@@ -130,9 +127,8 @@ class toast_Toast extends core_Plugin
             // Типа на статуса
             $toastType = $val['type'];
             
-            // Първия статус да се покаже 0.5 секунди след зареждане на страницата
             // Всеки следващ статус със закъсенине + 1 секунди
-            $timeOut += (!$timeOut) ? 700 : 1000;
+            $timeOut += (!$timeOut) ? 1 : 1000;
             
             // Ако статусите за показване са повече от 3
             if ($countArr > 3) {
