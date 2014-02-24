@@ -153,15 +153,18 @@ class status_Messages extends core_Manager
         $conf = core_Packs::getConfig('status');
         
         // Намяляме времето
-        $hitTime -= $conf->STATUS_TIME_BEFORE;
+        $hitTimeB = $hitTime - $conf->STATUS_TIME_BEFORE;
         
         // Време на извикване на страницата
         $hitTime = dt::timestamp2Mysql($hitTime);
         
+        // Време на извикване на страницата с премахнат коригиращ офсет
+        $hitTimeB = dt::timestamp2Mysql($hitTimeB);
+        
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
         $query = static::getQuery();
-        $query->where(array("#createdOn >= '[#1#]'", $hitTime));
+        $query->where(array("#createdOn >= '[#1#]'", $hitTimeB));
         
         // Ако потребителя е логнат
         if ($userId > 0) {
