@@ -434,4 +434,40 @@ class bgerp_Notifications extends core_Manager
             $res .= "Обновени ключови думи на  {$count} записа в Нотификациите";
         }
     }
+    
+    
+    /**
+     * Абонира функцията за промяна на броя на нотификациите по AJAX
+     * 
+     * @return core_ET $tpl
+     */
+    static function subscribeCounter()
+    {
+        $tpl = new ET();
+        
+        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън, който връща броя на нотификациите в efae
+     */
+    function act_NotificationsCnt()
+    {
+        // Ако заявката е по ajax
+        if (Request::get('ajax_mode')) {
+            
+            // Броя на нотифиакциите
+            $notifCnt = static::getOpenCnt();
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'notificationsCnt';
+            $resObj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            
+            return array($resObj);
+        }
+    }
 }
