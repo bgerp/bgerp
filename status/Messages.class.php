@@ -226,7 +226,7 @@ class status_Messages extends core_Manager
             core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
             
             // Показва статус съобщението след зареждане на страницата
-            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1);
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1, TRUE);
         }
         
         return $res;
