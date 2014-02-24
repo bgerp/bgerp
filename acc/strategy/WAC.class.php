@@ -4,7 +4,7 @@ cls::load('acc_strategy_Strategy');
 
 
 /**
- * Клас 'acc_strategy_MAP' -
+ * Клас 'acc_strategy_WAC' -
  *
  *
  * @category  bgerp
