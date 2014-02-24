@@ -1350,7 +1350,7 @@ function limitLen(string, maxLen)
 
 
 // добавяне на линк към текущата страница при копиране на текст
-function addLink() 
+function addLinkOnCopy(text) 
 {
     var selection = window.getSelection();
 
@@ -1362,8 +1362,8 @@ function addLink()
     }
     var selectionHTML = htmlDiv.innerHTML;
        
-    var pagelink = "<br /><br /> Прочети повече на: <a href='" + document.location.href+"'>" + document.location.href + "</a>";
-
+    var pagelink = "<br /><br /> "+ text + ": <a href='" + document.location.href+"'>" + document.location.href + "</a>";
+    
     var copytext = selectionHTML + pagelink;
     
     var newdiv = document.createElement('div');
