@@ -265,20 +265,21 @@ class abbyyocr_Converter extends core_Manager
     {
     
         // Ако е извлечена текстовата част
-        $params['type'] = 'text';
-        $params['dataId'] = $rec->dataId;
-        $procText = fileman_Indexes::isProcessStarted($params, TRUE);
-        if (!$procText) {
+//        $params['type'] = 'text';
+//        $params['dataId'] = $rec->dataId;
+//        $procText = fileman_Indexes::isProcessStarted($params, TRUE);
+//       if (!$procText) {
             
             // Ако е извлечена текстовата част с OCR
             $paramsOcr['type'] = 'textOcr';
             $paramsOcr['dataId'] = $rec->dataId;
             $procTextOcr = fileman_Indexes::isProcessStarted($paramsOcr);
-        }
+//        }
         
         // Ако текста е бил извличан по някой начин, връщаме истина
-        if ($procTextOcr || $procText) {
-                    
+        // if ($procTextOcr || $procText) {
+        if ($procTextOcr) {
+            
             return TRUE;
         }
     }
