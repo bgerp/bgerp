@@ -13,7 +13,7 @@
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/115
  */
-class email_Mime extends core_Mvc
+class email_Mime extends core_BaseClass
 {
 
     /**
@@ -240,7 +240,7 @@ class email_Mime extends core_Mvc
                 $ip = trim($this->getHeader('X-Sender-IP', 1, -1), '[]');
             }
          
-            if((empty($ip) || (!type_Ip::isPublic($ip))) && true) {
+            if(empty($ip) || !type_Ip::isPublic($ip)) {
                 $regExp = '/Received:.*\[((?:\d+\.){3}\d+)\]/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
                 
@@ -255,12 +255,12 @@ class email_Mime extends core_Mvc
                 }
             }
 
-            if((empty($ip) || (!type_Ip::isPublic($ip))) && true) {
+            if(empty($ip) || !type_Ip::isPublic($ip)) {
                 $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
                 preg_match_all($regExp, $this->getHeadersStr(), $matches);
-                
                 if($ipCnt = count($matches[1])) {
                     for($i = $ipCnt - 1; $i >= 0; $i--) {
+                    if(strpos($matches[0][$i], '.google.com')) continue;
                         if(type_Ip::isPublic($matches[1][$i])) {
                             $ip = $matches[1][$i];
                             break;
