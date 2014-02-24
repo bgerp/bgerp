@@ -269,7 +269,7 @@ class acc_OpenDeals extends core_Manager {
 	    		break;
 	    }
 	    
-	    return "<span style='margin-left:0.4em'>{$btns}</span>";
+	    return "<span style='margin-left:0.4em; display: block;'>{$btns}</span>";
 	}
     
     
