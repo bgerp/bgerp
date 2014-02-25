@@ -145,7 +145,7 @@ class core_Ajax extends core_Mvc
         $once = (int)$once;
         
         // Добавяме стринга, който субскрайбва съответното URL
-        $subscribeStr = "efaeInst.subscribe('{$name}', '{$localUrl}', {$interval}, {$once});";
+        $subscribeStr = "\n efaeInst.subscribe('{$name}', '{$localUrl}', {$interval}, {$once});";
         
         // Добавяме само веднъж
         $tpl->appendOnce($subscribeStr, 'SCRIPTS');
@@ -160,7 +160,7 @@ class core_Ajax extends core_Mvc
     protected static function enable(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n efaeInst = new efae();\n", 'SCRIPTS');
+        $tpl->appendOnce("\n efaeInst = new efae();", 'SCRIPTS');
         
         // Този пакет е във vendors
         if (method_exists('jquery_Jquery', 'enable')) {
@@ -189,13 +189,13 @@ class core_Ajax extends core_Mvc
         $url = toUrl(array('core_Ajax', 'Get'));
         
         // Добавяме променливата
-        $tpl->appendOnce("efaeInst.setUrl('{$url}');", 'SCRIPTS');
+        $tpl->appendOnce("\n efaeInst.setUrl('{$url}');", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {
             
             // Стартираме извикването на `run` фунцкцията на efae
-            jquery_Jquery::run($tpl, 'efaeInst.run();', TRUE);
+            jquery_Jquery::run($tpl, "\n efaeInst.run();", TRUE);
         } else {
             
             // Стартираме извикването на run
