@@ -29,7 +29,7 @@ class drdata_Domains extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Домейни";
+    var $title = "Домейни на публични имейл услуги";
     
     
     /**
@@ -103,6 +103,12 @@ class drdata_Domains extends core_Manager
      */
     static function isPublic($domain)
     {
+        if(strpos($domain, '@')) {
+            list($left, $domain) = explode('@', $domain);
+        }
+
+        $domain = strtolower(trim($domain));
+
         return (boolean)static::fetch(
             "#domain = '{$domain}'"
             . " AND #state = 'active'"
