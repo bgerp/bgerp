@@ -473,17 +473,23 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * Връща хеша от подадения статус. Вика се от plg_RefreshRows
+     * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
      * 
+     * @param object $data
      * @param string $status
      * 
      * @return string
      * @see plg_RefreshRows
      */
-    function getStatusHash($status)
+    function getStatusHash($data, $status)
     {
-        // Премахваме HTML атрибутите
-        $hash = md5(strip_tags($status));
+        $str = '';
+        foreach ($data->recs as $rec) {
+            $str .= $rec->msg . $rec->state . $rec->modifiedOn;
+        }
+        
+        $hash = md5($str);
+        
         
         return $hash;
     }
