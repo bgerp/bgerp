@@ -47,21 +47,6 @@ class toast_Toast extends core_Plugin
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
         
-        // Добавяме функцията, за показване на статус събощенията
-        $tpl->appendOnce("function showToast(data)
-                            {
-                            	setTimeout(function(){
-                                    $().toastmessage('showToast', {
-                                        text            : data.text,
-                                        sticky          : data.isSticky,
-                                        stayTime        : data.stayTime,
-                                        type            : data.type,
-                                        inEffectDuration: 800,
-                                        position        : 'bottom-right',
-                                        });
-                                	}, data.timeOut);
-                            }", 'SCRIPTS');
-        
         // Абонираме, за да се вика по JS
         core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
         
