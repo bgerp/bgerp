@@ -624,6 +624,14 @@ class doc_Containers extends core_Manager
         // Време на последното виждане, за съответния потребител
         $lastClosedOn = bgerp_Notifications::getLastClosedTime($url, $userId);
         
+        // Ако няма време на последно затваряне
+        if (!$lastClosedOn) {
+            
+            // Вадим от текущото време, зададените секунди за търсене преди
+            $notifConf = core_Packs::getConfig('bgerp');
+            $lastClosedOn = dt::removeSecs($notifConf->BGERP_NOTIFICATIONS_LAST_CLOSED_BEFORE);
+        }
+        
         // Вземаме всички записи
         // Които не са чернови или оттеглени
         // И са променени след последното разглеждане
