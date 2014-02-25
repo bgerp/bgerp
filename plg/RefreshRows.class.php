@@ -25,7 +25,7 @@ class plg_RefreshRows extends core_Plugin
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$tpl)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $ajaxMode = Request::get('ajax_mode');
         $refreshUrl = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
@@ -40,7 +40,7 @@ class plg_RefreshRows extends core_Plugin
             
             $status = $tpl->getContent();
             
-            $statusHash = $mvc->getStatusHash($status);
+            $statusHash = $mvc->getStatusHash($data, $status);
             
             if($statusHash != $savedHash) {
                 
@@ -81,8 +81,9 @@ class plg_RefreshRows extends core_Plugin
      * @param core_Mvc $mvc
      * @param string $res
      * @param string $status
+     * @param object $data
      */
-    function on_AfterGetStatusHash($mvc, &$res, &$status)
+    function on_AfterGetStatusHash($mvc, &$res, &$data, &$status)
     {
         $res = md5($status);
     }
