@@ -119,7 +119,7 @@ class cms_VerbalId extends core_Manager
      * Извлича id от $vid
      */
     static function fetchId($vid, $mvc)
-    {
+    { 
         $mvcId = core_Classes::getId($mvc);
 
         $rec = self::fetch(array("#vid = '[#1#]'", $vid));

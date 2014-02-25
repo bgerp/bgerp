@@ -45,4 +45,31 @@ class bgerp_Bg extends core_Mvc
 
         return FALSE;
     }
+
+    
+    /**
+     * Връща кратко URL към съдържание, което се линква чрез този редиректор
+     */
+    function getShortUrl($url)
+    {
+        if($url['Act']) { 
+
+            $vid = urldecode($url['Act']);
+
+            $id = cms_VerbalId::fetchId($vid, 'cms_Articles');
+ 
+            if(!$id) {
+                $id = cms_Articles::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            }
+            
+            if($id) {
+                $url['Act'] = $id;
+            }
+        }
+        
+        unset($url['PU']);
+
+        return $url;
+    }
+
 }

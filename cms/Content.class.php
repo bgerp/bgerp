@@ -455,6 +455,24 @@ class cms_Content extends core_Manager
         return $url;
     }
     
+
+    /**
+     * Връща кратко URL отговарящо на текущото
+     */
+    static function getShortUrl()
+    {
+        $cUrl = getCurrentUrl();
+
+        if(in_array($cUrl['Ctr'], array('Bg', 'En', 'A'))) {
+            $man = cls::get($cUrl['Ctr']);
+            if(cls::existsMethod($man, 'getShortUrl')) {
+                $cUrl = $man->getShortUrl($cUrl); 
+            }
+        }
+
+        return $cUrl;
+    }
+    
     
     /**
      * Изпълнява се след подготовката на вербалните стойности

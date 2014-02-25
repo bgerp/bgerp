@@ -87,8 +87,10 @@ class social_Sharings extends core_Master
 		$socialNetworks = $query->fetchAll("#state = 'active'");
 
         if(!count($socialNetworks)) return;
-
-        $selfUrl     = substr(rawurlencode(toUrl(getCurrentUrl(), 'absolute')), 4);
+        
+        $cUrl = cms_Content::getShortUrl();
+        
+        $selfUrl     = substr(rawurlencode(toUrl($cUrl, 'absolute')), 4);
 
         $selfTitle   = rawurlencode(Mode::get('SOC_TITLE'));
         $selfSummary = toUrl(str::truncate(rawurlencode(Mode::get('SOC_SUMMARY')), 200), 'absolute');
