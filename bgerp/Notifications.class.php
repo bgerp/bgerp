@@ -85,7 +85,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('url', 'varchar', 'caption=URL->Ключ');
         $this->FLD('customUrl', 'varchar', 'caption=URL->Обект');
         $this->FLD('hidden', 'enum(no,yes)', 'caption=Скрито,notNull');
-        $this->FLD('closedOn', 'datetime', 'caption=Затворено на,notNull');
+        $this->FLD('closedOn', 'datetime', 'caption=Затворено на');
 
         $this->setDbUnique('url, userId');
     }
@@ -489,7 +489,6 @@ class bgerp_Notifications extends core_Manager
         }
         
         $hash = md5($str);
-        
         
         return $hash;
     }
