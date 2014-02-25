@@ -788,7 +788,7 @@ class sales_Invoices extends core_Master
                 
                 if(count($plan)){
                     foreach ($plan as $pName => $pValue){
-                        $data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " <b>{$pValue}</b>" : $pValue;
+                        $data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " {$pValue}" : $pValue;
                     }
                 }
             }

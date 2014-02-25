@@ -29,61 +29,61 @@
 		                <tr>
 		                <td>
 		                        <!--ET_BEGIN vatReason-->
-                                <div>|Основание за ДДС|*: <b>[#vatReason#]</b></div>
+                                <div><span class='quiet'>|Основание за ДДС|*:</span> [#vatReason#]</div>
                               
                                 <!--ET_END vatReason-->
                              
                                 <!--ET_BEGIN vatDate-->  
-                                 <div>|Данъчно събитие|*: <b>[#vatDate#]</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <!--ET_END vatDate-->  
                                 
                                 <!--ET_BEGIN rate--> 
-                                 |Курс|* / <i>Rate</i> : <b>[#rate#]</b></div>
+                                 <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
                                 <!--ET_END rate-->  
                                 <hr>
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
-		                        <div>|Начин|* / <i>Method</i> : <b>[#paymentMethodId#]</b></div>
+		                        <div><span class='quiet'>|Начин|* / <i>Method</i>:</span>  [#paymentMethodId#]</div>
 		                        <!--ET_END paymentMethodId-->
 		                        
 		                        <!--ET_BEGIN deadline-->
 		                        [#deadline#]
 		                        <div>
 			                        <!--ET_BEGIN DUE_DATE-->
-			                        |Краен срок за плащане|* / <i>Due date</i> : <b>[#DUE_DATE#]</b><!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+			                        <span class='quiet'>|Краен срок за плащане|* / <i>Due date</i>:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
 			                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
-	                                <span class="smallData">|Лихва за просрочено плащане|* <b>[#OVERDUE_INTEREST_RATE#]</b> |на ден|*</span>
+	                                <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
 	                                <!--ET_END OVERDUE_INTEREST_RATE-->
 		                        </div>
 		                        <!--ET_END deadline-->
 		                        
 		                        <div>
 		                        <!--ET_BEGIN downpayment-->
-                                |Авансово|*: &nbsp;[#downpayment#]  &nbsp; &nbsp; &nbsp; 
+                                 <span class='quiet'>|Авансово|*:</span> &nbsp;[#downpayment#]  &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END downpayment-->
                                 
                                 <!--ET_BEGIN paymentBeforeShipping-->
-                                |Преди експедиция|*: &nbsp;[#paymentBeforeShipping#]  &nbsp; &nbsp; &nbsp; 
+                                <span class='quiet'>|Преди експедиция|*:</span> &nbsp;[#paymentBeforeShipping#]  &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END paymentBeforeShipping-->
                                 
                                 <!--ET_BEGIN paymentOnDelivery-->
-                                |При получаване|*: &nbsp;[#paymentOnDelivery#] &nbsp; &nbsp; &nbsp; 
+                                <span class='quiet'>|При получаване|*:</span> &nbsp;[#paymentOnDelivery#] &nbsp; &nbsp; &nbsp; 
                                 <!--ET_END paymentOnDelivery-->
                                 </div>
                                 <!--ET_BEGIN paymentAfterInvoice-->
-                                <div>|Окончателно|*: &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
+                                <div><span class='quiet'>|Окончателно|*:</span> &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
                                 <!--ET_END paymentAfterInvoice-->
 		                        <!--ET_BEGIN accountId-->
 		                        <hr>
 		                        <div>
 		                       
-			                        |Банкова с-ка|*: <b>[#accountId#]</b>
+			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
 			                        <div class="smallData">
 			                        <!--ET_BEGIN bank-->
-			                        <div><b>[#bank#]</b>
+			                        <div>[#bank#]
 			                        <!--ET_END bank-->
 			                        <!--ET_BEGIN bic-->
-			                        , BIC(SWIFT): <b>[#bic#]</b></div>
+			                        , BIC: [#bic#]</div>
 			                        <!--ET_END bic-->
 			                        </div>
 				                </div>
@@ -92,7 +92,7 @@
 		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryId-->
-                               <b>[#deliveryId#]</b>
+                               [#deliveryId#]
                                <!--ET_END deliveryId-->
                                <!--ET_BEGIN deliveryPlaceId-->
                                 [#deliveryPlaceId#]
