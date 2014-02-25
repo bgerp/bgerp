@@ -1721,3 +1721,28 @@ function changeNotificationsCnt(data)
 		}
 	}
 }
+
+
+/**
+ * Показва статус съобщениет
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.text - Текста, който да се показва
+ * data.isSticky - Дали да е лепкаво
+ * data.stayTime - Време за което да стои
+ * data.type - Типа
+ * data.timeOut - Изчакване преди да се покаже
+ */
+function showToast(data)
+{
+	setTimeout(function(){
+        $().toastmessage('showToast', {
+            text            : data.text,
+            sticky          : data.isSticky,
+            stayTime        : data.stayTime,
+            type            : data.type,
+            inEffectDuration: 800,
+            position        : 'bottom-right',
+            });
+    	}, data.timeOut);
+}
