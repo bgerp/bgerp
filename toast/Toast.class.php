@@ -16,20 +16,18 @@ class toast_Toast extends core_Plugin
     
     
     /**
-     * Показва статус съобщенията с toast плъгина
+     * Абонира за показване на статус съобщения
      * 
-     * Изпълнява се преди show_ метода
+     * Изпълнява се преди Subscribe_ метода
      * Ако javascript' а не е активен, прескача изпълнението на метода.
      * Ако е активен тогава се изпълнява.
      * 
-     * @param object $mvc - 
-     * @param core_ET $tpl - 
-     * @param integer $hitTime - Timestamp на показване на страницата
-     * @param boolean $subscribe - Дали да се абонира системата, да извлича други записи по AJAX
+     * @param object $mvc
+     * @param core_ET $tpl
      *  
      * @return FALSE - За да не изпълняват други функции (show_)
      */
-    function on_BeforeShow(&$mvc, &$tpl, $hitTime, $subscribe=TRUE)
+    function on_BeforeSubscribe(&$mvc, &$tpl)
     {
         //Проверяваме дали е включн javascript'a.
         //Ако не е връщаме TRUE, за да може да се изпълнят другите функции
@@ -49,33 +47,11 @@ class toast_Toast extends core_Plugin
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
         
-        // Добавяме функцията, за показване на статус събощенията
-        $tpl->appendOnce("function showToast(data)
-                            {
-                            	setTimeout(function(){
-                                    $().toastmessage('showToast', {
-                                        text            : data.text,
-                                        sticky          : data.isSticky,
-                                        stayTime        : data.stayTime,
-                                        type            : data.type,
-                                        inEffectDuration: 800,
-                                        position        : 'bottom-right',
-                                        });
-                                	}, data.timeOut);
-                            }", 'SCRIPTS');
+        // Абонираме, за да се вика по JS
+        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
         
-        // JS за стартиране на toast
-        $toastJS= static::getStatusesJS($hitTime);
-        
-        // Стартираме в JQuery
-        jquery_Jquery::run($tpl, $toastJS, TRUE);
-        
-        // Ако е зададено да се абонира
-        if ($subscribe) {
-            
-            // Абонираме, за да се вика по JS
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5);
-        }
+        // Показва статус събщениет само веднъж
+        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
         
         // Връщаме FALSE за да не се изпълнява метода
         return FALSE;
@@ -130,9 +106,8 @@ class toast_Toast extends core_Plugin
             // Типа на статуса
             $toastType = $val['type'];
             
-            // Първия статус да се покаже 0.5 секунди след зареждане на страницата
             // Всеки следващ статус със закъсенине + 1 секунди
-            $timeOut += (!$timeOut) ? 700 : 1000;
+            $timeOut += (!$timeOut) ? 1 : 1000;
             
             // Ако статусите за показване са повече от 3
             if ($countArr > 3) {
