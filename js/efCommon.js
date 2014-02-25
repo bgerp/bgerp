@@ -1282,29 +1282,25 @@ function limitLen(string, maxLen)
 // добавяне на линк към текущата страница при копиране на текст
 function addLinkOnCopy(text) 
 {
-    var selection = window.getSelection();
-
-    if (("" + selection).length < 30) return;
-    
-    var htmlDiv = document.createElement("div");
-    for (var i = 0; i < selection.rangeCount; ++i) {
-        htmlDiv.appendChild(selection.getRangeAt(i).cloneContents());
-    }
-    var selectionHTML = htmlDiv.innerHTML;
-       
-    var pagelink = "<br /><br /> "+ text + ": <a href='" + document.location.href+"'>" + document.location.href + "</a>";
-    
-    var copytext = selectionHTML + pagelink;
-    
-    var newdiv = document.createElement('div');
-    newdiv.style.position = 'absolute';
-    newdiv.style.left = '-99999px';
-    
-    document.body.appendChild(newdiv);
-    newdiv.innerHTML = copytext;
-    selection.selectAllChildren(newdiv);
-    window.setTimeout(function () { document.body.removeChild(newdiv); }, 0);
-    
+	var body_element = document.getElementsByTagName('body')[0];
+	var selection = window.getSelection();
+	
+	if (("" + selection).length < 30) return;
+	    
+	var htmlDiv = document.createElement('div');
+	
+	htmlDiv.style.position = 'absolute';
+	htmlDiv.style.left = '-99999px';
+	
+	body_element.appendChild(htmlDiv);
+	
+	htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+	
+	htmlDiv.innerHTML += "<br /><br />" + text + ": <a href='" + document.location.href + "'>" + document.location.href + "</a> ";
+			
+	selection.selectAllChildren(htmlDiv);
+	
+	window.setTimeout(function () { body_element.removeChild(htmlDiv); }, 200);
 }
 
 
@@ -1720,4 +1716,29 @@ function changeNotificationsCnt(data)
 			nCntLink.className = 'noNtf';
 		}
 	}
+}
+
+
+/**
+ * Показва статус съобщениет
+ * 
+ * @param object data - Обект с необходимите стойности
+ * data.text - Текста, който да се показва
+ * data.isSticky - Дали да е лепкаво
+ * data.stayTime - Време за което да стои
+ * data.type - Типа
+ * data.timeOut - Изчакване преди да се покаже
+ */
+function showToast(data)
+{
+	setTimeout(function(){
+        $().toastmessage('showToast', {
+            text            : data.text,
+            sticky          : data.isSticky,
+            stayTime        : data.stayTime,
+            type            : data.type,
+            inEffectDuration: 800,
+            position        : 'bottom-right',
+            });
+    	}, data.timeOut);
 }
