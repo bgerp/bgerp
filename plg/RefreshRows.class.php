@@ -29,18 +29,18 @@ class plg_RefreshRows extends core_Plugin
     {
         $ajaxMode = Request::get('ajax_mode');
         $refreshUrl = $mvc->refreshRowsUrl ? $mvc->refreshRowsUrl : getCurrentUrl();
+        
         if ($ajaxMode) {
-
-            $tpl->removePlaces();
-
-            $status = $tpl->getContent();
-
-            $statusHash = md5(strip_tags($status));
-            
             $savedName = "REFRESH_ROWS_" . md5(toUrl($refreshUrl));
             $savedHash = Mode::get($savedName);
             
             if(empty($savedHash)) $savedHash = md5($savedHash);
+            
+            $tpl->removePlaces();
+            
+            $status = $tpl->getContent();
+            
+            $statusHash = $mvc->getStatusHash($status);
             
             if($statusHash != $savedHash) {
                 
@@ -72,5 +72,18 @@ class plg_RefreshRows extends core_Plugin
             $tpl->prepend("<div id='{$attr['id']}'>");
             $tpl->append("</div>");
         }
+    }
+    
+    
+    /**
+     * Функция по подразбиране, за връщане на хеша на резултата
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res
+     * @param string $status
+     */
+    function on_AfterGetStatusHash($mvc, &$res, &$status)
+    {
+        $res = md5($status);
     }
 }
