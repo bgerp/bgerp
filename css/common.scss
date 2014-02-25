@@ -2220,8 +2220,9 @@ div.richtext ol ol {
 .richtext-question a[href], .richtext-info a[href], .richtext-error a[href], .richtext-success a[href],
 .richtext-warning a[href], .richtext-tip a[href], .richtext-text a[href] {
 	color: inherit;
-	text-decoration: underline;
+	border-bottom: 1px dashed;
 	&:hover{
+		  border-bottom: 1px solid;
 		  text-decoration: none;
 	}
 }
