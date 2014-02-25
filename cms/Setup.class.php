@@ -32,7 +32,7 @@ defIfNot('CMS_BROWSER_CACHE_EXPIRES', 3600);
 /**
  * допълнителен текст при копиране
  */
-defIfNot('CMS_COPY_DEFAULT_TEXT', 'Прочети повече на');
+defIfNot('CMS_COPY_DEFAULT_TEXT', 'Виж още на');
 
 
 /**
