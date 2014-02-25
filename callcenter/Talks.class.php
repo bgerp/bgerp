@@ -804,8 +804,18 @@ class callcenter_Talks extends core_Master
             
             // Вземаме всички неотоговрени входящи обаждания към съответния номер след последното време за листване
             $query = static::getQuery();
-            $query->where(array("#startTime > '[#1#]' AND #internalNum = '[#2#]'", $lastClosedTime, $rec->internalNum));
-            $query->where("#dialStatus != 'ANSWERED' AND #callType = 'incoming'");
+            
+            // Ако има време на последно затваряне
+            if ($lastClosedTime) {
+                
+                // След последното виждане
+                $query->where(array("#startTime > '[#1#]'", $lastClosedTime));
+            }
+            
+            // Само входящи обаждания, къс съответния номер и без отговор
+            $query->where(array("#internalNum = '[#1#]'", $rec->internalNum));
+            $query->where("#dialStatus != 'ANSWERED'");
+            $query->where("#callType = 'incoming'");
             
             // Последните обаждания са с по голям приоритет
             $query->orderBy('startTime', 'DESC');
