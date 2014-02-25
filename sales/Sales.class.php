@@ -691,7 +691,7 @@ class sales_Sales extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
-    		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId);
+    		$closeArr = array('sales_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
     		if(sales_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на продажбата");
@@ -716,22 +716,22 @@ class sales_Sales extends core_Master
 	        }
 	        
     		if(sales_Proforma::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Проформа", array('sales_Proforma', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
+	    		$data->toolbar->addBtn("Проформа", array('sales_Proforma', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
 		    }
 		    
 	        // Ако експедирането е на момента се добавя бутон за нова фактура
 	        $actions = type_Set::toArray($rec->contoActions);
 	    	
 	        if($actions['ship'] && sales_Invoices::haveRightFor('add')){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
 		    }
 		    
 		    if(cash_Pko::haveRightFor('add')){
-		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
+		    	$data->toolbar->addBtn("ПКО", array('cash_Pko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер');
 		    }
 		    
     		if(bank_IncomeDocuments::haveRightFor('add')){
-		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
+		    	$data->toolbar->addBtn("ПБД", array('bank_IncomeDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ');
 		    }
     	}
     	

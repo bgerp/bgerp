@@ -114,6 +114,12 @@ class survey_Surveys extends core_Master {
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

@@ -325,9 +325,6 @@ class purchase_Services extends core_Master
     	$rec = &$data->rec;
     	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
     	
-    	// Бутон за отпечатване с цени
-        $data->toolbar->addBtn('Печат (с цени)', array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'showPrices' => TRUE), 'id=btnPrintP,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}

@@ -276,7 +276,7 @@ class purchase_Purchases extends core_Master
     	$rec = &$data->rec;
     	$diffAmount = $rec->amountPaid - $rec->amountDelivered;
     	if($rec->state == 'active'){
-    		$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId);
+    		$closeArr = array('purchase_ClosedDeals', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
     		
     		if(purchase_ClosedDeals::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката");
@@ -299,11 +299,11 @@ class purchase_Purchases extends core_Master
 	        }
 	        
     		if(cash_Pko::haveRightFor('add')){
-		    	$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер');
+		    	$data->toolbar->addBtn("РКО", array('cash_Rko', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/money_delete.png,title=Създаване на нов разходен касов ордер');
 		    }
 		    
     		if(bank_IncomeDocuments::haveRightFor('add')){
-		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
+		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
 		    }
     	}
     	

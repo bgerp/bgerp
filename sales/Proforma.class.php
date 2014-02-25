@@ -3,7 +3,7 @@
 
 
 /**
- * Документ за проформа фактура от продажба
+ * Документ "Проформа фактура"
  *
  *
  * @category  bgerp
@@ -205,8 +205,6 @@ class sales_Proforma extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
     {
 		$data->listFilter->showFields .= ', search';
-		$data->listFilter->input(null, 'silent');
-		//$data->listFilter->setField('search','after=from');
     }
     
     
@@ -227,7 +225,7 @@ class sales_Proforma extends core_Master
 	    $userRec = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
 		
-		// Ако курса е 1-ца, несе показва
+		// Ако курса е 1-ца, не се показва
 		if($rec->currencyRate == 1){
 			unset($row->currencyRate);
 		}

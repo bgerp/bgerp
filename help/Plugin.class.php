@@ -61,7 +61,7 @@ class help_Plugin extends core_Plugin
             $tabsTpl->push('css/tooltip.css', 'CSS');
             $tabsTpl->push('js/tooltipCustom.js', 'JS');
             
-            jquery_Jquery::run($tabsTpl, "tooltipCustom('{$url}');", TRUE);
+            jquery_Jquery::run($tabsTpl, "\n tooltipCustom('{$url}');", TRUE);
         }
     }
 

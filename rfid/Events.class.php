@@ -88,7 +88,7 @@ class rfid_Events extends core_Manager {
     function description()
     {
         // Обща информация
-        $this->FLD('holderId', 'key(mvc=rfid_Holders)', 'caption=Картодържател');
+        $this->FLD('holderId', 'key(mvc=rfid_Holders,select=objectId)', 'caption=Картодържател');
         $this->FLD('tagId', 'key(mvc=rfid_Tags,select=name)', 'caption=Карта');
         $this->FLD('readerId', 'key(mvc=rfid_Readers,select=name)', 'caption=Четец');
         $this->FLD('time', 'datetime', 'caption=Време');

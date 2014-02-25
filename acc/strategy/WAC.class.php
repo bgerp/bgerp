@@ -4,7 +4,7 @@ cls::load('acc_strategy_Strategy');
 
 
 /**
- * Клас 'acc_strategy_MAP' -
+ * Клас 'acc_strategy_WAC' -
  *
  *
  * @category  bgerp
@@ -15,7 +15,7 @@ cls::load('acc_strategy_Strategy');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class acc_strategy_MAP extends acc_strategy_Strategy
+class acc_strategy_WAC extends acc_strategy_Strategy
 {
     protected $quantity = 0;
     protected $amount = 0;

@@ -435,7 +435,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = $rec->reason;
+        $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

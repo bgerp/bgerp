@@ -126,7 +126,7 @@ class acc_Accounts extends core_Manager
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
             'caption=Тип,remember, export');
-        $this->FLD('strategy', 'enum(,FIFO,LIFO,MAP)',
+        $this->FLD('strategy', 'enum(,WAC)',
             'caption=Стратегия, export');
         $this->FLD('groupId1', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
             'caption=Разбивка по номенклатури->Ном. 1,remember, export');
@@ -342,7 +342,7 @@ class acc_Accounts extends core_Manager
             }
         }
         
-        // Валидация: Стратегия (LIFO, FIFO, MAP) не се допуска за "неоразмерими" сметки.
+        // Валидация: Стратегия (LIFO, FIFO, WAC) не се допуска за "неоразмерими" сметки.
         
         if (!empty($form->rec->strategy) && empty($nDimensions)) {
             $form->setError('strategy',
@@ -624,8 +624,8 @@ class acc_Accounts extends core_Manager
             case 'FIFO' :
                 $strategy = new acc_strategy_FIFO($accountId);
                 break;
-            case 'MAP' :
-                $strategy = new acc_strategy_MAP($accountId);
+            case 'WAC' :
+                $strategy = new acc_strategy_WAC($accountId);
                 break;
         }
         

@@ -27,7 +27,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * 
      */
-    var $refreshRowsTime = 7000;
+    var $refreshRowsTime = 5000;
     
     
     /**
@@ -433,5 +433,64 @@ class bgerp_Notifications extends core_Manager
             
             $res .= "Обновени ключови думи на  {$count} записа в Нотификациите";
         }
+    }
+    
+    
+    /**
+     * Абонира функцията за промяна на броя на нотификациите по AJAX
+     * 
+     * @return core_ET $tpl
+     */
+    static function subscribeCounter()
+    {
+        $tpl = new ET();
+        
+        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Екшън, който връща броя на нотификациите в efae
+     */
+    function act_NotificationsCnt()
+    {
+        // Ако заявката е по ajax
+        if (Request::get('ajax_mode')) {
+            
+            // Броя на нотифиакциите
+            $notifCnt = static::getOpenCnt();
+            
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'notificationsCnt';
+            $resObj->arg = array('id'=>'nCntLink', 'cnt' => $notifCnt);
+            
+            return array($resObj);
+        }
+    }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
+     * 
+     * @param object $data
+     * @param string $status
+     * 
+     * @return string
+     * @see plg_RefreshRows
+     */
+    function getStatusHash($data, $status)
+    {
+        $str = '';
+        foreach ($data->recs as $rec) {
+            $str .= $rec->msg . $rec->state . $rec->modifiedOn;
+        }
+        
+        $hash = md5($str);
+        
+        
+        return $hash;
     }
 }
