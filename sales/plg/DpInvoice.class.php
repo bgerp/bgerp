@@ -57,15 +57,21 @@ class sales_plg_DpInvoice extends core_Plugin
         // Ако няма очаквано авансово плащане не правим нищо
         if(empty($dealInfo->agreed->downpayment)) return;
         
-        // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} без ДДС");
-        $form->setField('dpOperation','input');
-        
         if(empty($form->rec->id)){
         	
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
         }
+        
+        // Ако има експедирано, не се показват полетата за начисляване
+    	if($form->rec->dpOperation == 'accrued' && $form->dealInfo->shipped->amount){
+    		
+    		return;
+    	}
+    	
+        // Показване на полетата за авансовите плащания
+        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} без ДДС");
+        $form->setField('dpOperation','input');
         
         // Показване на закръглената сума
         $form->rec->dpAmount = currency_Currencies::round($form->rec->dpAmount / $form->rec->rate);
@@ -136,8 +142,16 @@ class sales_plg_DpInvoice extends core_Plugin
         	$agreed   = $form->dealInfo->agreed;
         	$paid     = $form->dealInfo->paid;
         	$invoiced = $form->dealInfo->invoiced;
+        	$shipped  = $form->dealInfo->shipped;
         	
         	if($rec->dpOperation == 'accrued'){
+        		
+        		if($shipped->amount) {
+        			
+        			// Ако има експедирано, не се начислява аванс
+        			unset($rec->dpOperation, $rec->dpAmount);
+        			return;
+        		}
         		
         		$downpayment = (empty($paid->downpayment)) ? $agreed->downpayment : $paid->downpayment;
         		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
@@ -251,7 +265,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	if($rec->type != 'invoice') return;
     	
     	// Ако има авансово плащане
-    	if(isset($rec->dpAmount) && $rec->dpOperation == 'accrued'){
+    	if($rec->dpAmount && $rec->dpOperation == 'accrued'){
     		$mvc->updateMaster($rec->id);
     		
     		// Така спираме изпълнението на on_AfterCreate в фактурата
