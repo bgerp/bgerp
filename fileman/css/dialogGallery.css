@@ -48,4 +48,16 @@ body {
 .galleryListTable .listTable tr td:last-child{
 	width:1%;
 }
+
+.noicon.button{
+	display: inline-block;
+    float: left;
+}
+
+#imgFile_file_name_id{
+	word-break: break-all;
+    display: inline-block;
+    float: left;
+    max-width: 190px;
 	
+}
