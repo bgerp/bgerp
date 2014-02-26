@@ -359,31 +359,36 @@ class bgerp_Notifications extends core_Manager
     {
         $Notifications = cls::get('bgerp_Notifications');
         
-        $tpl = new ET("
-            <div class='clearfix21 portal' style='background-color:#fff8f8'>
-            <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
-            [#ListFilter#]<div class='clearfix21'></div></div>
-            [#PortalPagerTop#]
-            [#PortalTable#]
-            [#PortalPagerBottom#]
-            </div>
-          ");
-        
-        // Попълваме титлата
-        $tpl->append($data->title, 'PortalTitle');
-        
-        // Попълваме горния страньор
-        $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
-        
-    	if($data->listFilter){
-    		$formTpl = $data->listFilter->renderHtml();
-    		$formTpl->removeBlocks();
-    		$formTpl->removePlaces();
-        	$tpl->append($formTpl, 'ListFilter');
+        // Ако се вика по AJAX
+        if (!Request::get('ajax_mode')) {
+            $tpl = new ET("
+                <div class='clearfix21 portal' style='background-color:#fff8f8'>
+                <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                [#ListFilter#]<div class='clearfix21'></div></div>
+                [#PortalPagerTop#]
+                [#PortalTable#]
+                [#PortalPagerBottom#]
+                </div>
+            ");
+            
+            // Попълваме титлата
+            $tpl->append($data->title, 'PortalTitle');
+            
+            // Попълваме горния страньор
+            $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
+            
+        	if($data->listFilter){
+        		$formTpl = $data->listFilter->renderHtml();
+        		$formTpl->removeBlocks();
+        		$formTpl->removePlaces();
+            	$tpl->append($formTpl, 'ListFilter');
+            }
+            
+            // Попълваме долния страньор
+            $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
+        } else {
+            $tpl = new ET("[#PortalTable#]");
         }
-        
-        // Попълваме долния страньор
-        $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
         
         // Попълваме таблицата с редовете
         $tpl->append($Notifications->renderListTable($data), 'PortalTable');
@@ -475,21 +480,36 @@ class bgerp_Notifications extends core_Manager
     /**
      * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
      * 
-     * @param object $data
      * @param string $status
      * 
      * @return string
      * @see plg_RefreshRows
      */
-    function getStatusHash($data, $status)
+    function getContentHash($status)
     {
-        $str = '';
-        foreach ($data->recs as $rec) {
-            $str .= $rec->msg . $rec->state . $rec->modifiedOn;
-        }
-        
-        $hash = md5($str);
+        // Премахваме всички тагове без 'a'
+        // Това е необходимо за да определим когато има промяна в състоянието на някоя нотификация
+        // Трябва да се премахват другите тагове, защото цвета се промяне през няколко секунди
+        // и това би накарало всеки път да се обновяват нотификациите
+        $hash = md5(strip_tags($status, '<a>'));
         
         return $hash;
+    }
+    
+    
+    /**
+     * Променя URL-то, което ще се вика по AJAX Вика се от plg_RefreshRows
+     * 
+     * @param array $url
+     * 
+     * @return array
+     * @see plg_RefreshRows
+     */
+    function prepareRefreshRowsUrl($url)
+    {
+        $url['Ctr'] = 'bgerp_Notifications';
+        $url['Act'] = 'render';
+
+        return $url;
     }
 }
