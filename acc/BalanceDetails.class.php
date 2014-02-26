@@ -988,8 +988,8 @@ class acc_BalanceDetails extends core_Detail
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
     	$row->blAmount = $Double->toVerbal($rec->blAmount);
     	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
-    	$row->baseAmount = $Double->toVerbal($rec->blAmount);
-    	$row->baseQuantity = $Double->toVerbal($rec->blQuantity);
+    	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
+    	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
     	
     	// Вербалните имена на избраните пера
     	foreach(range(1, 3) as $i){
@@ -1039,8 +1039,8 @@ class acc_BalanceDetails extends core_Detail
     		$data->rows = array($zeroRec);
     	}
     	
-    	$row->blAmount2 = $Double->toVerbal($blAmount);
-    	$row->blQuantity2 = $Double->toVerbal($blQuantity);
+    	$row->blAmount2 = $Double->toVerbal($blAmount + $rec->baseAmount);
+    	$row->blQuantity2 = $Double->toVerbal($blQuantity + $rec->baseQuantity);
     }
     
     
