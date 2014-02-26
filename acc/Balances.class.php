@@ -278,6 +278,19 @@ class acc_Balances extends core_Master
     
     
     /**
+     * Връща последния баланс, на който крайната дата е преди друга дата
+     */
+    public function getBalanceBefore($date)
+    {
+    	$query = self::getQuery();
+        $query->orderBy('#toDate', 'DESC');
+        $query->limit(1);
+        
+        return $query->fetch("#toDate < '{$date}'");
+    }
+    
+    
+    /**
      * Изчисляване на баланс
      */
     function calc($rec)
@@ -286,10 +299,7 @@ class acc_Balances extends core_Master
         $bD = cls::get('acc_BalanceDetails');
 
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $query = self::getQuery();
-        $query->orderBy('#toDate', 'DESC');
-        $query->limit(1);
-        $lastRec = $query->fetch("#toDate < '{$rec->fromDate}'");
+        $lastRec = $this->getBalanceBefore($rec->fromDate);
         if($lastRec) {
             $bD->loadBalance($lastRec->id);
             $firstDay = dt::addDays(1, $lastRec->toDate);
@@ -302,7 +312,7 @@ class acc_Balances extends core_Master
 
         // Изтриваме всички детайли за дадения баланс
         $bD->delete("#balanceId = {$rec->id}");
-
+		
         // Записваме баланса в таблицата
         $bD->saveBalance($rec->id);
     }
@@ -320,7 +330,7 @@ class acc_Balances extends core_Master
         //  - ако има такъв баланс, то той се изчислява, само ако неговото поле lastCalc <= lastEntry
         // след преизчисляване на баланс, полето lastCalc се попълва с времето, когато е започнало неговото изчисляване
         // продължава се със слеващия баланс
-        
+    	
         $pQuery = acc_Periods::getQuery();
         $pQuery->orderBy('#end', 'ASC');
         $pQuery->where("#state != 'closed'");

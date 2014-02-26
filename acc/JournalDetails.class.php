@@ -154,7 +154,8 @@ class acc_JournalDetails extends core_Detail
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
-        $query->orderBy('valior', 'ASC');
+        
+        $query->orderBy('valior,id', 'ASC');
     	
     	// Трябва да има поне една зададена сметка
     	$accounts = arr::make($accs);

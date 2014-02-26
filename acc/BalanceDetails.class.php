@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -48,6 +48,7 @@ class acc_BalanceDetails extends core_Detail
      */
     var $Lists;
     
+    
     /**
      * Временен акумулатор при изчисляване на баланс
      * (@see acc_BalanceDetails::calculateBalance())
@@ -55,6 +56,21 @@ class acc_BalanceDetails extends core_Detail
      * @var array
      */
     private $balance;
+    
+    
+    /**
+     * Временен акумолатор за извлечената история за перата
+     * 
+     * @var array
+     */
+    private $history;
+    
+    
+    /**
+     * Брой записи от историята на страница
+     */
+    var $listHistoryItemsPerPage = 30;
+    
     
     /**
      *
@@ -85,8 +101,6 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
         $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
-        
-        //        $this->setDbUnique('balanceId, accountId, ent1Id, ent2Id, ent3Id');
     }
     
     
@@ -116,12 +130,6 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
             $groupBy = array();
-            
-            //       foreach (range(1,3) as $i) {
-            //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
-            //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
-            //           }
-            //       }
             
             if (!empty($groupBy)) {
                 $mvc->doGrouping($data, $groupBy);
@@ -239,6 +247,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $data->listFields = array();
+        $data->listFields['history'] = ' ';
         
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
@@ -305,8 +314,6 @@ class acc_BalanceDetails extends core_Detail
                 'blAmount' => 'Салдо->Крайно',
             );
         }
-
-      
     }
     
     
@@ -465,6 +472,11 @@ class acc_BalanceDetails extends core_Detail
         
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
+        // Бутон за детайлизиран преглед на историята
+        $histImg = ht::createElement('img', array('src' => sbf('img/16/view.png', '')));
+        $row->history = ht::createLink($histImg, array('acc_BalanceDetails', 'History', $rec->id), NULL, 'title=Подробен преглед');
+        $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
+        
         if (!$mvc->isDetailed()) {
             return;
         }
@@ -535,17 +547,16 @@ class acc_BalanceDetails extends core_Detail
         
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
         $query->where('#blQuantity != 0 OR #blAmount != 0');
-       
-        while ($rec = $query->fetch()) {  
+        
+        while ($rec = $query->fetch()) { 
             $accId = $rec->accountId;
-            
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
             
             if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
-                
-                // "Захранваме" обекта стратегия с количество и сума
+               
+            	// "Захранваме" обекта стратегия с количество и сума
                 $strategy->feed($rec->blQuantity, $rec->blAmount);
             }
             
@@ -574,21 +585,14 @@ class acc_BalanceDetails extends core_Detail
         $JournalDetails = &cls::get('acc_JournalDetails');
         
         $query = $JournalDetails->getQuery();
-        $query->EXT('valior', 'acc_Journal', 'externalKey=journalId');
-        $query->EXT('state', 'acc_Journal', 'externalKey=journalId');
-        $query->EXT('jid', 'acc_Journal', 'externalName=id');
-        $query->where("#state = 'active'");
-        $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
-        $query->orderBy('valior', 'ASC');
+        acc_JournalDetails::filterQuery($query, $from, $to);
         
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
             $this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
         }
-
-        // core_Html::$dumpMaxDepth = 6;
-        // bp($this->balance);
+        
     }
     
     
@@ -608,6 +612,7 @@ class acc_BalanceDetails extends core_Detail
             $rec->debitItem2,
             $rec->debitItem3
         );
+    	
         $creditStrategy = $this->getStrategyFor(
             $rec->creditAccId,
             $rec->creditItem1,
@@ -620,9 +625,11 @@ class acc_BalanceDetails extends core_Detail
             // Ако е активна, извличаме цена от стратегията
             // Ако е пасивна - "захранваме" стратегията с данни;
             // (точно обратното на дебитната сметка)
+            
+        	
             switch ($this->Accounts->getType($rec->creditAccId)) {
                 case 'active' :
-                    if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
+                	if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
                         $rec->amount = $amount;
                     }
                     break;
@@ -636,6 +643,7 @@ class acc_BalanceDetails extends core_Detail
             // Дебитната сметка има стратегия.
             // Ако е активна, "захранваме" стратегията с данни;
             // Ако е пасивна - извличаме цена от стратегията
+            
             switch ($this->Accounts->getType($rec->debitAccId)) {
                 case 'active' :
                     $debitStrategy->feed($rec->debitQuantity, $rec->amount);
@@ -694,7 +702,6 @@ class acc_BalanceDetails extends core_Detail
     {
         expect(in_array($type, array('debit', 'credit')));
         
-//         expect($rec->amount, $rec);
         $quantityField = "{$type}Quantity";
 
         $sign = ($type == 'debit') ? 1 : -1;
@@ -716,10 +723,22 @@ class acc_BalanceDetails extends core_Detail
             
             $this->inc($b[$quantityField], $rec->{$quantityField});
             $this->inc($b["{$type}Amount"], $rec->amount);
-
  
             $this->inc($b['blQuantity'], $rec->{$quantityField} * $sign);
             $this->inc($b['blAmount'], $rec->amount * $sign);
+            
+            // Ако е посочено за кои пера да се помнят записите
+            if($this->historyFor && $accId == $this->historyFor['accId'] && $ent1Id == $this->historyFor['item1'] && $ent2Id == $this->historyFor['item2'] && $ent3Id == $this->historyFor['item3']){
+            	$this->history[$rec->id] = array('id'            => $rec->id, 
+            							         'docType'       => $rec->docType, 
+            					                 'docId'         => $rec->docId,
+            					                 "{$type}Amount" => $rec->amount,
+            					                 $quantityField  => $rec->{$quantityField},
+            					                 'blQuantity'    => $rec->{$quantityField} * $sign,
+            					                 'blAmount'      => $rec->amount * $sign,
+            					                 'reason'        => $rec->reason,
+            					                 'valior'		 => $rec->valior);
+            }
         }
        
         for ($accNum = $this->Accounts->getNumById($accId); !empty($accNum); $accNum = substr($accNum, 0, -1)) {
@@ -850,5 +869,299 @@ class acc_BalanceDetails extends core_Detail
     			$j++;
     		}
     	}
+    }
+    
+    
+    /**
+     * Екшън за показване историята на перата
+     */
+    public function act_History()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($balanceRec = $this->Master->fetch($rec->balanceId));
+    	$this->title = 'История на баланса';
+    	
+    	requireRole('ceo,acc');
+    	
+    	// Подготвяне на данните
+    	$data = new stdClass();
+    	$data->rec = $rec;
+    	$data->id = $id;
+    	$data->balanceRec = $balanceRec;
+    	$data->fromDate = $balanceRec->fromDate;
+    	$data->toDate = $balanceRec->toDate;
+    	
+    	// Подготовка на историята
+    	$this->prepareHistory($data);
+    	
+    	// Рендиране на историята
+    	$tpl = $this->renderHistory($data);
+    	$tpl = $this->renderWrapping($tpl);
+    	
+    	// Връщаме шаблона
+    	return $tpl;
+    }
+    
+    
+	/**
+     * Изчислява стойността на счетоводен баланс за зададен период от време
+     * за зададените сметки
+     *
+     * @param mixed $accs   - списък от систем ид-та на сметките
+     * @param mixed $items1 - списък с пера, от които поне един може да е на първа позиция
+     * @param mixed $items2 - списък с пера, от които поне един може да е на втора позиция
+     * @param mixed $items3 - списък с пера, от които поне един може да е на трета позиция
+     */
+    function prepareDetailedBalanceForPeriod($from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $history = FALSE, $pager)
+    {
+        $JournalDetails = &cls::get('acc_JournalDetails');
+        
+        $query = $JournalDetails->getQuery();
+        $cloneQuery = clone $query;
+        $cloneQuery->show('id');
+        
+        // Филтриране на заявката да показва само записите от журнал за тази сметка
+        acc_JournalDetails::filterQuery($query, $from, $to, $accs);
+        
+        // Филтриране на копието, за показване на записите за тези пера
+        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3); 
+        
+        // Добавяне на странициране
+        if($pager){
+        	$pager->setLimit($cloneQuery);
+        	
+        	// Кои записи трябва да се показват
+        	$displayedEntries = $cloneQuery->fetchAll();
+        }
+       
+        /*
+         * Изчисляване на сумите според стратегиите ако има, за да е всичко точно
+         * са ни нужни нефилтрираните записи
+         */
+        while ($rec = $query->fetch()) {
+            @$this->calcAmount($rec);
+            $this->addEntry($rec, 'debit');
+            $this->addEntry($rec, 'credit');
+        }
+        
+        // Ако има записи, които трябва да се помнят, се проверява за всеки от тях
+        // Дали присъства на страницата, ако не го махаме
+        if(count($this->history) && count($displayedEntries)){
+        	foreach ($this->history as $id => $rec){
+        		if(!array_key_exists($id, $displayedEntries)){
+        			unset($this->history[$id]);
+        		}
+        	}
+        }
+        
+        // Обръщаме историята в низходящ ред по дата, след изчисленията
+        $this->history = array_reverse($this->history);
+    }
+    
+    
+    /**
+     * Подготовка на историята за перара
+     * 
+     * @param stdClass $data
+     */
+    private function prepareHistory(&$data)
+    {
+    	$rec = &$data->rec;
+    	$balanceRec = $data->balanceRec;
+    	
+    	// Подготвяне на данните на записа
+    	$Date = cls::get('type_Date');
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	
+    	// Подготовка на филтъра
+    	$this->prepareHistoryFilter($data);
+    	
+    	// Подготовка на вербалното представяне
+    	$row = new stdClass();
+    	$row->fromDate = $Date->toVerbal($data->fromDate);
+    	$row->toDate = $Date->toVerbal($data->toDate);
+    	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
+    	$row->blAmount = $Double->toVerbal($rec->blAmount);
+    	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
+    	
+    	// Вербалните имена на избраните пера
+    	foreach(range(1, 3) as $i){
+    		$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    	}
+    	
+    	$data->row = $row;
+    	
+    	// Подготовка на пейджъра
+    	$this->listItemsPerPage = $this->listHistoryItemsPerPage;
+    	$this->prepareListPager($data);
+    	
+    	// Намиране на най-стария баланс можеш да послужи за основа на този
+    	$balanceBefore = $this->Master->getBalanceBefore($data->fromDate);
+    	
+    	if($balanceBefore){
+    		// Зареждаме баланса за посочения период с посочените сметки
+    		$this->loadBalance($balanceBefore->id, $rec->accountNum, NULL, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id);
+    	}
+    	
+    	// Запомняне за кои пера ще показваме историята
+    	$this->historyFor = array('accId' => $rec->accountId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id);
+    	
+    	// Извличане на всички записи към избрания период за посочените пера
+    	$this->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $rec->accountNum, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
+    	
+    	// Нулевия ред е винаги началното салдо
+    	$zeroRec = array('docType' => NULL, 'docId' => NULL, 'creditAmount' => NULL,'creditQuantity' => NULL,'debitAmount' => NULL,'debitQuantity' => NULL, 'blAmount' => $rec->baseAmount, 'blQuantity' => $rec->baseQuantity);
+    	
+    	// Добавяне на нулевия ред към историята
+    	if(count($this->history)){
+    		array_unshift($this->history, $zeroRec);
+    	} else {
+    		$this->history = array($zeroRec);
+    	}
+    	
+    	// Събраното в $history са нужните ни записи
+    	$data->recs = $this->history;
+    	
+    	// За всеки запис, обръщаме го във вербален вид
+    	if(count($data->recs)){
+    		$blQuantity = $blAmount = 0;
+    		foreach ($data->recs as $jRec){
+    			$blQuantity += $jRec['blQuantity'];
+    			$blAmount += $jRec['blAmount'];
+    			$data->rows[] = $this->getVerbalHistoryRow($jRec, $Double);
+    		}
+    	}
+    	
+    	$row->blAmount2 = $Double->toVerbal($blAmount);
+    	$row->blQuantity2 = $Double->toVerbal($blQuantity);
+    }
+    
+    
+    /**
+     * Подготвя филтъра на историята на перата
+     */
+    private function prepareHistoryFilter(&$data)
+    {
+    	$this->prepareListFilter($data);
+    	$filter = &$data->listFilter;
+    	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$filter->view = 'horizontal';
+    	$filter->FNC('from', 'date', 'caption=От,input,width=10em');
+    	$filter->FNC('to', 'date', 'caption=До,input,width=10em');
+    	$filter->showFields = 'from,to';
+    	
+    	$optionsFrom = array();
+    	$optionsFrom[''] = ' ';
+    	$optionsTo = $optionsFrom;
+    	
+    	// За начална и крайна дата, слагаме по пдоразбиране, датите на периодите
+    	// за коиот има изчислени оборотни ведомости
+    	$balanceQuery = acc_Balances::getQuery();
+    	while($bRec = $balanceQuery->fetch()){
+    		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
+    		$optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
+    		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+    	}
+    	
+    	$filter->setSuggestions('from', $optionsFrom);
+    	$filter->setSuggestions('to', $optionsTo);
+    	
+    	// Активиране на филтъра
+        $filter->input();
+        
+        // Ако има изпратени данни
+        if($filter->rec){
+        	if($filter->rec->from){
+        		$data->fromDate = $filter->rec->from;
+        	}
+        	
+        	if($filter->rec->to){
+        		$data->toDate = $filter->rec->to;
+        	}
+        }
+    }
+    
+    
+    /**
+     * Подготовка на вербалното представяне на един ред от историята
+     * 
+     * @param stdClass $rec
+     * @param type_Double $Double
+     */
+    private function getVerbalHistoryRow($rec, $Double)
+    {
+    	$arr['reason'] = $rec['reason'];
+    	$arr['valior'] = $rec['valior'];
+    	
+    	// Ако има отрицателна сума показва се в червено
+    	foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
+    		$arr[$fld] = $Double->toVerbal($rec[$fld]);
+    		if($rec[$fld] < 0){
+    			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
+    		}	
+    	}
+
+    	if($rec['docId'] === NULL) {
+    		$arr['docId'] = tr("Начално салдо");
+    		$arr['blAmount'] = "<b>" . $arr['blAmount'] . "</b>";
+    		$arr['blQuantity'] = "<b>" . $arr['blQuantity'] . "</b>";
+    	} else {
+    		try{
+    			$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
+    		} catch(Exception $e){
+    			$arr['docId'] = tr("Проблем при показването");
+    		}
+    	}
+    	
+    	return (object)$arr;
+    }
+    
+    
+    /**
+     * Рендиране на историята
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    private function renderHistory(&$data)
+    {
+    	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
+    	$tpl->placeObject($data->row);
+    	
+    	$table = cls::get('core_TableView');
+    	$data->listFields = array(
+                'docId'          => 'Документ',
+    			'valior'         => 'Вальор',
+    			'reason'		 => 'Основание',
+                'debitQuantity'  => 'Дебит->Количество',
+                'debitAmount'    => 'Дебит->Сума',
+                'creditQuantity' => 'Кредит->Количество',
+                'creditAmount'   => 'Кредит->Сума',
+                'blQuantity'     => 'Остатък->Количество',
+                'blAmount'       => 'Остатък->Сума',
+            );
+        
+        $data->rows[0]->ROW_ATTR = array('style' => 'background-color:#eee');
+        
+        $details = $table->get($data->rows, $data->listFields);
+        foreach (array('blQuantity', 'blAmount') as $fld){
+        	if($data->rec->$fld < 0){
+        		$data->row->$fld = "<span style='color:red'>{$data->row->$fld}</span>";
+        	}
+        }
+        
+        $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: </td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr><tr><td colspan='7' style='text-align:right;padding-right:10px'>Пресметнато: </td><td><b>[#blQuantity2#]</b></td><td><b>[#blAmount2#]</b></td></tr>");
+        $lastRow->placeObject($data->row);
+        
+        $details->append($lastRow, 'ROW_AFTER');
+        $tpl->replace($details, 'DETAILS');
+        $tpl->append($this->renderListFilter($data), 'listFilter');
+        if($data->pager){
+        	$tpl->append($this->renderListPager($data));
+        }
+        
+    	return $tpl; 
     }
 }
