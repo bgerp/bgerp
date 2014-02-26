@@ -593,7 +593,6 @@ class acc_BalanceDetails extends core_Detail
             $this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
         }
-        
     }
     
     
@@ -1154,9 +1153,11 @@ class acc_BalanceDetails extends core_Detail
      */
     private function renderHistory(&$data)
     {
+    	// Взимаме шаблона за историята
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	$tpl->placeObject($data->row);
     	
+    	// Подготвяме таблицата с данните извлечени от журнала
     	$table = cls::get('core_TableView');
     	$data->listFields = array(
                 'docId'          => 'Документ',
@@ -1172,6 +1173,7 @@ class acc_BalanceDetails extends core_Detail
         
         $data->rows[0]->ROW_ATTR = array('style' => 'background-color:#eee');
         
+        // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
         $details = $table->get($data->rows, $data->listFields);
         foreach (array('blQuantity', 'blAmount') as $fld){
         	if($data->rec->$fld < 0){
@@ -1179,19 +1181,26 @@ class acc_BalanceDetails extends core_Detail
         	}
         }
         
+        // Добавяне на крайното салдо като последен ред след записите
         $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: [#today#]</td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr>");
         if(haveRole('debug')){
         	$lastRow->append(new ET("<tr><td colspan='7' style='text-align:right;padding-right:10px'>Пресметнато: </td><td><b>[#blQuantity2#]</b></td><td><b>[#blAmount2#]</b></td></tr>"));
         }
         $lastRow->placeObject($data->row);
         
+        // Добавяне в края на таблицата с данните от журнала
         $details->append($lastRow, 'ROW_AFTER');
         $tpl->replace($details, 'DETAILS');
+        
+        // Рендиране на филтъра
         $tpl->append($this->renderListFilter($data), 'listFilter');
+        
+        // Рендиране на пейджъра
         if($data->pager){
         	$tpl->append($this->renderListPager($data));
         }
         
+        // Връщаме шаблона
     	return $tpl; 
     }
 }
