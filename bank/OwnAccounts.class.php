@@ -197,7 +197,6 @@ class bank_OwnAccounts extends core_Master {
     	$titulars = $mvc->getTitulars();
         
         $data->form->setOptions('bankAccountId', $optionAccounts);
-        $data->form->setSuggestions('operators', $operators);
         $data->form->setSuggestions('titulars', $titulars);
     	
         // Номера на сметката неможе да се променя ако редактираме, за смяна на
