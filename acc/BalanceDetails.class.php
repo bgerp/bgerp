@@ -987,12 +987,9 @@ class acc_BalanceDetails extends core_Detail
     	$row = new stdClass();
     	$row->fromDate = $Date->toVerbal($data->fromDate);
     	$row->toDate = $Date->toVerbal($data->toDate);
-    	$row->today = $Date->toVerbal(dt::now());
+    	$now = dt::now();
+    	$row->today = $Date->toVerbal(($now > $data->toDate) ? $data->toDate : $now);
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
-    	$row->blAmount = $Double->toVerbal($rec->blAmount);
-    	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
-    	$row->baseAmount = $Double->toVerbal($rec->baseAmount);
-    	$row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
     	
     	// Вербалните имена на избраните пера
     	foreach(range(1, 3) as $i){
@@ -1019,18 +1016,46 @@ class acc_BalanceDetails extends core_Detail
     	// Извличане на всички записи към избрания период за посочените пера
     	$this->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $rec->accountNum, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
     	
+    	$b = $this->balance[$rec->accountId][$rec->ent1Id][$rec->ent2Id][$rec->ent3Id];
+    	if($data->listFilter->rec->from){
+    		$baseAmount = $b['baseAmount'];
+    		$baseQuantity = $b['baseQuantity'];
+    	} else {
+    		$baseAmount = $rec->baseAmount;
+    		$baseQuantity = $rec->baseQuantity;
+    	}
+    	
+    	$blAmount = $b['blAmount'];
+    	$blQuantity = $b['blQuantity'];
+    	$row->blAmount = $Double->toVerbal($blAmount);
+    	$row->blQuantity = $Double->toVerbal($blQuantity);
+    	
+    	$row->baseAmount = $Double->toVerbal($baseAmount);
+    	$row->baseQuantity = $Double->toVerbal($baseQuantity);
+    	if($baseAmount < 0){
+    		$row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
+    	}
+    	if($baseQuantity < 0){
+    		$row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
+    	}
+    	
     	// Нулевия ред е винаги началното салдо
-    	$zeroRec = (object)array('docType' => NULL, 'docId' =>"Начално салдо: {$row->fromDate}", 'creditAmount' => NULL,'creditQuantity' => NULL,'debitAmount' => NULL,'debitQuantity' => NULL, 'blAmount' => "<b>" . $row->baseAmount . "</b>", 'blQuantity' => "<b>" . $row->baseQuantity . "<b>");
+    	$zeroRec = (object)array('docType'      => NULL, 
+    							 'docId'        => "Начално салдо: {$row->fromDate}", 
+    							 'creditAmount' => NULL,'creditQuantity' => NULL,
+    							 'debitAmount'  => NULL,'debitQuantity' => NULL, 
+    							 'blAmount'     => "<b>" . $row->baseAmount . "</b>", 
+    							 'blQuantity'   => "<b>" . $row->baseQuantity . "<b>");
     	
     	// Събраното в $history са нужните ни записи
     	$data->recs = $this->history;
     	
     	// За всеки запис, обръщаме го във вербален вид
     	if(count($data->recs)){
-    		$blQuantity = $blAmount = 0;
+    		$totalQ = $totalA = 0;
     		foreach ($data->recs as $jRec){
-    			$blQuantity += $jRec['blQuantity'];
-    			$blAmount += $jRec['blAmount'];
+    			$totalQ += $jRec['blQuantity'];
+    			$totalA += $jRec['blAmount'];
     			$data->rows[] = $this->getVerbalHistoryRow($jRec, $Double);
     		}
     	}
@@ -1042,8 +1067,8 @@ class acc_BalanceDetails extends core_Detail
     		$data->rows = array($zeroRec);
     	}
     	
-    	$row->blAmount2 = $Double->toVerbal($blAmount + $rec->baseAmount);
-    	$row->blQuantity2 = $Double->toVerbal($blQuantity + $rec->baseQuantity);
+    	$row->blAmount2 = $Double->toVerbal($totalA + $baseAmount);
+    	$row->blQuantity2 = $Double->toVerbal($totalQ + $baseQuantity);
     }
     
     
