@@ -586,6 +586,7 @@ class acc_BalanceDetails extends core_Detail
         
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
+        $query->orderBy('valior,id', 'ASC');
         
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
@@ -919,13 +920,15 @@ class acc_BalanceDetails extends core_Detail
         
         $query = $JournalDetails->getQuery();
         $cloneQuery = clone $query;
-        $cloneQuery->show('id');
+        $cloneQuery->show('id,valior');
         
         // Филтриране на заявката да показва само записите от журнал за тази сметка
         acc_JournalDetails::filterQuery($query, $from, $to, $accs);
+        $query->orderBy('valior,id', 'ASC');
         
         // Филтриране на копието, за показване на записите за тези пера
         acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3); 
+        $cloneQuery->orderBy('valior,id', 'DESC');
         
         // Добавяне на странициране
         if($pager){
