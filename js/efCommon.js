@@ -1,3 +1,6 @@
+var shortURL;
+
+
 function runOnLoad(functionName)
 {
 	if(window.attachEvent) {
@@ -1279,6 +1282,13 @@ function limitLen(string, maxLen)
 }
 
 
+// записва съкратеното URL в глобална променлива
+function getShortURL(shortUrl)
+{
+	shortURL = decodeURIComponent(shortUrl);
+}
+
+
 // добавяне на линк към текущата страница при копиране на текст
 function addLinkOnCopy(text) 
 {
@@ -1295,8 +1305,14 @@ function addLinkOnCopy(text)
 	body_element.appendChild(htmlDiv);
 	
 	htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+	if (typeof shortURL != 'undefined'){
+		var locationURL = shortURL;
+	} else {
+		var locationURL = document.location.href;
+	}
 	
-	htmlDiv.innerHTML += "<br /><br />" + text + ": <a href='" + document.location.href + "'>" + document.location.href + "</a> ";
+	htmlDiv.innerHTML += "<br /><br />" + text + ": <a href='" + locationURL + "'>" + locationURL + "</a> ";
 			
 	selection.selectAllChildren(htmlDiv);
 	
