@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   techno
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -104,7 +104,7 @@ class techno_GeneralProducts extends core_Master {
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title, description, measureId, code, eanCode';
+    var $searchFields = 'title, description, measureId, code';
     
     
     /**
@@ -399,27 +399,26 @@ class techno_GeneralProducts extends core_Master {
     
     
      /**
-      * Добавя ключови думи за пълнотекстово търсене, това са името на
-      * документа или папката
+      * Добавя ключови думи за пълнотекстово търсене, това са името на документа или папката
       */
      function on_AfterGetSearchKeywords($mvc, &$res, $rec)
      {
      	// Тук ще генерираме всички ключови думи
      	$detailsKeywords = '';
 
-     	// заявка към детайлите
+     	// Заявка към детайлите
      	$query = techno_GeneralProductsDetails::getQuery();
-     	// точно на тази фактура детайлите търсим
      	$query->where("#generalProductId  = '{$rec->id}'");
      	
-	        while ($recDetails = $query->fetch()){ //bp($recDetails->price);
-	        	// взимаме заглавията на продуктите
-	        	$producDetails.= " " . $recDetails->price . " " .$recDetails->amount;
-	        	// и ги нормализираме
-	        	$detailsKeywords .= " " . plg_Search::normalizeText($producDetails);
-	        }
-	        
-    	// добавяме новите ключови думи към основните
+	    while ($recDetails = $query->fetch()){
+	        // Взимаме заглавията на продуктите
+	        $productTitle = cat_Products::getTitleById($recDetails->componentId);
+	        	
+	        // и ги нормализираме
+	        $detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
+	    }
+	    
+    	// Добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
 }
