@@ -66,7 +66,7 @@ class core_Ajax extends core_Mvc
             }
             
             // Ако няма масив или масива не е масива
-            if (!$resArr || !is_array($resArr)) {
+            if (!is_array($resArr)) {
                 
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
