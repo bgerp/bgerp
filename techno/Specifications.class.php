@@ -469,7 +469,7 @@ class techno_Specifications extends core_Manager {
     {
     	expect($Driver = static::getDriver($id));
     	
-        return $Driver->getHyperlink();
+        return $Driver->getHyperlink($icon);
     }
     
     
