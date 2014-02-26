@@ -984,9 +984,12 @@ class acc_BalanceDetails extends core_Detail
     	$row = new stdClass();
     	$row->fromDate = $Date->toVerbal($data->fromDate);
     	$row->toDate = $Date->toVerbal($data->toDate);
+    	$row->today = $Date->toVerbal(dt::now());
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
     	$row->blAmount = $Double->toVerbal($rec->blAmount);
     	$row->blQuantity = $Double->toVerbal($rec->blQuantity);
+    	$row->baseAmount = $Double->toVerbal($rec->blAmount);
+    	$row->baseQuantity = $Double->toVerbal($rec->blQuantity);
     	
     	// Вербалните имена на избраните пера
     	foreach(range(1, 3) as $i){
@@ -1014,14 +1017,7 @@ class acc_BalanceDetails extends core_Detail
     	$this->prepareDetailedBalanceForPeriod($data->fromDate, $data->toDate, $rec->accountNum, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE, $data->pager);
     	
     	// Нулевия ред е винаги началното салдо
-    	$zeroRec = array('docType' => NULL, 'docId' => NULL, 'creditAmount' => NULL,'creditQuantity' => NULL,'debitAmount' => NULL,'debitQuantity' => NULL, 'blAmount' => $rec->baseAmount, 'blQuantity' => $rec->baseQuantity);
-    	
-    	// Добавяне на нулевия ред към историята
-    	if(count($this->history)){
-    		array_unshift($this->history, $zeroRec);
-    	} else {
-    		$this->history = array($zeroRec);
-    	}
+    	$zeroRec = (object)array('docType' => NULL, 'docId' =>"Начално салдо: {$row->fromDate}", 'creditAmount' => NULL,'creditQuantity' => NULL,'debitAmount' => NULL,'debitQuantity' => NULL, 'blAmount' => "<b>" . $row->baseAmount . "</b>", 'blQuantity' => "<b>" . $row->baseQuantity . "<b>");
     	
     	// Събраното в $history са нужните ни записи
     	$data->recs = $this->history;
@@ -1034,6 +1030,13 @@ class acc_BalanceDetails extends core_Detail
     			$blAmount += $jRec['blAmount'];
     			$data->rows[] = $this->getVerbalHistoryRow($jRec, $Double);
     		}
+    	}
+    	
+    	// Добавяне на нулевия ред към историята
+    	if(count($data->rows)){
+    		array_unshift($data->rows, $zeroRec);
+    	} else {
+    		$data->rows = array($zeroRec);
     	}
     	
     	$row->blAmount2 = $Double->toVerbal($blAmount);
@@ -1104,17 +1107,11 @@ class acc_BalanceDetails extends core_Detail
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
-
-    	if($rec['docId'] === NULL) {
-    		$arr['docId'] = tr("Начално салдо");
-    		$arr['blAmount'] = "<b>" . $arr['blAmount'] . "</b>";
-    		$arr['blQuantity'] = "<b>" . $arr['blQuantity'] . "</b>";
-    	} else {
-    		try{
-    			$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
-    		} catch(Exception $e){
-    			$arr['docId'] = tr("Проблем при показването");
-    		}
+		
+    	try{
+    		$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
+    	} catch(Exception $e){
+    		$arr['docId'] = tr("Проблем при показването");
     	}
     	
     	return (object)$arr;
@@ -1154,7 +1151,7 @@ class acc_BalanceDetails extends core_Detail
         	}
         }
         
-        $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: </td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr>");
+        $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: [#today#]</td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr>");
         if(haveRole('debug')){
         	$lastRow->append(new ET("<tr><td colspan='7' style='text-align:right;padding-right:10px'>Пресметнато: </td><td><b>[#blQuantity2#]</b></td><td><b>[#blAmount2#]</b></td></tr>"));
         }
