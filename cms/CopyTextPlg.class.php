@@ -33,6 +33,13 @@ class cms_CopyTextPlg extends core_Plugin
 		// Ако потребителя има някоя от забранените роли, не се добавя линка при копиране
 		if(!haveRole($disableFor)){
 			
+			$cUrl = cms_Content::getShortUrl();
+			
+			$selfUrl = urlencode(toUrl($cUrl, 'absolute'));
+			
+			// подаване на съкратеното URL
+			$invoker->append("\n runOnLoad(function(){getShortURL('{$selfUrl}');});", "JQRUN");
+			
 			// Слагане на функцията при копиране
 			$invoker->append("\n runOnLoad(function(){document.oncopy = function(){addLinkOnCopy('{$textOnCopy}');}});", "JQRUN");
 		}
