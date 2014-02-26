@@ -1,11 +1,13 @@
 <div class="singleView">
       [#SingleToolbar#]
-      [#listFilter#] 
       <h2><span class='quiet'>|Детайлна справка за пера|*</span> <!--ET_BEGIN ent1Id--><b>[#ent1Id#]</b><!--ET_END ent1Id-->
       <!--ET_BEGIN ent2Id--> <span class='quiet'>и</span> <b>[#ent2Id#]</b><!--ET_END ent2Id-->
       <!--ET_BEGIN ent3Id--> <span class='quiet'>и</span> <b>[#ent3Id#]</b><!--ET_END ent3Id-->
       </h2>
-            
+      
+      <br /> 
+      [#listFilter#] 
+       
       <table class="styled-table">
 	  <tr>
 		 <td class="title-style">|Период|*</td>

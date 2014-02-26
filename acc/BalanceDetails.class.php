@@ -955,8 +955,10 @@ class acc_BalanceDetails extends core_Detail
         	}
         }
         
-        // Обръщаме историята в низходящ ред по дата, след изчисленията
-        $this->history = array_reverse($this->history);
+        if(count($this->history)){
+        	 // Обръщаме историята в низходящ ред по дата, след изчисленията
+        	$this->history = array_reverse($this->history);
+        }
     }
     
     
@@ -1152,7 +1154,10 @@ class acc_BalanceDetails extends core_Detail
         	}
         }
         
-        $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: </td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr><tr><td colspan='7' style='text-align:right;padding-right:10px'>Пресметнато: </td><td><b>[#blQuantity2#]</b></td><td><b>[#blAmount2#]</b></td></tr>");
+        $lastRow = new ET("<tr style='background-color:#eee;'><td colspan='7' style='text-align:right;padding-right:10px'>Крайно салдо: </td><td><b>[#blQuantity#]</b></td><td><b>[#blAmount#]</b></td></tr>");
+        if(haveRole('debug')){
+        	$lastRow->append(new ET("<tr><td colspan='7' style='text-align:right;padding-right:10px'>Пресметнато: </td><td><b>[#blQuantity2#]</b></td><td><b>[#blAmount2#]</b></td></tr>"));
+        }
         $lastRow->placeObject($data->row);
         
         $details->append($lastRow, 'ROW_AFTER');
