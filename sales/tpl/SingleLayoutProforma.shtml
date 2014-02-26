@@ -109,11 +109,11 @@
 		            <table class="innerTable footer-notes" border="1" cellpadding="5" cellspacing="0" width="100%">
 		                <tbody>
 		                <tr>
-		                <td>
+		                <td style='line-height:140%'>
                                 <!--ET_BEGIN rate--> 
                                  <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
                                 <!--ET_END rate-->  
-                                <hr>
+                                
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
 		                         <div><span class='quiet'>|Начин|* / <i>Method</i>:</span>  [#paymentMethodId#]</div>
@@ -161,8 +161,8 @@
 			                        </div>
 				                </div>
 		                        <!--ET_END accountId-->
-		                        <hr>
-		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Доставка|* / <i>Delivery</i></b></div>
+		                      
+		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryTermId-->
                                [#deliveryTermId#]
