@@ -296,28 +296,33 @@ class bgerp_Recently extends core_Manager
     {
         $Recently = cls::get('bgerp_Recently');
         
-        $tpl = new ET("
-            <div class='clearfix21 portal' style='background-color:#f8f8ff'>
-            <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
-            [#ListFilter#]<div class='clearfix21'></div></div>
-            [#PortalPagerTop#]
-            [#PortalTable#]
-            [#PortalPagerBottom#]
-            </div>
-          ");
-        
-        // Попълваме титлата
-        $tpl->append($data->title, 'PortalTitle');
-        
-        // Попълваме горния страньор
-        $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
-        
-        if($data->listFilter){
-        	$tpl->append($data->listFilter->renderHtml(), 'ListFilter');
+        // Ако се вика по AJAX
+        if (!Request::get('ajax_mode')) {
+            $tpl = new ET("
+                <div class='clearfix21 portal' style='background-color:#f8f8ff'>
+                <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
+                [#ListFilter#]<div class='clearfix21'></div></div>
+                [#PortalPagerTop#]
+                [#PortalTable#]
+                [#PortalPagerBottom#]
+                </div>
+            ");
+            
+            // Попълваме титлата
+            $tpl->append($data->title, 'PortalTitle');
+            
+            // Попълваме горния страньор
+            $tpl->append($Recently->renderListPager($data), 'PortalPagerTop');
+            
+            if($data->listFilter){
+            	$tpl->append($data->listFilter->renderHtml(), 'ListFilter');
+            }
+           
+            // Попълваме долния страньор
+            $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
+        } else {
+            $tpl = new ET("[#PortalTable#]");
         }
-       
-        // Попълваме долния страньор
-        $tpl->append($Recently->renderListPager($data), 'PortalPagerBottom');
         
         // Попълваме таблицата с редовете
         $tpl->append($Recently->renderListTable($data), 'PortalTable');
@@ -420,5 +425,22 @@ class bgerp_Recently extends core_Manager
         }
         
         return $threadsArr;
+    }
+    
+    
+    /**
+     * Променя URL-то, което ще се вика по AJAX Вика се от plg_RefreshRows
+     * 
+     * @param array $url
+     * 
+     * @return array
+     * @see plg_RefreshRows
+     */
+    function prepareRefreshRowsUrl($url)
+    {
+        $url['Ctr'] = 'bgerp_Recently';
+        $url['Act'] = 'render';
+
+        return $url;
     }
 }
