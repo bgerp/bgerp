@@ -123,7 +123,7 @@ class cond_ConditionsToCustomers extends core_Manager
             $data->rows[$rec->id] = $row; 
         }
         
-    	if($data->masterMvc->haveRightFor('edit', $data->masterId) && cond_ConditionsToCustomers::haveRightFor('add')){
+    	if($data->masterMvc->haveRightFor('edit', $data->masterId)){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
 		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
