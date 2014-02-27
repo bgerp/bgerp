@@ -158,7 +158,7 @@ class fileman_GalleryImages extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo|cms, rolesForTeams=ceo|cms|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
