@@ -188,7 +188,7 @@ class fileman_GalleryImages extends core_Manager
             // Ако филтъра е по потребители
             if($filter->usersSearch) {
                 
-    			// Ако се търси по всички и има права admin или ceo
+    			// Ако се търси по всички и има права ceo
     			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
     			    // Търсим всичко
                 } else {
@@ -228,8 +228,8 @@ class fileman_GalleryImages extends core_Manager
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
             if ($action == 'edit' || $action == 'single' || $action == 'delete') {
                 
-                // Ако няма права за админ на записа
-                if (!$mvc->haveRightFor('admin', $rec, $userId)) {
+                // Ако не е ceo
+                if (!haveRole('ceo')) {
                     
                     // Ако не е създател на документа
                     if ($rec->createdBy != $userId) {
