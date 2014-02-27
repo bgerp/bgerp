@@ -1051,10 +1051,8 @@ class acc_BalanceDetails extends core_Detail
     	unset($this->recs);
     	
     	// Добавяне на началното и крайното салдо към цялата история
-    	if($this->history){
-    		array_unshift($this->history, $zeroRec);
-    		$this->history[] = $lastRec;
-    	}
+    	(count($this->history)) ? array_unshift($this->history, $zeroRec) : $this->history[] = $zeroRec;
+    	$this->history[] = $lastRec;
     	
     	if($data->pager->page == 1){
 	    	// Добавяне на нулевия ред към историята
@@ -1102,7 +1100,6 @@ class acc_BalanceDetails extends core_Detail
     	
     	// Нулираме му ключовете за по-лесно обхождане
     	$tmpArray = array_values($tmpArray);
-    	
     	if(count($tmpArray)){
     		
     		// За всеки запис
