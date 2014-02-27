@@ -72,6 +72,13 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Кой може да добавя документ
+     * @see doc_RichTextPlg
+     */
+    var $canAdddoc = 'user';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()

@@ -285,42 +285,46 @@ class doc_RichTextPlg extends core_Plugin
      */
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
-        // id
-        $id = $attr['id'];
-        
-        // Име на функцията и на прозореца
-        $windowName = $callbackName = 'placeDoc_' . $id;
-        
-        // Ако е мобилен/тесем режим
-        if(Mode::is('screenMode', 'narrow')) {
+        // Ако има права за добавяне
+        if (doc_Containers::haveRightFor('adddoc')) {
             
-            // Парамтери към отварянето на прозореца
-            $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
-        } else {
-            $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            // id
+            $id = $attr['id'];
+            
+            // Име на функцията и на прозореца
+            $windowName = $callbackName = 'placeDoc_' . $id;
+            
+            // Ако е мобилен/тесем режим
+            if(Mode::is('screenMode', 'narrow')) {
+                
+                // Парамтери към отварянето на прозореца
+                $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            } else {
+                $args = 'width=600,height=600,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            }
+            
+            // URL за добавяне на документи
+            $url = doc_Containers::getUrLForAddDoc($callbackName);
+            
+            // JS фунцкията, която отваря прозореца
+            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+            
+            // Бутон за отвяряне на прозореца
+            $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ/и от системата") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
+            
+            
+            // JS функцията
+            $callback = "function {$callbackName}(docHnd) {
+                var ta = get$('{$id}');
+                rp(\"\\n\" + docHnd, ta);
+                return true;
+            }";
+            
+            // Добавяме скрипта
+            $documentUpload->appendOnce($callback, 'SCRIPTS');
+            
+            // Добавяне в групата за добавяне на документ
+            $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.055);
         }
-        
-        // URL за добавяне на документи
-        $url = doc_Containers::getUrLForAddDoc($callbackName);
-        
-        // JS фунцкията, която отваря прозореца
-        $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
-        
-        // Бутон за отвяряне на прозореца
-        $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на документ/и от системата") . "' onclick=\"{$js}\">" . tr("Документ") . "</a>");
-        
-        
-        // JS функцията
-        $callback = "function {$callbackName}(docHnd) {
-            var ta = get$('{$id}');
-            rp(\"\\n\" + docHnd, ta);
-            return true;
-        }";
-        
-        // Добавяме скрипта
-        $documentUpload->appendOnce($callback, 'SCRIPTS');
-        
-        // Добавяне в групата за добавяне на документ
-        $toolbarArr->add($documentUpload, 'filesAndDoc', 1000.055);
     }
 }
