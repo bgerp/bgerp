@@ -23,8 +23,11 @@ function portalSearch() {
 	отказваме събмитапри натискане на бутона */
 	$('.portal-filter').live("submit", (function(e) {
 		var object = $(this).children('.hFormField').children('input');
-		if(object.val() == ''){
-			e.preventDefault(); 
+		
+		if(object.val() == '') {
+			if (object.is(':visible')) {
+				e.preventDefault(); 
+			}
 		}
 	}));
 }
