@@ -142,7 +142,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има група
-        if (fileman_GalleryGroups::fetch("1=1") && fileman_GalleryGroups::haveRightFor('add')) {
+        if (fileman_GalleryGroups::fetch("1=1") && fileman_GalleryImages::haveRightFor('add')) {
             
             // id
             $id = $attr['id'];
