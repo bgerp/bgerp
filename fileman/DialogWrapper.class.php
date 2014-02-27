@@ -154,11 +154,22 @@ class fileman_DialogWrapper extends core_Plugin
      */
     function getTabsArr()
     {
-        $tabs = array(
-            'fileman_Upload' => 'caption=Качване,Ctr=fileman_Upload,Act=Dialog',
-            'fileman_Get' => 'caption=От URL,Ctr=fileman_Get,Act=Dialog',
-            'fileman_Log' => 'caption=Последни,Ctr=fileman_Log,Act=Dialog',
-        );
+        $tabs = array();
+        
+        // Ако има права за добавяне
+        if (fileman_Upload::haveRightFor('add')) {
+            $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
+        }
+        
+        // Ако има права за добавяне
+        if (fileman_Get::haveRightFor('add')) {
+            $tabs['fileman_Get'] = 'caption=От URL,Ctr=fileman_Get,Act=Dialog';
+        }
+        
+        // Ако има права за листване
+        if (fileman_Log::haveRightFor('list')) {
+            $tabs['fileman_Log'] = 'caption=Последни,Ctr=fileman_Log,Act=Dialog';
+        }
         
         return $tabs;
     }

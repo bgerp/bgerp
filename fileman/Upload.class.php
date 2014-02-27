@@ -30,6 +30,12 @@ class fileman_Upload extends core_Manager {
     
     
     /**
+     * 
+     */
+    var $canAdd = 'every_one';
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function act_Dialog()

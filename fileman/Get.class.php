@@ -30,6 +30,12 @@ class fileman_Get extends core_Manager {
     
     
     /**
+     * 
+     */
+    var $canAdd = 'every_one';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
