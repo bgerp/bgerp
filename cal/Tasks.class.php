@@ -592,25 +592,38 @@ class cal_Tasks extends core_Master
             } else {
             	$data->query->fetchAll();
             }
-            
-        	$dateRange = array();
-	        
-	        if ($data->listFilter->rec->from) {
-	            $dateRange[0] = $data->listFilter->rec->from; 
-	        }
-	        
-	        if ($data->listFilter->rec->to) {
-	            $dateRange[1] = $data->listFilter->rec->to; 
-	        }
-	        
-	        if (count($dateRange) == 2) {
-	            sort($dateRange);
-	        }
-	        
-	        $data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
-        		              OR
-        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
-        		              ");
+          
+	        $dateRange = array();
+		        
+		    if ($data->listFilter->rec->from) {
+		            $dateRange[0] = $data->listFilter->rec->from; 
+		    }
+		        
+		    if ($data->listFilter->rec->to) {
+		            $dateRange[1] = $data->listFilter->rec->to; 
+		    }
+		        
+		    if (count($dateRange) == 2) {
+		            sort($dateRange);
+		    }
+		        
+		    if ($chart == 'Gantt') {   
+		        	$data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
+	        		              ");
+            } else {
+            		$data->query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND #timeEnd >= '{$dateRange[0]}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$dateRange[1]}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$dateRange[0]}')
+	        		              OR 
+	        		              (#timeStart IS NULL AND #timeDuration IS NULL AND #timeEnd IS NULL)
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$dateRange[1]}' AND  #timeStart >= '{$dateRange[0]}')
+	        		              ");
+            }
         }
     }
 
@@ -656,10 +669,9 @@ class cal_Tasks extends core_Master
 	        
 	        $queryClone = clone $data->listSummary->query;
 	        
-	        $queryClone->where("#state = 'active' AND #timeStart IS NOT NULL");
-	        $queryClone->orWhere("#timeEnd IS NOT NULL OR #timeDuration IS NOT NULL");
-	       
-	        if ($queryClone->fetch()) { 
+	        $queryClone->where("#timeStart IS NOT NULL");
+	    
+	        if ($queryClone->fetch()) {
 	
 	        	// ще може намерин типа на Ганта
 	        	$ganttType = self::getGanttTimeType($data);
@@ -673,7 +685,7 @@ class cal_Tasks extends core_Master
 			    if($chartType == 'Gantt') { 
 			    // и ще го изчетаем
 			    	$tpl = static::getGantt($data);
-			        	
+			        	 
 			    }
 			    // в противен слувачай бутона ще е неактивен
 		    } else { 
@@ -1574,7 +1586,7 @@ class cal_Tasks extends core_Master
     		$startTime = dt::mysql2timestamp($rec->timeStart);
 	    	$endTime = dt::mysql2timestamp($timeEnd); 
     	}
-       
+      
     	return (object) array('minStartTaskTime' => $startTime, 'maxEndTaskTime' => $endTime);
       }
     }
