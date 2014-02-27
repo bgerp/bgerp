@@ -339,8 +339,8 @@ class fileman_GalleryImages extends core_Manager
      */
     function act_AddImgDialog()
     {
-        // Очакваме да е логнат потребител
-        requireRole('user');
+        // Очакваме да е има права за добавяне
+        $this->requireRightFor('add');
         
         // id на записа
         $id = Request::get('id', 'int');
@@ -475,8 +475,8 @@ class fileman_GalleryImages extends core_Manager
      */
     function act_GalleryDialog()
     {
-        // Очакваме да е логнат потребител
-        requireRole('user');
+        // Очакваме да е има права за добавяне
+        $this->requireRightFor('add');
         
         // Обект с необходомите данни
         $data = new stdClass();
