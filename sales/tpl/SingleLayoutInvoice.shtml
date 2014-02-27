@@ -89,6 +89,8 @@
 				                </div>
 		                        <!--ET_END accountId-->
 		                       
+		                       <!--ET_BEGIN deliveryInfo-->
+		                       [#deliveryInfo#]
 		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryId-->
@@ -97,6 +99,7 @@
                                <!--ET_BEGIN deliveryPlaceId-->
                                 [#deliveryPlaceId#]
                                <!--ET_END deliveryPlaceId-->
+                               <!--ET_END deliveryInfo-->
                                
                              <!--ET_BEGIN additionalInfo-->
                              <hr>

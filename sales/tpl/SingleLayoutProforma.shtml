@@ -114,6 +114,8 @@
                                  <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
                                 <!--ET_END rate-->  
                                 
+                               <!--ET_BEGIN paymentInfo-->
+                                [#paymentInfo#]
 		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em'><b>|Плащане|* / <i>Payment</i></b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
 		                         <div><span class='quiet'>|Начин|* / <i>Method</i>:</span>  [#paymentMethodId#]</div>
@@ -146,8 +148,10 @@
                                 <!--ET_BEGIN paymentAfterInvoice-->
                                 <div><span class='quiet'>|Окончателно|*:</span> &nbsp;[#paymentAfterInvoice#] |до|* [#deadlineForBalancePayment#]</div>
                                 <!--ET_END paymentAfterInvoice-->
+		                       <!--ET_END paymentInfo-->
+		                        
 		                        <!--ET_BEGIN accountId-->
-		                        <hr>
+                                <hr>
 		                        <div>
 		                       
 			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
@@ -161,7 +165,9 @@
 			                        </div>
 				                </div>
 		                        <!--ET_END accountId-->
-		                      
+		                        
+		                      <!--ET_BEGIN deliveryInfo-->
+		                      [#deliveryInfo#]
 		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|* / <i>Delivery</i></b></div>
                                
                                <!--ET_BEGIN deliveryTermId-->
@@ -170,7 +176,7 @@
                                <!--ET_BEGIN deliveryLocationId-->
                                 [#deliveryLocationId#]
                                <!--ET_END deliveryLocationId-->
-                               
+                              <!--ET_END deliveryInfo-->
                              <!--ET_BEGIN note-->
                              <hr>
                                <div>|Бележки|* / <i>Notes</i></div>
