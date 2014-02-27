@@ -168,7 +168,8 @@ class acc_Items extends core_Manager
         if (!isset($rec->titleLink)) {
             $mvc->on_CalcTitleLink($mvc, $rec);
         }
-        $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
+        
+        $rec->numTitleLink = $rec->titleLink . " ($rec->num)";
     }
     
     
