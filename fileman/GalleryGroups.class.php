@@ -55,7 +55,7 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,vid=Код,title,columns,tWidth,tHeight,width,height,createdOn,createdBy';
+    var $listFields = 'id,vid=Код,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy';
     
     
     /**
@@ -82,6 +82,8 @@ class fileman_GalleryGroups extends core_Manager
         
         $this->FLD('width', 'int', 'caption=Картинка->Широчина');
         $this->FLD('height', 'int', 'caption=Картинка->Височина');
+        
+        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роли, width=100%,placeholder=Всички');
         
         $this->setDbUnique('title, position');
     }
@@ -114,6 +116,7 @@ class fileman_GalleryGroups extends core_Manager
     		6 => "tHeight",
     		7 => "width",
     		8 => "height",
+    		9 => "roles",
     	);
     	    	
     	// Импортираме данните от CSV файла. 
@@ -135,5 +138,61 @@ class fileman_GalleryGroups extends core_Manager
         
         // По подразбиране да се използва групата централни
         return fileman_GalleryGroups::fetchField("#title = 'Централни'");
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && !haveRole('ceo')) {
+            if ($action == 'delete' || $action == 'edit') {
+                if ($rec->createdBy != $userId) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+	/**
+	 * 
+	 * 
+	 * @param fileman_GalleryGroups $mvc
+	 * @param core_Query $query
+	 */
+    function on_AfterGetQuery($mvc, $query)
+    {
+        // Ограничаваме заявката да се показват само достъпните
+        static::restrictRoles($query);
+    }
+    
+    
+    /**
+     * Ограничаваме заявката да се показват само достъпните групи
+     * 
+     * @param core_Query $query
+     * @param string $rolesFieldName
+     */
+    static function restrictRoles(&$query, $rolesFieldName='roles')
+    {
+        // Ако име роля ceo да може да вижда всички
+        if (haveRole('ceo')) return ;
+        
+        // Ролите на текущия потребител
+        $userRoles = core_Users::getRoles();
+        
+        // Всички групи без роли
+        $query->where("#{$rolesFieldName} IS NULL");
+        
+        // Ако е зададена роля показваме само тях
+        $query->likeKeylist($rolesFieldName, $userRoles, TRUE);
     }
 }

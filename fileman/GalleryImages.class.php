@@ -152,7 +152,7 @@ class fileman_GalleryImages extends core_Manager
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=user, rolesForTeams=user)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
@@ -202,6 +202,12 @@ class fileman_GalleryImages extends core_Manager
     		    $data->query->where(array("#groupId = '[#1#]'", $filter->groupSearch));
     		}
         }
+        
+        // Външно поле за ролите към групата
+        $data->query->EXT('groupRoles', 'fileman_GalleryGroups', 'externalName=roles,externalKey=groupId');
+        
+        // Ограничаваме групите, които да се показват
+        fileman_GalleryGroups::restrictRoles($data->query, 'groupRoles');
     }
     
     
@@ -478,11 +484,11 @@ class fileman_GalleryImages extends core_Manager
         // Създаваме заявката
         $data->query = $this->getQuery();
         
+        // Подготвяме филтъра
+        $this->prepareListFilter($data);
+        
         // По - новите добавени да са по - напред
         $data->query->orderBy("#createdOn", "DESC");
-        
-        // Търсим по създатели
-        $data->query->where(array("#createdBy = '[#1#]'", core_Users::getCurrent()));
         
         // Функцията, която ще се извика
         $data->callback = $this->callback = Request::get('callback', 'identifier');
