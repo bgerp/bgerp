@@ -6,8 +6,8 @@
  *
  *
  * @category  bgerp
- * @package   cms
- * @author    Milen Georgiev <milen@download.bg>
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -79,7 +79,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Кои роли имат пълни права за този мениджър?
      */
-    var $canAdmin = 'ceo, cms';
+    var $canAdmin = 'ceo';
     
     
     /**
