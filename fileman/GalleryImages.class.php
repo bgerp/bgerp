@@ -77,12 +77,6 @@ class fileman_GalleryImages extends core_Manager
     
     
     /**
-     * Кои роли имат пълни права за този мениджър?
-     */
-    var $canAdmin = 'ceo';
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'title, src';
