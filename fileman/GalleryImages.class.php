@@ -189,7 +189,7 @@ class fileman_GalleryImages extends core_Manager
             if($filter->usersSearch) {
                 
     			// Ако се търси по всички и има права admin или ceo
-    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo, cms, admin'))) {
+    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
     			    // Търсим всичко
                 } else {
                     
