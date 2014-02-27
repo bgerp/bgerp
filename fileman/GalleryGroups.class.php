@@ -152,9 +152,16 @@ class fileman_GalleryGroups extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+        // Ако има запис и потребителя не е CEO
         if ($rec && !haveRole('ceo')) {
+            
+            // Ако ще изтриваме или редактираме група
             if ($action == 'delete' || $action == 'edit') {
+                
+                // Ако не сме създател
                 if ($rec->createdBy != $userId) {
+                    
+                    // Да не можем да редактираме
                     $requiredRoles = 'no_one';
                 }
             }
