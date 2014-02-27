@@ -5,18 +5,31 @@
       <!--ET_BEGIN ent3Id--> <span class='quiet'>и</span> <b>[#ent3Id#]</b><!--ET_END ent3Id-->
       </h2>
       
+      <h3 style='margin-top:0px'><b>[#accountId#]</b></h3>
       <br /> 
-      [#listFilter#] 
-       
-      <table class="styled-table">
-	  <tr>
-		 <td class="title-style">|Период|*</td>
-		 <td> [#fromDate#] |до|* [#toDate#]</td>
-	 </tr>
-		<tr>
-			<td class="title-style">|Сметка|*</td>
-			<td>[#accountId#]</td>
-		</tr>
-	</table>
-     [#DETAILS#]
+      [#listFilter#]
+      
+      <table border = '1' class='listTable'>
+      <tr>
+      	<th>|Салдо|*</th>
+      	<th>|Количество|*</th>
+      	<th>|Сума|*</th>
+      </tr>
+      <tr>
+      	<td>|Крайно|*</td>
+      	<td><b>[#blQuantity#]</b></td>
+      	<td><b>[#blAmount#]</b></td>
+      </tr>
+      <tr>
+      	<td>|Средно|*</td>
+      	<td><b>[#midQuantity#]</b></td>
+      	<td><b>[#midAmount#]</b></td>
+      </tr>
+      <tr>
+      	<td>|Начално|*</td>
+      	<td><b>[#baseQuantity#]</b></td>
+      	<td><b>[#baseAmount#]</b></td>
+      </tr>
+      </table>
+      [#DETAILS#]
  </div>  
