@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Proforma extends core_Master
+class sales_Proformas extends core_Master
 {
     
     
@@ -107,6 +107,12 @@ class sales_Proforma extends core_Master
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutProforma.shtml';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'sales_Proforma';
     
     
     /**

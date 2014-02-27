@@ -112,7 +112,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_ServicesDetails',
     		'sales_Invoices',
             'sales_InvoiceDetails',
-    		'sales_Proforma',
+    		'sales_Proformas',
         );
 
         
