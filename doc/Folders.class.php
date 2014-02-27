@@ -295,7 +295,9 @@ class doc_Folders extends core_Master
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
 
-        $row->inCharge = crm_Profiles::createLink($rec->inCharge);
+        if($rec->inCharge){
+        	$row->inCharge = crm_Profiles::createLink($rec->inCharge);
+        }
     }
     
 
