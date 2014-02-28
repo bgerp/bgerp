@@ -6,30 +6,32 @@
       </h2>
       
       <h3 style='margin-top:0px'><b>[#accountId#]</b></h3>
-      <br /> 
-      [#listFilter#]
+      <div class='fleft'>[#listFilter#]</div>
       
-      <table border = '1' class='listTable'>
+      <div class='fright' id='summary'>
+      <table style='min-width:200px;'>
       <tr>
       	<th>|Салдо|*</th>
-      	<th>|Количество|*</th>
+      	<th>|К-во|*</th>
       	<th>|Сума|*</th>
       </tr>
       <tr>
-      	<td>|Крайно|*</td>
-      	<td><b>[#blQuantity#]</b></td>
-      	<td><b>[#blAmount#]</b></td>
+      	<td align='right'>|Крайно|*</td>
+      	<td align='right'><b>[#blQuantity#]</b></td>
+      	<td align='right'><b>[#blAmount#]</b></td>
       </tr>
       <tr>
-      	<td>|Средно|*</td>
-      	<td><b>[#midQuantity#]</b></td>
-      	<td><b>[#midAmount#]</b></td>
+      	<td align='right'>|Средно|*</td>
+      	<td align='right'><b>[#midQuantity#]</b></td>
+      	<td align='right'><b>[#midAmount#]</b></td>
       </tr>
       <tr>
-      	<td>|Начално|*</td>
-      	<td><b>[#baseQuantity#]</b></td>
-      	<td><b>[#baseAmount#]</b></td>
+      	<td align='right'>|Начално|*</td>
+      	<td align='right'><b>[#baseQuantity#]</b></td>
+      	<td align='right'><b>[#baseAmount#]</b></td>
       </tr>
       </table>
+      </div>
+      <div class='clearfix21'></div>
       [#DETAILS#]
  </div>  
