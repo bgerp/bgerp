@@ -262,8 +262,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 	    		$rowTpl->append2master();
 	    	}
     	}
-    	$tpl->push('acc/plg/tpl/summary.css', 'CSS');
-    	
+    	    	
     	return $tpl;
     }
  }
