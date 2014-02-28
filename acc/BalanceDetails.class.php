@@ -734,8 +734,8 @@ class acc_BalanceDetails extends core_Detail
             					                 'docId'         => $rec->docId,
             					                 "{$type}Amount" => $rec->amount,
             					                 $quantityField  => $rec->{$quantityField},
-            					                 'blQuantity'    => $rec->{$quantityField} * $sign,
-            					                 'blAmount'      => $rec->amount * $sign,
+            					                 'blQuantity'    => $b['blQuantity'],
+            					                 'blAmount'      => $b['blAmount'],
             					                 'reason'        => $rec->reason,
             					                 'valior'		 => $rec->valior);
             }
