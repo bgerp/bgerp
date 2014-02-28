@@ -1242,11 +1242,11 @@ class acc_BalanceDetails extends core_Detail
                 'docId'          => 'Документ',
     			'valior'         => 'Вальор',
     			'reason'		 => 'Основание',
-                'debitQuantity'  => 'Дебит->Количество',
+                'debitQuantity'  => 'Дебит->К-во',
                 'debitAmount'    => 'Дебит->Сума',
-                'creditQuantity' => 'Кредит->Количество',
+                'creditQuantity' => 'Кредит->К-во',
                 'creditAmount'   => 'Кредит->Сума',
-                'blQuantity'     => 'Остатък->Количество',
+                'blQuantity'     => 'Остатък->К-о',
                 'blAmount'       => 'Остатък->Сума',
             );
         
