@@ -49,13 +49,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg, plg_Search, fileman_GalleryDialogWrapper";
-    
-    
-    /**
-     * 
-     */
-    var $vidFieldName = 'vid';
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, fileman_GalleryVidPlg, plg_Search, fileman_GalleryDialogWrapper";
     
     
     /**
@@ -67,8 +61,14 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,vid=Код,src,groupId,createdOn,createdBy';
-
+    var $listFields = "id,vid=Код,src,groupId,createdOn,createdBy";
+    
+    
+    /**
+     * 
+     */
+    var $galleryVidFieldName = 'vid';
+    
     
     /**
      * Брой записи на страница
@@ -137,8 +137,8 @@ class fileman_GalleryImages extends core_Manager
         if($rec->src) {
             $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr, $rec->title);
         }
-
-        $row->vid = "[img=#" . $rec->vid . "]";
+        
+        $row->{$mvc->galleryVidFieldName} = "[img=#" . $rec->{$mvc->galleryVidFieldName} . "]";
     }
     
     
@@ -287,7 +287,7 @@ class fileman_GalleryImages extends core_Manager
         $callback = Request::get('callback');
         
         // Защитаваме променливите
-        Request::setProtected('callback, id');
+        Request::setProtected('callback');
         
         // Ако има избран текст
         if ($selText) {
@@ -310,7 +310,7 @@ class fileman_GalleryImages extends core_Manager
             }
             
             // Опитваме се да вземем id на записа от вида
-            $id = $this->fetchField(array("#{$this->vidFieldName} = '[#1#]'", $searchText));
+            $id = $this->fetchField(array("#{$this->galleryVidFieldName} = '[#1#]'", $searchText));
         } 
         
         // Ако има id и имаме права за редакция
@@ -421,7 +421,7 @@ class fileman_GalleryImages extends core_Manager
             $this->save($rec);
             
             // Вземаме полето
-            $vid = $this->vidFieldName;
+            $vid = $this->galleryVidFieldName;
             
             // Очакваме да има стойност
             expect($rec->$vid);
@@ -532,7 +532,7 @@ class fileman_GalleryImages extends core_Manager
     function prepareGalleryDialogListRows($data)
     {   
         // Защитаваме променливите
-        Request::setProtected('callback, id');
+        Request::setProtected('callback');
         
         // Ако има записи
         if($data->recs && count($data->recs)) {

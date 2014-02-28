@@ -49,13 +49,19 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,cms_VerbalIdPlg";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryVidPlg";
     
     
     /**
      * Полета за изглед
      */
     var $listFields = 'id,vid=Код,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy';
+    
+    
+    /**
+     * 
+     */
+    var $galleryVidFieldName = 'vid';
     
     
     /**
@@ -93,7 +99,7 @@ class fileman_GalleryGroups extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-     	$row->vid = "[gallery=#" . $rec->vid . "]";
+     	$row->{$mvc->galleryVidFieldName} = "[gallery=#" . $rec->{$mvc->galleryVidFieldName} . "]";
     }
     
     
