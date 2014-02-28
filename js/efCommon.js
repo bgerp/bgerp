@@ -1168,7 +1168,6 @@ function getSelText()
     {
         txt = document.selection.createRange().text;
     }
-    else  { return; } 
 	
 	return txt;
 }
