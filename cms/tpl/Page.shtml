@@ -3,8 +3,10 @@
 		<div id="cmsTop">
 		    <img src="[#cms_Page::getHeaderImg#]" id='headerImg'/>
 			[#PAGE_HEADER#]
+			[#TOP_NEWS#]
 		</div>
 		<div id="cmsMenu" class='menuRow'>
+		    
 			[#CMS_MENU#]
 		</div>
 		<div id="maincontent">
