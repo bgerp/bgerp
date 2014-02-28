@@ -8,6 +8,10 @@ body{
 	text-align:center;
 }
 
+#cmsTop{
+	position: relative;
+}
+
 .narrow #cmsTop  img{
 	float:left;
 	width:100%;
@@ -90,4 +94,27 @@ body{
 .richtext h2 { 
 	background-color: #ddf;
 	padding:5px;
+}
+
+/*Ако newsbar е пуснат и искаме да се показва под картинката трябва да има паддинг */
+#cmsTop{
+    1padding-bottom:42px;
+}
+
+.newsbar{
+    width:100%; 
+    text-align:center; 
+    position:absolute; 
+    bottom:0px; 
+    background:rgba(25, 25, 25, .5); 
+    margin:0px; 
+    display:block;
+    font-size:0.9em; 
+    padding-top:12px; 
+    padding-bottom:12px; 
+    color:white; 
+}
+
+.narrow .newsbar{
+    padding-bottom:10px; 
 }
