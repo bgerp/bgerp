@@ -23,8 +23,11 @@ class newsbar_Plugin extends core_Plugin
        // взимаме всички нови новини
        $str = newsbar_News::getTopNews();
        
+       $convertText = cls::get('type_Richtext');
+       $barNews = $convertText->toVerbal($str);
+       
        $html = "<div class='newsbar'>
-		<marquee scrollamount='4'><b style='opacity:1;'>$str</b></marquee>
+		<marquee scrollamount='4'><b style='opacity:1;'>$barNews</b></marquee>
 		</div><div class='clearfix21'></div>";
        
        $invoker->appendOnce($html, 'TOP_NEWS');
