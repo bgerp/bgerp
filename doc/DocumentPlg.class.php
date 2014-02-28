@@ -428,10 +428,10 @@ class doc_DocumentPlg extends core_Plugin
                 
                 $folderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, $bForce);
             }
-
+			
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
-            // То 'Unsorted' папката е дефолт папката на потребителя
-            if(!$folderId || !doc_Folders::haveRightFor('single', $folderId)) {
+            // То 'Unsorted' папката е дефолт папката на потребителя, ако има потребител
+            if((!$folderId || !doc_Folders::haveRightFor('single', $folderId)) && $userId) {
                 $folderId = doc_Folders::getDefaultFolder($userId);
             }
         }
@@ -881,7 +881,10 @@ class doc_DocumentPlg extends core_Plugin
         //Добавяме текст по подразбиране за титлата на формата
         if ($form->rec->folderId) {
             $fRec = doc_Folders::fetch($form->rec->folderId);
-            $title = tr(mb_strtolower($mvc->singleTitle)) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+            $title = tr(mb_strtolower($mvc->singleTitle));
+        	if(core_Users::getCurrent('id', FALSE)){
+        		 $title .= ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
+        	}
         }
         
         $rec = $form->rec;
