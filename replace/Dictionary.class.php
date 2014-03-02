@@ -63,15 +63,16 @@ class replace_Dictionary extends core_Manager
             $query = self::getQuery();
             while($rec = $query->fetch("#state = 'active'")) {
                 $gRec = replace_Groups::fetch($rec->groupId);
-                self::$replace[$gRec->name][$rec->from] = $rec->to;
+                self::$replace[strtolower($gRec->name)][$rec->from] = $rec->to;
             }
         }
 
         $groups = arr::make($groups);
 
         foreach($groups as $groupName) {
-            if(is_array(self::$replace[$gRec->name])) {
-                foreach(self::$replace[$gRec->name] as $from => $to) {
+            $groupName = strtolower($groupName);
+            if(is_array(self::$replace[$groupName])) {
+                foreach(self::$replace[$groupName] as $from => $to) {
                     $res[$from] = $to;
                 }
             }
