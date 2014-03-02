@@ -26,12 +26,12 @@ class replace_Plugin extends core_Plugin
                     foreach($replace as $from => $to) {
                         $fromArr[] = $from;
                         $toArr[] = $to;
-                        $midArr  = $rand . count($to);
+                        $midArr[]  = '{' . $rand . count($toArr) . '}';
                     }
-
+ 
                     if(is_array($fromArr)) {
                         $html = str_replace($fromArr, $midArr, $html);
-                        $html = str_replace($midArr, $to, $html);
+                        $html = str_replace($midArr, $toArr, $html);
                     }
                 }
             }

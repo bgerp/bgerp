@@ -76,7 +76,7 @@ class replace_Dictionary extends core_Manager
                 }
             }
         }
-
+ 
         return $res;
     }
 }
