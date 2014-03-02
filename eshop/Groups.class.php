@@ -196,8 +196,8 @@ class eshop_Groups extends core_Master
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
         
-         // Добавя канонично URL
-        $url = toUrl(array($this, 'ShowAll', 'cMenuId' => $data->menuId), 'absolute');
+        // Добавя канонично URL
+        $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
        
         // Страницата да се кешира в браузъра
@@ -391,7 +391,12 @@ class eshop_Groups extends core_Master
  
         $l = new stdClass();
         $l->selected = ($groupId == NULL &&  $productId == NULL);
-        $l->url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $menuId, 'PU' => haveRole('powerUser') ? 1 : NULL);
+
+        $l->url = $this->getUrlByMenuId($menuId);
+        if(haveRole('powerUser')) {
+            $l->url['PU'] = 1;
+        }
+
         $l->title = tr('Всички продукти');;
         $l->level = 1;
         $data->links[] = $l;
@@ -440,7 +445,22 @@ class eshop_Groups extends core_Master
      */
     function getUrlByMenuId($cMenuId)
     {   
-        $url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $cMenuId);
+        $cMenuIdEn = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'en' AND #state = 'active'" , eshop_Groups::getClassId()));
+
+        if($cMenuIdEn == $cMenuId) {
+            $url = array('En', 'Products');
+        }
+        
+        if(!$url) {
+            $cMenuIdBg = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'bg' AND #state = 'active'" , eshop_Groups::getClassId()));
+            if($cMenuIdBg == $cMenuId) {
+                $url = array('Bg', 'Products');
+            }
+        }
+        
+        if(!$url) {
+            $url = array('eshop_Groups', 'ShowAll', 'cMenuId' => $cMenuId);
+        }
         
         return $url;
     }
@@ -466,6 +486,5 @@ class eshop_Groups extends core_Master
 
         return $url;
     }
-
     
 }

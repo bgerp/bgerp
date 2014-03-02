@@ -30,18 +30,29 @@ class bgerp_Bg extends core_Mvc
 
     function on_BeforeAction($mvc, &$res, $act)
     {
-        $vid = Request::get('Act');
+        $vid = urldecode(Request::get('Act'));
  
-        if($act == 'default') {
-            
-            // Сменяме езика на външната част на английски
-            cms_Content::setLang('bg');
+        
+        switch($act) {
+            case 'default':
+                // Сменяме езика на външната част на английски
+                cms_Content::setLang('bg');
 
-             // Редиректваме
-            return redirect(array('Index', 'Default'));
+                // Редиректваме към началото
+                $res = new redirect(array('Index', 'Default'));
+                break;
+
+            case 'products':
+                // Вземаме записа, който отговаря на първото меню, сочещо към групите за Bg език
+                $cMenuId = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'bg' AND #state = 'active'" , eshop_Groups::getClassId()));
+                
+                // Връщаме за резултат, породения HTML/ЕТ код от ShowAll метода на eshop_Groups
+                $res     = Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll', 'cMenuId' => $cMenuId));
+                break;
+
+            default:
+                $res = Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $vid));
         }
-
-        $res = Request::forward(array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $vid));
 
         return FALSE;
     }

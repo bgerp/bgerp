@@ -9,6 +9,7 @@
 		[#PAGE_CONTENT#] 
 		
 		<!--ET_BEGIN SOCIAL-->
+		<div class='clearfix21'></div>
 		[#SOCIAL#]
 		[#social_Sharings::getButtons#]
 		<!--ET_END SOCIAL-->
