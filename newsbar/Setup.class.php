@@ -63,7 +63,7 @@ class newsbar_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.10, 'Сайт', 'Новини', 'newsbar_News', 'list', "cms, newsbar, admin, ceo"),
+            array(3.99, 'Сайт', 'Нюзбар', 'newsbar_News', 'list', "cms, newsbar, admin, ceo"),
         );
 
         
