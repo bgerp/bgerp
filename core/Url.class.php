@@ -17,6 +17,48 @@
 class core_Url
 {
     
+	 // От http://data.iana.org/TLD/tlds-alpha-by-domain.txt
+     static $valideTld = array(
+        	'ac', 'academy', 'ad', 'ae', 'aero', 'af', 'ag', 'agency', 'ai', 'al', 'am', 'an', 
+        	'ao', 'aq', 'ar', 'arpa', 'as', 'asia', 'at', 'au', 'aw', 'ax', 'az', 'ba', 'bargains',
+            'bb', 'bd', 'be', 'berlin', 'bf', 'bg', 'bh', 'bi', 'bike', 'biz', 'bj', 'blue', 'bm',
+        	'bn', 'bo', 'boutique', 'br', 'bs', 'bt', 'build', 'builders', 'buzz', 'bv', 'bw', 'by',
+        	'bz', 'ca', 'cab', 'camera', 'camp', 'cards', 'careers', 'cat', 'catering', 'cc', 'cd', 
+        	'center', 'ceo', 'cf', 'cg', 'ch', 'cheap', 'ci', 'ck', 'cl', 'cleaning', 'clothing', 'club',
+            'cm', 'cn', 'co', 'codes', 'coffee', 'com', 'community', 'company', 'computer', 'condos', 
+            'construction', 'contractors', 'cool', 'coop', 'cr', 'cruises', 'cu', 'cv', 'cw', 'cx', 'cy', 'cz',
+            'dance', 'dating', 'de', 'democrat', 'diamonds', 'directory', 'dj', 'dk', 'dm', 'do', 'domains', 'dz',
+            'ec', 'edu', 'education', 'ee', 'eg', 'email', 'enterprises', 'equipment', 'er', 'es', 'estate', 'et', 'eu',
+            'events', 'expert', 'exposed', 'farm', 'fi', 'fish', 'fj', 'fk', 'flights', 'florist', 'fm', 'fo', 'foundation',
+            'fr', 'futbol', 'ga', 'gallery', 'gb', 'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gift', 'gl', 'glass', 'gm', 'gn',
+            'gov', 'gp', 'gq', 'gr', 'graphics', 'gs', 'gt', 'gu', 'guitars', 'guru', 'gw', 'gy', 'hk', 'hm', 'hn',
+            'holdings', 'holiday', 'house', 'hr', 'ht', 'hu', 'id', 'ie', 'il', 'im', 'immobilien', 'in', 'industries',
+            'info', 'institute', 'int', 'international', 'io', 'iq', 'ir', 'is', 'it', 'je', 'jm', 'jo', 'jobs',
+            'jp', 'kaufen', 'ke', 'kg', 'kh', 'ki', 'kim', 'kitchen', 'kiwi', 'km', 'kn', 'kp', 'kr', 'kw', 'ky',
+            'kz', 'la', 'land', 'lb', 'lc', 'li', 'lighting', 'limo', 'link', 'lk', 'lr', 'ls', 'lt', 'lu',
+            'luxury', 'lv', 'ly', 'ma', 'maison', 'management', 'mango', 'marketing', 'mc', 'md', 'me', 'menu',
+            'mg', 'mh', 'mil', 'mk', 'ml', 'mm', 'mn', 'mo', 'mobi', 'moda', 'monash', 'mp', 'mq', 'mr', 'ms', 'mt',
+            'mu', 'museum', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nagoya', 'name', 'nc', 'ne', 'net', 'neustar',
+            'nf', 'ng', 'ni', 'ninja', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'onl', 'org', 'pa', 'partners', 
+            'parts', 'pe', 'pf', 'pg', 'ph', 'photo', 'photography', 'photos', 'pics', 'pink', 'pk', 'pl',
+            'plumbing', 'pm', 'pn', 'post', 'pr', 'pro', 'productions', 'properties', 'ps', 'pt', 'pw', 'py', 
+            'qa', 'qpon', 're', 'recipes', 'red', 'rentals', 'repair', 'report', 'reviews', 'rich', 'ro', 'rs',
+            'ru', 'ruhr', 'rw', 'sa', 'sb', 'sc', 'sd', 'se', 'sexy', 'sg', 'sh', 'shiksha', 'shoes', 'si', 
+            'singles', 'sj', 'sk', 'sl', 'sm', 'sn', 'so', 'social', 'solar', 'solutions', 'sr', 'st', 'su',
+            'supplies', 'supply', 'support', 'sv', 'sx', 'sy', 'systems', 'sz', 'tattoo', 'tc', 'td', 'technology',
+        	'tel', 'tf', 'tg', 'th', 'tienda', 'tips', 'tj', 'tk', 'tl', 'tm', 'tn', 'to', 'today', 'tokyo', 'tools',
+            'tp', 'tr', 'training', 'travel', 'tt', 'tv', 'tw', 'tz', 'ua', 'ug', 'uk', 'uno', 'us', 'uy', 'uz', 'va',
+            'vacations', 'vc', 've', 'ventures', 'vg', 'vi', 'viajes', 'villas', 'vision', 'vn', 'voting', 'voyage',
+            'vu', 'wang', 'watch', 'wed', 'wf', 'wien', 'wiki', 'works', 'ws', 'xn--3bst00m', 'xn--3ds443g', 'xn--3e0b707e', 
+            'xn--45brj9c','xn--55qw42g', 'xn--55qx5d', 'xn--6frz82g', 'xn--6qq986b3xl', 'xn--80ao21a', 
+            'xn--80asehdb', 'xn--80aswg', 'xn--90a3ac', 'xn--cg4bki', 'xn--clchc0ea0b2g2a9gcd', 'xn--fiq228c5hs', 
+            'xn--fiq64b', 'xn--fiqs8s', 'xn--fiqz9s', 'xn--fpcrj9c3d', 'xn--fzc2c9e2c', 'xn--gecrj9c', 'xn--h2brj9c', 
+            'xn--io0a7i', 'xn--j1amh', 'xn--j6w193g', 'xn--kprw13d', 'xn--kpry57d', 'xn--l1acc',
+            'xn--lgbbat1ad8j', 'xn--mgb9awbf', 'xn--mgba3a4f16a', 'xn--mgbaam7a8h', 'xn--mgbab2bd', 'xn--mgbayh7gpa', 
+            'xn--mgbbh1a71e', 'xn--mgbc0a9azcg', 'xn--mgberp4a5d4ar', 'xn--mgbx4cd0ab', 'xn--ngbc5azd', 'xn--o3cw4h',
+            'xn--ogbpf8fl', 'xn--p1ai', 'xn--pgbs0dh', 'xn--q9jyb4c', 'xn--s9brj9c', 'xn--unup4y', 'xn--wgbh1c', 
+            'xn--wgbl6a', 'xn--xkc2al3hye2a', 'xn--xkc2dl3a5ee0h', 'xn--yfro4i67o', 'xn--ygbi2ammx',
+            'xn--zfr164b', 'xxx', 'xyz', 'ye', 'yt', 'za', 'zm', 'zone', 'zw');
     
     /**
      * @todo Чака за документация...
@@ -115,40 +157,9 @@ class core_Url
             setIfNot($parts, pathInfo(decodeUrl($parts['path'])));
         }
         
-        // От http://data.iana.org/TLD/tlds-alpha-by-domain.txt
-        $valideTld = array(
-            'ac', 'ad', 'ae', 'aero', 'af', 'ag', 'ai', 'al', 'am', 'an', 'ao', 'aq',
-            'ar', 'arpa', 'as', 'asia', 'at', 'au', 'aw', 'ax', 'az', 'ba', 'bb', 'bd',
-            'be', 'bf', 'bg', 'bh', 'bi', 'biz', 'bj', 'bm', 'bn', 'bo', 'br', 'bs',
-            'bt', 'bv', 'bw', 'by', 'bz', 'ca', 'cat', 'cc', 'cd', 'cf', 'cg', 'ch',
-            'ci', 'ck', 'cl', 'cm', 'cn', 'co', 'com', 'coop', 'cr', 'cu', 'cv', 'cx',
-            'cy', 'cz', 'de', 'dj', 'dk', 'dm', 'do', 'dz', 'ec', 'edu', 'ee', 'eg',
-            'er', 'es', 'et', 'eu', 'fi', 'fj', 'fk', 'fm', 'fo', 'fr', 'ga', 'gb',
-            'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gl', 'gm', 'gn', 'gov', 'gp', 'gq',
-            'gr', 'gs', 'gt', 'gu', 'gw', 'gy', 'hk', 'hm', 'hn', 'hr', 'ht', 'hu',
-            'id', 'ie', 'il', 'im', 'in', 'info', 'int', 'io', 'iq', 'ir', 'is', 'it',
-            'je', 'jm', 'jo', 'jobs', 'jp', 'ke', 'kg', 'kh', 'ki', 'km', 'kn', 'kp',
-            'kr', 'kw', 'ky', 'kz', 'la', 'lb', 'lc', 'li', 'lk', 'lr', 'ls', 'lt',
-            'lu', 'lv', 'ly', 'ma', 'mc', 'md', 'me', 'mg', 'mh', 'mil', 'mk', 'ml',
-            'mm', 'mn', 'mo', 'mobi', 'mp', 'mq', 'mr', 'ms', 'mt', 'mu', 'museum',
-            'mv', 'mw', 'mx', 'my', 'mz', 'na', 'name', 'nc', 'ne', 'net', 'nf', 'ng',
-            'ni', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'org', 'pa', 'pe', 'pf',
-            'pg', 'ph', 'pk', 'pl', 'pm', 'pn', 'pr', 'pro', 'ps', 'pt', 'pw', 'py',
-            'qa', 're', 'ro', 'rs', 'ru', 'rw', 'sa', 'sb', 'sc', 'sd', 'se', 'sg', 'sh',
-            'si', 'sj', 'sk', 'sl', 'sm', 'sn', 'so', 'sr', 'st', 'su', 'sv', 'sy', 'sz',
-            'tc', 'td', 'tel', 'tf', 'tg', 'th', 'tj', 'tk', 'tl', 'tm', 'tn', 'to',
-            'tp', 'tr', 'travel', 'tt', 'tv', 'tw', 'tz', 'ua', 'ug', 'uk', 'us', 'uy',
-            'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn', 'vu', 'wf', 'ws', 'xn--0zwm56d',
-            'xn--11b5bs3a9aj6g', 'xn--80akhbyknj4f', 'xn--9t4b11yi5a', 'xn--deba0ad',
-            'xn--fiqs8s', 'xn--fiqz9s', 'xn--fzc2c9e2c', 'xn--g6w251d', 'xn--kgbechtv',
-            'xn--hgbk6aj7f53bba', 'xn--hlcj6aya9esc7a', 'xn--j6w193g', 'xn--jxalpdlp',
-            'xn--kprw13d', 'xn--kpry57d', 'xn--mgbaam7a8h', 'xn--mgbayh7gpa',
-            'xn--mgberp4a5d4ar', 'xn--o3cw4h', 'xn--p1ai', 'xn--pgbs0dh', 'xn--wgbh1c',
-            'xn--xkc2al3hye2a', 'xn--ygbi2ammx', 'xn--zckzah', 'ye', 'yt', 'za', 'zm', 'zw');
-        
         if (!core_URL::isValidUrl($url)) {
             $parts['error'] = "Невалидно URL";
-        } elseif ($parts['tld'] && !in_array($parts['tld'], $valideTld)) {
+        } elseif ($parts['tld'] && !in_array($parts['tld'], static::$valideTld)) {
             $parts['error'] = "Невалидно разширение на домейн|*: <b>" . $parts['tld'] . "</b>";
         }
         
@@ -157,7 +168,7 @@ class core_Url
     
 
     /**
-     * Проверява дали е валиден даден топ-левъл домейл
+     * Проверява дали е валиден даден топ-левъл домейн
      * Ако в домейна има точка, се взема последното след точката
      */
     static function isValidTld($tld)
@@ -168,11 +179,11 @@ class core_Url
 
         $tld = strtolower($tld);
 
-        if(strpos('+|ac|ad|ae|aero|af|ag|ai|al|am|an|ao|aq|ar|arpa|as|asia|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|biz|bj|bm|bn|bo|br|bs|' . 'bt|bv|bw|by|bz|ca|cat|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|com|coop|cr|cu|cv|cw|cx|cy|cz|de|dj|dk|dm|do|dz|ec|edu|ee|eg|er|es|et|eu|' . 'fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gov|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|in|info|int|io|iq|ir|' . 'is|it|je|jm|jo|jobs|jp|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|me|mg|mh|mil|mk|ml|mm|mn|mo|mobi|' . 'mp|mq|mr|ms|mt|mu|museum|mv|mw|mx|my|mz|na|name|nc|ne|net|nf|ng|ni|nl|no|np|nr|nu|nz|om|org|pa|pe|pf|pg|ph|pk|pl|pm|pn|post|pr|pro|' . 'ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|st|su|sv|sx|sy|sz|tc|td|tel|tf|tg|th|tj|tk|tl|tm|tn|to|' . 'tp|tr|travel|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|xn--0zwm56d|xn--11b5bs3a9aj6g|xn--3e0b707e|xn--45brj9c|' . 'xn--80akhbyknj4f|xn--80ao21a|xn--90a3ac|xn--9t4b11yi5a|xn--clchc0ea0b2g2a9gcd|xn--deba0ad|xn--fiqs8s|xn--fiqz9s|xn--fpcrj9c3d|' . 'xn--fzc2c9e2c|xn--g6w251d|xn--gecrj9c|xn--h2brj9c|xn--hgbk6aj7f53bba|xn--hlcj6aya9esc7a|xn--j1amh|xn--j6w193g|xn--jxalpdlp|' . 'xn--kgbechtv|xn--kprw13d|xn--kpry57d|xn--lgbbat1ad8j|xn--mgb9awbf|xn--mgbaam7a8h|xn--mgbayh7gpa|xn--mgbbh1a71e|xn--mgbc0a9azcg|' . 'xn--mgberp4a5d4ar|xn--mgbx4cd0ab|xn--o3cw4h|xn--ogbpf8fl|xn--p1ai|xn--pgbs0dh|xn--s9brj9c|xn--wgbh1c|xn--wgbl6a|xn--xkc2al3hye2a|' . 'xn--xkc2dl3a5ee0h|xn--yfro4i67o|xn--ygbi2ammx|xn--zckzah|xxx|ye|yt|za|zm|zw|', "|{$tld}|")) {
-
-            return TRUE;
+        if (in_array($tld, static::$valideTld)) {
+        	   
+        	return TRUE;
         }
-
+       
         return FALSE;
     }
     

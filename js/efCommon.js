@@ -1,3 +1,6 @@
+var shortURL;
+
+
 function runOnLoad(functionName)
 {
 	if(window.attachEvent) {
@@ -1165,7 +1168,6 @@ function getSelText()
     {
         txt = document.selection.createRange().text;
     }
-    else  { return; } 
 	
 	return txt;
 }
@@ -1279,6 +1281,13 @@ function limitLen(string, maxLen)
 }
 
 
+// записва съкратеното URL в глобална променлива
+function getShortURL(shortUrl)
+{
+	shortURL = decodeURIComponent(shortUrl);
+}
+
+
 // добавяне на линк към текущата страница при копиране на текст
 function addLinkOnCopy(text) 
 {
@@ -1295,8 +1304,14 @@ function addLinkOnCopy(text)
 	body_element.appendChild(htmlDiv);
 	
 	htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+	if (typeof shortURL != 'undefined'){
+		var locationURL = shortURL;
+	} else {
+		var locationURL = document.location.href;
+	}
 	
-	htmlDiv.innerHTML += "<br /><br />" + text + ": <a href='" + document.location.href + "'>" + document.location.href + "</a> ";
+	htmlDiv.innerHTML += "<br /><br />" + text + ": <a href='" + locationURL + "'>" + locationURL + "</a> ";
 			
 	selection.selectAllChildren(htmlDiv);
 	
@@ -1317,14 +1332,14 @@ function addLinkOnCopy(text)
 function efae()
 {
 	// Инстанция на класа
-	var efaeInst = this;
+	var thisEfaeInst = this;
 	
 	// При мърдане на мишката или натискане на бутон да се ресетне интервала за циклена в начална стойност
 	document.onmousemove = function(){
-		efaeInst.resetTimeout();
+		thisEfaeInst.resetTimeout();
 	};
 	document.onkeypress = function(){
-		efaeInst.resetTimeout();
+		thisEfaeInst.resetTimeout();
 	};
 	
 	// Масив с всички абонирани
@@ -1390,10 +1405,10 @@ efae.prototype.run = function()
 		console.log('Грешка при стартиране на процеса');
 	} finally {
 		// Инстанция на класа
-		var efaeInst = this;
+		var thisEfaeInst = this;
 		
 		// Задаваме да се самостартира
-		setTimeout(function(){efaeInst.run()}, this.timeout);
+		setTimeout(function(){thisEfaeInst.run()}, this.timeout);
 	}
 }
 
@@ -1421,7 +1436,7 @@ efae.prototype.process = function()
 	}
 	
 	// Инстанция на класа
-	var efaeInst = this;
+	var thisEfaeInst = this;
 	
 	// Ако има дефиниран JQuery
 	if (typeof jQuery != 'undefined') {
@@ -1465,7 +1480,7 @@ efae.prototype.process = function()
 		    		}
 		    		
 		    		// Името на функцията с префикаса
-		    		func = efaeInst.renderPrefix + func;
+		    		func = thisEfaeInst.renderPrefix + func;
 		    		
 		    		try {
 		    			
@@ -1742,3 +1757,69 @@ function showToast(data)
             });
     	}, data.timeOut);
 }
+
+
+/**
+ * Expeperta - Клас за функции на EF
+ * 
+ * @category  ef
+ * @package   js
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+function Expeperta()
+{
+	// Селектирания текст при първия запис
+	Expeperta.prototype.fSelText='';
+	
+	// Селектирания текст, ако първя запис не е променян
+	Expeperta.prototype.sSelText='';
+	
+	// Време на извикване
+	Expeperta.prototype.saveSelTextTimeout=500;
+}
+
+
+/**
+ * Записва избрания текст
+ */
+Expeperta.prototype.saveSelText = function()
+{
+	// Вземаме избрания текст
+	var selText = getSelText().toString();
+	
+	// Ако първия записан текст е еднакъв с избрания
+	if (this.fSelText == selText) {
+		
+		// Записваме текста във втората променлива
+		this.sSelText = selText;
+	} else {
+		
+		// Ако са различни, записваме новия избран текст в първата променлива
+		this.fSelText = selText;
+	}
+
+	// Инстанция
+	var thisEOInst = this;
+	
+	// Задаваме функцията да се самостартира през определен интервал
+	setTimeout(function() {thisEOInst.saveSelText()}, this.saveSelTextTimeout);
+}
+
+
+/**
+ * Връща избрания текст, който е записан във втората променлива
+ */
+Expeperta.prototype.getSavedSelText = function()
+{
+	
+	return this.sSelText;
+}
+
+// Инстанцираме класа
+EO = new Expeperta();
+
+// Стартираме фунцкцията за записване на избрания текст
+EO.saveSelText()
