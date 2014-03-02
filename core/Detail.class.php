@@ -215,7 +215,7 @@ class core_Detail extends core_Manager
         }
 
         expect($data->masterId = $data->form->rec->{$masterKey}, $data->form->rec);
-        expect($data->masterRec = $data->masterMvc->fetch($data->masterId));
+        expect($data->masterRec = $data->masterMvc->fetch($data->masterId), $data);
         $title = $data->masterMvc->getTitleById($data->masterId);
         if ($data->singleTitle) {
             $single = ' на| ' . mb_strtolower($data->singleTitle) . '|';
