@@ -428,8 +428,9 @@ class core_Master extends core_Manager
             
             foreach($details as $var => $class) {
                 $this->details[$var] = $class;
-                
-                $this->{$var}->Master = &$this;
+                 if(!($this->{$var}->Master instanceof core_Master)) {
+                    $this->{$var}->Master = &$this;
+                 }
             }
         }
     }
