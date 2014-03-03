@@ -63,7 +63,7 @@ class autosize_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'AUTOSIZE_VERSION' => array ('enum(1=v1.18.4)', 'mandatory, caption=Версията на програмата->Версия'),
+           'AUTOSIZE_VERSION' => array ('enum(v1.18.4=v1.18.4)', 'mandatory, caption=Версията на програмата->Версия'),
            'AUTOSIZE_MAX_ROWS_WIDE' => array ('int', 'mandatory, caption=Максимален брой редове->Десктоп режим'),
            'AUTOSIZE_MAX_ROWS_NARROW' => array ('int', 'mandatory, caption=Максимален брой редове->Мобилен режим'),
              );
