@@ -2743,7 +2743,7 @@ div.location.public {
     @include border-radius(3px);
 	padding:2px;
 	font-size:0.8em;
-	background-color:#ddd;
+	background-color:#e6e6e6;
 	border: solid 1px #d8d8d8;
 	text-shadow: 1px 1px 1px #ccc;
 	display: inline-block;
@@ -2751,6 +2751,13 @@ div.location.public {
 	&:last-child {
 		margin-right:0 !important;
 	}
+}
+
+.eshop-product-images {
+	padding:5px;
+	background-color:#e6e6e6;
+	height:100%;
+    @include border-radius(3px);
 }
 
 .eshop-product-labels > a {
