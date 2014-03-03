@@ -4,7 +4,7 @@
 	<td colspan=2><h1 style='font-size:1.5em'>[#name#]</h1></td>
 </tr>
 <tr>
-	<td valign="top" width=120>
+	<td valign="top" width=120 style='background-color:#E6E6E6;'>
 		[#image#]
 		[#image2#]
 		[#image3#]
