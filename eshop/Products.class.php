@@ -290,10 +290,13 @@ class eshop_Products extends core_Master
 
 
     /**
-     *
+     * Подготовка на данните за рендиране на единичния изглед на продукт
      */
     function prepareProduct($data)
     {
+        $data->rec->info = trim($data->rec->info);
+        $data->rec->longInfo = trim($data->rec->longInfo);
+
         $data->row = $this->recToVerbal($data->rec);
         if($data->rec->image) {
             $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $row->name); 
