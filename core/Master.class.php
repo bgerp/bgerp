@@ -429,7 +429,19 @@ class core_Master extends core_Manager
             foreach($details as $var => $class) {
                 $this->details[$var] = $class;
                  if(!($this->{$var}->Master instanceof core_Master)) {
-                    $this->{$var}->Master = &$this;
+                    
+                    if($this->{$var} instanceof core_Manager) {
+                        $this->{$var}->Master = &$this;
+                        $this->{$var}->masterClass = $this->className;
+                        $detailFields = $this->{$var}->selectFields();
+                        foreach($detailFields as $fld) {
+                            if($fld->type instanceof type_Key) {
+                                if($fld->type->params['mvc'] == $this->className) {
+                                    $this->{$var}->MasterKey = $fld->name;
+                                }
+                            }
+                        }
+                    }
                  }
             }
         }
