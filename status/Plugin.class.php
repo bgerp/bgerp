@@ -27,7 +27,7 @@ class status_Plugin extends core_Plugin
      */
     function on_AfterNewStatus($mvc, &$res, $text, $type, $userId, $lifeTime)
     {
-        // Конвертира
+        // Добавяме съобщението
         $res = status_Messages::newStatus($text, $type, $userId, $lifeTime);
     }
     
@@ -40,7 +40,7 @@ class status_Plugin extends core_Plugin
      */
     function on_AfterSubscribe($mvc, &$tpl)
     {
-        // Конвертира
+        // Абонираме
         $tpl = status_Messages::subscribe();
     }
 }
