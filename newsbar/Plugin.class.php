@@ -31,7 +31,7 @@ class newsbar_Plugin extends core_Plugin
             <marquee scrollamount='4'><b style='opacity:1;'>$barNews</b></marquee>
             </div><div class='clearfix21'></div>";
            
-           $invoker->appendOnce($html, 'TOP_NEWS');
+           $invoker->appendOnce($html, 'PAGE_HEADER');
        }
     }
 
