@@ -376,15 +376,15 @@ class forum_Postings extends core_Detail {
 			$tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
         } else {
         	(core_Users::getCurrent()) ? $msg = 'Темата е заключена' : $msg = 'За коментар е нужна регистрация !!!';
-        	$tpl->replace("<b>" . tr($msg) . "</b>", 'COMMENT_FORM');
+        	$tpl->replace("<p>" . tr($msg) . "</p>", 'COMMENT_FORM');
           }
 		
         if($data->formAnchor) {
-        	$tpl->append(ht::createBtn('Нов отговор', $data->formAnchor), 'ANSWER');
+        	$tpl->append(ht::createBtn('Нов отговор', $data->formAnchor,'', '', array('class' => 'forumbtn new')), 'ANSWER');
         }
         
         if($data->topicUrl) {
-        	$tpl->append(ht::createBtn('Работилница', $data->topicUrl), 'ANSWER');
+        	$tpl->append(ht::createBtn('Работилница', $data->topicUrl,'', '', array('class' => 'forumbtn workshop')), 'ANSWER');
         }
         
         $tpl->push($data->ForumTheme->getStyles(), 'CSS');
@@ -392,7 +392,7 @@ class forum_Postings extends core_Detail {
 		$tpl->replace($this->Master->renderSearchForm($data), 'SEARCH_FORM');
 		 
 		$topIcon = $data->ForumTheme->getImage('top.png', '32');
-		$topLink = ht::createLink($topIcon, getCurrentUrl(), NULL, array('class' => 'goTopBtn'));
+		$topLink = ht::createLink('Нагоре', getCurrentUrl(), NULL, array('class' => 'forumbtn gotop'));
 		
 		$tpl->replace($topLink, 'topLink');
         return $tpl;
@@ -593,7 +593,7 @@ class forum_Postings extends core_Detail {
 		// Ако можем да добавяме нов постинг в темата и тя е отключена
 		if($this->haveRightFor('add', $data->rec)) { 
 			$addUrl = array($this, 'Add', 'boardId' => $data->board->id , 'themeId' => $data->rec->id, 'ret_url' => TRUE );
-			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'ADD_COMMENT');
+			$tpl->replace(ht::createBtn('Коментирай', $addUrl, NULL, NULL, 'id=btnAdd', 'ef_icon = img/16/star_2.png'), 'ADD_COMMENT');
 		}
 		
 		$tpl = $this->renderTopicToolbar($data, $tpl);
@@ -612,22 +612,22 @@ class forum_Postings extends core_Detail {
 	function renderTopicToolbar($data, $tpl)
 	{
 		if($data->editUrl) {
-        	$tpl->append(ht::createBtn('Редакция', $data->editUrl, NULL, NULL, 'id=btnEdit,class=btn-edit'), 'TOOLS');
+        	$tpl->append(ht::createBtn('Редакция', $data->editUrl, NULL, NULL, 'id=btnEdit'), 'ef_icon = img/16/edit-icon.png', 'TOOLS');
         }
         
         // Бутон за преглед във външния изглед
         $themeUrl = array($this, 'Theme', $data->rec->id);
-        $tpl->append(ht::createBtn('Преглед', $themeUrl, NULL, NULL, 'class=btn-add'), 'TOOLS');
+        $tpl->append(ht::createBtn('Преглед', $themeUrl, NULL, NULL, 'ef_icon = img/16/star_2.png'), 'TOOLS');
         
 		// Бутон за заключване/отключване на темата за коментиране
 		if($data->lockUrl) {
         	($data->rec->status == 'unlocked') ?  $str = 'Заключване' : $str = 'Отключване';
-        	$tpl->append(ht::createBtn(tr($str), $data->lockUrl, NULL, NULL, 'class=btn-add'), 'TOOLS');
+        	$tpl->append(ht::createBtn(tr($str), $data->lockUrl, NULL, NULL, 'ef_icon = img/16/star_2.png'), 'TOOLS');
          }
 		
         // Ако имаме право да местим темата, рендираме формата за местене
         if($data->moveUrl) {
-        	$tpl->append(ht::createBtn('Премести', $data->moveUrl, NULL, NULL, 'class=btn-move'), 'TOOLS');
+        	$tpl->append(ht::createBtn('Премести', $data->moveUrl, NULL, NULL, 'ef_icon = img/16/move.png'), 'TOOLS');
         }
         
         return $tpl;
@@ -703,8 +703,8 @@ class forum_Postings extends core_Detail {
 		$data->form->setHidden('theme', $data->rec->id);
 		$data->form->setDefault('boardTo', $data->board->id);
 		$data->form->title = "Местене на тема|* : <b>{$data->row->title}</b>";
-		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), array('class' => 'btn-move'));
-		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), array('class' => 'btn-cancel'));
+		$data->form->toolbar->addSbBtn('Премести', array($this, 'move', 'themeId' => $data->rec->id), 'ef_icon = img/16/move.png');
+		$data->form->toolbar->addBtn('Отказ', array($this, 'Topic', $data->rec->id), 'ef_icon = img/16/close16.png');
 		
 		$data->navigation = $this->Master->prepareNavigation($data->board->categoryId, $data->rec->boardId, $data->rec->id);
 	}
@@ -858,7 +858,7 @@ class forum_Postings extends core_Detail {
 	         	$themeTpl->append2master();
 	      }
 		} else {
-			$tableTpl->replace("<tr><td colspan=3><h3>" . tr("Няма теми") . "</h3></td></tr>");
+			$tableTpl->replace("<p>" . tr("Няма теми") . "</p>");
 		}
 		
 		$tableTpl->replace($data->pager->getHtml(), 'PAGER');

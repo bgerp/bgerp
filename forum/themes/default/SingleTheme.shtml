@@ -10,14 +10,14 @@
 		[#SEARCH_FORM#]
 	</li>
 	<li class='toolbar'>
+	<div>
 		[#ANSWER#]
+	</div>
 	</li>
 	<li class='thread-header'>
 	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
 			<tr>
-				<td width='15%'>
-					|Автор|*
-				</td>
+				<td width='15%'>|Автор|*</td>
 				<td>
 					|Съобщение|*
 				</td>
@@ -30,7 +30,9 @@
 				<td width='15%' class='user-info' rowspan='2'>
 					<div >
 						<div class='author'>[#createdBy#]</div>
-						<div class='avatar'>[#avatar#]</div>
+						<!--ET_BEGIN avatar-->
+							<div class='avatar'>[#avatar#]</div>
+						<!--ET_END avatar-->
 						<div class='published-on'>[#createdOn#]</div>
 					</div>
 				</td>

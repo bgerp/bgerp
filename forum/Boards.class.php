@@ -271,15 +271,6 @@ class forum_Boards extends core_Master {
 		// Линк към началото на форума
 		$arr[] = ht::createLink(tr('Форуми'), $url);
 		
-		if($categoryId) {
-			$url = array('forum_Boards', 'list', 'cat' => $categoryId);
-			if($display == 'public'){
-				$url[1] = 'forum';
-			}
-			
-			$catName = forum_Categories::fetchField($categoryId, "title");
-			$arr[] = ht::createLink($varchar->toVerbal($catName), $url);
-		}
 		if($boardId){
 			$url = array($this, 'single', $boardId);
 			if($display == 'public'){
@@ -396,7 +387,7 @@ class forum_Boards extends core_Master {
         	
         	// Зареждаме шаблоните веднъж в паметта и после само ги клонирваме
         	$categoryTpl = $tpl->getBlock("category");
-            $icon = $data->ForumTheme->getImage('forum.png', '50');
+            $icon = $data->ForumTheme->getImage('Card-file-icon.png', '40');
         	
             foreach($data->categories as $category) {
                 
@@ -423,11 +414,11 @@ class forum_Boards extends core_Master {
         }
 		
 		if($data->listUrl) { 
-			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Работилница', $data->listUrl, NULL, NULL,  array('class' => 'forumbtn workshop')), 'TOOLBAR');
 		}
 		
 		if($data->searchUrl){
-			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Търсене', $data->searchUrl, NULL, NULL,  array('class' => 'forumbtn find')), 'TOOLBAR');
 		}
 		
 		$tpl->push($data->ForumTheme->getStyles(), 'CSS');
@@ -496,11 +487,11 @@ class forum_Boards extends core_Master {
 		$tpl = $this->forum_Postings->renderBoardThemes($data, $tpl);
 		
 		if($data->submitUrl) { 
-			$tpl->append(ht::createBtn('Нова Тема', $data->submitUrl, NULL, NULL, 'id=btnAdd,class=btn-add'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Нова Тема', $data->submitUrl, NULL, NULL,  array('class' => 'forumbtn posting')), 'TOOLBAR');
 		}
 		
 		if($data->singleUrl) { 
-			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL, 'ef_icon=img/16/application_edit.png'), 'TOOLBAR');
+			$tpl->append(ht::createBtn('Работилница', $data->singleUrl, NULL, NULL, array('class' => 'forumbtn workshop')), 'TOOLBAR');
 		}
 		
 		$tpl->push($data->ForumTheme->getStyles(), 'CSS');

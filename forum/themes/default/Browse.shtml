@@ -6,10 +6,11 @@
 <div id='board-name'>[#title#]</div>
 <span id='shortDesc'>[#shortDesc#]</span>
 </div>
-[#SEARCH_FORM#]
-
-[#TOOLBAR#]
-
+<div class='fleft toolbar'>
+	<div>[#TOOLBAR#]</div>
+</div>
+<div class='fright'>[#SEARCH_FORM#]</div>
+<div class='clearfix21'></div>
 <!--ET_BEGIN THEMES-->
 [#THEMES#]
 <!--ET_END THEMES-->
