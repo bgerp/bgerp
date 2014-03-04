@@ -1,56 +1,46 @@
-<div class='singleView'>
-	<div id='forum-board'>
-		[#NAVIGATION#]
-		[#SingleToolbar#]
-		<br>
-		
-		<p class='descr'>[#shortDesc#]</p>
-	
-		<table class="styled-table">
-				<tr>
-					<td class="title-style">|Категория|*</td>
-					<td>[#category#]</td>
-				</tr>
-				<tr>
-					<td class="title-style" width="150px">|Теми|*</td>
-					<td> [#themesCnt#]</td>
-				</tr>
-				<tr>
-					<td class="title-style">|Коментари|*</td>
-					<td>[#commentsCnt#]</td>
-				</tr>
-				<tr>
-					<td width="150px"><span class="title-style">|Тип|*:</span></td>
-					<td> [#boardType#]</td>
-				</tr>
-				<!--ET_BEGIN shared-->
-				<tr>
-					<td><span class="title-style">|Споделяне|*</span></td>
-					<td> [#shared#]</td>
-				</tr>
-				<!--ET_END shared-->
-			</table>
-			
-			<table class="styled-table">
-				<tr>
-					<th colspan="2">|Последно|*</th>
-				</tr>
-				<tr>
-					<td width="150px"><span class="title-style">|Кога|*</span></td>
-					<td> [#lastComment#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Къде|*</span></td>
-					<td> [#lastCommentedTheme#]</td>
-				</tr>
-				<tr>
-					<td><span class="title-style">|Кой|*</span> </td>
-					<td>[#lastCommentBy#]</td>
-				</tr>
-			</table>
-				
-			<div style='margin-bottom:15px;'><span class="quiet">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
-		
-		[#DETAILS#]
-	</div>
+<div id='forum-board'>
+[#NAVIGATION#]
+<br>
+<br>
+[#SingleToolbar#]
+<br>
+	<table border='1' class='listTable'>
+	<thead>
+	<tr>
+		<th rowspan='2'>|Име|*</th>
+		<th rowspan='2'>|Oписание|*</th>
+		<th rowspan='2'>|Категория|*</th>
+		<th rowspan='2'>|Теми|*</th>
+		<th rowspan='2'>|Коментари|*</th>
+		<th colspan='3'>|Последно|*</th>
+		<th colspan='2'>|Достъп|*</th>
+		<th colspan='2'>|Създаване|*</th>
+	</tr>
+	<tr>
+		<th>|Кога|*</th>
+		<th>|Къде|*</th>
+		<th>|Кой|*</th>
+		<th>|Тип|*</th>
+		<th>|Споделяне|*</th>
+		<th>|от|*</th>
+		<th>|на|*</th>
+	</tr>
+	</thead>
+	<tr>
+		<td>[#title#]</td>
+		<td width='10%'>[#shortDesc#]</td>
+		<td>[#category#]</td>
+		<td>[#themesCnt#]</td>
+		<td>[#commentsCnt#]</td>
+		<td>[#lastComment#]</td>
+		<td>[#lastCommentedTheme#]</td>
+		<td>[#lastCommentBy#]</td>
+		<td>[#boardType#]</td>
+		<td>[#shared#]</td>
+		<td>[#createdBy#]</td>
+		<td>[#createdOn#]</td>
+	</tr>
+	</table>
+	<br>
+	[#DETAILS#]
 </div>

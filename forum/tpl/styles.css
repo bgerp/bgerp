@@ -2,23 +2,6 @@
 	width:70%;
 }
 
-#topic-layout .toolbar{
-	margin-bottom:8px;
-}
-
-#topic-layout .document{
-	border: none;
-	background: transparent;
-	-moz-box-shadow: none;
-	-webkit-box-shadow: none;
-	box-shadow: none;
-	padding: 2px 4px 5px 4px;
-	margin-bottom: 0px;
-	float: left;
-	margin-right: 0px;
-	margin-top: 0px;
-}
-
 table#topic-layout, table#topic-layout td, table#topic-layout th{
 	border-color:rgb(153, 153, 153);
 	border-width:1px;
@@ -53,30 +36,26 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 #topic-header {
 	background:rgba(250, 221, 187, 0.5);
 	font-family:Arial;
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-	-ms-border-radius: 3px;
-	border-radius: 3px;
-	padding: 3px 3px 3px 6px;
-	font-size: 1em;
-	line-height: 24px;
+	min-height:25px;
+	padding-left:5px;
+	padding-right:5px;
+	padding-top:5px;
 }
 
 #btnAdd{
+	margin-left:10px;
 	float:left;
-	border-radius:3px !important;
-	border-left: 1px solid #999;
 }
 
-.narrow #btnAdd{
-	border-radius:5px !important;
+#header-td, #body-td {
+	padding-top:7px;
 }
 
 #body-td {
 	background:rgba(200, 200, 200, 0.4);
 	text-indent:10px;
 	font-family:Arial;
-	margin-top:7px;
+	margin-top:5px;
 	padding:15px;
 }
 
@@ -85,7 +64,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 }
 
 #td-misc {
-	padding:10px;
+	padding:15px;
 }
 
 #created-td {
@@ -95,18 +74,20 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 }
 
 #topic-createdOn {
+	text-indent:5px;
 	margin-top:5px;
-	margin-bottom:10px;
+	margin-bottom:5px;
 	display:block
 }
 
 #topic, .comment-body{
-	padding:8px;
+	padding-left:8px;
+	padding-right:8px;
 	vertical-align:top;
 }
 
 .comment-body #topic-header {
-	background: rgba(250, 221, 187, 0.5);
+	background:rgb(136, 204, 153);
 }
 
 .body-comment {
@@ -114,9 +95,7 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 }
 
 #navigation-inner-link {
-	font-size:18px;
-	margin:0px 0 10px;
-	display:block;
+	font-size:20px;
 }
 
 .add-comment {
@@ -125,8 +104,4 @@ table#topic-layout, table#topic-layout td, table#topic-layout th{
 
 #toolbox {
 	padding-top:7px;
-}
-
-.descr{
-	margin-top:0;
 }

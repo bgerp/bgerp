@@ -1,7 +1,7 @@
 <!--ET_BEGIN ROW-->
 <tr>
 	<td id='created-td'>
-		<span style='display:block'>[#createdBy#]</span>
+		<span style='text-indent:5px;display:block'>[#createdBy#]</span>
 		<span id='topic-createdOn'>[#createdOn#]</span>
 		<div style='text-align:center'>[#avatar#]</div>
 	</td>

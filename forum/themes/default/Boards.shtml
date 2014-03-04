@@ -1,10 +1,10 @@
 <li>
 	<table width='100%' border='0' cellpadding='3px'>
 	<tr>
-		<td width='70%' class='forum-table'>
+		<td width='63%' class='forum-table'>
 		   <div class='forum-icon case'>[#ICON#]</div>
 		   <div class='forum-row'>
-			    <b>[#title#]</b>
+			    <b>[#title#]</b><br>
 				<span class='forum-desc'>[#shortDesc#]</span>
 			</div>
 		<div class="clearfix21"></div>
@@ -13,13 +13,18 @@
 			<span class='forum-counts'>[#themesCnt#]</span><br>
 			<span class='forum-counts'>[#commentsCnt#]</span>
 		</td>
+		<td class='last-by'>
+			<div id='avatar-container'>
+			[#lastAvatar#]
+			</div>
+		</td>
 		<td  class='last-info'>
 		<!--ET_BEGIN lastCommentedTheme-->     
 			<span class='last-theme'>в:&nbsp;[#lastCommentedTheme#]</span><br>
 		<!--ET_END lastCommentedTheme-->
 		
 		<!--ET_BEGIN lastNick-->
-			<span class='last-user'>от: <b>[#lastNick#]</b></span><br>
+			<span class='last-user'>от:&nbsp;&nbsp;<b>[#lastNick#]</b></span><br>
 		<!--ET_END lastNick-->
 		
 		<!--ET_BEGIN lastComment-->
