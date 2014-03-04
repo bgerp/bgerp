@@ -1,4 +1,4 @@
-h3{
+#forum-index h3{
 	margin:0;
 }
 
@@ -7,6 +7,7 @@ h3{
 	list-style:none;
 	padding-left:0px;
 }
+
 #forum-themes{
 	border-collapse:collapse;
 }
@@ -15,7 +16,7 @@ h3{
 	box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 
-#maincontent {
+#forum-index #maincontent {
 	background:rgb(248, 248, 248);
 }
 
@@ -45,7 +46,7 @@ h3{
 	color:rgb(51, 51, 102);
 }
 
-#navigation {
+#forum-index #navigation {
 	color:black;
 	font-size:16px;
 	font-weight:bold;
@@ -94,11 +95,11 @@ h3{
 .last-comment font, .theme-createdOn font ,.authored font{
 	color:rgb(0, 35, 70) !important;	
 }
+
 .theme-row {
 	height:75px;
 	border: 1px solid #ddd;
 	border-top:none;
-	
 }
 
 .theme-row td {
@@ -118,7 +119,8 @@ h3{
 #forum-index .toolbar .button{
 	margin-top:0;
 }
-th{
+
+#forum-index th{
 	background: rgb(238,238,238); /* Old browsers */
 	background: -moz-linear-gradient(top, rgba(238,238,238,1) 0%, rgba(153,153,153,1) 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(238,238,238,1)), color-stop(100%,rgba(153,153,153,1))); /* Chrome,Safari4+ */
@@ -148,7 +150,7 @@ th{
 	text-indent: 2px;
 }
 
-#searchform{
+#forum-index #searchform{
 	margin-bottom:20px;
 }
 
@@ -157,7 +159,7 @@ th{
 	font-weight:bold;
 }
 
-.thread-header{
+#forum-index .thread-header{
 	height:32px;
 	line-height:32px;
 	border:1px solid #ccc;
@@ -171,6 +173,7 @@ th{
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#999999',GradientType=0 ); /* IE6-9 */
 	text-indent:10px;
 }
+
 .thread-header a{
 	color:#000;
 }
@@ -255,7 +258,7 @@ th{
 	color:rgb(0, 35, 70) !important;
 }
 
-.richtext {
+#forum-index .richtext {
 	min-height:70px;
 	padding:0 12px;
 	margin-top:0;
@@ -285,9 +288,6 @@ th{
 .right {
 	text-align:right;
 	padding-right:10px;
-}
-
-#forum-toolbar {
 }
 
 .themeLink {
@@ -352,7 +352,7 @@ th{
 	vertical-align:middle;
 }
 
-h2{
+#forum-index h2{
 	margin-top:10px;
 }
 
@@ -433,6 +433,7 @@ h2{
 	font-size:14px;
 	text-indent:22px;
 }
+
 .narrow .forum-row{
 	width:65%;	
 }
