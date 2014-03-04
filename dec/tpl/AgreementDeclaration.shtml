@@ -1,6 +1,6 @@
 <div class='dec-document'>
 
-<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--> – с ЕГН: <b>[#managerЕGN#]</b>, </div><!--ET_END manager-->
+<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--></div><!--ET_END manager-->
 <div>представляващ производителя/доставчика:
 [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
@@ -11,12 +11,11 @@
 	<!--ET_BEGIN products-->
 			[#products#]
 	<!--ET_END products-->
-	<!--ET_BEGIN place-->
-	<div><b>произведени в</b> [#place#],
+	
 	<!--ET_BEGIN material-->
 <b>произведени от</b> [#material#]</div>
 <!--ET_END material-->
-<!--ET_END place-->
+
 <div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
 <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
 <!--ET_BEGIN contragentCompanyVatNo-->с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
