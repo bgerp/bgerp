@@ -41,6 +41,7 @@ class expert_Plugin extends core_Plugin {
                     $content = $mvc->onFail($exp);
                 } else {
                     $exp->setRedirect();
+                    $exp->setRedirectMsgType('error');
                     setIfNot($exp->midRes->alert, $exp->message, tr('Не може да се достигне крайната цел'));
                     $content = $exp->getResult();
                 }
@@ -51,6 +52,7 @@ class expert_Plugin extends core_Plugin {
                     $content = $mvc->onSuccess($exp);
                 } else {
                     $exp->setRedirect();
+                    $exp->setRedirectMsgType($exp->redirectMsgType);
                     setIfNot($exp->midRes->alert, $exp->message, tr('Крайната цел е достигната'));
                     $content = $exp->getResult();
                 }

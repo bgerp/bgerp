@@ -221,6 +221,37 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
+     * Задава типа на съобщението за редирект
+     * 
+     * @param enum $type - Типа на съобщението - success, notice, warning, error
+     */
+    function setRedirectMsgType($type='notice')
+    {
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
+        
+        $this->midRes->RedirectMsgType = $type;
+    }
+
+    
+    /**
+     * Връща типа на съобщението след редирект
+     * 
+     * @return string
+     */
+    function getRedirectMsgType()
+    {
+        if (!$this->midRes->RedirectMsgType) {
+            
+            return 'notice';
+        }
+        
+        return $this->midRes->RedirectMsgType;
+    }
+    
+    
+    /**
      * Връща титлата за посочения вид диалог.
      */
     function getTitle($kRec)
@@ -757,7 +788,7 @@ class expert_Expert extends core_FieldSet {
         
         if($this->midRes->RetUrl) {
             
-            return new Redirect($this->midRes->RetUrl, $this->midRes->alert);
+            return new Redirect($this->midRes->RetUrl, $this->midRes->alert, $this->getRedirectMsgType());
         }
         
         if($this->midRes->form) {
