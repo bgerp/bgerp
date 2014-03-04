@@ -632,11 +632,15 @@ class acc_BalanceDetails extends core_Detail
         	
             switch ($this->Accounts->getType($rec->creditAccId)) {
                 case 'active' :
+                	
                 	if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
                         $rec->amount = $amount;
                     }
+                	
+                	$creditStrategy->feed(-1 * $rec->creditQuantity, -1 * $rec->amount);
                     break;
                 case 'passive' :
+                	
                     $creditStrategy->feed($rec->creditQuantity, $rec->amount);
                     break;
             }
@@ -649,12 +653,15 @@ class acc_BalanceDetails extends core_Detail
             
             switch ($this->Accounts->getType($rec->debitAccId)) {
                 case 'active' :
+                	
                     $debitStrategy->feed($rec->debitQuantity, $rec->amount);
                     break;
                 case 'passive' :
                     if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
                         $rec->amount = $amount;
                     }
+                	
+                    $debitStrategy->feed(-1 * $rec->debitQuantity, -1 * $rec->amount);
                     break;
             }
         }
