@@ -21,9 +21,9 @@ class status_Plugin extends core_Plugin
      * @param core_Mvc $mvc
      * @param integer $res
      * @param string $text - Съобщение, което ще добавим
-     * @param unknown_type $type - Типа на съобщението - success, notice, warning, error
-     * @param unknown_type $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
-     * @param unknown_type $lifeTime - След колко време да е неактивно
+     * @param enum $type - Типа на съобщението - success, notice, warning, error
+     * @param integer $userId - Потребителя, към когото ще се добавя. Ако не е подаден потребител, тогава взема текущия потребител.
+     * @param integer $lifeTime - След колко време да е неактивно
      */
     function on_AfterNewStatus($mvc, &$res, $text, $type, $userId, $lifeTime)
     {
