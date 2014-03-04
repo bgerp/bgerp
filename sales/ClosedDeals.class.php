@@ -203,7 +203,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
     			
-    			if($originRec->state != 'active') return $res = 'no_one';
+    			if($res == 'no_one') return;
     			
     			// Може да се добавя само към тред с продажба
     			if($origin->instance instanceof purchase_Purchases) return $res = 'no_one';
