@@ -21,13 +21,10 @@ class core_Redirect extends core_ET
     /**
      * Конструктор на шаблона - редирект
      */
-    function core_Redirect($url, $msg = NULL, $type = 'info')
+    function core_Redirect($url, $msg = NULL, $type = 'notice')
     {
         if($msg) {
-            $Nid = rand(1000000, 9999999);
-            Mode::setPermanent('Notification_' . $Nid, $msg);
-            Mode::setPermanent('NotificationType_' . $Nid, $type);
-            $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));
+            core_Statuses::newStatus($msg, $type);
         }
         
         $this->push(toUrl($url), '_REDIRECT_');
