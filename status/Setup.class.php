@@ -79,6 +79,12 @@ class status_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме
+        $html .= $Plugins->forcePlugin('Статус съобщения', 'status_Plugin', 'core_Statuses', 'private');
+        
         return $html;
     }
     
@@ -90,6 +96,12 @@ class status_Setup
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
+        
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        $Plugins->deinstallPlugin('status_Plugin');
+        $html .= "<li>Премахнати са всички инсталации на 'status_Plugin'";
         
         return $res;
     }
