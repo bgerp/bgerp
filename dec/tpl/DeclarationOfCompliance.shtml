@@ -1,45 +1,42 @@
 <div class='dec-document'>
-<br><div class='indent'>The undersigned, manufacturer/supplier: <br>[#MyCompany#],  <!--ET_BEGIN MyCountry-->with address[#MyCountry#],<!--ET_END MyCountry--><!--ET_BEGIN MyAddress--> city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
-	<div>represented by [#manager#] <!--ET_BEGIN manager--> – with personal number: <b>[#managerЕGN#]</b> </div><!--ET_END manager-->
-
-
-<br>
-<div class="centered"><b>HEREBY DECLARE:</b> </div>
-<br>
-<div>own responsibility, that <b>products:</b></div>
+<br><div class='indent'>The undersigned, [#manager#] <!--ET_BEGIN manager--></div><!--ET_END manager-->
+<div>representing manufacturer/supplier:
+[#MyCompany#], <!--ET_BEGIN MyCountry-->with address [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
 
 	
-		<!--ET_BEGIN products-->
+
+<div>the sale invoice <b>№ [#invoiceNo#]</b> products
+
+	<!--ET_BEGIN products-->
 			[#products#]
-		<!--ET_END products-->
+	<!--ET_END products-->
 	
-<!--ET_BEGIN place-->
-	<div><b>produced in</b> [#place#],</div>
-<!--ET_END place-->
-<div><b>delivered to:</b> [#contragentCompany#],<!--ET_BEGIN contragentCountry--> with address  [#contragentCountry#],<!--ET_END contragentCountry--> 
-<!--ET_BEGIN contragentAddress-->city [#contragentAddress#],<!--ET_END contragentAddress--> 
-<!--ET_BEGIN contragentCompanyVatNo-->with VAT ID [#contragentCompanyVatNo#][#contragentUicId#], <!--ET_END contragentCompanyVatNo-->
-evidenced by invoice <b>№ [#invoiceNo#]</b>,</div>
-<!--ET_BEGIN material-->
-	<div><b>are made of:</b> [#material#]</div>
+	<!--ET_BEGIN material-->
+<b>are made of:</b> [#material#]</div>
 <!--ET_END material-->
-<div>to which this declaration relates <b>and compliance with</b>:</div>
 
-<!--ET_BEGIN DETAILS-->
-	<div class='details'>
-		[#DETAILS#]
-	</div>
-<!--ET_END DETAILS-->
-<div class='indent'>
-<!--ET_BEGIN certificate-->
-	Declaration is issued based on (a product certificate or certificate of factory production control system or protocol (s) of the initial type-testing):
-	[#certificate#]
-<!--ET_END certificate-->
-		<!--ET_BEGIN certifyingAuthority-->
-		sertificated by: [#certifyingAuthority#] 
-		<!--ET_END certifyingAuthority-->
+<div><b>delivered to:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
+<!--ET_BEGIN contragentAddress-->city [#contragentAddress#],<!--ET_END contragentAddress--> 
+<!--ET_BEGIN contragentCompanyVatNo-->with VAT ID [#contragentCompanyVatNo#][#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
 </div>
+<br><br>
+<p class="centered"><b>HEREBY DECLARE:</b> </p>
+<br>
+<div>own responsibility, that </div>
+
+<!--ET_BEGIN statements-->
+	<div>
+		[#statements#]
+	</div>
+<!--ET_END statements-->
+
+<!--ET_BEGIN note-->
+	<div>
+		[#note#]
+	</div>
+<!--ET_END note-->
+<br>
 <div class='indent'>We guarantee that our company will be responsible and shall accept any claim about verity of statements in this declaration.</div>
 
  <br>
