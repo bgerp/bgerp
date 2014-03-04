@@ -474,7 +474,10 @@ class acc_BalanceDetails extends core_Detail
         
         // Бутон за детайлизиран преглед на историята
         $histImg = ht::createElement('img', array('src' => sbf('img/16/view.png', '')));
-        $row->history = ht::createLink($histImg, array('acc_BalanceDetails', 'History', $rec->id), NULL, 'title=Подробен преглед');
+        $masterRec = $mvc->Master->fetch($rec->balanceId);
+        
+        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accountId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
         
         if (!$mvc->isDetailed()) {
@@ -877,9 +880,20 @@ class acc_BalanceDetails extends core_Detail
      */
     public function act_History()
     {
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
+    	expect($from = Request::get('fromDate', 'date'));
+    	expect($to = Request::get('toDate', 'date'));
+    	expect($accId = Request::get('accountId', 'int'));
+    	$ent1 = Request::get('ent1Id', 'int');
+    	$ent2 = Request::get('ent2Id', 'int');
+    	$ent3 = Request::get('ent3Id', 'int');
+    	
+    	$balanceId = $this->Master->fetchField("#fromDate = '{$from}' && #toDate = '{$to}'");
+    	$where = "#balanceId = {$balanceId} AND #accountId = {$accId} AND #ent1Id = '{$ent1}'";
+    	$where .= ($ent2) ? " AND #ent2Id = '{$ent2}'" : " AND #ent2Id IS NULL";
+    	$where .= ($ent3) ? " AND #ent3Id = '{$ent3}'" : " AND #ent3Id IS NULL";
+    	expect($rec = $this->fetch($where));
     	expect($balanceRec = $this->Master->fetch($rec->balanceId));
+    	
     	$this->title = 'Хронологична справка';
     	
     	requireRole('ceo,acc');
