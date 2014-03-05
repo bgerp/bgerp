@@ -251,7 +251,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
 	/**
      * Връща основната мярка, специфична за технолога
      */
-    public function on_AfterDetDriverUom($mvc, &$res, $params)
+    public function on_AfterGetDriverUom($mvc, &$res, $params)
     {
     	if(!$res){
     		return NULL;
