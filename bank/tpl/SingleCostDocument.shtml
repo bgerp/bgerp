@@ -34,6 +34,7 @@
                         </td>
                         <td style='padding-top:10px;' class='align-top-td'>
                             <b>[#companyName#]</b>
+                            [#companyAddress#]
                         </td>
                     </tr>
                     </table>

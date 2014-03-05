@@ -26,7 +26,7 @@
 					<td style='padding-top:10px;'>
 					<b>[#contragentName#]</b>[#contragentAddress#]<br><br>[#creditAccounts#]</td>
 					<td style='padding-top:10px;' class='align-top-td'>
-					<b>[#organisation#]</b>[#organisationAddress#]<br><br>|Каса|*<b>: [#peroCase#]</b>
+					<b>[#organisation#]</b><br />[#organisationAddress#]<br><br>|Каса|*<b>: [#peroCase#]</b>
 					</td>
 				</tr>
 				</table>
