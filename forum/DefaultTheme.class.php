@@ -38,7 +38,12 @@ class forum_DefaultTheme extends core_Manager {
      */
 	public function getBoardsLayout()
     {
-    	return getTplFromFile('forum/themes/default/Boards.shtml');
+    	if(Mode::is('screenMode', 'narrow')){
+    		$tpl = 'forum/themes/default/BoardsNarrow.shtml';
+    	} else{
+    		$tpl = 'forum/themes/default/Boards.shtml';
+    	}
+    	return getTplFromFile($tpl);
     }
     
     
@@ -131,7 +136,12 @@ class forum_DefaultTheme extends core_Manager {
      */
     public function getThemeLayout()
     {
-    	return getTplFromFile('forum/themes/default/Themes.shtml');
+    	if(Mode::is('screenMode', 'narrow')){
+    		$tpl = 'forum/themes/default/ThemesNarrow.shtml';
+    	} else{
+    		$tpl = 'forum/themes/default/Themes.shtml';
+    	}
+    	return getTplFromFile($tpl);
     }
     
     

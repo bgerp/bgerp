@@ -18,7 +18,7 @@
 		[#BOARDS#]
 </ul>
 <!--ET_END category-->
-<div id='forum-toolbar'>
-[#TOOLBAR#]
+<div id='forum-toolbar' class='toolbar' style='margin:15px 0'>
+<div>[#TOOLBAR#]</div>
 </div>
 </div>

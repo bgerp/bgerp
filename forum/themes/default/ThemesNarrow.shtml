@@ -1,13 +1,12 @@
 <table width="100%" cellpadding='0' cellspacing='0' class='header-table-shadow'>
 	<tr>
-		<th   style='text-indent:10px; line-height:22px'>|Теми|*</th>
-		<th style='width:21%'>|Последно|*</th>
+		<th style='line-height:22px' align=center>|Теми|*</th>
 	</tr>
 </table>
 <table width='100%' id='forum-themes' border='0' cellspacing='0'>
 <!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
-		<td class='theme-row-title' width='67%' >
+		<td class='theme-row-title' >
 			<div class='forum-icon'>[#ICON#]</div>
 			<div class='forum-row'>
 			<!--ET_BEGIN type-->	
@@ -20,15 +19,11 @@
 				<!--ET_END LOCKED-->
 				<span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 			</div>
-		</td>
-		<td class='right' width='12%'>
-			<span class='forum-counts'>[#postingsCnt#]</span><br>
-			<span class='forum-counts'>[#views#]</span>
-		</td>
+		<span class='forum-counts forum-count-info' style='margin:0'>[#postingsCnt#], [#views#]</span>
+		<div class='last-info-block'>	
 		
-		<td class='last-info'>
 			<!--ET_BEGIN nick-->
-			<span class='last-user'>от: [#nick#]</span><br>
+			<span class='last-user'>от: [#nick#]</span>
 			<!--ET_END nick-->
 			
 			<!--ET_BEGIN last-->
@@ -38,6 +33,7 @@
 			<!--ET_BEGIN noComment-->
 			<span class='no-comment'>[#noComment#]</span>
 			<!--ET_END noComment-->
+		</div>
 		</td>
 	</tr>
 <!--ET_END ROW-->
