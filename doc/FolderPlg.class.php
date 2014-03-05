@@ -354,6 +354,58 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
     {
-        doc_Folders::restrictAccess($query, $userId, $fullAccess);
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $teammates = keylist::toArray(core_Users::getTeammates($userId));
+        $managers  = core_Users::getByRole('manager');
+        $ceos = core_Users::getByRole('ceo');
+        
+        // Подчинените в екипа (използва се само за мениджъри)
+        $subordinates = array_diff($teammates, $managers);
+        $subordinates = array_diff($subordinates, $ceos);
+        
+        foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
+            if (${$v}) {
+                ${$v} = implode(',', ${$v});
+            } else {
+                ${$v} = FALSE;
+            }
+        }
+        
+        $conditions = array(
+            "#access = 'public'",           // Всеки има достъп до публичните папки
+            "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
+            "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
+        );
+        
+        if ($teammates) {
+            // Всеки има достъп до екипните папки, за които отговаря негов съекипник
+            $conditions[] = "#access = 'team' AND #inCharge IN ({$teammates})";
+        }
+        
+        switch (true) {
+            case core_Users::haveRole('ceo') :
+                // CEO вижда всичко с изключение на private и secret папките на другите CEO
+                if ($ceos) {
+                    $conditions[] = "#inCharge NOT IN ({$ceos})";
+                }
+                
+                // CEO да може да вижда private папките на друг `ceo`
+                if ($fullAccess) {
+                    $conditions[] = "#access != 'secret'";
+                }
+                
+            break;
+            case core_Users::haveRole('manager') :
+                // Manager вижда private папките на подчинените в екипите си
+                if ($subordinates) {
+                    $conditions[] = "#access = 'private' AND #inCharge IN ({$subordinates})";
+                }
+            break;
+        }
+        
+        $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
 }
