@@ -49,19 +49,20 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryVidPlg";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryTitlePlg";
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,vid=Код,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy';
+    var $listFields = 'id,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy';
     
     
     /**
-     * 
+     * Името на полето, което ще се използва от плъгина
+     * @see fileman_GalleryTitlePlg
      */
-    var $galleryVidFieldName = 'vid';
+    var $galleryTitleFieldName = 'title';
     
     
     /**
@@ -75,8 +76,8 @@ class fileman_GalleryGroups extends core_Manager
      */
     function description()
     {
+        $this->FLD('position', 'enum(none=Без стил,center=Център,left=Ляво,right=Дясно)', 'caption=Позиция,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
-        $this->FLD('position', 'enum(none=Без стил,center=Център,left=Ляво,right=Дясно)', 'caption=Позиция');
         $this->FLD('tpl', 'html', 'caption=Шаблон');
         
         $this->FLD('style', 'varchar', 'caption=Стил');
@@ -99,7 +100,7 @@ class fileman_GalleryGroups extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-     	$row->{$mvc->galleryVidFieldName} = "[gallery=#" . $rec->{$mvc->galleryVidFieldName} . "]";
+     	$row->{$mvc->galleryTitleFieldName} = "[gallery=#" . $rec->{$mvc->galleryTitleFieldName} . "]";
     }
     
     
@@ -207,5 +208,25 @@ class fileman_GalleryGroups extends core_Manager
         
         // Ако е зададена роля показваме само тях
         $query->likeKeylist($rolesFieldName, $userRoles, TRUE);
+    }
+    
+    
+    /**
+     * Подготвя полето за заглавие
+     * 
+     * @param object $rec
+     * @see fileman_GalleryTitlePlg
+     */
+    function prepareRecTitle(&$rec)
+    {
+        // Името на полето
+        $titleField = $this->galleryTitleFieldName;
+        
+        // Ако не е зададено заглавието
+        if (!$rec->{$titleField} && $rec->position) {
+            
+            // Определяме заглавието от името на файла
+            $rec->{$titleField} = $rec->position;
+        }
     }
 }

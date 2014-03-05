@@ -4,18 +4,16 @@
 /**
  * Максимална дължина на полето "Вербален идентификатор"
  */
-defIfNot('FILEMAN_GALLERY_VID_LEN', 128);
+defIfNot('FILEMAN_GALLERY_TITLE_LEN', 128);
 
 
 /**
  * Хендлър за генериране на уникален идентификатор
  */
-defIfNot('FILEMAN_GALLERY_VID_HANDLER_PTR', 'dddd');
+defIfNot('FILEMAN_GALLERY_TITLE_HANDLER_PTR', 'dddd');
 
 
 /**
- * Клас 'cms_VerbalIdPlg' - Вербално id за ред
- * 
  * Добавя възможност за уникален вербален идентификатор на записите.
  * По подразбиране за уникален идентификатор се използва титлата на записа.
  * 
@@ -27,7 +25,7 @@ defIfNot('FILEMAN_GALLERY_VID_HANDLER_PTR', 'dddd');
  * @since     v 0.1
  * @link
  */
-class fileman_GalleryVidPlg extends core_Plugin
+class fileman_GalleryTitlePlg extends core_Plugin
 {
     
     
@@ -37,13 +35,20 @@ class fileman_GalleryVidPlg extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Записваме стойността в инстанцията
-        $this->vidFieldName = $mvc->galleryVidFieldName ? $mvc->galleryVidFieldName : 'vid';
+        $mvc->galleryTitleFieldName = $mvc->galleryTitleFieldName ? $mvc->galleryTitleFieldName : 'title';
         
-        // Добавяне на полето
-        $mvc->FLD($this->vidFieldName, 'varchar(' . FILEMAN_GALLERY_VID_LEN . ')', 'caption=Вербално ID, column=none, width=100%');
+        // Ако няма такова поле
+        if(!$mvc->fields[$mvc->galleryTitleFieldName]) {
+            
+            // Добавяне на полето
+            $mvc->FLD($mvc->galleryTitleFieldName, 'varchar(' . FILEMAN_GALLERY_TITLE_LEN . ')', 'caption=Заглавие, width=100%');
+        }
+        
+        // Дължината на полето
+        $mvc->galleryTitleLen = $mvc->fields[$mvc->galleryTitleFieldName]->type->getDbFieldSize();
         
         // Полето да е уникално
-        $mvc->setDbUnique($this->vidFieldName);
+//        $mvc->setDbUnique($this->galleryTitleFieldName);
     }
     
     
@@ -58,42 +63,42 @@ class fileman_GalleryVidPlg extends core_Plugin
     function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
     {
         // Името на полето
-        $vidFieldName = $this->vidFieldName;
+        $titleFieldName = $mvc->galleryTitleFieldName;
         
         // Вземаме адреса на записа
-        $recVid = &$rec->{$vidFieldName};
-        
-        setIfNot($this->mvc, $mvc);
+        $recTitle = &$rec->{$titleFieldName};
         
         // Нулираме брояча
         $i = 0;
         
         // Ако не е зададено Вербално ID от потребителя
-        if(!$recVid) {
+        if(!$recTitle) {
+            
+            $mvc->prepareRecTitle($rec);
             
             // Вземаме титлата
-            $recVid = $mvc->getRecTitle($rec);
+            $recTitle = &$rec->{$titleFieldName};
             
             // Канононизираме - на латиница и само с букви и цифри
-            $recVid = str::canonize($recVid);
+            $recTitle = static::canonizeTitle($recTitle);
             
             do {
                 // Ако достигнем максималния брой опити
                 if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
                 // Генерирам псевдо-случаен стринг
-                $hash = str::getRand(FILEMAN_GALLERY_VID_HANDLER_PTR);
+                $hash = str::getRand(FILEMAN_GALLERY_TITLE_HANDLER_PTR);
                 
                 // Добавяме хеша след
-                $recVidNew = $recVid . '-' . $hash;
-            } while ($mvc->fetch("#{$vidFieldName} = '$recVidNew'"));
+                $recTitleNew = $recTitle . '-' . $hash;
+            } while ($mvc->fetch("#{$titleFieldName} = '$recTitleNew'"));
         } else {
             
             // Вербализираме вербалното ID - само букви и цифри на латиница или кирилица
-            $recVidNew = $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
+            $recTitleNew = $recTitle = static::canonizeTitle($recTitle);
             
             // Ако има такъв запис
-            while ($fRec = ($mvc->fetch("#{$vidFieldName} = '$recVidNew'"))) {
+            while ($fRec = ($mvc->fetch("#{$titleFieldName} = '$recTitleNew'"))) {
                 
                 // Ако редактираме текущия запис, да не се порменя
                 if ($fRec->id == $rec->id) break;
@@ -101,13 +106,43 @@ class fileman_GalleryVidPlg extends core_Plugin
                 $i++;
                 
                 // Добавяме новото име
-                $recVidNew = $recVid . '-' . $i;
+                $recTitleNew = $recTitle . '-' . $i;
             }
         }
         
-        $mdPart = max(4, round(FILEMAN_GALLERY_VID_LEN / 8));
+        $mdPart = max(4, round($mvc->galleryTitleLen / 8));
         
         // Ограничавае дължината
-        $recVid = str::convertToFixedKey($recVidNew, FILEMAN_GALLERY_VID_LEN - 10, $mdPart);
+        $rec->{$titleFieldName} = str::convertToFixedKey($recTitleNew, FILEMAN_GALLERY_TITLE_LEN - 10, $mdPart);
+    }
+    
+    
+    /**
+     * Канонизира заглавието
+     * Само букви и цифри на латиница или кирилица
+     * 
+     * @param string $title
+     * 
+     * @return string
+     */
+    function canonizeTitle($title)
+    {
+        $title = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$title} "), '-');
+        
+        return $title;
+    }
+    
+    
+    /**
+     * Метод по подразбиране за викане на prepareRecTitle($rec)
+     * 
+     * @param core_Mvc $mvc
+     * @param object $res
+     * @param object $rec
+     */
+    function on_AfterPrepareRecTitle($mvc, $res, &$rec)
+    {
+        
+        return ;
     }
 }

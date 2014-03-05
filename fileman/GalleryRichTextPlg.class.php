@@ -37,8 +37,8 @@ class fileman_GalleryRichTextPlg extends core_Plugin
      */
     function catchGallery($match)
     {
-    	$vid = $match[2];
-        $groupRec = fileman_GalleryGroups::fetch(array("#vid = '[#1#]'", $vid));
+    	$title = $match[2];
+        $groupRec = fileman_GalleryGroups::fetch(array("#title = '[#1#]'", $title));
     	if(!$groupRec) return "[img=#{$groupRec}]";
     	
     	$tArr = array($groupRec->tWidth ? $groupRec->tWidth : 128, $groupRec->tHeight ? $groupRec->tHeight : 128);
@@ -94,12 +94,12 @@ class fileman_GalleryRichTextPlg extends core_Plugin
      */
     function catchImages($match)
     {
-        $vid = $match[2];
+        $title = $match[2];
         
 		
-        $imgRec = fileman_GalleryImages::fetch(array("#vid = '[#1#]'", $vid));
+        $imgRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $title));
         
-        if(!$imgRec) return "[img=#{$vid}]";
+        if(!$imgRec) return "[img=#{$title}]";
 
         $groupRec = fileman_GalleryGroups::fetch($imgRec->groupId);
         
@@ -178,9 +178,9 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             $documentUpload = new ET("<a class=rtbutton title='" . tr("Добавяне на картинка") . "' onclick=\"{$js}\">" . tr("Картинка") . "</a>");
             
             // JS функцията
-            $callback = "function {$callbackName}(vid) {
+            $callback = "function {$callbackName}(title) {
                 var ta = get$('{$id}');
-                rp(\"\\n[img=#\" + vid + \"]\", ta);
+                rp(\"\\n[img=#\" + title + \"]\", ta);
                 return true;
             }";
             

@@ -49,7 +49,7 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, fileman_GalleryVidPlg, plg_Search, fileman_GalleryDialogWrapper";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created, fileman_GalleryTitlePlg, plg_Search, fileman_GalleryDialogWrapper";
     
     
     /**
@@ -61,13 +61,14 @@ class fileman_GalleryImages extends core_Manager
     /**
      * Полета за изглед
      */
-    var $listFields = "id,vid=Код,src,groupId,createdOn,createdBy";
+    var $listFields = "id,title=Код,src,groupId,createdOn,createdBy";
     
     
     /**
-     * 
+     * Името на полето, което ще се използва от плъгина
+     * @see fileman_GalleryTitlePlg
      */
-    var $galleryVidFieldName = 'vid';
+    var $galleryTitleFieldName = 'title';
     
     
     /**
@@ -93,14 +94,10 @@ class fileman_GalleryImages extends core_Manager
      */
     function description()
     {
-     
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory');
-        
-        $this->FLD('style', 'varchar(128)', 'caption=Стил');
-
-        $this->FLD('groupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група');
-        
-        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка,mandatory');
+        $this->FLD('src', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Изображение,mandatory, width=100%');
+        $this->FLD('groupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие, width=100%');
+        $this->FLD('style', 'varchar(128)', 'caption=Стил, width=100%');
     }
     
     
@@ -138,7 +135,7 @@ class fileman_GalleryImages extends core_Manager
             $row->src = $Fancybox->getImage($rec->src, $tArr, $mArr, $rec->title);
         }
         
-        $row->{$mvc->galleryVidFieldName} = "[img=#" . $rec->{$mvc->galleryVidFieldName} . "]";
+        $row->{$mvc->galleryTitleFieldName} = "[img=#" . $rec->{$mvc->galleryTitleFieldName} . "]";
     }
     
     
@@ -310,7 +307,7 @@ class fileman_GalleryImages extends core_Manager
             }
             
             // Опитваме се да вземем id на записа от вида
-            $id = $this->fetchField(array("#{$this->galleryVidFieldName} = '[#1#]'", $searchText));
+            $id = $this->fetchField(array("#{$this->galleryTitleFieldName} = '[#1#]'", $searchText));
         } 
         
         // Ако има id и имаме права за редакция
@@ -390,20 +387,13 @@ class fileman_GalleryImages extends core_Manager
         }
         
         // Въвеждаме полето
-        $form->input('imgFile, imgGroupId, imgTitle');
+        $form->input('imgFile, imgGroupId, imgTitle, id', TRUE);
         
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
             // Манипулатор на файла
             $fileHnd = $form->rec->imgFile;
-            
-            // Ако не е задедено име
-            if (!($name = $form->rec->imgTitle)) {
-                
-                // Да се използва името на файла
-                $name = fileman_Files::fetchByFh($fileHnd, 'name');
-            }
             
             // Ако няма запис
             if (!$rec) {
@@ -413,7 +403,7 @@ class fileman_GalleryImages extends core_Manager
             }
             
             // Добавяме стойностите
-            $rec->title = $name;
+            $rec->title = $form->rec->imgTitle;
             $rec->groupId = $form->rec->imgGroupId;
             $rec->src = $form->rec->imgFile;
             
@@ -421,16 +411,16 @@ class fileman_GalleryImages extends core_Manager
             $this->save($rec);
             
             // Вземаме полето
-            $vid = $this->galleryVidFieldName;
+            $title = $this->galleryTitleFieldName;
             
             // Очакваме да има стойност
-            expect($rec->$vid);
+            expect($rec->$title);
             
             // Създаваме шаблона
             $tpl = new ET();
             
             // Добавяме скрипта, който ще добави надписа и ще затвори прозореца
-            $tpl->append("if(window.opener.{$callback}('{$rec->$vid}') == true) self.close(); else self.focus();", 'SCRIPTS');
+            $tpl->append("if(window.opener.{$callback}('{$rec->$title}') == true) self.close(); else self.focus();", 'SCRIPTS');
             
             return $tpl;
         }
@@ -554,14 +544,14 @@ class fileman_GalleryImages extends core_Manager
                     $data->rows[$id]->tools = ht::createLink($img, array($this, 'addImgDialog', $id, 'callback' => $data->callback, 'ret_url' => TRUE));
                 }
                 
-                if ($data->recs[$id]->vid) {
+                if ($data->recs[$id]->{$this->galleryTitleFieldName}) {
                     
                     // Добавяме id на реда
                     $idRow = 'rowGallery' . $id;
                     $data->rows[$id]->ROW_ATTR['id'] = $idRow;
                     
                     // Атрибутите на линковете
-                    $attr = array('onclick' => "flashDocInterpolation('{$idRow}'); if(window.opener.{$data->callback}('{$data->recs[$id]->vid}') != true) self.close(); else self.focus();", "class" => "file-log-link");
+                    $attr = array('onclick' => "flashDocInterpolation('{$idRow}'); if(window.opener.{$data->callback}('{$data->recs[$id]->{$this->galleryTitleFieldName}}') != true) self.close(); else self.focus();", "class" => "file-log-link");
                     
                     // Изображение за добавяне
                     $imgAdd = ht::createElement('img', array('src' => sbf('img/16/add1-16.png', '')));
@@ -625,5 +615,25 @@ class fileman_GalleryImages extends core_Manager
         $tpl = $table->get($data->rows, $listFields);
         
         return new ET("<div class='listRows'>[#1#]</div>", $tpl);
+    }
+    
+    
+    /**
+     * Подготвя полето за заглавие
+     * 
+     * @param object $rec
+     * @see fileman_GalleryTitlePlg
+     */
+    function prepareRecTitle(&$rec)
+    {
+        // Името на полето
+        $titleField = $this->galleryTitleFieldName;
+        
+        // Ако не е зададено заглавието
+        if (!$rec->{$titleField} && $rec->src) {
+            
+            // Определяме заглавието от името на файла
+            $rec->{$titleField} = fileman_Files::fetchByFh($rec->src, 'name');
+        }
     }
 }
