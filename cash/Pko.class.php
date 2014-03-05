@@ -355,7 +355,7 @@ class cash_Pko extends core_Master
     	if($fields['-single']){
     		
     		// Адреса на контрагента
-    		$row->contragentName .= trim(
+    		$row->contragentAddress = trim(
                 sprintf("<br>%s<br>%s %s<br> %s", 
                  	$row->contragentCountry,
                     $row->contragentPcode,
@@ -386,7 +386,7 @@ class cash_Pko extends core_Master
     		// Вземаме данните за нашата фирма
         	$ourCompany = crm_Companies::fetchOurCompany();
         	$row->organisation = $ourCompany->name;
-        	$row->organisation .= trim(
+        	$row->organisationAddress = trim(
                 sprintf("<br>%s %s<br> %s", 
                     $ourCompany->place,
                     $ourCompany->pCode,

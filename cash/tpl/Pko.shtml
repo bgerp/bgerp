@@ -24,9 +24,9 @@
 				</tr>
 				<tr>
 					<td style='padding-top:10px;'>
-					<b>[#contragentName#]</b><br><br>[#creditAccounts#]</td>
+					<b>[#contragentName#]</b>[#contragentAddress#]<br><br>[#creditAccounts#]</td>
 					<td style='padding-top:10px;' class='align-top-td'>
-					<b>[#organisation#]</b><br><br>[#peroCase#]
+					<b>[#organisation#]</b>[#organisationAddress#]<br><br>|Каса|*<b>: [#peroCase#]</b>
 					</td>
 				</tr>
 				</table>
@@ -81,7 +81,7 @@
                                     </tr>
                                     <tr>
                                         <td></td>
-                                        <td><span class='sign_names'>( <b>[#depositor#]</b> )</span></td>
+                                        <td><span class='sign_names'>( [#depositor#] )</span></td>
                                         
                                     </tr>
                                 
@@ -95,7 +95,7 @@
                                     </tr>
                                     <tr>
                                         <td></td>
-                                        <td><span class='sign_names nowrap'>( <b>[#cashier#]</b> )</span></td>
+                                        <td><span class='sign_names nowrap'>( [#cashier#] )</span></td>
                                         
                                     </tr>
                                 
