@@ -113,6 +113,21 @@ class bgerp_plg_Importer extends core_Plugin
 
         return FALSE;
     }
+    
+    
+	/**
+	 * Подготовка на бутоните на импорт-формата
+	 * Необходимо е да има такъв метод, дори и да е празен, защото няма изискване / гаранции,
+	 * че мениджъра-домакин го е имплементирал.
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param stdClass $data
+	 */
+    function on_AfterPrepareImportToolbar($mvc, &$res, $data)
+    {
+        
+    }
 
 
     /**
