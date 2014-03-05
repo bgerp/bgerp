@@ -34,7 +34,7 @@
 					<table border='1px' cellpadding='5px'  class='border-table'>
 						<tr>
 							<td width='67%' align='left' style='padding-left:10px;'>
-								<b>|Основание|*:</b>&nbsp;&nbsp;&nbsp;[#reason#]
+								<span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]
 							</td>
 							<td style='padding-left:10px;'>
 								<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
@@ -53,9 +53,9 @@
 							<table border='0'>
 							<tr>
 								<td colspan='2' id='notes' >
-	                                <b>|Операция|*:</b>&nbsp; [#operationSysId#]
+	                                <span class='quiet'>|Операция|*:</span>&nbsp; [#operationSysId#]
 	                                <!--ET_BEGIN notes-->
-	                                <div>|Бележки|*: &nbsp;&nbsp;[#notes#]</div>
+	                                <div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
 	                                <!--ET_END notes-->
 	                            </td>
 								<td style='vertical-align:middle !important'>
