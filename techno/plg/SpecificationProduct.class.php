@@ -237,6 +237,28 @@ class techno_plg_SpecificationProduct extends core_Plugin
     }
     
     
+	/**
+     * Добавя към формата на запитването, допълнителни полета
+     */
+    public function on_AfterFillInquiryForm($mvc, &$res)
+    {
+    	if(!$res){
+    		return NULL;
+    	}
+    }
+    
+    
+	/**
+     * Връща основната мярка, специфична за технолога
+     */
+    public function on_AfterDetDriverUom($mvc, &$res, $params)
+    {
+    	if(!$res){
+    		return NULL;
+    	}
+    }
+    
+    
     /**
      * Рендира допълнителните параметри
      * @param array $data  - масив от обекти от вида
