@@ -114,7 +114,7 @@ class dec_Declarations extends core_Master
    	/**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'typeId, doc, declaratorName, location';
+    var $searchFields = 'typeId, doc, declaratorName';
 
      
     /**
@@ -145,13 +145,10 @@ class dec_Declarations extends core_Master
     	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory');
         
     	// продукти, идват от фактурата
-    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, mandatory');
-    	
-    	// къде са произведени продуктите
-    	$this->FLD('location', 'varchar', "caption=Продукти->Произведени в, recently, class=contactData,hint=Населено място: град или село и община");
-		
+    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти');
+    
     	// на какви твърдения отговарят
-		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения и материали->Отговарят на, mandatory');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
@@ -284,12 +281,6 @@ class dec_Declarations extends core_Master
 	    	$cTpl->append2master();
     	}
 
-    	// информация за локацията/ мястото на производство
-    	if ($rec->location) {
-    		
-	    	$row->place = $rec->location;
-    	}
-
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
     	}
@@ -343,9 +334,10 @@ class dec_Declarations extends core_Master
     	// вземаме твърденията
     	if ($recDec->statements) { 
     		
-    		$statements = arr::make($recDec->statements, TRUE);
+    		$statements = type_Keylist::toArray($recDec->statements);
+    		
             $cTpl = $decContent->getBlock("statements");
-    		foreach ($statements as $statement) {
+    		foreach ($statements as $statement) { 
     			
     			$s = dec_Statements::fetch($statement);
     			$text = "<ul><li>изделията отговарят на ". $s->title. " ". $s->text ."</li></ul>";
