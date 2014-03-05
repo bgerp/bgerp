@@ -747,8 +747,8 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 155600;
-    $totalTables = 249;
+    $totalRecords = 168100;
+    $totalTables = 287;
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
     // Пращаме стиловете
@@ -820,7 +820,7 @@ if ($step == 'setup') {
         }
         
         $percents = $percentsBase + $percentsLog;
-        if ($percents > 100) $percents = 100;
+        if ($percents > 98) $percents = 98;
         $width = 4.5*$percents;
         
         // Прогресбар
@@ -847,7 +847,7 @@ if ($step == 'setup') {
         } else {
             $logModified = FALSE;
         }
-    } while ($numRows < $totalRecords && $numTables < $totalTables || !empty($setupLog) || $logModified);
+    } while ($numRows < $totalRecords && $numTables <= $totalTables || !empty($setupLog) || $logModified);
     
     if ($percents < 100) {
         $percents = 100;
