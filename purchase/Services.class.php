@@ -104,7 +104,7 @@ class purchase_Services extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "4.4|Логистика";
+    public $newBtnGroup = "3.79|Търговия";
    
     
     /**
