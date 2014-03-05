@@ -107,6 +107,7 @@ class dec_DeclarationTypes extends core_Master
             $rec->name = 'Декларация за съответствие';
             $rec->script = getFileContent('dec/tpl/AgreementDeclaration.shtml');
             $rec->sysId = $rec->name;
+            $rec->createdBy = -1;
             self::save($rec);
 
             // Декларация за сответствие EN
@@ -114,14 +115,24 @@ class dec_DeclarationTypes extends core_Master
             $rec->name = 'Declaration of compliance';
             $rec->script = getFileContent('dec/tpl/DeclarationOfCompliance.shtml');
             $rec->sysId = $rec->name;
+            $rec->createdBy = -1;
             self::save($rec);
             
-            // Срочен трудов договор
-            /*$rec = new stdClass();
-            $rec->name = 'Трудов договор за заместване';
-            $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
+            // Декларация за сответствие Приложение 1
+            $rec = new stdClass();
+            $rec->name = 'Приложение №1';
+            $rec->script = getFileContent('dec/tpl/Application1.shtml');
             $rec->sysId = $rec->name;
-            self::save($rec);*/
+            $rec->createdBy = -1;
+            self::save($rec);
+            
+            // Декларация за сответствие Приложение 5
+            $rec = new stdClass();
+            $rec->name = 'Приложение №5';
+            $rec->script = getFileContent('dec/tpl/Application5.shtml');
+            $rec->sysId = $rec->name;
+            $rec->createdBy = -1;
+            self::save($rec);
             
             // Ако имаме вече създадени шаблони 
         } else { 
@@ -154,12 +165,21 @@ class dec_DeclarationTypes extends core_Master
 		                    self::save($rec,'script');
 		                    break;
 		                    
-		                /*case 'Трудов договор за заместване' :
+		                case 'Приложение №1' :
 		                	$rec = new stdClass();
 		                	$rec->id = $sysContract->id;
-		                    $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
-				            self::save($rec,'script');
-		                    break;*/
+		                    $rec->script = getFileContent('dec/tpl/Application1.shtml');
+				            
+		                    self::save($rec,'script');
+		                    break;
+		                    
+		                case 'Приложение №5' :
+		                	$rec = new stdClass();
+		                	$rec->id = $sysContract->id;
+		                    $rec->script = getFileContent('dec/tpl/Application5.shtml');
+				            
+		                    self::save($rec,'script');
+		                    break;
 		            }
 		        }
 	        }
