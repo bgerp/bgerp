@@ -2578,3 +2578,12 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	display: block;
 	overflow: hidden;
 }
+
+/*bugFix - линкове в toast*/
+.toast-container a{
+	color: #eee;
+	font-weight: bold;
+	&:hover{
+	   text-decoration: underline;
+	}
+}
