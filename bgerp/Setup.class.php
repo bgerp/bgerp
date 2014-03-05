@@ -119,7 +119,7 @@ class bgerp_Setup {
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
-                  callcenter,social,hyphen,distro,dec,help,status,toast";
+                  callcenter,social,hyphen,distro,dec,status";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if(defined('EF_PRIVATE_PATH')) {
@@ -129,7 +129,7 @@ class bgerp_Setup {
         // Добавяме допълнителните пакети, само при първоначален Setup
         $Folders = cls::get('doc_Folders');
         if(!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,oembed,hclean,chosen,help,toast";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
