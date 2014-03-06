@@ -100,7 +100,13 @@ class sales_Inquiries extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'every_one';
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canNew = 'every_one';
     
     
     /**
@@ -170,7 +176,7 @@ class sales_Inquiries extends core_Master
      */
     function act_New()
     {
-    	$this->requireRightFor('add');
+    	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
     	
     	$params = Request::get('coParams');
@@ -202,7 +208,7 @@ class sales_Inquiries extends core_Master
     		}
     		
     		// Запис и редирект
-    		if($this->haveRightFor('add')){
+    		if($this->haveRightFor('new')){
     			$this->save($rec);
     			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
     			
@@ -527,25 +533,12 @@ class sales_Inquiries extends core_Master
     
     
 	/**
-     * Извиква се преди изпълняването на екшън
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    	if($action == 'add'){
-    		
-    		// Ако някой се опита да извика екшъна 'Add' през урл-то
-    		expect(FALSE);
-    	}
-    }
-    
-    
-	/**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	// От логнатите потребители, само контрактора може да създава запитвания
-    	if($action == 'add' && isset($userId)){
+    	if($action == 'new' && isset($userId)){
     		if(haveRole('powerUser')){
     			$res = 'no_one';
     		}

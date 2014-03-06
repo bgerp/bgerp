@@ -162,7 +162,7 @@ class eshop_Products extends core_Master
     /**
      *
      */
-    function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array())
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($rec->code) {
             $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
@@ -174,12 +174,12 @@ class eshop_Products extends core_Master
         }
 
         if($rec->coDriver) {
-            if(sales_Inquiries::haveRightFor('add')){
+            if(sales_Inquiries::haveRightFor('new')){
             	
             	$title = tr('Изпратете запитване за производство');
             	Request::setProtected('drvId,coParams');
             	
-            	$row->coInquiry = ht::createBtn('Запитване', array('sales_Inquiries', 'new', 'drvId' => $rec->coDriver, 'coParams' => $rec->coParams, 'ret_url' => TRUE), NULL, NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	$row->coInquiry = ht::createLink(tr('Запитване'), array('sales_Inquiries', 'new', 'drvId' => $rec->coDriver, 'coParams' => $rec->coParams, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             }
         }
 
