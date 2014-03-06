@@ -98,6 +98,9 @@ class fileman_GalleryImages extends core_Manager
         $this->FLD('groupId', 'key(mvc=fileman_GalleryGroups,select=title)', 'caption=Група,mandatory, width=100%');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие, width=100%');
         $this->FLD('style', 'varchar(128)', 'caption=Стил, width=100%');
+        
+        // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
+        $this->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
     }
     
     
@@ -634,6 +637,39 @@ class fileman_GalleryImages extends core_Manager
             
             // Определяме заглавието от името на файла
             $rec->{$titleField} = fileman_Files::fetchByFh($rec->src, 'name');
+        }
+    }
+    
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     * @todo - За съвместимост със стари версии. Може да се прмахне
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+        $changed = 0;
+        
+        // Вземаме всички записи, които няма заглавие
+        $query = $mvc->getQuery();
+        $query->where("#title = '' OR #title IS NULL");
+        
+        while($rec = $query->fetch()) {
+            
+            // Ако има вербално ID от предишни версии
+            if ($rec->vid) {
+                
+                // Задаваме вербалната стойност
+                $rec->title = $rec->vid;
+            }
+            
+            // Добавяме стойността на полето vid в заглавието
+            if ($mvc->save($rec)) {
+                $changed++;
+            }
+        }
+        
+        if ($changed) {
+            $res .= "<li>Бяха добавени заглавия на {$changed} записа от 'vid'";
         }
     }
 }
