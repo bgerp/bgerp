@@ -52,7 +52,7 @@ class sales_Proformas extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, saleId, folderId, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, number=Номер, date, saleId, folderId, createdOn, createdBy';
     
     
     /**
