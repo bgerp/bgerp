@@ -651,25 +651,35 @@ class fileman_GalleryImages extends core_Manager
         
         // Вземаме всички записи, които няма заглавие
         $query = $mvc->getQuery();
-        $query->where("#title = '' OR #title IS NULL");
+        $query->where("#vid != '' AND #vid IS NOT NULL OR #title = '' OR #title IS NULL");
         
         while($rec = $query->fetch()) {
             
-            // Ако има вербално ID от предишни версии
+            // Флаг, дали да се запише
+            $mustSave = FALSE;
+            
+            // Ако няма заглавие вдигаме флага
+            if (!$rec->title) $mustSave=TRUE;
+            
+            // Ако има вербално ID от предишните версии
             if ($rec->vid) {
                 
+                // Ако не са равни, вдигаме флага
+                if ($rec->vid != $rec->title) {
+                    $mustSave=TRUE;
+                }
                 // Задаваме вербалната стойност
                 $rec->title = $rec->vid;
             }
             
             // Добавяме стойността на полето vid в заглавието
-            if ($mvc->save($rec)) {
+            if ($mustSave && $mvc->save($rec)) {
                 $changed++;
             }
         }
         
         if ($changed) {
-            $res .= "<li>Бяха добавени заглавия на {$changed} записа от 'vid'";
+            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността във 'vid'";
         }
     }
 }
