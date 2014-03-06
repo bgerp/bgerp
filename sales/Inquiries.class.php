@@ -45,7 +45,7 @@ class sales_Inquiries extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues';
     
     
     /**
@@ -128,6 +128,20 @@ class sales_Inquiries extends core_Master
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'name'    => 'lastDocUser|clientData',
+    	'email'   => 'lastDocUser|clientData',
+    	'tel'     => 'lastDocUser|clientData',
+    	'company' => 'lastDocUser|clientData',
+    	'country' => 'lastDocUser|clientData',
+    	'pCode'   => 'lastDocUser|clientData',
+    	'place'   => 'lastDocUser|clientData',
+    	'address' => 'lastDocUser|clientData',
+    );
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -138,13 +152,13 @@ class sales_Inquiries extends core_Master
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->К-во 3,hint=Въведете количество,width=6em');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Адресни данни->Лице,class=contactData,mandatory,hint=Вашето име');
-    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Адресни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Адресни данни->Телефони,class=contactData,hint=Вашият телефон');
+    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Адресни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,contragentDataField=pEmail');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Адресни данни->Телефони,class=contactData,hint=Вашият телефон,contragentDataField=pTel');
     	$this->FLD('company', 'varchar(255)', 'caption=Адресни данни->Фирма,class=contactData,hint=Вашата фирма');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адресни данни->Държава,class=contactData,hint=Вашата държава');
         $this->FLD('pCode', 'varchar(16)', 'caption=Адресни данни->П. код,class=pCode,hint=Вашият пощенски код');
         $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
-        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData,hint=Вашият адрес');
+        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData,hint=Вашият адрес,contragentDataField=pAddress');
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
@@ -163,19 +177,12 @@ class sales_Inquiries extends core_Master
     	$params = $this->parseParams($params);
     	
     	// Взимаме формата
-    	$form = $this->getForm();
-    	$form->rec->drvId = $drvId;
+    	$form = $this->prepareForm($drvId);
     	$form->rec->params = $params;
-    	$form->setField('drvId', 'input=hidden');
     	
-    	$form->title = 'Добавяне на ново запитване';
-    	if($cu = core_Users::getCurrent('id', FALSE)){
-    		$profRec = crm_Profiles::fetch("#userId = {$cu}");
-    		$form->rec->folderId = crm_Persons::forceCoverAndFolder($profRec->personId, FALSE);
-    		$form->title .= "|в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
-    	
-    		// Попълване данните на контрагента ако има
-    		$this->fillContragentData($form);
+    	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
+    	if(core_Users::getCurrent('id', FALSE)){
+    		$this->invoke('AfterPrepareEditForm', array((object)array('form' => $form)));
     	}
     	
     	// Добавяме полетата от избрания драйвер
@@ -203,14 +210,34 @@ class sales_Inquiries extends core_Master
     		}
     	}
     	
-    	$retUrl = Request::get('ret_url');
-    	
     	$form->toolbar->addSbBtn('Запитване', 'save', 'id=save, ef_icon = img/16/disk.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png');
-        
-    	$tpl = $form->renderHtml();
+        $tpl = $form->renderHtml();
     	
     	return $tpl;
+    }
+    
+    
+    /**
+     * Подготовка на формата за екшъна 'New'
+     */
+    private function prepareForm($drvId)
+    {
+    	$form = $this->getForm();
+    	$form->rec->drvId = $drvId;
+    	$form->setField('drvId', 'input=hidden');
+    	
+    	$form->title = 'Добавяне на ново запитване';
+    	if($cu = core_Users::getCurrent('id', FALSE)){
+    		$profRec = crm_Profiles::fetch("#userId = {$cu}");
+    		$form->rec->folderId = crm_Persons::forceCoverAndFolder($profRec->personId, FALSE);
+    		$form->title .= "|в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
+    	
+    		// Попълване данните на контрагента ако има
+    		//$this->fillContragentData($form);
+    	}
+    	
+    	return $form;
     }
     
     
@@ -220,24 +247,26 @@ class sales_Inquiries extends core_Master
     private function fillContragentData(&$form)
     {
     	$rec = &$form->rec;
+    	
     	$cData = doc_Folders::getContragentData($rec->folderId);
-    	$rec->name    = $cData->person;
-    	$rec->company = $cData->company;
-    	$rec->country = $cData->country;
-    	$rec->place   = $cData->place;
-    	$rec->pCode   = $cData->pCode;
+    	
+    	$form->setDefault('name', $cData->person);
+    	$form->setDefault('company', $cData->company);
+    	$form->setDefault('country', $cData->country);
+    	$form->setDefault('place', $cData->place);
+    	$form->setDefault('pCode', $cData->pCode);
     	
     	$coverId = doc_Folders::fetchCoverClassId($rec->folderId);
     	
     	// Ако е лице, взимаме адресните данни на лицето, иначе на фирмата
     	if($coverId == crm_Persons::getClassId()){
-    		$rec->email   = $cData->pEmail;
-    		$rec->tel     = $cData->pTel;
-    		$rec->address = $cData->pAddress;
+    		$form->setDefault('email', $cData->email);
+    		$form->setDefault('tel', $cData->tel);
+    		$form->setDefault('address', $cData->address);
     	} else {
-    		$rec->email   = $cData->email;
-    		$rec->tel     = $cData->tel;
-    		$rec->address = $cData->address;
+    		$form->setDefault('email', $cData->email);
+    		$form->setDefault('tel', $cData->tel);
+    		$form->setDefault('address', $cData->address);
     	}
     }
     
@@ -411,7 +440,9 @@ class sales_Inquiries extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	$mvc->sendNotificationEmail($rec);
+    	if($rec->state == 'active'){
+    		//$mvc->sendNotificationEmail($rec);
+    	}
     }
     
     
@@ -437,7 +468,7 @@ class sales_Inquiries extends core_Master
     		$PML = cls::get('phpmailer_Instance');
         	$PML->Body = $tpl->getContent();
         	
-        	$PML->Subject = "Създаване на ново запитване {$this->getHandle($rec->id)}";
+        	$PML->Subject = "Създаване на ново запитване #{$this->getHandle($rec->id)}";
         	$PML->AddAddress($emailsTo);
         	$PML->SetFrom($sentFrom);
 	        $PML->Send();
@@ -474,7 +505,10 @@ class sales_Inquiries extends core_Master
     	$cover = doc_Folders::getCover($rec->folderId);
     	expect(!$cover->haveInterface('doc_ContragentDataIntf'));
     	
-    	$pRec = (object)array('name' => $rec->name, 'email' => $rec->email);
+    	$pRec = new stdClass();
+    	foreach (array('name', 'email', 'pCode', 'address', 'place', 'tel', 'country') as $fld){
+    		$pRec->$fld = $rec->$fld;
+    	}
     	
     	if($pId = crm_Persons::save($pRec)){
     		$folderId = crm_Persons::forceCoverAndFolder($pId);
