@@ -73,6 +73,7 @@ class cond_ConditionsToCustomers extends core_Manager
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
+    	$form->setOptions("conditionId", static::getRemainingOptions($rec->cClass, $rec->cId));
     	if(!$rec->id){
     		$form->addAttr('conditionId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['value'].value ='';this.form.submit();"));
     	} else {
@@ -94,7 +95,30 @@ class cond_ConditionsToCustomers extends core_Manager
     	}
     }
     
+	
+	/**
+     * Връща не-използваните параметри за конкретния продукт, като опции
+     *
+     * @param $productId int ид на продукта
+     * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     */
+    static function getRemainingOptions($cClass, $cId)
+    {
+        $options = cond_Parameters::makeArray4Select();
+        if(count($options)) {
+            $query = self::getQuery();
 
+            while($rec = $query->fetch("#cClass = {$cClass} AND #cId = {$cId}")) {
+               unset($options[$rec->conditionId]);
+            }
+        } else {
+            $options = array();
+        }
+
+        return $options;
+    }
+    
+    
     /**
      * Подготвя данните за екстеншъна с условия на офертата
      */
@@ -148,7 +172,7 @@ class cond_ConditionsToCustomers extends core_Manager
 	    if(count($data->rows)) {
 			foreach($data->rows as $id => $row) {
 				$tpl->append("<div style='white-space:normal;font-size:0.9em;'>", 'content');
-				$tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'>" . $row->tools . "</span>", 'content');
+				$tpl->append($row->conditionId . " - " . $row->value . "<span style='position:relative;top:4px'> &nbsp;" . $row->tools . "</span>", 'content');
 				$tpl->append("</div>", 'content');
 				
 			}
