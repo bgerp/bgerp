@@ -1225,12 +1225,15 @@ class acc_BalanceDetails extends core_Detail
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
+    	
+		$arr['blQuantity'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blQuantity'] . "</span>";
+		$arr['blAmount'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blAmount'] . "</span>";
 		
     	try{
 	    	$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
 	    } catch(Exception $e){
-	    	if($arr['docType']){
-	    		$arr['docId'] = tr("Проблем при показването");
+	    	if(is_numeric($rec['docId'])){
+	    		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
 	    	} else {
 	    		$arr['docId'] = $rec['docId'];
 	    	}
