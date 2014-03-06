@@ -261,7 +261,10 @@ class store_Transfers extends core_Master
     {
         $data->form->setDefault('valior', dt::now());
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', FALSE));
-    	if(!trans_Lines::count("#state = 'active'")){
+        $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
+        $data->form->setDefault('toStore', $folderCoverId);
+    	
+        if(!trans_Lines::count("#state = 'active'")){
         	$data->form->setField('lineId', 'input=none');
         }
     }
@@ -278,6 +281,8 @@ class store_Transfers extends core_Master
         	if($rec->fromStore == $rec->toStore){
         		$form->setError('toStore', 'Складовете трябва да са различни');
         	}
+        	
+        	$rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
         }
     }
 
