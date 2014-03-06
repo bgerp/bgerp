@@ -232,42 +232,9 @@ class sales_Inquiries extends core_Master
     		$profRec = crm_Profiles::fetch("#userId = {$cu}");
     		$form->rec->folderId = crm_Persons::forceCoverAndFolder($profRec->personId, FALSE);
     		$form->title .= "|в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
-    	
-    		// Попълване данните на контрагента ако има
-    		//$this->fillContragentData($form);
     	}
     	
     	return $form;
-    }
-    
-    
-    /**
-     * Попълва адресните данни от папката на контрагента
-     */
-    private function fillContragentData(&$form)
-    {
-    	$rec = &$form->rec;
-    	
-    	$cData = doc_Folders::getContragentData($rec->folderId);
-    	
-    	$form->setDefault('name', $cData->person);
-    	$form->setDefault('company', $cData->company);
-    	$form->setDefault('country', $cData->country);
-    	$form->setDefault('place', $cData->place);
-    	$form->setDefault('pCode', $cData->pCode);
-    	
-    	$coverId = doc_Folders::fetchCoverClassId($rec->folderId);
-    	
-    	// Ако е лице, взимаме адресните данни на лицето, иначе на фирмата
-    	if($coverId == crm_Persons::getClassId()){
-    		$form->setDefault('email', $cData->email);
-    		$form->setDefault('tel', $cData->tel);
-    		$form->setDefault('address', $cData->address);
-    	} else {
-    		$form->setDefault('email', $cData->email);
-    		$form->setDefault('tel', $cData->tel);
-    		$form->setDefault('address', $cData->address);
-    	}
     }
     
     
@@ -441,7 +408,7 @@ class sales_Inquiries extends core_Master
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if($rec->state == 'active'){
-    		//$mvc->sendNotificationEmail($rec);
+    		$mvc->sendNotificationEmail($rec);
     	}
     }
     
