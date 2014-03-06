@@ -679,7 +679,7 @@ class fileman_GalleryImages extends core_Manager
         }
         
         if ($changed) {
-            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността във 'vid'";
+            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността от 'vid'";
         }
     }
 }
