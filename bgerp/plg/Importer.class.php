@@ -177,7 +177,9 @@ class bgerp_plg_Importer extends core_Plugin
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png,title=Импортиране на ' . mb_strtolower($mvc->title), array('order' => 19));
+        // Ако няма права за съответния екшън, да не се добавя бутона
+        if ($mvc->haveRightFor(static::$importVerb)) {
+            $data->toolbar->addBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport', 'ef_icon = img/16/table-import-icon.png,title=Импортиране на ' . mb_strtolower($mvc->title), array('order' => 19));
+        }
     }
-
 }
