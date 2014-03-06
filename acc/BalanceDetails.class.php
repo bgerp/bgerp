@@ -895,10 +895,15 @@ class acc_BalanceDetails extends core_Detail
     	$ent3 = Request::get('ent3Id', 'int');
     	
     	$balanceId = $this->Master->fetchField("#fromDate = '{$from}' && #toDate = '{$to}'");
-    	$where = "#balanceId = {$balanceId} AND #accountId = {$accId} AND #ent1Id = '{$ent1}'";
+    	$where = "#balanceId = {$balanceId} AND #accountId = '{$accId}' AND #ent1Id = '{$ent1}'";
     	$where .= ($ent2) ? " AND #ent2Id = '{$ent2}'" : " AND #ent2Id IS NULL";
     	$where .= ($ent3) ? " AND #ent3Id = '{$ent3}'" : " AND #ent3Id IS NULL";
-    	expect($rec = $this->fetch($where));
+    	
+    	$rec = $this->fetch($where);
+    	if(empty($rec)){
+    		redirect(array($this->Master, 'single', $balanceId, 'accId' => $accId), NULL, 'Записа още не е генериран, моля опитайте по късно');
+    	}
+    	
     	expect($balanceRec = $this->Master->fetch($rec->balanceId));
     	
     	$this->title = 'Хронологична справка';
@@ -1250,13 +1255,16 @@ class acc_BalanceDetails extends core_Detail
     	// Взимаме шаблона за историята
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	
+    	$printBtn = ht::createBtn("Обобщена|* \"{$data->row->accountId}\"", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+	    $tpl->append($printBtn, 'SingleToolbar');
+	    
     	if(!Mode::is('printing')){
     		$printUrl = getCurrentUrl();
 	    	$printUrl['Printing'] = 'yes';
 	    	$printBtn = ht::createBtn('Печат', $printUrl, FALSE, TRUE, 'id=btnPrint,row=2,ef_icon = img/16/printer.png,title=Печат на страницата');
 	    	$tpl->append($printBtn, 'SingleToolbar');
     	}
-    	
+        
     	// Подготвяме таблицата с данните извлечени от журнала
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$data->listFields = array(
