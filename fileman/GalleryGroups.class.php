@@ -93,9 +93,6 @@ class fileman_GalleryGroups extends core_Manager
         $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роли, width=100%,placeholder=Всички');
         
         $this->setDbUnique('title, position');
-        
-        // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
-        $this->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
     }
     
     /**
@@ -135,44 +132,6 @@ class fileman_GalleryGroups extends core_Manager
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
-    	
-    	
-        // @todo Да се премахне
-        $changed = 0;
-        
-        // Вземаме всички записи, които няма заглавие
-        $query = $mvc->getQuery();
-        $query->where("#vid != '' AND #vid IS NOT NULL OR #title = '' OR #title IS NULL");
-        
-        while($rec = $query->fetch()) {
-            
-            // Флаг, дали да се запише
-            $mustSave = FALSE;
-            
-            // Ако няма заглавие вдигаме флага
-            if (!$rec->title) $mustSave=TRUE;
-            
-            // Ако има вербално ID от предишните версии
-            if ($rec->vid) {
-                
-                // Ако не са равни, вдигаме флага
-                if ($rec->vid != $rec->title) {
-                    $mustSave=TRUE;
-                }
-                // Задаваме вербалната стойност
-                $rec->title = $rec->vid;
-            }
-            
-            // Добавяме стойността на полето vid в заглавието
-            if ($mustSave && $mvc->save($rec)) {
-                $changed++;
-            }
-        }
-        
-        if ($changed) {
-            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността от 'vid'";
-        }
-        // @todo Край - Да се премахне
     }
     
     

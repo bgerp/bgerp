@@ -49,6 +49,11 @@ class fileman_GalleryTitlePlg extends core_Plugin
         
         // Полето да е уникално
 //        $mvc->setDbUnique($this->galleryTitleFieldName);
+
+        // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
+        if(!$mvc->fields['vid']) {
+            $mvc->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
+        }
     }
     
     
@@ -144,5 +149,50 @@ class fileman_GalleryTitlePlg extends core_Plugin
     {
         
         return ;
+    }
+    
+    
+    /**
+     * @todo - Да се премахне
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $res
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+        $changed = 0;
+        
+        // Вземаме всички записи, които няма заглавие
+        $query = $mvc->getQuery();
+        $query->where("#vid != '' AND #vid IS NOT NULL OR #{$mvc->galleryTitleFieldName} = '' OR #{$mvc->galleryTitleFieldName} IS NULL");
+        
+        while($rec = $query->fetch()) {
+            
+            // Флаг, дали да се запише
+            $mustSave = FALSE;
+            
+            // Ако няма заглавие вдигаме флага
+            if (!$rec->{$mvc->galleryTitleFieldName}) $mustSave=TRUE;
+            
+            // Ако има вербално ID от предишните версии
+            if ($rec->vid) {
+                
+                // Ако не са равни, вдигаме флага
+                if ($rec->vid != $rec->{$mvc->galleryTitleFieldName}) {
+                    $mustSave=TRUE;
+                }
+                // Задаваме вербалната стойност
+                $rec->{$mvc->galleryTitleFieldName} = $rec->vid;
+            }
+            
+            // Добавяме стойността на полето vid в заглавието
+            if ($mustSave && $mvc->save($rec)) {
+                $changed++;
+            }
+        }
+        
+        if ($changed) {
+            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността от 'vid'";
+        }
     }
 }
