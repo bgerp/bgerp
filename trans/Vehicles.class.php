@@ -96,7 +96,7 @@ class trans_Vehicles extends core_Master
      */
     public function description()
     {
-    	$this->FLD('name', 'varchar(120)', 'caption=Наименование,mandatory');
+    	$this->FLD('name', 'varchar(120)', 'caption=Име,mandatory');
     	$this->FLD('number', 'varchar(32)', 'caption=Рег. номер,mandatory');
     	$this->FLD('load', 'double', 'caption=Товароносимост');
     	$this->FLD('description', 'richtext(rows=3)', 'caption=Описание');
