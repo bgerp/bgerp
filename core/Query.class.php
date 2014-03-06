@@ -336,9 +336,9 @@ class core_Query extends core_FieldSet
     	$values = implode(',', $values);
     	
     	if(!$not){
-    		$this->where("{$field} IN ({$values})");
+    		$this->where("#{$field} IN ({$values})");
     	} else {
-    		$this->where("{$field} NOT IN ({$values})");
+    		$this->where("#{$field} NOT IN ({$values})");
     	}
     }
     

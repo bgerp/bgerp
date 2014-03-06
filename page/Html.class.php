@@ -105,8 +105,6 @@ class page_Html extends core_ET {
      */
     static function subscribeStatus()
     {
-        static $i = 0;
-        
         // Ако не е сетнато времето на извикване
         if (!$hitTime = Mode::get('hitTime')) {
             
@@ -116,18 +114,11 @@ class page_Html extends core_ET {
         
         $tpl = new ET();
         
-        // При всяко извикване да има различно време
-        $hitTime -= $i;
-        
         // Добавяме в JS timestamp на извикване на страницата
         $tpl->append("var hitTime = {$hitTime};", 'SCRIPTS');
         
-        try {
-            // Извикваме показването на статусите - във vendors
-            $tpl->append(status_Messages::subscribe(), 'STATUSES');
-        } catch (Exception $e) { }
-        
-        $i++;
+        // Извикваме показването на статусите
+        $tpl->append(core_Statuses::subscribe(), 'STATUSES');
         
         return $tpl;
     }

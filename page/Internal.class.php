@@ -64,26 +64,5 @@ class page_Internal extends page_Html {
         if (!Mode::get('lastNotificationTime')) {
             Mode::setPermanent('lastNotificationTime', time());    
         }
-        
-        $Nid = Request::get('Nid', 'int');
-        
-        if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
-            
-            $msgType = Mode::get('NotificationType_' . $Nid);
-            
-            if($msgType) {
-                $invoker->append("<div class='notification-{$msgType}'>", 'NOTIFICATION');
-            }
-            
-            $invoker->append($msg, 'NOTIFICATION');
-            
-            if($msgType) {
-                $invoker->append("</div>", 'NOTIFICATION');
-            }
-            
-            Mode::setPermanent('Notification_' . $Nid, NULL);
-            
-            Mode::setPermanent('NotificationType_' . $Nid, NULL);
-        }
     }
 }

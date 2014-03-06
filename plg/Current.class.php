@@ -75,10 +75,8 @@ class plg_Current extends core_Plugin
     		$objectName = $mvc->getTitleById($id);
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
-    		// Този пакет е във vendors - ако липсва
-            if (method_exists('status_Messages', 'newStatus')) {
-                status_Messages::newStatus(tr("|Успешно логване в {$singleTitle}|* \"{$objectName}\""));
-            }
+    		// Добавяме статус съобщението
+            core_Statuses::newStatus(tr("|Успешно логване в {$singleTitle}|* \"{$objectName}\""));
     		
     		// Ако всичко е наред връща се ид-то на обекта
     		return $res = $id;

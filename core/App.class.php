@@ -407,7 +407,7 @@ class core_App
      * Редиректва браузъра към посоченото URL
      * Добавя сесийния идентификатор, ако е необходимо
      */
-    public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
+    public static function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
     { 
 
         expect(ob_get_length() <= 3, ob_get_length(), ob_get_contents());
@@ -415,11 +415,7 @@ class core_App
         $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
 
         if (isset($msg)) {
-            $Nid = rand(1000000, 9999999);
-            core_Mode::setPermanent('Notification_' . $Nid, $msg);
-            core_Mode::setPermanent('NotificationType_' . $Nid, $type);
-
-            $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));
+            core_Statuses::newStatus($msg, $type);
         }
 
         header("Status: 302");
@@ -526,7 +522,7 @@ class core_App
      * @param string $msg съобщение - нотификация
      * @param string $type тип на нотификацията
      */
-    public static function followRetUrl($defaultUrl = NULL, $msg = NULL, $type = 'info')
+    public static function followRetUrl($defaultUrl = NULL, $msg = NULL, $type = 'notice')
     {
         if (!$retUrl = static::getRetUrl()) {
             $retUrl = $defaultUrl;
@@ -1325,7 +1321,7 @@ function getRetUrl($retUrl = NULL)
 /**
  * @todo Чака за документация...
  */
-function followRetUrl($url = NULL, $msg = NULL, $type = 'info')
+function followRetUrl($url = NULL, $msg = NULL, $type = 'notice')
 {
     core_App::followRetUrl($url, $msg, $type);
 }
@@ -1337,7 +1333,7 @@ function followRetUrl($url = NULL, $msg = NULL, $type = 'info')
  *
  *
  */
-function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
+function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'notice')
 {
     return core_App::redirect($url, $absolute, $msg, $type);
 }
