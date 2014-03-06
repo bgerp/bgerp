@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class distro_Setup
+class distro_Setup extends core_ProtoSetup
 {
     
     

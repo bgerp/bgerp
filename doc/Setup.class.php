@@ -39,7 +39,7 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Setup
+class doc_Setup extends core_ProtoSetup
 {
     
     
@@ -185,13 +185,23 @@ class doc_Setup
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Форматиране на комуникацията', 'bgerp_plg_CommunicationFormat', 'type_Richtext', 'private');
         
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user");
-        
         return $html;
     }
     
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'currency';
     
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', "user"),
+        );
+        
+        
     /**
      * Де-инсталиране на пакета
      */
