@@ -118,6 +118,12 @@ class trans_Lines extends core_Master
     
     
     /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -130,7 +136,7 @@ class trans_Lines extends core_Master
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Допълнително->Превозвач');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Допълнително->Транспортна фирма');
-    	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Допълнително->Подотчетно лице');
+    	$this->FLD('forwarderPersonId', 'acc_type_Item(lists=accountablePersons,select=titleLink,allowEmpty)', 'caption=Допълнително->МОЛ');
     	
     	$this->setDbUnique('title');
     }
@@ -240,7 +246,8 @@ class trans_Lines extends core_Master
     	
     	if($rec->forwarderPersonId && crm_Persons::haveRightFor('read', $rec->forwarderPersonId)){
     		$attr['style'] = "background-image:url('" . sbf('img/16/vcard.png', "") . "');";
-    	 	$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, array('crm_Persons', 'single', $rec->forwarderPersonId), NULL, $attr);
+    	 	$row->forwarderPersonId = strip_tags($row->forwarderPersonId);
+    		$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, array('crm_Persons', 'single', $rec->forwarderPersonId), NULL, $attr);
     	}
     	
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
