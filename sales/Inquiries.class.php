@@ -210,8 +210,8 @@ class sales_Inquiries extends core_Master
     		}
     	}
     	
-    	$form->toolbar->addSbBtn('Запитване', 'save', 'id=save, ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png');
+    	$form->toolbar->addSbBtn('Запитване', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
+        $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
         $tpl = $form->renderHtml();
     	
     	return $tpl;
