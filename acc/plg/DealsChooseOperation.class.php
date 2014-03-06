@@ -164,7 +164,6 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     public function on_AfterGetContoOptions($mvc, &$res, $id)
     {
     	$options = array();
-    	$cu = core_Users::getCurrent();
     	$rec = $mvc->fetchRec($id);
     	
     	// Заглавие за опциите, взависимост дали е покупка или продажба
@@ -176,8 +175,8 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     	// Ако има продукти за експедиране
     	if($hasStorable){
     		
-    		// ... и има избран склад, на който е отговорник текущия потребител
-	    	if(isset($rec->shipmentStoreId) && store_Stores::fetchField($rec->shipmentStoreId, 'chiefId') == $cu){
+    		// ... и има избран склад, и потребителя може да се логне в него
+	    	if(isset($rec->shipmentStoreId) && store_Stores::haveRightFor('select', $rec->shipmentStoreId)){
 	    		
 	    		// Ако има очаквано авансово плащане, неможе да се експедира на момента
 	    		if(cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
@@ -199,8 +198,8 @@ class acc_plg_DealsChooseOperation extends core_Plugin
     		}
     	}
     	
-    	// ако има каса, метода за плащане е COD и текущия потрбеител е касиер на касата
-    	if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::fetchField($rec->caseId, 'cashier') == $cu){
+    	// ако има каса, метода за плащане е COD и текущия потрбител може да се логне в касата
+    	if(isset($rec->caseId) && cond_PaymentMethods::isCOD($rec->paymentMethodId) && cash_Cases::haveRightFor('select', $rec->caseId)){
     		
     		// може да се плати с продуктите
     		$caseName = cash_Cases::getTitleById($rec->caseId);
