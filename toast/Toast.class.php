@@ -158,7 +158,7 @@ class toast_Toast extends core_Plugin
             break;
             
             case 'warning':
-                $sticky = FALSE;
+                $sticky = TRUE;
             break;
             
             case 'error':
