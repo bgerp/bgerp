@@ -76,6 +76,24 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	static::prepareDefaultValues($mvc, $data);
+    }
+    
+    
+    /**
+     * Преди показване на къстом форма за добавяне/промяна.
+     */
+    public static function on_AfterPrepareCustomForm($mvc, &$data)
+    {
+    	static::prepareDefaultValues($mvc, $data);
+    }
+    
+    
+    /**
+     * Добавя към формата дефолт стойностти
+     */
+    private static function prepareDefaultValues($mvc, &$data)
+    {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
