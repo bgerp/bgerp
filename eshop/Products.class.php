@@ -290,7 +290,7 @@ class eshop_Products extends core_Master
 
 
     /**
-     * Подготовка на данните за рендиране на единичния изглед на продукт
+     * Подготовка на данните за рендиране на единичния изглед на продукт 
      */
     function prepareProduct($data)
     {
@@ -299,24 +299,24 @@ class eshop_Products extends core_Master
 
         $data->row = $this->recToVerbal($data->rec);
         if($data->rec->image) {
-            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $row->name); 
+            $data->row->image = fancybox_Fancybox::getImage($data->rec->image, array(120, 120), array(600, 600), $data->row->name); 
         }
         
 
         if($data->rec->image2) {
-            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(120, 120), array(600, 600), $row->name . ' 2'); 
+            $data->row->image2 = fancybox_Fancybox::getImage($data->rec->image2, array(120, 120), array(600, 600), $data->row->name . ' 2'); 
         }
 
         if($data->rec->image3) {
-            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(120, 120), array(600, 600), $row->name3 . ' 3'); 
+            $data->row->image3 = fancybox_Fancybox::getImage($data->rec->image3, array(120, 120), array(600, 600), $data->row->name3 . ' 3'); 
         }
 
         if($data->rec->image4) {
-            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(120, 120), array(600, 600), $row->name4 . ' 4'); 
+            $data->row->image4 = fancybox_Fancybox::getImage($data->rec->image4, array(120, 120), array(600, 600), $data->row->name4 . ' 4'); 
         }
 
         if($data->rec->image5) {
-            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(120, 120), array(600, 600), $row->name5 . ' 5'); 
+            $data->row->image5 = fancybox_Fancybox::getImage($data->rec->image5, array(120, 120), array(600, 600), $data->row->name5 . ' 5'); 
         }
 
         if(self::haveRightFor('edit', $data->rec)) {
