@@ -341,7 +341,13 @@ class email_Incomings extends core_Master
                 
                 return 'duplicated';
             }
-
+            
+            // Кой е UID на писмото?
+            $uid = $imapConn->getUid($msgNo);
+ 
+            // Записа на имейл сметката, от където се тегли
+            $accId = $imapConn->accRec->id;
+            
             // Извличаме цялото писмо
             $rawEmail = $imapConn->getEml($msgNo);
 
@@ -351,6 +357,18 @@ class email_Incomings extends core_Master
             try {
                 // Парсира съдържанието на писмото
                 $mime->parseAll($rawEmail);
+                
+                // Вземаме хедърите, този път от самото писмо
+                $headers = $mime->getHeadersStr();
+    
+                // Отново правим проверка дали писмото е сваляно
+                if(email_Fingerprints::isDown($headers)) {
+                    
+                    return 'duplicated';
+                }
+                
+                expect(mb_strlen($mime->textPart) < 10000);
+                
              } catch(core_exception_Expect $exp) {
                 // Не-парсируемо
                 if(Request::get('forced')) {
@@ -360,41 +378,21 @@ class email_Incomings extends core_Master
                 email_Unparsable::add($rawEmail, $accId, $uid);
                 $status = 'misformatted';
             }
-               
-            // Вземаме хедърите, този път от самото писмо
-            $headers = $mime->getHeadersStr();
-
-            // Отново правим проверка дали писмото е сваляно
-            if(email_Fingerprints::isDown($headers)) {
-                
-                return 'duplicated';
-            }
             
-            // Кой е UID на писмото?
-            $uid = $imapConn->getUid($msgNo);
- 
-            // Записа на имейл сметката, от където се тегли
-            $accId = $imapConn->accRec->id;
-
-            // Пробваме дали това не е служебно писмо
-            // Ако не е служебно, пробваме дали не е SPAM
-            // Ако не е нищо от горните, записваме писмото в този модел
-            if(email_Returned::process($mime, $accId, $uid)) {
-                $status = 'returned';
-            } elseif(email_Receipts::process($mime, $accId, $uid)) {
-                $status = 'receipt';
-            } elseif(email_Spam::process($mime, $accId, $uid)) {
-                $status = 'spam';
-            } elseif(self::process($mime, $accId, $uid)) {
-                $status = 'incoming';
+            if ($status != 'misformatted') {
+                // Пробваме дали това не е служебно писмо
+                // Ако не е служебно, пробваме дали не е SPAM
+                // Ако не е нищо от горните, записваме писмото в този модел
+                if(email_Returned::process($mime, $accId, $uid)) {
+                    $status = 'returned';
+                } elseif(email_Receipts::process($mime, $accId, $uid)) {
+                    $status = 'receipt';
+                } elseif(email_Spam::process($mime, $accId, $uid)) {
+                    $status = 'spam';
+                } elseif(self::process($mime, $accId, $uid)) {
+                    $status = 'incoming';
+                }
             }
-                
-            // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
-            if(in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
-                // Записваме статуса на сваленото писмо (service, misformatted, normal);
-                email_Fingerprints::setStatus($headers, $status, $accId, $uid);
-            }
-            
         } catch (core_exception_Expect $exp) {
             // Обща грешка
             if(Request::get('forced')) {
@@ -404,6 +402,11 @@ class email_Incomings extends core_Master
             $status = 'error';
         }
         
+        // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
+        if(in_array($status, array('returned', 'receipt', 'spam', 'incoming', 'misformatted'))) {
+            // Записваме статуса на сваленото писмо (service, misformatted, normal);
+            email_Fingerprints::setStatus($headers, $status, $accId, $uid);
+        }
 
         return $status;
     }
