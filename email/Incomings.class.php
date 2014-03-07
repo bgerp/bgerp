@@ -337,6 +337,7 @@ class email_Incomings extends core_Master
         try {
             // Извличаме хедърите и проверяваме за дублиране
             $headers = $imapConn->getHeaders($msgNo);
+            
             if(email_Fingerprints::isDown($headers)) {
                 
                 return 'duplicated';
@@ -367,7 +368,10 @@ class email_Incomings extends core_Master
                     return 'duplicated';
                 }
                 
-                expect(mb_strlen($mime->textPart) < 10000);
+                $conf = core_Packs::getConfig('email');
+                
+                // Очакваме текстовата част да е под допустимия максимум
+                expect(mb_strlen($mime->textPart) < $conf->EMAIL_MAX_TEXT_LEN);
                 
              } catch(core_exception_Expect $exp) {
                 // Не-парсируемо
@@ -379,6 +383,7 @@ class email_Incomings extends core_Master
                 $status = 'misformatted';
             }
             
+            // Ако писмото не е с лошо форматиране
             if ($status != 'misformatted') {
                 // Пробваме дали това не е служебно писмо
                 // Ако не е служебно, пробваме дали не е SPAM
