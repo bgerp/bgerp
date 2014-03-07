@@ -26,7 +26,7 @@ class plg_State2 extends core_Plugin
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
                 'enum(active=Активен,closed=Затворен)',
-                'caption=Видимост,input=none,notSorting');
+                'caption=Видимост,input=none,notSorting,notNull,value=active');
         }
     }
     
