@@ -16,6 +16,10 @@
 		<tr>
 			<th colspan='2' style='padding:7px 0px'>|Информация за продукта|*</th>
 		</tr>
+		<tr>
+			<td>|Драйвър|*</td>
+			<td>[#drvId#]</td>
+		</tr>
 		<!--ET_BEGIN DATA_ROW-->
 		<tr>
 			<td>[#CAPTION#]</td>
@@ -27,7 +31,7 @@
 	
 	<table class='styled-table'>
 	<tr>
-		<th colspan='2' style='padding:7px 0px'>|Данни на адресанта|*</th>
+		<th colspan='2' style='padding:7px 0px'>|Адресни данни|*</th>
 	</tr>
 	<tr>
 		<td>|Лице|*</td>

@@ -51,7 +51,7 @@ class sales_Inquiries extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, title, name, company, email, folderId, drvId, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, name, company, email, folderId, drvId, createdOn, createdBy';
     
     
     /**
@@ -76,19 +76,13 @@ class sales_Inquiries extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,sales';
+    public $canEdit = 'no_one';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,sales';
-
-
-	/**
-	 * Кой може да разглежда сингъла на документите?
-	 */
-	public $canSingle = 'powerUser';
 	
 	
 	/**
@@ -110,15 +104,33 @@ class sales_Inquiries extends core_Master
     
     
     /**
+     * Кой има право да създава визитки на лица?
+     */
+    public $canMakeperson = 'ceo,sales,crm';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, company, email';
+    public $searchFields = 'folderId, name, company, email, tel';
     
     
     /**
      * Нов темплейт за показване
      */
     public $singleLayoutFile = 'sales/tpl/SingleLayoutInquiry.shtml';
+    
+    
+    /**
+     * Шаблон за нотифициращ имейл (html)
+     */
+    public $emailNotificationFile = 'sales/tpl/InquiryNotificationEmail.shtml';
+    
+    
+    /**
+     * Алтернативен шаблон за нотифициращ имейл (text)
+     */
+    public $emailNotificationAltFile = 'sales/tpl/InquiryNotificationEmailAlt.shtml';
     
     
     /**
@@ -147,6 +159,7 @@ class sales_Inquiries extends core_Master
     	'address' => 'lastDocUser|clientData',
     );
     
+    
     /**
      * Описание на модела
      */
@@ -158,13 +171,13 @@ class sales_Inquiries extends core_Master
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->К-во 3,hint=Въведете количество,width=6em');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Адресни данни->Лице,class=contactData,mandatory,hint=Вашето име');
-    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Адресни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл,contragentDataField=pEmail');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Адресни данни->Телефони,class=contactData,hint=Вашият телефон,contragentDataField=pTel');
+    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Адресни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Адресни данни->Телефони,class=contactData,hint=Вашият телефон');
     	$this->FLD('company', 'varchar(255)', 'caption=Адресни данни->Фирма,class=contactData,hint=Вашата фирма');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адресни данни->Държава,class=contactData,hint=Вашата държава');
         $this->FLD('pCode', 'varchar(16)', 'caption=Адресни данни->П. код,class=pCode,hint=Вашият пощенски код');
         $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
-        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData,hint=Вашият адрес,contragentDataField=pAddress');
+        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData,hint=Вашият адрес');
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
@@ -188,7 +201,7 @@ class sales_Inquiries extends core_Master
     	
     	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
     	if(core_Users::getCurrent('id', FALSE)){
-    		$this->invoke('AfterPrepareEditForm', array((object)array('form' => $form)));
+    		$this->invoke('AfterPrepareCustomForm', array((object)array('form' => $form)));
     	}
     	
     	// Добавяме полетата от избрания драйвер
@@ -234,10 +247,25 @@ class sales_Inquiries extends core_Master
     	$form->setField('drvId', 'input=hidden');
     	
     	$form->title = 'Добавяне на ново запитване';
+    	
+    	// Ако има логнат потребител
     	if($cu = core_Users::getCurrent('id', FALSE)){
-    		$profRec = crm_Profiles::fetch("#userId = {$cu}");
-    		$form->rec->folderId = crm_Persons::forceCoverAndFolder($profRec->personId, FALSE);
-    		$form->title .= "|в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
+    		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
+    		$personRec = crm_Persons::fetch($personId);
+    		
+    		// Ако лицето е обвързано с фирма, документа отива в нейната папка
+    		if($personCompanyId = $personRec->buzCompanyId){
+    			$form->rec->folderId = crm_Companies::forceCoverAndFolder($personCompanyId);
+    		} else {
+    			
+    			// иначе отива в личната папка на лицето
+    			$form->rec->folderId = crm_Persons::forceCoverAndFolder($personId);
+    		}
+    		
+    		$form->title .= " |в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
+    		
+    		// Слагаме името на лицето, ако не е извлечено
+    		$form->setDefault('name', $personRec->name);
     	}
     	
     	return $form;
@@ -245,13 +273,12 @@ class sales_Inquiries extends core_Master
     
     
     /**
-     * Рутиране на задание по посочения имейл, в следната последователност
+     * Рутиране на задание по посочения имейл ако потребителя е
+     * нерегистриран, в следната последователност
      * 
-     * 1. В папката на лице
-     * 2. В папката на фирма
-     * 3. В разпозната папка от имейла
-     * 4. Ако е логнат потребител в неговата папка
-     * 5. Ако е нерегистриран в дефолт папката на модела
+     * 1. Ако има фирма, форсира се създаването на фирма във визитника
+     * 2. Ако от имейла се разпознае папката там
+     * 3. В дефолт папката на модела
      * 
      * @param stdClass $rec
      */
@@ -259,22 +286,12 @@ class sales_Inquiries extends core_Master
     {
     	$email = $rec->email;
     	
-    	// Ако имейла е асоцииран с папка на фирма, връщаме нея
-    	$companyFolderId = crm_Companies::getFolderFromEmail($email);
-    	if($companyFolderId) {
-    		
-    		return $companyFolderId;
+    	// Ако има компания се форсира създаването и
+    	if($rec->company){
+    		return $this->forceCompany($rec);
     	}
     	
-    	// Ако имейла е асоцииран с папка на лице , връщаме нея
-    	$personFolderId = crm_Persons::getFolderFromEmail($email);
-    	if($personFolderId) {
-    		
-    		return $personFolderId;
-    	}
-    	
-    	$folderId = email_Router::getEmailFolder($email);
-    	if($folderId) {
+    	if($folderId = email_Router::getEmailFolder($email)) {
     		
     		return $folderId;
     	}
@@ -284,13 +301,9 @@ class sales_Inquiries extends core_Master
     		$countryId = $Drdata->getByIp();
     	}
     	
-    	if($userId = core_Users::getCurrent('id', FALSE)){
-    		$defFolderId = doc_Folders::getDefaultFolder($userId);
-    	} else {
-    		$unRec = new stdClass();
-            $unRec->name = $this->defaultFolder;
-            $defFolderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, TRUE);
-    	}
+    	$unRec = new stdClass();
+        $unRec->name = $this->defaultFolder;
+        $defFolderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, TRUE);
     	
     	// Връщане на папката по подразбиране
     	return $defFolderId;
@@ -298,9 +311,40 @@ class sales_Inquiries extends core_Master
     
     
     /**
-     * Извлича данните за драйвъра от формата
+     * Създава визитка на фирма и форсира папката и
+     * 
+     * @param stdClass $rec - запис на запитване
+     * @return int $folderId - папка на фирма
      */
-    private function getDataFromForm(&$form)
+    private function forceCompany($rec)
+    {
+    	// Имали фирма с това име и имейл
+    	$compId = crm_Companies::fetchField("#name = '{$rec->company}' AND #email LIKE '%{$rec->email}%'", 'id');
+    	
+    	// Ако няма фирма
+    	if(empty($compId)){
+    		$cRec = new stdClass();
+	    	$cRec->name = $rec->company;
+	    	foreach (array('email', 'country', 'pCode', 'address', 'place', 'tel') as $fld){
+	    		$cRec->$fld = $rec->$fld;
+	    	}
+	    	
+	    	// Запис на фирмата
+	    	$compId = crm_Companies::save($cRec);
+    	}
+    	
+    	// Форсиране на папка на фирмата
+    	return crm_Companies::forceCoverAndFolder($compId);
+    }
+    
+    
+    /**
+     * Извлича данните за драйвъра от формата
+     * 
+     * @param core_Form $form - форма
+     * @return array масив с вътрешните и вербалните представяния на полетата
+     */
+    private function getDataFromForm($form)
     {
     	// Преобразува допълнителната информация във вид удобен за съхраняване
     	$rows = $recs = array();
@@ -308,6 +352,9 @@ class sales_Inquiries extends core_Master
     	
     	if(count($dataFlds)){
     		foreach ((array)$dataFlds as $k => $v){
+    			
+    			// За всеки елемент, се извличат неговите вътрешни и вербални данни
+    			// вербалните ще се използват за визуализиране в сингъла
     			if(isset($form->rec->$k) && strlen($form->rec->$k)){
     				$recs[$k] = $form->rec->$k;
     				$caption = explode('->', $form->fields[$k]->caption);
@@ -322,13 +369,13 @@ class sales_Inquiries extends core_Master
     
     /**
      * Подготвя полетата за допълнителна информация от драйвера
+     * 
      * @param core_Form $form
      */
     private function addFormFieldsFromDriver(&$form)
     {
     	$Driver = cls::get($form->rec->drvId);
 		expect(cls::haveInterface('techno_ProductsIntf', $Driver));
-		
 		$Driver->fillInquiryForm($form);
 		
 		$uomId = $Driver->getDriverUom($form->rec->params);
@@ -360,6 +407,7 @@ class sales_Inquiries extends core_Master
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, $data) 
 	{
+		// Ако е наличен бутона за добавяне, той се маха
 		if (!empty ($data->toolbar->buttons ['btnAdd'])) {
 			unset($data->toolbar->buttons['btnAdd']);
 		}
@@ -371,6 +419,12 @@ class sales_Inquiries extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	if(empty($rec->createdBy)){
+    		$row->createdBy = '@anonym';
+    	}
+    	
+    	$row->email = "<div class='email'>{$row->email}</div>";
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
@@ -378,6 +432,7 @@ class sales_Inquiries extends core_Master
     	if($fields['-single']){
     		$row->header = $mvc->singleTitle . "&nbsp;№<b>{$row->id}</b>" . " ({$row->state})";
     	
+    		// До всяко количество се слага unit с мярката на продукта
     		$Driver = cls::get($rec->drvId);
 			$uomId = cat_UoM::getShortName($Driver->getDriverUom($rec->params));
 			foreach (range(1, 3) as $i){
@@ -413,7 +468,8 @@ class sales_Inquiries extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-    	if($rec->state == 'active'){
+    	// Нотифициращ имейл се изпраща само след първоначално активиране
+    	if($rec->state == 'active' && empty($rec->brState)){
     		$mvc->sendNotificationEmail($rec);
     	}
     }
@@ -421,29 +477,50 @@ class sales_Inquiries extends core_Master
     
     /**
      * Изпращане на нотифициращ имейл
+     * 
+     * @param stdClass $rec
      */
     private function sendNotificationEmail($rec)
     {
+    	// Взимат се нужните константи от пакета 'sales'
     	$conf = core_Packs::getConfig('sales');
     	$emailsTo = $conf->SALE_INQUIRE_TO_EMAIL;
     	$sentFrom = $conf->SALE_INQUIRE_FROM_EMAIL;
     	
+    	// Ако са зададено изходящ и входящ имейл се изпраща нотифициращ имейл
     	if($emailsTo && $sentFrom){
-    		$tpl = getTplFromFile('sales/tpl/InquiryNotificationEmail.shtml');
     		
+    		// Имейла съответстващ на избраната кутия
+    		$sentFrom = email_Inboxes::fetchField($sentFrom, 'email');
+    		
+    		// Тяло на имейла html и text
+    		$tpl = getTplFromFile($this->emailNotificationFile);
+    		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
+    		
+    		// Поставяне на нужните данни в шаблоните
     		$obj = (object)array('date'       => dt::now(), 
     							 'name'       => $rec->name, 
     							 'email'      => $rec->email, 
-    							 'technoName' => cls::get($rec->drvId)->singleTitle);
+    							 'technoName' => cls::get($rec->drvId)->singleTitle,
+    							 'handle'     => static::getHandle($rec->id));
     		
     		$tpl->placeObject($obj);
+    		$tplAlt->placeObject($obj);
     		
+    		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
-        	$PML->Body = $tpl->getContent();
+    		$PML->Subject = "Направено е ново запитване на '{$obj->date}'";
+    		$PML->Body = $tpl->getContent();
+            $PML->AltBody = $tplAlt->getContent();
+        	$PML->IsHTML(TRUE);
         	
-        	$PML->Subject = "Създаване на ново запитване #{$this->getHandle($rec->id)}";
+        	// Адрес на който да се изпрати
         	$PML->AddAddress($emailsTo);
+        	
+        	// От кой адрес е изпратен
         	$PML->SetFrom($sentFrom);
+        	
+        	// Изпращане
 	        $PML->Send();
     	}
     }
@@ -455,42 +532,20 @@ class sales_Inquiries extends core_Master
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
+    	
     	if($rec->state == 'active'){
+    		
+    		// Бутон за генериране на продукт от посочения драйвер
 	    	$Driver = cls::get($rec->drvId);
 	    	if($Driver->haveRightFor('add')){
 	    		$data->toolbar->addBtn($Driver->singleTitle, $url, "ef_icon=img/16/view.png,title=Създаване на нов {$Driver->singleTitle}");
 	    	}
 	    	
+	    	// Ако може да се създава лица от запитването се слага бутон
 	    	if($mvc->haveRightFor('makeperson', $rec)){
-	    		$data->toolbar->addBtn('Направи визитка', array($mvc, 'makePerson', 'id' => $rec->id), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+	    		$companyId = doc_Folders::fetchCoverId($rec->folderId);
+	    		$data->toolbar->addBtn('Направи визитка', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
 	    	}
-    	}
-    }
-    
-    
-    /**
-     * Създава нова визитка на лице и премества нишката в новата папка
-     */
-    function act_MakePerson()
-    {
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$cover = doc_Folders::getCover($rec->folderId);
-    	expect(!$cover->haveInterface('doc_ContragentDataIntf'));
-    	
-    	$pRec = new stdClass();
-    	foreach (array('name', 'email', 'pCode', 'address', 'place', 'tel', 'country') as $fld){
-    		$pRec->$fld = $rec->$fld;
-    	}
-    	
-    	if($pId = crm_Persons::save($pRec)){
-    		$folderId = crm_Persons::forceCoverAndFolder($pId);
-    		status_Messages::newStatus(tr("|Успешно създаване на лице|* \"{$rec->name}\""));
-    	
-    		doc_Threads::move($rec->threadId, $folderId);
-    		status_Messages::newStatus(tr("|Нишката е успешно преместена в папка |* \"{$rec->name}\""));
-    	
-    		return redirect(array($this, 'single', $id));
     	}
     }
     
@@ -544,13 +599,12 @@ class sales_Inquiries extends core_Master
     		}
     	}
     	
+    	// Кога може да се създава лице
     	if($action == 'makeperson' && isset($rec)){
-    		$cover = doc_Folders::getCover($rec->folderId);
-    		if($cover->haveInterface('doc_ContragentDataIntf') || $rec->state != 'active'){
-    			$res = 'no_one';
-    		}
     		
-    		if(crm_Persons::fetch("#name = '{$rec->name}' AND #email = '{$rec->email}'")){
+    		// Ако корицата не е на фирма или състоянието не е активно никой неможе
+    		$cover = doc_Folders::getCover($rec->folderId);
+    		if(!$cover->instance instanceof crm_Companies || $rec->state != 'active'){
     			$res = 'no_one';
     		}
     	}

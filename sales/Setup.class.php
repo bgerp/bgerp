@@ -105,7 +105,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
 			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
 			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
-			'SALE_INQUIRE_FROM_EMAIL'  => array('emails', 'caption=Запитвания->Изходящ имейл за нотификация'),
+			'SALE_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Запитвания->Изходящ имейл за нотификация'),
 			'SALE_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Запитвания->Имейл за нотифициране'),
 	);
 	
