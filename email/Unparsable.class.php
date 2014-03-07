@@ -62,10 +62,10 @@ class email_Unparsable extends core_Master
     /**
      * Добавяне на писмо, което не може да се парсира
      */
-    static function add($mime, $accId, $uid)
+    static function add($rawEmail, $accId, $uid)
     {
         $rec = new stdClass();
-        $rec->data = $mime->getData();
+        $rec->data = $rawEmail;
         $rec->accountId = $accId;
         $rec->uid = $uid;
         $rec->createdOn = dt::verbal2mysql();
