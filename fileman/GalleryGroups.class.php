@@ -49,13 +49,13 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryTitlePlg";
+    var $loadList = "plg_RowTools,fileman_Wrapper,fileman_GalleryWrapper,plg_Created,fileman_GalleryTitlePlg, plg_Clone, plg_State2";
     
     
     /**
      * Полета за изглед
      */
-    var $listFields = 'id,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy';
+    var $listFields = 'id,title,roles,columns,tWidth,tHeight,width,height,createdOn,createdBy,state';
     
     
     /**
@@ -229,4 +229,16 @@ class fileman_GalleryGroups extends core_Manager
             $rec->{$titleField} = $rec->position;
         }
     }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     * 
+     * @param unknown_type $mvc
+     * @param unknown_type $data
+     */
+    static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+//	    $data->query->orderBy('createdOn', 'DESC');
+	}
 }
