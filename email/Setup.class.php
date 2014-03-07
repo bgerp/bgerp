@@ -49,7 +49,7 @@ defIfNot('EMAIL_RESENDING_TIME', '43200');
 /**
  * Максимална дължина на текстовата част на входящите имейли
  */
-defIfNot('EMAIL_MAX_TEXT_LEN', '50000');
+defIfNot('EMAIL_MAX_TEXT_LEN', '1000000');
 
 
 /**
