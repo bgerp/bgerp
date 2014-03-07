@@ -47,7 +47,7 @@ defIfNot('EF_MAX_EXPORT_CNT', 100000);
 /**
  * Максимален брой символи, от които ще се генерират ключови думи
  */
-defIfNot('PLG_SEACH_MAX_TEXT_LEN', 50000);
+defIfNot('PLG_SEACH_MAX_TEXT_LEN', 64000);
 
 
 /**
