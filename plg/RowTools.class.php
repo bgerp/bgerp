@@ -106,17 +106,18 @@ class plg_RowTools extends core_Plugin
         		}
         	}
         }
-                
+        
+        $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
+        $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
+        
         if ($singleLink || $editLink || $deleteLink || $restoreLink) {
             // Вземаме съдържанието на полето, като шаблон
-            $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
-            $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
             $tpl->append($restoreLink, 'TOOLS');
-            $row->{$field} = $tpl;
         }
+        $row->{$field} = $tpl;
     }
     
     
