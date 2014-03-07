@@ -199,7 +199,7 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
-        $this->FLD('name', 'varchar(255)', 'caption=Имена,class=contactData,mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Имена,class=contactData,mandatory,remember=info,silent');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Единен Граждански Номер
