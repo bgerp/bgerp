@@ -1034,4 +1034,15 @@ class core_Manager extends core_Mvc
         
         return $isValid;
     }
+    
+    
+    /**
+     * Връща заглавието на мениджъра
+     */
+    function getTitle_()
+    {
+        $title = $this->title;
+        
+        return $title;
+    }
 }
