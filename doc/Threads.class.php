@@ -517,8 +517,9 @@ class doc_Threads extends core_Manager
 
             if($errCnt) {
                 $message .= "<br> |възникнаха|* {$errCnt} |грешки";
+                $exp->redirectMsgType = 'error';
             }
-
+            
             $exp->message = tr($message);
             
             // Ако преместваме само една нишка

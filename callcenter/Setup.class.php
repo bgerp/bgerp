@@ -29,7 +29,7 @@ defIfNot(CALLCENTER_DRAFT_TO_NOANSWER, '3600');
  * @license   GPL 3
  * @since     v 0.1
  */
-class callcenter_Setup
+class callcenter_Setup extends core_ProtoSetup
 {
     
     
@@ -78,6 +78,14 @@ class callcenter_Setup
     
     
     /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', "user"),
+        );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -97,9 +105,6 @@ class callcenter_Setup
             $html .= $instances[$manager]->setupMVC();
         }
 
-        // Добавяме менюто
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2.04, 'Обслужване', 'Централа', 'callcenter_Talks', 'default', "user");
         
         //инсталиране на кофата
 //        $Bucket = cls::get('fileman_Buckets');

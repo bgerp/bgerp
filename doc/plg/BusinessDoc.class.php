@@ -75,7 +75,7 @@ class doc_plg_BusinessDoc extends core_Plugin
                 $tpl = new Redirect(
                 
                 	// Редирект към създаването на документа в ясната папка
-                    toUrl(array($mvc, $action) + $p + array('retUrl' => static::getRetUrl($mvc)))
+                    toUrl(array($mvc, $action) + $p + array('ret_url' => static::getRetUrl($mvc)))
                 );
                 return FALSE;
             }

@@ -72,7 +72,7 @@ class bgerp_plg_Import extends core_Plugin
     {
     	// Добавяне на бутон за импортиране, ако има инсталирани драйвъри
     	if($mvc->haveRightFor('import')){
-    		$url = array($mvc, 'import', 'retUrl' => TRUE);
+    		$url = array($mvc, 'import', 'ret_url' => TRUE);
     		$data->toolbar->addBtn('Импорт', $url, NULL, 'ef_icon=img/16/import16.png,title=Импортиране на ' . mb_strtolower($mvc->title));
     	}
     }
@@ -202,7 +202,7 @@ class bgerp_plg_Import extends core_Plugin
 
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
-        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните,, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти, и уточняване на разделителя и ограждането'));
         	
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
@@ -210,9 +210,9 @@ class bgerp_plg_Import extends core_Plugin
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
 
         // Полета за избиране на Разделител, ограждане и вида на първия ред
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=3)', array('value' => ','), 'mandatory');
         $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
-        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
+        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=3)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
        

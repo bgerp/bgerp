@@ -101,7 +101,6 @@ class cond_Parameters extends core_Master
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id');
         
         $this->setDbUnique('name');
-        //$this->setDbUnique("sysId");
     }
     
     

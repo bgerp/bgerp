@@ -72,7 +72,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
 	/**
 	 * Кой може да контира документите?
 	 */
-	public $canConto = 'ceo,salesMaster';
+	public $canConto = 'ceo,sales';
 	
 	
     /**
@@ -197,13 +197,13 @@ class sales_ClosedDeals extends acc_ClosedDeals
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'add' && isset($rec)){
+    	if(($action == 'add' || $action == 'conto') && isset($rec)){
     		
     		// Ако има ориджин
     		if($origin = $mvc->getOrigin($rec)){
     			$originRec = $origin->fetch();
     			
-    			if($originRec->state != 'active') return $res = 'no_one';
+    			if($res == 'no_one') return;
     			
     			// Може да се добавя само към тред с продажба
     			if($origin->instance instanceof purchase_Purchases) return $res = 'no_one';

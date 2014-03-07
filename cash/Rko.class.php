@@ -347,7 +347,7 @@ class cash_Rko extends core_Master
     	if($fields['-single']){
     		
     		// Адреса на контрагента
-    		$row->contragentName .= trim(
+    		$row->contragentAddress = trim(
                 sprintf("<br>%s<br>%s %s<br> %s", 
                  	$row->contragentCountry,
                     $row->contragentPcode,
@@ -376,16 +376,10 @@ class cash_Rko extends core_Master
 		    $row->amountVerbal = $amountVerbal;
 		    	
     		// Вземаме данните за нашата фирма
-        	$ourCompany = crm_Companies::fetchOurCompany();
-
-        	$row->organisation = $ourCompany->name;
-        	$row->organisation .= trim(
-                sprintf("<br>%s %s<br> %s", 
-                    $ourCompany->place,
-                    $ourCompany->pCode,
-                    $ourCompany->address
-                )
-            );
+        	$ownCompanyData = crm_Companies::fetchOwnCompany();
+        	$Companies = cls::get('crm_Companies');
+        	$row->organisation = $Companies->getTitleById($ownCompanyData->companyId);
+        	$row->organisationAddress = $Companies->getFullAdress($ownCompanyData->companyId);
             
     		// Извличаме имената на създателя на документа (касиера)
     		$cashierRec = core_Users::fetch($rec->createdBy);

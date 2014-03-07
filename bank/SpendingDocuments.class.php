@@ -377,7 +377,10 @@ class bank_SpendingDocuments extends core_Master
 	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
 	    	}
 	    	
-	    	$row->companyName = crm_Companies::fetchOwnCompany()->company;
+	    	$ownCompany = crm_Companies::fetchOwnCompany();
+	    	$Companies = cls::get('crm_Companies');
+	    	$row->companyName = $Companies->getTitleById($ownCompany->companyId);
+	    	$row->companyAddress = $Companies->getFullAdress($ownCompany->companyId);
     	}
     }
     

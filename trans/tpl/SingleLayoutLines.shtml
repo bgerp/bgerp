@@ -48,7 +48,7 @@
 				
 				<!--ET_BEGIN forwarderPersonId-->
 				<tr>
-					<td>|Подотчетно лице|*:</td>
+					<td>|МОЛ|*:</td>
 					<td>[#forwarderPersonId#]</td>
 				</tr>
 				<!--ET_END forwarderPersonId-->

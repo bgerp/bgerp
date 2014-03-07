@@ -421,4 +421,36 @@ class techno_GeneralProducts extends core_Master {
     	// Добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
      }
+     
+     
+     /**
+      * Добавя към формата на запитването, допълнителни полета
+      */
+     public function fillInquiryForm(&$form)
+     {
+     	$params = array();
+     	$params['title'] = (object)array('title' => 'Заглавие', 'type' => 'type_Varchar', 'mandatory' => TRUE);
+     	$params['description'] = (object)array('title' => 'Описание', 'type' => 'type_Richtext(rows=4,bucket=InquiryBucket)', 'mandatory' => TRUE);
+     	
+		foreach ($params as $name => $obj){
+		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,width=100%,after=drvId");
+		    if($obj->mandatory){
+		    	$form->setField($name, 'mandatory');
+		    }
+		}
+     }
+     
+     
+     /**
+      * Връща основната мярка, специфична за технолога
+      */
+     public function getDriverUom($params)
+     {
+     	if(empty($params['uom'])){
+     		
+     		return cat_UoM::fetchBySysId('pcs')->id;
+     	} 
+     	
+     	return cat_UoM::fetchBySinonim($params['uom']);
+     }
 }

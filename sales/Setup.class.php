@@ -44,6 +44,18 @@ defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
 
 /**
+ * Имейл от който да се изпрати нотифициращ имейл че е направено запитване
+ */
+defIfNot('SALE_INQUIRE_FROM_EMAIL', '');
+
+
+/**
+ * Имейл на който да се изпрати нотифициращ имейл че е направено запитване
+ */
+defIfNot('SALE_INQUIRE_TO_EMAIL', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -93,6 +105,8 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Продажби->Затваряне на по-стари от'),
 			'SALE_INV_MIN_NUMBER'      => array('int', 'caption=Номер на фактура->Долна граница'),
 			'SALE_INV_MAX_NUMBER'      => array('int', 'caption=Номер на фактура->Горна граница'),
+			'SALE_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Запитвания->Изходящ имейл за нотификация'),
+			'SALE_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Запитвания->Имейл за нотифициране'),
 	);
 	
 	
@@ -113,6 +127,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Invoices',
             'sales_InvoiceDetails',
     		'sales_Proformas',
+    		'sales_Inquiries'
         );
 
         
@@ -139,6 +154,10 @@ class sales_Setup extends core_ProtoSetup
         
         // Добавяме политиката "По последна продажна цена"
         core_Classes::add('sales_SalesLastPricePolicy');
+        
+        // Добавяне на кофа за файлове свързани със задаията
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('InquiryBucket', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
         
         // Добавяне на роля за старши продавач
         $html .= core_Roles::addRole('salesMaster', 'sales') ? "<li style='color:green'>Добавена е роля <b>salesMaster</b></li>" : '';

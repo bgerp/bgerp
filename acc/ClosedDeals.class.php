@@ -175,10 +175,6 @@ abstract class acc_ClosedDeals extends core_Master
     	// Няма друг затварящ документ и няма продукти
     	$result = $res && count($res->agreed->products) && $closedDoc === FALSE;
     	
-    	// Не може да се приключва документ, по който нищо не е платено и експедирано
-    	$amount = static::getClosedDealAmount($firstDoc);
-    	$result = ($amount == 0) ? FALSE : $result;
-    	
     	return $result;
     }
 	

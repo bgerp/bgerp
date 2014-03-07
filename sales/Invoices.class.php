@@ -724,8 +724,9 @@ class sales_Invoices extends core_Master
     private function prepareMyCompanyInfo(&$row)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-        $row->MyCompany = $ownCompanyData->company;
-        $row->MyAddress = $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
+        $Companies = cls::get('crm_Companies');
+        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){

@@ -2,16 +2,25 @@
 <div id='navigation'>
 [#NAVIGATION#]
 </div>
-<br>
-[#SEARCH_FORM#]
-[#TOOLBAR#]
+<div class='results-row'>
+<div class='fleft results'>Резултати за <span class='search-text'>[#SEARCH_FOR#]</span></div> 
+
+<div class='fright'>[#SEARCH_FORM#]</div>
+
+<div class='clearfix21'></div>
+</div>
+<div class='thread-header'>
+	<table border='0' width='100%' cellpadding="0" cellspacing="0" class="header-table">
+			<tr>
+				<td colspan='2'  style='text-indent:10px' width=74.5%>|Теми|*</td>
+				<td width=12% style='padding-left:20px;'>|Дъска|*</td>
+				<td style='text-align:left'>|Последно|*</td>
+			</tr>
+	</table>
+</div>
+
 <table width='100%' id='forum-themes' border='0' cellspacing='0'>
-	<tr>
-		<th colspan='2'  style='text-indent:10px'>|Теми|*</th>
-		<th>|Дъска|*</th>
-		<th style='text-align:left' colspan='2'>|Последно|*</th>
-	</tr>
-<!--ET_BEGIN ROW-->
+<!--ET_BEGIN ROW-->	
 	<tr class='theme-row'>
 		<td class='theme-row-title' width='58%' >
 				<div class='forum-icon'>[#ICON#]</div>
@@ -24,7 +33,6 @@
 					<!--ET_BEGIN LOCKED-->
 					<span class='locked'>[#locked#]</span>
 					<!--ET_END LOCKED-->
-					<br>
 					<span class='authored'>|започната от|*:&nbsp;&nbsp;[#createdBy#],&nbsp;&nbsp;[#createdOn#]</span>
 				</div>
 			</td>
@@ -32,13 +40,8 @@
 				<span class='forum-counts'>[#postingsCnt#]</span><br>
 				<span class='forum-counts'>[#views#]</span>
 			</td>
-			<td width='15%'>
+			<td width='12%' style='font-size:14px;padding-left:15px;'>
 				[#boardId#]
-			</td>
-			<td class='last-by'>
-				<div id='avatar-container'>
-				[#avatar#]
-				</div>
 			</td>
 			<td class='last-info'>
 				<!--ET_BEGIN nick-->

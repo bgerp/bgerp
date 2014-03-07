@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class label_Setup
+class label_Setup extends core_ProtoSetup
 {
     
     
@@ -41,6 +41,13 @@ class label_Setup
     
     
     /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo"),
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -67,12 +74,9 @@ class label_Setup
         // Добавяме роля за master
         $html .= core_Roles::addRole('labelMaster', 'label') ? "<li style='color:green'>Добавена е роля <b>labelMaster</b></li>" : '';
         
-        // Добавяме меню
-        $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3.66, 'Производство', 'Етикиране', 'label_Labels', 'default', "label, admin, ceo");
-        
         return $html;
     }
+    
     
     
     /**

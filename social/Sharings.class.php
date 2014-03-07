@@ -44,7 +44,7 @@ class social_Sharings extends core_Master
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,name,url,icon,sharedCnt,state';
+    var $listFields = '✍,name,url,icon,sharedCnt,state,order';
 
 
     /**
@@ -74,6 +74,7 @@ class social_Sharings extends core_Master
 		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне,mandatory');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
 		$this->FLD('sharedCnt', 'int', 'caption=Споделяния, input=none,notNull');
+		$this->FLD('order', 'int', 'caption=Подредба, notNull');
     }
     
     
@@ -84,6 +85,7 @@ class social_Sharings extends core_Master
     {
     	// Правим заявка към базата
     	$query = static::getQuery();
+    	$query->orderBy("#order");
 		$socialNetworks = $query->fetchAll("#state = 'active'");
 
         if(!count($socialNetworks)) return;
@@ -280,6 +282,7 @@ class social_Sharings extends core_Master
     		2 => "icon",
     		3 => "sharedCnt",
     		4 => "state",
+    		5 => "order",
     	);
     	    	
     	// Импортираме данните от CSV файла. 
@@ -323,5 +326,18 @@ class social_Sharings extends core_Master
 	            $form->setError('url', 'Непопълнено URL за споделяне');
 	        }
     	}
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {   
+    	$data->query->orderBy("#order");
     }
 }

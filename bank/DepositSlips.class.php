@@ -2,7 +2,7 @@
 
 
 /**
- * Документ за Вносни Бележки
+ * Документ за Вносни бележки
  *
  *
  * @category  bgerp
@@ -185,8 +185,11 @@ class bank_DepositSlips extends core_Master
 	    		$form->setDefault('depositor', $originRec->contragentName);
 	    	}
 	    	
-	    	$options = bank_Accounts::getContragentIbans($originRec->contragentId, $originRec->contragentClassId);
-	    	$form->setSuggestions('beneficiaryIban', $options);
+	    	if($originRec->contragentId && $originRec->contragentId){
+	    		$options = bank_Accounts::getContragentIbans($originRec->contragentId, $originRec->contragentClassId);
+	    		$form->setSuggestions('beneficiaryIban', $options);
+	    	}
+	    	
     	}
 	    
     	static::getContragentInfo($form);
@@ -249,7 +252,7 @@ class bank_DepositSlips extends core_Master
     	$origin = doc_Containers::getDocument($originId);
     	
     	// Може да се поражда само от приходен или разходен банков документ
-    	return $origin->instance instanceof  bank_IncomeDocuments || $origin->instance instanceof bank_SpendingDocuments;
+    	return $origin->instance instanceof  bank_IncomeDocuments || $origin->instance instanceof bank_SpendingDocuments || $origin->instance instanceof cash_InternalMoneyTransfer;
     }
     
     

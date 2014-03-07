@@ -39,7 +39,7 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Setup
+class doc_Setup extends core_ProtoSetup
 {
     
     
@@ -191,7 +191,12 @@ class doc_Setup
         return $html;
     }
     
-    
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'currency';
+              
+        
     /**
      * Де-инсталиране на пакета
      */

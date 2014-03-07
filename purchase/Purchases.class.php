@@ -57,6 +57,12 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Кой може да го активира?
+     */
+    public $canConto = 'ceo,sales,acc';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, purchase';
@@ -546,8 +552,9 @@ class purchase_Purchases extends core_Master
     private function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
-        $row->MyCompany = $ownCompanyData->company;
-        $row->MyAddress = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);
+        $Companies = cls::get('crm_Companies');
+        $row->MyCompany = $Companies->getTitleById($ownCompanyData->companyId);
+        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){

@@ -91,7 +91,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info';
+    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId';
     
 
     /**
@@ -203,7 +203,7 @@ class crm_Companies extends core_Master
     function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255)', 'caption=Фирма,class=contactData,mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни

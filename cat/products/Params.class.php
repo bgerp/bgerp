@@ -228,7 +228,7 @@ class cat_products_Params extends cat_products_Detail
     {
         if($requiredRoles == 'no_one') return;
     	
-        if ($action == 'add') {
+        if ($action == 'add' && isset($rec->productId)) {
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } 
