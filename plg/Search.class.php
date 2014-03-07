@@ -165,6 +165,21 @@ class plg_Search extends core_Plugin
      */
     static function normalizeText($str)
     {
+        $conf = core_Packs::getConfig('core');
+        
+        // Максимално допустима дължина
+        $maxLen = $conf->PLG_SEACH_MAX_TEXT_LEN;
+        
+        // Ако стринга е над максимума вземаме част от началото и края му
+        $str = str::limitLen($str, $maxLen);
+        
+        // Ако стринга е над максимума
+//        if (mb_strlen($str) > $maxLen) {
+//            
+//            // Вземаме 
+//            $str = mb_substr($str, 0, $maxLen);
+//        }
+        
         $str = str::utf2ascii($str);
         
         $str = strtolower($str);

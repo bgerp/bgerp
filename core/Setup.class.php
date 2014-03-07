@@ -45,6 +45,12 @@ defIfNot('EF_MAX_EXPORT_CNT', 100000);
 
 
 /**
+ * Максимален брой символи, от които ще се генерират ключови думи
+ */
+defIfNot('PLG_SEACH_MAX_TEXT_LEN', 64000);
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -100,6 +106,8 @@ class core_Setup {
            'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
            
            'EF_MAX_EXPORT_CNT' => array ('int', 'caption=Възможен максимален брой записи при експорт->Брой записи'),
+           
+           'PLG_SEACH_MAX_TEXT_LEN' => array ('int', 'caption=Максимален брой символи, от които ще се генерират ключови думи->Брой символи'),
     
         );
     
