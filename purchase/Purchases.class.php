@@ -57,6 +57,12 @@ class purchase_Purchases extends core_Master
     
     
     /**
+     * Кой може да го активира?
+     */
+    public $canConto = 'ceo,sales,acc';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, purchase';
