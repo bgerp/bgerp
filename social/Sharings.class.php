@@ -90,9 +90,9 @@ class social_Sharings extends core_Master
 
         if(!count($socialNetworks)) return;
         
-        $cUrl = cms_Content::getShortUrl();
-        
-        $selfUrl     = substr(rawurlencode(toUrl($cUrl, 'absolute')), 4);
+        $cUrl    = cms_Content::getShortUrl();
+        $cntUrl  = toUrl($cUrl, 'absolute');
+        $selfUrl = substr(rawurlencode($cntUrl), 4);
 
         $selfTitle   = rawurlencode(Mode::get('SOC_TITLE'));
         $selfSummary = toUrl(str::truncate(rawurlencode(Mode::get('SOC_SUMMARY')), 200), 'absolute');
@@ -140,9 +140,6 @@ class social_Sharings extends core_Master
 									    'socSummary' => $selfSummary
                                      ), 'absolute'
                 ), 4) ;	
-
-			// Взимаме URL-то на цраницата, която ще споделяме		
-			$cntUrl = toUrl(getCurrentUrl(), 'absolute');
 			
 			// Търсим, дали има запис в модела, който отброява споделянията
 			$socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND #url = '[#1#]'", $cntUrl));
