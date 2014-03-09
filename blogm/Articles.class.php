@@ -132,6 +132,8 @@ class blogm_Articles extends core_Master {
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+        $rec->body = trim($rec->body);
+
         if($fields['-browse']) { 
             $txt = explode("\n", $rec->body, 2);
             if(count($txt) > 1) {
@@ -583,12 +585,12 @@ class blogm_Articles extends core_Master {
         
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
-			$title = 'Резултати при търсене на "<b>' . type_Varchar::escape($data->q) . '</b>"';
+			$title = tr('Резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
 		} elseif( isset($data->archive)) {  
-   			$title = 'Архив за месец&nbsp;<b>' . dt::getMonth($data->archiveM, 'F') . ', ' . $data->archiveY . '&nbsp;г.</b>';
+   			$title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif( isset($data->category) && !count($data->rows)) {
             $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$title = 'Няма статии в "<b>' . $category . '</b>"';
+   			$title = tr('Няма статии в') .  '&nbsp;"<b>' . $category . '</b>"';
         }
         
         $layout->replace($title, 'BROWSE_HEADER');
@@ -731,7 +733,7 @@ class blogm_Articles extends core_Master {
                 }
                 
                 // Създаваме линк, който ще покаже само статиите от избраната категория
-                $title = ht::createLink(dt::getMonth($m, 'F') . '/' . $y, array('blogm_Articles', 'browse', 'archive'  => $month));
+                $title = ht::createLink(dt::getMonth($m,   Mode::is('screenMode', 'narrow') ? 'M' : 'F') . '/' . $y, array('blogm_Articles', 'browse', 'archive'  => $month));
                 
                 // Див-обвивка
                 $title = ht::createElement('div', $attr, $title);

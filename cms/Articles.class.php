@@ -257,6 +257,7 @@ class cms_Articles extends core_Master
 
 
         if($rec) { 
+            $rec->body = trim($rec->body);
 
             $menuId = $rec->menuId;
             
@@ -298,7 +299,7 @@ class cms_Articles extends core_Master
 
         while($rec1 = $query->fetch()) {
             
-            // Ако статуса е затворе, да не се показва
+            // Ако статуса е затворен, да не се показва
             if ($rec1->state == 'closed') continue;
             
             $cnt++;
