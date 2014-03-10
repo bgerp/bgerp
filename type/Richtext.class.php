@@ -1163,7 +1163,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("</span>", 'TBL_GROUP2');
         
         
-        $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"rp('[li] ', document.getElementById('{$formId}'), 1)\">≡</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"rp('[li] ', document.getElementById('{$formId}'), 1)\">&#9679</a>", 'TBL_GROUP2');
          
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
