@@ -164,25 +164,42 @@ class fileman_GalleryTitlePlg extends core_Plugin
         
         // Вземаме всички записи, които няма заглавие
         $query = $mvc->getQuery();
-        $query->where("#vid != '' AND #vid IS NOT NULL OR #{$mvc->galleryTitleFieldName} = '' OR #{$mvc->galleryTitleFieldName} IS NULL");
+        $query->where("#vid != '' AND #vid IS NOT NULL");
         
         while($rec = $query->fetch()) {
             
             // Флаг, дали да се запише
             $mustSave = FALSE;
             
-            // Ако няма заглавие вдигаме флага
-            if (!$rec->{$mvc->galleryTitleFieldName}) $mustSave=TRUE;
-            
-            // Ако има вербално ID от предишните версии
-            if ($rec->vid) {
+            // Ако няма заглавие
+            if (!$rec->{$mvc->galleryTitleFieldName}) {
+                
+                // Вдигаме флага, за да се запише
+                $mustSave=TRUE;
+                
+                // Задаваме заглавието от полето Vid
+                $rec->{$mvc->galleryTitleFieldName} = $rec->vid;
+            } else {
                 
                 // Ако не са равни, вдигаме флага
                 if ($rec->vid != $rec->{$mvc->galleryTitleFieldName}) {
-                    $mustSave=TRUE;
+                    
+                    // Ако няма запис със съответното име от полето
+                    if (!$mvc->fetch("#{$mvc->galleryTitleFieldName} = '{$rec->vid}'")) {
+                        
+                        // Задаваме заглавието
+                        $rec->{$mvc->galleryTitleFieldName} = $rec->vid;
+                        
+                        // Премахваме ненужните полето
+                        unset($rec->id);
+                        unset($rec->vid);
+                        unset($rec->createdOn);
+                        unset($rec->createdBy);
+                        
+                        // Вдигаме флага
+                        $mustSave=TRUE;
+                    }
                 }
-                // Задаваме вербалната стойност
-                $rec->{$mvc->galleryTitleFieldName} = $rec->vid;
             }
             
             // Добавяме стойността на полето vid в заглавието
@@ -192,7 +209,7 @@ class fileman_GalleryTitlePlg extends core_Plugin
         }
         
         if ($changed) {
-            $res .= "<li>Бяха променени заглавията на {$changed} записа със стойността от 'vid'";
+            $res .= "<li>Бяха създадени {$changed} записа със заглавия от стойността на 'vid'";
         }
     }
 }
