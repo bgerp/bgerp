@@ -582,8 +582,10 @@ class core_Form extends core_FieldSet
                     
                     if($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
+                        $attr['errorClass'] .= ' inputWarning';
                     } else {
                         $attr['class'] .= ' inputError';
+                        $attr['errorClass'] .= ' inputError';
                     }
                     
                     if (!$firstError) {
