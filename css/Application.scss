@@ -2887,6 +2887,9 @@ body.narrow {
             margin-left: 1%;
        }
     }
+    #all .formTable{
+        font-size: 0.95em;
+    }
 }
 @media handheld, only screen and (max-width: 800px) { 
 	.background-holder {
@@ -2912,6 +2915,9 @@ body.narrow {
     .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 760px;
     }
+     #all .formTable{
+        font-size: 0.95em;
+    }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
@@ -2934,6 +2940,9 @@ body.narrow {
     }
     .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 720px;
+    }
+    #all .formTable{
+        font-size: 0.95em;
     }
 }
 
@@ -2964,6 +2973,9 @@ body.narrow {
     }
     .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 660px;
+    }
+    #all .formTable{
+        font-size: 0.95em;
     }
 }
 
@@ -3000,6 +3012,9 @@ body.narrow {
     }
     .narrow .single-thread .scrolling-holder, .narrow .details {
         max-width: 600px;
+    }
+    #all .formTable{
+        font-size: 0.95em;
     }
 }
 
@@ -3039,6 +3054,9 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
 	}
+	#all .formTable{
+        font-size: 0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 533px) { 
@@ -3072,6 +3090,9 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
+    #all .formTable{
+        font-size: 0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 500px) { 
@@ -3101,6 +3122,9 @@ body.narrow {
        margin-right: 2%;
        margin-left: 2%;
        font-size: 0.9em;
+    }
+    #all .formTable{
+        font-size: 0.9em;
     }
 }
 
@@ -3135,6 +3159,9 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
+     #all .formTable{
+        font-size: 0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 360px) {
@@ -3167,6 +3194,9 @@ body.narrow {
        margin-right: 0%;
        margin-left: 0%;
        font-size: 0.9em;
+    }
+    #all .formTable{
+        font-size: 0.9em;
     }
 }
 
@@ -3202,6 +3232,9 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
+    #all .formTable{
+        font-size: 0.9em;
+    }
 }
 
 @media handheld, only screen and (max-width: 240px) { 
@@ -3234,6 +3267,9 @@ body.narrow {
        margin-right: 0%;
        margin-left: 0%;
        font-size: 0.9em;
+    }
+    #all .formTable{
+        font-size: 0.85em;
     }
 }
 
