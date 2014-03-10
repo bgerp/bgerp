@@ -64,7 +64,7 @@ class bgerp_plg_Groups extends core_Plugin
             // Премахване на лишите или недостъпните id-та
             foreach($selArr as $i => $ind) {
                 $obj = (object) array('id' => $ind);
-                if(!is_numeric($ind) || !$mvc->haveRightFor('group', $obj)) {
+                if(!is_numeric($ind) || !$mvc->haveRightFor('grouping', $obj)) {
                     unset($selArr[$i]);
                 }
 
