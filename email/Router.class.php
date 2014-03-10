@@ -478,8 +478,8 @@ class email_Router extends core_Manager
             // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
             // трябва да е отговорника на кутията, до която е изпратено писмото.
             //
-            $inChargeUserId = email_Inboxes::getEmailInCharge($rec->toBox);
-            
+            $inChargeUserId = ($rec->inCharge) ? $rec->inCharge : email_Inboxes::getEmailInCharge($rec->toBox);
+            bp($inChargeUserId,$rec);
             $rec->folderId = static::forceCountryFolder(
                 $rec->country /* key(mvc=drdata_Countries) */,
                 $inChargeUserId
