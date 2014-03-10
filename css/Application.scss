@@ -1652,6 +1652,7 @@ fieldset.sharing-history {
 }
 
 #cmsBottom {
+	clear:both;
 	padding: 0px;
 	display: block;
 	min-height: 28px;
@@ -1659,6 +1660,7 @@ fieldset.sharing-history {
 
 .wide #cmsBottom{
 	min-width: 500px;
+	_height: 1%;
 }
 
 .narrow #cmsBottom {
@@ -1817,7 +1819,7 @@ fieldset.sharing-history {
 		border: 1px solid #ccc;
 		font-size: 0.9em;
 		font-family: Verdana,Helvetica,sans-serif;
-		background: #ffffff; /* Old browsers */
+		background: #f1f1f1; /* Old browsers */
 		background: -moz-linear-gradient(top, #ffffff 0%, #d5d5d5 100%); /* FF3.6+ */
 		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#d5d5d5)); /* Chrome,Safari4+ */
 		background: -webkit-linear-gradient(top, #ffffff 0%,#d5d5d5 100%); /* Chrome10+,Safari5.1+ */
@@ -1879,6 +1881,7 @@ fieldset.sharing-history {
 	margin-right: 3.8%;
 	float: left;
 	min-height: 1px;
+	_display: inline;
 }
 
 .cms-row .onecol {
