@@ -1906,6 +1906,11 @@ div.richEdit {
 	_height:1%;
 }
 
+.richedit-toolbar.inputError{
+    border: solid 1px #F00 !important;
+    border-top: none !important;
+}
+
 .richtext-relative-group {
 	position:relative;
 	display:block;
