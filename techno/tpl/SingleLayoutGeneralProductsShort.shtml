@@ -12,6 +12,9 @@
 	<!--ET_BEGIN PARAMS-->
 	[#PARAMS#]
 	<!--ET_END PARAMS-->
+	<li>
+	[#COMPONENTS#]
+	</li>
 </ul>
 <div class='clearfix21'></div>
 </div>
