@@ -1118,9 +1118,12 @@ function onmouseUpSelect()
  */
 function saveSelectedTextToSession(handle, onlyHandle)
 {
+	// Ако не е дефиниран
+	if (typeof sessionStorage === "undefined") return ;
+	
 	// Вземаме избрания текст
 	var selText = getSelText();
-
+	
 	// Ако има избран текст
 	if (selText.focusOffset != selText.anchorOffset) {
 		
@@ -1156,19 +1159,24 @@ function saveSelectedTextToSession(handle, onlyHandle)
 function getSelText()
 {
     var txt = '';
-    if (window.getSelection)
-    {
-        txt = window.getSelection();
+    
+    try {
+	    if (window.getSelection)
+	    {
+	        txt = window.getSelection();
+	    }
+	    else if (document.getSelection)
+	    {
+	        txt = document.getSelection();
+	    }
+	    else if (document.selection.createRange)
+	    {    
+    		txt = document.selection.createRange();
+    	}
+    } catch(err) {
+    	EO.log('Грешка при извличане на текста');
     }
-    else if (document.getSelection)
-    {
-        txt = document.getSelection();
-    }
-    else if (document.selection)
-    {
-        txt = document.selection.createRange().text;
-    }
-	
+    
 	return txt;
 }
 
@@ -1180,6 +1188,9 @@ function getSelText()
  */
 function appendQuote(id)
 {
+	// Ако не е дефиниран
+	if (typeof sessionStorage === "undefined") return;
+	
 	// Вземаме времето от сесията
 	selTime = sessionStorage.getItem('selTime');
 	
@@ -1402,7 +1413,7 @@ efae.prototype.run = function()
 		this.increaseTimeout();
 	} catch(err) {
 		// Ако възникне грешка
-		console.log('Грешка при стартиране на процеса');
+		EO.log('Грешка при стартиране на процеса');
 	} finally {
 		// Инстанция на класа
 		var thisEfaeInst = this;
@@ -1432,7 +1443,7 @@ efae.prototype.process = function()
 	if (!efaeUrl) {
 		
 		// Изкарваме грешката в лога
-		console.log('Не е дефинирано URL, което да се вика');
+		EO.log('Не е дефинирано URL, което да се вика');
 	}
 	
 	// Инстанция на класа
@@ -1459,7 +1470,7 @@ efae.prototype.process = function()
 			  type: "POST",
 			  url: efaeUrl,
 			  data: dataObj,
-	  		  dataType: 'json',
+	  		  dataType: 'json'
 			}).done(function(res) {
 				
 				// Обхождаме всички получени данни
@@ -1474,7 +1485,7 @@ efae.prototype.process = function()
 			    	// Ако няма функция
 		    		if (!func) {
 		    			// Изкарваме грешката в лога
-						console.log('Не е подадена функция');
+						EO.log('Не е подадена функция');
 		    			
 		    			continue;
 		    		}
@@ -1489,19 +1500,19 @@ efae.prototype.process = function()
 		    		} catch(err) {
 		    			
 		    			// Ако възникне грешка
-		    			console.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
+		    			EO.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
 		    		}
 			    }
 			    
 			}).fail(function(res) {
 				
 				// Ако възникне грешка
-				console.log('Грешка при извличане на данни по AJAX');
+				EO.log('Грешка при извличане на данни по AJAX');
 			});
 	} else {
 		
 		// Изкарваме грешката в лога
-		console.log('JQuery не е дефиниран');
+		EO.log('JQuery не е дефиниран');
 	}
 }
 
@@ -1626,7 +1637,7 @@ function render_html(data)
 		var idObj = $('#'+id);
 		
 		// Ако няма такъв таг
-		if (!idObj.length) console.log('Липсва таг с id: ' + id);
+		if (!idObj.length) EO.log('Липсва таг с id: ' + id);
 		
 		// Ако е зададено да се замества
 		if ((typeof replace != 'undefined') && (replace)) {
@@ -1753,14 +1764,14 @@ function showToast(data)
             stayTime        : data.stayTime,
             type            : data.type,
             inEffectDuration: 800,
-            position        : 'bottom-right',
+            position        : 'bottom-right'
             });
     	}, data.timeOut);
 }
 
 
 /**
- * Expeperta - Клас за функции на EF
+ * Experta - Клас за функции на EF
  * 
  * @category  ef
  * @package   js
@@ -1769,26 +1780,36 @@ function showToast(data)
  * @license   GPL 3
  * @since     v 0.1
  */
-function Expeperta()
+function Experta()
 {
 	// Селектирания текст при първия запис
-	Expeperta.prototype.fSelText='';
+	Experta.prototype.fSelText='';
 	
 	// Селектирания текст, ако първя запис не е променян
-	Expeperta.prototype.sSelText='';
+	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Expeperta.prototype.saveSelTextTimeout=500;
+	Experta.prototype.saveSelTextTimeout=500;
 }
 
 
 /**
  * Записва избрания текст
  */
-Expeperta.prototype.saveSelText = function()
+Experta.prototype.saveSelText = function()
 {
 	// Вземаме избрания текст
-	var selText = getSelText().toString();
+	var selText = getSelText();
+	
+	// Ако има функция за превръщане в стринг
+	if (selText.toString) {
+		
+		// Вземаме стринга
+		selText = selText.toString();
+    } else {
+    	
+    	return;
+    }
 	
 	// Ако първия записан текст е еднакъв с избрания
 	if (this.fSelText == selText) {
@@ -1812,14 +1833,37 @@ Expeperta.prototype.saveSelText = function()
 /**
  * Връща избрания текст, който е записан във втората променлива
  */
-Expeperta.prototype.getSavedSelText = function()
+Experta.prototype.getSavedSelText = function()
 {
 	
 	return this.sSelText;
 }
 
+
+/**
+ * Показва съобщението в лога
+ * 
+ * @param string txt - Съобщението, което да се покаже
+ */
+Experta.prototype.log = function(txt)
+{
+	// Ако не е дефиниран обекта
+	if (typeof console === "undefined") {
+	   console = {
+	       log : function(){},
+	       info : function(){},
+	       error : function(){}
+	   }
+	} else {
+		
+		// Показваме съобщението
+		console.log(txt);
+	}
+}
+
+
 // Инстанцираме класа
-EO = new Expeperta();
+EO = new Experta();
 
 // Стартираме фунцкцията за записване на избрания текст
 EO.saveSelText()

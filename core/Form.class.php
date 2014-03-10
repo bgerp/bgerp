@@ -582,8 +582,10 @@ class core_Form extends core_FieldSet
                     
                     if($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
+                        $attr['errorClass'] .= ' inputWarning';
                     } else {
                         $attr['class'] .= ' inputError';
+                        $attr['errorClass'] .= ' inputError';
                     }
                     
                     if (!$firstError) {
@@ -661,7 +663,7 @@ class core_Form extends core_FieldSet
      */
     function renderFieldsLayout($fields)
     {
-        if ($this->fieldsLayout) return new ET($this->fieldsLayout);
+    	if ($this->fieldsLayout) return new ET($this->fieldsLayout);
         
         if($this->view == 'horizontal') {
             
@@ -671,7 +673,7 @@ class core_Form extends core_FieldSet
                 
                 $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
                 
-                $fld->replace($field->unit ? ('&nbsp;' . $field->unit) : '', 'UNIT');
+                $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                 
                 $tpl->append($fld, 'FIELDS');
             }
@@ -717,7 +719,7 @@ class core_Form extends core_FieldSet
                         $tpl->append("\n<tr><td>$headerRow</td></tr>", 'FIELDS');
                     }
                     $fld = new ET("\n<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
-                    $fld->replace($field->unit ? (', ' . $field->unit) : '', 'UNIT');
+                    $fld->replace($field->unit ? (', ' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
@@ -728,7 +730,8 @@ class core_Form extends core_FieldSet
                         $tpl->append("\n<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
                     $fld = new ET("\n<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
-                    $fld->replace($field->unit ? ('&nbsp;' . $field->unit) : '', 'UNIT');
+                    
+                    $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $fld->replace($caption, 'CAPTION');
                 }
                 

@@ -160,7 +160,10 @@ class core_Ajax extends core_Mvc
     protected static function enable(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n efaeInst = new efae();", 'SCRIPTS');
+        $tpl->appendOnce("\n try { efaeInst = new efae(); } 
+        					catch (err) {
+        						efaeInst=Object.create(efae.prototype);
+    						};", 'SCRIPTS');
         
         // Този пакет е във vendors
         if (method_exists('jquery_Jquery', 'enable')) {

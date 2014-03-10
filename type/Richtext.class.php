@@ -87,7 +87,7 @@ class type_Richtext extends type_Blob
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit' style='width:100%;'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
+        $tpl = new ET("<span class='richEdit' style='width:100%;'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
             $attr['style'] .= 'min-width:260px;width:100%;';
@@ -1163,7 +1163,7 @@ class type_Richtext extends type_Blob
         $toolbarArr->add("</span>", 'TBL_GROUP2');
         
         
-        $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"rp('[li] ', document.getElementById('{$formId}'), 1)\">≡</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class=rtbutton  title='" . tr('Списък') .  "' onclick=\"rp('[li] ', document.getElementById('{$formId}'), 1)\">&#9679</a>", 'TBL_GROUP2');
          
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
