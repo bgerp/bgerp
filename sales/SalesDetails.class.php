@@ -314,8 +314,8 @@ class sales_SalesDetails extends core_Detail
         $masterRec = $data->masterRec;
        	$ProductManager = cls::get($rec->classId);
        	
-       	$data->form->fields['packPrice']->unit = $masterRec->currencyId . ", ";
-        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+       	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
+        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
         
         $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         expect(count($products));

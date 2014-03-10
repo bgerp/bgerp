@@ -199,7 +199,7 @@ class sales_QuotationsDetails extends core_Detail {
         $form->setDefault('optional', 'no');
 	    $form->setOptions('productId', $products);
        
-	    $form->fields['price']->unit = $masterRec->currencyId . ", " .(($masterRec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС');
+	    $form->fields['price']->unit = "|*" . $masterRec->currencyId . ", " .(($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*');
 	   
 	    if($form->rec->price && $masterRec->currencyRate){
        	 	if($masterRec->chargeVat == 'yes'){
