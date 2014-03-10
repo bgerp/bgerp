@@ -1176,6 +1176,7 @@ div.hFormField {
 	white-space: nowrap;
 	width: 1px;
 	vertical-align: top;
+	_width:auto;
 }
 
 .formFields input, textarea, select { 
@@ -1893,6 +1894,7 @@ div.richEdit {
 	overflow: auto;
 	border-bottom: 1px solid transparent; 
 	width: 100%;
+	_width:500px !important;
 }
 
 .narrow .richEdit textarea { 
@@ -1901,6 +1903,7 @@ div.richEdit {
 
 .richedit-toolbar {
 	position: relative;
+	_height:1%;
 }
 
 .richtext-relative-group {
