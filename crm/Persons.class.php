@@ -152,6 +152,12 @@ class crm_Persons extends core_Master
 	 */
 	var $canSingle = 'powerUser';
     
+    
+    /**
+     * Кой  може да групира "С избраните"?
+     */
+    var $canGrouping = 'ceo,crm';
+
 	
     /**
      * Шаблон за единичния изглед

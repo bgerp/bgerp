@@ -131,6 +131,12 @@ class crm_Companies extends core_Master
 	
     
     /**
+     * Кой  може да групира "С избраните"?
+     */
+    var $canGrouping = 'ceo,crm';
+
+	
+    /**
      * Детайли, на модела
      */
     var $details = 'CompanyExpandData=crm_Persons,ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,

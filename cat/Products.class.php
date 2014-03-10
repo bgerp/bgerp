@@ -159,6 +159,12 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Кой  може да групира "С избраните"?
+     */
+    var $canGrouping = 'ceo,cat';
+
+	
+    /**
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'cat/tpl/products/SingleProduct.shtml';
