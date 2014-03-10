@@ -1,0 +1,30 @@
+|Информация за продукта|*
+|Драйвър|* [#drvId#]
+<!--ET_BEGIN DATA_ROW-->
+[#CAPTION#] - [#VALUE#]
+<!--ET_END DATA_ROW-->
+
+|Количества|*
+|Количество|* [#quantity1#]
+|Количество|* [#quantity2#]
+|Количество|* [#quantity3#]
+
+|Контактни дани|*
+|Фирма|*    - [#company#]
+<!--ET_BEGIN country-->
+|Държава|*  - [#country#]
+<!--ET_END country-->
+|Лице|*     - [#name#]
+|Имейли|*   - [#email#]
+<!--ET_BEGIN tel-->
+|Телефони|* - [#tel#]
+<!--ET_END tel-->
+<!--ET_BEGIN pCode-->
+|П. код|*   - [#pCode#]
+<!--ET_END pCode-->
+<!--ET_BEGIN place-->
+|Град|*    - [#place#]
+<!--ET_END place-->
+<!--ET_BEGIN address-->
+|Адрес|*   - [#address#]
+<!--ET_END address-->
