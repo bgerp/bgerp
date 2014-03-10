@@ -74,7 +74,7 @@ class social_Sharings extends core_Master
 		$this->FLD('url', 'varchar(128)', 'caption=URL, hint=URL за споделяне,mandatory');
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
 		$this->FLD('sharedCnt', 'int', 'caption=Споделяния, input=none,notNull');
-		$this->FLD('order', 'int', 'caption=Подредба, notNull');
+		$this->FLD('order', 'int(3)', 'caption=Подредба');
     }
     
     
@@ -265,6 +265,25 @@ class social_Sharings extends core_Master
     
     
     /**
+     * Преди запис
+     */
+    static function on_BeforeSave($mvc, $res, $rec)
+    {   
+    	if($rec->csv_order == 0){
+    		static $i;
+    		
+    		if (!$i) {
+    			$i = 1;
+    		} else {
+    			$i = $i+1;
+    		}
+    		
+    		$rec->order = $i;
+    	}
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     static function on_AfterSetupMvc($mvc, &$res)
@@ -279,7 +298,7 @@ class social_Sharings extends core_Master
     		2 => "icon",
     		3 => "sharedCnt",
     		4 => "state",
-    		5 => "order",
+    		5 => "csv_order",
     	);
     	    	
     	// Импортираме данните от CSV файла. 
