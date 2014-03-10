@@ -776,6 +776,8 @@ class blogm_Articles extends core_Master {
     	// Филтрираме, подреждаме и ограничаваме броя на резултатите
     	$categories = blogm_Categories::getCategoriesByLang($lg);
     	$query->likeKeylist('categories', keylist::fromArray($categories));
+    	
+    	$query->where("#state = 'active'");
 		$query->orderBy('createdOn', 'DESC');
     	$query->limit($itemsCnt);
     	

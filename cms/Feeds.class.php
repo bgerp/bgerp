@@ -100,7 +100,7 @@ class cms_Feeds extends core_Manager {
 		expect($rec = $this->fetch($id));
 		
 		// Инстанцираме източника
-		$source = cls::get($rec->source);
+		expect($source = cls::get($rec->source));
 		
 		// Генерираме масив от елементи за хранилката
 		$items = $source->getItems($rec->maxItems, $rec->lg);
@@ -118,6 +118,8 @@ class cms_Feeds extends core_Manager {
 				 break;
 
         	case 'rss2' : 
+        		 $pubDate = $this->getPubDate($items);
+        		 
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
   				 $feed->setChannelElement('language', $rec->lg);
@@ -160,6 +162,23 @@ class cms_Feeds extends core_Manager {
 		$feed->generateFeed();
 		
         shutdown();
+	}
+	
+	
+	/**
+	 * Връща датата на последния елемент във фийда
+	 */
+	private function getPubDate($items)
+	{
+		if($items){
+			foreach ($items as $i => $item){
+				$dates[] = $item->date;
+			}
+			
+			rsort($dates);
+		
+			return reset($dates);
+		}
 	}
 	
 	
