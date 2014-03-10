@@ -29,10 +29,48 @@
 		</table>
 	</div>
 	
+	<div>
+		<table class='styled-table'>
+		<tr>
+			<th colspan='2' style='padding:7px 0px'>|Количества|*</th>
+		</tr>
+		<!--ET_BEGIN quantity1-->
+		<tr>
+			<td>|Количество|*</td>
+			<td  style='text-align:right'>[#quantity1#]</td>
+		</tr>
+		<!--ET_END quantity1-->
+		<!--ET_BEGIN quantity2-->
+		<tr>
+			<td>|Количество|*</td>
+			<td  style='text-align:right'>[#quantity2#]</td>
+		</tr>
+		<!--ET_END quantity2-->
+		<!--ET_BEGIN quantity3-->
+		<tr>
+			<td>|Количество|*</td>
+			<td style='text-align:right'>[#quantity3#]</td>
+		</tr>
+		<!--ET_END quantity3-->
+		</table>
+	</div>
+	
 	<table class='styled-table'>
 	<tr>
-		<th colspan='2' style='padding:7px 0px'>|Адресни данни|*</th>
+		<th colspan='2' style='padding:7px 0px'>|Контактни дани|*</th>
 	</tr>
+	<!--ET_BEGIN company-->
+	<tr>
+		<td>|Фирма|*</td>
+		<td>[#company#]</td>
+	</tr>
+	<!--ET_END company-->
+	<!--ET_BEGIN country-->
+	<tr>
+		<td>|Държава|*</td>
+		<td>[#country#]</td>
+	</tr>
+	<!--ET_END country-->
 	<tr>
 		<td>|Лице|*</td>
 		<td>[#name#]</td>
@@ -41,24 +79,13 @@
 		<td>|Имейли|*</td>
 		<td>[#email#]</td>
 	</tr>
-	<!--ET_BEGIN company-->
-	<tr>
-		<td>|Фирма|*</td>
-		<td>[#company#]</td>
-	</tr>
-	<!--ET_END company-->
 	<!--ET_BEGIN tel-->
 	<tr>
 		<td>|Телефони|*</td>
 		<td>[#tel#]</td>
 	</tr>
 	<!--ET_END tel-->
-	<!--ET_BEGIN country-->
-	<tr>
-		<td>|Държава|*</td>
-		<td>[#country#]</td>
-	</tr>
-	<!--ET_END country-->
+	
 	<!--ET_BEGIN pCode-->
 	<tr>
 		<td>|П. код|*</td>
@@ -78,32 +105,6 @@
 	</tr>
 	<!--ET_END address-->
 	</table>
-	
-	<div>
-		<table class='styled-table'>
-		<tr>
-			<th colspan='2' style='padding:7px 0px'>|Количества|*</th>
-		</tr>
-		<!--ET_BEGIN quantity1-->
-		<tr>
-			<td>|К-во|*</td>
-			<td  style='text-align:right'>[#quantity1#]</td>
-		</tr>
-		<!--ET_END quantity1-->
-		<!--ET_BEGIN quantity2-->
-		<tr>
-			<td>|К-во|*</td>
-			<td  style='text-align:right'>[#quantity2#]</td>
-		</tr>
-		<!--ET_END quantity2-->
-		<!--ET_BEGIN quantity3-->
-		<tr>
-			<td>|К-во|*</td>
-			<td style='text-align:right'>[#quantity3#]</td>
-		</tr>
-		<!--ET_END quantity3-->
-		</table>
-	</div>
 	
 	</div>
 </div>

@@ -170,14 +170,14 @@ class sales_Inquiries extends core_Master
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->К-во 2,hint=Въведете количество,width=6em');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->К-во 3,hint=Въведете количество,width=6em');
     	
-    	$this->FLD('name', 'varchar(255)', 'caption=Адресни данни->Лице,class=contactData,mandatory,hint=Вашето име');
-    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Адресни данни->Имейл,class=contactData,mandatory,hint=Вашият имейл');
-    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Адресни данни->Телефони,class=contactData,hint=Вашият телефон');
-    	$this->FLD('company', 'varchar(255)', 'caption=Адресни данни->Фирма,class=contactData,hint=Вашата фирма');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адресни данни->Държава,class=contactData,hint=Вашата държава');
-        $this->FLD('pCode', 'varchar(16)', 'caption=Адресни данни->П. код,class=pCode,hint=Вашият пощенски код');
-        $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
-        $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData,hint=Вашият адрес');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Вашето име');
+    	$this->FLD('email', 'emails(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
+    	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон');
+    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=pCode,hint=Вашият пощенски код');
+        $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
+        $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес');
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
@@ -246,7 +246,7 @@ class sales_Inquiries extends core_Master
     	$form->rec->drvId = $drvId;
     	$form->setField('drvId', 'input=hidden');
     	
-    	$form->title = 'Добавяне на ново запитване';
+    	$form->title = 'Запитване за поръчков продукт';
     	
     	// Ако има логнат потребител
     	if($cu = core_Users::getCurrent('id', FALSE)){
