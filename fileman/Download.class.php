@@ -580,8 +580,19 @@ class fileman_Download extends core_Manager {
         // Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
 
-        //Генерираме връзката 
-        $url = toUrl(array('fileman_Files', 'Single', $fh), $isAbsolute);
+        // Ако има сингъл права за документа
+        if (fileman_Files::haveRightFor('single')) {
+            
+            // Линка да сочи към сингъла
+            $url = array('fileman_Files', 'Single', $fh);
+        } else {
+            
+            // Линка да сочи към свалянето на файла
+            $url = array('fileman_Download', 'Download', 'fh' => $fh);
+        }
+
+        //Генерираме връзката
+        $url = toUrl($url, $isAbsolute);
         
         return $url;
     }
