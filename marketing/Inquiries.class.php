@@ -259,14 +259,15 @@ class marketing_Inquiries extends core_Master
     	if($cu = core_Users::getCurrent('id', FALSE)){
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
+    		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
     		
     		// Ако лицето е обвързано с фирма, документа отива в нейната папка
     		if($personCompanyId = $personRec->buzCompanyId){
-    			$form->rec->folderId = crm_Companies::forceCoverAndFolder($personCompanyId);
+    			$form->rec->folderId = crm_Companies::forceCoverAndFolder((object)array('id' => $personCompanyId, 'inCharge' => $inCharge));
     		} else {
     			
     			// иначе отива в личната папка на лицето
-    			$form->rec->folderId = crm_Persons::forceCoverAndFolder($personId);
+    			$form->rec->folderId = crm_Persons::forceCoverAndFolder((object)array('id' => $personId, 'inCharge' => $inCharge));
     		}
     		
     		$form->title .= " |в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
@@ -516,6 +517,9 @@ class marketing_Inquiries extends core_Master
     		$fields = $this->selectFields();
     		$fields['-plainText'] = $fields['-single'] = TRUE;
     		$row = $this->recToVerbal($rec, $fields);
+    		$row->ip = core_Users::getRealIpAddr();
+    		$row->time = core_DateTime::mysql2verbal(dt::now());
+    		$row->browser = Mode::get('getUserAgent');
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		

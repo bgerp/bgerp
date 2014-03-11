@@ -43,13 +43,16 @@ class marketing_Router extends core_Manager
 			if($inCharge) return $inCharge;
 		}
 		
-		// Проверяваме имали несортирана папка с името на държавата
-		$country = drdata_Countries::fetchField($countryId, 'commonNameBg');
-		$unsortedName = sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $country);
-		$inCharge = doc_UnsortedFolders::fetchField(array("#name = '[#1#]'", $unsortedName), 'inCharge');
-		
-		// Ако има, взимаме нейния отговорник
-		if($inCharge) return $inCharge;
+		if($countryId){
+			
+			// Проверяваме имали несортирана папка с името на държавата
+			$country = drdata_Countries::fetchField($countryId, 'commonNameBg');
+			$unsortedName = sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $country);
+			$inCharge = doc_UnsortedFolders::fetchField(array("#name = '[#1#]'", $unsortedName), 'inCharge');
+			
+			// Ако има, взимаме нейния отговорник
+			if($inCharge) return $inCharge;
+		}
 		
 		// Проверяваме имали корпоративна сметка
 		$corpAcc = email_Accounts::getCorporateAcc();
