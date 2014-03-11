@@ -479,7 +479,7 @@ class email_Router extends core_Manager
             // трябва да е отговорника на кутията, до която е изпратено писмото.
             //
             $inChargeUserId = ($rec->inCharge) ? $rec->inCharge : email_Inboxes::getEmailInCharge($rec->toBox);
-            bp($inChargeUserId,$rec);
+            
             $rec->folderId = static::forceCountryFolder(
                 $rec->country /* key(mvc=drdata_Countries) */,
                 $inChargeUserId
