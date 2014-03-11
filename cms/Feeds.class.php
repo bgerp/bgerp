@@ -288,6 +288,7 @@ class cms_Feeds extends core_Manager {
 		
 		// Заявка за работа с модела 
         $feedQuery = static::getQuery();
+        $curLg = cms_Content::getLang();
         
         $tableName = static::instance()->dbTableName;
         if(static::instance()->db->tableExists($tableName)) {
@@ -303,11 +304,14 @@ class cms_Feeds extends core_Manager {
 	       			$type = 'application/atom+xml';
 	       		}
 	       		
-	       		// Натрупваме генерираният хедър в шаблона
-	       		$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+	       		if($feed->lg == $curLg){
+	       			
+	       			// Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
+	       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+	       		}
 	       	}
         }
-
+		
        	return $tpl;
 	}
 	
