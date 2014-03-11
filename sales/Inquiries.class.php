@@ -45,7 +45,7 @@ class sales_Inquiries extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=sales_InquiryRouter';
     
     
     /**
@@ -170,10 +170,10 @@ class sales_Inquiries extends core_Master
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,width=6em');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,width=6em');
     	
-    	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава');
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Вашето име');
-    	$this->FLD('email', 'emails()', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
+    	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=pCode,hint=Вашият пощенски код');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
@@ -218,7 +218,7 @@ class sales_Inquiries extends core_Master
     		$rec->state = 'active';
     		
     		if(empty($rec->folderId)){
-    			$rec->folderId = $this->route($rec);
+    			$rec->folderId = $this->Router->route($rec);
     		}
     		
     		// Запис и редирект
@@ -317,52 +317,6 @@ class sales_Inquiries extends core_Master
     		
     		$form->rec->data = $mvc->getDataFromForm($form);
     	}
-    }
-    
-    
-    /**
-     * Рутиране на задание по посочения имейл ако потребителя е
-     * нерегистриран, в следната последователност
-     * 
-     * 1. Ако има фирма, форсира се създаването на фирма във визитника
-     * 2. Ако от имейла се разпознае папката там
-     * 3. В дефолт папката на модела
-     * 
-     * @param stdClass $rec
-     */
-    private function route(&$rec)
-    {
-    	$email = $rec->email;
-    	//$rec->inCharge = '2';
-    	
-    	// Ако има компания се форсира създаването и
-    	if($rec->company){
-    		return $this->forceCompany($rec);
-    	}
-    	
-    	if($folderId = email_Router::getEmailFolder($email)) {
-    		
-    		return $folderId;
-    	}
-    	
-    	// Ако няма държава я намира по ип-то
-    	if(empty($rec->country)){
-    		$Drdata = cls::get('drdata_Countries');
-    		$rec->country = $Drdata->getByIp();
-    	}
-    	
-    	// Ако има държава, форсира папка за несортиране с името на държавата
-    	if($rec->country){
-    		
-    		return email_Router::doRuleCountry($rec);
-    	}
-    	
-    	$unRec = new stdClass();
-        $unRec->name = $this->defaultFolder;
-        $defFolderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, TRUE);
-    	
-    	// Връщане на папката по подразбиране
-    	return $defFolderId;
     }
     
     
