@@ -549,9 +549,31 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var selection = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
 		var end = textarea.value.substr(textarea.selectionEnd);
-		var newCursorPos = textarea.selectionStart;
 		var scrollPos = textarea.scrollTop;
-
+		
+		var beginPosition = textarea.selectionStart;
+		var endPosition = textarea.selectionEnd;
+		
+		if(!selection){
+			if(textarea.getAttribute('data-readySelection')){
+				selection = textarea.getAttribute('data-readySelection');
+				beginPosition = textarea.getAttribute('data-selectionStart');
+				endPosition = textarea.getAttribute('data-selectionEnd');
+				
+				begin = textarea.value.substr(0, beginPosition);
+				if (beginPosition == endPosition){
+					var strBefore = textarea.value.substring(beginPosition - selection.length, beginPosition);
+					var strAfter = textarea.value.substring(beginPosition , beginPosition + selection.length);
+					
+					if(strBefore == selection){
+						beginPosition = beginPosition - selection.length;
+					} else if(strAfter == selection){
+						endPosition = beginPosition + selection.length;
+					}
+				}
+			} 
+		}
+		
 		if(selection != '' && selection.indexOf("\n") == -1  && text2 == '[/code]' && selection.length <= maxOneLine) {
 			text1 = "`";
 			text2 = "`";
@@ -571,16 +593,16 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 			}
 		}
 		
+		textarea.value = textarea.value.substring(0, beginPosition) + text1 + selection + text2 + textarea.value.substring(endPosition);	
 		
-			
-		textarea.value = begin + text1 + selection + text2 + end;
-
 		if (textarea.setSelectionRange)
 		{
 			if (selection.length == 0)
-				textarea.setSelectionRange(newCursorPos + text1.length, newCursorPos + text1.length);
-			else
-				textarea.setSelectionRange(newCursorPos, newCursorPos + text1.length + selection.length + text2.length);
+				textarea.setSelectionRange(beginPosition + text1.length, beginPosition + text1.length);
+			else{
+				var endRange = parseInt(beginPosition) + parseInt(text1.length) + parseInt(selection.length) + parseInt(text2.length);
+				textarea.setSelectionRange(beginPosition, endRange);
+			}
 			textarea.focus();
 		}
 		textarea.scrollTop = scrollPos;
@@ -1089,6 +1111,31 @@ function loginFormPadding()
 		lf.style.marginLeft = dist  + 'px';
 		lf.style.paddingLeft ='0px';
 		lf.style.paddingTop = dist  + 'px';
+	}
+}
+
+/**
+ * Задава ширина на елементите от форма в зависимост от ширината
+ */
+function setFormElementsWidth()
+{
+	var form = $('.formTable');
+	var winWidth = parseInt($(window).width());
+	
+	if(form && winWidth < 620){
+	
+		var off = form.offset();
+		var formOffsetL = parseInt(off.left);
+		var paddingL = parseInt(form.css('paddingLeft'));
+		var inlinePadding = 16;
+		var formEl = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
+		
+		$('.formTable textarea').css('minWidth',formEl);
+		$('.formTable input[type=text]').css('maxWidth',formEl);
+		$('.formTable select').css('maxWidth',formEl);
+		$('.formTable .chzn-container').css('maxWidth',formEl);
+		$('.formTable .chzn-container .chzn-drop').css('maxWidth',formEl -2);
+		$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formEl -12);
 	}
 }
 
@@ -1789,7 +1836,7 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=500;
+	Experta.prototype.saveSelTextTimeout=1200;
 	
 	// Данни за селектирания текст в textarea
 	Experta.prototype.textareaAttr = new Array();
