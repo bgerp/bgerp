@@ -565,9 +565,9 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 					var strBefore = textarea.value.substring(beginPosition - selection.length, beginPosition);
 					var strAfter = textarea.value.substring(beginPosition , beginPosition + selection.length);
 					
-					if(textarea.value.substring(beginPosition - selection.length , beginPosition) == selection){
+					if(strBefore == selection){
 						beginPosition = beginPosition - selection.length;
-					} else if(textarea.value.substring(beginPosition , beginPosition + selection.length) == selection){
+					} else if(strAfter == selection){
 						endPosition = beginPosition + selection.length;
 					}
 				}
