@@ -174,12 +174,12 @@ class eshop_Products extends core_Master
         }
 
         if($rec->coDriver) {
-            if(sales_Inquiries::haveRightFor('new')){
+            if(marketing_Inquiries::haveRightFor('new')){
             	
             	$title = tr('Изпратете запитване за производство');
             	Request::setProtected('drvId,coParams');
             	
-            	$row->coInquiry = ht::createLink(tr('Запитване'), array('sales_Inquiries', 'new', 'drvId' => $rec->coDriver, 'coParams' => $rec->coParams, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries', 'new', 'drvId' => $rec->coDriver, 'coParams' => $rec->coParams, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             }
         }
 

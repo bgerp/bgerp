@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Inquiries extends core_Master
+class marketing_Inquiries extends core_Master
 {
     
     
@@ -44,8 +44,8 @@ class sales_Inquiries extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=sales_InquiryRouter';
+    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=marketing_InquiryRouter';
     
     
     /**
@@ -70,7 +70,7 @@ class sales_Inquiries extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRead = 'ceo,sales,marketing';
     
     
     /**
@@ -82,9 +82,15 @@ class sales_Inquiries extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,marketing';
 	
 	
+	/**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'sales_Inquiries';
+    
+    
 	/**
      * Дали може да бъде само в началото на нишка
      */
@@ -106,7 +112,7 @@ class sales_Inquiries extends core_Master
     /**
      * Кой има право да създава визитки на лица?
      */
-    public $canMakeperson = 'ceo,sales,crm';
+    public $canMakeperson = 'ceo,sales,crm,marketing';
     
     
     /**
@@ -118,19 +124,19 @@ class sales_Inquiries extends core_Master
     /**
      * Нов темплейт за показване
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInquiry.shtml';
+    public $singleLayoutFile = 'marketing/tpl/SingleLayoutInquiry.shtml';
     
     
     /**
      * Шаблон за нотифициращ имейл (html)
      */
-    public $emailNotificationFile = 'sales/tpl/InquiryNotificationEmail.shtml';
+    public $emailNotificationFile = 'marketing/tpl/InquiryNotificationEmail.shtml';
     
     
     /**
      * Алтернативен шаблон за нотифициращ имейл (text)
      */
-    public $emailNotificationAltFile = 'sales/tpl/InquiryNotificationEmailAlt.txt';
+    public $emailNotificationAltFile = 'marketing/tpl/InquiryNotificationEmailAlt.txt';
     
     
     /**
@@ -492,10 +498,10 @@ class sales_Inquiries extends core_Master
      */
     private function sendNotificationEmail($rec)
     {
-    	// Взимат се нужните константи от пакета 'sales'
-    	$conf = core_Packs::getConfig('sales');
-    	$emailsTo = $conf->SALE_INQUIRE_TO_EMAIL;
-    	$sentFrom = $conf->SALE_INQUIRE_FROM_EMAIL;
+    	// Взимат се нужните константи от пакета 'marketing'
+    	$conf = core_Packs::getConfig('marketing');
+    	$emailsTo = $conf->MARKETING_INQUIRE_TO_EMAIL;
+    	$sentFrom = $conf->MARKETING_INQUIRE_FROM_EMAIL;
     	
     	// Ако са зададено изходящ и входящ имейл се изпраща нотифициращ имейл
     	if($emailsTo && $sentFrom){

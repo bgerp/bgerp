@@ -3,14 +3,14 @@
  * Помощен клас с функции за рутиране
  *
  * @category  bgerp
- * @package   sales
+ * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  *
  */
-class sales_Router extends core_Manager
+class marketing_Router extends core_Manager
 {
 	
 	

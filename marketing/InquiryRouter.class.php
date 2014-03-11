@@ -3,14 +3,14 @@
  * Помощен клас за рутиране на запитвания
  *
  * @category  bgerp
- * @package   sales
+ * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  *
  */
-class sales_InquiryRouter extends core_Manager
+class marketing_InquiryRouter extends core_Manager
 {
 	/*public function act_Test(){
 		
@@ -35,7 +35,7 @@ class sales_InquiryRouter extends core_Manager
 	public function route($rec)
 	{
 		// Кой ще е отговорника на папката
-		$inCharge = sales_Router::getInChargeUser($rec->place, $rec->country);
+		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
 		
 		// Ако има компания
 		if(empty($rec->company)){
@@ -72,15 +72,15 @@ class sales_InquiryRouter extends core_Manager
 	private function routeInquiryFromPerson($rec, $inCharge)
 	{
 		// Ако има папка на фирма с този имейл
-		$folderId = sales_Router::routeByCompanyEmail($rec->email, $inCharge);
+		$folderId = marketing_Router::routeByCompanyEmail($rec->email, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Ако има папка на лице с този имейл
-		$folderId = sales_Router::routeByPersonEmail($rec->email, $inCharge);
+		$folderId = marketing_Router::routeByPersonEmail($rec->email, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Ако има папка на контрагент с този имейл
-		$folderId = sales_Router::routeByEmail($rec->email, 'contragent');
+		$folderId = marketing_Router::routeByEmail($rec->email, 'contragent');
 		if($folderId) return $folderId;
 		
 		// Ако има лице във визитника от същата държава
@@ -88,7 +88,7 @@ class sales_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
-		return sales_Router::forcePersonFolder($rec->name, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $rec->inCharge);
+		return marketing_Router::forcePersonFolder($rec->name, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $rec->inCharge);
 	}
 	
 	
@@ -107,19 +107,19 @@ class sales_InquiryRouter extends core_Manager
 	private function routeInquiryFromCompany($rec, $inCharge)
 	{
 		// Намираме папка на компания с този имейл
-		$folderId = sales_Router::routeByCompanyEmail($rec->email, $inCharge);
+		$folderId = marketing_Router::routeByCompanyEmail($rec->email, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Рутиране според имейла, взимаме папката ако корицата и е фирма
-		$folderId = sales_Router::routeByEmail($rec->email, 'company');
+		$folderId = marketing_Router::routeByEmail($rec->email, 'company');
 		
 		if($folderId) return $folderId;
 		
 		// Рутираме в папка на фирма със същото име от същата държава
-		$folderId = sales_Router::routeByCompanyName($rec->company, $rec->country, $inCharge);
+		$folderId = marketing_Router::routeByCompanyName($rec->company, $rec->country, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и визитка на фирма с въведените данни
-		return sales_Router::forceCompanyFolder($rec->company, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
+		return marketing_Router::forceCompanyFolder($rec->company, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
 	}
 }
