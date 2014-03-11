@@ -1790,6 +1790,9 @@ function Experta()
 	
 	// Време на извикване
 	Experta.prototype.saveSelTextTimeout=500;
+	
+	// Данни за селектирания текст в textarea
+	Experta.prototype.textareaAttr = new Array();
 }
 
 
@@ -1841,6 +1844,80 @@ Experta.prototype.getSavedSelText = function()
 
 
 /**
+ * Добавя в атрибутите на текстареа позицията и текста на избрания текст
+ * 
+ * @param textarea
+ */
+Experta.prototype.saveSelTextInTextarea = function(textarea)
+{
+	//textarea = document.getElementById(id);
+	
+	// id на текстареата
+	id = textarea.getAttribute('id');
+	
+	// Вземаме избрания текст
+	// var selText = getSelText();
+	var selText = getSelectedText(textarea);
+
+	// Ако има функция за превръщане в стринг
+	if (selText.toString) {
+		
+		// Вземаме стринга
+		selText = selText.toString();
+    } else {
+    	
+    	return;
+    }
+	
+	// Позиция на начало на избрания текст
+	var selectionStart = textarea.selectionStart;
+	
+	// Позиция на края на избрания текст
+	var selectionEnd = textarea.selectionEnd;
+	
+	// Ако не е създаден обект за тази текстареа
+	if (typeof EO.textareaAttr[id] == 'undefined') {
+		
+		// Създаваме обект, със стойности по подразбиране
+		EO.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
+								'data-readySelectionStart': 0, 'data-readySelectionEdn': 0};
+	}
+	
+	// Ако сме избрали нещо различно от предишното извикване на функцията
+	if ((EO.textareaAttr[id]['data-hotSelection'] != selText) || 
+			(EO.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
+			(EO.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
+		
+		// Задаваме новите стойности
+		EO.textareaAttr[id]['data-hotSelection'] = selText;
+		EO.textareaAttr[id]['data-selectionStart'] = selectionStart;
+		EO.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
+		
+	} else {
+		
+		// Ако не сме променили избрания текст
+		
+		// Задаваме стойностите
+		EO.textareaAttr[id]['data-readySelection'] = selText;
+		EO.textareaAttr[id]['data-readySelectionStart'] = EO.textareaAttr[id]['data-selectionStart'];
+		EO.textareaAttr[id]['data-readySelectionEdn'] = EO.textareaAttr[id]['data-selectionEnd'];
+	}
+	
+	// Добавяме необходимите стойности в атрибутите на текстареата
+	textarea.setAttribute('data-hotSelection', EO.textareaAttr[id]['data-hotSelection']);
+	textarea.setAttribute('data-readySelection', EO.textareaAttr[id]['data-readySelection']);
+	textarea.setAttribute('data-selectionStart', EO.textareaAttr[id]['data-readySelectionStart']);
+	textarea.setAttribute('data-selectionEnd', EO.textareaAttr[id]['data-readySelectionEdn']);
+	
+	// Инстанция
+	var thisEOInst = this;
+	
+	// Задаваме функцията да се самостартира през определен интервал
+	setTimeout(function() {thisEOInst.saveSelTextInTextarea(textarea)}, this.saveSelTextTimeout);
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
@@ -1860,7 +1937,6 @@ Experta.prototype.log = function(txt)
 		console.log(txt);
 	}
 }
-
 
 // Инстанцираме класа
 EO = new Experta();
