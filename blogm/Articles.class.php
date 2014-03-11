@@ -100,6 +100,12 @@ class blogm_Articles extends core_Master {
 	
 	
 	/**
+	 * Поле за филтриране от фийдовете
+	 */
+	var $feedFilterField = 'categories';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -768,7 +774,7 @@ class blogm_Articles extends core_Master {
      * @param enum $lg
      * @return array()
      */
-    function getItems($itemsCnt, $lg)
+    function getItems($itemsCnt, $lg, $like = NULL)
     {
     	// Заявка за работа с модела
     	$query = $this->getQuery();
@@ -776,6 +782,15 @@ class blogm_Articles extends core_Master {
     	// Филтрираме, подреждаме и ограничаваме броя на резултатите
     	$categories = blogm_Categories::getCategoriesByLang($lg);
     	$query->likeKeylist('categories', keylist::fromArray($categories));
+    	
+    	if($like){
+    		$fldType = $this->fields[$this->feedFilterField]->type;
+    		if($fldType instanceof type_Keylist){
+    			$query->likeKeylist($this->feedFilterField, $like);
+    		} else {
+    			$query->where("{$this->feedFilterField} = '{$like}'");
+    		}
+    	}
     	
     	$query->where("#state = 'active'");
 		$query->orderBy('createdOn', 'DESC');
