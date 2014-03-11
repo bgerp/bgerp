@@ -1114,6 +1114,31 @@ function loginFormPadding()
 	}
 }
 
+/**
+ * Задава ширина на елементите от форма в зависимост от ширината
+ */
+function setFormElementsWidth()
+{
+	var form = $('.formTable');
+	var winWidth = parseInt($(window).width());
+	
+	if(form && winWidth < 620){
+	
+		var off = form.offset();
+		var formOffsetL = parseInt(off.left);
+		var paddingL = parseInt(form.css('paddingLeft'));
+		var inlinePadding = 16;
+		var formEl = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
+		
+		$('.formTable textarea').css('minWidth',formEl);
+		$('.formTable input[type=text]').css('maxWidth',formEl);
+		$('.formTable select').css('maxWidth',formEl);
+		$('.formTable .chzn-container').css('maxWidth',formEl);
+		$('.formTable .chzn-container .chzn-drop').css('maxWidth',formEl -2);
+		$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formEl -12);
+	}
+}
+
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
@@ -1811,7 +1836,7 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=500;
+	Experta.prototype.saveSelTextTimeout=1200;
 	
 	// Данни за селектирания текст в textarea
 	Experta.prototype.textareaAttr = new Array();
