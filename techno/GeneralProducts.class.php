@@ -428,9 +428,7 @@ class techno_GeneralProducts extends core_Master {
       */
      public function fillInquiryForm(&$form)
      {
-     	$params = array();
-     	$params['title'] = (object)array('title' => 'Заглавие', 'type' => 'type_Varchar', 'mandatory' => TRUE);
-     	$params['description'] = (object)array('title' => 'Описание', 'type' => 'type_Richtext(rows=4,bucket=InquiryBucket)', 'mandatory' => TRUE);
+     	$params = $this->getInquiryParams();
      	
 		foreach ($params as $name => $obj){
 		    $form->FNC($name, $obj->type, "caption=Информация за продукта->{$obj->title},input,params,width=100%,after=drvId");
@@ -438,6 +436,19 @@ class techno_GeneralProducts extends core_Master {
 		    	$form->setField($name, 'mandatory');
 		    }
 		}
+     }
+     
+     
+     /**
+      * Връща параметрите които ще се подават на запитването
+      */
+     public function getInquiryParams()
+     {
+     	$params = array();
+     	$params['title'] = (object)array('title' => 'Заглавие', 'type' => 'type_Varchar', 'mandatory' => TRUE);
+     	$params['description'] = (object)array('title' => 'Описание', 'type' => 'type_Richtext(rows=4,bucket=InquiryBucket)', 'mandatory' => TRUE);
+     	
+     	return $params;
      }
      
      

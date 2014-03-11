@@ -119,7 +119,7 @@ class techno_ProductsIntf
      * Връща масив с допълнителни параметри, специфични за технолога. Те ще се
      * използват в запитванията
      * @return array[]   - масив от обекти от вида
-     * 		rec->name - име на параметъра
+     * 		rec->caption - име на параметъра
      * 		rec->type - тип в системата
      */
     public function getInquiryParams()

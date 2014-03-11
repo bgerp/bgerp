@@ -248,6 +248,15 @@ class techno_plg_SpecificationProduct extends core_Plugin
     }
     
     
+    /**
+      * Връща параметрите които ще се подават на запитването
+      */
+    public function on_AfterGetInquiryParams()
+    {
+    	
+    }
+    
+    
 	/**
      * Връща основната мярка, специфична за технолога
      */
