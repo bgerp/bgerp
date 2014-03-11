@@ -117,22 +117,59 @@ class core_ProtoSetup
             $html .= $instances[$manager]->setupMVC();
         }
         
-
+        // името на пакета
+        list ($packName, ) = explode("_", cls::getClassName($this), 2);
+        
+        // конфигурацията на пакета
+        $conf = core_Packs::getConfig($packName);
+        
+        // 3-те имена на константите за менюто
+        $constPosition = strtoupper($packName). "_MENU_POSITION";
+        $constMenuName = strtoupper($packName). "_MENU";
+        $constSubMenu = strtoupper($packName). "_SUB_MENU";
+          
         // Добавяме връзките към модула в менюто
-        if(count($this->menuItems)) {
+        if(count($this->menuItems)) { 
             $Menu = cls::get('bgerp_Menu');
+        
             foreach($this->menuItems as $item) {
-                $row     = $item['row'] ? $item['row'] : $item[0];
-                $menu    = $item['menu'] ? $item['menu'] : $item[1];
-                $subMenu = $item['subMenu'] ? $item['subMenu'] : $item[2];
+            	
+            	if ($conf->{$constPosition}) { 
+            		$row = $conf->{$constPosition};
+            	} elseif ($item['row']) {
+            		$row = $item['row'];
+            	} elseif ($item[0]) {
+            		$row = $item[0];
+            	}
+            	
+            	if ($conf->{$constMenuName}) {
+            		$menu = $conf->{$constMenuName};
+            	} elseif ($item['menu']) {
+            		$menu = $item['menu'];
+            	} elseif ($item[1]) {
+            		$menu = $item[1];
+            	}
+            	
+            	if ($conf->{$constSubMenu}) {
+            		$subMenu = $conf->{$constSubMenu};
+            	} elseif ($item['subMenu']) {
+            		$subMenu = $item['subMenu'];
+            	} elseif ($item[2]) {
+            		$subMenu = $item[2];
+            	}
+            	
+                
                 $ctr     = $item['ctr'] ? $item['ctr'] : $item[3];
                 $act     = $item['act'] ? $item['act'] : $item[4];
                 $roles   = $item['roles'] ? $item['roles'] : $item[5];
 
                 $html .= $Menu->addItem($row, $menu, $subMenu, $ctr, $act, $roles);
+                
+                unset($row);
+                unset($menu);
+                unset($subMenu);
             }
         }
-        
 
         // Създава, ако е необходимо зададените папки
         foreach(arr::make($this->folders) as $path) {
@@ -188,5 +225,46 @@ class core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Конструктор
+     */
+    function core_ProtoSetup() 
+    {
+    	// името на пакета
+        $packName = Request::get('pack');
+        
+        // три имена на променливи за менюто
+        $position = strtoupper($packName). "_MENU_POSITION";
+        $menuName = strtoupper($packName). "_MENU";
+        $subMenu = strtoupper($packName). "_SUB_MENU";
+        
+        // взимаме текущото зададено меню
+        if (count($this->menuItems)) {
+        	$menu = $this->menuItems;
+        	
+        	if (is_array($menu)) {
+        		foreach($menu as $m) {
+        			
+        			// дефинираме константи с определените имена
+        			defIfNot($position, $m[0]);
+        			defIfNot($menuName, $m[1]);
+        			defIfNot($subMenu, $m[2]);
+        			
+        			// слагаме ги в $configDescription
+        			$this->configDescription[$position] = array ('double', 'caption=Меню->Позиция');
+        			$this->configDescription[$menuName] = array ('varchar', 'caption=Меню->Меню');
+        			$this->configDescription[$subMenu] = array ('varchar', 'caption=Меню->Подменю');
+        			
+        			$this->configData[$position] = array($m[0]);
+        			$this->configData[$menuName] = array($m[1]);
+        			$this->configData[$subMenu] = array($m[2]);
+        			
+        			new core_ObjectConfiguration($this->configDescription, $this->configData);
+        		}
+        	}
+        }
     }
 }
