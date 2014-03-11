@@ -843,7 +843,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId && $rec->folderId) {
+        if(!$rec->threadId && $rec->folderId){
         	expect(doc_Folders::haveRightToFolder($rec->folderId));
         }
         
