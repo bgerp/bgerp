@@ -1278,7 +1278,7 @@ class acc_BalanceDetails extends core_Detail
                 'debitAmount'    => 'Дебит->Сума',
                 'creditQuantity' => 'Кредит->К-во',
                 'creditAmount'   => 'Кредит->Сума',
-                'blQuantity'     => 'Остатък->К-о',
+                'blQuantity'     => 'Остатък->К-во',
                 'blAmount'       => 'Остатък->Сума',
             );
         
