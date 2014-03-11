@@ -12,7 +12,7 @@
  */
 class marketing_InquiryRouter extends core_Manager
 {
-	/*public function act_Test(){
+	public function act_Test(){
 		
 		$rec = new stdClass();
 		$rec->country = 22;
@@ -24,7 +24,7 @@ class marketing_InquiryRouter extends core_Manager
 		
 		$l = static::route($rec);
 		bp($l);
-	}*/
+	}
 	
 	
 	/**
@@ -84,7 +84,7 @@ class marketing_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Ако има лице във визитника от същата държава
-		$folderId = sales_Router::routeByPerson($rec->name, $rec->country, $inCharge);
+		$folderId = marketing_Router::routeByPerson($rec->name, $rec->country, $inCharge);
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
