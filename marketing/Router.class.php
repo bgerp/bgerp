@@ -160,17 +160,25 @@ class marketing_Router extends core_Manager
 	 */
 	public static function routeByPerson($name, $countryId, $inCharge)
 	{
-		$name = plg_Search::normalizeText($name);
 		$nameArr = explode(' ', $name);
 		
 		if(count($nameArr) == 1) return;
 		
-		$names = static::normalizeNames('crm_Persons', $countryId);
+		$name = preg_replace('/\s+/', ' ', $name);
 		
-		if($key = array_search($name, $names)){
-			$rec = (object)array('id' => $key, 'inCharge' => $inCharge);
+		$conf = core_Packs::getConfig('crm');
+		$query = crm_Persons::getQuery();
+		$query->where("#name = '{$name}'");
+		$query->where("#country = {$countryId}");
+		
+		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
+		if($ownCountryId == $countryId){
+			$query->orWhere("#country IS NULL");
+		}
+		
+		if($person = $query->fetch()){
 			
-			return crm_Persons::forceCoverAndFolder($rec);
+			return crm_Persons::forceCoverAndFolder((object)array('id' => $person->id, 'inCharge' => $inCharge));
 		}
 	}
 	
@@ -235,48 +243,21 @@ class marketing_Router extends core_Manager
 	 */
 	public static function routeByCompanyName($name, $countryId, $inCharge)
 	{
-		$name = plg_Search::normalizeText($name);
-		$nameArr = explode(' ', $name);
-		if(count($nameArr) == 1) return;
-		
-		$names = static::normalizeNames('crm_Companies', $countryId);
-		
-		if($key = array_search($name, $names)){
-			$rec = (object)array('id' => $key, 'inCharge' => $inCharge);
-			
-			return crm_Companies::forceCoverAndFolder($rec);
-		}
-	}
-	
-	
-	/**
-	 * Връща масив от нормализирани имена на даден модел
-	 * 
-	 * @param mixed $class - клас
-	 * @param int $countryId - ид на държава
-	 * @param string $nameFld - името на полето за заглавие
-	 * @return int - ид на държава
-	 */
-	private static function normalizeNames($class, $countryId, $nameFld = 'name')
-	{
-		$Class = cls::get($class);
-		
-		$arr = array();
-		$query = $Class::getQuery();
-		$query->where("#country = {$countryId}");
+		$name = preg_replace('/\s+/', ' ', $name);
 		
 		$conf = core_Packs::getConfig('crm');
+		$query = crm_Companies::getQuery();
+		$query->where("#name = '{$name}'");
+		$query->where("#country = {$countryId}");
+		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
 		if($ownCountryId == $countryId){
 			$query->orWhere("#country IS NULL");
 		}
 		
-		$query->show('name,id,country');
-		
-		while($rec = $query->fetch()){
-			$arr[$rec->id] = plg_Search::normalizeText($rec->{$nameFld});
+		if($company = $query->fetch()){
+			
+			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
-		
-		return $arr;
 	}
 }

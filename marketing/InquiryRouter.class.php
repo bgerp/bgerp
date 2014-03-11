@@ -12,21 +12,6 @@
  */
 class marketing_InquiryRouter extends core_Manager
 {
-	public function act_Test(){
-		
-		$rec = new stdClass();
-		$rec->country = 22;
-		$rec->name = 'Ivelin Dimov4';
-		$rec->company = 'Deni AD4';
-		$rec->email = 'fddgdhgesg444@gmail.com';
-		$rec->tel = '08834566';
-		$rec->place = 'София';
-		
-		$l = static::route($rec);
-		bp($l);
-	}
-	
-	
 	/**
 	 * Рутиране на запитване
 	 * @param stdClass $rec - запис на запитване

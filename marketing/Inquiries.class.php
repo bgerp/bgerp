@@ -68,6 +68,12 @@ class marketing_Inquiries extends core_Master
     
     
     /**
+     * Групиране на документите
+     */ 
+    public $newBtnGroup = "3.91|Търговия";
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,sales,marketing';
@@ -288,7 +294,7 @@ class marketing_Inquiries extends core_Master
     	$data->form->addAttr('drvId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
     	
     	if($data->form->rec->id){
-    		foreach($data->form->rec->data['recs'] as $fld => $dRec){
+    		foreach($data->form->rec->data as $fld => $dRec){
     			$data->form->setDefault($fld, $dRec);
     		}
     	}
@@ -364,22 +370,19 @@ class marketing_Inquiries extends core_Master
     private function getDataFromForm($form)
     {
     	// Преобразува допълнителната информация във вид удобен за съхраняване
-    	$rows = $recs = array();
+    	$recs = array();
     	$dataFlds = $form->selectFields('#params');
     	
     	if(count($dataFlds)){
     		foreach ((array)$dataFlds as $k => $v){
     			
-    			// За всеки елемент, се извличат неговите вътрешни и вербални данни
-    			// вербалните ще се използват за визуализиране в сингъла
+    			// За всеки елемент, се извличат неговите вътрешни данни
     			if(isset($form->rec->$k) && strlen($form->rec->$k)){
     				$recs[$k] = $form->rec->$k;
-    				$caption = explode('->', $form->fields[$k]->caption);
-    				$rows[$caption[1]] = $form->fields[$k]->type->toVerbal($form->rec->$k);
     			}
     		}
     		
-    		return array('recs' => $recs, 'rows' => $rows);
+    		return $recs;
     	}
     }
     
@@ -457,21 +460,25 @@ class marketing_Inquiries extends core_Master
      */
     function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	$mvc->renderInquiryParams($tpl, $data->rec->data['rows']);
+    	$mvc->renderInquiryParams($tpl, $data->rec->data, $data->rec->drvId);
     }
     
     
     /**
      * Рендира информацията за продукта
      */
-    private function renderInquiryParams(&$tpl, $rows, $html = FALSE)
+    private function renderInquiryParams(&$tpl, $recs, $drvId, $html = FALSE)
     {
     	$dataRow = $tpl->getBlock('DATA_ROW');
+    	$Driver = cls::get($drvId);
+    	$params = $Driver->getInquiryParams();
     	
-    	if(count($rows)){
-	    	foreach ($rows as $caption => $value){
-	    		$value = ($html) ? strip_tags($value) : $value;
-	    		$dataRow->replace($caption, 'CAPTION');
+    	if(count($recs)){
+	    	foreach ($recs as $name => $value){
+	    		$Type = core_Type::getByName($params[$name]->type);
+	    		$value = $Type->toVerbal($value);
+	    		//$value = ($html) ? strip_tags($value) : $value;
+	    		$dataRow->replace($params[$name]->title, 'CAPTION');
 	    		$dataRow->replace($value, 'VALUE');
 	    		$dataRow->removePlaces();
 	    		$dataRow->append2master();
@@ -523,8 +530,11 @@ class marketing_Inquiries extends core_Master
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		
-    		$this->renderInquiryParams($tpl, $rec->data['rows']);
-    		$this->renderInquiryParams($tplAlt, $rec->data['rows'], TRUE);
+    		Mode::push('text', 'plain');
+    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
+    		Mode::pop('text');
+    		//bp($tpl);
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
