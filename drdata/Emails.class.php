@@ -86,6 +86,9 @@ class drdata_Emails extends core_BaseClass
             return;
         }
         
+        // Заобикаляне на останалите проверки
+        return;
+        
         if (count($mxhosts)) {
             $notOpen = 0;
             $timeOutsCnt = 0;
@@ -113,7 +116,7 @@ class drdata_Emails extends core_BaseClass
                                 break;
                             case 5 : // Потребителя не съществува - връща грешка
                                 $user = substr($email, 0, strpos($email, '@'));
-                                $result['error'] = "Липсваща кутия |*<b>{$user}</b> |на сървъра|* <b>{$domain}</b>";
+                                $result['error'] = "Липсваща кутия|* <b>{$user}</b> |на сървъра|* <b>{$domain}</b>";
                                 $this->smtpSend($sock, "QUIT");
                                 fclose($sock);
                                 
