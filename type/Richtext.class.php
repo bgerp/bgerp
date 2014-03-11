@@ -124,7 +124,9 @@ class type_Richtext extends type_Blob
         }
         
     	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
-        
+    	
+    	$tpl->append("\n runOnLoad(function(){EO.saveSelTextInTextarea(document.getElementById('{$attr['id']}'));});", 'SCRIPTS');
+    	
         return $tpl;
     }
     
