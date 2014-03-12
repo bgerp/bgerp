@@ -198,8 +198,9 @@ class marketing_Inquiries extends core_Master
     	expect($drvId = Request::get('drvId', 'int'));
     	expect($inqCls = Request::get('inqCls'));
     	expect($inqId = Request::get('inqId'));
-    	if($lg = Request::get('lg')){
+    	if($lg = Request::get('Lg')){
     		cms_Content::setLang($lg);
+    		core_Lg::push($lg);
     	}
     	
     	$Source = new core_ObjectReference($inqCls, $inqId);
@@ -254,6 +255,10 @@ class marketing_Inquiries extends core_Master
     	
         // Поставяме шаблона за външен изглед
 		Mode::set('wrapper', 'cms_Page');
+		
+		if($lg){
+			core_Lg::pop();
+		}
 		
     	return $tpl;
     }
