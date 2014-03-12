@@ -147,7 +147,7 @@ class price_ListToCustomers extends core_Detail
      */
     public static function on_AfterPrepareDetailQuery($mvc, $data)
     {
-        $cClassId = core_Classes::getId($mvc->Master);
+        $cClassId = core_Classes::getId($data->masterMvc);
         
         $data->query->where("#cClass = {$cClassId}");
 
@@ -274,7 +274,7 @@ class price_ListToCustomers extends core_Detail
 
         $now = dt::verbal2mysql();
 
-        $cClassId = core_Classes::getId($data->masterMvc );
+        $cClassId = core_Classes::getId($data->masterMvc);
         
         $validRec = self::getValidRec($cClassId, $data->masterId, $now);
        
