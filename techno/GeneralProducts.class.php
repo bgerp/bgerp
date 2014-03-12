@@ -119,7 +119,7 @@ class techno_GeneralProducts extends core_Master {
     function description()
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие, mandatory,remember=info,width=100%');
-    	$this->FLD('description', 'richtext(rows=5, bucket=Notes)', 'caption=Описание,mandatory,width=100%');
+    	$this->FLD('description', 'richtext(rows=6, bucket=Notes)', 'caption=Описание,mandatory,width=100%');
 		$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory');
     	$this->FLD('image', 'fileman_FileType(bucket=techno_GeneralProductsImages)', 'caption=Параметри->Изображение');
 		$this->FLD('code', 'varchar(64)', 'caption=Параметри->Код,remember=info,width=15em');
@@ -446,7 +446,7 @@ class techno_GeneralProducts extends core_Master {
      {
      	$params = array();
      	$params['title'] = (object)array('title' => 'Заглавие', 'type' => 'type_Varchar', 'mandatory' => TRUE);
-     	$params['description'] = (object)array('title' => 'Описание', 'type' => 'type_Richtext(rows=4,bucket=InquiryBucket)', 'mandatory' => TRUE);
+     	$params['description'] = (object)array('title' => 'Описание', 'type' => 'type_Richtext(rows=6,bucket=InquiryBucket)', 'mandatory' => TRUE);
      	
      	return $params;
      }
