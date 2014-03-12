@@ -184,4 +184,13 @@ class techno_ProductsIntf
      {
      	return $this->class->getDriverUom($params);
      }
+     
+     
+     /**
+      * Връща прикачените файлове
+      */
+     public static function getAttachedFiles($rec)
+     {
+     	return $this->class->getAttachedFiles($rec);
+     }
 }

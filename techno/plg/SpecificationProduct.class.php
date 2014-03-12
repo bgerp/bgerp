@@ -355,4 +355,21 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		return $mvc->getParam($id, 'volume');
     	}
     }
+    
+    
+	 /**
+      * Връща прикачените файлове
+      */
+     public static function on_AfterGetAttachedFiles($mvc, &$res, $rec)
+     {
+     	if(!$res){
+     		$res = array();
+     		foreach ((array)$rec as $name => $value){
+     			if($mvc->fields[$name]->type instanceof type_Richtext){
+     				$files = fileman_RichTextPlg::getFiles($value);
+     				$res = array_merge($res, $files);
+     			}
+     		}
+     	}
+     }
 }    
