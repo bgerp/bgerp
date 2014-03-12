@@ -1563,12 +1563,7 @@ en,Жълт фон,Yellow background
 en,Зелен фон,Green background
 en,Червен фон,Red background
 en,Черен фон,Black background
-en,Заглавие 1,Title 1
-en,Заглавие 2,Title 2
-en,Заглавие 3,Title 3
-en,Заглавие 4,Title 4
-en,Заглавие 5,Title 5
-en,Заглавие 6,Title 6
+en,Заглавие,Heading
 en,Блок,Block
 en,Цитат,Quote
 en,Успех,Success
@@ -1659,3 +1654,7 @@ en,Недопустими символи в число/израз,Inadmissible s
 en,Избери,Choose
 en,Добавяне на файл(ове),Add file(s)
 en,Линк към файла за вземане,File link
+en,Няма резултати,No results found
+en,Добавете линк,Add link
+en,Заглавия,Headings
+en,Въведете количество, Please insert quantity
