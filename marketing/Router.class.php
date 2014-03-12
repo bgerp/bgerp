@@ -168,7 +168,7 @@ class marketing_Router extends core_Manager
 		
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Persons::getQuery();
-		$query->where("#name = '{$name}'");
+		$query->where(array("#name = '[#1#]'", $name));
 		$query->where("#country = {$countryId}");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
@@ -247,7 +247,7 @@ class marketing_Router extends core_Manager
 		
 		$conf = core_Packs::getConfig('crm');
 		$query = crm_Companies::getQuery();
-		$query->where("#name = '{$name}'");
+		$query->where(array("#name = '[#1#]'", $name));
 		$query->where("#country = {$countryId}");
 		
 		$ownCountryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'");
