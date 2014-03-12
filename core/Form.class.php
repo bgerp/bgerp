@@ -152,12 +152,14 @@ class core_Form extends core_FieldSet
             
             $value = Request::get($name);
             
+            $captions = str_replace('->', '|* » |', $field->caption);
+
             // Ако $silent, не сме критични към празните стойности
             if(($value === NULL) && $silent) continue;
             
             if ($value === "" && $field->mandatory && $this->cmd != 'refresh') {
                 $this->setError($name, "Непопълнено задължително поле" .
-                    "|* <b>'|{$field->caption}|*'</b>!");
+                    "|* <b>'|{$captions}|*'</b>!");
                 continue;
             }
             
@@ -176,14 +178,14 @@ class core_Form extends core_FieldSet
                 // Не могат да се селектират неща които не са опции  
                 if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
-                        "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$captions}|*</b>!");
                     continue;
                 }
                 
                 // Не могат да се селектират групи!
                 if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
-                        "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$captions}|*</b>!");
                     continue;
                 }
                 
@@ -208,7 +210,7 @@ class core_Form extends core_FieldSet
                 
                 if (($value === NULL || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $this->setError($name, "Непопълнено задължително поле" .
-                        "|* <b>'|{$field->caption}|*'</b>!");
+                        "|* <b>'|{$captions}|*'</b>!");
                     continue;
                 }
                 
@@ -261,10 +263,12 @@ class core_Form extends core_FieldSet
         
             // Ако $silent, не сме критични към празните стойности
             if(($value === NULL) && $silent) continue;
-        
+           
+            $captions = str_replace('->', '|* » |', $field->caption);
+            
             if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълнено задължително поле" .
-                    "|* <b>'|{$field->caption}|*'</b>!");
+                    "|* <b>'|{$captions}|*'</b>!");
                 continue;
             }
         
@@ -283,14 +287,14 @@ class core_Form extends core_FieldSet
                 // Не могат да се селектират неща които не са опции
                 if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
-                        "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$captions}|*</b>!");
                     continue;
                 }
         
                 // Не могат да се селектират групи!
                 if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
-                        "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$captions}|*</b>!");
                     continue;
                 }
         
@@ -315,7 +319,7 @@ class core_Form extends core_FieldSet
         
                 if (($value === NULL || $value === '') && $field->mandatory) {
                     $this->setError($name, "Непопълнено задължително поле" .
-                        "|* <b>'|{$field->caption}|*'</b>!");
+                        "|* <b>'|{$captions}|*'</b>!");
                     continue;
                 }
         
@@ -355,16 +359,18 @@ class core_Form extends core_FieldSet
      */
     function setErrorFromResult($result, $field, $name)
     {
+        $captions = str_replace('->', '|* » |', $field->caption);
+
         if ($result['warning'] && !$result['error']) {
             $this->setWarning($name, "Възможен проблем с полето|" .
-                "* <b>'|" . $field->caption .
+                "* <b>'|" . $captions .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
                 $result['warning'] . "|*</small>");
         }
         
         if ($result['error']) {
             $this->setError($name, "Некоректна стойност на полето|" .
-                "* <b>'|" . $field->caption .
+                "* <b>'|" . $captions .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
                 $result['error'] .
                 ($result['warning'] ? ("|*<br>|" .
@@ -578,7 +584,8 @@ class core_Form extends core_FieldSet
                 if ($field->placeholder) {
                     $attr['placeholder'] = tr($field->placeholder);
                 } elseif ($this->view == 'horizontal') {
-                    $attr['placeholder'] = tr($field->caption);
+                    $captions = str_replace('->', '|* » |', $field->caption);
+                    $attr['placeholder'] = tr($captions);
                 }
                 
                 $type = clone($field->type);
