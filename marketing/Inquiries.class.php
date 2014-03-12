@@ -55,13 +55,6 @@ class marketing_Inquiries extends core_Master
     
     
     /**
-     * Име на папката по подразбиране при създаване на нови документи от този тип.
-     * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
-     */
-    public $defaultFolder = 'Запитвания';
-    
-    
-    /**
      * Колоната, в която да се появят инструментите на plg_RowTools
      */
     public $rowToolsField = 'tools';
@@ -182,7 +175,7 @@ class marketing_Inquiries extends core_Master
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,width=6em');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,width=6em');
     	
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Вашето име');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Вашето име,contragentDataField=person');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
@@ -215,7 +208,7 @@ class marketing_Inquiries extends core_Master
     	$form->rec->country = $this->getDefaultCountry($form->rec);
     	
     	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
-    	if(core_Users::getCurrent('id', FALSE)){
+    	if(core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
     		$this->invoke('AfterPrepareCustomForm', array((object)array('form' => $form)));
     	}
     	
@@ -255,6 +248,9 @@ class marketing_Inquiries extends core_Master
         $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
         $tpl = $form->renderHtml();
     	
+        // Поставяме шаблона за външен изглед
+		Mode::set('wrapper', 'cms_Page');
+		
     	return $tpl;
     }
     
@@ -271,7 +267,7 @@ class marketing_Inquiries extends core_Master
     	$form->title = 'Запитване за поръчков продукт';
     	
     	// Ако има логнат потребител
-    	if($cu = core_Users::getCurrent('id', FALSE)){
+    	if($cu = core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
     		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
@@ -597,6 +593,7 @@ class marketing_Inquiries extends core_Master
         $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->authorEmail = $rec->email;
         $row->state = $rec->state;
 		$row->recTitle = $row->title;
 		
@@ -609,13 +606,6 @@ class marketing_Inquiries extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	// От логнатите потребители, само контрактора може да създава запитвания
-    	if($action == 'new' && isset($userId)){
-    		if(haveRole('powerUser')){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	// Кога може да се създава лице
     	if($action == 'makeperson' && isset($rec)){
     		
