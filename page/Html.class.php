@@ -147,6 +147,6 @@ class page_Html extends core_ET {
     static function saveSelTextJs(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n runOnLoad(function(){var EO = getEO(); EO.saveSelText();});", 'SCRIPTS');
+        $tpl->appendOnce("\n runOnLoad(function(){var EO = getEO(); \n EO.saveSelText();});", 'SCRIPTS');
     }
 }

@@ -1945,41 +1945,40 @@ Experta.prototype.saveSelTextInTextarea = function(textarea)
 	
 	// Позиция на края на избрания текст
 	var selectionEnd = textarea.selectionEnd;
-	console.log(EO);
-	console.log(this);
+	
 	// Ако не е създаден обект за тази текстареа
-	if (typeof EO.textareaAttr[id] == 'undefined') {
+	if (typeof this.textareaAttr[id] == 'undefined') {
 		
 		// Създаваме обект, със стойности по подразбиране
-		EO.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
+		this.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
 								'data-readySelectionStart': 0, 'data-readySelectionEdn': 0};
 	}
 	
 	// Ако сме избрали нещо различно от предишното извикване на функцията
-	if ((EO.textareaAttr[id]['data-hotSelection'] != selText) || 
-			(EO.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
-			(EO.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
+	if ((this.textareaAttr[id]['data-hotSelection'] != selText) || 
+			(this.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
+			(this.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
 		
 		// Задаваме новите стойности
-		EO.textareaAttr[id]['data-hotSelection'] = selText;
-		EO.textareaAttr[id]['data-selectionStart'] = selectionStart;
-		EO.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
+		this.textareaAttr[id]['data-hotSelection'] = selText;
+		this.textareaAttr[id]['data-selectionStart'] = selectionStart;
+		this.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
 		
 	} else {
 		
 		// Ако не сме променили избрания текст
 		
 		// Задаваме стойностите
-		EO.textareaAttr[id]['data-readySelection'] = selText;
-		EO.textareaAttr[id]['data-readySelectionStart'] = EO.textareaAttr[id]['data-selectionStart'];
-		EO.textareaAttr[id]['data-readySelectionEdn'] = EO.textareaAttr[id]['data-selectionEnd'];
+		this.textareaAttr[id]['data-readySelection'] = selText;
+		this.textareaAttr[id]['data-readySelectionStart'] = this.textareaAttr[id]['data-selectionStart'];
+		this.textareaAttr[id]['data-readySelectionEdn'] = this.textareaAttr[id]['data-selectionEnd'];
 	}
 	
 	// Добавяме необходимите стойности в атрибутите на текстареата
-	textarea.setAttribute('data-hotSelection', EO.textareaAttr[id]['data-hotSelection']);
-	textarea.setAttribute('data-readySelection', EO.textareaAttr[id]['data-readySelection']);
-	textarea.setAttribute('data-selectionStart', EO.textareaAttr[id]['data-readySelectionStart']);
-	textarea.setAttribute('data-selectionEnd', EO.textareaAttr[id]['data-readySelectionEdn']);
+	textarea.setAttribute('data-hotSelection', this.textareaAttr[id]['data-hotSelection']);
+	textarea.setAttribute('data-readySelection', this.textareaAttr[id]['data-readySelection']);
+	textarea.setAttribute('data-selectionStart', this.textareaAttr[id]['data-readySelectionStart']);
+	textarea.setAttribute('data-selectionEnd', this.textareaAttr[id]['data-readySelectionEdn']);
 	
 	// Инстанция
 	var thisEOInst = this;
