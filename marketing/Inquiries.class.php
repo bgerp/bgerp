@@ -203,9 +203,11 @@ class marketing_Inquiries extends core_Master
     {
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
-    	
-    	$params = Request::get('coParams');
-    	$params = $this->parseParams($params);
+    	expect($inqCls = Request::get('inqCls'));
+    	expect($inqId = Request::get('inqId'));
+    	$Source = new core_ObjectReference($inqCls, $inqId);
+    	expect($Source->haveInterface('marketing_InquirySourceIntf'));
+    	$params = $Source->getCustomizationParams();
     	
     	// Взимаме формата
     	$form = $this->prepareForm($drvId);
@@ -219,6 +221,13 @@ class marketing_Inquiries extends core_Master
     	
     	// Добавяме полетата от избрания драйвер
     	$this->addFormFieldsFromDriver($form);
+    	
+    	// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
+    	foreach ($form->fields as $name => $fld){
+    		if($fld->kind == 'FNC' && isset($params[$name])){
+    			$form->setDefault($name, $params[$name]);
+    		}
+    	}
     	
     	// Инпут на формата
     	$form->input();
@@ -477,7 +486,6 @@ class marketing_Inquiries extends core_Master
 	    	foreach ($recs as $name => $value){
 	    		$Type = core_Type::getByName($params[$name]->type);
 	    		$value = $Type->toVerbal($value);
-	    		//$value = ($html) ? strip_tags($value) : $value;
 	    		$dataRow->replace($params[$name]->title, 'CAPTION');
 	    		$dataRow->replace($value, 'VALUE');
 	    		$dataRow->removePlaces();
@@ -530,11 +538,11 @@ class marketing_Inquiries extends core_Master
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		
-    		Mode::push('text', 'plain');
     		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
-    		Mode::pop('text');
-    		//bp($tpl);
+    		
+    		Mode::push('text', 'plain');
     		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		Mode::pop('text');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
@@ -593,26 +601,6 @@ class marketing_Inquiries extends core_Master
 		$row->recTitle = $row->title;
 		
         return $row;
-    }
-    
-    
-    /**
-     * Парсира текстовия вид на параметрите в удобен масив за работа
-     * 
-     * @param text $params - параметри
-     * @return array $newArr - параметри
-     */
-    private function parseParams($params)
-    {
-    	$paramsArr = explode(PHP_EOL, $params);
-    	if(count($paramsArr)){
-    		foreach ($paramsArr as $str){
-    			$arr = explode('=', $str);
-    			$newArr[$arr[0]] = $arr[1];
-    		}
-    	}
-    	
-    	return $newArr;
     }
     
     
