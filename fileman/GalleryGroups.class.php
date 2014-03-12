@@ -90,7 +90,7 @@ class fileman_GalleryGroups extends core_Manager
         $this->FLD('width', 'int', 'caption=Картинка->Широчина');
         $this->FLD('height', 'int', 'caption=Картинка->Височина');
         
-        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty)', 'caption=Роли, width=100%,placeholder=Всички');
+        $this->FLD('roles', 'keylist(mvc=core_Roles, select=role, allowEmpty,groupBy=type)', 'caption=Роли, width=100%,placeholder=Всички');
         
         $this->setDbUnique('title, position');
     }
