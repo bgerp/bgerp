@@ -1,8 +1,4 @@
 <div>
-|Дата|* : [#time#] <br />
-|ИП|* : [#ip#]<br />
-|Браузър|* : [#browser#]<br />
-<br />
 <b>|Информация за продукта|*</b><br />
 |Драйвър|* : [#drvId#] <br />
 <!--ET_BEGIN DATA_ROW-->
@@ -40,4 +36,9 @@
 <!--ET_BEGIN address-->
 |Адрес|* : [#address#]<br />
 <!--ET_END address-->
+
+|Дата|* : [#time#] <br />
+|ИП|* : [#ip#]<br />
+|Браузър|* : [#browser#]<br />
+<br />
 </div>
