@@ -496,7 +496,7 @@ function getSelectedText(textarea)
 {
 	var selectedText = '';
 	
-	if (typeof(textarea.selectionStart) != 'undefined' ) {
+	if (textarea && typeof(textarea.selectionStart) != 'undefined') {
 		selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
 	}
 	
@@ -1223,6 +1223,8 @@ function getSelText()
     		txt = document.selection.createRange();
     	}
     } catch(err) {
+    	var EO = getEO();
+    	
     	EO.log('Грешка при извличане на текста');
     }
     
@@ -1461,6 +1463,9 @@ efae.prototype.run = function()
 		// Увеличаваме брояча
 		this.increaseTimeout();
 	} catch(err) {
+		
+		var EO = getEO();
+		
 		// Ако възникне грешка
 		EO.log('Грешка при стартиране на процеса');
 	} finally {
@@ -1490,6 +1495,8 @@ efae.prototype.process = function()
 	
 	// Ако не е дефинирано URL
 	if (!efaeUrl) {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('Не е дефинирано URL, което да се вика');
@@ -1533,6 +1540,9 @@ efae.prototype.process = function()
 			    	
 			    	// Ако няма функция
 		    		if (!func) {
+		    			
+		    			var EO = getEO();
+		    			
 		    			// Изкарваме грешката в лога
 						EO.log('Не е подадена функция');
 		    			
@@ -1548,6 +1558,8 @@ efae.prototype.process = function()
 		    			window[func](arg);
 		    		} catch(err) {
 		    			
+		    			var EO = getEO();
+		    			
 		    			// Ако възникне грешка
 		    			EO.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
 		    		}
@@ -1555,10 +1567,14 @@ efae.prototype.process = function()
 			    
 			}).fail(function(res) {
 				
+				var EO = getEO();
+				
 				// Ако възникне грешка
 				EO.log('Грешка при извличане на данни по AJAX');
 			});
 	} else {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('JQuery не е дефиниран');
@@ -1686,7 +1702,13 @@ function render_html(data)
 		var idObj = $('#'+id);
 		
 		// Ако няма такъв таг
-		if (!idObj.length) EO.log('Липсва таг с id: ' + id);
+		if (!idObj.length) {
+			
+			var EO = getEO();
+			
+			// Задаваме грешката
+			EO.log('Липсва таг с id: ' + id);
+		}
 		
 		// Ако е зададено да се замества
 		if ((typeof replace != 'undefined') && (replace)) {
@@ -1840,6 +1862,9 @@ function Experta()
 	// Време на извикване
 	Experta.prototype.saveSelTextTimeout=1200;
 	
+	// Време на извикване в textarea
+	Experta.prototype.saveSelTextareaTimeout=400;
+	
 	// Данни за селектирания текст в textarea
 	Experta.prototype.textareaAttr = new Array();
 }
@@ -1895,74 +1920,109 @@ Experta.prototype.getSavedSelText = function()
 /**
  * Добавя в атрибутите на текстареа позицията и текста на избрания текст
  * 
- * @param textarea
+ * @param integer id
  */
-Experta.prototype.saveSelTextInTextarea = function(textarea)
+Experta.prototype.saveSelTextInTextarea = function(id)
 {
-	//textarea = document.getElementById(id);
+	// Текстареата
+	textarea = document.getElementById(id);
 	
-	// id на текстареата
-	id = textarea.getAttribute('id');
-	
-	// Вземаме избрания текст
-	// var selText = getSelText();
-	var selText = getSelectedText(textarea);
-	
-	// Ако има функция за превръщане в стринг
-	if (selText.toString) {
+	// Ако текстареата е на фокус
+	if (textarea.getAttribute('data-focus') == 'focused') {
 		
-		// Вземаме стринга
-		selText = selText.toString();
-    } else {
-    	
-    	return;
-    }
-	
-	// Позиция на начало на избрания текст
-	var selectionStart = textarea.selectionStart;
-	
-	// Позиция на края на избрания текст
-	var selectionEnd = textarea.selectionEnd;
-	
-	// Ако не е създаден обект за тази текстареа
-	if (typeof EO.textareaAttr[id] == 'undefined') {
+		// id на текстареата
+		//id = textarea.getAttribute('id');
 		
-		// Създаваме обект, със стойности по подразбиране
-		EO.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
-								'data-readySelectionStart': 0, 'data-readySelectionEdn': 0};
+		// Вземаме избрания текст
+		// var selText = getSelText();
+		var selText = getSelectedText(textarea);
+		
+		// Ако има функция за превръщане в стринг
+		if (selText.toString) {
+			
+			// Вземаме стринга
+			selText = selText.toString();
+	    } else {
+	    	
+	    	return;
+	    }
+		
+		// Позиция на начало на избрания текст
+		var selectionStart = textarea.selectionStart;
+		
+		// Позиция на края на избрания текст
+		var selectionEnd = textarea.selectionEnd;
+		
+		// Ако не е създаден обект за тази текстареа
+		if (typeof this.textareaAttr[id] == 'undefined') {
+			
+			// Създаваме обект, със стойности по подразбиране
+			this.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
+									'data-readySelectionStart': 0, 'data-readySelectionEdn': 0};
+		}
+		
+		// Ако сме избрали нещо различно от предишното извикване на функцията
+		if ((this.textareaAttr[id]['data-hotSelection'] != selText) || 
+				(this.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
+				(this.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
+			
+			// Задаваме новите стойности
+			this.textareaAttr[id]['data-hotSelection'] = selText;
+			this.textareaAttr[id]['data-selectionStart'] = selectionStart;
+			this.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
+			
+		} else {
+			
+			// Ако не сме променили избрания текст
+			
+			// Задаваме стойностите
+			this.textareaAttr[id]['data-readySelection'] = selText;
+			this.textareaAttr[id]['data-readySelectionStart'] = this.textareaAttr[id]['data-selectionStart'];
+			this.textareaAttr[id]['data-readySelectionEdn'] = this.textareaAttr[id]['data-selectionEnd'];
+		}
+		
+		// Добавяме необходимите стойности в атрибутите на текстареата
+		textarea.setAttribute('data-hotSelection', this.textareaAttr[id]['data-hotSelection']);
+		textarea.setAttribute('data-readySelection', this.textareaAttr[id]['data-readySelection']);
+		textarea.setAttribute('data-selectionStart', this.textareaAttr[id]['data-readySelectionStart']);
+		textarea.setAttribute('data-selectionEnd', this.textareaAttr[id]['data-readySelectionEdn']);
 	}
-	
-	// Ако сме избрали нещо различно от предишното извикване на функцията
-	if ((EO.textareaAttr[id]['data-hotSelection'] != selText) || 
-			(EO.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
-			(EO.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
-		
-		// Задаваме новите стойности
-		EO.textareaAttr[id]['data-hotSelection'] = selText;
-		EO.textareaAttr[id]['data-selectionStart'] = selectionStart;
-		EO.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
-		
-	} else {
-		
-		// Ако не сме променили избрания текст
-		
-		// Задаваме стойностите
-		EO.textareaAttr[id]['data-readySelection'] = selText;
-		EO.textareaAttr[id]['data-readySelectionStart'] = EO.textareaAttr[id]['data-selectionStart'];
-		EO.textareaAttr[id]['data-readySelectionEdn'] = EO.textareaAttr[id]['data-selectionEnd'];
-	}
-	
-	// Добавяме необходимите стойности в атрибутите на текстареата
-	textarea.setAttribute('data-hotSelection', EO.textareaAttr[id]['data-hotSelection']);
-	textarea.setAttribute('data-readySelection', EO.textareaAttr[id]['data-readySelection']);
-	textarea.setAttribute('data-selectionStart', EO.textareaAttr[id]['data-readySelectionStart']);
-	textarea.setAttribute('data-selectionEnd', EO.textareaAttr[id]['data-readySelectionEdn']);
 	
 	// Инстанция
 	var thisEOInst = this;
 	
 	// Задаваме функцията да се самостартира през определен интервал
-	setTimeout(function() {thisEOInst.saveSelTextInTextarea(textarea)}, this.saveSelTextTimeout);
+	setTimeout(function() {thisEOInst.saveSelTextInTextarea(id)}, this.saveSelTextareaTimeout);
+}
+
+
+/**
+ * Сетва атрибута на текстареа, при фокус
+ * 
+ * @param integer id
+ */
+Experta.prototype.textareaFocus = function(id)
+{
+	// Текстареата
+	textarea = document.getElementById(id);
+	
+	// Задваме в атрибута
+	textarea.setAttribute('data-focus', 'focused');
+}
+
+
+/**
+ * Сетва атрибута на текстареа, при загуба на фокус
+ * 
+ * @param integer id
+ */
+Experta.prototype.textareaBlur = function(id)
+{
+	// Текстареата
+	textarea = document.getElementById(id);
+	
+	// Задваме в атрибута
+	textarea.setAttribute('data-focus', 'none');
 }
 
 
@@ -1974,21 +2034,79 @@ Experta.prototype.saveSelTextInTextarea = function(textarea)
 Experta.prototype.log = function(txt)
 {
 	// Ако не е дефиниран обекта
-	if (typeof console === "undefined") {
-	   console = {
-	       log : function(){},
-	       info : function(){},
-	       error : function(){}
-	   }
-	} else {
+	if (typeof console != "undefined") {
 		
 		// Показваме съобщението
 		console.log(txt);
 	}
 }
 
-// Инстанцираме класа
-EO = new Experta();
 
-// Стартираме фунцкцията за записване на избрания текст
-EO.saveSelText()
+/**
+ * Масив със сингълтон обектите
+ */
+var _singletonInstance = new Array();
+
+
+/**
+ * Връща сингълтон обект за съответната функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function getSingleton(name)
+{
+	// Ако не е инстанциран преди
+	if (!this._singletonInstance[name]) {
+		
+		// Вземаме обекта
+		this._singletonInstance[name] = this.createObject(name);
+	}
+	
+	return this._singletonInstance[name];
+}
+
+
+/**
+ * Създава обект от подаденат функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function createObject(name)
+{
+	try {
+		var inst = new window[name];
+	} catch (err) {
+
+		var inst = Object.create(window[name].prototype);
+	}
+	
+	return inst;
+}
+
+
+/**
+ * Връща сингълтон инстанция за класа Experta
+ * 
+ * @return object
+ */
+function getEO()
+{
+	
+	return this.getSingleton('Experta');
+}
+
+
+/**
+ * Връща сингълтон инстанция за efae класа
+ * 
+ * @return object
+ */
+function getEfae()
+{
+	
+	return this.getSingleton('efae');
+}

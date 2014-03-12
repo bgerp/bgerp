@@ -104,7 +104,8 @@ class type_Richtext extends type_Blob
         $attr['onclick'] = 'sc(this);';
         $attr['onkeyup'] = 'sc(this);';
         $attr['onchange'] = 'sc(this);';
-        
+        $attr['onfocus'] = "var EO = getEO(); EO.textareaFocus('{$attr['id']}');";
+        $attr['onblur'] = "var EO = getEO(); EO.textareaBlur('{$attr['id']}');";
         
         $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
@@ -125,7 +126,7 @@ class type_Richtext extends type_Blob
         
     	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');
     	
-    	$tpl->append("\n runOnLoad(function(){EO.saveSelTextInTextarea(document.getElementById('{$attr['id']}'));});", 'SCRIPTS');
+    	$tpl->append("\n runOnLoad(function(){var EO = getEO(); \n EO.saveSelTextInTextarea('{$attr['id']}');});", 'SCRIPTS');
     	
         return $tpl;
     }

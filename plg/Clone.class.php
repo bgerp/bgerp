@@ -2,8 +2,7 @@
 
 
 /**
- * Клас 'plg_Clone' - Добавя бутон за клониране
- *
+ * Клас 'plg_Clone' - Плъгин за клониране в листов и сингъл излгед
  *
  * @category  ef
  * @package   plg
@@ -11,11 +10,10 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
 class plg_Clone extends core_Plugin
 {
-     
+    
     
 	/**
      * Извиква се след описанието на модела
@@ -28,7 +26,7 @@ class plg_Clone extends core_Plugin
         setIfNot($invoker->canClonerec, 'user');
     }
     
-
+    
     /**
      * Преди да се изпълни екшъна
      */
@@ -40,28 +38,36 @@ class plg_Clone extends core_Plugin
         // id на записа, който ще клонираме
         $id = Request::get('id', 'int');
         
-        // Права за работа с екшън-а
-        $mvc->requireRightFor('clonerec', $id);
-        
-        $retUrl = getRetUrl();
-        
-        // URL' то където ще се редиректва при отказ
-        $retUrl = ($retUrl) ? ($retUrl) : (array($mvc, 'list'));
-
-        // Вземаме формата към този модел
-        $form = $mvc->getForm();
-        
         // Вземаме записа
         $rec = $mvc->fetch($id);
         
         // Очакваме да има такъв запис
         expect($rec);
         
+        // Права за работа с екшън-а
+        $mvc->requireRightFor('clonerec', $rec);
+        
+        // Вземаме формата към този модел
+        $form = $mvc->getForm();
+        
         // Вземаме всички полета, които ще се инпутват
         $fields = $form->selectFields("#input == 'input' || #input ==''");
         
-        // Обхождаме масива
-        foreach((array)$fields as $field => $dummy) {
+        // Масив с всички полета, които ще се записват
+        $saveRecF = array();
+        
+        // Вземаме всички полета, които ще се клонират
+        $mvc->invoke('getCloneFields', array(&$saveRecF));
+        
+        // Ако не са зададени
+        if (!$saveRecF) {
+            
+            // Използваме всички видими полета
+            $saveRecF = $fields;
+        }
+        
+        // Обхождаме масива с полетата, които ще се клонират
+        foreach((array)$saveRecF as $field => $dummy) {
             
             // Попълваме формата със стойностите от записа
             $form->rec->{$field} = $rec->$field;
@@ -80,8 +86,11 @@ class plg_Clone extends core_Plugin
             // Обекта, който ще се запишем
             $nRec = new stdClass();
             
+            // Масив с всички данни, които ще записваме в
+            $allSaveRecF = array_merge($saveRecF, $fields);
+            
             // Обхождаме масива с полетата, които ще се добавят
-            foreach ((array)$fields as $field => $dummy) {
+            foreach ((array)$allSaveRecF as $field => $dummy) {
                 
                 // Ако е 'id', да не се добавя
                 // За всеки случай
@@ -89,20 +98,47 @@ class plg_Clone extends core_Plugin
                 
                 // Добавяме към записа
                 $nRec->$field = $form->rec->$field;
-                
             }
+            
+            // Инвокваме фунцкцията, ако някой иска да променя нещо
+            $mvc->invoke('BeforeSaveCloneRec', array($rec, &$nRec));
             
             // Ако няма проблем пи записа
             if ($mvc->save($nRec)) {
                 
-                // Да се върне към предишната страница
-                $res = new Redirect($retUrl);
+                // Ако е инстанция на core_Master
+                if ($mvc instanceof core_Master) {
+                    
+                    // Редиректваме към сингъла
+                    $redirectUrl = array($mvc, 'single', $nRec->id);
+                } else {
+                    
+                    // Редиректваме към листовия излгед
+                    $redirectUrl = array($mvc, 'list');
+                }
+                
+                // За да се редиректне към съответната страница
+                $res = new Redirect($redirectUrl);
                 
                 return FALSE;
             } else {
                 
                 // Показваме съобщение за грешка
                 core_Statuses::newStatus(tr('Грешка при клониране на запис'), 'warning');
+            }
+        }
+        
+        // URL за бутона отказ
+        $retUrl = getRetUrl();
+        
+        // Ако не зададено
+        if (!$retUrl) {
+            
+            // Ако има сингъл
+            if ($mvc instanceof core_Master) {
+                $retUrl = array($mvc, 'single', $rec->id);
+            } else {
+                $retUrl = array($mvc, 'list');
             }
         }
         
@@ -186,7 +222,7 @@ class plg_Clone extends core_Plugin
      * Изпълнява се след преобразуването към вербални стойности на полетата на записа
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    { 
+    {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
         
@@ -235,21 +271,21 @@ class plg_Clone extends core_Plugin
         // Ако не е подадено заглавиет, създаваме линк с иконата
         $res = ht::createLink('<img src=' . $cloneSbf . ' width="16" height="16">', $cloneUrl);
     }
-//    
-//    
-//    /**
-//     * След подготвяне на сингъл тулбара
-//     * 
-//     * @param core_Mvc $mvc
-//     * @param object $data
-//     */
-//    function on_AfterPrepareSingleToolbar($mvc, $data)
-//    {   
-//        // Ако имаме права за клониране, да се показва бутона
-//        if ($mvc->haveRightFor('clonerec', $data->rec)) {
-//            
-//            // Добавяме бутон за клониране в сингъл изгледа
-//            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/clone.png,title=Клониране,row=2');
-//        }
-//    }
+    
+    
+    /**
+     * След подготвяне на сингъл тулбара
+     * 
+     * @param core_Mvc $mvc
+     * @param object $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {   
+        // Ако имаме права за клониране, да се показва бутона
+        if ($mvc->haveRightFor('clonerec', $data->rec)) {
+            
+            // Добавяме бутон за клониране в сингъл изгледа
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), 'ef_icon=img/16/clone.png,title=Клониране,row=2, order=40');
+        }
+    }
 }
