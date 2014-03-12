@@ -190,7 +190,7 @@ class doc_plg_BusinessDoc extends core_Plugin
 		    			$form->setOptions($coverName, $newOptions);
 		    		} 
     			}
-	    		echo "<li> {$Class->className}" .count($newOptions);
+	    		
 	    		if(!count($newOptions)){
 	    			// Ако няма нито една достъпна корица, полето става readOnly
 		    		$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
