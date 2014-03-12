@@ -457,6 +457,10 @@ class marketing_Inquiries extends core_Master
     	if($fields['-plainText']){
     		$row->email = $rec->email;
     	}
+    	
+    	$row->ip = core_Users::getRealIpAddr();
+    	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
+    	$row->browser = Mode::get('getUserAgent');
     }
     
     
@@ -528,14 +532,18 @@ class marketing_Inquiries extends core_Master
     		$fields = $this->selectFields();
     		$fields['-plainText'] = $fields['-single'] = TRUE;
     		$row = $this->recToVerbal($rec, $fields);
-    		$row->ip = core_Users::getRealIpAddr();
-    		$row->time = core_DateTime::mysql2verbal(dt::now());
-    		$row->browser = Mode::get('getUserAgent');
+    		
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		
+    		Mode::push('text', 'xhtml');
     		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
     		
+    		$Driver = cls::get($rec->drvId);
+    		$files = $Driver->getAttachedFiles((object)$rec->data);
+    		
+    		Mode::pop('text');
+    			
     		Mode::push('text', 'plain');
     		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
     		Mode::pop('text');
@@ -546,6 +554,15 @@ class marketing_Inquiries extends core_Master
     		$PML->Body = $tpl->getContent();
             $PML->AltBody = $tplAlt->getContent();
         	$PML->IsHTML(TRUE);
+        	
+        	// Ако има прикачени файлове, добавяме ги
+        	if($files){
+        		foreach ($files as $fh => $name){
+        			$name = fileman_Files::fetchByFh($fh, 'name');
+	                $path = fileman_Files::fetchByFh($fh, 'path');
+	                $PML->AddAttachment($path, $name);
+        		}
+        	}
         	
         	// Адрес на който да се изпрати
         	$PML->AddAddress($emailsTo);
