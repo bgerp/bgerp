@@ -494,11 +494,13 @@ function rp(text, textarea, newLine)
  */
 function getSelectedText(textarea)
 {
-	if (typeof(textarea.selectionStart) != 'undefined' ) {
-		var selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
-		
-		return selectedText;
+	var selectedText = '';
+	
+	if (textarea && typeof(textarea.selectionStart) != 'undefined') {
+		selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
 	}
+	
+	return selectedText;
 }
 
 // Редактор за BBCode текст: селектира ...
@@ -549,9 +551,31 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var selection = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
 		var end = textarea.value.substr(textarea.selectionEnd);
-		var newCursorPos = textarea.selectionStart;
 		var scrollPos = textarea.scrollTop;
-
+		
+		var beginPosition = textarea.selectionStart;
+		var endPosition = textarea.selectionEnd;
+		
+		if(!selection){
+			if(textarea.getAttribute('data-readySelection')){
+				selection = textarea.getAttribute('data-readySelection');
+				beginPosition = textarea.getAttribute('data-selectionStart');
+				endPosition = textarea.getAttribute('data-selectionEnd');
+				
+				begin = textarea.value.substr(0, beginPosition);
+				if (beginPosition == endPosition){
+					var strBefore = textarea.value.substring(beginPosition - selection.length, beginPosition);
+					var strAfter = textarea.value.substring(beginPosition , beginPosition + selection.length);
+					
+					if(strBefore == selection){
+						beginPosition = beginPosition - selection.length;
+					} else if(strAfter == selection){
+						endPosition = beginPosition + selection.length;
+					}
+				}
+			} 
+		}
+		
 		if(selection != '' && selection.indexOf("\n") == -1  && text2 == '[/code]' && selection.length <= maxOneLine) {
 			text1 = "`";
 			text2 = "`";
@@ -571,16 +595,16 @@ function s(text1, text2, textarea, newLine, multiline, maxOneLine)
 			}
 		}
 		
+		textarea.value = textarea.value.substring(0, beginPosition) + text1 + selection + text2 + textarea.value.substring(endPosition);	
 		
-			
-		textarea.value = begin + text1 + selection + text2 + end;
-
 		if (textarea.setSelectionRange)
 		{
 			if (selection.length == 0)
-				textarea.setSelectionRange(newCursorPos + text1.length, newCursorPos + text1.length);
-			else
-				textarea.setSelectionRange(newCursorPos, newCursorPos + text1.length + selection.length + text2.length);
+				textarea.setSelectionRange(beginPosition + text1.length, beginPosition + text1.length);
+			else{
+				var endRange = parseInt(beginPosition) + parseInt(text1.length) + parseInt(selection.length) + parseInt(text2.length);
+				textarea.setSelectionRange(beginPosition, endRange);
+			}
 			textarea.focus();
 		}
 		textarea.scrollTop = scrollPos;
@@ -1092,6 +1116,31 @@ function loginFormPadding()
 	}
 }
 
+/**
+ * Задава ширина на елементите от форма в зависимост от ширината
+ */
+function setFormElementsWidth()
+{
+	var form = $('.formTable');
+	var winWidth = parseInt($(window).width());
+	
+	if(form && winWidth < 620){
+	
+		var off = form.offset();
+		var formOffsetL = parseInt(off.left);
+		var paddingL = parseInt(form.css('paddingLeft'));
+		var inlinePadding = 16;
+		var formEl = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
+		
+		$('.formTable textarea').css('minWidth',formEl);
+		$('.formTable input[type=text]').css('maxWidth',formEl);
+		$('.formTable select').css('maxWidth',formEl);
+		$('.formTable .chzn-container').css('maxWidth',formEl);
+		$('.formTable .chzn-container .chzn-drop').css('maxWidth',formEl -2);
+		$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formEl -12);
+	}
+}
+
 
 /**
  * При натискане с мишката върху елемента, маркираме текста
@@ -1174,6 +1223,8 @@ function getSelText()
     		txt = document.selection.createRange();
     	}
     } catch(err) {
+    	var EO = getEO();
+    	
     	EO.log('Грешка при извличане на текста');
     }
     
@@ -1412,6 +1463,9 @@ efae.prototype.run = function()
 		// Увеличаваме брояча
 		this.increaseTimeout();
 	} catch(err) {
+		
+		var EO = getEO();
+		
 		// Ако възникне грешка
 		EO.log('Грешка при стартиране на процеса');
 	} finally {
@@ -1441,6 +1495,8 @@ efae.prototype.process = function()
 	
 	// Ако не е дефинирано URL
 	if (!efaeUrl) {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('Не е дефинирано URL, което да се вика');
@@ -1484,6 +1540,9 @@ efae.prototype.process = function()
 			    	
 			    	// Ако няма функция
 		    		if (!func) {
+		    			
+		    			var EO = getEO();
+		    			
 		    			// Изкарваме грешката в лога
 						EO.log('Не е подадена функция');
 		    			
@@ -1499,6 +1558,8 @@ efae.prototype.process = function()
 		    			window[func](arg);
 		    		} catch(err) {
 		    			
+		    			var EO = getEO();
+		    			
 		    			// Ако възникне грешка
 		    			EO.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
 		    		}
@@ -1506,10 +1567,14 @@ efae.prototype.process = function()
 			    
 			}).fail(function(res) {
 				
+				var EO = getEO();
+				
 				// Ако възникне грешка
 				EO.log('Грешка при извличане на данни по AJAX');
 			});
 	} else {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('JQuery не е дефиниран');
@@ -1637,7 +1702,13 @@ function render_html(data)
 		var idObj = $('#'+id);
 		
 		// Ако няма такъв таг
-		if (!idObj.length) EO.log('Липсва таг с id: ' + id);
+		if (!idObj.length) {
+			
+			var EO = getEO();
+			
+			// Задаваме грешката
+			EO.log('Липсва таг с id: ' + id);
+		}
 		
 		// Ако е зададено да се замества
 		if ((typeof replace != 'undefined') && (replace)) {
@@ -1789,7 +1860,13 @@ function Experta()
 	Experta.prototype.sSelText='';
 	
 	// Време на извикване
-	Experta.prototype.saveSelTextTimeout=500;
+	Experta.prototype.saveSelTextTimeout=1200;
+	
+	// Време на извикване в textarea
+	Experta.prototype.saveSelTextareaTimeout=400;
+	
+	// Данни за селектирания текст в textarea
+	Experta.prototype.textareaAttr = new Array();
 }
 
 
@@ -1841,6 +1918,115 @@ Experta.prototype.getSavedSelText = function()
 
 
 /**
+ * Добавя в атрибутите на текстареа позицията и текста на избрания текст
+ * 
+ * @param integer id
+ */
+Experta.prototype.saveSelTextInTextarea = function(id)
+{
+	// Текстареата
+	textarea = document.getElementById(id);
+	
+	// Ако текстареата е на фокус
+	if (textarea.getAttribute('data-focus') == 'focused') {
+		
+		// id на текстареата
+		//id = textarea.getAttribute('id');
+		
+		// Вземаме избрания текст
+		// var selText = getSelText();
+		var selText = getSelectedText(textarea);
+		
+		// Ако има функция за превръщане в стринг
+		if (selText.toString) {
+			
+			// Вземаме стринга
+			selText = selText.toString();
+	    } else {
+	    	
+	    	return;
+	    }
+		
+		// Позиция на начало на избрания текст
+		var selectionStart = textarea.selectionStart;
+		
+		// Позиция на края на избрания текст
+		var selectionEnd = textarea.selectionEnd;
+		
+		// Ако не е създаден обект за тази текстареа
+		if (typeof this.textareaAttr[id] == 'undefined') {
+			
+			// Създаваме обект, със стойности по подразбиране
+			this.textareaAttr[id] = {'data-hotSelection': '', 'data-readySelection': '',
+									'data-readySelectionStart': 0, 'data-readySelectionEdn': 0};
+		}
+		
+		// Ако сме избрали нещо различно от предишното извикване на функцията
+		if ((this.textareaAttr[id]['data-hotSelection'] != selText) || 
+				(this.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
+				(this.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
+			
+			// Задаваме новите стойности
+			this.textareaAttr[id]['data-hotSelection'] = selText;
+			this.textareaAttr[id]['data-selectionStart'] = selectionStart;
+			this.textareaAttr[id]['data-selectionEnd'] = selectionEnd;
+			
+		} else {
+			
+			// Ако не сме променили избрания текст
+			
+			// Задаваме стойностите
+			this.textareaAttr[id]['data-readySelection'] = selText;
+			this.textareaAttr[id]['data-readySelectionStart'] = this.textareaAttr[id]['data-selectionStart'];
+			this.textareaAttr[id]['data-readySelectionEdn'] = this.textareaAttr[id]['data-selectionEnd'];
+		}
+		
+		// Добавяме необходимите стойности в атрибутите на текстареата
+		textarea.setAttribute('data-hotSelection', this.textareaAttr[id]['data-hotSelection']);
+		textarea.setAttribute('data-readySelection', this.textareaAttr[id]['data-readySelection']);
+		textarea.setAttribute('data-selectionStart', this.textareaAttr[id]['data-readySelectionStart']);
+		textarea.setAttribute('data-selectionEnd', this.textareaAttr[id]['data-readySelectionEdn']);
+	}
+	
+	// Инстанция
+	var thisEOInst = this;
+	
+	// Задаваме функцията да се самостартира през определен интервал
+	setTimeout(function() {thisEOInst.saveSelTextInTextarea(id)}, this.saveSelTextareaTimeout);
+}
+
+
+/**
+ * Сетва атрибута на текстареа, при фокус
+ * 
+ * @param integer id
+ */
+Experta.prototype.textareaFocus = function(id)
+{
+	// Текстареата
+	textarea = document.getElementById(id);
+	
+	// Задваме в атрибута
+	textarea.setAttribute('data-focus', 'focused');
+}
+
+
+/**
+ * Сетва атрибута на текстареа, при загуба на фокус
+ * 
+ * @param integer id
+ */
+Experta.prototype.textareaBlur = function(id)
+{
+	// Текстареата
+	textarea = document.getElementById(id);
+	
+	// Задваме в атрибута
+	textarea.setAttribute('data-focus', 'none');
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
@@ -1848,13 +2034,7 @@ Experta.prototype.getSavedSelText = function()
 Experta.prototype.log = function(txt)
 {
 	// Ако не е дефиниран обекта
-	if (typeof console === "undefined") {
-	   console = {
-	       log : function(){},
-	       info : function(){},
-	       error : function(){}
-	   }
-	} else {
+	if (typeof console != "undefined") {
 		
 		// Показваме съобщението
 		console.log(txt);
@@ -1862,8 +2042,71 @@ Experta.prototype.log = function(txt)
 }
 
 
-// Инстанцираме класа
-EO = new Experta();
+/**
+ * Масив със сингълтон обектите
+ */
+var _singletonInstance = new Array();
 
-// Стартираме фунцкцията за записване на избрания текст
-EO.saveSelText()
+
+/**
+ * Връща сингълтон обект за съответната функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function getSingleton(name)
+{
+	// Ако не е инстанциран преди
+	if (!this._singletonInstance[name]) {
+		
+		// Вземаме обекта
+		this._singletonInstance[name] = this.createObject(name);
+	}
+	
+	return this._singletonInstance[name];
+}
+
+
+/**
+ * Създава обект от подаденат функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function createObject(name)
+{
+	try {
+		var inst = new window[name];
+	} catch (err) {
+
+		var inst = Object.create(window[name].prototype);
+	}
+	
+	return inst;
+}
+
+
+/**
+ * Връща сингълтон инстанция за класа Experta
+ * 
+ * @return object
+ */
+function getEO()
+{
+	
+	return this.getSingleton('Experta');
+}
+
+
+/**
+ * Връща сингълтон инстанция за efae класа
+ * 
+ * @return object
+ */
+function getEfae()
+{
+	
+	return this.getSingleton('efae');
+}

@@ -47,7 +47,7 @@ class page_Html extends core_ET {
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "<!--ET_BEGIN SCRIPTS-->\n<script type=\"text/javascript\">[#SCRIPTS#]\n</script><!--ET_END SCRIPTS-->" .
             "<!--ET_BEGIN BROWSER_DETECT-->[#BROWSER_DETECT#]<!--ET_END BROWSER_DETECT-->" .
-            "[#page_Html::subscribeStatus#]" .
+            "[#page_Html::addJs#]" .
             "\n</body>" .
             "\n</html>");
     }
@@ -99,11 +99,30 @@ class page_Html extends core_ET {
     
     
     /**
-     * Показва статус съобщението
+     * Добавя JS
      * 
      * @return core_ET
      */
-    static function subscribeStatus()
+    static function addJs()
+    {
+        $tpl = new ET();
+        
+        // Показване на статус съобщения
+        static::subscribeStatus($tpl);
+        
+        // Записване на избрания текст с JS
+        static::saveSelTextJs($tpl);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Показва статус съобщението
+     * 
+     * @param core_ET $tpl
+     */
+    static function subscribeStatus(&$tpl)
     {
         // Ако не е сетнато времето на извикване
         if (!$hitTime = Mode::get('hitTime')) {
@@ -112,14 +131,22 @@ class page_Html extends core_ET {
             $hitTime = dt::nowTimestamp();
         }
         
-        $tpl = new ET();
-        
         // Добавяме в JS timestamp на извикване на страницата
-        $tpl->append("var hitTime = {$hitTime};", 'SCRIPTS');
+        $tpl->appendOnce("var hitTime = {$hitTime};", 'SCRIPTS');
         
         // Извикваме показването на статусите
         $tpl->append(core_Statuses::subscribe(), 'STATUSES');
-        
-        return $tpl;
+    }
+    
+    
+    /**
+     * Маркиране на избрания текст с JS
+     * 
+     * @param core_ET $tpl
+     */
+    static function saveSelTextJs(&$tpl)
+    {
+        // Скрипт, за вземане на инстанция на efae
+        $tpl->appendOnce("\n runOnLoad(function(){var EO = getEO(); \n EO.saveSelText();});", 'SCRIPTS');
     }
 }
