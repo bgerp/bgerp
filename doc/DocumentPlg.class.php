@@ -1711,11 +1711,10 @@ class doc_DocumentPlg extends core_Plugin
      * 
      * @param core_Mvc $mvc
      * @param array $fieldsArr
-     * @param core_Form $form
      * 
      * @see plg_Clone
      */
-    function on_GetCloneFields($mvc, &$fieldsArr, $form)
+    function on_GetCloneFields($mvc, &$fieldsArr)
     {
         // Добавяме полетата, които да се клонират
         $fieldsArr['threadId'] = TRUE;
