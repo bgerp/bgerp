@@ -65,8 +65,10 @@ class chosen_PluginSelect extends core_Plugin
         if($invoker->params['allowEmpty']) {
             $allowEmpty = ", allow_single_deselect: true";
         }
+        
         $choose = tr("Избери");
-        $JQuery->run($tpl, "$('#" . $attr['id'] . "').data('placeholder', '{$choose}...').chosen({no_results_text: \"Няма резултати\"{$allowEmpty}});");
+        $noResults = tr("Няма резултати");
+        $JQuery->run($tpl, "$('#" . $attr['id'] . "').data('placeholder', '{$choose}...').chosen({no_results_text: \"{$noResults}\"{$allowEmpty}});");
    }
     
 }
