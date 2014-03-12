@@ -1981,8 +1981,72 @@ Experta.prototype.log = function(txt)
 	}
 }
 
-// Инстанцираме класа
-EO = new Experta();
 
-// Стартираме фунцкцията за записване на избрания текст
-EO.saveSelText();
+/**
+ * Масив със сингълтон обектите
+ */
+var _singletonInstance = new Array();
+
+
+/**
+ * Връща сингълтон обект за съответната функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function getSingleton(name)
+{
+	// Ако не е инстанциран преди
+	if (!this._singletonInstance[name]) {
+		
+		// Вземаме обекта
+		this._singletonInstance[name] = this.createObject(name);
+	}
+	
+	return this._singletonInstance[name];
+}
+
+
+/**
+ * Създава обект от подаденат функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function createObject(name)
+{
+	try {
+		var inst = new window[name];
+	} catch (err) {
+
+		var inst = Object.create(window[name].prototype);
+	}
+	
+	return inst;
+}
+
+
+/**
+ * Връща сингълтон инстанция за класа Experta
+ * 
+ * @return object
+ */
+function getEO()
+{
+	
+	return this.getSingleton('Experta');
+}
+
+
+/**
+ * Връща сингълтон инстанция за efae класа
+ * 
+ * @return object
+ */
+function getEfae()
+{
+	
+	return this.getSingleton('efae');
+}
