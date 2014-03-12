@@ -494,11 +494,13 @@ function rp(text, textarea, newLine)
  */
 function getSelectedText(textarea)
 {
+	var selectedText = '';
+	
 	if (typeof(textarea.selectionStart) != 'undefined' ) {
-		var selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
-		
-		return selectedText;
+		selectedText = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
 	}
+	
+	return selectedText;
 }
 
 // Редактор за BBCode текст: селектира ...
@@ -1905,7 +1907,7 @@ Experta.prototype.saveSelTextInTextarea = function(textarea)
 	// Вземаме избрания текст
 	// var selText = getSelText();
 	var selText = getSelectedText(textarea);
-
+	
 	// Ако има функция за превръщане в стринг
 	if (selText.toString) {
 		
