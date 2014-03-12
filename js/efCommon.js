@@ -1223,6 +1223,8 @@ function getSelText()
     		txt = document.selection.createRange();
     	}
     } catch(err) {
+    	var EO = getEO();
+    	
     	EO.log('Грешка при извличане на текста');
     }
     
@@ -1461,6 +1463,9 @@ efae.prototype.run = function()
 		// Увеличаваме брояча
 		this.increaseTimeout();
 	} catch(err) {
+		
+		var EO = getEO();
+		
 		// Ако възникне грешка
 		EO.log('Грешка при стартиране на процеса');
 	} finally {
@@ -1490,6 +1495,8 @@ efae.prototype.process = function()
 	
 	// Ако не е дефинирано URL
 	if (!efaeUrl) {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('Не е дефинирано URL, което да се вика');
@@ -1533,6 +1540,9 @@ efae.prototype.process = function()
 			    	
 			    	// Ако няма функция
 		    		if (!func) {
+		    			
+		    			var EO = getEO();
+		    			
 		    			// Изкарваме грешката в лога
 						EO.log('Не е подадена функция');
 		    			
@@ -1548,6 +1558,8 @@ efae.prototype.process = function()
 		    			window[func](arg);
 		    		} catch(err) {
 		    			
+		    			var EO = getEO();
+		    			
 		    			// Ако възникне грешка
 		    			EO.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
 		    		}
@@ -1555,10 +1567,14 @@ efae.prototype.process = function()
 			    
 			}).fail(function(res) {
 				
+				var EO = getEO();
+				
 				// Ако възникне грешка
 				EO.log('Грешка при извличане на данни по AJAX');
 			});
 	} else {
+		
+		var EO = getEO();
 		
 		// Изкарваме грешката в лога
 		EO.log('JQuery не е дефиниран');
@@ -1686,7 +1702,13 @@ function render_html(data)
 		var idObj = $('#'+id);
 		
 		// Ако няма такъв таг
-		if (!idObj.length) EO.log('Липсва таг с id: ' + id);
+		if (!idObj.length) {
+			
+			var EO = getEO();
+			
+			// Задаваме грешката
+			EO.log('Липсва таг с id: ' + id);
+		}
 		
 		// Ако е зададено да се замества
 		if ((typeof replace != 'undefined') && (replace)) {
@@ -1923,7 +1945,8 @@ Experta.prototype.saveSelTextInTextarea = function(textarea)
 	
 	// Позиция на края на избрания текст
 	var selectionEnd = textarea.selectionEnd;
-	
+	console.log(EO);
+	console.log(this);
 	// Ако не е създаден обект за тази текстареа
 	if (typeof EO.textareaAttr[id] == 'undefined') {
 		
