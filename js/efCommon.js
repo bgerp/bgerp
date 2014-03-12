@@ -1974,13 +1974,7 @@ Experta.prototype.saveSelTextInTextarea = function(textarea)
 Experta.prototype.log = function(txt)
 {
 	// Ако не е дефиниран обекта
-	if (typeof console === "undefined") {
-	   console = {
-	       log : function(){},
-	       info : function(){},
-	       error : function(){}
-	   }
-	} else {
+	if (typeof console != "undefined") {
 		
 		// Показваме съобщението
 		console.log(txt);
