@@ -1702,4 +1702,24 @@ class doc_DocumentPlg extends core_Plugin
             $res = $mvc->singleIcon;
         }
     }
+    
+    
+    /**
+     * Прихваща извикването на GetCloneFields от plg_Clone.
+     * Връща полетата, които трябва да се клонират.
+     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
+     * 
+     * @param core_Mvc $mvc
+     * @param array $fieldsArr
+     * @param core_Form $form
+     * 
+     * @see plg_Clone
+     */
+    function on_GetCloneFields($mvc, &$fieldsArr, $form)
+    {
+        // Добавяме полетата, които да се клонират
+        $fieldsArr['threadId'] = TRUE;
+        $fieldsArr['folderId'] = TRUE;
+        $fieldsArr['originId'] = TRUE;
+    }
 }
