@@ -182,7 +182,7 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
+            	//Request::setProtected('drvId,coParams,inqCls,inqId,lg');
             	$lg = cms_Content::getLang();
             	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             }
@@ -395,6 +395,11 @@ class eshop_Products extends core_Master
     				$newArr[$arr[0]] = $arr[1];
     			}
     		}
+    	}
+    	
+    	if(empty($newArr['title'])){
+    		$newArr['title'] = $this->getVerbal($rec, 'name');
+    		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
     	}
     	
     	return $newArr;
