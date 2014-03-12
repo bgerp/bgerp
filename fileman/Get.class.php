@@ -331,7 +331,7 @@ class fileman_Get extends core_Manager {
             <!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->
             <!--ET_BEGIN FORM_WARNING--><div class=\"formWarning\">[#FORM_WARNING#]</div><!--ET_END FORM_WARNING-->
 
-           <div style='margin: 10px 0;'> Линк към файла за вземане:</div>
+           <div style='margin: 10px 0;'> " . tr('Линк към файла за вземане') . ":</div>
             <!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->
             <p>[#FORM_TOOLBAR#]</p>
             <input name='Protected' type='hidden' value='[#Protected#]'/>
