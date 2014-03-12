@@ -1985,4 +1985,4 @@ Experta.prototype.log = function(txt)
 EO = new Experta();
 
 // Стартираме фунцкцията за записване на избрания текст
-EO.saveSelText()
+EO.saveSelText();
