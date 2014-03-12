@@ -148,7 +148,7 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf,allowEmpty)', 'caption=Запитване->Драйвер');
+        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер');
         $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
         $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
 
@@ -182,9 +182,9 @@ class eshop_Products extends core_Master
         if($rec->coDriver) {
             if(marketing_Inquiries::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams,inqCls,inqId');
-            	
-            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
+            	$lg = cms_Content::getLang();
+            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             }
         }
 

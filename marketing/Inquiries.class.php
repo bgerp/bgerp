@@ -198,6 +198,10 @@ class marketing_Inquiries extends core_Master
     	expect($drvId = Request::get('drvId', 'int'));
     	expect($inqCls = Request::get('inqCls'));
     	expect($inqId = Request::get('inqId'));
+    	if($lg = Request::get('lg')){
+    		cms_Content::setLang($lg);
+    	}
+    	
     	$Source = new core_ObjectReference($inqCls, $inqId);
     	expect($Source->haveInterface('marketing_InquirySourceIntf'));
     	$params = $Source->getCustomizationParams();
