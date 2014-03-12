@@ -412,6 +412,11 @@ class core_Form extends core_FieldSet
                     "\n</td></tr><!--ET_BEGIN FORM_TOOLBAR-->\n<tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
                     "\n</div>" .
                     "\n</form>\n");
+				
+                if (Mode::is('screenMode', 'narrow')) {
+	                $this->layout->append("runOnLoad(setFormElementsWidth);", "JQRUN");
+	                $this->layout->append('$(window).resize(function(){setFormElementsWidth();});', "JQRUN");
+                }
             }
         }
         

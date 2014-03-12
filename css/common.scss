@@ -1177,6 +1177,7 @@ div.hFormField {
 	width: 1px;
 	vertical-align: top;
 	_width:auto;
+	*width: auto;
 }
 
 .formFields input, textarea, select { 
@@ -1867,6 +1868,8 @@ span.richEdit div.richedit-toolbar {
 
 .wide span.richEdit div.richedit-toolbar{
 	min-width:600px !important;
+	*min-width: 0 !important;
+    *width: 494px !important;
 }
 
 .narrow span.richEdit div.richedit-toolbar {
@@ -1895,6 +1898,7 @@ div.richEdit {
 	border-bottom: 1px solid transparent; 
 	width: 100%;
 	_width:500px !important;
+	*width:500px !important;
 }
 
 .narrow .richEdit textarea { 
@@ -1948,6 +1952,8 @@ a.rtbutton:hover {
     bottom: 2.1em;
     display: none;
     white-space: nowrap;
+    *width:600px;
+    _width:600px;
 }
 
 .richtext-emoticons6 {
@@ -1966,6 +1972,10 @@ a.rtbutton:hover {
     display: table-cell;
     float: none;
     padding: 0.2em 0.3em 0.1em;
+    *display: block !important;
+    *float: left !important;
+    _display: block !important;
+    _float: left !important;
 }
 
 .richtext-emoticons6 .rtbutton{

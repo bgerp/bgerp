@@ -1142,23 +1142,23 @@ class type_Richtext extends type_Blob
         
         $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
         
-        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='Заглавия' onclick=\"toggleRichtextGroups('{$attr['id']}-group4', event)\">H</a>", 'TBL_GROUP2');
+        $toolbarArr->add("<a class='rtbutton richtext-group-title' title='" . tr('Заглавия') . "' onclick=\"toggleRichtextGroups('{$attr['id']}-group4', event)\">H</a>", 'TBL_GROUP2');
         
         $emot4 = 'richtext-holder-group-after';
         
         $toolbarArr->add("<span id='{$attr['id']}-group4' class='richtext-emoticons4 richtext-holder-group {$emot4}'>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 1') .  "' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'),1)\">H1</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 1" .  "' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'),1)\">H1</a>", 'TBL_GROUP2');
 	         
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 2') .  "' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'),1)\">H2</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 2" .  "' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'),1)\">H2</a>", 'TBL_GROUP2');
 	         
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 3') .  "' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'),1)\">H3</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 3" .  "' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'),1)\">H3</a>", 'TBL_GROUP2');
 	         
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 4') .  "' onclick=\"s('[h4]', '[/h4]', document.getElementById('{$formId}'),1)\">H4</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 4" .  "' onclick=\"s('[h4]', '[/h4]', document.getElementById('{$formId}'),1)\">H4</a>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 5') .  "' onclick=\"s('[h5]', '[/h5]', document.getElementById('{$formId}'),1)\">H5</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 5" .  "' onclick=\"s('[h5]', '[/h5]', document.getElementById('{$formId}'),1)\">H5</a>", 'TBL_GROUP2');
 	        
-	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие 6') .  "' onclick=\"s('[h6]', '[/h6]', document.getElementById('{$formId}'),1)\">H6</a>", 'TBL_GROUP2');
+	        $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 6" .  "' onclick=\"s('[h6]', '[/h6]', document.getElementById('{$formId}'),1)\">H6</a>", 'TBL_GROUP2');
 	         
 	        $toolbarArr->add("</span>", 'TBL_GROUP2');
         
