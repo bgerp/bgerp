@@ -550,17 +550,21 @@ class marketing_Inquiries extends core_Master
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		
-    		Mode::push('text', 'xhtml');
-    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
-    		
+    		// Извличане на прикачените файлове
     		$Driver = cls::get($rec->drvId);
     		$files = $Driver->getAttachedFiles((object)$rec->data);
     		
+    		// Рендиране на алт бодито
+    		Mode::push('text', 'xhtml');
+    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
     		Mode::pop('text');
-    			
+    		
+    		// Рендиране на бодито
+    		Mode::push('printing', TRUE);
     		Mode::push('text', 'plain');
     		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
     		Mode::pop('text');
+    		Mode::pop('printing');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
