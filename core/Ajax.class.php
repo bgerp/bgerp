@@ -145,7 +145,7 @@ class core_Ajax extends core_Mvc
         $once = (int)$once;
         
         // Добавяме стринга, който субскрайбва съответното URL
-        $subscribeStr = "\n runOnLoad(function(){var efaeInst = getEfae(); \n efaeInst.subscribe('{$name}', '{$localUrl}', {$interval}, {$once});});";
+        $subscribeStr = "\n runOnLoad(function(){getEfae().subscribe('{$name}', '{$localUrl}', {$interval}, {$once});});";
         
         // Добавяме само веднъж
         $tpl->appendOnce($subscribeStr, 'SCRIPTS');
@@ -160,7 +160,7 @@ class core_Ajax extends core_Mvc
     protected static function enable(&$tpl)
     {
         // Скрипт, за вземане на инстанция на efae
-        $tpl->appendOnce("\n runOnLoad(function(){ getEfae(); });", 'SCRIPTS');
+//        $tpl->appendOnce("\n runOnLoad(function(){ getEfae(); });", 'SCRIPTS');
         
         // Този пакет е във vendors
         if (method_exists('jquery_Jquery', 'enable')) {
@@ -189,17 +189,17 @@ class core_Ajax extends core_Mvc
         $url = toUrl(array('core_Ajax', 'Get'));
         
         // Добавяме променливата
-        $tpl->appendOnce("\n runOnLoad(function(){var efaeInst = getEfae(); \n efaeInst.setUrl('{$url}');});", 'SCRIPTS');
+        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {
             
             // Стартираме извикването на `run` фунцкцията на efae
-            jquery_Jquery::run($tpl, "\n var efaeInst = getEfae(); \n efaeInst.run();", TRUE);
+            jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
         } else {
             
             // Стартираме извикването на run
-            $tpl->appendOnce("\n runOnLoad(function(){var efaeInst = getEfae(); \n efaeInst.run();});", 'JQRUN');
+            $tpl->appendOnce("\n runOnLoad(function(){getEfae().run();});", 'JQRUN');
             
             // Добавяме грешката
             core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`');
