@@ -1394,6 +1394,9 @@ div.hFormField {
 		margin-top: 0;
 	}
 }
+.narrow .vertical .keylist td{
+	overflow: hidden;
+}
 
 .vertical .formTable select {
 	margin-right: 3px;
