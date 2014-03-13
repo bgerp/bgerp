@@ -353,7 +353,7 @@ class sales_Inquiries extends core_Master
     	
     	// Ако има държава, форсира папка за несортиране с името на държавата
     	if($rec->country){
-    		
+    		bp($rec);
     		return email_Router::doRuleCountry($rec);
     	}
     	

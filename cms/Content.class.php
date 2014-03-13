@@ -269,7 +269,8 @@ class cms_Content extends core_Manager
         $lang = self::getLang();
  
         $res = new ET(getFileContent('cms/themes/default/LangSelect.shtml'));
-            $s = $res->getBlock('SELECTOR');
+        
+        $s = $res->getBlock('SELECTOR');
 
         foreach($langsArr as $lg) {
         	
@@ -284,7 +285,7 @@ class cms_Content extends core_Manager
             
             if($filePath){
             	$imageUrl = sbf("img/flags/" . $lg . ".png", "");
-            	$img = ht::createElement("img", array('src' => $imageUrl));
+            	$img = ht::createElement("img", array('src' => $imageUrl, 'alt' => $lg . ' language'));
             }
             
             $url = array($this, 'SelectLang', 'lang' => $lg);

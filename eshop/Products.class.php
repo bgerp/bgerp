@@ -288,6 +288,10 @@ class eshop_Products extends core_Master
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
+        
+        if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add("Продукт «" . $data->rec->name ."»");
+        }
 
         return $tpl;
     }
