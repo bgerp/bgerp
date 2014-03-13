@@ -1398,6 +1398,11 @@ div.hFormField {
 	overflow: hidden;
 }
 
+.narrow .vertical .keylist input[type=checkbox], .narrow .vertical .keylist input[type=radio]{
+	vertical-align: top;
+    margin-top: 3px;
+}
+
 .vertical .formTable select {
 	margin-right: 3px;
 }
@@ -2608,4 +2613,11 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	&:hover{
 	   text-decoration: underline;
 	}
+}
+
+.rtupload{
+	background-image:url('../img/16/paper_clip.png') !important;
+	padding-left: 22px !important;  
+    background-repeat: no-repeat !important;
+    background-position: 3px center !important;
 }
