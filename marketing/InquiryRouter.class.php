@@ -73,7 +73,7 @@ class marketing_InquiryRouter extends core_Manager
 		if($folderId) return $folderId;
 		
 		// Форсиране на папка и запис във визитника на лице с посочените данни
-		return marketing_Router::forcePersonFolder($rec->name, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $rec->inCharge);
+		return marketing_Router::forcePersonFolder($rec->name, $rec->email, $rec->country, $rec->tel, $rec->pCode, $rec->place, $rec->address, $inCharge);
 	}
 	
 	

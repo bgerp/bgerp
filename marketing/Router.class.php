@@ -199,9 +199,10 @@ class marketing_Router extends core_Manager
 	public static function forcePersonFolder($name, $email, $country, $tel, $pCode, $place, $address, $inCharge)
 	{
 		$rec = new stdClass();
-		foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address') as $param){
+		foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge') as $param){
 			$rec->$param = ${$param};
 		}
+		
 		$id = crm_Persons::save($rec);
 		
 		return crm_Persons::forceCoverAndFolder((object)array('id' => $id, 'inCharge' => $inCharge));
