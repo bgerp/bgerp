@@ -382,10 +382,6 @@ class purchase_PurchasesDetails extends core_Detail
                 
                 // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
-            } 
-            
-            if (empty($rec->discount)) {
-                $rec->discount = $policyInfo->discount;
             }
             
             // Записване основната мярка на продукта

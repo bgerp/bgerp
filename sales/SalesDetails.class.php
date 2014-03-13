@@ -423,10 +423,6 @@ class sales_SalesDetails extends core_Detail
                 }
                 
                 $rec->price = $policyInfo->price;
-                
-                if (empty($rec->discount)) {
-                    $rec->discount = $policyInfo->discount;
-                }
             } else {
                 // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
                 // на продажбата. Конвертираме цената към основна валута по курса, зададен
