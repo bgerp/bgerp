@@ -296,6 +296,12 @@ class doc_FolderPlg extends core_Plugin
         if((!$fields || $fArr['state']) && !$rec->state) {
             $rec->state = 'active';
         }
+        
+        // Подсигуряване да не се създава корица с отговорник @system или @anonym
+        // в такъв случай отговорника става първия регистриран потребител в системата
+        if(!$rec->inCharge || $rec->inCharge == -1){
+        	$rec->inCharge = core_Users::fetchField("#state = 'active'");
+        }
     }
     
     
