@@ -1223,9 +1223,7 @@ function getSelText()
     		txt = document.selection.createRange();
     	}
     } catch(err) {
-    	var EO = getEO();
-    	
-    	EO.log('Грешка при извличане на текста');
+    	getEO().log('Грешка при извличане на текста');
     }
     
 	return txt;
@@ -1382,6 +1380,52 @@ function addLinkOnCopy(text)
 
 
 /**
+ * Масив със сингълтон обектите
+ */
+var _singletonInstance = new Array();
+
+
+/**
+ * Връща сингълтон обект за съответната функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function getSingleton(name)
+{
+	// Ако не е инстанциран преди
+	if (!this._singletonInstance[name]) {
+		
+		// Вземаме обекта
+		this._singletonInstance[name] = this.createObject(name);
+	}
+	
+	return this._singletonInstance[name];
+}
+
+
+/**
+ * Създава обект от подаденат функция
+ * 
+ * @param string name - Името на функцията
+ * 
+ * @return object
+ */
+function createObject(name)
+{
+	try {
+		var inst = new window[name];
+	} catch (err) {
+
+		var inst = Object.create(window[name].prototype);
+	}
+	
+	return inst;
+}
+
+
+/**
  * EFAE - Experta Framework Ajax Engine
  * 
  * @category  ef
@@ -1464,10 +1508,8 @@ efae.prototype.run = function()
 		this.increaseTimeout();
 	} catch(err) {
 		
-		var EO = getEO();
-		
 		// Ако възникне грешка
-		EO.log('Грешка при стартиране на процеса');
+		getEO().log('Грешка при стартиране на процеса');
 	} finally {
 		// Инстанция на класа
 		var thisEfaeInst = this;
@@ -1496,10 +1538,8 @@ efae.prototype.process = function()
 	// Ако не е дефинирано URL
 	if (!efaeUrl) {
 		
-		var EO = getEO();
-		
 		// Изкарваме грешката в лога
-		EO.log('Не е дефинирано URL, което да се вика');
+		getEO().log('Не е дефинирано URL, което да се вика');
 	}
 	
 	// Инстанция на класа
@@ -1541,10 +1581,8 @@ efae.prototype.process = function()
 			    	// Ако няма функция
 		    		if (!func) {
 		    			
-		    			var EO = getEO();
-		    			
 		    			// Изкарваме грешката в лога
-						EO.log('Не е подадена функция');
+		    			getEO().log('Не е подадена функция');
 		    			
 		    			continue;
 		    		}
@@ -1558,26 +1596,20 @@ efae.prototype.process = function()
 		    			window[func](arg);
 		    		} catch(err) {
 		    			
-		    			var EO = getEO();
-		    			
 		    			// Ако възникне грешка
-		    			EO.log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
+		    			getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
 		    		}
 			    }
 			    
 			}).fail(function(res) {
 				
-				var EO = getEO();
-				
 				// Ако възникне грешка
-				EO.log('Грешка при извличане на данни по AJAX');
+				getEO().log('Грешка при извличане на данни по AJAX');
 			});
 	} else {
 		
-		var EO = getEO();
-		
 		// Изкарваме грешката в лога
-		EO.log('JQuery не е дефиниран');
+		getEO().log('JQuery не е дефиниран');
 	}
 }
 
@@ -1704,10 +1736,8 @@ function render_html(data)
 		// Ако няма такъв таг
 		if (!idObj.length) {
 			
-			var EO = getEO();
-			
 			// Задаваме грешката
-			EO.log('Липсва таг с id: ' + id);
+			getEO().log('Липсва таг с id: ' + id);
 		}
 		
 		// Ако е зададено да се замества
@@ -2039,52 +2069,6 @@ Experta.prototype.log = function(txt)
 		// Показваме съобщението
 		console.log(txt);
 	}
-}
-
-
-/**
- * Масив със сингълтон обектите
- */
-var _singletonInstance = new Array();
-
-
-/**
- * Връща сингълтон обект за съответната функция
- * 
- * @param string name - Името на функцията
- * 
- * @return object
- */
-function getSingleton(name)
-{
-	// Ако не е инстанциран преди
-	if (!this._singletonInstance[name]) {
-		
-		// Вземаме обекта
-		this._singletonInstance[name] = this.createObject(name);
-	}
-	
-	return this._singletonInstance[name];
-}
-
-
-/**
- * Създава обект от подаденат функция
- * 
- * @param string name - Името на функцията
- * 
- * @return object
- */
-function createObject(name)
-{
-	try {
-		var inst = new window[name];
-	} catch (err) {
-
-		var inst = Object.create(window[name].prototype);
-	}
-	
-	return inst;
 }
 
 
