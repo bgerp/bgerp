@@ -163,34 +163,39 @@ class doc_plg_BusinessDoc extends core_Plugin
     			
     			// Създаване на поле за избор от дадения клас
     			$Class = cls::get($coverId);
+    			list($pName, $coverName) = explode('_', $coverId);
+		    	$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
     			
     			$options = $mvc->getCoverOptions($Class);
-	    		$optionList = implode(", ", array_keys($options));
-    			
-	    		// Показват се само обектите до които има достъп потребителя
-	    		$query = $Class::getQuery();
-	    		$newOptions = array();
-	    		$query->where("#id IN ({$optionList})");
-	    		$query->show('inCharge,access,shared');
-	    		while($rec = $query->fetch()){
-	    			if(doc_Folders::haveRightToObject($rec)){
-	    				$newOptions[$rec->id] = $options[$rec->id];
-	    			}
-	    		}
+    			$newOptions = array();
+    			if(count($options)){
+    				
+    				$optionList = implode(", ", array_keys($options));
+	    			
+		    		// Показват се само обектите до които има достъп потребителя
+		    		$query = $Class::getQuery();
+		    		
+		    		$query->where("#id IN ({$optionList})");
+		    		$query->show('inCharge,access,shared');
+		    		while($rec = $query->fetch()){
+		    			if(doc_Folders::haveRightToObject($rec)){
+		    				$newOptions[$rec->id] = $options[$rec->id];
+		    			}
+		    		}
+		    		
+		    		if ($newOptions) {
+		    			
+		    			// Ако има достъпни корици, слагат се като опции
+		    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
+		    			$form->setOptions($coverName, $newOptions);
+		    		} 
+    			}
 	    		
-	    		list($pName, $coverName) = explode('_', $coverId);
-	    		$coverName = $pName . strtolower(rtrim($coverName, 's')) . "Id";
-	    		if ($newOptions) {
-	    			
-	    			// Ако има достъпни корици, слагат се като опции
-	    			$form->FNC($coverName, "key(mvc={$coverId},allowEmpty)", "input,caption={$Class->singleTitle},width=100%,key");
-	    			$form->setOptions($coverName, $newOptions);
-	    		} else {
-	    			
+	    		if(!count($newOptions)){
 	    			// Ако няма нито една достъпна корица, полето става readOnly
-	    			$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
-	    			$form->setReadOnly($coverName);
-	    			continue;
+		    		$form->FNC($coverName, "varchar", "input,caption={$Class->singleTitle},width=100%");
+		    		$form->setReadOnly($coverName);
+		    		continue;
 	    		}
     		}
     	}

@@ -150,7 +150,7 @@ class cond_PaymentMethods extends core_Master
     	$where = (is_numeric($payment)) ? $payment : "#name = '{$payment}'";
     	expect($name = static::fetchField($where, 'name'));
     	
-    	return ($name == 'COD');
+    	return ($name == 'Cash on Delivery');
     }
     
     

@@ -137,8 +137,9 @@ class price_ListToCustomers extends core_Detail
 
         $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
   
-        $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId), 
-            NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
+        if(price_Lists::haveRightFor('add')){
+        	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
+        }
     }
 
 
@@ -147,7 +148,7 @@ class price_ListToCustomers extends core_Detail
      */
     public static function on_AfterPrepareDetailQuery($mvc, $data)
     {
-        $cClassId = core_Classes::getId($mvc->Master);
+        $cClassId = core_Classes::getId($data->masterMvc);
         
         $data->query->where("#cClass = {$cClassId}");
 
@@ -274,7 +275,7 @@ class price_ListToCustomers extends core_Detail
 
         $now = dt::verbal2mysql();
 
-        $cClassId = core_Classes::getId($data->masterMvc );
+        $cClassId = core_Classes::getId($data->masterMvc);
         
         $validRec = self::getValidRec($cClassId, $data->masterId, $now);
        

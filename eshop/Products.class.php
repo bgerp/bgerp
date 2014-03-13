@@ -24,9 +24,15 @@ class eshop_Products extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Страница от менюто
      */
     var $pageMenu = "Е-Магазин";
+    
+    
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'marketing_InquirySourceIntf';
     
     
     /**
@@ -142,7 +148,7 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf,allowEmpty)', 'caption=Запитване->Драйвер');
+        $this->FLD('coDriver', 'class(interface=techno_ProductsIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер');
         $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
         $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
 
@@ -160,12 +166,12 @@ class eshop_Products extends core_Master
 
 
     /**
-     *
+     * След обработка на вербалните стойностти
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($rec->code) {
-            $row->code      = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
+            $row->code = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
         }
  
         if($rec->coMoq) {
@@ -174,12 +180,11 @@ class eshop_Products extends core_Master
         }
 
         if($rec->coDriver) {
-            if(sales_Inquiries::haveRightFor('new')){
-            	
+            if(marketing_Inquiries::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
-            	Request::setProtected('drvId,coParams');
-            	
-            	$row->coInquiry = ht::createLink(tr('Запитване'), array('sales_Inquiries', 'new', 'drvId' => $rec->coDriver, 'coParams' => $rec->coParams, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
+            	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
+            	$lg = cms_Content::getLang();
+            	$row->coInquiry = ht::createLink(tr('Запитване'), array('marketing_Inquiries', 'new', 'drvId' => $rec->coDriver, 'inqCls' => $mvc->getClassId(), 'inqId' => $rec->id, 'Lg' => $lg, 'ret_url' => TRUE), NULL, "ef_icon=img/16/button-question-icon.png,title={$title}");
             }
         }
 
@@ -372,5 +377,35 @@ class eshop_Products extends core_Master
         return $url;
     }
 
-
+    
+	/**
+     * Връща кустомизиращите параметри за запитването
+     * 
+     * @param int $id - ид на документ
+     * @return array - масив със стойности
+     */
+    public function getCustomizationParams($id)
+    {
+        $rec = $this->fetch($id);
+    	$newArr = array();
+    	
+    	$paramsArr = explode(PHP_EOL, $rec->coParams);
+    	if(count($paramsArr)){
+    		foreach ($paramsArr as $str){
+    			if($str == "") continue;
+    			
+    			$arr = explode('=', $str);
+    			if($arr[0] && $arr[1]){
+    				$newArr[$arr[0]] = $arr[1];
+    			}
+    		}
+    	}
+    	
+    	if(empty($newArr['title'])){
+    		$newArr['title'] = $this->getVerbal($rec, 'name');
+    		$newArr['title'] .= ($rec->code) ? " (" . $this->getVerbal($rec, 'code'). ")" : "";
+    	}
+    	
+    	return $newArr;
+    }
 }

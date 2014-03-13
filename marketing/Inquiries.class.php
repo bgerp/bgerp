@@ -7,13 +7,13 @@
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Inquiries extends core_Master
+class marketing_Inquiries extends core_Master
 {
     
     
@@ -44,8 +44,8 @@ class sales_Inquiries extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc';
+    public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=marketing_InquiryRouter';
     
     
     /**
@@ -55,22 +55,21 @@ class sales_Inquiries extends core_Master
     
     
     /**
-     * Име на папката по подразбиране при създаване на нови документи от този тип.
-     * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
-     */
-    public $defaultFolder = 'Запитвания';
-    
-    
-    /**
      * Колоната, в която да се появят инструментите на plg_RowTools
      */
     public $rowToolsField = 'tools';
     
     
     /**
+     * Групиране на документите
+     */ 
+    public $newBtnGroup = "3.91|Търговия";
+    
+    
+    /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRead = 'ceo,sales,marketing';
     
     
     /**
@@ -82,9 +81,15 @@ class sales_Inquiries extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,sales,marketing';
 	
 	
+	/**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'sales_Inquiries';
+    
+    
 	/**
      * Дали може да бъде само в началото на нишка
      */
@@ -106,7 +111,7 @@ class sales_Inquiries extends core_Master
     /**
      * Кой има право да създава визитки на лица?
      */
-    public $canMakeperson = 'ceo,sales,crm';
+    public $canMakeperson = 'ceo,sales,crm,marketing';
     
     
     /**
@@ -118,19 +123,19 @@ class sales_Inquiries extends core_Master
     /**
      * Нов темплейт за показване
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInquiry.shtml';
+    public $singleLayoutFile = 'marketing/tpl/SingleLayoutInquiry.shtml';
     
     
     /**
      * Шаблон за нотифициращ имейл (html)
      */
-    public $emailNotificationFile = 'sales/tpl/InquiryNotificationEmail.shtml';
+    public $emailNotificationFile = 'marketing/tpl/InquiryNotificationEmail.shtml';
     
     
     /**
      * Алтернативен шаблон за нотифициращ имейл (text)
      */
-    public $emailNotificationAltFile = 'sales/tpl/InquiryNotificationEmailAlt.txt';
+    public $emailNotificationAltFile = 'marketing/tpl/InquiryNotificationEmailAlt.txt';
     
     
     /**
@@ -170,17 +175,19 @@ class sales_Inquiries extends core_Master
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,width=6em');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,width=6em');
     	
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person');
+    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory');
+    	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
-    	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава');
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Вашето име');
-    	$this->FLD('email', 'emails()', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон');
     	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=pCode,hint=Вашият пощенски код');
-        $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община,hint=Вашаият град');
+        $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес');
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
+    	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
+    	$this->FLD('browser', 'varchar(80)', 'caption=Браузър,input=none');
     }
     
     
@@ -191,9 +198,16 @@ class sales_Inquiries extends core_Master
     {
     	$this->requireRightFor('new');
     	expect($drvId = Request::get('drvId', 'int'));
+    	expect($inqCls = Request::get('inqCls'));
+    	expect($inqId = Request::get('inqId'));
+    	if($lg = Request::get('Lg')){
+    		cms_Content::setLang($lg);
+    		core_Lg::push($lg);
+    	}
     	
-    	$params = Request::get('coParams');
-    	$params = $this->parseParams($params);
+    	$Source = new core_ObjectReference($inqCls, $inqId);
+    	expect($Source->haveInterface('marketing_InquirySourceIntf'));
+    	$params = $Source->getCustomizationParams();
     	
     	// Взимаме формата
     	$form = $this->prepareForm($drvId);
@@ -201,12 +215,19 @@ class sales_Inquiries extends core_Master
     	$form->rec->country = $this->getDefaultCountry($form->rec);
     	
     	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
-    	if(core_Users::getCurrent('id', FALSE)){
+    	if(core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
     		$this->invoke('AfterPrepareCustomForm', array((object)array('form' => $form)));
     	}
     	
     	// Добавяме полетата от избрания драйвер
     	$this->addFormFieldsFromDriver($form);
+    	
+    	// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
+    	foreach ($form->fields as $name => $fld){
+    		if($fld->kind == 'FNC' && isset($params[$name])){
+    			$form->setDefault($name, $params[$name]);
+    		}
+    	}
     	
     	// Инпут на формата
     	$form->input();
@@ -216,9 +237,11 @@ class sales_Inquiries extends core_Master
     		$rec = &$form->rec;
     		$rec->data = $this->getDataFromForm($form);
     		$rec->state = 'active';
+    		$rec->ip = core_Users::getRealIpAddr();
+    		$rec->browser = Mode::get('getUserAgent');
     		
     		if(empty($rec->folderId)){
-    			$rec->folderId = $this->route($rec);
+    			$rec->folderId = $this->Router->route($rec);
     		}
     		
     		// Запис и редирект
@@ -234,6 +257,13 @@ class sales_Inquiries extends core_Master
         $form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
         $tpl = $form->renderHtml();
     	
+        // Поставяме шаблона за външен изглед
+		Mode::set('wrapper', 'cms_Page');
+		
+		if($lg){
+			core_Lg::pop();
+		}
+		
     	return $tpl;
     }
     
@@ -250,17 +280,18 @@ class sales_Inquiries extends core_Master
     	$form->title = 'Запитване за поръчков продукт';
     	
     	// Ако има логнат потребител
-    	if($cu = core_Users::getCurrent('id', FALSE)){
+    	if($cu = core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
+    		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
     		
     		// Ако лицето е обвързано с фирма, документа отива в нейната папка
     		if($personCompanyId = $personRec->buzCompanyId){
-    			$form->rec->folderId = crm_Companies::forceCoverAndFolder($personCompanyId);
+    			$form->rec->folderId = crm_Companies::forceCoverAndFolder((object)array('id' => $personCompanyId, 'inCharge' => $inCharge));
     		} else {
     			
     			// иначе отива в личната папка на лицето
-    			$form->rec->folderId = crm_Persons::forceCoverAndFolder($personId);
+    			$form->rec->folderId = crm_Persons::forceCoverAndFolder((object)array('id' => $personId, 'inCharge' => $inCharge));
     		}
     		
     		$form->title .= " |в|*" . doc_Folders::recToVerbal(doc_Folders::fetch($form->rec->folderId))->title;
@@ -281,7 +312,7 @@ class sales_Inquiries extends core_Master
     	$data->form->addAttr('drvId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
     	
     	if($data->form->rec->id){
-    		foreach($data->form->rec->data['recs'] as $fld => $dRec){
+    		foreach($data->form->rec->data as $fld => $dRec){
     			$data->form->setDefault($fld, $dRec);
     		}
     	}
@@ -316,53 +347,10 @@ class sales_Inquiries extends core_Master
     	if ($form->isSubmitted()){
     		
     		$form->rec->data = $mvc->getDataFromForm($form);
+    		$form->rec->ip = core_Users::getRealIpAddr();
+    		$form->rec->browser = Mode::get('getUserAgent');
+    		$form->rec->state = 'active';
     	}
-    }
-    
-    
-    /**
-     * Рутиране на задание по посочения имейл ако потребителя е
-     * нерегистриран, в следната последователност
-     * 
-     * 1. Ако има фирма, форсира се създаването на фирма във визитника
-     * 2. Ако от имейла се разпознае папката там
-     * 3. В дефолт папката на модела
-     * 
-     * @param stdClass $rec
-     */
-    private function route(&$rec)
-    {
-    	$email = $rec->email;
-    	//$rec->inCharge = '2';
-    	
-    	// Ако има компания се форсира създаването и
-    	if($rec->company){
-    		return $this->forceCompany($rec);
-    	}
-    	
-    	if($folderId = email_Router::getEmailFolder($email)) {
-    		
-    		return $folderId;
-    	}
-    	
-    	// Ако няма държава я намира по ип-то
-    	if(empty($rec->country)){
-    		$Drdata = cls::get('drdata_Countries');
-    		$rec->country = $Drdata->getByIp();
-    	}
-    	
-    	// Ако има държава, форсира папка за несортиране с името на държавата
-    	if($rec->country){
-    		bp($rec);
-    		return email_Router::doRuleCountry($rec);
-    	}
-    	
-    	$unRec = new stdClass();
-        $unRec->name = $this->defaultFolder;
-        $defFolderId = doc_UnsortedFolders::forceCoverAndFolder($unRec, TRUE);
-    	
-    	// Връщане на папката по подразбиране
-    	return $defFolderId;
     }
     
     
@@ -403,22 +391,19 @@ class sales_Inquiries extends core_Master
     private function getDataFromForm($form)
     {
     	// Преобразува допълнителната информация във вид удобен за съхраняване
-    	$rows = $recs = array();
+    	$recs = array();
     	$dataFlds = $form->selectFields('#params');
     	
     	if(count($dataFlds)){
     		foreach ((array)$dataFlds as $k => $v){
     			
-    			// За всеки елемент, се извличат неговите вътрешни и вербални данни
-    			// вербалните ще се използват за визуализиране в сингъла
+    			// За всеки елемент, се извличат неговите вътрешни данни
     			if(isset($form->rec->$k) && strlen($form->rec->$k)){
     				$recs[$k] = $form->rec->$k;
-    				$caption = explode('->', $form->fields[$k]->caption);
-    				$rows[$caption[1]] = $form->fields[$k]->type->toVerbal($form->rec->$k);
     			}
     		}
     		
-    		return array('recs' => $recs, 'rows' => $rows);
+    		return $recs;
     	}
     }
     
@@ -488,6 +473,8 @@ class sales_Inquiries extends core_Master
     	if($fields['-plainText']){
     		$row->email = $rec->email;
     	}
+    	
+    	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
     }
     
     
@@ -496,21 +483,24 @@ class sales_Inquiries extends core_Master
      */
     function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	$mvc->renderInquiryParams($tpl, $data->rec->data['rows']);
+    	$mvc->renderInquiryParams($tpl, $data->rec->data, $data->rec->drvId);
     }
     
     
     /**
      * Рендира информацията за продукта
      */
-    private function renderInquiryParams(&$tpl, $rows, $html = FALSE)
+    private function renderInquiryParams(&$tpl, $recs, $drvId, $html = FALSE)
     {
     	$dataRow = $tpl->getBlock('DATA_ROW');
+    	$Driver = cls::get($drvId);
+    	$params = $Driver->getInquiryParams();
     	
-    	if(count($rows)){
-	    	foreach ($rows as $caption => $value){
-	    		$value = ($html) ? strip_tags($value) : $value;
-	    		$dataRow->replace($caption, 'CAPTION');
+    	if(count($recs)){
+	    	foreach ($recs as $name => $value){
+	    		$Type = core_Type::getByName($params[$name]->type);
+	    		$value = $Type->toVerbal($value);
+	    		$dataRow->replace($params[$name]->title, 'CAPTION');
 	    		$dataRow->replace($value, 'VALUE');
 	    		$dataRow->removePlaces();
 	    		$dataRow->append2master();
@@ -538,10 +528,10 @@ class sales_Inquiries extends core_Master
      */
     private function sendNotificationEmail($rec)
     {
-    	// Взимат се нужните константи от пакета 'sales'
-    	$conf = core_Packs::getConfig('sales');
-    	$emailsTo = $conf->SALE_INQUIRE_TO_EMAIL;
-    	$sentFrom = $conf->SALE_INQUIRE_FROM_EMAIL;
+    	// Взимат се нужните константи от пакета 'marketing'
+    	$conf = core_Packs::getConfig('marketing');
+    	$emailsTo = $conf->MARKETING_INQUIRE_TO_EMAIL;
+    	$sentFrom = $conf->MARKETING_INQUIRE_FROM_EMAIL;
     	
     	// Ако са зададено изходящ и входящ имейл се изпраща нотифициращ имейл
     	if($emailsTo && $sentFrom){
@@ -556,11 +546,25 @@ class sales_Inquiries extends core_Master
     		$fields = $this->selectFields();
     		$fields['-plainText'] = $fields['-single'] = TRUE;
     		$row = $this->recToVerbal($rec, $fields);
+    		
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
     		
-    		$this->renderInquiryParams($tpl, $rec->data['rows']);
-    		$this->renderInquiryParams($tplAlt, $rec->data['rows'], TRUE);
+    		// Извличане на прикачените файлове
+    		$Driver = cls::get($rec->drvId);
+    		$files = $Driver->getAttachedFiles((object)$rec->data);
+    		
+    		// Рендиране на алт бодито
+    		Mode::push('text', 'xhtml');
+    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
+    		Mode::pop('text');
+    		
+    		// Рендиране на бодито
+    		Mode::push('printing', TRUE);
+    		Mode::push('text', 'plain');
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		Mode::pop('text');
+    		Mode::pop('printing');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
@@ -568,6 +572,15 @@ class sales_Inquiries extends core_Master
     		$PML->Body = $tpl->getContent();
             $PML->AltBody = $tplAlt->getContent();
         	$PML->IsHTML(TRUE);
+        	
+        	// Ако има прикачени файлове, добавяме ги
+        	if($files){
+        		foreach ($files as $fh => $name){
+        			$name = fileman_Files::fetchByFh($fh, 'name');
+	                $path = fileman_Files::fetchByFh($fh, 'path');
+	                $PML->AddAttachment($path, $name);
+        		}
+        	}
         	
         	// Адрес на който да се изпрати
         	$PML->AddAddress($emailsTo);
@@ -615,30 +628,11 @@ class sales_Inquiries extends core_Master
         $row->title = $this->singleTitle . " №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->authorEmail = $rec->email;
         $row->state = $rec->state;
 		$row->recTitle = $row->title;
 		
         return $row;
-    }
-    
-    
-    /**
-     * Парсира текстовия вид на параметрите в удобен масив за работа
-     * 
-     * @param text $params - параметри
-     * @return array $newArr - параметри
-     */
-    private function parseParams($params)
-    {
-    	$paramsArr = explode(PHP_EOL, $params);
-    	if(count($paramsArr)){
-    		foreach ($paramsArr as $str){
-    			$arr = explode('=', $str);
-    			$newArr[$arr[0]] = $arr[1];
-    		}
-    	}
-    	
-    	return $newArr;
     }
     
     
@@ -647,13 +641,6 @@ class sales_Inquiries extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	// От логнатите потребители, само контрактора може да създава запитвания
-    	if($action == 'new' && isset($userId)){
-    		if(haveRole('powerUser')){
-    			$res = 'no_one';
-    		}
-    	}
-    	
     	// Кога може да се създава лице
     	if($action == 'makeperson' && isset($rec)){
     		
@@ -687,5 +674,14 @@ class sales_Inquiries extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+    /**
+     * Дъстояние на нишката
+     */
+	static function getThreadState($id)
+    {
+        return 'opened';
     }
 }

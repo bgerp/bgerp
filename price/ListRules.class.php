@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правилата за ценоразписите за продуктите от каталога
@@ -43,7 +43,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys';
+    var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew';
                     
  
     /**
@@ -211,8 +211,6 @@ class price_ListRules extends core_Detail
         return $price;
     }
 
- 
-
 
     /**
      * Подготвя формата за въвеждане на правила
@@ -238,7 +236,7 @@ class price_ListRules extends core_Detail
         	$form->fields['productId']->type->options = array('' => '');
         }
         
-    	if(Request::get('productId') && $form->cmd != 'refresh'){
+    	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
 			$form->setReadOnly('productId');
 		}
 		

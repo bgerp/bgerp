@@ -116,7 +116,7 @@ abstract class FeedWriter
 			{
 				case RSS2 : $contentType = "application/rss+xml";
 					break;
-				case RSS1 : $contentType = "application/rdf+xml";
+				case RSS1 : $contentType = "application/rss+xml";
 					break;
 				case ATOM : $contentType = "application/atom+xml";
 					break;

@@ -69,11 +69,12 @@ class cms_Feeds extends core_Manager {
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory');
 		$this->FLD('description', 'text', 'caption=Oписание, mandatory');
 		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
-		$this->FLD('source', 'class(interface=cms_FeedsSourceIntf)', 'caption=Източник, mandatory');
+		$this->FLD('source', 'class(interface=cms_FeedsSourceIntf,allowEmpty)', 'caption=Източник, mandatory,silent');
 		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
 		$this->FLD('lg', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
-	
+		$this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
+		
 		// Определяме уникален индекс
 		$this->setDbUnique('title, type');
 	}
@@ -103,7 +104,7 @@ class cms_Feeds extends core_Manager {
 		expect($source = cls::get($rec->source));
 		
 		// Генерираме масив от елементи за хранилката
-		$items = $source->getItems($rec->maxItems, $rec->lg);
+		$items = $source->getItems($rec->maxItems, $rec->lg, $rec->data);
 		
 		// Вкарваме компонента FeedWriter
 		$path = "cms/feedWriter/FeedTypes.php";
@@ -125,7 +126,10 @@ class cms_Feeds extends core_Manager {
   				 $feed->setChannelElement('language', $rec->lg);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
   				 if($rec->logo){
-  				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), fileman_Download::getDownloadUrl($rec->logo));
+  				 	$img = new img_Thumb($rec->logo, 120, 120, 'fileman');
+  				 	$img->isAbsolute = TRUE;
+  				 	
+  				 	$feed->setImage($rec->title, toUrl(array($this, 'get', $rec->id), 'absolute'), $img->getUrl());
   				 }
   				 break;
 
@@ -287,6 +291,7 @@ class cms_Feeds extends core_Manager {
 		
 		// Заявка за работа с модела 
         $feedQuery = static::getQuery();
+        $curLg = cms_Content::getLang();
         
         $tableName = static::instance()->dbTableName;
         if(static::instance()->db->tableExists($tableName)) {
@@ -302,11 +307,14 @@ class cms_Feeds extends core_Manager {
 	       			$type = 'application/atom+xml';
 	       		}
 	       		
-	       		// Натрупваме генерираният хедър в шаблона
-	       		$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+	       		if($feed->lg == $curLg){
+	       			
+	       			// Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
+	       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
+	       		}
 	       	}
         }
-
+		
        	return $tpl;
 	}
 	
@@ -339,4 +347,41 @@ class cms_Feeds extends core_Manager {
 		// Връщаме шаблона
 		return $tpl;
 	}
+	
+	
+	/**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    static function on_AfterPrepareEditForm($mvc, $data)
+    {
+    	$form = &$data->form;
+    	$form->addAttr('source', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    	
+	    if($form->rec->source){
+	    	$Source = cls::get($form->rec->source);
+	    	if($Source->feedFilterField){
+	    		$sourceField = $Source->fields[$Source->feedFilterField];
+	    		$form->FNC($Source->feedFilterField, $sourceField->type, "input,fromSource,caption={$sourceField->caption},after=type");
+	    			
+		    	if($form->rec->data){
+		    		$form->setDefault($Source->feedFilterField, $form->rec->data);
+		    	}
+	    	}
+	    }
+    }
+    
+    
+    /**
+     * След инпут на формата
+     */
+	public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$fld = $form->selectFields('#fromSource');
+    		if(!count($fld)) return;
+    		$fld = reset($fld);
+    		
+    		$form->rec->data = $form->rec->{$fld->name};
+    	}
+    }
 }

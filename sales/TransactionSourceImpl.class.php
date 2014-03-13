@@ -243,29 +243,32 @@ class sales_TransactionSourceImpl
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!'); 
+        $amountBase = $quantityAmountBase = 0;
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
-        	
-            $entries[] = array(
-                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
+        	$amountBase += $amount * $rec->currencyRate;
+        	$quantityAmountBase += currency_Currencies::round($amount, $rec->currencyId);
+        }
+        
+        $entries[] = array(
+                'amount' => currency_Currencies::round($amountBase), // В основна валута
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на продажбата
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на продажбата
+                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на продажбата
                 ),
             );
-        }
-        
+            
         return $entries;
     }
     

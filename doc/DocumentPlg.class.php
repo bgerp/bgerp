@@ -843,7 +843,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $mvc->getDefaultFolder();
         }
         
-        if(!$rec->threadId){
+        if(!$rec->threadId && $rec->folderId) {
         	expect(doc_Folders::haveRightToFolder($rec->folderId));
         }
         
@@ -1701,5 +1701,24 @@ class doc_DocumentPlg extends core_Plugin
         if(!$res) { 
             $res = $mvc->singleIcon;
         }
+    }
+    
+    
+    /**
+     * Прихваща извикването на GetCloneFields от plg_Clone.
+     * Връща полетата, които трябва да се клонират.
+     * Във мениджъра могат да се добавят и другите полета - subject, body и т.н.
+     * 
+     * @param core_Mvc $mvc
+     * @param array $fieldsArr
+     * 
+     * @see plg_Clone
+     */
+    function on_GetCloneFields($mvc, &$fieldsArr)
+    {
+        // Добавяме полетата, които да се клонират
+        $fieldsArr['threadId'] = TRUE;
+        $fieldsArr['folderId'] = TRUE;
+        $fieldsArr['originId'] = TRUE;
     }
 }

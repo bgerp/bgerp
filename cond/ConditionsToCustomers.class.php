@@ -54,6 +54,12 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
+     * Кой може да вижда списъчния изглед
+     */
+    var $canAdd = 'ceo,cond';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -147,7 +153,7 @@ class cond_ConditionsToCustomers extends core_Manager
             $data->rows[$rec->id] = $row; 
         }
         
-    	if($data->masterMvc->haveRightFor('edit', $data->masterId)){
+    	if($data->masterMvc->haveRightFor('edit', $data->masterId) && static::haveRightFor('add')){
         	$img = sbf('img/16/add.png');
 		    $addUrl = array('cond_ConditionsToCustomers', 'add', 'cClass' => $data->cClass, 'cId' => $data->masterId, 'ret_url' => TRUE);
 		    $data->addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addSalecond')); 
@@ -217,7 +223,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-       if ($action == 'add' && (empty($rec->cClass) || empty($rec->cId))) {
+       if ($action == 'add' && isset($rec) && (empty($rec->cClass) || empty($rec->cId))) {
         	$res = 'no_one';
        }
        

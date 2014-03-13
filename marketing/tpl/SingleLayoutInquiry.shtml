@@ -106,5 +106,22 @@
 	<!--ET_END address-->
 	</table>
 	
+	<table class='styled-table'>
+	<tr>
+		<th colspan='2' style='padding:7px 0px'>|Системни данни|*</th>
+	</tr>
+	<tr>
+		<td>Ip</td>
+		<td>[#ip#]</td>
+	</tr>
+	<tr>
+		<td>|Браузър|*</td>
+		<td>[#browser#]</td>
+	</tr>
+	<tr>
+		<td>|Създаване|*</td>
+		<td>[#time#]</td>
+	</tr>
+	</table>
 	</div>
 </div>
