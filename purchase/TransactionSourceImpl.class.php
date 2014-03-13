@@ -227,14 +227,14 @@ class purchase_TransactionSourceImpl
             $entries[] = array(
                 'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
                 
-                'debit' => array(
+                'credit' => array(
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
                     'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на покупката
                 ),
                 
-                'credit' => array(
+                'debit' => array(
                     '401', // Сметка "401. Задължения към доставчици"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
