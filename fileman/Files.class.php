@@ -173,6 +173,13 @@ class fileman_Files extends core_Master
         // Очакваме да има такъв запис
         expect($fRec, 'Няма такъв запис.');
         
+        // Ако няма сингъл права за документа
+        if (!fileman_Files::haveRightFor('single')) {
+            
+            // Редиректва към свалянето на документа
+            return new Redirect(array('fileman_Download', 'Download', 'fh' => $fh));
+        }
+        
         // Обновяваме лога за използване на файла
         fileman_Log::updateLogInfo($fRec, 'preview');
         
