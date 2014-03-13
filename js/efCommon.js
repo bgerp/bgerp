@@ -1124,22 +1124,34 @@ function setFormElementsWidth()
 	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
-	if(form && winWidth < 620){
+	var off = form.offset();
+	var formOffsetL = parseInt(off.left);
+	var paddingL = parseInt(form.css('paddingLeft'));
+	var inlinePadding = 16;
+	var formElWidth = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
 	
-		var off = form.offset();
-		var formOffsetL = parseInt(off.left);
-		var paddingL = parseInt(form.css('paddingLeft'));
-		var inlinePadding = 16;
-		var formEl = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
-		
-		$('.formTable textarea').css('minWidth',formEl);
-		$('.formTable input[type=text]').css('maxWidth',formEl);
-		$('.formTable select').css('maxWidth',formEl);
-		$('.formTable .chzn-container').css('maxWidth',formEl);
-		$('.formTable .chzn-container .chzn-drop').css('maxWidth',formEl -2);
-		$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formEl -12);
+	// колко ЕМ е широка страницата
+	var sizeInEm = winWidth / parseFloat($(".formTable input[type=text]").css("font-size")); 
+	
+	// колко РХ е 1 ЕМ
+	var em = parseInt(winWidth / sizeInEm);
+	
+	if(winWidth > 640  && winWidth < 1000){
+		formElWidth =  30 * em;
+		form.css('width','30em');
+	} else if(winWidth >= 1000){
+		formElWidth =  33 * em;
+		form.css('width','33em');
 	}
+	
+	$('.formTable textarea').css('minWidth',formElWidth);
+	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset]').css('maxWidth', formElWidth);
+	$('.formTable select').css('maxWidth',formElWidth);
+	$('.formTable .chzn-container').css('maxWidth',formElWidth);
+	$('.formTable .chzn-container .chzn-drop').css('maxWidth',formElWidth - 2 );
+	$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formElWidth - 12);
 }
+
 
 
 /**
