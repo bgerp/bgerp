@@ -474,10 +474,10 @@ class email_Router extends core_Manager
     static function doRuleCountry($rec)
     {
         if ($rec->country) {
-            //
-            // Ако се наложи създаване на папка за несортирани писма от държава, отговорника
-            // трябва да е отговорника на кутията, до която е изпратено писмото.
-            //
+
+        	// Ако се наложи създаване на папка за несортирани писма от държава, 
+            // aко е зададено кой да е отговорника взимаме него, иначе отговорника
+            // трябва да е отговорника на кутията, до която е изпратено писмото
             $inChargeUserId = ($rec->inCharge) ? $rec->inCharge : email_Inboxes::getEmailInCharge($rec->toBox);
             
             $rec->folderId = static::forceCountryFolder(
