@@ -21,13 +21,10 @@ class page_Html extends core_ET {
     function page_Html() {
         
         $this->core_ET(
-            //"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n \"http://www.w3.org/TR/html4/loose.dtd\">" .
+            "<!doctype html>" .
             
             (Mode::is('screenMode', 'narrow') ?
-                "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.0//EN\" \"http://www.wapforum.org/DTD/xhtml-mobile10.dtd\">" .
                 "\n<html [#OG_PREFIX#] xmlns=\"http://www.w3.org/1999/xhtml\">" :
-                
-                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01+RDFa 1.0//EN\" \"http://www.w3.org/MarkUp/DTD/html401-rdfa-1.dtd\">" .
                 "\n<html [#OG_PREFIX#]>") . 
                 
             "\n<head>" .
