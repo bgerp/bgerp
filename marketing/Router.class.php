@@ -86,7 +86,7 @@ class marketing_Router extends core_Manager
 	 */
 	public static function routeByCompanyEmail($email, $inCharge)
 	{
-		$companyId = crm_Companies::fetchField("#email LIKE '%{$email}%'", 'id');
+		$companyId = crm_Companies::fetchField(array("#email LIKE '%[#1#]%'", $email), 'id');
 		
 		if($companyId){
 			$rec = (object)array('id' => $companyId, 'inCharge' => $inCharge);
@@ -107,7 +107,7 @@ class marketing_Router extends core_Manager
 	 */
 	public static function routeByPersonEmail($email, $inCharge)
 	{
-		$personId = crm_Persons::fetchField("#email LIKE '%{$email}%'", 'id');
+		$personId = crm_Persons::fetchField(array("#email LIKE '%[#1#]%'", $email), 'id');
 		
 		if($personId){
 			$rec = (object)array('id' => $personId, 'inCharge' => $inCharge);

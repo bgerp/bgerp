@@ -1,11 +1,13 @@
 <div>
 <b>|Информация за продукта|*</b><br />
+<br />
 |Драйвър|* : [#drvId#] <br />
 <!--ET_BEGIN DATA_ROW-->
 [#CAPTION#] - [#VALUE#]<br />
 <!--ET_END DATA_ROW-->
 
 <b>|Количества|*</b><br />
+<br />
 <!--ET_BEGIN quantity1-->
 |Количество|* : [#quantity1#]<br />
 <!--ET_END quantity1-->
@@ -14,8 +16,10 @@
 <!--ET_END quantity2-->
 <!--ET_BEGIN quantity3-->
 |Количество|* : [#quantity3#]<br />
-
+<!--ET_END quantity3-->
+<br />
 <b>|Контактни дани|*</b><br />
+<br />
 <!--ET_BEGIN company-->
 |Фирма|* : [#company#]<br />
 <!--ET_END company-->
@@ -37,6 +41,8 @@
 |Адрес|* : [#address#]<br />
 <!--ET_END address-->
 
+<br />
+|Системни данни|*<br /><br />
 |Дата|* : [#time#] <br />
 |ИП|* : [#ip#]<br />
 |Браузър|* : [#browser#]<br />

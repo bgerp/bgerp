@@ -186,6 +186,8 @@ class marketing_Inquiries extends core_Master
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
         $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
+    	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
+    	$this->FLD('browser', 'varchar(80)', 'caption=Браузър,input=none');
     }
     
     
@@ -235,6 +237,8 @@ class marketing_Inquiries extends core_Master
     		$rec = &$form->rec;
     		$rec->data = $this->getDataFromForm($form);
     		$rec->state = 'active';
+    		$rec->ip = core_Users::getRealIpAddr();
+    		$rec->browser = Mode::get('getUserAgent');
     		
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
@@ -343,6 +347,9 @@ class marketing_Inquiries extends core_Master
     	if ($form->isSubmitted()){
     		
     		$form->rec->data = $mvc->getDataFromForm($form);
+    		$form->rec->ip = core_Users::getRealIpAddr();
+    		$form->rec->browser = Mode::get('getUserAgent');
+    		$form->rec->state = 'active';
     	}
     }
     
@@ -467,9 +474,7 @@ class marketing_Inquiries extends core_Master
     		$row->email = $rec->email;
     	}
     	
-    	$row->ip = core_Users::getRealIpAddr();
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
-    	$row->browser = Mode::get('getUserAgent');
     }
     
     
@@ -665,5 +670,14 @@ class marketing_Inquiries extends core_Master
     public static function getAllowedFolders()
     {
     	return array('doc_ContragentDataIntf');
+    }
+    
+    
+    /**
+     * Дъстояние на нишката
+     */
+	static function getThreadState($id)
+    {
+        return 'opened';
     }
 }
