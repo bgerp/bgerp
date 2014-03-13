@@ -1116,11 +1116,13 @@ function loginFormPadding()
 	}
 }
 
+
 /**
  * Задава ширина на елементите от форма в зависимост от ширината
  */
 function setFormElementsWidth()
 {
+
 	var form = $('.formTable');
 	var winWidth = parseInt($(window).width());
 	
@@ -1144,14 +1146,19 @@ function setFormElementsWidth()
 		form.css('width','33em');
 	}
 	
+	$('.formTable label').each(function() {
+		var colsInRow = parseInt($(this).attr('data-colsInRow'));
+		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
+	});
+	
 	$('.formTable textarea').css('minWidth',formElWidth);
-	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset]').css('maxWidth', formElWidth);
+	$('.formTable input').not(':input[type=button], :input[type=submit], :input[type=reset], :input[type=radio],:input[type=checkbox]').css('maxWidth', formElWidth);
+	$('.formTable label').css('whiteSpace','pre-wrap');
 	$('.formTable select').css('maxWidth',formElWidth);
 	$('.formTable .chzn-container').css('maxWidth',formElWidth);
 	$('.formTable .chzn-container .chzn-drop').css('maxWidth',formElWidth - 2 );
 	$('.formTable .chzn-container-single .chzn-search input').css('maxWidth',formElWidth - 12);
 }
-
 
 
 /**

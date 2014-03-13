@@ -198,7 +198,7 @@ class type_Keylist extends core_Type {
                     $v = type_Key::getOptionTitle($v);
                     
                     $cb = ht::createElement('input', $attrCB);
-                    $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
+                    $cb->append("<label data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
                         $html .= "\n<tr class='row-" .$j . "'>";
