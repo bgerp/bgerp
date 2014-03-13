@@ -216,32 +216,35 @@ class purchase_TransactionSourceImpl
     protected function getPaymentPart($rec)
     {
         $entries = array();
-        
-        // покупката съхранява валутата като ISO код; преобразуваме в ПК.
+    	
+    	// покупката съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         expect($rec->caseId, 'Генериране на платежна част при липсваща каса!');
+        $amountBase = $quantityAmountBase = 0;
         
         foreach ($rec->details as $detailRec) {
         	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
-        	
-            $entries[] = array(
-                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
+        	$amountBase += $amount * $rec->currencyRate;
+        	$quantityAmountBase += currency_Currencies::round($amount, $rec->currencyId);
+        }
+        
+        $entries[] = array(
+                'amount' => currency_Currencies::round($amountBase), // В основна валута
                 
                 'credit' => array(
                     '501', // Сметка "501. Каси"
                         array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
                         array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на покупката
+                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на покупката
                 ),
                 
                 'debit' => array(
                     '401', // Сметка "401. Задължения към доставчици"
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array('currency_Currencies', $currencyId),          // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($amount, $rec->currencyId), // "брой пари" във валутата на покупката
+                    'quantity' => $quantityAmountBase, // "брой пари" във валутата на покупката
                 ),
             );
-        }
         
         return $entries;
     }
