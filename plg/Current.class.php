@@ -47,7 +47,9 @@ class plg_Current extends core_Plugin
 		            }
             	}
             	
-            	redirect(array($mvc,'ret_url' => TRUE), FALSE, "Моля, изберете текущ/а {$mvc->singleTitle}");
+            	$msg = tr("Моля, изберете текущ/а");
+            	$msg .= " " . tr($mvc->singleTitle);
+            	redirect(array($mvc,'ret_url' => TRUE), FALSE, $msg);
             }
         }
     }
