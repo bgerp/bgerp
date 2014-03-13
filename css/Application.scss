@@ -3042,6 +3042,18 @@ body.narrow {
 	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details {
 		max-width: 560px;
 	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 558px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 548px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 538px;
+	}
+	.narrow .formTable label{
+       max-width: 279px;
+    }
 	.narrow .eshop-group-button {
 	   width: 46%;
        margin-right: 2%;
@@ -3069,6 +3081,18 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 483px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 481px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 471px;
+	}
+	.narrow .formTable label{
+       max-width: 240px;
+    }
 	.narrow  .eshop-group-button {
        width: 46%;
        margin-right: 2%;
@@ -3093,6 +3117,18 @@ body.narrow {
 	.narrow .single-thread .scrolling-holder, .narrow .email-source-holder, .narrow .details{
 		max-width: 460px;
 	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 458px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 448px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 438px;
+	}
+	.narrow .formTable label{
+       max-width: 229px;
+    }
 	.narrow  .eshop-group-button {
        width: 46%;
        margin-right: 2%;
@@ -3120,6 +3156,18 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 438px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 428px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 418px;
+	}
+	.narrow .formTable label{
+       max-width: 219px;
+    }
 	.narrow .eshop-group-button {
        width: 46%;
        margin-right: 2%;
@@ -3147,6 +3195,18 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 318px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 308px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 298px;
+	}
+	.narrow .formTable label{
+       max-width: 159px;
+    }
 	.narrow .eshop-group-button {
        width: 100%;
        margin-right: 0%;
@@ -3175,6 +3235,21 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
+	.narrow .formTable{
+	   max-width: 268px;
+	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 278px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 268px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 258px;
+	}
+	.narrow .formTable label{
+	   max-width: 119px;
+	}
 	.narrow .eshop-group-button {
        width: 100%;
        margin-right: 0%;
@@ -3201,6 +3276,15 @@ body.narrow {
 	}
 	.narrow #all {
 		border: none;
+	}
+	.narrow .chzn-container, .narrow .formFields input, .narrow .formFields textarea, .narrow .formFields select {
+		max-width: 198px;
+	}
+	.narrow .chzn-container .chzn-drop {
+		max-width: 188px;
+	}
+	.narrow .chzn-container-single .chzn-search input {
+		max-width: 178px;
 	}
 	.eshop-group-button {
        width: 100%;
