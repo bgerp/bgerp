@@ -127,45 +127,65 @@ class core_ProtoSetup
         $constPosition = strtoupper($packName). "_MENU_POSITION";
         $constMenuName = strtoupper($packName). "_MENU";
         $constSubMenu = strtoupper($packName). "_SUB_MENU";
-          
+        $constView = strtoupper($packName). "_VIEW";
+                 
         // Добавяме връзките към модула в менюто
         if(count($this->menuItems)) { 
-            $Menu = cls::get('bgerp_Menu');
+            
         
             foreach($this->menuItems as $item) {
-            	
-            	if ($conf->{$constPosition}) { 
-            		$row = $conf->{$constPosition};
+            	$Menu = cls::get('bgerp_Menu');         	
+            	// задаваме позицията в менюто
+            	// с приоритет е от конфига
+            	if ($conf->_data[$constPosition]) { 
+            		$row = $conf->_data[$constPosition];
             	} elseif ($item['row']) {
             		$row = $item['row'];
             	} elseif ($item[0]) {
             		$row = $item[0];
             	}
-            	
-            	if ($conf->{$constMenuName}) {
-            		$menu = $conf->{$constMenuName};
+            
+            	// задаваме името на менюто
+            	// с приоритет е от конфига
+            	if ($conf->_data[$constMenuName]) {
+            		$menu = $conf->_data[$constMenuName];
             	} elseif ($item['menu']) {
             		$menu = $item['menu'];
             	} elseif ($item[1]) {
             		$menu = $item[1];
             	}
             	
-            	if ($conf->{$constSubMenu}) {
-            		$subMenu = $conf->{$constSubMenu};
+            	// задаваме името на подменюто
+            	// с приоритет е от конфига
+            	if ($conf->_data[$constSubMenu]) {
+            		$subMenu = $conf->_data[$constSubMenu];
             	} elseif ($item['subMenu']) {
             		$subMenu = $item['subMenu'];
             	} elseif ($item[2]) {
             		$subMenu = $item[2];
             	}
-            	
-                
+
                 $ctr     = $item['ctr'] ? $item['ctr'] : $item[3];
                 $act     = $item['act'] ? $item['act'] : $item[4];
                 $roles   = $item['roles'] ? $item['roles'] : $item[5];
-
-                $html .= $Menu->addItem($row, $menu, $subMenu, $ctr, $act, $roles);
                 
-                unset($row);
+	            // ако искаме това меню да не е видимо, го изтриваме
+                if ($conf->{$constView} === 'no')  { 
+	        	
+		        	$query = bgerp_Menu::getQuery();
+		        	
+			        $html .= $query->delete(array("#ctr = '[#1#]' AND #act = '[#2#]' AND #menu = '[#3#]' AND #subMenu = '[#4#]' AND #createdBy = -1", $ctr, $act, $menu, $subMenu));
+			       
+	        	} else {
+	        	
+                	$html .= $Menu->addItem($row, $menu, $subMenu, $ctr, $act, $roles);
+	        	}
+	        	
+	        	$cacheKey = 'menuObj_' . core_Lg::getCurrent();
+			        
+			    core_Cache::remove('Menu', $cacheKey);
+			        
+	        	unset($row);
                 unset($menu);
                 unset($subMenu);
             }
@@ -240,6 +260,7 @@ class core_ProtoSetup
         $position = strtoupper($packName). "_MENU_POSITION";
         $menuName = strtoupper($packName). "_MENU";
         $subMenu = strtoupper($packName). "_SUB_MENU";
+        $view = strtoupper($packName). "_VIEW";
         
         // взимаме текущото зададено меню
         if (count($this->menuItems)) {
@@ -252,17 +273,19 @@ class core_ProtoSetup
         			defIfNot($position, $m[0]);
         			defIfNot($menuName, $m[1]);
         			defIfNot($subMenu, $m[2]);
+        			defIfNot($view, 'yes');
         			
         			// слагаме ги в $configDescription
         			$this->configDescription[$position] = array ('double', 'caption=Меню->Позиция');
         			$this->configDescription[$menuName] = array ('varchar', 'caption=Меню->Меню');
         			$this->configDescription[$subMenu] = array ('varchar', 'caption=Меню->Подменю');
+        			$this->configDescription[$view] = array ('enum(yes=Да, no=Не),row=2', 'caption=Меню->Видимо,maxRadio=2');
         			
-        			$this->configData[$position] = array($m[0]);
-        			$this->configData[$menuName] = array($m[1]);
-        			$this->configData[$subMenu] = array($m[2]);
+        			//$this->configData[$position] = array($m[0]);
+        			//$this->configData[$menuName] = array($m[1]);
+        			//$this->configData[$subMenu] = array($m[2]);
         			
-        			new core_ObjectConfiguration($this->configDescription, $this->configData);
+        			//new core_ObjectConfiguration($this->configDescription, $this->configData);
         		}
         	}
         }

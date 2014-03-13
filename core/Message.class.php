@@ -36,7 +36,7 @@ class core_Message extends core_BaseClass
             }
             
             // Сетваме хедърите
-            header("{$protocol} 403 Forbidden");
+            header("{$protocol} 404 Not Found");
         
             // Забранява кеширането
             header('Cache-Control: no-cache, no-store, must-revalidate'); // HTTP 1.1.
