@@ -223,13 +223,22 @@ class core_App
                 // Масив с хостовете
                 $hostsArr = core_Array::make($debugArr[1]);
                 
-                // Ако IP-то на потребителя е в масива с допустимите
-                if(in_array(core_Users::getRealIpAddr(), $hostsArr)){
+                // IP на потребителя
+                $realIpAdd = core_Users::getRealIpAddr();
+                
+                // Обхождаме масива с хостовете
+                foreach ((array)$hostsArr as $host) {
                     
-                    // Пускаме дебъг режима
-                    ini_set("display_errors", TRUE);
-                    ini_set("display_startup_errors", TRUE);
-                    $efDebug = TRUE;
+                    // Ако се съдържа в нашия списък
+                    if (stripos($realIpAdd, $host) === 0) {
+                        
+                        // Пускаме дебъг режима
+                        ini_set("display_errors", TRUE);
+                        ini_set("display_startup_errors", TRUE);
+                        $efDebug = TRUE;
+                        
+                        break;
+                    }
                 }
             }
             
