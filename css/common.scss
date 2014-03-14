@@ -2001,6 +2001,13 @@ a.rtbutton:hover {
     vertical-align: top;
     top: 1px;
 }
+
+.simple-toolbar .rtbutton{
+    background-image:url('../img/16/paper_clip.png') !important;
+    padding-left: 22px !important;  
+    background-repeat: no-repeat !important;
+    background-position: 3px center !important;
+}
 /* край на стилове за елемента 'RichEdit' */
 
 
@@ -2613,11 +2620,4 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	&:hover{
 	   text-decoration: underline;
 	}
-}
-
-.rtupload{
-	background-image:url('../img/16/paper_clip.png') !important;
-	padding-left: 22px !important;  
-    background-repeat: no-repeat !important;
-    background-position: 3px center !important;
 }
