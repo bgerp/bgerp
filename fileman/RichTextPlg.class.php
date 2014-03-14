@@ -50,11 +50,18 @@ class fileman_RichTextPlg extends core_Plugin
             $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
-            $fileUpload = new ET("<a class=rtbutton title='" . tr("Прикачване на файл") . "' onclick=\"{$js}\">" . tr("Файл") . "</a>");
+            // Ако е регистриран потребител
+            if (haveRole('user')) {
+                $placeHolder = 'filesAndDoc';
+                $btnTitle = 'Файл';
+            } else {
+                $placeHolder = 'simpleToolbar';
+                $btnTitle = 'Прикачи';
+            }
+            
+            $fileUpload = new ET("<a class=rtbutton title='" . tr("Прикачване на файл") . "' onclick=\"{$js}\">" . tr($btnTitle) . "</a>");
             
             $fileUpload->appendOnce($callback, 'SCRIPTS');
-            
-            $placeHolder = (haveRole('user')) ? 'filesAndDoc' : 'simpleToolbar';
             
 //            $toolbarArr->add($fileUpload, 'TBL_GROUP2');
             
