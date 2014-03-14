@@ -167,6 +167,9 @@ class doc_Search extends core_Manager
         // Има зададен условия за търсене - генерираме SQL заявка.
         if($isFiltered && !$data->listFilter->gotErrors()) {
             
+            // Ако някой ще направи обработки преди вземането на резултата
+            $mvc->invoke('BeforePrepareSearhQuery', array($data, $filterRec));
+            
             // Търсене на определен тип документи
             if (!empty($filterRec->docClass)) {
                 $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
@@ -250,7 +253,36 @@ class doc_Search extends core_Manager
             $data->query->where("0 = 1");
         }
     }
-
+    
+    
+    /**
+     * Ако се търси манипулатор на файл, да се редиректне към сингъла му
+     * 
+     * @param plg_Search $mvc
+     * @param object $data
+     * @param object $filtreRec
+     */
+    function on_BeforePrepareSearhQuery($mvc, $data, $filtreRec)
+    {
+        // Тримваме търсенето
+        $search = trim($filtreRec->search);
+        
+        // Ако няма търсене
+        if (!$search) return;
+        
+        // Ако не е начало на манипулатор на документ
+        if ($search{0} != '#') return ;
+        
+        // Вземаме информацията за документа
+        $info = doc_RichTextPlg::getFileInfo($search);
+        
+        // Ако няма информация, да не се изпълнява
+        if (!$info || !$info['className'] || !$info['id']) return ;
+        
+        // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
+        redirect(array($info['className'], 'single', $info['id']));
+    }
+    
     
     /**
      * След извличане на записите от базата данни
