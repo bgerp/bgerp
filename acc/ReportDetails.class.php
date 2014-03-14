@@ -50,8 +50,6 @@ class acc_ReportDetails extends core_Manager
     	// Ако потребителя има достъп до репортите
     	if(haveRole($data->masterMvc->canReports)){
     		
-    		// Подготовка на данните
-    		
     		// Информацията за перата
     		$this->ObjectLists->prepareObjectLists($data);
     		
@@ -107,6 +105,9 @@ class acc_ReportDetails extends core_Manager
     {
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
     	
+    	// Полета за таблицата
+    	$data->listFields = arr::make("ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
+    	
     	// Перото с което мастъра фигурира в счетоводството
     	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
     	
@@ -127,7 +128,12 @@ class acc_ReportDetails extends core_Manager
 	    $Double = cls::get('type_Double');
 	    $Double->params['decimals'] = 2;
 	    
-    	foreach ($dRecs as $dRec){
+	    $data->recs = $dRecs;
+	    
+	    // Извикване на евент в мастъра за след извличане на записите от БД
+	    $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
+	    
+    	foreach ($data->recs as $dRec){
     		
     		// На коя позиция се намира, перото на мастъра
 	    	$gPos = acc_Lists::getPosition($dRec->accountNum, $groupBy);
@@ -152,7 +158,7 @@ class acc_ReportDetails extends core_Manager
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
 	    	
-	    	// К-то и сумата с еобръщат във вербален вид
+	    	// К-то и сумата се обръщат във вербален вид
 	    	foreach (array('blQuantity', 'blAmount') as $fld){
 	    		$style = ($dRec->$fld < 0) ? "color:red" : "";
 	    		$row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
@@ -160,9 +166,12 @@ class acc_ReportDetails extends core_Manager
 	    	
 	    	$rows[$dRec->accountId][] = $row;
     	}
-	   
+	  
     	// Връщане на извлечените данни
 	    $data->balanceRows = $rows;
+	    
+	    // Извикване на евент в мастъра, че записите са подготвени
+	    $data->masterMvc->invoke('AfterPrepareAccReportRows', array($data));
     }
     
     
@@ -190,25 +199,22 @@ class acc_ReportDetails extends core_Manager
     			// Името на сметката излиза над таблицата
     			$content = new ET("<span>{$accNum}</span></br />");
     			
-    			// Кои полета ще се показват в таблицата
-    			$fields = arr::make("ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
-    			
     			// Обикаляне на всички пера
     			foreach (range(1, 3) as $i){
     				$ent = "ent{$i}Id";
     				if(empty($rows[0][$ent])){
     					
     					// Ако не са сетнати не се показва колонка в таблицата
-    					unset($fields[$ent]);
+    					unset($data->listFields[$ent]);
     				} else {
     					
     					// Вербалното име на номенклатурата
-    					$fields[$ent] = $accGroups[$i]->rec->name;
+    					$data->listFields[$ent] = $accGroups[$i]->rec->name;
     				}
     			}
     			
     			// Добавяне на таблицата в шаблона
-    			$content->append($table->get($rows, $fields));
+    			$content->append($table->get($rows, $data->listFields));
     			$tpl->append($content . "</br />", 'CONTENT');
     		}
     	} else {
