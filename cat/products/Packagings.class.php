@@ -217,13 +217,16 @@ class cat_products_Packagings extends cat_products_Detail
 		
     	if(!$form->rec->id){
         	$options = array('' => '') + $options;
-        	if(static::fetch("#productId = {$form->rec->productId} AND #isBase = 'yes'")){
-        		$form->setDefault('isBase', 'no');
-        	} else {
-        		$form->setDefault('isBase', 'yes');
-        	}
         }
         
+        if(empty($form->rec->isBase)){
+	    	if(static::fetch("#productId = {$form->rec->productId} AND #isBase = 'yes'")){
+	        	$form->setDefault('isBase', 'no');
+	        } else {
+	        	$form->setDefault('isBase', 'yes');
+	        }
+        }
+        	
         $form->setOptions('packagingId', $options);
         
         $productRec = cat_Products::fetch($form->rec->productId);
