@@ -91,6 +91,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да го контира?
+     */
+    var $canConto = 'pos,ceo';
+    
+    
+    /**
 	 * Полета които да са достъпни след изтриване на дъска
 	 */
 	var $fetchFieldsBeforeDelete = 'id';

@@ -54,7 +54,6 @@ function posActions() {
 	$("form input[type=submit]").live("hover", function(){$(this).toggleClass('submit_hover');});
 	
 	$("input[disabled=disabled]").addClass("disabledBtn");
-	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
 
 	$(".pos-product-category[data-id='']").addClass('active');
 	$('.pos-product-category').click(function() {

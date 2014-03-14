@@ -95,7 +95,7 @@ class pos_Payments extends core_Manager {
 	    	2 => "change",);
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	//bp($cntObj,$mvc);
+    	
     	$res .= $cntObj->html;
     	
     	return $res;
