@@ -502,7 +502,7 @@ class pos_Receipts extends core_Master {
      */
     static function getLink($id)
     {
-    	return static::recToVerbal(static::fetchRec($id), 'title,-list')->title;
+    	return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
     }
     
      
