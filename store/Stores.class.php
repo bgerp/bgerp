@@ -225,7 +225,7 @@ class store_Stores extends core_Master
 	 */
 	function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		if(!haveRole('ceo,storeMaster')){
+		if(!haveRole($mvc->canSelectAll)){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();

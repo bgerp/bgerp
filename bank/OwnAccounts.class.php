@@ -421,7 +421,7 @@ class bank_OwnAccounts extends core_Master {
 	 */
 	function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		if(!haveRole('ceo,bankMaster')){
+		if(!haveRole($mvc->canSelectAll)){
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
