@@ -1,11 +1,12 @@
 <div class="singleView">
       [#SingleToolbar#]
-      <h2><span class='quiet'>|Детайлна справка за пера|*</span> <!--ET_BEGIN ent1Id--><b>[#ent1Id#]</b><!--ET_END ent1Id-->
-      <!--ET_BEGIN ent2Id--> <span class='quiet'>и</span> <b>[#ent2Id#]</b><!--ET_END ent2Id-->
-      <!--ET_BEGIN ent3Id--> <span class='quiet'>и</span> <b>[#ent3Id#]</b><!--ET_END ent3Id-->
-      </h2>
-      
-      <h3 style='margin-top:0px'><b>[#accountId#]</b></h3>
+      <h2 style='margin-bottom:0'><span class='quiet'>|Детайлна справка за|* </span> </h2>
+      <h3 style='margin-top:0'><b><span class='quiet'>|сметка|*: </span>[#accountId#]</b> <br>
+      <!--ET_BEGIN ent1Id--><span class='quiet'>|перо|* 1:</span>  <b>[#ent1Id#]</b> <br><!--ET_END ent1Id-->
+      <!--ET_BEGIN ent2Id--><span class='quiet'>|перо|* 2:</span>  <b>[#ent2Id#]</b> <br><!--ET_END ent2Id-->
+      <!--ET_BEGIN ent3Id--><span class='quiet'>|перо|* 3:</span>  <b>[#ent3Id#]</b><!--ET_END ent3Id--></h3>
+     
+     
       <div class='fleft'>[#listFilter#]</div>
       
       <div class='fright' id='summary'>
