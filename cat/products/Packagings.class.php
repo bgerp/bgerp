@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -74,13 +74,14 @@ class cat_products_Packagings extends cat_products_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
-        $this->FLD('netWeight', 'cat_type_Weight', 'input,caption=Тегло->Нето');
-        $this->FLD('tareWeight', 'cat_type_Weight', 'input,caption=Тегло->Тара');
-        $this->FLD('sizeWidth', 'cat_type_Size', 'input,caption=Габарит->Ширина');
-        $this->FLD('sizeHeight', 'cat_type_Size', 'input,caption=Габарит->Височина');
-        $this->FLD('sizeDepth', 'cat_type_Size', 'input,caption=Габарит->Дълбочина');
-        $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=Код->EAN');
-        $this->FLD('customCode', 'varchar(64)', 'input,caption=Код->Вътрешен');
+        $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
+        $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
+        $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Тегло->Тара');
+        $this->FLD('sizeWidth', 'cat_type_Size', 'caption=Габарит->Ширина');
+        $this->FLD('sizeHeight', 'cat_type_Size', 'caption=Габарит->Височина');
+        $this->FLD('sizeDepth', 'cat_type_Size', 'caption=Габарит->Дълбочина');
+        $this->FLD('eanCode', 'gs1_TypeEan', 'caption=Код->EAN');
+        $this->FLD('customCode', 'varchar(64)', 'caption=Код->Вътрешен');
         
         $this->setDbUnique('productId,packagingId');
     }
@@ -103,6 +104,12 @@ class cat_products_Packagings extends cat_products_Detail
 	    				 || ($check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
 	    				$form->setError($code, 'Има вече продукт с такъв код!');
 			        }
+    			}
+    			
+    			// Ако за този продукт има друга основна опаковка, тя става не основна
+    			if($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")){
+    				$packRec->isBase = 'no';
+    				static::save($packRec);
     			}
     		}
     	}
@@ -200,23 +207,29 @@ class cat_products_Packagings extends cat_products_Detail
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $options = $mvc::getRemainingOptions($data->form->rec->productId, $data->form->rec->id);
+        $form = &$data->form;
+    	$options = $mvc::getRemainingOptions($form->rec->productId, $form->rec->id);
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
             redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
         }
 		
-    	if(!$data->form->rec->id){
+    	if(!$form->rec->id){
         	$options = array('' => '') + $options;
+        	if(static::fetch("#productId = {$form->rec->productId} AND #isBase = 'yes'")){
+        		$form->setDefault('isBase', 'no');
+        	} else {
+        		$form->setDefault('isBase', 'yes');
+        	}
         }
         
-        $data->form->setOptions('packagingId', $options);
+        $form->setOptions('packagingId', $options);
         
-        $productRec = cat_Products::fetch($data->form->rec->productId);
+        $productRec = cat_Products::fetch($form->rec->productId);
         
         // Променяме заглавието в зависимост от действието
-        if (!$data->form->rec->id) {
+        if (!$form->rec->id) {
             
             // Ако добавяме нова опаковка
             $titleMsg = 'Добавяне на опаковка за';    
@@ -227,7 +240,7 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         // Добавяме заглавието
-        $data->form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
+        $form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
     }
     
    
@@ -263,6 +276,10 @@ class cat_products_Packagings extends cat_products_Detail
     	}
     	if($rec->tareWeight){
     		$row->weight .= tr("|Тара|*: {$row->tareWeight}");
+    	}
+    	
+    	if($rec->isBase == 'yes'){
+    		$row->packagingId = "<b>" . $row->packagingId . "</b>";
     	}
     }
 
