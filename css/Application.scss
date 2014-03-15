@@ -2822,6 +2822,12 @@ body.narrow {
 	font-size:18px;
 }
 
+@media handheld , only screen and (min-width: 1440px) {
+	#all {
+		max-width:70% !important;
+	}
+}
+
 @media handheld , only screen and (max-width: 1000px) {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
