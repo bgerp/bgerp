@@ -186,10 +186,9 @@ class pos_Points extends core_Master {
 	 */
 	function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		if(!haveRole('ceo, posMaster')){
+		if(!haveRole($mvc->canSelectAll)){
 			
-			// Показват се само точките на която каса
-			// е касиер потребителя
+			// Показват се само точките на която каса е касиер потребителя
 			$cu = core_Users::getCurrent();
 			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId');
 			$data->query->where("#cashier = {$cu}");

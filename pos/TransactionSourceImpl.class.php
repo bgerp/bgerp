@@ -5,7 +5,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * 
@@ -71,8 +71,8 @@ class pos_TransactionSourceImpl
     	$entries = array();
     	
     	foreach ($products as $product) {
-    		$product->totalQuantity = $product->quantity * $product->quantityInPack;
-    		$totalAmount   = $product->totalQuantity * $product->price;
+    		$product->totalQuantity = currency_Currencies::round($product->quantity * $product->quantityInPack);
+    		$totalAmount   = currency_Currencies::round($product->totalQuantity * $product->price);
     		$totalVat     += $product->vatPrice;
 	    	
     		$currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
@@ -166,18 +166,18 @@ class pos_TransactionSourceImpl
     {
     	$entries = array();
     	$entries[] = array(
-	         'amount' => $totalVat, // равностойноста на сумата в основната валута
+	         'amount' => currency_Currencies::round($totalVat), // равностойноста на сумата в основната валута
 	            
 	         'debit' => array(
 	              '501',  
 	            	 array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
 	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), 
-	              'quantity' => $totalVat, 
+	              'quantity' => currency_Currencies::round($totalVat), 
 	            ),
 	            
 	        'credit' => array(
 	              '4532',  
-	              'quantity' => $totalVat,
+	              'quantity' => currency_Currencies::round($totalVat),
 	            )
 	    	);
 	    	

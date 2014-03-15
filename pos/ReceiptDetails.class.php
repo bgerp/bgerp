@@ -111,20 +111,30 @@ class pos_ReceiptDetails extends core_Detail {
 	    }
 	    
         // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
-	    if (!empty($data->masterData->toolbar->buttons['btnConto'])) {
-	        $contoUrl = array('pos_Receipts', 'close', $data->masterData->rec->id);
+	    if (!empty($data->masterData->toolbar->buttons['btnConto']) ) {
+	    	$contoUrl = array('pos_Receipts', 'close', $data->masterData->rec->id);
+	    	$hint = tr("Приключи продажбата");
+	    	$hintInv = tr("Приключи и издай фактура");
 	    	
 	        if($client = $this->hasClient($data->masterData->rec->id)){
-	        	$confInvUrl = $contoUrl;
-	        	$confInvUrl['makeInvoice'] = TRUE;
+	        	$contragentClass = cls::get($client->class);
+    			$folderId = $contragentClass->forceCoverAndFolder($client->id, FALSE);
+    			if(doc_Folders::haveRightToFolder($folderId)){
+    				$confInvUrl = $contoUrl;
+	        		$confInvUrl['makeInvoice'] = TRUE;
+    			} else {
+    				$hintInv = tr("Не може да издадете фактура, защото нямате достъп до папката на клиента");
+    			}
 	        }
 	        
 	        // Скриваме бутона "Контиране"
 	        unset($data->masterData->toolbar->buttons['btnConto']);
+	    } else {
+	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
 	    }
 	    
-	    $tpl->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => 'приключи продажбата')), 'FIRST_ROW');
-	    $tpl->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => 'приключи и издай фактура')), 'SECOND_ROW');
+	    $tpl->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => $hint)), 'FIRST_ROW');
+	    $tpl->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => 'actionBtn btnEnd', 'title' => $hintInv)), 'SECOND_ROW');
 	   
 		return $tpl;
     }

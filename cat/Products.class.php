@@ -1030,4 +1030,45 @@ class cat_Products extends core_Master {
      	// Ако няма зададено заглавие за този език, връща дефолтното
      	return parent::getTitleById($id, $escaped);
     }
+    
+    
+    /**
+     * След подготовка на записите в счетоводните справки
+     */
+    public static function on_AfterPrepareAccReportRecs($mvc, &$data)
+    {
+    	$recs = &$data->recs;
+    	if(empty($recs) || !count($recs)) return;
+    	
+    	$basePack = cat_products_Packagings::fetch("#productId = '{$data->masterId}' AND #isBase = 'yes'");
+    	if($basePack){
+    		$data->packName = cat_Packagings::getTitleById($basePack->packagingId);
+    		$inPack = $basePack->quantity;
+    	} else {
+    		$data->packName = cat_UoM::getTitleById($data->masterData->rec->measureId);
+    		$inPack = 1;
+    	}
+    	
+    	foreach ($recs as &$dRec){
+    		$dRec->blQuantity /= $inPack;
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на вербалнтие записи на счетоводните справки
+     */
+    public static function on_AfterPrepareAccReportRows($mvc, &$data)
+    {
+    	$rows = &$data->balanceRows;
+    	$data->listFields = arr::make("ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
+    	
+    	foreach ($rows as &$arrs){
+    		if(count($arrs)){
+    			foreach ($arrs as &$row){
+    				$row['packId'] = $data->packName;
+    			}
+    		}
+    	}
+    }
 }

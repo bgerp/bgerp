@@ -213,6 +213,14 @@ class acc_plg_Contable extends core_Plugin
             	$requiredRoles = 'no_one';
             }
             
+        } elseif($action == 'reconto'){
+        	if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected')) {
+                $requiredRoles = 'no_one';
+            }
+            
+            if ($rec->isContable == 'no'){
+            	$requiredRoles = 'no_one';
+            }
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -278,6 +286,25 @@ class acc_plg_Contable extends core_Plugin
 
     
     /**
+     * Помощна ф-я за контиране на документ
+     */
+    private static function conto($mvc, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Контирането е позволено само в съществуващ активен/чакащ/текущ период;
+	    $period = acc_Periods::fetchByDate($rec->valior);
+	    expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
+	    $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        
+        $cRes = !empty($cRes) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
+        
+	    // Слагане на статус за потребителя
+	    status_Messages::newStatus(tr($cRes));
+    }
+    
+    
+    /**
      * Контиране на счетоводен документ
      * 
      * @param core_Mvc $mvc
@@ -289,18 +316,27 @@ class acc_plg_Contable extends core_Plugin
         $rec = $mvc->fetchRec($id);
         
         // Дали имаме права за контиране
-        if($mvc->haveRightFor('conto', $rec->id)){
-        	
-        	// Контирането е позволено само в съществуващ активен/чакащ/текущ период;
-	        $period = acc_Periods::fetchByDate($rec->valior);
-	        expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
-	        $res = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        if($mvc->haveRightFor('conto', $rec)){
+        	self::conto($mvc, $id);
         }
+    }
+    
+    
+	/**
+     * Ре контиране на счетоводен документ
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|object $id първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReConto(core_Mvc $mvc, &$res, $id)
+    { 
+        $rec = $mvc->fetchRec($id);
         
-        $res = !empty($res) ? 'Документът е контиран успешно' : 'Документът НЕ Е контиран';
-        
-        // Слагане на статус за потребителя
-        status_Messages::newStatus(tr($res));
+        // Дали имаме права за контиране
+        if($mvc->haveRightFor('reconto', $rec)){
+        	self::conto($mvc, $id);
+        }
     }
     
     
@@ -334,7 +370,7 @@ class acc_plg_Contable extends core_Plugin
         
         if($rec->state == 'active' || $rec->state == 'closed'){
         	// Ре-контиране на документа след възстановяването му
-        	self::on_AfterConto($mvc, $res, $id);
+        	self::on_AfterReConto($mvc, $res, $id);
         }
     }
     

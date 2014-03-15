@@ -91,6 +91,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да го контира?
+     */
+    var $canConto = 'pos,ceo';
+    
+    
+    /**
 	 * Полета които да са достъпни след изтриване на дъска
 	 */
 	var $fetchFieldsBeforeDelete = 'id';
@@ -496,7 +502,7 @@ class pos_Receipts extends core_Master {
      */
     static function getLink($id)
     {
-    	return static::recToVerbal(static::fetchRec($id), 'title,-list')->title;
+    	return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
     }
     
      

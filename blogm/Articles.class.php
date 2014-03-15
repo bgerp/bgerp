@@ -219,6 +219,13 @@ class blogm_Articles extends core_Master {
         }
         
         $form->setSuggestions('categories', blogm_Categories::getCategoriesByLang());
+        
+        // Ако сме в тесен режим
+        if (Mode::is('screenMode', 'narrow')) {
+        	// Да има само 2 колони
+        	$data->form->setField('categories', array('maxColumns' => 2));
+        	$data->form->setField('commentsMode', array('columns' => 2));
+        }
  	}
 	
 	
