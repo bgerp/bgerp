@@ -1873,8 +1873,6 @@ fieldset.sharing-history {
 
 .cms-row {
 	width: 100%;
-	max-width: 1024px;
-	min-width: 755px;
 	margin: 0 auto;
 	overflow: hidden;
 	padding-top: 20px;
@@ -2777,6 +2775,10 @@ div.location.public {
 
 .eshop-group-image {
 	margin-bottom: 10px;
+}
+
+.eshop-group-image img {
+	width: 100% !important;
 }
 
 .eshop-group {
