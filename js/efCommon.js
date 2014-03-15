@@ -1148,6 +1148,9 @@ function setFormElementsWidth()
 	
 	$('.formTable label').each(function() {
 		var colsInRow = parseInt($(this).attr('data-colsInRow'));
+		if(!colsInRow) {
+			colsInRow = 1;
+		}
 		$(this).css('maxWidth', parseInt((formElWidth - 25)/colsInRow));
 	});
 	
