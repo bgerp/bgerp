@@ -90,7 +90,7 @@ class social_Sharings extends core_Master
 
         if(!count($socialNetworks)) return;
         
-        $cUrl    = cms_Content::getShortUrl();
+        $cUrl    = cms_Content::getShortUrl(); 
         $cntUrl  = toUrl($cUrl, 'absolute');
         $selfUrl = substr(rawurlencode($cntUrl), 4);
 
@@ -160,6 +160,7 @@ class social_Sharings extends core_Master
                                     array(
                                         "class"   => "soc-sharing", 
                                         "title"   => tr('Споделете в') . ' ' . $socialNetwork->name,
+                                        "rel"     => "nofollow",
                                         "onclick" => "window.open('http' + '{$url}')"));
 				
 			$link = (string) $link;

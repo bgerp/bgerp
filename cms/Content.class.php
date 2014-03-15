@@ -464,10 +464,10 @@ class cms_Content extends core_Manager
     {
         $cUrl = getCurrentUrl();
 
-        if(in_array($cUrl['Ctr'], array('Bg', 'En', 'A'))) {
-            $man = cls::get($cUrl['Ctr']);
+        if(in_array($cUrl['Ctr'], array('Bg', 'En', 'A', 'blogm_Articles'))) {
+            $man = cls::get($cUrl['Ctr']); 
             if(cls::existsMethod($man, 'getShortUrl')) {
-                $cUrl = $man->getShortUrl($cUrl); 
+                $cUrl = $man->getShortUrl($cUrl);
             }
         }
 

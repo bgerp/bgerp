@@ -33,6 +33,11 @@ class bgerp_A extends core_Mvc
     {
         return Request::forward(array('Ctr' => 'eshop_Products', 'Act' => 'Show'));
     }
+    
+    function act_B()
+    {
+        return Request::forward(array('Ctr' => 'blogm_Articles', 'Act' => 'Article'));
+    }
 
 
     /**
@@ -48,6 +53,8 @@ class bgerp_A extends core_Mvc
             $cls = 'eshop_Groups';
         } elseif($a == 'P') {
             $cls = 'eshop_Products';
+        } elseif($a == 'B') {
+            $cls = 'blogm_Articles';
         }
 
         $vid = urldecode($url['id']);

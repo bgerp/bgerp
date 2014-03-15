@@ -144,7 +144,7 @@ class blogm_Articles extends core_Master {
             $txt = explode("\n", $rec->body, 2);
             if(count($txt) > 1) {
                 $rec->body = trim($txt[0]); 
-                $rec->body .=   " [link=" . toUrl(array('blogm_Articles', 'Article', $rec->vid ? $rec->vid : $rec->id), 'absolute') . "][още][/link]";
+                $rec->body .=   " [link=" . toUrl(self::getUrl($rec), 'absolute') . "][още][/link]";
             }
 
             $row->body = $mvc->getVerbal($rec, 'body');
@@ -163,7 +163,7 @@ class blogm_Articles extends core_Master {
         }
 
         if($fields['-list']) { 
-            $row->title = ht::createLink($row->title, array('blogm_Articles', 'Article', $rec->vid ? $rec->vid : $rec->id), NULL, 'ef_icon=img/16/monitor.png');
+            $row->title = ht::createLink($row->title, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
 
 	}
@@ -317,7 +317,7 @@ class blogm_Articles extends core_Master {
                 $Comments->log('add', $id);
                 
                 // Редиректваме към предварително установения адрес
-                return new Redirect(array('blogm_Articles', 'Article', $data->rec->id), 'Благодарим за вашия коментар;)');
+                return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
             }
         }
         
@@ -344,6 +344,9 @@ class blogm_Articles extends core_Master {
             vislog_History::add($data->row->title);
         }
 
+        // Добавя канонично URL
+        $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
+        $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
 		
 		return $tpl;
 	}
@@ -561,7 +564,7 @@ class blogm_Articles extends core_Master {
         while($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
-            $url = array('blogm_Articles', 'Article', $rec->vid ? $rec->vid : $rec->id );
+            $url = self::getUrl($rec);
             if($data->q) {
                 $url += array('q' => $data->q);
             }
@@ -812,7 +815,7 @@ class blogm_Articles extends core_Master {
 	    		// Извличаме необходимите ни данни
 	    		$item = new stdClass();
 	    		$item->title = $rec->title;
-	    		$item->link = toUrl(array($this, 'Article', $rec->id), 'absolute');
+	    		$item->link = toUrl(self::getUrl($rec), 'absolute');
 	    		$item->date = $rec->createdOn;
 	    		
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
@@ -870,4 +873,45 @@ class blogm_Articles extends core_Master {
 
         return $url;
     }
+
+
+    /**
+     * Връща URL към посочената статия
+     */
+    static function getUrl($rec, $canonical = FALSE)
+    {
+        $res = array('A', 'B', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+
+        return $res;
+    }
+
+
+
+    /**
+     * Връща кратко URL към съдържание, което се линква чрез този редиректор
+     */
+    function getShortUrl($url)
+    {
+        $a = strtoupper($url['Act']);
+
+        if($a == 'ARTICLE') {
+
+            $vid = urldecode($url['id']);
+
+            if($vid ) {
+                $id = cms_VerbalId::fetchId($vid, $cls); 
+
+                if(!$id) {
+                    $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+                }
+                
+                $url['id'] = $id;            
+            }
+        } 
+ 
+        unset($url['PU']);
+
+        return $url;
+    }
+
 }
