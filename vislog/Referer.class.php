@@ -129,6 +129,7 @@ class vislog_Referer extends core_Manager {
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->ip = ht::createLink($row->ip, array('vislog_History', 'ip' => $rec->ip));
+        $cnt = vislog_History::count(array("#ip = '[#1#]'", $rec->ip));
+        $row->ip = ht::createLink($row->ip . "&nbsp;({$cnt})", array('vislog_History', 'ip' => $rec->ip));
     }
 } 
