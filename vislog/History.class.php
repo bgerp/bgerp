@@ -179,7 +179,7 @@ class vislog_History extends core_Manager {
         $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         
         // Ако имаме име на това ip - слагаме го като префикс, ако не - държавата
-        if($ipName = vislog_IpNames::fetchField("", 'name')) {
+        if($ipName = vislog_IpNames::fetchField(array("#ip = '[#1#]'", $rec->ip), 'name')) {
             $name = $ipName;
         } else {
             $name = $mvc->IpToCountry->get($rec->ip);
