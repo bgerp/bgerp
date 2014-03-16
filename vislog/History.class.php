@@ -72,7 +72,7 @@ class vislog_History extends core_Manager {
     {
         $this->FLD('ip', 'varchar(15)', 'caption=Ip');
         
-        $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Query');
+        $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Query');
                 
         $this->setDbUnique('ip,HistoryResourceId,createdBy');
     }
@@ -111,12 +111,27 @@ class vislog_History extends core_Manager {
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
+     * Форма за търсене по дадена ключова дума
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvs, &$res, $data)
     {
+        $data->listFilter->showFields = 'ip'; //, HistoryResourceId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('ip', 'silent');
+        
+        if($ip = $data->listFilter->rec->ip){
+            $data->query->where("#ip LIKE '{$ip}%'");
+        }
+        
+        if($HistoryResourceId = $data->listFilter->rec->HistoryResourceId){
+           // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
+        }
+
         $data->query->orderBy("#createdOn=DESC");
+
     }
-    
+
     
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
@@ -163,6 +178,12 @@ class vislog_History extends core_Manager {
     {
         $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         
-        $row->ip->prepend($mvc->IpToCountry->get($rec->ip) . "&nbsp;");
+        // Ако имаме име на това ip - слагаме го като префикс, ако не - държавата
+        if($ipName = vislog_IpNames::fetchField("", 'name')) {
+            $name = $ipName;
+        } else {
+            $name = $mvc->IpToCountry->get($rec->ip);
+        }
+        $row->ip->prepend($name . "&nbsp;");
     }
 }

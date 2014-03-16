@@ -121,4 +121,14 @@ class vislog_Referer extends core_Manager {
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
+
+
+    /**
+     * Вербализиране на row
+     * Поставя хипервръзка на ip-то
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->ip = ht::createLink($row->ip, array('vislog_History', 'ip' => $rec->ip));
+    }
 } 
