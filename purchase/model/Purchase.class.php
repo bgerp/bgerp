@@ -71,7 +71,11 @@ class purchase_model_Purchase extends core_Model
      */
     public $contragentId;
     
-        
+    /**
+     * Действия при контиране
+     */
+    public $contoActions;
+       
     /*
      * Доставка
      */
