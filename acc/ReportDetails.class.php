@@ -50,11 +50,11 @@ class acc_ReportDetails extends core_Manager
     	// Ако потребителя има достъп до репортите
     	if(haveRole($data->masterMvc->canReports)){
     		
-    		// Информацията за перата
-    		$this->ObjectLists->prepareObjectLists($data);
-    		
     		// Извличане на счетоводните записи
     		$this->prepareBalanceReports($data);
+    		
+    		// Информацията за перата
+    		$this->ObjectLists->prepareObjectLists($data);
     		$data->Order = 1;
     	} else {
     		
@@ -76,20 +76,20 @@ class acc_ReportDetails extends core_Manager
     	// Взима се шаблона
     	$tpl = new ET("");
     	
-    	// Рендиране на данните за номенклатурата
-    	$itemsTpl = $this->ObjectLists->renderObjectLists($data);
-    	
-    	// Добаяне на информацията за номенклатурите в шаблона
-    	$tpl->append($itemsTpl);
-    	
-    	// Добавяне на интервал между двата детайла
-    	$tpl->append("<br />");
-    	
     	// Рендиране на баланс репортите
     	$balanceTpl = $this->renderBalanceReports($data);
     	
     	// Добавяне на репорта в шаблона
     	$tpl->append($balanceTpl);
+    	
+    	// Добавяне на интервал между двата детайла
+    	$tpl->append("<br />");
+    	
+    	// Рендиране на данните за номенклатурата
+    	$itemsTpl = $this->ObjectLists->renderObjectLists($data);
+    	
+    	// Добаяне на информацията за номенклатурите в шаблона
+    	$tpl->append($itemsTpl);
     	
     	// Връщане на шаблона
     	return $tpl;
