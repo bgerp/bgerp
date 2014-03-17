@@ -106,7 +106,7 @@ class acc_ReportDetails extends core_Manager
     	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
     	
     	// Полета за таблицата
-    	$data->listFields = arr::make("ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
+    	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
     	
     	// Перото с което мастъра фигурира в счетоводството
     	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
@@ -132,7 +132,11 @@ class acc_ReportDetails extends core_Manager
 	    
 	    // Извикване на евент в мастъра за след извличане на записите от БД
 	    $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
-	    
+	    $balanceRec = acc_Balances::getLastBalance();
+	    $attr['class'] = 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
+	    $attr['title'] = tr("Хронологична справка");
+        
     	foreach ($data->recs as $dRec){
     		
     		// На коя позиция се намира, перото на мастъра
@@ -153,10 +157,17 @@ class acc_ReportDetails extends core_Manager
 	    		}
 	    	}
 	    	
+	    	$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accountId' => $dRec->accountId);
+	    	$histUrl['ent1Id'] = $dRec->ent1Id;
+	    	$histUrl['ent2Id'] = $dRec->ent2Id;
+	    	$histUrl['ent3Id'] = $dRec->ent3Id;
+	    	
 	    	// Ако има повече от едно перо, несе показва това на мениджъра
 	    	if(count($row) > 1) {
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
+	    	
+	    	$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
 	    	
 	    	// К-то и сумата се обръщат във вербален вид
 	    	foreach (array('blQuantity', 'blAmount') as $fld){
@@ -184,12 +195,14 @@ class acc_ReportDetails extends core_Manager
     private function renderBalanceReports(&$data)
     {
     	$tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+    	$data->listFields['tools'] = ' ';
     	
     	// Ако има какво да се показва
     	if($data->balanceRows){
     		$tMvc = cls::get('core_Mvc');
-    		//$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-    		//$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+    		$tMvc->FLD('tools', 'varchar', 'style=accToolsCell');
+    		$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
+    		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
     		$table = cls::get('core_TableView', array('mvc' => $tMvc));
     		
     		// За всички записи групирани по сметки
@@ -213,7 +226,7 @@ class acc_ReportDetails extends core_Manager
     				} else {
     					
     					// Вербалното име на номенклатурата
-    					$data->$fields[$ent] = $accGroups[$i]->rec->name;
+    					$fields[$ent] = $accGroups[$i]->rec->name;
     				}
     			}
     			

@@ -473,7 +473,7 @@ class acc_BalanceDetails extends core_Detail
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
         // Бутон за детайлизиран преглед на историята
-        $histImg = ht::createElement('img', array('src' => sbf('img/16/view.png', '')));
+        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         $masterRec = $mvc->Master->fetch($rec->balanceId);
         
         $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accountId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
