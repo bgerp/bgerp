@@ -548,6 +548,9 @@ class fileman_Download extends core_Manager {
                 
                 //Генерираме връзката 
                 $url  = static::generateUrl($fh);
+                
+                $attr['rel'] = 'nofollow';
+                
                 $link = ht::createLink($nameFix, $url, NULL, $attr);
             }
         } else {

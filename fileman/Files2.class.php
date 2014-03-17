@@ -906,6 +906,8 @@ class fileman_Files2 extends core_Master
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);
         
+        $attr['rel'] = 'nofollow';
+        
         // Вземаме линка
         $link = ht::createLink($fileName, $url, FALSE, $attr);
         
