@@ -660,14 +660,15 @@ class sales_Sales extends core_Master
 						$data->query->where("#amountDelivered = #amountDeal");
 						break;
 					case 'undelivered':
-						$data->query->orWhere("#amountDelivered != #amountDeal");
+						$data->query->orWhere("#amountDelivered < #amountDeal");
 						break;
 					case 'unpaid':
-						$data->query->where("#amountPaid != #amountDelivered");
+						$data->query->where("#amountPaid < #amountDelivered");
 						$data->query->where("#amountPaid IS NULL");
-						$data->query->where("#state = 'active'");
 						break;
 				}
+			
+				$data->query->where("#state != 'rejected'");
 			}
 		}
     }

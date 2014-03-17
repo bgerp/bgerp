@@ -534,13 +534,15 @@ class purchase_Purchases extends core_Master
 						$data->query->where("#amountDelivered = #amountDeal");
 						break;
 					case 'undelivered':
-						$data->query->where("#amountDelivered != #amountDeal");
+						$data->query->where("#amountDelivered < #amountDeal");
 						break;
 					case 'unpaid':
-						$data->query->where("#amountPaid != #amountDelivered");
+						$data->query->where("#amountPaid < #amountDelivered");
 						$data->query->where("#amountPaid IS NULL");
 						break;
 				}
+				
+				$data->query->where("#state != 'rejected'");
 			}
 		}
     }
