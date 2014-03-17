@@ -93,14 +93,14 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
-        $this->FLD('baseQuantity', 'double', 'caption=База->Количество');
-        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
-        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
-        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество');
-        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
+        $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=accCell');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=accCell');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=accCell');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума,tdClass=accCell');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество,tdClass=accCell');
+        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=accCell');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество,tdClass=accCell');
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=accCell');
     }
     
     
@@ -1225,9 +1225,6 @@ class acc_BalanceDetails extends core_Detail
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
-    	
-		$arr['blQuantity'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blQuantity'] . "</span>";
-		$arr['blAmount'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blAmount'] . "</span>";
 		
     	try{
 	    	$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);

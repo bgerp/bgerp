@@ -187,7 +187,10 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако има какво да се показва
     	if($data->balanceRows){
-    		$table = cls::get('core_TableView');
+    		$tMvc = cls::get('core_Mvc');
+    		$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
+    		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+    		$table = cls::get('core_TableView', array('mvc' => $tMvc));
     		
     		// За всички записи групирани по сметки
     		foreach ($data->balanceRows as $accId => $rows){
