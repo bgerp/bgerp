@@ -624,7 +624,7 @@ class hr_EmployeeContracts extends core_Master
         if ($rec = $self->fetch($objectId)) {
             $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
         } else {
-            $result = '<i>неизвестно</i>';
+            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
