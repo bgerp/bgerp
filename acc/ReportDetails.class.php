@@ -166,7 +166,7 @@ class acc_ReportDetails extends core_Manager
 	    	
 	    	$rows[$dRec->accountId][] = $row;
     	}
-	  
+	  	
     	// Връщане на извлечените данни
 	    $data->balanceRows = $rows;
 	    
@@ -188,8 +188,8 @@ class acc_ReportDetails extends core_Manager
     	// Ако има какво да се показва
     	if($data->balanceRows){
     		$tMvc = cls::get('core_Mvc');
-    		$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-    		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+    		//$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
+    		//$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
     		$table = cls::get('core_TableView', array('mvc' => $tMvc));
     		
     		// За всички записи групирани по сметки
@@ -201,6 +201,7 @@ class acc_ReportDetails extends core_Manager
     			
     			// Името на сметката излиза над таблицата
     			$content = new ET("<span>{$accNum}</span></br />");
+    			$fields = $data->listFields;
     			
     			// Обикаляне на всички пера
     			foreach (range(1, 3) as $i){
@@ -208,16 +209,16 @@ class acc_ReportDetails extends core_Manager
     				if(empty($rows[0][$ent])){
     					
     					// Ако не са сетнати не се показва колонка в таблицата
-    					unset($data->listFields[$ent]);
+    					unset($fields[$ent]);
     				} else {
     					
     					// Вербалното име на номенклатурата
-    					$data->listFields[$ent] = $accGroups[$i]->rec->name;
+    					$data->$fields[$ent] = $accGroups[$i]->rec->name;
     				}
     			}
     			
     			// Добавяне на таблицата в шаблона
-    			$content->append($table->get($rows, $data->listFields));
+    			$content->append($table->get($rows, $fields));
     			$tpl->append($content . "</br />", 'CONTENT');
     		}
     	} else {
