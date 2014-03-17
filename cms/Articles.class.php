@@ -503,7 +503,7 @@ class cms_Articles extends core_Master
     		
     	// Ако преглеждаме единична статия зареждаме и нейния Ograph
 	    $ogp->siteInfo = array('Locale' =>'bg_BG',
-	    				  'SiteName' =>'bgerp.com',
+	    				  'SiteName' => $_SERVER['HTTP_HOST'],
 	    	              'Title' => self::getVerbal($rec, 'title'),
 	    	              'Description' => $desc,
 	    	              'Type' =>'article',

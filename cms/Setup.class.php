@@ -42,6 +42,13 @@ defIfNot('CMS_COPY_DISABLE_FOR', '');
 
 
 /**
+ * Изображение което ще се показва в Ографа
+ */
+
+defIfNot('CMS_OGRAPH_IMAGE', '');
+
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -98,6 +105,8 @@ class cms_Setup extends core_ProtoSetup
             'CMS_COPY_DEFAULT_TEXT' => array ('text(rows=1)', 'caption=Добавка при копиране->Текст,width=100%'),
 	
 			'CMS_COPY_DISABLE_FOR' => array ('keylist(mvc=core_Roles,select=role)', 'caption=Добавка при копиране->Изключване за'),
+			
+			'CMS_OGRAPH_IMAGE' => array ('fileman_FileType(bucket=pictures)', 'caption=Изображение за Фейсбук->Изображение'),
 	);
 
 	
