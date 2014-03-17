@@ -171,7 +171,6 @@ class acc_ReportDetails extends core_Manager
 	    		$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
 	    	}
 	    	
-	    	
 	    	// К-то и сумата се обръщат във вербален вид
 	    	foreach (array('blQuantity', 'blAmount') as $fld){
 	    		$style = ($dRec->$fld < 0) ? "color:red" : "";
