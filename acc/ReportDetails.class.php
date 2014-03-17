@@ -200,7 +200,7 @@ class acc_ReportDetails extends core_Manager
     	// Ако има какво да се показва
     	if($data->balanceRows){
     		$tMvc = cls::get('core_Mvc');
-    		$tMvc->FLD('tools', 'varchar', 'style=accToolsCell');
+    		$tMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
     		$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
     		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
     		$table = cls::get('core_TableView', array('mvc' => $tMvc));
