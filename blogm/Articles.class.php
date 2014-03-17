@@ -383,41 +383,53 @@ class blogm_Articles extends core_Master {
     /**
      * Създава OpenGraphProtocol  обект
      */
-	function prepareOgraph($rec)
+    function prepareOgraph($data)
     {
-    	$ogp = new stdClass();
+    	// Създаваме OGP Image обект
     	$conf = core_Packs::getConfig('cms');
+        $data->ogp = new stdClass();
     	
     	// Добавяме изображението за ографа ако то е дефинирано от потребителя
         if($conf->CMS_OGRAPH_IMAGE != '') {
         	
 	        $file = fileman_Files::fetchByFh($conf->CMS_OGRAPH_IMAGE);
 	        $type = fileman_Files::getExt($file->name);
-	        
 	        $attr = array('isAbsolute' => TRUE, 'qt' => '');
         	$size = array(200, 'max'=>TRUE);
 	        $imageURL = thumbnail_Thumbnail::getLink($file->fileHnd, $size, $attr);
-	    	$ogp->imageInfo = array('url'=> $imageURL,
-	    						    'type'=> "image/{$type}",
-	    						 	);
+	    	$data->ogp->imageInfo = array('url'=> $imageURL,
+	    						    	  'type'=> "image/{$type}",
+	    						 		);
         }
-        				 
-    	$richText = cls::get('type_Richtext');
-    	$desc = ht::extractText($richText->toHtml($rec->body));
+        
+    	if(!$data->rec){
     		
-    	// Ако преглеждаме единична статия зареждаме и нейния Ograph
-	    $ogp->siteInfo = array('Locale' =>'bg_BG',
+    		// Създаваме Ограф (Open Graph Protocol) Обект
+	        $data->ogp->siteInfo = array('Locale' =>'bg_BG',
 	    				  'SiteName' => $_SERVER['HTTP_HOST'],
-	    	              'Title' => self::getVerbal($rec, 'title'),
+	    	              'Title' => $_SERVER['HTTP_HOST'],
+	    	              'Description' => $this->title,
+	    	              'Type' =>'blog',
+	    				  'Url' => toUrl(getCurrentUrl(), 'absolute'),
+	    				  'Determiner' =>'the',);
+    	} else {
+    		$richText = cls::get('type_Richtext');
+    		$desc = ht::extractText($richText->toHtml($data->rec->body));
+    		
+    		// Ако преглеждаме единична статия зареждаме и нейния Ograph
+	        $data->ogp->siteInfo = array('Locale' =>'bg_BG',
+	    				  'SiteName' => $_SERVER['HTTP_HOST'],
+	    	              'Title' => $data->row->title,
 	    	              'Description' => $desc,
 	    	              'Type' =>'article',
-	    				  'Url' => toUrl(self::getUrl($rec, TRUE), 'absolute'),
+	    				  'Url' => toUrl(getCurrentUrl(), 'absolute'),
 	    				  'Determiner' =>'the',);
 	        
-	    // Създаваме Open Graph Article  обект
-	    $ogp->recInfo = array('published' => $rec->createdOn);
-	    
-    	return $ogp;
+	        // Създаваме Open Graph Article  обект
+	    	$data->ogp->recInfo = array('published' => $data->rec->createdOn,
+	    				  'modified' => $data->rec->modifiedOn,
+	    				  'expiration' => '',);
+    	}
     }
     
     
