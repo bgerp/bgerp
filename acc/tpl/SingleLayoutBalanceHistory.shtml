@@ -18,18 +18,18 @@
       </tr>
       <tr>
       	<td align='right'>|Крайно|*</td>
-      	<td align='right'><b>[#blQuantity#]</b></td>
-      	<td align='right'><b>[#blAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#blQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#blAmount#]</b></td>
       </tr>
       <tr>
       	<td align='right'>|Средно|*</td>
-      	<td align='right'><b>[#midQuantity#]</b></td>
-      	<td align='right'><b>[#midAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#midQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#midAmount#]</b></td>
       </tr>
       <tr>
       	<td align='right'>|Начално|*</td>
-      	<td align='right'><b>[#baseQuantity#]</b></td>
-      	<td align='right'><b>[#baseAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#baseQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#baseAmount#]</b></td>
       </tr>
       </table>
       </div>
