@@ -1014,8 +1014,12 @@ class acc_BalanceDetails extends core_Detail
     	// Подготовка на вербалното представяне
     	$row = new stdClass();
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
+    	$accountRec = acc_Accounts::fetch($rec->accountId);
+    	
     	foreach(range(1, 3) as $i){
-    		$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    		if ($accountRec->{"groupId{$i}"}) {
+    			$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    		}
     	}
     	
     	$data->row = $row;
@@ -1290,7 +1294,7 @@ class acc_BalanceDetails extends core_Detail
         
         $tpl->placeObject($data->row);
         
-        // Добавяне в края на таблицата с данните от журнала
+        // Добавяне в края на таблицата, данните от журнала
         $tpl->replace($details, 'DETAILS');
         
         // Рендиране на филтъра
