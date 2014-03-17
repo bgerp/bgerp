@@ -167,7 +167,10 @@ class acc_ReportDetails extends core_Manager
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
 	    	
-	    	$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
+	    	if(acc_Balances::haveRightFor('read')){
+	    		$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
+	    	}
+	    	
 	    	
 	    	// К-то и сумата се обръщат във вербален вид
 	    	foreach (array('blQuantity', 'blAmount') as $fld){

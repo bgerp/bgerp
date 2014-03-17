@@ -887,6 +887,8 @@ class acc_BalanceDetails extends core_Detail
      */
     public function act_History()
     {
+    	acc_Balances::requireRightFor('read');
+    	
     	expect($from = Request::get('fromDate', 'date'));
     	expect($to = Request::get('toDate', 'date'));
     	expect($accId = Request::get('accountId', 'int'));
