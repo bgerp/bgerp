@@ -1704,8 +1704,16 @@ fieldset.sharing-history {
 	padding: 2px 5px 5px;
 }
 
+.wide #all .formTable{
+    margin: 20px;
+}
+
 .wide #login-form{
 	padding:40px;
+}
+
+.wide #login-form .formTable{
+	margin: 0;
 }
 
 .narrow #login-form {
