@@ -162,6 +162,15 @@ class cash_Cases extends core_Master {
     }
     
     
+	/**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    {
+        $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
+    }
+    
+    
     /**
      * Подготвя и осъществява търсене по каса, изпозлва се
      * в касовите документи
