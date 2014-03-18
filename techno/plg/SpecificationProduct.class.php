@@ -372,4 +372,21 @@ class techno_plg_SpecificationProduct extends core_Plugin
      		}
      	}
      }
+     
+     
+    /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $productId - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+    public static function on_AfterGetBasePackInfo($mvc, &$res, $id)
+    {
+    	if(empty($res)){
+    		
+    		$res = (object)array('name' => NULL, 'quantity' => 1);
+    	}
+    }
 }    
