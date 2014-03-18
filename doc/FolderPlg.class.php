@@ -454,7 +454,7 @@ class doc_FolderPlg extends core_Plugin
     static function on_AfterSetupMvc($mvc, &$res) 
     {
     	// Ако има папки с отговорник @system или @anonym, те стават на първия admin или ceo
-    	self::transferEmptyOwnership($mvc);
+    	self::transferEmptyOwnership($mvc, $res);
     }
     
     
@@ -462,9 +462,12 @@ class doc_FolderPlg extends core_Plugin
      * Прехвърля от празен отговорник на първия админ или ceo
      * 
      * @param core_Mvc $mvc
+     * @param string $html
      */
-    public static function transferEmptyOwnership(core_Mvc $mvc)
+    public static function transferEmptyOwnership(core_Mvc $mvc, &$html)
     {
+    	$transfered = 0;
+    	
     	// Кой е дефолт отговорника
     	$inCharge = self::getDefaultInCharge();
     	
@@ -477,7 +480,13 @@ class doc_FolderPlg extends core_Plugin
     			// Сменяме им отговорника на дефолт отговорника
     			$rec->inCharge = $inCharge;
     			$mvc->save($rec, 'inCharge');
+    			$transfered ++;
     		}
+    	}
+    	
+    	if($transfered){
+    		$userNick = core_Users::fetchField($inCharge, 'nick');
+    		$html .= "<li> {$userNick} стана отговорник на {$transfered} папки на {$mvc->className}</li>";
     	}
     }
 }
