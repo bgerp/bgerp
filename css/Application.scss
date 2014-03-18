@@ -1760,6 +1760,10 @@ fieldset.sharing-history {
 	margin-left: 20px;
 }
 
+#cmsNavigation div.nav_item {
+    font-size:1em;
+}
+
 .narrow .articles-navigation {
 	background-color: #ccc;
 	padding: 5px;
@@ -2843,6 +2847,36 @@ body.narrow {
 	#all {
 		max-width:70% !important;
 	}
+}
+
+@media handheld , only screen and (min-width: 1550px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.02em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1600px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.04em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1650px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.06em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1700px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.08em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1750px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.1em;
+    }
 }
 
 @media handheld , only screen and (max-width: 1000px) {
