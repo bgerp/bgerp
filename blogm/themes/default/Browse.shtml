@@ -12,7 +12,7 @@
 	[#articleBrowse#]
 		<div class='blogm-article-info'>
 			<span class='blogm-comments-cnt linkWithIcon'>[#commentsCnt#]</span>
-			[#createdOn#], [#author#] в [#categories#] 
+			[#createdOn#], [#author#] |в|* [#categories#] 
 		</div>
 	<!--ET_END articleBrowse-->
 		<div class='blogm-article-title'>

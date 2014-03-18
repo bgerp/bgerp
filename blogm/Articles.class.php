@@ -285,6 +285,14 @@ class blogm_Articles extends core_Master {
 
 		// Трябва да има $rec за това $id
 		expect($data->rec = $this->fetch($id));
+
+        // Определяме езика на статията от първата и категория
+        $catArr = keylist::toArray($data->rec->categories);
+        $firstCatId = key($catArr);
+        $lang = blogm_Categories::fetchField($firstCatId, 'lang');
+        if($lang) {
+            cms_Content::setLang($lang);
+        }
 		
         // Трябва да имаме права за да видим точно тази статия
 		$this->requireRightFor('article', $data->rec);
@@ -491,12 +499,21 @@ class blogm_Articles extends core_Master {
         // Създаваме заявка към модела
 		$data->query = $this->getQuery();
 		
-		$categories = blogm_Categories::getCategoriesByLang();
-		$data->query->likeKeylist('categories', keylist::fromArray($categories));
 		
         // Въвеждаме ако има, категорията от заявката
         $data->category = Request::get('category', 'int');
 		
+        // Определяме езика от категорията
+        if($data->category >0) {
+            $lang = blogm_Categories::fetchField($data->category, 'lang');
+            if($lang) {
+                cms_Content::setLang($lang);
+            }
+        }
+
+		$categories = blogm_Categories::getCategoriesByLang();
+		$data->query->likeKeylist('categories', keylist::fromArray($categories));
+
         // По какво заглавие търсим
 		$data->q = Request::get('q');
 
@@ -539,8 +556,15 @@ class blogm_Articles extends core_Master {
         if($data->category) {
             $data->query->where(array("#categories LIKE '%|[#1#]|%'", $data->category));
             $data->selectedCategories[$data->category] = TRUE;
+        } else {
+            // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
+            $categories = blogm_Categories::getCategoriesByLang();
+            if(!is_array($categories) || !count($categories)) {
+                $categories = array('-1' => 'Няма категории на съответния език');
+            }
+            $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
-        
+
         if($data->q) {
         	plg_Search::applySearch($data->q, $data->query);
         }
@@ -721,6 +745,13 @@ class blogm_Articles extends core_Master {
         $query->show('month');
         $query->orderBy('#createdOn', 'DESC');
         $query->where("#state = 'active'");
+        
+        // Филтриране по категориите на съответния език
+        $categories = blogm_Categories::getCategoriesByLang();
+        if(!is_array($categories) || !count($categories)) {
+            $categories = array('-1' => 'Няма категории на съответния език');
+        }
+        $query->likeKeylist('categories', keylist::fromArray($categories));
 
         while($rec = $query->fetch()) { 
             $data->archiveArr[] = $rec->month;

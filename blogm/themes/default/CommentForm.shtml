@@ -1,5 +1,5 @@
 <div class='blogm-comment-form'>
-<h3 class='comment-form-title'>Добавете коментар</h3>
+<h3 class='comment-form-title'>|Добавете коментар|*</h3>
 
 <form style="" method="[#FORM_METHOD#]" action="[#FORM_ACTION#]"> 
  

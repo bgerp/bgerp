@@ -208,7 +208,7 @@ class eshop_Groups extends core_Master
             if($data->menuId) {
                 $cRec = cms_Content::fetch($data->menuId);
             }
-            vislog_History::add("Всички групи »{$cRec->menu}»");
+            vislog_History::add("Всички групи «{$cRec->menu}»");
         }
 
         return $layout;
