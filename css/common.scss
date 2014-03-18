@@ -2621,6 +2621,11 @@ div.statuses-success , div.statuses-error, div.statuses-warning{
 	   text-decoration: underline;
 	}
 }
+.toast-item-wrapper p{
+   max-height: 150px;
+   overflow-y: auto;
+   padding-right: 10px;
+}
 
 .rightAlign {
 	text-align: right;

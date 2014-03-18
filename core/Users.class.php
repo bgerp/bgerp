@@ -320,6 +320,17 @@ class core_Users extends core_Manager
     }
     
     
+	/**
+     * След създаване на запис в модела
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	if(self::count() == 1){
+    		$mvc->invoke('AfterCreateFirstUser', array(&$html));
+    	}
+    }
+    
+    
     /**
      * Форма за вход
      */
