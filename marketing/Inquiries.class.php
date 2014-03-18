@@ -470,7 +470,7 @@ class marketing_Inquiries extends core_Master
 			}
     	}
     	
-    	if($fields['-plainText']){
+    	if(Mode::is('text', 'plain')){
     		$row->email = $rec->email;
     	}
     	
@@ -543,9 +543,15 @@ class marketing_Inquiries extends core_Master
     		$tpl = getTplFromFile($this->emailNotificationFile);
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
     		
+    		Mode::push('text', 'plain');
     		$fields = $this->selectFields();
-    		$fields['-plainText'] = $fields['-single'] = TRUE;
     		$row = $this->recToVerbal($rec, $fields);
+    		
+    		// Рендиране на бодито
+    		Mode::push('printing', TRUE);
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		Mode::pop('printing');
+    		Mode::pop('text', 'plain');
     		
     		$tpl->placeObject($row);
     		$tplAlt->placeObject($row);
@@ -558,13 +564,6 @@ class marketing_Inquiries extends core_Master
     		Mode::push('text', 'xhtml');
     		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
     		Mode::pop('text');
-    		
-    		// Рендиране на бодито
-    		Mode::push('printing', TRUE);
-    		Mode::push('text', 'plain');
-    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
-    		Mode::pop('text');
-    		Mode::pop('printing');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
