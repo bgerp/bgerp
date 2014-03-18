@@ -480,4 +480,18 @@ class techno_GeneralProducts extends core_Master {
      	
      	return (object)array('name' => cat_UoM::getTitleById($measureId), 'quantity' => 1);
      }
+     
+     
+    /**
+     * Предефинираме метода getTitleById
+     */
+     public static function getProductTitle($id, $escaped = TRUE, $full = FALSE)
+     {
+     	if(is_numeric($id)){
+     		
+     		return static::getTitleById($id);
+     	} 
+     	
+     	return $id->title;
+     }
 }

@@ -389,4 +389,10 @@ class techno_plg_SpecificationProduct extends core_Plugin
     		$res = (object)array('name' => NULL, 'quantity' => 1);
     	}
     }
+    
+    
+    public static function on_AftergetProductTitle($mvc, &$res, $data)
+    {
+    	
+    }
 }    

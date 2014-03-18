@@ -367,7 +367,7 @@ class techno_Specifications extends core_Manager {
     	$classId = $mvc::getClassId();
     	$arr = array(
     		'id'         => static::fetchField("#docClassId = {$classId} AND #docId = {$rec->id}", 'id'),
-    		'title'      => $rec->title,
+    		'title'      => $mvc->getProductTitle($rec->id),
     		'docClassId' => $classId,
     		'docId'      => $rec->id,
     		'folderId'   => $rec->folderId,
