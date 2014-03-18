@@ -650,6 +650,14 @@ div.acc-detail {
     white-space: nowrap;
  }
  
+ .accCell{
+    padding-left: 10px !important;
+ }
+ 
+ .accToolsCell{
+    width: 1%;
+ }
+ 
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
@@ -1696,8 +1704,16 @@ fieldset.sharing-history {
 	padding: 2px 5px 5px;
 }
 
+.wide #all .formTable{
+    margin: 20px;
+}
+
 .wide #login-form{
 	padding:40px;
+}
+
+.wide #login-form .formTable{
+	margin: 0;
 }
 
 .narrow #login-form {
@@ -3517,6 +3533,10 @@ body.narrow {
 }
 #summary td{
     padding:3px;    
+}
+
+#summary td.summary-cell{
+	padding-left: 15px;
 }
 
 .narrow #summary b#count {

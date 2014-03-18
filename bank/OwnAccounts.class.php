@@ -169,7 +169,16 @@ class bank_OwnAccounts extends core_Master {
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
     }
     
-
+	
+	/**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    {
+        $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
+    }
+    
+    
     /**
      * Наша банкова сметка по подразбиране според клиента
      *

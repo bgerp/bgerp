@@ -411,8 +411,10 @@ class price_ListRules extends core_Detail
         
         $discount = $mvc->getVerbal($rec, 'discount');
         
-        if($rec->discount < 0) {$discount = $mvc->getVerbal($rec, 'discount');
-            $discount = "|Надценка|* <font color='#000066'>" . (-$discount) . " %</font>";
+        if($rec->discount < 0) {
+        	$rec->discount *= -1;
+        	$discount = $mvc->getVerbal($rec, 'discount');
+        	$discount = "|Надценка|* <font color='#000066'>" . ($discount) . " </font>";
         } else {
             $discount = "|Отстъпка|*  <font color='#660000'>{$discount}</font>";
         }

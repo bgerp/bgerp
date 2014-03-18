@@ -1,6 +1,6 @@
 <div class="singleView">
       [#SingleToolbar#]
-      <h2 style='margin-bottom:0'><span class='quiet'>|Детайлна справка за|* </span> </h2>
+      <h2 style='margin-bottom:0'><span class='quiet'>|Хронологична справка за|* </span> </h2>
       <h3 style='margin-top:0'><b><span class='quiet'>|сметка|*: </span>[#accountId#]</b> <br>
       <!--ET_BEGIN ent1Id--><span class='quiet'>|перо|* 1:</span>  <b>[#ent1Id#]</b> <br><!--ET_END ent1Id-->
       <!--ET_BEGIN ent2Id--><span class='quiet'>|перо|* 2:</span>  <b>[#ent2Id#]</b> <br><!--ET_END ent2Id-->
@@ -18,18 +18,18 @@
       </tr>
       <tr>
       	<td align='right'>|Крайно|*</td>
-      	<td align='right'><b>[#blQuantity#]</b></td>
-      	<td align='right'><b>[#blAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#blQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#blAmount#]</b></td>
       </tr>
       <tr>
       	<td align='right'>|Средно|*</td>
-      	<td align='right'><b>[#midQuantity#]</b></td>
-      	<td align='right'><b>[#midAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#midQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#midAmount#]</b></td>
       </tr>
       <tr>
       	<td align='right'>|Начално|*</td>
-      	<td align='right'><b>[#baseQuantity#]</b></td>
-      	<td align='right'><b>[#baseAmount#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#baseQuantity#]</b></td>
+      	<td align='right' class='summary-cell'><b>[#baseAmount#]</b></td>
       </tr>
       </table>
       </div>

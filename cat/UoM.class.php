@@ -276,7 +276,7 @@ class cat_UoM extends core_Manager
     public static function smartConvert($val, $sysId, $verbal = TRUE, $asObject = FALSE)
     {
     	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
+    	$Double->params['decimals'] = min(strlen(substr(strrchr($val, "."), 1)), 4);
     	
     	// Намира се коя мярка отговаря на това сис ид
     	$typeUom = cat_UoM::fetchBySysId($sysId);

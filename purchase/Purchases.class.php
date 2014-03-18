@@ -534,13 +534,15 @@ class purchase_Purchases extends core_Master
 						$data->query->where("#amountDelivered = #amountDeal");
 						break;
 					case 'undelivered':
-						$data->query->where("#amountDelivered != #amountDeal");
+						$data->query->where("#amountDelivered < #amountDeal");
 						break;
 					case 'unpaid':
-						$data->query->where("#amountPaid != #amountDelivered");
+						$data->query->where("#amountPaid < #amountDelivered");
 						$data->query->where("#amountPaid IS NULL");
 						break;
 				}
+				
+				$data->query->where("#state != 'rejected'");
 			}
 		}
     }
@@ -651,6 +653,7 @@ class purchase_Purchases extends core_Master
     public function getDealInfo($id)
     {
     	$rec = new purchase_model_Purchase(self::fetchRec($id));
+        $actions = type_Set::toArray($rec->contoActions);
         
         // Извличаме продуктите на покупката
         $detailRecs = $rec->getDetails('purchase_PurchasesDetails', 'purchase_model_PurchaseProduct');
@@ -684,7 +687,7 @@ class purchase_Purchases extends core_Master
         		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
         }
-        
+       
         // Кои са позволените операции за последващите платежни документи
         $result->allowedPaymentOperations = $allowedPaymentOperations;
         
@@ -700,6 +703,29 @@ class purchase_Purchases extends core_Master
         $result->agreed->payment->method        = $rec->paymentMethodId;
         $result->agreed->payment->bankAccountId = $rec->bankAccountId;
         $result->agreed->payment->caseId        = $rec->caseId;
+        
+    	if (isset($actions['pay'])) {
+            $result->paid->amount   			  = $rec->amountDeal;
+            $result->agreed->downpayment          = ($downPayment) ? $downPayment : NULL;
+            $result->paid->currency 			  = $rec->currencyId;
+            $result->paid->rate                   = $rec->currencyRate;
+            $result->paid->vatType 				  = $rec->chargeVat;
+            $result->paid->payment->method        = $rec->paymentMethodId;
+            $result->paid->payment->bankAccountId = $rec->bankAccountId;
+            $result->paid->payment->caseId        = $rec->caseId;
+        }
+
+        if (isset($actions['ship'])) {
+            $result->shipped->amount             = $rec->amountDeal;
+            $result->agreed->downpayment         = ($downPayment) ? $downPayment : NULL;
+            $result->shipped->currency           = $rec->currencyId;
+            $result->shipped->rate               = $rec->currencyRate;
+            $result->shipped->vatType 			 = $rec->chargeVat;
+            $result->shipped->delivery->location = $rec->deliveryLocationId;
+            $result->shipped->delivery->storeId  = $rec->shipmentStoreId;
+            $result->shipped->delivery->term     = $rec->deliveryTermId;
+            $result->shipped->delivery->time     = $rec->deliveryTime;
+        }
         
         /* @var $dRec purchase_model_PurchaseProduct */
         foreach ($detailRecs as $dRec) {

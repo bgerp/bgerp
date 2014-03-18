@@ -93,14 +93,14 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
-        $this->FLD('baseQuantity', 'double', 'caption=База->Количество');
-        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
-        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
-        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество');
-        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
+        $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=accCell');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=accCell');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=accCell');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума,tdClass=accCell');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество,tdClass=accCell');
+        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=accCell');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество,tdClass=accCell');
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=accCell');
     }
     
     
@@ -473,7 +473,7 @@ class acc_BalanceDetails extends core_Detail
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
         // Бутон за детайлизиран преглед на историята
-        $histImg = ht::createElement('img', array('src' => sbf('img/16/view.png', '')));
+        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         $masterRec = $mvc->Master->fetch($rec->balanceId);
         
         $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accountId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
@@ -887,6 +887,8 @@ class acc_BalanceDetails extends core_Detail
      */
     public function act_History()
     {
+    	acc_Balances::requireRightFor('read');
+    	
     	expect($from = Request::get('fromDate', 'date'));
     	expect($to = Request::get('toDate', 'date'));
     	expect($accId = Request::get('accountId', 'int'));
@@ -1014,8 +1016,12 @@ class acc_BalanceDetails extends core_Detail
     	// Подготовка на вербалното представяне
     	$row = new stdClass();
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
+    	$accountRec = acc_Accounts::fetch($rec->accountId);
+    	
     	foreach(range(1, 3) as $i){
-    		$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    		if ($accountRec->{"groupId{$i}"}) {
+    			$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    		}
     	}
     	
     	$data->row = $row;
@@ -1225,9 +1231,6 @@ class acc_BalanceDetails extends core_Detail
     			$arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
     		}	
     	}
-    	
-		$arr['blQuantity'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blQuantity'] . "</span>";
-		$arr['blAmount'] = "<span style='margin-left:7px;margin-right:7px'>" . $arr['blAmount'] . "</span>";
 		
     	try{
 	    	$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
@@ -1293,7 +1296,7 @@ class acc_BalanceDetails extends core_Detail
         
         $tpl->placeObject($data->row);
         
-        // Добавяне в края на таблицата с данните от журнала
+        // Добавяне в края на таблицата, данните от журнала
         $tpl->replace($details, 'DETAILS');
         
         // Рендиране на филтъра
