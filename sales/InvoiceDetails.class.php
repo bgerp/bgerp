@@ -63,7 +63,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, price, discount, amount';
+    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
     
     
     /**
@@ -93,8 +93,7 @@ class sales_InvoiceDetails extends core_Detail
     /**
      * Помощен масив за мапиране на полета изпозлвани в price_Helper
      */
-    public static $map = array('priceFld'    => 'price',
-        			 		   'rateFld'     => 'rate', 
+    public static $map = array('rateFld'     => 'rate', 
         			 		   'chargeVat'   => 'vatRate', 
         			 		   'quantityFld' => 'quantity', 
         			 		   'valior'      => 'date',
@@ -115,8 +114,27 @@ class sales_InvoiceDetails extends core_Detail
 		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
 		$this->FLD('discount', 'percent', 'input=none,caption=Отстъпка');
 		
+		// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
+        $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
+		
 		$this->setDbUnique('invoiceId, productId, packagingId');
 	}
+    
+    
+	/**
+     * Изчисляване на цена за опаковка на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function on_CalcPackPrice(core_Mvc $mvc, $rec)
+    {
+        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+            return;
+        }
+    
+        $rec->packPrice = $rec->price * $rec->quantityInPack;
+    }
     
     
     /**
@@ -190,7 +208,7 @@ class sales_InvoiceDetails extends core_Detail
       		$rec->quantityInPack = ($rec->packagingId) ? $pInfo->packagingRec->quantity : 1;
             
             // Изчисляваме цената
-            $rec->amount = $rec->price * $rec->quantity;
+            $rec->amount = $rec->price * $rec->quantity * $rec->quantityInPack;
         }
     }
 
@@ -208,7 +226,6 @@ class sales_InvoiceDetails extends core_Detail
         if (empty($recs)) return;
         
         foreach ($recs as &$rec){
-        	$rec->price = $rec->price * $rec->quantityInPack;
         	$haveDiscount = $haveDiscount || !empty($rec->discount);
         }
         
