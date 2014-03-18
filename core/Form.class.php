@@ -86,6 +86,12 @@ class core_Form extends core_FieldSet
     
     
     /**
+     * CSS class на формата
+     */
+    var $class;
+    
+    
+    /**
      * Инициализира формата с мениджърския клас и лейаута по подразбиране
      */
     function init($params = array())
@@ -389,7 +395,7 @@ class core_Form extends core_FieldSet
         if (!$this->layout) {
             if($this->view == 'horizontal') {
                 $this->layout = new ET(
-                    "<form  id='" .
+                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> id='" .
                     $this->formAttr['id'] .
                     "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 horizontal' style='margin-top:5px;'>" .
@@ -404,7 +410,7 @@ class core_Form extends core_FieldSet
                 );
             } else {
                 $this->layout = new ET(
-                    "<form id='" .
+                    "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> id='" .
                     $this->formAttr['id'] .
                     "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
                     "\n<div  class='clearfix21 vertical' style='margin-top:5px;'>" .
@@ -423,6 +429,11 @@ class core_Form extends core_FieldSet
 	                $this->layout->append("runOnLoad(setFormElementsWidth);", "JQRUN");
 	                $this->layout->append('$(window).resize(function(){setFormElementsWidth();});', "JQRUN");
                 }
+            }
+            
+            // Ако има зададен клас за формата, добавяме го
+            if(isset($this->class)){
+            	$this->layout->append($this->class, 'CLASS');
             }
         }
         
