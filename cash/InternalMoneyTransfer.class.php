@@ -294,12 +294,11 @@ class cash_InternalMoneyTransfer extends core_Master
     function validateForm($form)
     {
     	$rec = &$form->rec;
-    	if($rec->operationSysId == 'case2case') { 
-    		$toCashier = cash_Cases::fetchField($rec->debitCase, 'cashier');
-    		if($toCashier != core_Users::getCurrent()){
-    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
-    		}
-    	
+    	if($rec->operationSysId == 'case2case') {
+    		$toCashiers = cash_Cases::fetchField($rec->debitCase, 'cashiers');
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    		
     		// Двете Каси трябва да са различни
     	if($rec->creditCase == $rec->debitCase) {
     			$form->setError("debitCase", 'Дестинацията е една и съща !!!');
