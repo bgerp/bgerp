@@ -177,6 +177,7 @@ class acc_ReportDetails extends core_Manager
 	    		$row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
 	    	}
 	    	
+	    	$row['id'] = $dRec->id;
 	    	$rows[$dRec->accountId][] = $row;
     	}
 	  	
