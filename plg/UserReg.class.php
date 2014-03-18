@@ -92,11 +92,11 @@ class plg_UserReg extends core_Plugin
             $className = "class=login-links";
             
             $tpl->append("<p>&nbsp;<A HREF='" .
-                toUrl(array($mvc, 'resetPassForm')) .
+                toUrl(array($invoker, 'resetPassForm')) .
                 "' {$className}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
             
             $tpl->append("<p>&nbsp;<A HREF='" .
-                toUrl(array($mvc, 'registerNewUser')) .
+                toUrl(array($invoker, 'registerNewUser')) .
                 "'  {$className}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
         }
     }
