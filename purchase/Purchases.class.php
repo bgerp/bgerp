@@ -34,7 +34,7 @@ class purchase_Purchases extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, plg_Printing, doc_plg_TplManager, acc_plg_DealsChooseOperation, doc_DocumentPlg, acc_plg_Contable,
-				        plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices,
+				        plg_ExportCsv, cond_plg_DefaultValues, doc_plg_HidePrices, doc_SharablePlg,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
     
     
@@ -604,32 +604,29 @@ class purchase_Purchases extends core_Master
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-    	if($rec->state == 'active'){
+    	// Кои потребители ще се нотифицират
+    	$rec->sharedUsers = '';
     		
-    		// Кои потребители ще се нотифицират
-    		$rec->sharedUsers = '';
-    		
-    		// Ако има склад, се нотифицира отговорника му
-    		if($rec->shipmentStoreId){
-    			$chiefId = store_Stores::fetchField($rec->shipmentStoreId, 'chiefId');
-    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $chiefId);
-    		}
-    		
-    		// Ако има каса се нотифицира касиера
-    		if($rec->caseId){
-    			$cashierId = cash_Cases::fetchField($rec->caseId, 'cashier');
-    			$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $cashierId);
-    		}
-    		
-    		// Ако има б. сметка се нотифицират операторите и
-    		if($rec->bankAccountId){
-    			$operators = bank_OwnAccounts::fetchField($rec->bankAccountId,'operators');
-    			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
-    		}
-    		
-    		// Текущия потребител се премахва от споделянето
-    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+    	// Ако има склад, се нотифицира отговорника му
+    	if($rec->shipmentStoreId){
+    		$chiefId = store_Stores::fetchField($rec->shipmentStoreId, 'chiefId');
+    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $chiefId);
     	}
+    		
+    	// Ако има каса се нотифицира касиера
+    	if($rec->caseId){
+	    	$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
+	    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    	}
+    		
+    	// Ако има б. сметка се нотифицират операторите и
+    	if($rec->bankAccountId){
+    		$operators = bank_OwnAccounts::fetchField($rec->bankAccountId, 'operators');
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
+    	}
+    		
+    	// Текущия потребител се премахва от споделянето
+    	$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
     }
     
     
