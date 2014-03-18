@@ -303,7 +303,7 @@ class doc_FolderPlg extends core_Plugin
         	
         	// Ако няма отговорник, това става или първия admin или първия ceo
         	// Така избягваме възможността, отговорника да е @system или @anonym
-        	$rec->inCharge = self::getDefaultInCharge();
+        	//$rec->inCharge = self::getDefaultInCharge();
         }
     }
     
@@ -445,5 +445,39 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $query->where(core_Query::buildConditions($conditions, 'OR'));
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+    	// Ако има папки с отговорник @system или @anonym, те стават на първия admin или ceo
+    	self::transferEmptyOwnership($mvc);
+    }
+    
+    
+    /**
+     * Прехвърля от празен отговорник на първия админ или ceo
+     * 
+     * @param core_Mvc $mvc
+     */
+    public static function transferEmptyOwnership(core_Mvc $mvc)
+    {
+    	// Кой е дефолт отговорника
+    	$inCharge = self::getDefaultInCharge();
+    	
+    	// Намираме всички записи от модела без отговорник
+    	$query = $mvc->getQuery();
+    	$query->where("#inCharge IS NULL OR #inCharge = '-1' OR #inCharge = 0");
+    	if($query->count()){
+    		while($rec = $query->fetch()){
+    			
+    			// Сменяме им отговорника на дефолт отговорника
+    			$rec->inCharge = $inCharge;
+    			$mvc->save($rec, 'inCharge');
+    		}
+    	}
     }
 }
