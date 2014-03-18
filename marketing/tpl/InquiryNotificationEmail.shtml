@@ -1,7 +1,7 @@
 <div>
 <b>|Информация за продукта|*</b><br />
 <br />
-|Драйвър|* : [#drvId#] <br />
+
 <!--ET_BEGIN DATA_ROW-->
 [#CAPTION#] - [#VALUE#]<br />
 <!--ET_END DATA_ROW-->
