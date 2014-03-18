@@ -303,7 +303,7 @@ class doc_FolderPlg extends core_Plugin
         	
         	// Ако няма отговорник, това става или първия admin или първия ceo
         	// Така избягваме възможността, отговорника да е @system или @anonym
-        	//$rec->inCharge = self::getDefaultInCharge();
+        	$rec->inCharge = self::getDefaultInCharge();
         }
     }
     
