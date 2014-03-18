@@ -1129,7 +1129,7 @@ function setFormElementsWidth()
 	var off = form.offset();
 	var formOffsetL = parseInt(off.left);
 	var paddingL = parseInt(form.css('paddingLeft'));
-	var inlinePadding = 16;
+	var inlinePadding = 14;
 	var formElWidth = winWidth - 2 * formOffsetL - 2 * paddingL - inlinePadding;
 	
 	// колко ЕМ е широка страницата
