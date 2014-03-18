@@ -144,7 +144,7 @@ class blogm_Articles extends core_Master {
             $txt = explode("\n", $rec->body, 2);
             if(count($txt) > 1) {
                 $rec->body = trim($txt[0]); 
-                $rec->body .=   " [link=" . toUrl(self::getUrl($rec), 'absolute') . "][още][/link]";
+                $rec->body .=   " [link=" . toUrl(self::getUrl($rec), 'absolute') . "][" . tr('още') . "][/link]";
             }
 
             $row->body = $mvc->getVerbal($rec, 'body');
