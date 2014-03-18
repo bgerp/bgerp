@@ -517,6 +517,22 @@ class techno_Specifications extends core_Manager {
     
     
     /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $id - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+    public function getBasePackInfo($id)
+    {
+    	$TechnoClass = static::getDriver($id);
+    	
+    	return $TechnoClass->getBasePackInfo();
+    }
+    
+    
+    /**
 	 * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
 	 *
 	 * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс

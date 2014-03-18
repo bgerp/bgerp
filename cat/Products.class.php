@@ -31,7 +31,7 @@ class cat_Products extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected,
                      cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search, bgerp_plg_Import';
     
     
@@ -71,7 +71,7 @@ class cat_Products extends core_Master {
     /**
      * Кой  може да вижда счетоводните справки?
      */
-    public $canReports = 'ceo,sales,purchase,store,acc';
+    public $canReports = 'ceo,sales,purchase,store,acc,cat';
     
     
     /**
@@ -421,7 +421,7 @@ class cat_Products extends core_Master {
         if ($rec = self::fetch($objectId)) {
             $result = ht::createLink(static::getVerbal($rec, 'name'), array(__CLASS__, 'Single', $objectId));
         } else {
-            $result = '<i>' .tr('неизвестно') . '</i>';
+            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -1040,17 +1040,11 @@ class cat_Products extends core_Master {
     	$recs = &$data->recs;
     	if(empty($recs) || !count($recs)) return;
     	
-    	$basePack = cat_products_Packagings::fetch("#productId = '{$data->masterId}' AND #isBase = 'yes'");
-    	if($basePack){
-    		$data->packName = cat_Packagings::getTitleById($basePack->packagingId);
-    		$inPack = $basePack->quantity;
-    	} else {
-    		$data->packName = cat_UoM::getTitleById($data->masterData->rec->measureId);
-    		$inPack = 1;
-    	}
+    	$packInfo = $mvc->getBasePackInfo($data->masterId);
+    	$data->packName = $packInfo->name;
     	
     	foreach ($recs as &$dRec){
-    		$dRec->blQuantity /= $inPack;
+    		$dRec->blQuantity /= $packInfo->quantity;
     	}
     }
     
@@ -1070,5 +1064,28 @@ class cat_Products extends core_Master {
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $id - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+    public function getBasePackInfo($id)
+    {
+    	$basePack = cat_products_Packagings::fetch("#productId = '{$id}' AND #isBase = 'yes'");
+    	if($basePack){
+    		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
+    		$arr['quantity'] = $basePack->quantity;
+    	} else {
+    		$arr['name'] = cat_UoM::getTitleById($this->fetchField($id, 'measureId'));
+    		$arr['quantity'] = 1;
+    	}
+    	
+    	return (object)$arr;
     }
 }
