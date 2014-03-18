@@ -185,13 +185,6 @@ class change_Plugin extends core_Plugin
                 
                 // Извикваме фунцкия, след като запишем
                 $mvc->invoke('AfterSaveLogChange', array($savedRecsArr));
-                
-                // Ако има избрана версия
-                if ($versionArr['first']) {
-                    
-                    // Добавяме последната версия в избраните
-                    change_Log::addVersion($classId, $rec->id, $form->rec->version, $form->rec->subVersion);
-                }
             }
             
             // Редиректваме
@@ -211,16 +204,16 @@ class change_Plugin extends core_Plugin
                 if ($versionArr['first']) {
 
                     // Версията, която ще използваме е първата
-                    $versionStr = $versionArr['first'];
+                    $versionKey = $versionArr['first'];
                 }
             } else {
                 
                 // Версията, която ще използваме е последната
-                $versionStr = $versionArr['last'];
+                $versionKey = $versionArr['last'];
             }
             
             // Вземаме записитеи за съответния ред
-            $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionStr, $fieldsArrLogSave);
+            $gRecArr = change_Log::getRecForVersion($classId, $rec->id, $versionKey, $fieldsArrLogSave);
             
             // Ако има записи
             if ($gRec !== FALSE) {
@@ -273,21 +266,14 @@ class change_Plugin extends core_Plugin
             }
         } catch (Exception $e) {}
         
-        // Ако има стринг за версията
-        if ($versionStr) {
+        // Ако има избрана версия
+        if ($versionKey) {
             
-            // Вземаме стринга за последната версия
-            $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $form->rec->id);
-            
-            // Ако стринга не е последната версия
-            if ($versionStr != $lastVersionStr) {
+            // Вземаме стринга
+            $versionStr = change_Log::getVersionStrFromKey($mvc, $versionKey);
                 
-                // Ескейпваме стринга
-                $versionStrRaw = change_Log::escape($versionStr);
-                
-                // Добавяме към заглавието, съответната версия
-                $form->title .= "|* <b style='color:red;'>{$versionStrRaw}</b>";
-            }
+            // Към заглавието добавяме вербалното представяне на версията
+            $form->title .= "|* <b style='color:red;'>{$versionStr}</b>";
         }
         
         // Рендираме изгледа
@@ -309,7 +295,7 @@ class change_Plugin extends core_Plugin
         $selVerArr = change_Log::getFirstAndLastVersion($classId, $data->rec->id);
         
         // Последна версия
-        $lastVersion = change_Log::getVersionStr($data->row->version, $data->row->subVersion);
+        $lastVersion = change_Log::getLastVersionIdFromDoc($classId, $data->rec->id);
         
         // Вземаме формата
         $form = $mvc->getForm();
@@ -317,7 +303,7 @@ class change_Plugin extends core_Plugin
         // Вземаме всички полета, които могат да се променят
         $allowedFieldsArr = (array)static::getAllowedFields($form, $mvc->changableFields);
         
-        if ($selVerArr['first'] !== $lastVersion) {
+        if ($selVerArr['first'] != $lastVersion) {
             
             // Ако има избрана версия
             if ($selVerArr['first']) {
@@ -329,7 +315,7 @@ class change_Plugin extends core_Plugin
                 if ($selVerArr['last']) {
                     
                     // Стринга на последната версия
-                    $lastVersionStr = change_Log::getLastVersionFromDoc($mvc, $data->rec->id);
+                    $lastVersionStr = change_Log::getLastVersionIdFromDoc($mvc, $data->rec->id);
                     
                     // Ако последната версия е последния вариант
                     if ($selVerArr['last'] == $lastVersionStr) {
@@ -375,29 +361,34 @@ class change_Plugin extends core_Plugin
             }
         }
         
+        // Вербално представяне на избраните версии
+        $firstSelVerStr = change_Log::getVersionStrFromKey($mvc, $selVerArr['first']);
+        $lastSelVerStr = change_Log::getVersionStrFromKey($mvc, $selVerArr['last']);
+        $lastVerDocStr = change_Log::getVersionStrFromKey($mvc, $lastVersion);
+        
         // Ако има избрана версия
         if ($selVerArr['first']) {
             
             // Добавяме в променлива
-            $data->row->LastSavedVersion = $lastVersion;
+            $data->row->LastSavedVersion = $lastVerDocStr;
         } else {
             
             // Добавяме в друга променлива
-            $data->row->LastVersion = $lastVersion;
+            $data->row->LastVersion = $lastVerDocStr;
         }
         
         // Първата избрана версия
-        $data->row->FirstSelectedVersion = change_Log::escape($selVerArr['first']);
+        $data->row->FirstSelectedVersion = $firstSelVerStr;
         
         // Ако последната версия е последния вариант
-        if ($lastVersionStr && ($selVerArr['last'] == $lastVersionStr)) {
+        if ($lastVersionStr && ($selVerArr['last'] == $lastVersion)) {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = $lastVersion;
+            $data->row->LastSelectedVersion = $lastVerDocStr;
         } else {
             
             // Последната избрана версия
-            $data->row->LastSelectedVersion = change_Log::escape($selVerArr['last']);
+            $data->row->LastSelectedVersion = $lastSelVerStr;
         }
     }
     
