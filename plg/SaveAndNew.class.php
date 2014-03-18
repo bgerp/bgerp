@@ -30,15 +30,14 @@ class plg_SaveAndNew extends core_Plugin
             
             $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl);
             
-            /*
-             * Добавяме стойностите на връщане към "тихите" полета
+            // Добавяме стойностите на връщане към "тихите" полета
             $fields = $data->form->selectFields("#silent == 'silent'");
             
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
                     $data->retUrl[$name] = Request::get($name);
                 }
-            }*/
+            }
             
             // Записваме в сесията, полетата със запомняне
             $fields = $data->form->selectFields("#remember");
