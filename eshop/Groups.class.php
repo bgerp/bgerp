@@ -208,7 +208,7 @@ class eshop_Groups extends core_Master
             if($data->menuId) {
                 $cRec = cms_Content::fetch($data->menuId);
             }
-            vislog_History::add("Всички групи «{$cRec->menu}»");
+            vislog_History::add("Всички групи »{$cRec->menu}»");
         }
 
         return $layout;
@@ -332,7 +332,7 @@ class eshop_Groups extends core_Master
             }
         }
 
-        $all->prepend(tr('Всички продукти') . ' « ', 'PAGE_TITLE');
+        $all->prepend(tr('Всички продукти') . ' » ', 'PAGE_TITLE');
 
         return $all;
     }
@@ -348,7 +348,7 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
 
-        $groupTpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
+        $groupTpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
 
 
         return $groupTpl;

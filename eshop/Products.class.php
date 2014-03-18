@@ -281,7 +281,7 @@ class eshop_Products extends core_Master
         $tpl = eshop_Groups::getLayout();
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
-        $tpl->prepend($data->row->name . ' « ', 'PAGE_TITLE');
+        $tpl->prepend($data->row->name . ' » ', 'PAGE_TITLE');
 
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
