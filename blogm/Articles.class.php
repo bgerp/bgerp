@@ -398,9 +398,26 @@ class blogm_Articles extends core_Master {
         $data->ogp = new stdClass();
     	
     	// Добавяме изображението за ографа ако то е дефинирано от потребителя
-        if($conf->CMS_OGRAPH_IMAGE != '') {
-        	
-	        $file = fileman_Files::fetchByFh($conf->CMS_OGRAPH_IMAGE);
+       // bp(fileman_RichTextPlg::getFiles($data->rec->body));
+        
+        
+        if($data->rec->body) {
+            $pattern = "/\[img=\#(?'imgHnd'[a-z0-9\_\-]{4,128})\]/is";
+        
+            preg_match($pattern, $data->rec->body, $matches);
+
+            if($iHnd = $matches['imgHnd']) {
+                $iRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
+                $fileSrc = $iRec->src;
+            }
+        }
+        
+        if(!$fileSrc) {
+            $fileSrc = $conf->CMS_OGRAPH_IMAGE;
+        }
+        
+        if($fileSrc) {
+	        $file = fileman_Files::fetchByFh($fileSrc);
 	        $type = fileman_Files::getExt($file->name);
 	        $attr = array('isAbsolute' => TRUE, 'qt' => '');
         	$size = array(200, 'max'=>TRUE);
