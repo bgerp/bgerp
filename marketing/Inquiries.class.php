@@ -51,13 +51,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, company, email, folderId, drvId, createdOn, createdBy';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'title, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -455,6 +449,11 @@ class marketing_Inquiries extends core_Master
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->title = $mvc->getTitle($rec);
+    		
+    		$attr['class'] = 'linkWithIcon';
+    		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, $attr);
     	}
     	
     	if($fields['-single']){
@@ -570,8 +569,7 @@ class marketing_Inquiries extends core_Master
     		$PML = cls::get('phpmailer_Instance');
     		
     		// Име на фирма/лице / име на продукта
-    		$subject = (($rec->company) ? $rec->company : $rec->name) . " / {$Driver->getProductTitle((object)$rec->data)}";
-    		
+    		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
     		
     		$PML->Body = $tpl->getContent();
@@ -596,6 +594,20 @@ class marketing_Inquiries extends core_Master
         	// Изпращане
 	        $PML->Send();
     	}
+    }
+    
+    
+    /**
+     * Връща името на запитването
+     */
+    private function getTitle($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$Driver = cls::get($rec->drvId);
+    	
+    	$name = $this->fields['name']->type->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	
+    	return $subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
     }
     
     
@@ -629,11 +641,11 @@ class marketing_Inquiries extends core_Master
     public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id}";
+        $row->title = $this->getTitle($rec);
         $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->authorEmail = $rec->email;
+        $row->author = $this->getVerbal($rec, 'email');
         $row->state = $rec->state;
 		$row->recTitle = $row->title;
 		
