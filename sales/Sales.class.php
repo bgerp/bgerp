@@ -640,11 +640,13 @@ class sales_Sales extends core_Master
      */
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
-        $data->listFilter->FNC('type', 'enum(active=Активни и приключени,draft=Чернови,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,all=Всички)', 'caption=Тип,width=13em,silent,allowEmpty');
-        $data->listFilter->setDefault('type', 'active');
-		$data->listFilter->showFields .= ',search,type';
-		$data->listFilter->input();
+        if(!Request::get('Rejected', 'int')){
+        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,all=Всички)', 'caption=Тип,width=13em');
+	        $data->listFilter->setDefault('type', 'active');
+			$data->listFilter->showFields .= ',type';
+		}
 		
+		$data->listFilter->input();
 		if($filter = $data->listFilter->rec) {
 			if($filter->type) {
 				switch($filter->type){
@@ -654,7 +656,10 @@ class sales_Sales extends core_Master
 						$data->query->where("#state = 'draft'");
 						break;
 					case "active":
-						$data->query->where("#state = 'active' || #state = 'closed'");
+						$data->query->where("#state = 'active'");
+						break;
+					case "closed":
+						$data->query->where("#state = 'closed'");
 						break;
 					case 'paid':
 						$data->query->where("#amountPaid = #amountDeal");
@@ -673,7 +678,7 @@ class sales_Sales extends core_Master
 						break;
 					case 'unpaid':
 						$data->query->where("#amountPaid < #amountDelivered");
-						$data->query->where("#amountPaid IS NULL");
+						$data->query->where("#state = 'active' || #state = 'closed'");
 						break;
 				}
 			}
