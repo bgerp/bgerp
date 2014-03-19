@@ -28,6 +28,7 @@ class price_ListRules extends core_Detail
      */
     const PRICE_LIST_CATALOG = 2;
 
+    
     /**
      * Заглавие
      */
@@ -75,12 +76,6 @@ class price_ListRules extends core_Detail
      */
     var $canAdd = 'powerUser';
     
-        
-    /**
-     * Кой може да го изтрие?
-     */
-    var $canDelete = 'powerUser';
-    
     
     /**
      * Поле - ключ към мастера
@@ -111,24 +106,22 @@ class price_ListRules extends core_Detail
     }
     
     
-     /**
+    /**
 	 *  Подготовка на филтър формата
 	 */
 	static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em,silent');
-		$data->listFilter->showFields = 'search, from';
+        $data->listFilter->FNC('from', 'date', 'input,caption=В сила,width=6em');
+		$data->listFilter->setField('id', 'input=none');
+		$data->listFilter->setField('type', 'input=none');
+        $data->listFilter->showFields = 'search, from';
+		
 		$data->listFilter->input();
 		
 		$data->query->orderBy('#validFrom,#id', 'DESC');
-        
-    	if($productId = Request::get('product', 'int')){
-			$data->query->where(array("#productId = [#1#]", $productId));
-		}
-		
-    	if($from = $data->listFilter->rec->from){
+		if($from = $data->listFilter->rec->from){
 			$data->query->where(array("#validFrom >= '[#1#]'", $from));
 		}
 		
@@ -414,13 +407,13 @@ class price_ListRules extends core_Detail
         if($rec->discount < 0) {
         	$rec->discount *= -1;
         	$discount = $mvc->getVerbal($rec, 'discount');
-        	$discount = "|Надценка|* <font color='#000066'>" . ($discount) . " </font>";
+        	$discount = "|Надценка|* <font color='#000066'>{$discount}</font>";
         } else {
             $discount = "|Отстъпка|*  <font color='#660000'>{$discount}</font>";
         }
         
         if($rec->productId) {
-            $product = $mvc->getVerbal($rec, 'productId');
+            $product = cat_Products::getTitleById($rec->productId);
             $product = ht::createLink($product, array('cat_Products', 'single', $rec->productId));
         }
 
