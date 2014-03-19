@@ -51,7 +51,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, name, company, email, folderId, createdOn, createdBy';
+    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -111,7 +111,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, company, email, tel';
+    public $searchFields = 'folderId, name, company, email, place';
     
     
     /**
@@ -587,6 +587,7 @@ class marketing_Inquiries extends core_Master
         	
         	// Адрес на който да се изпрати
         	$PML->AddAddress($emailsTo);
+        	$PML->AddCustomHeader("Customer-Origin-Email: {$rec->email}");
         	
         	// От кой адрес е изпратен
         	$PML->SetFrom($sentFrom);
@@ -701,4 +702,16 @@ class marketing_Inquiries extends core_Master
     {
         return 'opened';
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	if($rec->drvId){
+     		$Driver = cls::get($rec->drvId);
+     		$res .= " " . plg_Search::normalizeText($Driver->getProductTitle((object)$rec->data));
+     	}
+     }
 }
