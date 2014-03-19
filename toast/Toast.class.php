@@ -69,8 +69,11 @@ class toast_Toast extends core_Plugin
             // Времето на отваряне на таба
             $hitTime = Request::get('hitTime', 'int');
             
+            // Време на бездействие
+            $idleTime = Request::get('idleTime', 'int');
+            
             // Всички активни статуси за текущия потребител, след съответното време
-            $toastJs = static::getStatusesJS($hitTime);
+            $toastJs = static::getStatusesJS($hitTime, $idleTime);
             
             // Добавяме резултата
             $resObj = new stdClass();
@@ -86,13 +89,14 @@ class toast_Toast extends core_Plugin
      * Връща javascript за показване на статус съобщения
      * 
      * @param integer $hitTime - Timestamp на показване на страницата
+     * @param integer $idleTime - Време на бездействие на съответния таб
      * 
      * @return string - javascript за показване на статус съобщения
      */
-    static function getStatusesJS($hitTime)
+    static function getStatusesJS($hitTime, $idleTime)
     {
         // Всички активни статуси за текущия потребител
-        $notifArr = status_Messages::getStatuses($hitTime);
+        $notifArr = status_Messages::getStatuses($hitTime, $idleTime);
         
         // Броя на намерените статуси
         $countArr = count($notifArr);

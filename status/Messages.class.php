@@ -139,10 +139,11 @@ class status_Messages extends core_Manager
      * Връща всички статуси на текущия потребител, на които не им е изтекъл lifeTime' а
      * 
      * @param integer $hitTime - timestamp на изискване на страницата
+     * @param integer $idleTime - Време на бездействие на съответния таб
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function getStatuses($hitTime)
+    static function getStatuses($hitTime, $idleTime)
     {
         $resArr = array();
         
@@ -192,7 +193,7 @@ class status_Messages extends core_Manager
             $resArr[$rec->id]['type'] = $rec->type;
             
             // Добавяме в извличанията
-            status_Retrieving::addRetrieving($rec->id, $hitTime, $sid, $userId);
+            status_Retrieving::addRetrieving($rec->id, $hitTime, $idleTime, $sid, $userId);
         }
         
         return $resArr;
@@ -229,8 +230,11 @@ class status_Messages extends core_Manager
             // Времето на отваряне на таба
             $hitTime = Request::get('hitTime', 'int');
             
+            // Време на бездействие
+            $idleTime = Request::get('idleTime', 'int');
+            
             // Вземаме непоказаните статус съобщения
-            $html = static::getStatusesDiv($hitTime);
+            $html = static::getStatusesDiv($hitTime, $idleTime);
             
             // Добавяме резултата
             $resObj = new stdClass();
@@ -246,13 +250,14 @@ class status_Messages extends core_Manager
      * Връща 'div' със статус съобщенията
      * 
      * @param integer $hitTime - Timestamp на показване на страницата
+     * @param integer $idleTime - Време на бездействие на съответния таб
      * 
      * @return string - 'div' със статус съобщенията
      */
-    static function getStatusesDiv($hitTime)
+    static function getStatusesDiv($hitTime, $idleTime)
     {
         // Всички статуси за текущия потребител преди времето на извикване на страницата
-        $statusArr = static::getStatuses($hitTime);
+        $statusArr = static::getStatuses($hitTime, $idleTime);
         
         $res = '';
         

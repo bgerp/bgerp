@@ -73,6 +73,7 @@ class status_Retrieving extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор,notNull');
         $this->FLD('retTime', 'datetime', 'caption=Изтегляне');
         $this->FLD('hitTime', 'datetime', 'caption=Заявка');
+        $this->FLD('idleTime', 'int', 'caption=Бездействие');
         
         $this->setDbUnique('messageId, hitTime, sid, userId');
     }
@@ -83,18 +84,20 @@ class status_Retrieving extends core_Manager
      * 
      * @param integer $messageId
      * @param datetime $hitTime
+     * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $sid
      * @param integer $userId
      * 
      * @return integer - id на записа
      */
-    static function addRetrieving($messageId, $hitTime, $sid=NULL, $userId=NULL)
+    static function addRetrieving($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL)
     {
         // Записва 
         $rec = new stdClass();
         $rec->messageId = $messageId;
         $rec->hitTime = $hitTime;
         $rec->retTime = dt::now();
+        $rec->idleTime = $idleTime;
         
         // Ако има потребител
         if ($userId) {
@@ -137,10 +140,19 @@ class status_Retrieving extends core_Manager
      */
     static function isRetrived($messageId, $hitTime, $sid=NULL, $userId=NULL)
     {
-        // Вземаме всички съобщения, къ даден потребител със съответното време
+        // Конфигурация на пакета
+        $conf = core_Packs::getConfig('status');
+        
+        // Време на бездействие на таба
+        $maxIdleTime = $conf->STATUS_IDLE_TIME;
+        
+        // Вземаме всички съобщения, към даден потребител
         $query = static::getQuery();
         $query->where(array("#messageId = '[#1#]'", $messageId));
+        
+        // Които не са теглени от съответния таб или са теглени от таб с по прясно време на бездействие
         $query->where(array("#hitTime = '[#1#]'", $hitTime));
+        $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
         
         // Ако има идентификатор - когато не е логнат
         if ($sid) {

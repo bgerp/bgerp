@@ -14,6 +14,12 @@ defIfNot('STATUS_TIME_BEFORE', 2);
 
 
 /**
+ * Време на бездействие на таба, преди което съобщението ще се маркира, като прочетено
+ */
+defIfNot('STATUS_IDLE_TIME', 3);
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с status
  *
@@ -58,6 +64,7 @@ class status_Setup
     var $configDescription = array(
            
        'STATUS_TIME_BEFORE' => array ('time', 'caption=Колко време преди създаването'),
+       'STATUS_IDLE_TIME' => array ('time', 'caption=Време на бездействие на таба за премахване на статус'),
      );
      
      
