@@ -499,7 +499,7 @@ class marketing_Inquiries extends core_Master
 	    	foreach ($recs as $name => $value){
 	    		$Type = core_Type::getByName($params[$name]->type);
 	    		$value = $Type->toVerbal($value);
-	    		$dataRow->replace($params[$name]->title, 'CAPTION');
+	    		$dataRow->replace(tr($params[$name]->title), 'CAPTION');
 	    		$dataRow->replace($value, 'VALUE');
 	    		$dataRow->removePlaces();
 	    		$dataRow->append2master();
