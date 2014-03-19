@@ -484,7 +484,7 @@ class doc_FolderPlg extends core_Plugin
     		}
     	}
     	
-    	if($transfered){
+    	if($transfered && $inCharge && ($inCharge > 0)) {
     		$userNick = core_Users::fetchField($inCharge, 'nick');
     		$html .= "<li> {$userNick} стана отговорник на {$transfered} папки на {$mvc->className}</li>";
     	}
