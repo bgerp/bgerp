@@ -1584,7 +1584,7 @@ efae.prototype.process = function()
 		}
 		
 		// Ако е зададено времето на бездействие в таба
-		if (typeof(idleTime) != 'undefined') {
+		if (typeof(getEO().getIdleTime()) != 'undefined') {
 			
 			// Добавяме в масива
 			dataObj['idleTime'] = getEO().getIdleTime();
