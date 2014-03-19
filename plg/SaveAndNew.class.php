@@ -32,13 +32,15 @@ class plg_SaveAndNew extends core_Plugin
             
             // Добавяме стойностите на връщане към "тихите" полета
             $fields = $data->form->selectFields("#silent == 'silent'");
-            
+           
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
-                    $data->retUrl[$name] = Request::get($name);
+                	if($fld->input == 'hidden' || $fld->input == 'remember' || $fld->type->params['remember'] == 'remember'){
+                		$data->retUrl[$name] = Request::get($name);
+                	}
                 }
             }
-            
+           
             // Записваме в сесията, полетата със запомняне
             $fields = $data->form->selectFields("#remember");
             
