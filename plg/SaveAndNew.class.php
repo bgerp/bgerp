@@ -35,12 +35,12 @@ class plg_SaveAndNew extends core_Plugin
            
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
-                	if($fld->input == 'hidden'){
+                	if($fld->input == 'hidden' || $fld->input == 'remember' || $fld->type->params['remember'] == 'remember'){
                 		$data->retUrl[$name] = Request::get($name);
                 	}
                 }
             }
-            
+           
             // Записваме в сесията, полетата със запомняне
             $fields = $data->form->selectFields("#remember");
             
