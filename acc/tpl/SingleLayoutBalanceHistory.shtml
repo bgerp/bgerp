@@ -34,5 +34,8 @@
       </table>
       </div>
       <div class='clearfix21'></div>
-      [#DETAILS#]
+      <div class='scrolling-holder'>
+        [#DETAILS#]
+      </div>
+      
  </div>  
