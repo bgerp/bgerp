@@ -28,7 +28,7 @@ class trans_Vehicles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected';
+    public $loadList = 'plg_RowTools, plg_Created, trans_Wrapper, plg_RowNumbering, doc_FolderPlg, plg_Rejected, plg_State';
     
     
     /**
