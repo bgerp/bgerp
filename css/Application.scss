@@ -1697,7 +1697,6 @@ fieldset.sharing-history {
 
 #all img {
 	max-width: 100%;
-	width: 100% \9;
 	height: auto;
 }
 
@@ -2744,6 +2743,9 @@ div.location.public {
         a{
 	        color: #048;
         } 
+    }
+    .eshop-group-button-img img{
+        width: 100% \9;
     }
 }
 
