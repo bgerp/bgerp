@@ -1136,7 +1136,7 @@ class sales_Invoices extends core_Master
             $p->classId     = $dRec->classId;
             $p->productId   = $dRec->productId;
             $p->packagingId = $dRec->packagingId;
-            $p->quantity    = $dRec->quantity;
+            $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
             $p->price       = $dRec->price;
             
             $result->invoiced->products[] = $p;

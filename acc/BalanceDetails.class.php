@@ -1177,7 +1177,8 @@ class acc_BalanceDetails extends core_Detail
     	$this->prepareListFilter($data);
     	$filter = &$data->listFilter;
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$filter->view = 'horizontal';
+    	$filter->class = 'simpleForm';
+    	
     	$filter->FNC('from', 'date', 'caption=От,input,width=10em');
     	$filter->FNC('to', 'date', 'caption=До,input,width=10em');
     	$filter->showFields = 'from,to';

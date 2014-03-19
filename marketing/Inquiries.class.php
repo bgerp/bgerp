@@ -470,7 +470,7 @@ class marketing_Inquiries extends core_Master
 			}
     	}
     	
-    	if($fields['-plainText']){
+    	if(Mode::is('text', 'plain')){
     		$row->email = $rec->email;
     	}
     	
@@ -542,13 +542,20 @@ class marketing_Inquiries extends core_Master
     		// Тяло на имейла html и text
     		$tpl = getTplFromFile($this->emailNotificationFile);
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
-    		
     		$fields = $this->selectFields();
-    		$fields['-plainText'] = $fields['-single'] = TRUE;
-    		$row = $this->recToVerbal($rec, $fields);
     		
+    		Mode::push('text', 'plain');
+    		$rowPlain = $this->recToVerbal($rec, $fields);
+    		
+    		// Рендиране на бодито
+    		Mode::push('printing', TRUE);
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		Mode::pop('printing');
+    		Mode::pop('text', 'plain');
+    		
+    		$row = $this->recToVerbal($rec, $fields);
     		$tpl->placeObject($row);
-    		$tplAlt->placeObject($row);
+    		$tplAlt->placeObject($rowPlain);
     		
     		// Извличане на прикачените файлове
     		$Driver = cls::get($rec->drvId);
@@ -559,16 +566,14 @@ class marketing_Inquiries extends core_Master
     		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
     		Mode::pop('text');
     		
-    		// Рендиране на бодито
-    		Mode::push('printing', TRUE);
-    		Mode::push('text', 'plain');
-    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
-    		Mode::pop('text');
-    		Mode::pop('printing');
-    		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
-    		$PML->Subject = "Направено е ново запитване на";
+    		
+    		// Име на фирма/лице / име на продукта
+    		$subject = (($rec->company) ? $rec->company : $rec->name) . " / {$Driver->getProductTitle((object)$rec->data)}";
+    		
+    		$PML->Subject = str::utf2ascii($subject);
+    		
     		$PML->Body = $tpl->getContent();
             $PML->AltBody = $tplAlt->getContent();
         	$PML->IsHTML(TRUE);

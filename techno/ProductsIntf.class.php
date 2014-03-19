@@ -193,4 +193,13 @@ class techno_ProductsIntf
      {
      	return $this->class->getAttachedFiles($rec);
      }
+     
+     
+     /**
+      * Връща заглавието на драйвъра
+      */
+     public function getProductTitle($data)
+     {
+     	return $this->class->getProductTitle($data);
+     }
 }

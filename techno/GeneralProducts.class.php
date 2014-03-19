@@ -464,4 +464,34 @@ class techno_GeneralProducts extends core_Master {
      	
      	return cat_UoM::fetchBySinonim($params['uom']);
      }
+     
+     
+    /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $productId - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+     public function getBasePackInfo($id)
+     {
+     	$measureId = $this->fetchField($id, 'measureId');
+     	
+     	return (object)array('name' => cat_UoM::getTitleById($measureId), 'quantity' => 1);
+     }
+     
+     
+    /**
+     * Предефинираме метода getTitleById
+     */
+     public static function getProductTitle($id, $escaped = TRUE, $full = FALSE)
+     {
+     	if(is_numeric($id)){
+     		
+     		return static::getTitleById($id);
+     	} 
+     	
+     	return $id->title;
+     }
 }

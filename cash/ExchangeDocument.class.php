@@ -234,10 +234,9 @@ class cash_ExchangeDocument extends core_Master
 		    	$rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, NULL);
 		    }
 		    
-    		$toCashier = cash_Cases::fetchField($rec->peroTo, 'cashier');
-    		if($toCashier != core_Users::getCurrent()){
-    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
-    		}
+    		$toCashiers = cash_Cases::fetchField($rec->peroTo, 'cashiers');
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
     	}
     }
     

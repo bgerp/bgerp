@@ -147,4 +147,18 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getVolume($productId, $packagingId);
     }
+    
+    
+    /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $productId - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+    public function getBasePackInfo($productId)
+    {
+    	return $this->class->getBasePackInfo($productId);
+    }
 }

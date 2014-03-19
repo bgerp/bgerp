@@ -367,7 +367,7 @@ class techno_Specifications extends core_Manager {
     	$classId = $mvc::getClassId();
     	$arr = array(
     		'id'         => static::fetchField("#docClassId = {$classId} AND #docId = {$rec->id}", 'id'),
-    		'title'      => $rec->title,
+    		'title'      => $mvc->getProductTitle($rec->id),
     		'docClassId' => $classId,
     		'docId'      => $rec->id,
     		'folderId'   => $rec->folderId,
@@ -513,6 +513,22 @@ class techno_Specifications extends core_Manager {
     	$TechnoClass = static::getDriver($productId);
     	
     	return $TechnoClass->getVolume($productId, $packagingId);
+    }
+    
+    
+    /**
+     * Връща информация за основната опаковка на артикула
+     * 
+     * @param int $id - ид на продукт
+     * @return stdClass - обект с информация
+     * 				->name     - име на опаковката
+     * 				->quantity - к-во на продукта в опаковката
+     */
+    public function getBasePackInfo($id)
+    {
+    	$TechnoClass = static::getDriver($id);
+    	
+    	return $TechnoClass->getBasePackInfo();
     }
     
     

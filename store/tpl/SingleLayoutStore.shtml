@@ -45,17 +45,8 @@
 					</table>
 				</div>
 			</fieldset>
-			
-			<!--ET_BEGIN comments-->
-			<fieldset class="detail-info">
-				<legend class="groupTitle">|Коментари|*</legend>
-				<div class="groupList">
-					[#comments#]
-				</div>
-			</fieldset>
-			<!--ET_END comments-->
+			[#DETAILS#]
 		</div>
-		[#DETAILS#]
 	</div>
 </div>
 </div>

@@ -41,7 +41,7 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg';
+    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State';
     
     
     /**
@@ -67,7 +67,37 @@ class store_Stores extends core_Master
 	 */
 	var $canList = 'ceo,storeWorker';
 
-
+	
+	/**
+     * Детайла, на модела
+     */
+    var $details = 'AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'folder-cover';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '302, 304, 305, 306, 309, 321';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките 
+     */
+    public $balanceRefGroupBy = 'store_AccRegIntf';
+    
+    
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canReports = 'ceo,store,acc';
+    
+    
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -146,6 +176,7 @@ class store_Stores extends core_Master
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
     	$this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
+    	$this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
     
     
@@ -198,7 +229,7 @@ class store_Stores extends core_Master
         if ($rec = $self->fetch($objectId)) {
             $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
         } else {
-            $result = '<i>неизвестно</i>';
+            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -259,6 +290,49 @@ class store_Stores extends core_Master
     		$cu = core_Users::getCurrent();
     		if($rec->chiefId == $cu || keylist::isIn($cu, $rec->workersIds)){
     			$res = 'ceo,storeWorker';
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на записите в счетоводните справки
+     */
+    public static function on_AfterPrepareAccReportRecs($mvc, &$data)
+    {
+    	$recs = &$data->recs;
+    	if(empty($recs) || !count($recs)) return;
+    	
+    	foreach ($recs as &$dRec){
+    		$productPlace = acc_Lists::getPosition($dRec->accountNum, 'cat_ProductAccRegIntf');
+    		$itemRec = acc_Items::fetch($dRec->{"ent{$productPlace}Id"});
+    		if(empty($data->cache[$itemRec->classId])){
+    			$data->cache[$itemRec->classId] = cls::get($itemRec->classId);
+    		}
+    		
+    		$ProductMan = $data->cache[$itemRec->classId];
+    		
+    		$packInfo = $ProductMan->getBasePackInfo($itemRec->objectId);
+    		$data->uomNames[$dRec->id] = $packInfo->name;
+    		
+    		$dRec->blQuantity /= $packInfo->quantity;
+    	}
+    }
+    
+    
+	/**
+     * След подготовка на вербалнтие записи на счетоводните справки
+     */
+    public static function on_AfterPrepareAccReportRows($mvc, &$data)
+    {
+    	$rows = &$data->balanceRows;
+    	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
+    	
+    	foreach ($rows as &$arrs){
+    		if(count($arrs)){
+    			foreach ($arrs as &$row){
+    				$row['packId'] = $data->uomNames[$row['id']];
+    			}
     		}
     	}
     }

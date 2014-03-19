@@ -292,7 +292,7 @@ class doc_Folders extends core_Master
             $row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
         } else {
             $attr['style'] .= 'color:#777;';
-            $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
+            $row->type = ht::createElement('span', $attr, tr($typeMvc->singleTitle));
         }
 
         if($rec->inCharge){

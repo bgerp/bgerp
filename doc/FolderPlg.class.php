@@ -300,8 +300,40 @@ class doc_FolderPlg extends core_Plugin
         // Подсигуряване да не се създава корица с отговорник @system или @anonym
         // в такъв случай отговорника става първия регистриран потребител в системата
         if(!$rec->inCharge || $rec->inCharge == -1){
-        	$rec->inCharge = core_Users::fetchField("#state = 'active'");
+        	
+        	// Ако няма отговорник, това става или първия admin или първия ceo
+        	// Така избягваме възможността, отговорника да е @system или @anonym
+        	$rec->inCharge = self::getDefaultInCharge();
         }
+    }
+    
+    
+    /**
+     * Връща дефолт потребителя, който може да е отговорник на папка, това е или първия
+     * администратор или първия ceo регистриран в системата
+     */
+    public static function getDefaultInCharge()
+    {
+    	// Ид на ролята "admin"
+    	$adminRoleId = core_Roles::fetchByName('admin');
+    	
+    	// Извличане на първия активен потребител с роля 'admin'
+        $query = core_Users::getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy('createdOn', 'ASC');
+        	
+        $query2 = clone $query;
+        $query->like("roles", "|{$adminRoleId}|");
+        	
+        // Ако няма такъв администратор, намираме първия 'ceo'
+        if(!$userRec = $query->fetch()){
+        	$ceoId = core_Roles::fetchByName('ceo');
+        	$query2->like("roles", "|{$ceoId}|");
+        	$userRec = $query2->fetch();
+        }
+        
+        // Връщаме ид-то на намерения потребител
+        return $userRec->id;
     }
     
     
@@ -413,5 +445,48 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $query->where(core_Query::buildConditions($conditions, 'OR'));
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res) 
+    {
+    	// Ако има папки с отговорник @system или @anonym, те стават на първия admin или ceo
+    	self::transferEmptyOwnership($mvc, $res);
+    }
+    
+    
+    /**
+     * Прехвърля от празен отговорник на първия админ или ceo
+     * 
+     * @param core_Mvc $mvc
+     * @param string $html
+     */
+    public static function transferEmptyOwnership(core_Mvc $mvc, &$html)
+    {
+    	$transfered = 0;
+    	
+    	// Кой е дефолт отговорника
+    	$inCharge = self::getDefaultInCharge();
+    	
+    	// Намираме всички записи от модела без отговорник
+    	$query = $mvc->getQuery();
+    	$query->where("#inCharge IS NULL OR #inCharge = '-1' OR #inCharge = 0");
+    	if($query->count()){
+    		while($rec = $query->fetch()){
+    			
+    			// Сменяме им отговорника на дефолт отговорника
+    			$rec->inCharge = $inCharge;
+    			$mvc->save($rec, 'inCharge');
+    			$transfered ++;
+    		}
+    	}
+    	
+    	if($transfered){
+    		$userNick = core_Users::fetchField($inCharge, 'nick');
+    		$html .= "<li> {$userNick} стана отговорник на {$transfered} папки на {$mvc->className}</li>";
+    	}
     }
 }

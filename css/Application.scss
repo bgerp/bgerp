@@ -1760,6 +1760,10 @@ fieldset.sharing-history {
 	margin-left: 20px;
 }
 
+#cmsNavigation div.nav_item {
+    font-size:1em;
+}
+
 .narrow .articles-navigation {
 	background-color: #ccc;
 	padding: 5px;
@@ -1780,6 +1784,7 @@ fieldset.sharing-history {
 .clear-center {
 	img {
 		max-width: 100%;
+		width: 100% \9;
 		height: auto;
 	}
 }
@@ -2739,6 +2744,9 @@ div.location.public {
 	        color: #048;
         } 
     }
+    .eshop-group-button-img img{
+        width: 100% \9;
+    }
 }
 
 .narrow .eshop-group-button{
@@ -2845,6 +2853,36 @@ body.narrow {
 	}
 }
 
+@media handheld , only screen and (min-width: 1550px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.02em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1600px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.04em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1650px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.06em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1700px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.08em;
+    }
+}
+
+@media handheld , only screen and (min-width: 1750px) {
+    #cmsNavigation div.nav_item {
+        font-size:1.1em;
+    }
+}
+
 @media handheld , only screen and (max-width: 1000px) {
 	#cmsTop, #headerImg {
 		@include rounded(top, left, 0px);
@@ -2899,6 +2937,12 @@ body.narrow {
 		margin-right: 8px;
 		font-size: 1.04em;
     }
+    #all h2{
+        font-size: 1.4em;
+    }
+    #all h1{
+        font-size: 1.9em;
+    }
     
 }
 @media handheld, only screen and (max-width: 900px) { 
@@ -2915,6 +2959,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.95em;
+    }
+    #all h2{
+        font-size: 1.38em;
+    }
+    #all h1{
+        font-size: 1.88em;
     }
 }
 @media handheld, only screen and (max-width: 800px) { 
@@ -2944,6 +2994,12 @@ body.narrow {
      #all .formTable{
         font-size: 0.95em;
     }
+    #all h2{
+        font-size: 1.38em;
+    }
+    #all h1{
+        font-size: 1.88em;
+    }
 }
 
 @media handheld, only screen and (max-width: 760px) { 
@@ -2969,6 +3025,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.95em;
+    }
+    #all h2{
+        font-size: 1.36em;
+    }
+    #all h1{
+        font-size: 1.86em;
     }
 }
 
@@ -3002,6 +3064,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.95em;
+    }
+    #all h2{
+        font-size: 1.34em;
+    }
+    #all h1{
+        font-size: 1.84em;
     }
 }
 
@@ -3041,6 +3109,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.95em;
+    }
+    #all h2{
+        font-size: 1.32em;
+    }
+    #all h1{
+        font-size: 1.82em;
     }
 }
 
@@ -3086,6 +3160,12 @@ body.narrow {
 	#all .formTable{
         font-size: 0.9em;
     }
+    #all h2{
+        font-size: 1.3em;
+    }
+    #all h1{
+        font-size: 1.8em;
+    }
 }
 
 @media handheld, only screen and (max-width: 533px) { 
@@ -3125,6 +3205,12 @@ body.narrow {
     #all .formTable{
         font-size: 0.9em;
     }
+    #all h2{
+        font-size: 1.28em;
+    }
+    #all h1{
+        font-size: 1.78em;
+    }
 }
 
 @media handheld, only screen and (max-width: 500px) { 
@@ -3160,6 +3246,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.9em;
+    }
+    #all h2{
+        font-size: 1.26em;
+    }
+    #all h1{
+        font-size: 1.76em;
     }
 }
 
@@ -3200,6 +3292,12 @@ body.narrow {
      #all .formTable{
         font-size: 0.9em;
     }
+    #all h2{
+        font-size: 1.24em;
+    }
+    #all h1{
+        font-size: 1.74em;
+    }
 }
 
 @media handheld, only screen and (max-width: 360px) {
@@ -3238,6 +3336,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.9em;
+    }
+    #all h2{
+        font-size: 1.22em;
+    }
+    #all h1{
+        font-size: 1.72em;
     }
 }
 
@@ -3282,6 +3386,12 @@ body.narrow {
     #all .formTable{
         font-size: 0.9em;
     }
+    #all h2{
+        font-size: 1.2em;
+    }
+    #all h1{
+        font-size: 1.7em;
+    }
 }
 
 @media handheld, only screen and (max-width: 240px) { 
@@ -3317,6 +3427,12 @@ body.narrow {
     }
     #all .formTable{
         font-size: 0.85em;
+    }
+    #all h2{
+        font-size: 1.15em;
+    }
+    #all h1{
+        font-size: 1.65em;
     }
 }
 

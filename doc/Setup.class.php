@@ -173,6 +173,9 @@ class doc_Setup extends core_ProtoSetup
         // Замества handle' ите на документите с линк към документа
         $html .= $Plugins->installPlugin('Документи в RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
         
+        // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
+        $html .= $Plugins->installPlugin('Прехвърляне на собственост на папки', 'doc_plg_TransferOwnership', 'core_Users', 'private');
+        
         // Замества абсолютните линкове с титлата на документа
         $html .= $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
         

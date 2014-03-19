@@ -113,7 +113,7 @@ class cash_Cases extends core_Master {
 	/**
 	 * Кое поле отговаря на кой работи с дадена каса
 	 */
-	var $inChargeField = 'cashier';
+	var $inChargeField = 'cashiers';
 	
 	
 	/**
@@ -158,7 +158,7 @@ class cash_Cases extends core_Master {
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
-        $this->FLD('cashier', 'user(roles=cash|ceo)', 'caption=Касиер');
+        $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Касиери,mandatory');
     }
     
     
@@ -233,7 +233,7 @@ class cash_Cases extends core_Master {
         if ($rec = $self->fetch($objectId)) {
             $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
         } else {
-            $result = '<i>неизвестно</i>';
+            $result = '<i>' . tr('неизвестно') . '</i>';
         }
         
         return $result;
@@ -249,11 +249,11 @@ class cash_Cases extends core_Master {
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
-			$data->query->where("#cashier = {$cu}");
+			$data->query->where("#cashiers LIKE '%|{$cu}|%'");
 		}
 	}
-	
-	
+    
+    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId

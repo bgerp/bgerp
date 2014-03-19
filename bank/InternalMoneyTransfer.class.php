@@ -319,10 +319,9 @@ class bank_InternalMoneyTransfer extends core_Master
 	    			return;
 	    	}
     	} elseif($rec->operationSysId == 'bank2case') {
-    		$toCashier = cash_Cases::fetchField($rec->debitCase, 'cashier');
-    		if($toCashier != core_Users::getCurrent()){
-    			$rec->sharedUsers = keylist::addKey(NULL, $toCashier);
-    		}
+    		$toCashiers = cash_Cases::fetchField($rec->debitCase, 'cashiers');
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
+    		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
     		
     		if($creditInfo->currencyId != $rec->currencyId) {
     		  	$form->setError("debitEnt1,creditEnt1", 'Банковата сметка не е в посочената валута !!!');

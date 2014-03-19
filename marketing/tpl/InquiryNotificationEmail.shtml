@@ -1,7 +1,7 @@
 <div>
 <b>|Информация за продукта|*</b><br />
 <br />
-|Драйвър|* : [#drvId#] <br />
+
 <!--ET_BEGIN DATA_ROW-->
 [#CAPTION#] - [#VALUE#]<br />
 <!--ET_END DATA_ROW-->
@@ -42,7 +42,7 @@
 <!--ET_END address-->
 
 <br />
-|Системни данни|*<br /><br />
+<b>|Системни данни|*</b><br /><br />
 |Дата|* : [#time#] <br />
 |ИП|* : [#ip#]<br />
 |Браузър|* : [#browser#]<br />
