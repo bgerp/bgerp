@@ -2351,13 +2351,17 @@ div.statuses-error {
     background-color: #FFBABA;
     background-image: url('../img/dialog_error.png');
 }
-    
+
+div.statuses-notice h2,  div.statuses-success h2, 
+div.statuses-warning h2, div.statuses-error h2{
+	margin: 0;
+}   
 
 .narrow div.statuses-notice, .narrow div.statuses-success, 
 .narrow div.statuses-warning, .narrow div.statuses-error {
 	margin: 5px 0;
-	padding: 5px;
-	font-size: 1.5em; 
+	padding: 5px 5px 5px 55px;
+	font-size: 1.2em; 
 	@include border-radius(0px);
 }
 
