@@ -12,8 +12,8 @@
 							<td> [#id#]</td>
 						</tr>
 						<tr>
-							<td class='dt'>|Касиер|*:</td>
-							<td> <b>[#cashier#]</b></td>
+							<td class='dt'>|Касиери|*:</td>
+							<td> <b>[#cashiers#]</b></td>
 						</tr>
 						<!--ET_BEGIN creation-->
 						<tr>
