@@ -1583,6 +1583,13 @@ efae.prototype.process = function()
 			dataObj['hitTime'] = hitTime;
 		}
 		
+		// Ако е зададено времето на бездействие в таба
+		if (typeof(getEO().getIdleTime()) != 'undefined') {
+			
+			// Добавяме в масива
+			dataObj['idleTime'] = getEO().getIdleTime();
+		}
+		
 		// Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
 		$.ajax({
 			  type: "POST",
@@ -1919,6 +1926,93 @@ function Experta()
 	
 	// Данни за селектирания текст в textarea
 	Experta.prototype.textareaAttr = new Array();
+	
+	// Времето на бездействие в таба
+	Experta.prototype.idleTime;
+}
+
+
+/**
+ * Стартира таймера за бездействие в съответния таб
+ */
+Experta.prototype.runIdleTimer = function()
+{
+	// Ако е бил стартиран преди, да не се изпълнява
+	if (typeof this.idleTime != 'undefined') return ;
+	
+	// Инстанция на класа
+	var thisEOInst = this;
+	
+	// При дейсвие с мишката
+	document.onmousemove = function(){
+		
+		// Нулираме брояча
+		thisEOInst.resetIdleTimer();
+	};
+	
+	// При действие с клавиатурата
+	document.onkeypress = function(){
+		
+		// Нулираме брояча
+		thisEOInst.resetIdleTimer();
+	};
+	
+	// Стартираме процеса
+	this.processIdleTimer();
+}
+
+
+/**
+ * Стартира рекурсивен процес за определяне на времето за бездействие
+ */
+Experta.prototype.processIdleTimer = function()
+{
+	// Текущия клас
+	var thisEOInst = this;
+	
+	// Задаваме функцията да се вика всяка секунда
+	setTimeout(function() {thisEOInst.processIdleTimer()}, 1000);
+
+	// Увеличаваме брояча
+	this.increaseIdleTime();
+}
+
+
+/**
+ * Увеличава времето на бездействие
+ */
+Experta.prototype.increaseIdleTime = function()
+{
+	// Ако не е дефиниран преди
+	if (typeof this.idleTime == 'undefined') {
+		
+		// Стойността по подразбиране
+		this.idleTime = 0;
+	} else {
+		
+		// При всяко извикване увеличава с единица
+		this.idleTime++;
+	}
+}
+
+
+/**
+ * Нулира времето на бездействие
+ */
+Experta.prototype.resetIdleTimer = function()
+{
+	// При всяко извикване нулира времето на бездействие
+	this.idleTime = 0;
+}
+
+
+/**
+ * Връща стойността на брояча за бездействие
+ */
+Experta.prototype.getIdleTime = function()
+{
+	
+	return this.idleTime;
 }
 
 

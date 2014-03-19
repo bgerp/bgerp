@@ -26,6 +26,9 @@ class core_Ajax extends core_Mvc
         // Времето на извикване на страницата
         $hitTime = Request::get('hitTime', 'int');
         
+        // Времето на извикване на страницата
+        $idleTime = Request::get('idleTime', 'int');
+        
         // Декодираме масива
         $subscribedArr = json_decode($subscribed);
         
@@ -53,6 +56,9 @@ class core_Ajax extends core_Mvc
                 // Да се добави в URL-то
                 $urlArr['hitTime'] = $hitTime;
             }
+            
+            // Да се добави в URL-то
+            $urlArr['idleTime'] = $idleTime;
             
             try {
                 // Извикваме URL-то
@@ -196,10 +202,12 @@ class core_Ajax extends core_Mvc
             
             // Стартираме извикването на `run` фунцкцията на efae
             jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
+            jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);
         } else {
             
             // Стартираме извикването на run
             $tpl->appendOnce("\n runOnLoad(function(){getEfae().run();});", 'JQRUN');
+            $tpl->appendOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'JQRUN');
             
             // Добавяме грешката
             core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`');

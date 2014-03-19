@@ -110,6 +110,9 @@ class page_Html extends core_ET {
         // Записване на избрания текст с JS
         static::saveSelTextJs($tpl);
         
+        // Вземане на времето на бездействие в съответния таб
+        static::idleTimerJs($tpl);
+        
         return $tpl;
     }
     
@@ -145,5 +148,17 @@ class page_Html extends core_ET {
     {
         // Скрипт, за вземане на инстанция на efae
         $tpl->appendOnce("\n runOnLoad(function(){getEO().saveSelText();});", 'SCRIPTS');
+    }
+    
+    
+    /**
+     * Функция за вземане на времето на бездействие в съответния таб
+     * 
+     * @param core_ET $tpl
+     */
+    static function idleTimerJs(&$tpl)
+    {
+        // 
+        $tpl->appendOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
     }
 }
