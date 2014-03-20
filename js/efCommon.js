@@ -1459,16 +1459,9 @@ function createObject(name)
  */
 function efae()
 {
-	// Инстанция на класа
-	var thisEfaeInst = this;
-	
-	// При мърдане на мишката или натискане на бутон да се ресетне интервала за циклена в начална стойност
-	document.onmousemove = function(){
-		thisEfaeInst.resetTimeout();
-	};
-	document.onkeypress = function(){
-		thisEfaeInst.resetTimeout();
-	};
+	// Добавяме ивенти за ресетване при действие
+	getEO().addEvent(document, 'mousemove', this.resetTimeout);
+	getEO().addEvent(document, 'keypress', this.resetTimeout);
 	
 	// Масив с всички абонирани
 	efae.prototype.subscribedArr = new Array();
@@ -1926,23 +1919,10 @@ Experta.prototype.runIdleTimer = function()
 	// Ако е бил стартиран преди, да не се изпълнява
 	if (typeof this.idleTime != 'undefined') return ;
 	
-	// Инстанция на класа
-	var thisEOInst = this;
-	
-	// При дейсвие с мишката
-	window.onmousemove = function(){
+	// Добавяме ивенти за ресетване при действие
+	getEO().addEvent(document, 'mousemove', this.resetIdleTimer);
+	getEO().addEvent(document, 'keypress', this.resetIdleTimer);
 		
-		// Нулираме брояча
-		thisEOInst.resetIdleTimer();
-	};
-	
-	// При действие с клавиатурата
-	window.onkeypress = function(){
-		
-		// Нулираме брояча
-		thisEOInst.resetIdleTimer();
-	};
-	
 	// Стартираме процеса
 	this.processIdleTimer();
 }
@@ -2155,6 +2135,30 @@ Experta.prototype.textareaBlur = function(id)
 	
 	// Задваме в атрибута
 	textarea.setAttribute('data-focus', 'none');
+}
+
+
+/**
+ * Добавя ивент към съответния елемент
+ * 
+ * @param object elem - Към кой обект да се добави ивента
+ * @param string event - Евента, който да слуша
+ * @param string function - Функцията, която да се изпълни при ивента
+ */
+Experta.prototype.addEvent = function(elem, event, func)
+{
+	// Ако има съответната фунцкция
+	// Всички браузъри без IE<9
+	if (elem.addEventListener) {
+		
+		// Абонираме ивента
+		elem.addEventListener(event,func,false);
+	} else if (elem.attachEvent) {
+		// За IE6, IE7 и IE8
+		elem.attachEvent("on" + event, func);
+	} else { 
+		elem["on" + event] = func;
+	}
 }
 
 
