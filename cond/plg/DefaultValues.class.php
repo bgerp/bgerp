@@ -173,8 +173,11 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = TRUE)
     {
+    	if(empty($folderId)) return;
+    	
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
+    	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){
     		$query->where("#createdBy = {$cu}");
@@ -271,7 +274,7 @@ class cond_plg_DefaultValues extends core_Plugin
     		$name = $dataField;
     	}
     	
-    	$Cover = doc_Folders::fetchCoverClassName($rec->folderId);
+    	$Cover = (empty($rec->folderId)) ? 'crm_Persons' : doc_Folders::fetchCoverClassName($rec->folderId);
     	if(isset($mvc->_cashedContragentData->{$name})){
     		return $mvc->_cashedContragentData->{$name};
     	}
@@ -300,8 +303,15 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getCoverMethod($folderId, $name)
     {
-    	$cId = doc_Folders::fetchCoverId($folderId);
-    	$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
+    	if(empty($folderId)){
+    		$cu = core_Users::getCurrent('id');
+    		$cId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
+    		$Class = cls::get('crm_Persons');
+    	} else {
+    		$cId = doc_Folders::fetchCoverId($folderId);
+    		$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
+    	}
+    	
     	if(cls::existsMethod($Class, $name)){
 	    	
     		return $Class::$name($cId);
