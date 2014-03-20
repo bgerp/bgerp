@@ -496,19 +496,53 @@ class cal_Tasks extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
-    	if($action == 'postpone'){
+    	if($action == 'postpone'){ 
 	    	if ($rec->id) {
 	        	if ($rec->state !== 'active' || (!$rec->timeStart) ) { 
-	                $requiredRoles = 'no_one';
-	            }  else {
+	                $requiredRoles = 'no_one'; 
+	            }  /*else {
 	                if(!haveRole('ceo') || ($userId !== $rec->createdBy) &&
-	                !keylist::isIn($userId, $rec->sharedUsers)) {
+	                !keylist::isIn($userId, $rec->sharedUsers)) { 
 	                	
 	                	$requiredRoles = 'no_one';
 	                }
-	            }
+	            }*/
     	     }
          }
+    }
+    
+    
+    /**
+	 * 
+     * Функция, която се извиква след активирането на документа
+	 * 
+	 * @param unknown_type $mvc
+	 * @param unknown_type $rec
+	 */
+    public static function on_AfterActivation($mvc, $rec)
+    {
+    	$query = self::getQuery();
+    	
+    	if (!$rec->timeStart) {
+    		
+    		 $subscribedArr = keylist::toArray($rec->sharedUsers); 
+                if(count($subscribedArr)) { 
+                    $message = "Стартирана е задачата \"" . self::getVerbal($rec, 'title') . "\"";
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $customUrl = array('cal_Tasks', 'single',  $rec->id);
+                    $priority = 'normal';
+                    foreach($subscribedArr as $userId) {   
+                        if($userId > 0  &&  
+                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+                        }
+                    }
+                }
+
+            $rec->notifySent = 'yes';
+
+            self::save($rec, 'notifySent');
+    	}
     }
     
     
