@@ -116,6 +116,9 @@ class type_Double extends core_Type {
         if(!strlen($value)) return NULL;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
+        if($this->params['smartRound']){
+        	$decimals = min(strlen(substr(strrchr($value, "."), 1)), $decimals);
+        }
         
         $decPoint = EF_NUMBER_DEC_POINT;
         $thousandsSep = EF_NUMBER_THOUSANDS_SEP;
