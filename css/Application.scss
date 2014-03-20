@@ -3679,4 +3679,10 @@ body.narrow {
 #summary .money-info{
     margin-left:3px;
 }
+
+.feather-icon{
+	background-image: url('../img/16/feather.png');
+	@include btn-style();
+}
+
 @import "partials/sales";
