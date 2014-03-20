@@ -109,7 +109,7 @@ class status_Retrieving extends core_Manager
             $rec->sid = $sid;
         }
         
-        $id = static::save($rec);
+        $id = static::save($rec, NULL, 'IGNORE');
         
         return $id;
     }
@@ -133,12 +133,13 @@ class status_Retrieving extends core_Manager
      * 
      * @param integer $messageId
      * @param datetime $hitTime
+     * @param integer $idleTime - Време на бездействие на съответния таб
      * @param string $sid
      * @param integer $userId
      * 
      * @return boolean
      */
-    static function isRetrived($messageId, $hitTime, $sid=NULL, $userId=NULL)
+    static function isRetrived($messageId, $hitTime, $idleTime, $sid=NULL, $userId=NULL)
     {
         // Конфигурация на пакета
         $conf = core_Packs::getConfig('status');
@@ -152,7 +153,11 @@ class status_Retrieving extends core_Manager
         
         // Които не са теглени от съответния таб или са теглени от таб с по прясно време на бездействие
         $query->where(array("#hitTime = '[#1#]'", $hitTime));
-        $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
+        
+        // Ако времето от браузра е по - голямо от максимално допустимото време
+        if ($idleTime > $maxIdleTime) {
+            $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
+        }
         
         // Ако има идентификатор - когато не е логнат
         if ($sid) {

@@ -183,7 +183,7 @@ class status_Messages extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Проверяваме дали е изличан преди
-            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $sid, $userId);
+            $isRetrived = status_Retrieving::isRetrived($rec->id, $hitTime, $idleTime, $sid, $userId);
             
             // Ако е извличан преди в съответния таб, да не се показва пак
             if ($isRetrived) continue;
