@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @link
  */
-class php_Wrapper extends bgerp_ProtoWrapper
+class php_Wrapper extends plg_ProtoWrapper
 {
 
     /**
@@ -30,6 +30,7 @@ class php_Wrapper extends bgerp_ProtoWrapper
         $this->TAB('php_Const', 'Константи');
         $this->TAB('php_Interfaces', 'Интерфейси');
         $this->TAB('php_Test', 'Тест система');
+        $this->TAB('php_Statistics', 'Статистика');
         
         $this->title = 'Програма за форматиране на кода';
     }
