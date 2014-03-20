@@ -515,7 +515,7 @@ class purchase_Purchases extends core_Master
     static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
-        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,all=Всички)', 'caption=Тип,width=13em');
+        	$data->listFilter->FNC('type', 'enum(active=Активни,closed=Приключени,draft=Чернови,all=Активни и приключени,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени)', 'caption=Тип,width=13em');
 	        $data->listFilter->setDefault('type', 'active');
 			$data->listFilter->showFields .= ',type';
 		}
