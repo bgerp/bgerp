@@ -208,9 +208,13 @@ class status_Messages extends core_Manager
     static function subscribe_()
     {
         $res = new ET();
+        
+        // Ако е регистриан потребител
+        if (haveRole('user')) {
             
-        // Абонираме да се извличат стойности по AJAX
-        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+            // Абонираме да се извличат стойности по AJAX
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+        }
         
         // Показва статус съобщението след зареждане на страницата
         core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1, TRUE);

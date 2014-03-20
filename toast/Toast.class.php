@@ -47,8 +47,12 @@ class toast_Toast extends core_Plugin
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
         
-        // Абонираме, за да се вика по JS
-        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
+        // Ако е регистриан потребител
+        if (haveRole('user')) {
+            
+            // Абонираме, за да се вика по JS
+            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
+        }
         
         // Показва статус събщениет само веднъж
         core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
