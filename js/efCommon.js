@@ -1930,14 +1930,14 @@ Experta.prototype.runIdleTimer = function()
 	var thisEOInst = this;
 	
 	// При дейсвие с мишката
-	document.onmousemove = function(){
+	window.onmousemove = function(){
 		
 		// Нулираме брояча
 		thisEOInst.resetIdleTimer();
 	};
 	
 	// При действие с клавиатурата
-	document.onkeypress = function(){
+	window.onkeypress = function(){
 		
 		// Нулираме брояча
 		thisEOInst.resetIdleTimer();
