@@ -60,8 +60,10 @@ class drdata_PhoneType extends type_Varchar {
                     $attr['title'] = "{$t->country}";
                 }
 
-                $title = str_replace(' ', '&nbsp;', $t->original);
-
+                if(!Mode::is('text', 'plain')) {
+            		$title = str_replace(' ', '&nbsp;', $t->original);
+        		}
+        
                 $res->append(ht::createLink($title, "tel:+" . $value, NULL, $attr));
 
                 if($t->internal) {
