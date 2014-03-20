@@ -1489,13 +1489,10 @@ function efae()
 	efae.prototype.renderPrefix = 'render_';
 	
 	// Времето в милисекунди, с което ще се увеличава времето на изпълнение
-	efae.prototype.increaseInterval = 10;
+	efae.prototype.increaseInterval = 1000;
 	
 	// Горната граница (в милисекунди), до която може да се увеличи брояча
 	efae.prototype.maxIncreaseInterval = 60000;
-	
-	// Флаг, който указва, че процеса все още не е стартиран - да не се стартира веднага след отаряне на страницата
-	efae.prototype.firstTime = true;
 }
 
 
@@ -1507,8 +1504,8 @@ function efae()
  * @param integer interval - Интервала на извикване в милисекунди
  * @param integer once - Дали да се вика само веднъж или в цикъл
  */
-efae.prototype.subscribe = function(name, url, interval, once) {
-	
+efae.prototype.subscribe = function(name, url, interval, once)
+{
 	// Създаваме масив с името и добавяме неоходимите данни в масива
 	this.subscribedArr[name] = new Array();
 	this.subscribedArr[name]['url'] = url;
@@ -1652,17 +1649,6 @@ efae.prototype.getSubscribed = function()
 {
 	// Обект с резултатите
 	resObj = new Object();
-	
-	// Ако до сега не е бил стартиране
-	// За да не се стартира веднага след рефреш
-	if (this.firstTime) {
-		
-		// Променяме флага
-		this.firstTime = false;
-		
-		// Връщаме празен обект
-		return resObj;
-	}
 	
 	// Към времето добавяме таймаута за изпълнение
 	this.time += this.timeout;
