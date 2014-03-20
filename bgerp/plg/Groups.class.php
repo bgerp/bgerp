@@ -84,16 +84,22 @@ class bgerp_plg_Groups extends core_Plugin
                 }
             }
             
-            expect(count($selArr));
-
-            if(count($selArr) == 1) {
-                $id = $selArr[0];
+            $selArrCnt = count($selArr);
+            
+            expect($selArrCnt);
+            
+            if ($selArrCnt == 1) {
+                $selOneKey = key($selArr);
+            }
+            
+            if($selArrCnt == 1) {
+                $id = $selArr[$selOneKey];
                 $groups = $mvc->fetchField($id, $groupField);
                 $form->title = 'Промяна в групите на |*<i style="color:#ffffaa">' .  $mvc->getTitleById($selArr[0]) . '</i>';
                 $form->FNC('groups', $mvc->fields[$groupField]->type, 'caption=Групи,input');
                 $form->setDefault('groups', $groups);
             } else {
-                $form->title = 'Групиране на |*' . count($selArr) . '| ' . mb_strtolower($mvc->title);
+                $form->title = 'Групиране на |*' . $selArrCnt . '| ' . mb_strtolower($mvc->title);
                 if(count($canAddGroups)) {
                     $addType = cls::get('type_Set');
                     foreach($canAddGroups as $g => $cnt) {
@@ -113,8 +119,8 @@ class bgerp_plg_Groups extends core_Plugin
             $form->toolbar->addSbBtn('Запис');
             $retUrl = getRetUrl();
             if(!count($retUrl)) {
-                if(count($selArr) == 1) {
-                    $retUrl = array($mvc, 'single', $selArr[0]);
+                if($selArrCnt == 1) {
+                    $retUrl = array($mvc, 'single', $selArr[$selOneKey]);
                 } else {
                     $retUrl = array($mvc, 'list');
                 }
@@ -129,7 +135,7 @@ class bgerp_plg_Groups extends core_Plugin
                 $rec = $form->rec;
                  
                 $changed = 0;
-                if(count($selArr) == 1) {
+                if($selArrCnt == 1) {
                     $obj = new stdClass();
                     $obj->id = $id;
                     $obj->{$groupField} = $rec->groups;
