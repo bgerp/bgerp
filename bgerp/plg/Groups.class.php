@@ -188,12 +188,10 @@ class bgerp_plg_Groups extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($action == 'grouping') {
-            if(!$requiredRoles) {
-                if(!$mvc->haveRightFor('single', $rec, $userId)) {
+        if ($action == 'grouping' && $requiredRoles != 'no_one') {
+                if(!$mvc->haveRightFor('edit', $rec, $userId)) {
                     $requiredRoles = 'no_one';
                 }
-            }
         }
     }
 }

@@ -2121,17 +2121,6 @@ class crm_Persons extends core_Master
         if ($action == 'delete') {
             $requiredRoles = 'no_one';
         }
-        
-        // Ако групираме запис
-        if ($rec && $action =='grouping' && $requiredRoles != 'no_one') {
-            
-            // Ако нямаме права до сингъла
-            if (!$mvc->haveRightFor('single', $rec, $userId)) {
-                
-                // Да не може да се групира
-                $requiredRoles = 'no_one';
-            }
-        }
     }
     
     
