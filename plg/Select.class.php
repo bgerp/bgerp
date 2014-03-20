@@ -162,14 +162,14 @@ class plg_Select extends core_Plugin
                 }
             }
             
-            $caption = mb_strtolower(ltrim($actArr[$act], '*'));
+            $caption = tr(mb_strtolower(ltrim($actArr[$act], '*')));
 
             if($processed == 1) {
-                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} запис"));
+                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |запис"));
             } elseif ($processed > 1) {
-                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} записа"));
+                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |записа"));
             } else {
-                $res = new Redirect(getRetUrl(), tr("Не беше направено {$caption} на нито един запис"));
+                $res = new Redirect(getRetUrl(), tr("|Не беше направено|* {$caption} |на нито един запис"));
             }
 
             return FALSE;
