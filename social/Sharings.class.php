@@ -182,15 +182,18 @@ class social_Sharings extends core_Master
     public function act_Redirect()
     {
     	// Взимаме $ид-то на услугата
-    	$id = core_Request::get('id', 'key(mvc='.get_class($mvc).')');
+    	$id = core_Request::get('id', 'int');
     	
     	// Намираме нейния запис
-    	$rec = self::fetch("#id = '{$id}'"); 
+    	expect($rec = self::fetch($id)); 
     	    	
     	// URL към обекта който ще споделяме
     	expect($url = Request::get('socUrl'));
     	$url = 'http' . $url;
         $urlDecoded = urldecode($url);
+
+        // Очакваме в началото на url-то за споделяне да има валиден протокол
+        expect(strpos($urlDecoded, 'http://') === 0 || strpos($urlDecoded, 'https://'));
         
     	// Заглавието на обекта
     	$title = Request::get('socTitle');
@@ -204,18 +207,16 @@ class social_Sharings extends core_Master
         $redUrl = str_replace("[#SUMMARY#]", $summary, $redUrl);
     	    	   	
     	// Записваме в историята, че сме направели споделяне
-    	if($rec) {
-            if(core_Packs::fetch("#name = 'vislog'") &&
-                vislog_History::add("Споделяне в " . $rec->name . " на " . $urlDecoded)) {
+        if(core_Packs::fetch("#name = 'vislog'") &&
+            vislog_History::add("Споделяне в " . $rec->name . " на " . $urlDecoded)) {
 
-                if (Mode::is('javascript', 'yes') && !core_Browser::detectBot()){
-	                // Увеличаване на брояча на споделянията
-	    	        $rec->sharedCnt++;
-	                self::save($rec, 'sharedCnt');             
+            if (Mode::is('javascript', 'yes') && !core_Browser::detectBot()){
+	            // Увеличаване на брояча на споделянията
+	    	    $rec->sharedCnt++;
+	            self::save($rec, 'sharedCnt');             
                     
-                    // Увеличаваме брояча на споделянията за конкретната страница
-                    social_SharingCnts::addHit($rec->id, $urlDecoded);
-                }
+                // Увеличаваме брояча на споделянията за конкретната страница
+                social_SharingCnts::addHit($rec->id, $urlDecoded);
             }
         }
 
