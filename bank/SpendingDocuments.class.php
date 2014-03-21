@@ -25,7 +25,7 @@ class bank_SpendingDocuments extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
