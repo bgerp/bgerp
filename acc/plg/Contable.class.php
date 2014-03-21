@@ -430,4 +430,20 @@ class acc_plg_Contable extends core_Plugin
 	    	}
     	}
     }
+    
+    
+    /**
+     * Връща основанието за транзакцията, по подразбиране 
+     * е името на контрагента, ако има такъв
+     */
+    public static function on_AfterGetContoReason($mvc, &$res, $id)
+    {
+    	if(empty($res)){
+    		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
+    			$rec = $mvc->fetchRec($id);
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			$res = $Cover->getTitleById();
+    		}
+    	}
+    }
 }
