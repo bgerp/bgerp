@@ -210,7 +210,7 @@ class sales_Sales extends core_Master
             'caption=Статус, input=none'
         );
         
-    	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none');
+    	$this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo)', 'caption=Плащане, input=none');
     }
     
     
@@ -1173,10 +1173,10 @@ class sales_Sales extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
-        // Проверка по крон дали продажбата е пресрочена
+        // Проверка по крон дали продажбата е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsSaleOverdue";
-        $rec2->description = "Проверява дали продажбата е пресрочена";
+        $rec2->description = "Проверява дали продажбата е просрочена";
         $rec2->controller = "sales_Sales";
         $rec2->action = "CheckSalesPayments";
         $rec2->period = 60;
@@ -1192,9 +1192,9 @@ class sales_Sales extends core_Master
         }
         
     	if($Cron->addOnce($rec2)) {
-            $res .= "<li><font color='green'>Задаване на крон да проверява дали продажбата е пресрочена.</font></li>";
+            $res .= "<li><font color='green'>Задаване на крон да проверява дали продажбата е просрочена.</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е пресрочена.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали продажбата е просрочена.</li>";
         }
     }
     

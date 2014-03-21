@@ -208,7 +208,7 @@ class purchase_Purchases extends core_Master
             'caption=Статус, input=none'
         );
         
-        $this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Пресроченo,paid=Платенo)', 'caption=Плащане, input=none, notNull, default=pending');
+        $this->FLD('paymentState', 'enum(pending=Чакащо,overdue=Просроченo,paid=Платенo)', 'caption=Плащане, input=none, notNull, default=pending');
     }
     
     
@@ -989,10 +989,10 @@ class purchase_Purchases extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         
-        // Проверка по крон дали покупката е пресрочена
+        // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = "IsPurchaseOverdue";
-        $rec2->description = "Проверява дали покупката е пресрочена";
+        $rec2->description = "Проверява дали покупката е просрочена";
         $rec2->controller = "purchase_Purchases";
         $rec2->action = "CheckPurchasePayments";
         $rec2->period = 60;
@@ -1008,9 +1008,9 @@ class purchase_Purchases extends core_Master
         }
         
     	if($Cron->addOnce($rec2)) {
-            $res .= "<li><font color='green'>Задаване на крон да проверява дали покупката е пресрочена.</font></li>";
+            $res .= "<li><font color='green'>Задаване на крон да проверява дали покупката е просрочена.</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали покупката е пресрочена.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен да проверява дали покупката е просрочена.</li>";
         }
     }
     

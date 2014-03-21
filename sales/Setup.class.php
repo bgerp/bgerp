@@ -32,13 +32,13 @@ defIfNot('SALE_MAX_PAST_PRICE', type_Time::SECONDS_IN_MONTH * 2);
 
 
 /**
- * Колко време след като не е платена една продажба, да се отбелязва като пресрочена
+ * Колко време след като не е платена една продажба, да се отбелязва като просрочена
  */
 defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
- * Колко време да се изчака след активиране на продажба, преди да се провери дали е пресрочена
+ * Колко време да се изчака след активиране на продажба, преди да се провери дали е просрочена
  */
 defIfNot('SALE_CLOSE_OLDER_THAN', 60 * 60 * 24 * 3);
 
@@ -86,7 +86,7 @@ class sales_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за пресрочване"),
+			'SALE_OVERDUE_CHECK_DELAY' => array("time", "caption=Продажби->Толеранс за просрочване"),
 			'SALE_CLOSE_TOLERANCE'     => array("double(decimals=2)", 'caption=Продажби->Толеранс за приключване'),
 			'SALE_MAX_FUTURE_PRICE'    => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в бъдещето'),
 			'SALE_MAX_PAST_PRICE'      => array("time(uom=months,suggestions=1 месец|2 месеца|3 месеца)", 'caption=Продажби->Ценови период в миналото'),

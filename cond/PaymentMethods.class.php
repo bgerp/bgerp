@@ -211,7 +211,7 @@ class cond_PaymentMethods extends core_Master
     
     
     /**
-     * Дали документа е пресрочен
+     * Дали документа е просрочен
      * @param array $payment - платежния план (@see static::getPaymentPlan)
      * @param double $restAmount - оставаща сума за плащане
      * @param datetime $today - дата
@@ -227,7 +227,7 @@ class cond_PaymentMethods extends core_Master
     	// Ако остатъка за плащане е 0 или по-малко
     	if($restAmount <= 0) return FALSE;
     	
-    	// Ако текущата дата след крайния срок за плащане, документа е пресрочен
+    	// Ако текущата дата след крайния срок за плащане, документа е просрочен
     	return ($today > $payment['deadlineForBalancePayment']);
     }
     
