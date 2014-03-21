@@ -168,7 +168,7 @@ class cash_Pko extends core_Master
     	$this->FLD('creditAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('debitAccount', 'acc_type_Account()', 'input=none');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,width=6em');
-    	$this->FLD('rate', 'double', 'caption=Валута->Курс,width=6em');
+    	$this->FLD('rate', 'double(smartRound,decimals=2)', 'caption=Валута->Курс,width=6em');
     	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('notes', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
     	$this->FLD('state', 
@@ -328,17 +328,6 @@ class cash_Pko extends core_Master
 	    }
     	
 	    acc_Periods::checkDocumentDate($form, 'valior');
-    }
-   
-    
-    /**
-     * Преди подготовка на вербалното представяне
-     */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
-    {
-    	if($fields['-single']){
-    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
-    	}
     }
     
     
