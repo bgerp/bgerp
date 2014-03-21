@@ -470,4 +470,15 @@ class acc_Articles extends core_Master
         
         return array('acc_Articles', $articleId);
     }
+    
+    
+    /**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $this->getVerbal($rec, 'reason');
+    }
 }

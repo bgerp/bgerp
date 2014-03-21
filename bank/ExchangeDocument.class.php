@@ -378,4 +378,15 @@ class bank_ExchangeDocument extends core_Master
 		
         return $row;
     }
+    
+    
+	/**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $this->getVerbal($rec, 'reason');
+    }
 }
