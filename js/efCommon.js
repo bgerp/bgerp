@@ -1459,9 +1459,11 @@ function createObject(name)
  */
 function efae()
 {
+	var efaeInst = this;
+	
 	// Добавяме ивенти за ресетване при действие
-	getEO().addEvent(document, 'mousemove', this.resetTimeout);
-	getEO().addEvent(document, 'keypress', this.resetTimeout);
+	getEO().addEvent(document, 'mousemove', function(){efaeInst.resetTimeout()});
+	getEO().addEvent(document, 'keypress', function(){efaeInst.resetTimeout()});
 	
 	// Масив с всички абонирани
 	efae.prototype.subscribedArr = new Array();
@@ -1919,9 +1921,11 @@ Experta.prototype.runIdleTimer = function()
 	// Ако е бил стартиран преди, да не се изпълнява
 	if (typeof this.idleTime != 'undefined') return ;
 	
+	var EOinst = this;
+	
 	// Добавяме ивенти за ресетване при действие
-	getEO().addEvent(document, 'mousemove', this.resetIdleTimer);
-	getEO().addEvent(document, 'keypress', this.resetIdleTimer);
+	getEO().addEvent(document, 'mousemove', function(){EOinst.resetIdleTimer()});
+	getEO().addEvent(document, 'keypress', function(){EOinst.resetIdleTimer()});
 		
 	// Стартираме процеса
 	this.processIdleTimer();
