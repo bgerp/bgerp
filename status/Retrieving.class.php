@@ -157,6 +157,8 @@ class status_Retrieving extends core_Manager
         // Ако времето от браузра е по - голямо от максимално допустимото време
         if ($idleTime > $maxIdleTime) {
             $query->orWhere(array("#idleTime < '[#1#]'", $maxIdleTime));
+        } else {
+            $query->orWhere(array("#hitTime > '[#1#]'", $hitTime));
         }
         
         // Ако има идентификатор - когато не е логнат
