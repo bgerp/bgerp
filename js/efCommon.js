@@ -1468,14 +1468,17 @@ function efae()
 	// Масив с всички абонирани
 	efae.prototype.subscribedArr = new Array();
 	
-	// Масив с името на записаното URL и времето на последното стартиране
-	efae.prototype.checkedArr = new Array();
+	// Масив с времето на последно извикване на функцията
+	efae.prototype.lastTimeArr = new Array();
+	
+	// Масив с броя на извиквания на функцията
+	efae.prototype.cntArr = new Array();
 	
 	// Цикъла на времето откакто е стартиран скрипта
 	efae.prototype.time = 0;
 	
 	// През колко време да се вика функцията `run`
-	efae.prototype.timeout = efae.prototype.defTimeout = 1000;
+	efae.prototype.timeout = 1000;
 	
 	// URL-то, което ще се вика по AJAX
 	efae.prototype.url;
@@ -1497,15 +1500,25 @@ function efae()
  * @param string name - Името
  * @param string url - URL-то, което да се използва за извличане на информация
  * @param integer interval - Интервала на извикване в милисекунди
- * @param integer once - Дали да се вика само веднъж или в цикъл
+ * @param integer periodModul - През колко цикъла да се праща заявка
  */
-efae.prototype.subscribe = function(name, url, interval, once)
+efae.prototype.subscribe = function(name, url, interval, periodModul)
 {
+	// Ако не е дефинирана 
+	if (typeof periodModul == 'undefined' || periodModul == 0) {
+		
+		periodModul = 1;
+	}
+	
 	// Създаваме масив с името и добавяме неоходимите данни в масива
 	this.subscribedArr[name] = new Array();
 	this.subscribedArr[name]['url'] = url;
 	this.subscribedArr[name]['interval'] = interval;
-	this.subscribedArr[name]['once'] = once;
+	this.subscribedArr[name]['defInterval'] = interval;
+	this.subscribedArr[name]['periodModul'] = periodModul;
+	
+	// Текущото време
+	this.lastTimeArr[name] = new Date();
 }
 
 
@@ -1648,24 +1661,37 @@ efae.prototype.getSubscribed = function()
 	// Към времето добавяме таймаута за изпълнение
 	this.time += this.timeout;
 	
+	// Текущото време
+	var now = new Date();
+	
 	// Обхождаме всички абонирани URL-та
 	for (name in this.subscribedArr) {
 		
-		// Разделяме целочислено времето на интервала
-		mInterval = parseInt(this.time/this.subscribedArr[name]['interval']);
+		// Разликата между текущуто време и времето на последно извикване на цикъла
+		var diff = now - this.lastTimeArr[name];
 		
-		// Ако има интервал и съответното URL не е било извикане за този интервал
-		if (mInterval && (!this.checkedArr[name] || this.checkedArr[name] < mInterval)) {
+		// Ако разликата е повече от интервала
+		if (diff >= this.subscribedArr[name]['interval']) {
 			
-			// Ако ще се вика само веднъж, да не се вика след първото стартиране
-			if (!this.subscribedArr[name]['once'] || (typeof this.checkedArr[name] == 'undefined')) {
+			// Добавяме текущото време
+			this.lastTimeArr[name] = now;
+			
+			// Ако не е дефинирана стойността
+			if (!this.cntArr[name]) {
 				
-				// Добавяме в масива с интервалите
-				this.checkedArr[name] = [mInterval];
+				// По подразбиране да е 0
+				this.cntArr[name] = 0;
+			}
+			
+			// Ако броя се дели модално без остатък
+			if (this.cntArr[name] % this.subscribedArr[name]['periodModul'] === 0) {
 				
-				// Добавяме линка в масива с абонираните
+				// Добавяме резултата в масива
 				resObj[name] = this.subscribedArr[name]['url'];
 			}
+			
+			// Увеличаваме брояча
+			this.cntArr[name]++;
 		}
 	}
 	
@@ -1701,12 +1727,21 @@ efae.prototype.getUrl = function()
  */
 efae.prototype.increaseTimeout = function()
 {
+	for (name in this.subscribedArr) {
+		
+		var increase = this.subscribedArr[name]['interval'] - this.subscribedArr[name]['defInterval'];
+				
+		if (increase < this.maxIncreaseInterval) {
+			this.subscribedArr[name]['interval'] += this.increaseInterval;
+		}
+		
+	}
 	// Ако не сме достигнали горната граница
-	if (this.timeout < this.maxIncreaseInterval) {
+	//if (this.timeout < this.maxIncreaseInterval) {
 		
 		// Увеличаваме брояча
-		this.timeout += this.increaseInterval;
-	}
+		//this.timeout += this.increaseInterval;
+	//}
 }
 
 
@@ -1715,7 +1750,9 @@ efae.prototype.increaseTimeout = function()
  */
 efae.prototype.resetTimeout = function()
 {
-	this.timeout = this.defTimeout;
+	for (name in this.subscribedArr) {
+		this.subscribedArr[name]['interval'] = this.subscribedArr[name]['defInterval'];
+	}
 }
 
 
