@@ -564,7 +564,7 @@ class sales_Sales extends core_Master
         }
         
         if($rec->paymentState == 'overdue'){
-        	$row->amountDelivered = "<span style='color:red'>{$row->amountDelivered}</span>";
+        	$row->amountPaid = "<span style='color:red'>" . strip_tags($row->amountPaid) . "</span>";
         }
         
     	if($fields['-list']){
