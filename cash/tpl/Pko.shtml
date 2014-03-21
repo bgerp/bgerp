@@ -33,10 +33,10 @@
 				<div class='lines'></div>
 				<table border='1px' cellpadding='5px' class='border-table'>
 					<tr>
-						<td width='67%' align='left' style='padding-left:10px;'>
+						<td width='67%' align='left' style='padding-left:10px;padding-top: 5px;'>
 							<div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
 						</td>
-						<td style='padding-left:10px;'>
+						<td style='padding-left:10px; padding-top: 5px;'>
 							<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
 						</td>
 					</tr>
@@ -53,7 +53,7 @@
 						<table border='0'>
 						<tr>
 						   
-							<td colspan='2' id='notes' >
+							<td colspan='2' id='notes' style='height: auto; padding:10px'>
 								<span class='quiet'>|Операция|*:</span>&nbsp; [#operationSysId#]
 								<!--ET_BEGIN notes-->
 							    <div class='richtext-holder'><span class='quiet'>|Бележки|*:</span> &nbsp;&nbsp;&nbsp;[#notes#]</div>
