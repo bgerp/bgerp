@@ -145,7 +145,11 @@ class type_Int extends core_Type {
             $value = number_format($value, 0, '', $thousandsSep);
         }
         
-        return str_replace(' ', '&nbsp;', $value);
+    	if(!Mode::is('text', 'plain')) {
+            $value = str_replace(' ', '&nbsp;', $value);
+        }
+        
+        return $value;
     }
     
     

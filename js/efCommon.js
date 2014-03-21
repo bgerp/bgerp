@@ -1459,16 +1459,11 @@ function createObject(name)
  */
 function efae()
 {
-	// Инстанция на класа
-	var thisEfaeInst = this;
+	var efaeInst = this;
 	
-	// При мърдане на мишката или натискане на бутон да се ресетне интервала за циклена в начална стойност
-	document.onmousemove = function(){
-		thisEfaeInst.resetTimeout();
-	};
-	document.onkeypress = function(){
-		thisEfaeInst.resetTimeout();
-	};
+	// Добавяме ивенти за ресетване при действие
+	getEO().addEvent(document, 'mousemove', function(){efaeInst.resetTimeout()});
+	getEO().addEvent(document, 'keypress', function(){efaeInst.resetTimeout()});
 	
 	// Масив с всички абонирани
 	efae.prototype.subscribedArr = new Array();
@@ -1489,13 +1484,10 @@ function efae()
 	efae.prototype.renderPrefix = 'render_';
 	
 	// Времето в милисекунди, с което ще се увеличава времето на изпълнение
-	efae.prototype.increaseInterval = 10;
+	efae.prototype.increaseInterval = 100;
 	
 	// Горната граница (в милисекунди), до която може да се увеличи брояча
 	efae.prototype.maxIncreaseInterval = 60000;
-	
-	// Флаг, който указва, че процеса все още не е стартиран - да не се стартира веднага след отаряне на страницата
-	efae.prototype.firstTime = true;
 }
 
 
@@ -1507,8 +1499,8 @@ function efae()
  * @param integer interval - Интервала на извикване в милисекунди
  * @param integer once - Дали да се вика само веднъж или в цикъл
  */
-efae.prototype.subscribe = function(name, url, interval, once) {
-	
+efae.prototype.subscribe = function(name, url, interval, once)
+{
 	// Създаваме масив с името и добавяме неоходимите данни в масива
 	this.subscribedArr[name] = new Array();
 	this.subscribedArr[name]['url'] = url;
@@ -1652,17 +1644,6 @@ efae.prototype.getSubscribed = function()
 {
 	// Обект с резултатите
 	resObj = new Object();
-	
-	// Ако до сега не е бил стартиране
-	// За да не се стартира веднага след рефреш
-	if (this.firstTime) {
-		
-		// Променяме флага
-		this.firstTime = false;
-		
-		// Връщаме празен обект
-		return resObj;
-	}
 	
 	// Към времето добавяме таймаута за изпълнение
 	this.time += this.timeout;
@@ -1940,23 +1921,12 @@ Experta.prototype.runIdleTimer = function()
 	// Ако е бил стартиран преди, да не се изпълнява
 	if (typeof this.idleTime != 'undefined') return ;
 	
-	// Инстанция на класа
-	var thisEOInst = this;
+	var EOinst = this;
 	
-	// При дейсвие с мишката
-	document.onmousemove = function(){
+	// Добавяме ивенти за ресетване при действие
+	getEO().addEvent(document, 'mousemove', function(){EOinst.resetIdleTimer()});
+	getEO().addEvent(document, 'keypress', function(){EOinst.resetIdleTimer()});
 		
-		// Нулираме брояча
-		thisEOInst.resetIdleTimer();
-	};
-	
-	// При действие с клавиатурата
-	document.onkeypress = function(){
-		
-		// Нулираме брояча
-		thisEOInst.resetIdleTimer();
-	};
-	
 	// Стартираме процеса
 	this.processIdleTimer();
 }
@@ -2169,6 +2139,30 @@ Experta.prototype.textareaBlur = function(id)
 	
 	// Задваме в атрибута
 	textarea.setAttribute('data-focus', 'none');
+}
+
+
+/**
+ * Добавя ивент към съответния елемент
+ * 
+ * @param object elem - Към кой обект да се добави ивента
+ * @param string event - Евента, който да слуша
+ * @param string function - Функцията, която да се изпълни при ивента
+ */
+Experta.prototype.addEvent = function(elem, event, func)
+{
+	// Ако има съответната фунцкция
+	// Всички браузъри без IE<9
+	if (elem.addEventListener) {
+		
+		// Абонираме ивента
+		elem.addEventListener(event,func,false);
+	} else if (elem.attachEvent) {
+		// За IE6, IE7 и IE8
+		elem.attachEvent("on" + event, func);
+	} else { 
+		elem["on" + event] = func;
+	}
 }
 
 

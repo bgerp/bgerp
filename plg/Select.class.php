@@ -96,15 +96,14 @@ class plg_Select extends core_Plugin
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             foreach($row as $id => $on) {
                 
-                $list .= ($list ? ',' : '') . $id;
-                
                 foreach($actArr as $action => $caption) {
                     if($mvc->haveRightFor($action, $id)) {
                         $cnt[$action]++;
+                        $listArr[$action] .= ($listArr[$action] ? ',' : '') . $id;
                     }
                 }
-             }
-            
+            }
+             
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach($actArr as $action => $caption) {
                 if(!$cnt[$action]) {
@@ -130,7 +129,7 @@ class plg_Select extends core_Plugin
                 $res->append(ht::createBtn(ltrim($caption, '*') . '|* (' . $cnt[$action] . ')', array(
                             $mvc,
                             $action,
-                            'Selected' => $list,
+                            'Selected' => $listArr[$action],
                             'ret_url' => Request::get('ret_url')),
                         NULL,
                         NULL,
@@ -162,14 +161,14 @@ class plg_Select extends core_Plugin
                 }
             }
             
-            $caption = mb_strtolower(ltrim($actArr[$act], '*'));
+            $caption = tr(mb_strtolower(ltrim($actArr[$act], '*')));
 
             if($processed == 1) {
-                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} запис"));
+                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |запис"));
             } elseif ($processed > 1) {
-                $res = new Redirect(getRetUrl(), tr("Беше направено {$caption} на {$processed} записа"));
+                $res = new Redirect(getRetUrl(), tr("|Беше направено|* {$caption} |на|* {$processed} |записа"));
             } else {
-                $res = new Redirect(getRetUrl(), tr("Не беше направено {$caption} на нито един запис"));
+                $res = new Redirect(getRetUrl(), tr("|Не беше направено|* {$caption} |на нито един запис"));
             }
 
             return FALSE;
