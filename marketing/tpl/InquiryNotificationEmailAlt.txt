@@ -10,7 +10,7 @@
 <!--ET_BEGIN company-->|Фирма|*: [#company#]
 <!--ET_END company--><!--ET_BEGIN country-->|Държава|*: [#country#]
 <!--ET_END country-->|Лице|* : [#name#]
-|Имейли|*: [#email#]
+|Имейл|*: [#email#]
 <!--ET_BEGIN tel-->|Телефони|*: [#tel#]
 <!--ET_END tel--><!--ET_BEGIN pCode-->|П. код|*: [#pCode#]
 <!--ET_END pCode--><!--ET_BEGIN place-->|Град|*: [#place#]
