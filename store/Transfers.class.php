@@ -477,6 +477,6 @@ class store_Transfers extends core_Master
     {
     	$rec = $this->fetchRec($id);
     	
-    	return static::getRecTitle($rec, $escaped = TRUE);
+    	return static::getRecTitle($rec);
     }
 }
