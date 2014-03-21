@@ -516,7 +516,21 @@ class crm_Profiles extends core_Master
         
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
         if(!$person->inCharge) {
-            $person->inCharge  = $user->id;
+        	
+        	// Ако създадения потребител е contractor и няма powerUser
+        	if(core_Users::haveRole('contractor', $user->id) && !core_Users::haveRole('powerUser', $user->id)){
+        		
+        		// За отговорник стават първия админ/ceo
+        		$person->inCharge  = doc_FolderPlg::getDefaultInCharge();
+        		
+        		// Визитката се споделя до лицето
+        		$person->shared = keylist::addKey('', $user->id);
+        	} else {
+        		
+        		// Ако е powerUse Лицето става отговорник на папката си
+        		$person->inCharge  = $user->id;
+        	}
+            
             $mustSave = TRUE;
         }
 
