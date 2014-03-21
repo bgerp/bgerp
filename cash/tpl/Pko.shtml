@@ -34,7 +34,7 @@
 				<table border='1px' cellpadding='5px' class='border-table'>
 					<tr>
 						<td width='67%' align='left' style='padding-left:10px;'>
-							<span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]
+							<div class='richtext-holder'><span class='quiet'>|Основание|*:</span>&nbsp;&nbsp;&nbsp;[#reason#]</div>
 						</td>
 						<td style='padding-left:10px;'>
 							<span style='font-size:20px'>|Сума|*:</span><span id='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
@@ -77,7 +77,7 @@
 						    <br>
 							<table class='signature-table'>
                                     <tr>
-                                        <td width=1%>|Получил|*:  </td><td></td>
+                                        <td width=1%>|Броил|*:  </td><td></td>
                                     </tr>
                                     <tr>
                                         <td></td>
