@@ -1,0 +1,134 @@
+
+<html>
+<head>
+<style>
+	body{
+		font-size:16px;
+	}
+	.label-holder{
+		1border:1px solid #000;
+		border-radius:8px;
+		padding:1mm 2mm 3mm 2mm ;
+		height:64mm;
+		width:96mm;
+		font-size:0.9em;
+		margin-bottom:4mm;
+	}
+	
+	.label-holder table{
+		height:68mm;
+		width:96mm;
+		border-collapse:collapse;
+		}
+	
+	.label-holder table tr>td{
+		border-left:1px solid #000;
+		border-top:1px solid #000;
+		padding:0 1mm;
+	}
+	
+	.label-holder table tr>td.no-border-left{
+		border-left:none;
+	}
+	.label-holder table tr>td.no-border-top{
+		border-top:none;
+	}
+	.top-descr{
+		height:10mm;
+	}
+	
+	.details-label{
+		top:-2mm;
+		position:relative;
+	}
+	
+	.small{
+		font-size:0.8em;
+		display:block;
+	}
+	
+	.small.right{
+		float:right;
+	}
+	
+	.small.left{
+		float:left;
+	}
+	
+	.label-preview{
+		width:27mm;
+	}
+	
+	.label-preview img{
+		max-width:27mm;
+		border:1px solid #666;
+	}
+	
+	.description{
+		border-left:1px solid #000;
+		height:15mm;
+	}
+	.clearfix21{
+	   clear:both;
+	}
+	
+</style>
+</head>
+<body>
+	<div class='label-holder'>
+    <table cellpadding="0">
+        <tr>
+            <td class='top-descr no-border-left no-border-top'>
+            [#JOB#]
+            </td>
+            <td colspan=2 class='top-descr no-border-top'>
+            [#NAME#]
+            </td>
+            <td rowspan=3  class='no-border-top' width=17% align=center valign=middle align=center>
+                <div class='barcode-holder'>
+                    [#BARCODE#]
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class='top-descr no-border-left'>
+            [#ORDER#]
+            </td>
+            <td colspan=2 class='top-descr'>
+            [#MATERIAL#]
+            </td>
+        </tr>
+        <tr>
+            <td rowspan=3 valign=middle align=center class='no-border-left'>
+            <div class='label-preview'>
+            [#PREVIEW#]
+            </div>
+            </td>
+            <td width=40% class='description'>
+            <div class='details-label'>
+                <span class='small top left'>количество</span>
+                <span class='small top right'>брой</span>
+                <div class='clearfix21'></div>
+            </div>
+                [#QUANTITY#]
+            </td>
+           
+        </tr>
+        <tr>
+            <td class='description'>
+                <div class='details-label'>
+                    <span class='small left'>размер</span>
+                    <span class='small right'>cm</span>
+                    <div class='clearfix21'></div>
+                </div>
+                [#SIZE#]
+            </td>
+        </tr>
+        <tr>
+            <td colspan=5 class='description'> [#OTHER#]</td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>
+

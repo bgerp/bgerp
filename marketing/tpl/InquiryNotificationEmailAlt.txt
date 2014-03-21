@@ -1,47 +1,22 @@
-|Информация за продукта|*
+|ИНФОРМАЦИЯ ЗА ПРОДУКТА|*<!--ET_BEGIN DATA_ROW-->[#DATA_ROW#]
+[#CAPTION#]: [#VALUE#]<!--ET_END DATA_ROW-->
 
-<!--ET_BEGIN DATA_ROW-->
-[#DATA_ROW#]
-[#CAPTION#] - [#VALUE#]
-<!--ET_END DATA_ROW-->
-
-|Количества|*
-
-<!--ET_BEGIN quantity1-->
-|Количество|* [#quantity1#]
-<!--ET_END quantity1-->
-<!--ET_BEGIN quantity2-->
-|Количество|* [#quantity2#]
-<!--ET_END quantity2-->
-<!--ET_BEGIN quantity3-->
-|Количество|* [#quantity3#]
+|КОЛИЧЕСТВА|*
+<!--ET_BEGIN quantity1-->|Количество|*: [#quantity1#]
+<!--ET_END quantity1--><!--ET_BEGIN quantity2-->|Количество|*: [#quantity2#]
+<!--ET_END quantity2--><!--ET_BEGIN quantity3-->|Количество|*: [#quantity3#]
 <!--ET_END quantity3-->
-
-|Контактни дани|*
-
-<!--ET_BEGIN company-->
-|Фирма|*    - [#company#]
-<!--ET_END company-->
-<!--ET_BEGIN country-->
-|Държава|*  - [#country#]
-<!--ET_END country-->
-|Лице|*     - [#name#]
-|Имейли|*   - [#email#]
-<!--ET_BEGIN tel-->
-|Телефони|* - [#tel#]
-<!--ET_END tel-->
-<!--ET_BEGIN pCode-->
-|П. код|*   - [#pCode#]
-<!--ET_END pCode-->
-<!--ET_BEGIN place-->
-|Град|*    - [#place#]
-<!--ET_END place-->
-<!--ET_BEGIN address-->
-|Адрес|*   - [#address#]
+|КОНТАКТНИ ДАННИ|*
+<!--ET_BEGIN company-->|Фирма|*: [#company#]
+<!--ET_END company--><!--ET_BEGIN country-->|Държава|*: [#country#]
+<!--ET_END country-->|Лице|* : [#name#]
+|Имейли|*: [#email#]
+<!--ET_BEGIN tel-->|Телефони|*: [#tel#]
+<!--ET_END tel--><!--ET_BEGIN pCode-->|П. код|*: [#pCode#]
+<!--ET_END pCode--><!--ET_BEGIN place-->|Град|*: [#place#]
+<!--ET_END place--><!--ET_BEGIN address-->|Адрес|*: [#address#]
 <!--ET_END address-->
-
-|Системни данни|*
-
-|Дата|* : [#time#]
-|ИП|* : [#ip#]
+|СИСТЕМНИ ДАННИ|*
+|Дата|*: [#time#]
+|ИП|*: [#ip#]
 |Браузър|*: [#browser#]
