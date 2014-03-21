@@ -139,7 +139,7 @@ class sales_SalesDetails extends core_Detail
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
-        $this->FLD('quantityInPack', 'double', 'input=none');
+        $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         
         // Цена за единица продукт в основна мярка
         $this->FLD('price', 'double(minDecimals=2)', 'caption=Цена,input=none');

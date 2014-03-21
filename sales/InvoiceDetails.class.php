@@ -108,7 +108,7 @@ class sales_InvoiceDetails extends core_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none','tdClass=small-field');
-        $this->FLD('quantityInPack', 'double', 'input=none');
+        $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FLD('price', 'double', 'caption=Цена, input=none');
         $this->FLD('note', 'varchar(64)', 'caption=@Пояснение');
 		$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,input=none');
@@ -262,7 +262,7 @@ class sales_InvoiceDetails extends core_Detail
     	
     	if($rec->packagingId){
     		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
-    		$row->quantityInPack = $mvc->fields['price']->type->toVerbal($rec->quantityInPack);
+    		$row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
     		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
     	} else {
     		$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
