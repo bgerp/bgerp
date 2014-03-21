@@ -476,7 +476,7 @@ class acc_BalanceDetails extends core_Detail
         $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
         $masterRec = $mvc->Master->fetch($rec->balanceId);
         
-        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accountId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
         $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
         
@@ -891,22 +891,23 @@ class acc_BalanceDetails extends core_Detail
     	
     	expect($from = Request::get('fromDate', 'date'));
     	expect($to = Request::get('toDate', 'date'));
-    	expect($accId = Request::get('accountId', 'int'));
+    	expect($accId = Request::get('accId', 'int'));
     	$ent1 = Request::get('ent1Id', 'int');
     	$ent2 = Request::get('ent2Id', 'int');
     	$ent3 = Request::get('ent3Id', 'int');
     	
-    	$balanceId = $this->Master->fetchField("#fromDate = '{$from}' && #toDate = '{$to}'");
-    	$where = "#balanceId = {$balanceId} AND #accountId = '{$accId}' AND #ent1Id = '{$ent1}'";
-    	$where .= ($ent2) ? " AND #ent2Id = '{$ent2}'" : " AND #ent2Id IS NULL";
-    	$where .= ($ent3) ? " AND #ent3Id = '{$ent3}'" : " AND #ent3Id IS NULL";
-    	
-    	$rec = $this->fetch($where);
-    	if(empty($rec)){
-    		redirect(array($this->Master, 'single', $balanceId, 'accId' => $accId), NULL, 'Записа още не е генериран, моля опитайте по късно');
+    	if($to < $from){
+    		$tmp = $from;
+    		$from = $to;
+    		$to = $tmp;
     	}
     	
-    	expect($balanceRec = $this->Master->fetch($rec->balanceId));
+    	$bQuery = $this->Master->getQuery();
+    	$bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
+    	$bQuery->orderBy('id', 'ASC');
+    	
+    	$balanceId = $bQuery->fetch()->id;
+    	expect($balanceRec = $this->Master->fetch($balanceId));
     	
     	$this->title = 'Хронологична справка';
     	
@@ -914,11 +915,17 @@ class acc_BalanceDetails extends core_Detail
     	
     	// Подготвяне на данните
     	$data = new stdClass();
-    	$data->rec = $rec;
-    	$data->id = $id;
+    	
+    	$data->rec = new stdClass();
+    	$data->rec->accountId = $accId;
+    	$data->rec->ent1Id = $ent1;
+    	$data->rec->ent2Id = $ent2;
+    	$data->rec->ent3Id = $ent3;
+    	$data->rec->accountNum = acc_Accounts::fetchField($accId, 'num');
+    	
     	$data->balanceRec = $balanceRec;
-    	$data->fromDate = $balanceRec->fromDate;
-    	$data->toDate = $balanceRec->toDate;
+    	$data->fromDate = $from;
+    	$data->toDate = $to;
     	
     	// Подготовка на историята
     	$this->prepareHistory($data);
@@ -951,6 +958,7 @@ class acc_BalanceDetails extends core_Detail
         
         // Филтриране на заявката да показва само записите от журнал за тази сметка
         acc_JournalDetails::filterQuery($query, $from, $to, $accs);
+        
         $query->orderBy('valior,id', 'ASC');
         
         // Филтриране на копието, за показване на записите за тези пера
@@ -964,11 +972,9 @@ class acc_BalanceDetails extends core_Detail
         	// Кои записи трябва да се показват
         	$displayedEntries = $cloneQuery->fetchAll();
         }
-       
-        /*
-         * Изчисляване на сумите според стратегиите ако има, за да е всичко точно
-         * са ни нужни нефилтрираните записи
-         */
+        
+        // Изчисляване на сумите според стратегиите ако има, 
+        // за да е всичко точно са ни нужни нефилтрираните записи
         while ($rec = $query->fetch()) {
             @$this->calcAmount($rec);
             $this->addEntry($rec, 'debit');
@@ -977,8 +983,8 @@ class acc_BalanceDetails extends core_Detail
         
         // В $history са всички излечени записи, в $recs ще са само тези които ще се показват
     	$this->recs = $this->history;
-        
-        // Ако има записи, които трябва да се помнят, се проверява за всеки от тях
+       
+    	// Ако има записи, които трябва да се помнят, се проверява за всеки от тях
         // Дали присъства на страницата, ако не го махаме
         if(count($this->recs) && count($displayedEntries)){
         	foreach ($this->recs as $id => $rec){
@@ -1174,17 +1180,26 @@ class acc_BalanceDetails extends core_Detail
      */
     private function prepareHistoryFilter(&$data)
     {
-    	$this->prepareListFilter($data);
+    	$data->listFilter = cls::get('core_Form');
+    	$data->listFilter->method = 'GET';
     	$filter = &$data->listFilter;
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$filter->class = 'simpleForm';
     	
-    	$filter->FNC('from', 'date', 'caption=От,input,width=10em');
-    	$filter->FNC('to', 'date', 'caption=До,input,width=10em');
-    	$filter->showFields = 'from,to';
+    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=10em');
+    	$filter->FNC('toDate', 'date', 'caption=До,input,width=10em');
+    	$filter->FNC('accId', 'int', 'input=hidden');
+    	$filter->FNC('ent1Id', 'int', 'input=hidden');
+    	$filter->FNC('ent2Id', 'int', 'input=hidden');
+    	$filter->FNC('ent3Id', 'int', 'input=hidden');
+    	$filter->showFields = 'fromDate,toDate';
     	
-    	$filter->setDefault('from', $data->fromDate);
-    	$filter->setDefault('to', $data->toDate);
+    	$filter->setDefault('fromDate', $data->fromDate);
+    	$filter->setDefault('toDate', $data->toDate);
+    	$filter->setDefault('accId', $data->rec->accountId);
+    	$filter->setDefault('ent1Id', $data->rec->ent1Id);
+    	$filter->setDefault('ent2Id', $data->rec->ent2Id);
+    	$filter->setDefault('ent3Id', $data->rec->ent3Id);
     	
     	$optionsTo = $optionsFrom = array('' => '');
     	
@@ -1197,14 +1212,15 @@ class acc_BalanceDetails extends core_Detail
     		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
     	}
     	
-    	$filter->setSuggestions('from', $optionsFrom);
-    	$filter->setSuggestions('to', $optionsTo);
+    	$filter->setSuggestions('fromDate', $optionsFrom);
+    	$filter->setSuggestions('toDate', $optionsTo);
     	
     	// Активиране на филтъра
         $filter->input();
         
         // Ако има изпратени данни
         if($filter->rec){
+        	
         	if($filter->rec->from){
         		$data->fromDate = $filter->rec->from;
         	}
@@ -1221,7 +1237,6 @@ class acc_BalanceDetails extends core_Detail
      */
     private function getVerbalHistoryRow($rec, $Double, $Date)
     {
-    	$arr['reason'] = $rec['reason'];
     	$arr['valior'] = $Date->toVerbal($rec['valior']);
     	
     	// Ако има отрицателна сума показва се в червено
@@ -1234,7 +1249,9 @@ class acc_BalanceDetails extends core_Detail
     	}
 		
     	try{
-	    	$arr['docId'] = cls::get($rec['docType'])->getLink($rec['docId']);
+    		$Class = cls::get($rec['docType']);
+	    	$arr['docId'] = $Class->getLink($rec['docId']);
+	    	$arr['reason'] = $Class->getContoReason($rec['docId']);
 	    } catch(Exception $e){
 	    	if(is_numeric($rec['docId'])){
 	    		$arr['docId'] = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
@@ -1262,8 +1279,8 @@ class acc_BalanceDetails extends core_Detail
     	// Взимаме шаблона за историята
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	
-    	$printBtn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
-	    $tpl->append($printBtn, 'SingleToolbar');
+    	$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+	    $tpl->append($btn, 'SingleToolbar');
 	    
     	if(!Mode::is('printing')){
     		$printUrl = getCurrentUrl();
@@ -1271,21 +1288,33 @@ class acc_BalanceDetails extends core_Detail
 	    	$printBtn = ht::createBtn('Печат', $printUrl, FALSE, TRUE, 'id=btnPrint,row=2,ef_icon = img/16/printer.png,title=Печат на страницата');
 	    	$tpl->append($printBtn, 'SingleToolbar');
     	}
-        
+    	
+    	// Проверка дали всички к-ва равнят на сумите  
+    	$equalBl = TRUE;
+    	foreach ($data->rows as $row){
+    		if($row->blQuantity != $row->blAmount){
+        		$equalBl = FALSE;
+        	}
+    	}
+    	
     	// Подготвяме таблицата с данните извлечени от журнала
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$data->listFields = array(
-                'docId'          => 'Документ',
-    			'valior'         => 'Вальор',
-    			'reason'		 => 'Основание',
-                'debitQuantity'  => 'Дебит->К-во',
-                'debitAmount'    => 'Дебит->Сума',
-                'creditQuantity' => 'Кредит->К-во',
-                'creditAmount'   => 'Кредит->Сума',
-                'blQuantity'     => 'Остатък->К-во',
-                'blAmount'       => 'Остатък->Сума',
+    	$data->listFields = array('valior'   	   => 'Вальор',
+                				  'docId'          => 'Документ',
+    							  'reason'		   => 'Основание',
+                				  'debitQuantity'  => 'Дебит->К-во',
+                			      'debitAmount'    => 'Дебит->Сума',
+                				  'creditQuantity' => 'Кредит->К-во',
+                				  'creditAmount'   => 'Кредит->Сума',
+                				  'blQuantity'     => 'Остатък->К-во',
+                				  'blAmount'       => 'Остатък->Сума',
             );
         
+        // Ако равнят не показваме количествата
+        if($equalBl){
+        	unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+        }
+            
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
         $details = $table->get($data->rows, $data->listFields);
         
