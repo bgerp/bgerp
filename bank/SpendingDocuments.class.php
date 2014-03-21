@@ -25,7 +25,7 @@ class bank_SpendingDocuments extends core_Master
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
    
     
     /**
@@ -149,7 +149,7 @@ class bank_SpendingDocuments extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,mandatory,width=6em,summary=amount');
     	$this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,width=6em');
-    	$this->FLD('rate', 'double', 'caption=Курс,width=6em');
+    	$this->FLD('rate', 'double(smartRound)', 'caption=Курс,width=6em');
     	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,width=100%,mandatory');
     	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Б. сметка,mandatory,width=16em');
@@ -325,17 +325,6 @@ class bank_SpendingDocuments extends core_Master
 	    			$rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
     			}
 	    	}
-    	}
-    }
-    
-    
-	/**
-     * Преди подготовка на вербалното представяне
-     */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
-    {
-    	if($fields['-single']){
-    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
     	}
     }
     

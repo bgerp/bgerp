@@ -135,14 +135,14 @@ class cash_ExchangeDocument extends core_Master
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
     	$this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=12em');
     	$this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)','caption=От->Валута,width=6em');
-    	$this->FLD('creditPrice', 'double(decimals=2)', 'input=none');
-    	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
+    	$this->FLD('creditPrice', 'double(smartRound)', 'input=none');
+    	$this->FLD('creditQuantity', 'double(smartRound)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=12em');
         $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)','caption=Към->Валута,width=6em');
-        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
-       	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
-        $this->FLD('equals', 'double(decimals=2)', 'input=none,caption=Общо,summary=amount');
-       	$this->FLD('rate', 'double', 'input=none');
+        $this->FLD('debitQuantity', 'double(smartRound)', 'width=6em,caption=Към->Сума');
+       	$this->FLD('debitPrice', 'double(smartRound)', 'input=none');
+        $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
+       	$this->FLD('rate', 'double(smartRound)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -237,17 +237,6 @@ class cash_ExchangeDocument extends core_Master
     		$toCashiers = cash_Cases::fetchField($rec->peroTo, 'cashiers');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
     		$rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
-    	}
-    }
-    
-    
-	/**
-     * Преди подготовка на вербалното представяне
-     */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
-    {
-    	if($fields['-single']){
-    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
     	}
     }
     
@@ -370,5 +359,16 @@ class cash_ExchangeDocument extends core_Master
 		$row->recTitle = $rec->reason;
 		
         return $row;
+    }
+    
+    
+	/**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $this->getVerbal($rec, 'reason');
     }
 }

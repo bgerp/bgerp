@@ -219,7 +219,7 @@ class techno_GeneralProductsParameters extends core_Manager
         if($paramRec->type != 'enum'){
                $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
                if($paramRec->type == 'double'){
-               	   $Type->params['decimals'] = strlen(substr(strrchr($rec->value, "."), 1));
+               	   $Type->params['smartRound'] = 'smartRound';
                }
                $row->value = $Type->toVerbal($rec->value);
         }

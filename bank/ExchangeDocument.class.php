@@ -133,13 +133,13 @@ class bank_ExchangeDocument extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=23em,input,mandatory');
     	$this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','input,caption=От->Б. сметка,width=20em');
-    	$this->FLD('creditPrice', 'double(decimals=2)', 'input=none');
-    	$this->FLD('creditQuantity', 'double(decimals=2)', 'width=6em,caption=От->Сума');
+    	$this->FLD('creditPrice', 'double(smartRound,decimals=2)', 'input=none');
+    	$this->FLD('creditQuantity', 'double(smartRound,decimals=2)', 'width=6em,caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Б. сметка,width=20em');
-        $this->FLD('debitQuantity', 'double(decimals=2)', 'width=6em,caption=Към->Сума');
-       	$this->FLD('debitPrice', 'double(decimals=2)', 'input=none');
-       	$this->FLD('equals', 'double(decimals=2)', 'input=none,caption=Общо,summary=amount');
-        $this->FLD('rate', 'double', 'input=none');
+        $this->FLD('debitQuantity', 'double(smartRound,decimals=2)', 'width=6em,caption=Към->Сума');
+       	$this->FLD('debitPrice', 'double(smartRound,decimals=2)', 'input=none');
+       	$this->FLD('equals', 'double(smartRound,decimals=2)', 'input=none,caption=Общо,summary=amount');
+        $this->FLD('rate', 'double(smartRound,decimals=2)', 'input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -233,17 +233,6 @@ class bank_ExchangeDocument extends core_Master
 		    $sharedUsers = bank_OwnAccounts::fetchField($rec->peroTo, 'operators');
     		$rec->sharedUsers = keylist::removeKey($sharedUsers, core_Users::getCurrent());
 		}
-    }
-    
-    
-	/**
-     * Преди подготовка на вербалното представяне
-     */
-    static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
-    {
-    	if($fields['-single']){
-    		$mvc->fields['rate']->type->params['decimals'] = strlen(substr(strrchr($rec->rate, "."), 1));
-    	}
     }
     
     
@@ -377,5 +366,16 @@ class bank_ExchangeDocument extends core_Master
 		$row->recTitle = $rec->reason;
 		
         return $row;
+    }
+    
+    
+	/**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $this->getVerbal($rec, 'reason');
     }
 }

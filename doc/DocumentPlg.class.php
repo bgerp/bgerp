@@ -514,6 +514,11 @@ class doc_DocumentPlg extends core_Plugin
                     $res = new Redirect($url);
                     
                     return FALSE;
+                } else {
+                    
+                    // Ако нямаме достъп до нишката, да се изчистят всички нотификации в нея
+                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    bgerp_Notifications::clear($customUrl);
                 }
             }
         }

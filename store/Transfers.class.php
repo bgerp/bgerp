@@ -468,4 +468,15 @@ class store_Transfers extends core_Master
     {
         return tr("|Междускладов трансфер|* №") . $rec->id;
     }
+    
+    
+	/**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return static::getRecTitle($rec);
+    }
 }

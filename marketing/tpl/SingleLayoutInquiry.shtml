@@ -9,9 +9,8 @@
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
 	</div>
 	<!--ET_END header-->
+
 	<div class='scrolling-holder'>
-	
-	<div>
 		<table class='styled-table'>
 		<tr>
 			<th colspan='2' style='padding:7px 0px'>|Информация за продукта|*</th>
@@ -28,8 +27,7 @@
 		<!--ET_END DATA_ROW-->
 		</table>
 	</div>
-	
-	<div>
+	<div class='scrolling-holder'>
 		<table class='styled-table'>
 		<tr>
 			<th colspan='2' style='padding:7px 0px'>|Количества|*</th>
@@ -55,6 +53,7 @@
 		</table>
 	</div>
 	
+	<div class='scrolling-holder'>
 	<table class='styled-table'>
 	<tr>
 		<th colspan='2' style='padding:7px 0px'>|Контактни дани|*</th>
@@ -105,7 +104,9 @@
 	</tr>
 	<!--ET_END address-->
 	</table>
+	</div>
 	
+	<div class='scrolling-holder'>
 	<table class='styled-table'>
 	<tr>
 		<th colspan='2' style='padding:7px 0px'>|Системни данни|*</th>
