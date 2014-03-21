@@ -315,6 +315,11 @@ class cat_Products extends core_Master {
     {
         if($fields['-single']) {
         	
+        	// Ако продукта няма основна опаковка, удебеляваме мярката му
+        	if(!$mvc->Packagings->fetch("#productId = '{$rec->id}' AND #isBase = 'yes'")){
+        		$row->measureId = "<b>{$row->measureId}</b>";
+        	}
+        	
         	// извличане на мета данните според групите
     		if($meta = $mvc->getMetaData($rec->groups)){
     			$Groups = cls::get(cat_Groups);
