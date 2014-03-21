@@ -1482,7 +1482,7 @@ function efae()
 	efae.prototype.renderPrefix = 'render_';
 	
 	// Времето в милисекунди, с което ще се увеличава времето на изпълнение
-	efae.prototype.increaseInterval = 1000;
+	efae.prototype.increaseInterval = 100;
 	
 	// Горната граница (в милисекунди), до която може да се увеличи брояча
 	efae.prototype.maxIncreaseInterval = 60000;
