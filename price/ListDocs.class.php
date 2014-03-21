@@ -218,7 +218,7 @@ class price_ListDocs extends core_Master
     		if(!$form->rec->title){
     			$polRec = price_Lists::fetch($form->rec->policyId);
     			$policyName = price_Lists::getVerbal($polRec, 'title');
-    			$form->rec->title = "{$mvc->singleTitle} \'{$policyName}\' {$form->rec->id}";
+    			$form->rec->title = "{$mvc->singleTitle} \"{$policyName}\" {$form->rec->id}";
     		}
     	}
     }
