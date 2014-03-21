@@ -364,4 +364,15 @@ abstract class acc_ClosedDeals extends core_Master
 	    // Създаване на документа
 	    return static::save($newRec);
     }
+    
+    
+	/**
+     * Връща счетоводното основание за документа
+     */
+    public function getContoReason($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return $this->getVerbal($rec, 'notes');
+    }
 }
