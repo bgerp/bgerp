@@ -467,9 +467,14 @@ class techno_Specifications extends core_Manager {
      */
     public static function getHyperlink($id, $icon = FALSE)
     {
-    	expect($Driver = static::getDriver($id));
+    	try{
+    		expect($Driver = static::getDriver($id));
+    		$link =  $Driver->getHyperlink($icon);
+    	} catch(Exception $e){
+    		$link = tr('Проблем с показването');
+    	}
     	
-        return $Driver->getHyperlink($icon);
+    	return $link;
     }
     
     

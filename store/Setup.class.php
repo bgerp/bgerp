@@ -82,7 +82,7 @@ class store_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.3, 'Логистика', 'Складове', 'store_Movements', 'default', "storeWorker,ceo"),
+            array(3.2, 'Логистика', 'Складове', 'store_Movements', 'default', "storeWorker,ceo"),
         );
     
     

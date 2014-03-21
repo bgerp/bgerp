@@ -51,13 +51,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name, company, email, folderId, drvId, createdOn, createdBy';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'title=Заглавие, name, company, email, folderId, createdOn, createdBy';
     
     
     /**
@@ -117,7 +111,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folderId, name, company, email, tel';
+    public $searchFields = 'folderId, name, company, email, place';
     
     
     /**
@@ -455,6 +449,11 @@ class marketing_Inquiries extends core_Master
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->title = $mvc->getTitle($rec);
+    		
+    		$attr['class'] = 'linkWithIcon';
+    		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, $attr);
     	}
     	
     	if($fields['-single']){
@@ -500,7 +499,7 @@ class marketing_Inquiries extends core_Master
 	    	foreach ($recs as $name => $value){
 	    		$Type = core_Type::getByName($params[$name]->type);
 	    		$value = $Type->toVerbal($value);
-	    		$dataRow->replace($params[$name]->title, 'CAPTION');
+	    		$dataRow->replace(tr($params[$name]->title), 'CAPTION');
 	    		$dataRow->replace($value, 'VALUE');
 	    		$dataRow->removePlaces();
 	    		$dataRow->append2master();
@@ -570,8 +569,7 @@ class marketing_Inquiries extends core_Master
     		$PML = cls::get('phpmailer_Instance');
     		
     		// Име на фирма/лице / име на продукта
-    		$subject = (($rec->company) ? $rec->company : $rec->name) . " / {$Driver->getProductTitle((object)$rec->data)}";
-    		
+    		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
     		
     		$PML->Body = $tpl->getContent();
@@ -589,6 +587,7 @@ class marketing_Inquiries extends core_Master
         	
         	// Адрес на който да се изпрати
         	$PML->AddAddress($emailsTo);
+        	$PML->AddCustomHeader("Customer-Origin-Email: {$rec->email}");
         	
         	// От кой адрес е изпратен
         	$PML->SetFrom($sentFrom);
@@ -596,6 +595,20 @@ class marketing_Inquiries extends core_Master
         	// Изпращане
 	        $PML->Send();
     	}
+    }
+    
+    
+    /**
+     * Връща името на запитването
+     */
+    private function getTitle($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$Driver = cls::get($rec->drvId);
+    	
+    	$name = $this->fields['name']->type->toVerbal((($rec->company) ? $rec->company : $rec->name));
+    	
+    	return $subject = "{$name} / {$Driver->getProductTitle((object)$rec->data)}";
     }
     
     
@@ -629,11 +642,11 @@ class marketing_Inquiries extends core_Master
     public function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
+    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id}";
+        $row->title = $this->getTitle($rec);
         $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->authorEmail = $rec->email;
+        $row->author = $this->getVerbal($rec, 'email');
         $row->state = $rec->state;
 		$row->recTitle = $row->title;
 		
@@ -689,4 +702,16 @@ class marketing_Inquiries extends core_Master
     {
         return 'opened';
     }
+    
+    
+    /**
+      * Добавя ключови думи за пълнотекстово търсене
+      */
+     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     {
+     	if($rec->drvId){
+     		$Driver = cls::get($rec->drvId);
+     		$res .= " " . plg_Search::normalizeText($Driver->getProductTitle((object)$rec->data));
+     	}
+     }
 }

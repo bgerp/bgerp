@@ -43,7 +43,7 @@ class cash_Cases extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, cashier';
+    var $listFields = 'tools=Пулт, name, cashiers';
     
     
     /**

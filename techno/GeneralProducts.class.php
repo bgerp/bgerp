@@ -127,6 +127,47 @@ class techno_GeneralProducts extends core_Master {
 		$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2');
+		$this->FLD('template', "key(mvc=doc_TplManager,select=name)", 'caption=Допълнително->Шаблон');
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на продажбата в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Универсален продукт кратък изглед с компоненти', 
+    					  'content' => 'techno/tpl/SingleLayoutGeneralProductsShort.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Универсален продукт кратък изглед без компоненти', 
+    					  'content' => 'techno/tpl/SingleLayoutGeneralProductsShortComponents.shtml', 'lang' => 'bg');
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за универсални продукти, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    }
+    
+    
+	/**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
+    {
+    	$templates = doc_TplManager::getTemplates($mvc->getClassId());
+    	(count($templates)) ? $data->form->setOptions('template', $templates) : $data->form->setReadOnly('template');
+    	$data->form->setField('template', 'caption=Допълнително->Кратък изглед');
     }
     
     
@@ -235,7 +276,7 @@ class techno_GeneralProducts extends core_Master {
 	public function renderShortView($id, $data)
     {
     	// Зареждане на щаблона за краткото представяне
-    	$tpl = getTplFromFile('techno/tpl/SingleLayoutGeneralProductsShort.shtml');
+    	$tpl = doc_TplManager::getTemplate($data->rec->template);
     	$tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
     	$tpl->placeObject($data->row);
     	
