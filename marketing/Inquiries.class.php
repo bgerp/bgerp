@@ -562,7 +562,32 @@ class marketing_Inquiries extends core_Master
     		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
     		$row = $this->recToVerbal($rec, $fields);
     		$tpl->placeObject($row);
-    		$PML->Body = $tpl->getContent();
+    		
+    		$res = $tpl;
+    		
+    		//Създаваме HTML частта на документа и превръщаме всички стилове в inline
+    		//Вземаме всичките css стилове
+    		
+    		$css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+    			"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+    		
+    		$res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+    		
+    		// Вземаме пакета
+    		$conf = core_Packs::getConfig('csstoinline');
+    		
+    		// Класа
+    		$CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+    		
+    		// Инстанция на класа
+    		$inst = cls::get($CssToInline);
+    		
+    		// Стартираме процеса
+    		$res =  $inst->convert($res, $css);
+    		
+    		$res = str::cut($res, '<div id="begin">', '<div id="end">');
+    		    		
+    		$PML->Body = $res;
         	$PML->IsHTML(TRUE);
     		Mode::pop('text');
     		
