@@ -1471,12 +1471,6 @@ function efae()
 	// Масив с времето на последно извикване на функцията
 	efae.prototype.lastTimeArr = new Array();
 	
-	// Масив с броя на извиквания на функцията
-	efae.prototype.cntArr = new Array();
-	
-	// Цикъла на времето откакто е стартиран скрипта
-	efae.prototype.time = 0;
-	
 	// През колко време да се вика функцията `run`
 	efae.prototype.timeout = 1000;
 	
@@ -1491,6 +1485,15 @@ function efae()
 	
 	// Горната граница (в милисекунди), до която може да се увеличи брояча
 	efae.prototype.maxIncreaseInterval = 60000;
+	
+	// През колко време да се праща AJAX заяка към сървъра
+	efae.prototype.ajaxInterval = efae.prototype.ajaxDefInterval = 5000;
+	
+	// Кога за последно е стартирана AJAX заявка към сървъра
+	efae.prototype.ajaxLastTime = new Date();
+	
+	// Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
+	efae.prototype.isSendedAfterRefresh = false;
 }
 
 
@@ -1500,22 +1503,13 @@ function efae()
  * @param string name - Името
  * @param string url - URL-то, което да се използва за извличане на информация
  * @param integer interval - Интервала на извикване в милисекунди
- * @param integer periodModul - През колко цикъла да се праща заявка
  */
-efae.prototype.subscribe = function(name, url, interval, periodModul)
+efae.prototype.subscribe = function(name, url, interval)
 {
-	// Ако не е дефинирана 
-	if (typeof periodModul == 'undefined' || periodModul == 0) {
-		
-		periodModul = 1;
-	}
-	
 	// Създаваме масив с името и добавяме неоходимите данни в масива
 	this.subscribedArr[name] = new Array();
 	this.subscribedArr[name]['url'] = url;
 	this.subscribedArr[name]['interval'] = interval;
-	this.subscribedArr[name]['defInterval'] = interval;
-	this.subscribedArr[name]['periodModul'] = periodModul;
 	
 	// Текущото време
 	this.lastTimeArr[name] = new Date();
@@ -1528,11 +1522,12 @@ efae.prototype.subscribe = function(name, url, interval, periodModul)
 efae.prototype.run = function()
 {
 	try {
+		// Увеличаваме брояча
+		this.increaseTimeout();
+		
 		// Стартираме процеса
 		this.process();
 		
-		// Увеличаваме брояча
-		this.increaseTimeout();
 	} catch(err) {
 		
 		// Ако възникне грешка
@@ -1658,40 +1653,54 @@ efae.prototype.getSubscribed = function()
 	// Обект с резултатите
 	resObj = new Object();
 	
-	// Към времето добавяме таймаута за изпълнение
-	this.time += this.timeout;
-	
 	// Текущото време
 	var now = new Date();
 	
-	// Обхождаме всички абонирани URL-та
-	for (name in this.subscribedArr) {
+	// Ако не е изпратена заявката след рефрешване
+	if (!this.isSendedAfterRefresh) {
 		
-		// Разликата между текущуто време и времето на последно извикване на цикъла
-		var diff = now - this.lastTimeArr[name];
-		
-		// Ако разликата е повече от интервала
-		if (diff >= this.subscribedArr[name]['interval']) {
+		// Обхождаме всички абонирани URL-та
+		for (name in this.subscribedArr) {
 			
-			// Добавяме текущото време
-			this.lastTimeArr[name] = now;
-			
-			// Ако не е дефинирана стойността
-			if (!this.cntArr[name]) {
+			// Всички абонирани процеси с интервал 0
+			if (this.subscribedArr[name]['interval'] == 0) {
 				
-				// По подразбиране да е 0
-				this.cntArr[name] = 0;
+				// Добавяме URL-то
+				resObj[name] = this.subscribedArr[name]['url'];
+				
+				// Премахваме от масива
+				delete(this.subscribedArr[name]);
 			}
+		}
+		
+		// Променяме флага
+		this.isSendedAfterRefresh = true;
+	}
+	
+	// Разликата между текущото време и последното извикване
+	var diff = now - this.ajaxLastTime;
+	
+	// Ако времето от последното извикване и е по - голяма от интервала
+	if (diff >= this.ajaxInterval) {
+		
+		// Задаваме текущото време
+		this.ajaxLastTime = now;
+		
+		// Обхождаме всички абонирани URL-та
+		for (name in this.subscribedArr) {
 			
-			// Ако броя се дели модално без остатък
-			if (this.cntArr[name] % this.subscribedArr[name]['periodModul'] === 0) {
+			// Разлика във времето на абонираните процеси
+			var diffSubscribed = now - this.lastTimeArr[name];
+			
+			// Ако разликата е повече от интервала
+			if (diffSubscribed >= this.subscribedArr[name]['interval']) {
 				
-				// Добавяме резултата в масива
+				// Задаваме текущото време
+				this.lastTimeArr[name] = now;
+				
+				// Добавяме URL-то
 				resObj[name] = this.subscribedArr[name]['url'];
 			}
-			
-			// Увеличаваме брояча
-			this.cntArr[name]++;
 		}
 	}
 	
@@ -1727,21 +1736,12 @@ efae.prototype.getUrl = function()
  */
 efae.prototype.increaseTimeout = function()
 {
-	for (name in this.subscribedArr) {
-		
-		var increase = this.subscribedArr[name]['interval'] - this.subscribedArr[name]['defInterval'];
-				
-		if (increase < this.maxIncreaseInterval) {
-			this.subscribedArr[name]['interval'] += this.increaseInterval;
-		}
-		
-	}
 	// Ако не сме достигнали горната граница
-	//if (this.timeout < this.maxIncreaseInterval) {
+	if (this.ajaxInterval < this.maxIncreaseInterval) {
 		
 		// Увеличаваме брояча
-		//this.timeout += this.increaseInterval;
-	//}
+		this.ajaxInterval += this.increaseInterval;
+	}
 }
 
 
@@ -1750,9 +1750,8 @@ efae.prototype.increaseTimeout = function()
  */
 efae.prototype.resetTimeout = function()
 {
-	for (name in this.subscribedArr) {
-		this.subscribedArr[name]['interval'] = this.subscribedArr[name]['defInterval'];
-	}
+	// Връщаме старата стойност
+	this.ajaxInterval = this.ajaxDefInterval;
 }
 
 
@@ -1829,7 +1828,11 @@ function render_notificationsCnt(data)
 {	
 	changeTitleCnt(data.cnt);
 	
-	changeNotificationsCnt(data);
+	var nCntLink = get$(data.id);
+	
+	if(nCntLink != null) {
+		changeNotificationsCnt(data);
+	}
 }
 
 
