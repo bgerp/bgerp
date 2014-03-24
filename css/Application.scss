@@ -1712,12 +1712,18 @@ fieldset.sharing-history {
 	padding:40px;
 }
 
-.wide #login-form .formTable{
+.wide #login-form .formTable {
 	margin: 0;
+	input[type='text'], input[type='password']{
+	   min-width: 15em;
+	}
 }
 
 .narrow #login-form {
 	padding: 10px;
+	.formTable{
+	   width: auto !important;
+	}
 }
 
 #cmsNavigation div.nav_item {
