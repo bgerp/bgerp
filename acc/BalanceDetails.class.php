@@ -903,15 +903,18 @@ class acc_BalanceDetails extends core_Detail
     	}
     	
     	$bQuery = $this->Master->getQuery();
+    	$cloneQuery = clone $bQuery;
     	$bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
     	$bQuery->orderBy('id', 'ASC');
     	
-    	$balanceId = $bQuery->fetch()->id;
+    	if(!$balanceId = $bQuery->fetch()->id){
+    		$balanceId = $cloneQuery->fetch()->id;
+    	}
     	expect($balanceRec = $this->Master->fetch($balanceId));
     	
     	$this->title = 'Хронологична справка';
     	
-    	requireRole('ceo,acc');
+    	
     	
     	// Подготвяне на данните
     	$data = new stdClass();
@@ -1301,7 +1304,7 @@ class acc_BalanceDetails extends core_Detail
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$data->listFields = array('valior'   	   => 'Вальор',
                 				  'docId'          => 'Документ',
-    							  'reason'		   => 'Основание',
+    							  'reason'		   => 'Забележки',
                 				  'debitQuantity'  => 'Дебит->К-во',
                 			      'debitAmount'    => 'Дебит->Сума',
                 				  'creditQuantity' => 'Кредит->К-во',
