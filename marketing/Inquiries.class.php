@@ -445,7 +445,9 @@ class marketing_Inquiries extends core_Master
     		$row->createdBy = '@anonym';
     	}
     	
-    	$row->email = "<div class='email'>{$row->email}</div>";
+    	if (!Mode::is('text', 'plain')){
+    	    $row->email = "<div class='email'>{$row->email}</div>";
+    	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -467,10 +469,6 @@ class marketing_Inquiries extends core_Master
 					$row->{"quantity{$i}"} .= " {$uomId}";
 				}
 			}
-    	}
-    	
-    	if(Mode::is('text', 'plain')){
-    		$row->email = $rec->email;
     	}
     	
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
@@ -539,42 +537,44 @@ class marketing_Inquiries extends core_Master
     		$sentFrom = email_Inboxes::fetchField($sentFrom, 'email');
     		
     		// Тяло на имейла html и text
-    		$tpl = getTplFromFile($this->emailNotificationFile);
-    		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
+    		
     		$fields = $this->selectFields();
-    		
-    		Mode::push('text', 'plain');
-    		$rowPlain = $this->recToVerbal($rec, $fields);
-    		
-    		// Рендиране на бодито
-    		Mode::push('printing', TRUE);
-    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
-    		Mode::pop('printing');
-    		Mode::pop('text', 'plain');
-    		
-    		$row = $this->recToVerbal($rec, $fields);
-    		$tpl->placeObject($row);
-    		$tplAlt->placeObject($rowPlain);
-    		
-    		// Извличане на прикачените файлове
-    		$Driver = cls::get($rec->drvId);
-    		$files = $Driver->getAttachedFiles((object)$rec->data);
-    		
-    		// Рендиране на алт бодито
-    		Mode::push('text', 'xhtml');
-    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
-    		Mode::pop('text');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
+    		
+    		Mode::push('printing', TRUE);
+    		
+    		Mode::push('text', 'plain');
+    		
+    		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
+    		// Рендиране на бодито
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		$rowPlain = $this->recToVerbal($rec, $fields);
+    		$tplAlt->placeObject($rowPlain);
+    		$PML->AltBody = $tplAlt->getContent();
+    		
+    		Mode::pop('text', 'plain');
+    		
+    		// Рендиране на алт бодито
+    		Mode::push('text', 'xhtml');
+    		$tpl = getTplFromFile($this->emailNotificationFile);
+    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
+    		$row = $this->recToVerbal($rec, $fields);
+    		$tpl->placeObject($row);
+    		$PML->Body = $tpl->getContent();
+        	$PML->IsHTML(TRUE);
+    		Mode::pop('text');
+    		
+    		Mode::pop('printing');
     		
     		// Име на фирма/лице / име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
     		
-    		$PML->Body = $tpl->getContent();
-            $PML->AltBody = $tplAlt->getContent();
-        	$PML->IsHTML(TRUE);
+    		// Извличане на прикачените файлове
+    		$Driver = cls::get($rec->drvId);
+    		$files = $Driver->getAttachedFiles((object)$rec->data);
         	
         	// Ако има прикачени файлове, добавяме ги
         	if($files){
