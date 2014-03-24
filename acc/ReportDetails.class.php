@@ -208,11 +208,14 @@ class acc_ReportDetails extends core_Manager
     		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
     		$table = cls::get('core_TableView', array('mvc' => $tMvc));
     		
+    		$lastBalance = acc_Balances::getLastBalance();
+    		
     		// За всички записи групирани по сметки
     		foreach ($data->balanceRows as $accId => $rows){
     			
     			// Името на сметката и нейните групи
     			$accNum = acc_Accounts::getTitleById($accId);
+    			$accNum = ht::createLink($accNum, array('acc_Balances', 'single', $lastBalance->id, 'accId' => $accId));
     			$accGroups = acc_Accounts::getAccountInfo($accId)->groups;
     			
     			// Името на сметката излиза над таблицата
