@@ -152,13 +152,21 @@ class callcenter_Numbers extends core_Manager
      * Връща вербалното име на позвъняващия за съответния запис в модела
      * 
      * @param integer $id
+     * @param integer $userId
      * 
      * @return string
      */
-    static function getCallerName($id)
+    static function getCallerName($id, $userId)
     {
         // Ако не е подадено id
         if (!$id) return ;
+        
+        // Ако не е подадено
+        if (!$userId) {
+            
+            // Използваме id на текущия потребител
+            $userId = core_Users::getCurrent();
+        }
         
         // Вземаме записа
         $numRec = callcenter_Numbers::fetch($id);
@@ -168,6 +176,9 @@ class callcenter_Numbers extends core_Manager
         
         // Инстанция на съответния клас
         $class = cls::get($numRec->classId);
+        
+        // Ако нямаме права до сингъла на записа
+        if (!$class->haveRightFor('single', $numRec->contragentId, $userId)) return ;
         
         // Ако класа е инстанция на профилите
         if (($class instanceof crm_Profiles)) {
