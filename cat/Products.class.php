@@ -1063,6 +1063,7 @@ class cat_Products extends core_Master {
     {
     	$rows = &$data->balanceRows;
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
+    	$data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
     	
     	foreach ($rows as &$arrs){
     		if(count($arrs)){
