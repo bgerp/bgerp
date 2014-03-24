@@ -773,7 +773,7 @@ class core_Form extends core_FieldSet
     {
         $vars = arr::make($params);
         $rec = arr::make($this->rec);
-        
+ 
         if (count($this->fields)) {
             foreach ($this->fields as $name => $field) {
                 if (!array_key_exists($field->name, $vars)) {

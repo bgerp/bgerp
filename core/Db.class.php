@@ -125,9 +125,7 @@ class core_Db extends core_BaseClass
         if (!isset($this->link)) {
             $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass);
             if (!$link) {
-//	            if ($redirectOnErr) {
-	//            	redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-	  //          }
+
 	            error("Грешка при свързване с MySQL сървър <b>{$this->dbHost}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
             
@@ -145,9 +143,7 @@ class core_Db extends core_BaseClass
             
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db("{$this->dbName}", $this->link)) {
-        //    	if ($redirectOnErr) {
-          //  		redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>'')));
-            //	}
+
                 error("Грешка при избиране на база <b>{$this->dbName}</b>", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             }
         }

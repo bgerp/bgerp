@@ -143,9 +143,9 @@ class core_String
     
     
     /**
-     * @todo Чака за документация...
+     * Отделя стринг, заключен между други два стринга
      */
-    static function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
+    static function crop($str, $beginMark, $endMark = '', $caseSensitive = FALSE, &$offset = 0)
     {
         if (!$caseSensitive) {
             $sample = mb_strtolower($str);
@@ -155,20 +155,22 @@ class core_String
             $sample = $str;
         }
         
-        $begin = mb_strpos($sample, $beginMark);
+        $begin = mb_strpos($sample, $beginMark, $offset);
         
-        if ($begin === FALSE) return;
+        if ($begin === FALSE) return FALSE;
         
         $begin = $begin + mb_strlen($beginMark);
         
         if ($endMark) {
-            $end = mb_strpos($str, $endMark, $begin);
+            $end = mb_strpos($sample, $endMark, $begin);
             
-            if ($end === FALSE) return;
+            if ($end === FALSE) return FALSE;
             
             $result = mb_substr($str, $begin, $end - $begin);
+            $offset = $end + mb_strlen($endMark);
         } else {
             $result = mb_substr($str, $begin);
+            $offset = mb_strlen($str);
         }
         
         return $result;
@@ -184,15 +186,40 @@ class core_String
         $match = mb_strtolower($match);
         $find = mb_strpos($str, $match);
         
-        if ($find === FALSE)
-        return FALSE;
+        if ($find === FALSE) {
+
+            return FALSE;
+        }
         
-        if ($until < 0)
-        return TRUE;
+        if ($until < 0) {
+
+            return TRUE;
+        }
         
-        if ($find <= $until)
-        return TRUE;
-        else
+        if ($find <= $until) {
+            return TRUE;
+        } else {
+        
+            return FALSE;
+        }
+    }
+
+
+    /**
+     * Връща истина, само ако и двата стринга са не-нулеви и единият е по-стринг на другия
+     */
+    static function contained($str1, $str2)
+    {
+        if(strlen($str1) == 0 || strlen($str2) == 0) {
+
+            return FALSE;
+        }
+
+        if(strpos($str1, $str2) !== FALSE || strpos($str2, $str1) !== FALSE) {
+
+            return TRUE;
+        }
+
         return FALSE;
     }
     
