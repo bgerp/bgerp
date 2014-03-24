@@ -275,16 +275,27 @@ class blogm_Articles extends core_Master {
 		$id = Request::get('id', 'int');
 
         if(!$id) {
-            expect($id = Request::get('articleId', 'int'));
+            $id = Request::get('articleId', 'int');
         }
 		
+        if(!$id) {
+
+            return $this->act_Browse();
+        }
+
 		// Създаваме празен $data обект
 		$data = new stdClass();
 		$data->query = $this->getQuery();
 		$data->articleId = $id;
 
 		// Трябва да има $rec за това $id
-		expect($data->rec = $this->fetch($id));
+		$data->rec = $this->fetch($id);
+
+        if(!$data->rec) {
+
+            return $this->act_Browse();
+        }
+
 
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
