@@ -1,6 +1,6 @@
 <?php
 /**
- * Помощен клас за приключване на сделки и проверка за пресрочено плащане.
+ * Помощен клас за приключване на сделки и проверка за просрочено плащане.
  * Изпозлва се от Покупките и продажбите за изпълняване на действия по крон
  *
  * @category  bgerp
@@ -32,7 +32,7 @@ class acc_CronDealsHelper
     
     
     /**
-     * Проверява дали сделките са с пресрочено плащане
+     * Проверява дали сделките са с просрочено плащане
      */
     public function checkPayments($overdueDelay)
     {
@@ -76,10 +76,10 @@ class acc_CronDealsHelper
     				// Извлича се платежния план
     				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
     				
-    				// Проверка дали продажбата е пресрочена
+    				// Проверка дали продажбата е просрочена
     				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
     				
-    					// Ако да, то продажбата се отбелязва като пресрочена
+    					// Ако да, то продажбата се отбелязва като просрочена
     					$rec->paymentState = 'overdue';
     					
     					try{
@@ -87,7 +87,7 @@ class acc_CronDealsHelper
     					}catch(Exception $e){
     						
     						// Ако има проблем при обновяването
-    						core_Logs::add($Class, $rec->id, "Проблем при проверката дали е пресрочена сделката: '{$e->getMessage()}'");
+    						core_Logs::add($Class, $rec->id, "Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'");
     					}
     				}
     			}

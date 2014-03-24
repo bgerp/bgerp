@@ -109,12 +109,12 @@ class store_ReceiptDetails extends core_Detail
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,input=none');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка/Опак.,input=none');
         $this->FLD('quantity', 'double', 'caption=К-во,input=none');
-        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
+        $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,column=none');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(smartRound,decimals=2)', 'caption=К-во,input=input,mandatory');
         $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }

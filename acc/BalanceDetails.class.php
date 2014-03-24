@@ -1279,10 +1279,10 @@ class acc_BalanceDetails extends core_Detail
     	// Взимаме шаблона за историята
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	
-    	$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
-	    $tpl->append($btn, 'SingleToolbar');
-	    
     	if(!Mode::is('printing')){
+    		$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+	    	$tpl->append($btn, 'SingleToolbar');
+	    
     		$printUrl = getCurrentUrl();
 	    	$printUrl['Printing'] = 'yes';
 	    	$printBtn = ht::createBtn('Печат', $printUrl, FALSE, TRUE, 'id=btnPrint,row=2,ef_icon = img/16/printer.png,title=Печат на страницата');

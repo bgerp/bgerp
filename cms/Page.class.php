@@ -33,6 +33,23 @@ class cms_Page extends page_Html {
         $conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
     	
+        // Ако е логнат потребител
+        if (haveRole('user')) {
+            
+            // Абонираме за промяна на броя на нотификациите
+            $this->appendOnce(new ET('[#bgerp_Notifications::subscribeCounter#]'));
+        
+            // Броя на отворените нотификации
+            $openNotifications = bgerp_Notifications::getOpenCnt();
+            
+            // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
+            if($openNotifications > 0) {
+                
+                // Добавяме броя в заглавието
+                $this->append("({$openNotifications}) ", 'PAGE_TITLE');
+            }
+        }
+        
         // Кодировка - UTF-8
         $this->replace("UTF-8", 'ENCODING');
         

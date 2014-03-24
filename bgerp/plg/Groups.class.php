@@ -88,6 +88,8 @@ class bgerp_plg_Groups extends core_Plugin
             
             expect($selArrCnt);
             
+            reset($selArr);
+            
             if ($selArrCnt == 1) {
                 $selOneKey = key($selArr);
             }
