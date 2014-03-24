@@ -143,6 +143,15 @@ class core_String
     
     
     /**
+     * 
+     */
+    static function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
+    {
+        static::crop($str, $beginMark, $endMark, $caseSensitive);
+    }
+    
+    
+    /**
      * Отделя стринг, заключен между други два стринга
      */
     static function crop($str, $beginMark, $endMark = '', $caseSensitive = FALSE, &$offset = 0)
