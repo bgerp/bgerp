@@ -217,7 +217,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public function on_AfterRenderJobView($mvc, &$res, $id)
     {
     	if(!$res){
-    		return tr("Драйвера няма изглед за задание");
+    		$res = tr("Драйвера няма изглед за задание");
     	}
     }
     
@@ -232,7 +232,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public function on_AfterGetAdditionalParams($mvc, &$res)
     {
     	if(!$res){
-    		return NULL;
+    		$res =  NULL;
     	}
     }
     
@@ -243,7 +243,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public function on_AfterFillInquiryForm($mvc, &$res)
     {
     	if(!$res){
-    		return NULL;
+    		$res = NULL;
     	}
     }
     
@@ -279,7 +279,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public function on_AfterRenderAdditionalParams($mvc, &$res, $id, $data)
     {
     	if(!$res){
-    		return new ET("");
+    		$res = new ET("");
     	}
     }
     
@@ -290,7 +290,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     function on_AfterGetPacks($mvc, &$res, $productId)
     {
     	if(empty($res)){
-    		return array('' => '');
+    		$res = array('' => '');
     	}
     }
     
@@ -303,7 +303,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     public function on_AfterGetParam($mvc, &$res, $id, $sysId)
     {
     	if(!$res){
-    		return NULL;
+    		$res = NULL;
     	}
     }
     
@@ -341,7 +341,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     static function on_AfterGetWeight($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
-    		return $mvc->getParam($id, 'weight');
+    		$res = $mvc->getParam($id, 'weight');
     	}
     }
     
@@ -352,7 +352,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     static function on_AfterGetVolume($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
-    		return $mvc->getParam($id, 'volume');
+    		$res = $mvc->getParam($id, 'volume');
     	}
     }
     
