@@ -328,6 +328,11 @@ class drdata_Countries extends core_Manager {
             }
         }
         $country = mb_strtolower(trim(str::utf2ascii($country)));
+        
+        // Добавка за този начин на изписване на формалното име на страната
+        if($i = strpos($country, ', republic of')) {
+            $country = 'republic of ' . trim(substr($country, 0, $i));
+        }
 
         $country = trim(preg_replace('/[^a-zA-Z\'\d\p{L}]/u', " ", $country));
         
@@ -343,6 +348,8 @@ class drdata_Countries extends core_Manager {
 
             return $id;
         }
+
+        $country = str_replace(',' , ' , ', $country);
 
         $country = " {$country} ";
 

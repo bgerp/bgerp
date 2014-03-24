@@ -213,9 +213,6 @@ class bglocal_Address extends core_MVC
      */
     static function canonizePlace($place)
     {
-        $place = mb_convert_case(mb_strtolower($place), MB_CASE_TITLE, "UTF-8");
-        $place = str_replace("Гр.", "", $place);
-        $place = str_replace("Гр ", "", $place);
         $place = trim($place);
         
         $placeL = strtolower(STR::utf2ascii($place));

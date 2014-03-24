@@ -506,9 +506,15 @@ class drdata_Phones extends core_Manager {
                         $this->debug(" [>13] ");
                         $error = TRUE;
                     }
+
+                    if($obj->countryCode == '352') {
+                        $maxAreaNum = 6;
+                    } else {
+                        $maxAreaNum = 7;
+                    }
                     
-                    if(strlen($obj->areaCode . $obj->number) < 7) {
-                        $this->debug(" [<7] ");
+                    if(strlen($obj->areaCode . $obj->number) < $maxAreaNum) {
+                        $this->debug(" [<{$maxAreaNum}] ");
                         $error = TRUE;
                     }
                     
