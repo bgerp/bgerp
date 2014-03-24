@@ -212,8 +212,15 @@ class status_Messages extends core_Manager
         // През колко цикъла да се викат статус съобщенията
         $statusPeriodModul = haveRole('user') ? 6 : 100000;
         
-        // Показва статус съобщението след зареждане на страницата
-        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 0.8, $statusPeriodModul);
+        // Ако е регистриран потребител
+        if (haveRole('user')) {
+            
+            // Абонираме статус съобщенията
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+        }
+        
+        // Извлича статусите веднага след обновяване на страницата
+        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 0);
         
         return $res;
     }
