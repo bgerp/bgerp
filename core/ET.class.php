@@ -622,6 +622,16 @@ class core_ET extends core_BaseClass
     
     
     /**
+     * Замества преди плейсхолдъра
+     * Всички опити за използване на същото съдържание ще бъдат игнорирани
+     */
+    function prependOnce($content, $placeHolder = NULL)
+    {
+        return $this->prepend($content, $placeHolder, TRUE);
+    }
+    
+    
+    /**
      * Заместване преди пелйсхолдъра
      */
     function prepend($content, $placeHolder = NULL, $once = FALSE)
