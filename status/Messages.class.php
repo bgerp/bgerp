@@ -209,15 +209,11 @@ class status_Messages extends core_Manager
     {
         $res = new ET();
         
-        // Ако е регистриан потребител
-        if (haveRole('user')) {
-            
-            // Абонираме да се извличат стойности по AJAX
-            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
-        }
+        // През колко цикъла да се викат статус съобщенията
+        $statusPeriodModul = haveRole('user') ? 6 : 100000;
         
         // Показва статус съобщението след зареждане на страницата
-        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 1, TRUE);
+        core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'statusOnce', 0.8, $statusPeriodModul);
         
         return $res;
     }

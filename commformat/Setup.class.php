@@ -18,7 +18,7 @@ defIfNot('COMMUNICATION_FORMAT', 'tel,fax,mob,email,icq,social,web');
  * @license   GPL 3
  * @since     v 0.1
  */
-class communicationformat_Setup extends core_ProtoSetup 
+class commformat_Setup extends core_ProtoSetup 
 {
     
     
@@ -91,7 +91,7 @@ class communicationformat_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('communicationformat_Plugin');
+        $Plugins->deinstallPlugin('commformat_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'communicationformat_Plugin'";
         
         return $html;

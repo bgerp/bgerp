@@ -47,15 +47,11 @@ class toast_Toast extends core_Plugin
         $tpl->push("toast/{$version}/javascript/jquery.toastmessage.js", 'JS');
         $tpl->push("toast/{$version}/resources/css/jquery.toastmessage.css", 'CSS');
         
-        // Ако е регистриан потребител
-        if (haveRole('user')) {
-            
-            // Абонираме, за да се вика по JS
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5, FALSE);
-        }
+        // През колко цикъла да се викат статус съобщенията
+        $statusPeriodModul = haveRole('user') ? 6 : 100000;
         
-        // Показва статус събщениет само веднъж
-        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'statusOnce', 1, TRUE);
+        // Абонираме статус съобщенията
+        core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 0.8, $statusPeriodModul);
         
         // Връщаме FALSE за да не се изпълнява метода
         return FALSE;

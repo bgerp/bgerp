@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class communicationformat_Plugin extends core_Plugin
+class commformat_Plugin extends core_Plugin
 {
 
 	/**
@@ -23,7 +23,7 @@ class communicationformat_Plugin extends core_Plugin
        
        $this->mvc = $mvc;
        
-       $conf = core_Packs::getConfig('communicationformat'); 
+       $conf = core_Packs::getConfig('commformat'); 
        $format = explode(",", $conf->COMMUNICATION_FORMAT);
       
        try {
