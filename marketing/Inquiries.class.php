@@ -241,7 +241,12 @@ class marketing_Inquiries extends core_Master
     		// Запис и редирект
     		if($this->haveRightFor('new')){
     			$this->save($rec);
-    			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
+    			
+    			if ($mvc->isSended) {
+    			    status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
+    			} else {
+    			    status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
+    			}
     			
     			return followRetUrl();
     		}
@@ -513,7 +518,7 @@ class marketing_Inquiries extends core_Master
     {
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
-    		$mvc->sendNotificationEmail($rec);
+    		$mvc->isSended = $mvc->sendNotificationEmail($rec);
     	}
     }
     
@@ -586,7 +591,7 @@ class marketing_Inquiries extends core_Master
     		$res =  $inst->convert($res, $css);
     		
     		$res = str::cut($res, '<div id="begin">', '<div id="end">');
-    		    		
+    		
     		$PML->Body = $res;
         	$PML->IsHTML(TRUE);
     		Mode::pop('text');
@@ -618,7 +623,7 @@ class marketing_Inquiries extends core_Master
         	$PML->SetFrom($sentFrom);
         	
         	// Изпращане
-	        $PML->Send();
+	        return $PML->Send();
     	}
     }
     
