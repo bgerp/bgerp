@@ -90,6 +90,8 @@ class callcenter_Setup extends core_ProtoSetup
      */
     function install()
     {
+      	$html = parent::install();
+      	
         // Инсталиране на мениджърите
         $managers = array(
             'callcenter_Talks',
