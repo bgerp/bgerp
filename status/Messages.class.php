@@ -189,7 +189,7 @@ class status_Messages extends core_Manager
             if ($isRetrived) continue;
             
             // Двумерен масив с типа и текста
-            $resArr[$rec->id]['text'] = $rec->text;
+            $resArr[$rec->id]['text'] = tr("|*" . $rec->text);
             $resArr[$rec->id]['type'] = $rec->type;
             
             // Добавяме в извличанията
