@@ -1079,6 +1079,8 @@ class cat_Products extends core_Master {
      * @return stdClass - обект с информация
      * 				->name     - име на опаковката
      * 				->quantity - к-во на продукта в опаковката
+     * 				->classId  - ид на cat_Packagings или cat_UoM
+     * 				->id       - на опаковката/мярката
      */
     public function getBasePackInfo($id)
     {
@@ -1086,11 +1088,16 @@ class cat_Products extends core_Master {
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;
+    		$arr['classId'] = cat_Packagings::getClassId();
+    		$arr['id'] = $basePack->packagingId;
     	} else {
-    		$arr['name'] = cat_UoM::getTitleById($this->fetchField($id, 'measureId'));
+    		$measureId = $this->fetchField($id, 'measureId');
+    		$arr['name'] = cat_UoM::getTitleById($measureId);
     		$arr['quantity'] = 1;
+    		$arr['classId'] = cat_UoM::getClassId();
+    		$arr['id'] = $measureId;
     	}
-    	
+    		
     	return (object)$arr;
     }
 }
