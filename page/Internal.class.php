@@ -30,7 +30,7 @@ class page_Internal extends page_Html {
     	
         $this->page_Html();
         
-        $this->append(new ET('[#bgerp_Notifications::subscribeCounter#]'));
+        $this->appendOnce(new ET('[#bgerp_Notifications::subscribeCounter#]'));
         
         $this->replace("UTF-8", 'ENCODING');
         
