@@ -423,8 +423,10 @@ class cat_Products extends core_Master {
      */
     static function getLinkToObj($objectId)
     {
-        if ($rec = self::fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array(__CLASS__, 'Single', $objectId));
+        $self = cls::get(__CLASS__);
+        
+    	if ($rec = self::fetch($objectId)) {
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>' . tr('неизвестно') . '</i>';
         }

@@ -430,7 +430,7 @@ class dec_Declarations extends core_Master
         $self = cls::get(__CLASS__);
         
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>неизвестно</i>';
         }

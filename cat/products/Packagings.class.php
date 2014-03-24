@@ -126,6 +126,11 @@ class cat_products_Packagings extends cat_products_Detail
         if ($action == 'add' && isset($rec->productId)) {
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
+            } else {
+            	$productInfo = cat_Products::getProductInfo($rec->productId);
+            	if(empty($productInfo->meta['canStore'])){
+            		$requiredRoles = 'no_one';
+            	}
             } 
         }
     }
