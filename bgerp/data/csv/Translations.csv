@@ -1647,7 +1647,7 @@ en,Липсваща кутия,Missing inbox
 en,на сървъра,on the server
 en,Възможен е проблем със сървъра,There is possible problem with the server
 en,Сгрешен домейн,Wrong domein
-en,Наистина ли имейл-а започва с, Are you sure that the email begins with
+en,Наистина ли имейла започва с, Are you sure that the email begins with
 en,Сървъра на, The server
 en,не отговаря. Проверете имейл-а, doesn't respond, Check the email
 en,Благодарим ви за запитването, Thank you for the inquiry
@@ -1681,3 +1681,4 @@ en,Вашият телефон,Your phone number
 en,Вашият пощенски код,Your post code
 en,Вашият адрес,Your address
 en,"Моля, изберете текущ/а","Please, choose current"
+en,"Възможен е проблем с домейна","Possible problem with the domain"
