@@ -25,43 +25,43 @@ class blast_Blocked extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo, blast';
+    var $canRead = 'ceo, blast, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo, blast';
+    var $canEdit = 'ceo, blast, admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo, blast';
+    var $canAdd = 'ceo, blast, admin';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'ceo, blast';
+    var $canView = 'ceo, blast, admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo, blast';
+    var $canList = 'ceo, blast, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo, blast';
+    var $canDelete = 'ceo, blast, admin';
     
     
     /**
      * Кой може да праша информационните съобщения?
      */
-    var $canBlast = 'ceo, blast';
+    var $canBlast = 'ceo, blast, admin';
     
     
     /**

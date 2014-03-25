@@ -33,32 +33,32 @@ class blast_ListDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'blast,ceo';
+    var $canRead = 'blast,ceo,admin';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'blast,ceo';
+    var $canWrite = 'blast,ceo,admin';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,ceo';
+    var $canReject = 'blast,ceo,admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'blast, ceo';
+    var $canDelete = 'blast,ceo,admin';
     
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'blast,ceo';
+	var $canList = 'blast,ceo,admin';
     
 	
     /**
