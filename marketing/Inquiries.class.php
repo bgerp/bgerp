@@ -594,6 +594,10 @@ class marketing_Inquiries extends core_Master
     		
     		$PML->Body = $res;
         	$PML->IsHTML(TRUE);
+        	
+        	// Ембедване на изображенията
+        	email_Sent::embedSbfImg($PML);
+        	
     		Mode::pop('text');
     		
     		Mode::pop('printing');
