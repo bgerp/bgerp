@@ -559,7 +559,7 @@ class marketing_Inquiries extends core_Master
     		$tplAlt->placeObject($rowPlain);
     		$PML->AltBody = $tplAlt->getContent();
     		
-    		Mode::pop('text', 'plain');
+    		Mode::pop('text');
     		
     		// Рендиране на алт бодито
     		Mode::push('text', 'xhtml');
