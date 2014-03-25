@@ -242,7 +242,7 @@ class marketing_Inquiries extends core_Master
     		if($this->haveRightFor('new')){
     			$this->save($rec);
     			
-    			if ($mvc->isSended) {
+    			if ($this->isSended) {
     			    status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
     			} else {
     			    status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
