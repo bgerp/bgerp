@@ -88,7 +88,7 @@ class currency_Currencies extends core_Master {
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,currency';
+	var $canSingle = 'ceo,currency,powerUser';
 	
 	
 	/**
