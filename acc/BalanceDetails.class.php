@@ -170,7 +170,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private function canReadRecord($rec)
     {
-    	foreach (range(2,3) as $i){
+    	foreach (range(1,3) as $i){
         	$ent = $rec->{"ent{$i}Id"};
         	if(empty($ent)) continue;
         	
