@@ -8,8 +8,8 @@
  *
  * @category  bgerp
  * @package   acc
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.com>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -205,22 +205,33 @@ class acc_plg_Contable extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'conto') {
+        	
+        	// Не може да се контира в състояние, което не е чернова
             if ($rec->id && $rec->state != 'draft') {
                 $requiredRoles = 'no_one';
             }
             
+            // Не може да се контира, ако документа не генерира валидна транзакция
             if ($rec->isContable == 'no'){
             	$requiredRoles = 'no_one';
             }
-            
-        } elseif($action == 'reconto'){
+
+            // Кой може да реконтира документа( изпълнява се след възстановяване на оттеглен документ)
+        } elseif($action == 'reconto' && isset($rec)){
+        	
+        	// Който може да възстановява, той може и да реконтира
+        	$requiredRoles = $mvc->getRequiredRoles('restore', $rec);
+        	
+        	// Неможе да се реконтират само активни и приключени документи
         	if ($rec->id && ($rec->state == 'draft' || $rec->state == 'rejected')) {
                 $requiredRoles = 'no_one';
             }
             
+            // Не може да се контира, ако документа не генерира валидна транзакция
             if ($rec->isContable == 'no'){
             	$requiredRoles = 'no_one';
             }
+            
         } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -230,11 +241,18 @@ class acc_plg_Contable extends core_Plugin
                 }
             }
         } elseif ($action == 'reject') {
-            if ($rec->id) {
+        	if ($rec->id) {
+        		
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
                 
                 if ($periodRec->state == 'closed') {
                     $requiredRoles = 'no_one';
+                } else {
+                	
+                	// Ако потрбеителя неможе да контира документа, неможе и да го оттегля
+                	if(!haveRole($mvc->getRequiredRoles('conto'))){
+                		$requiredRoles = 'no_one';
+                	}
                 }
             }
         } elseif ($action == 'correction') {
