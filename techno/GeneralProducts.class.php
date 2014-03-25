@@ -276,6 +276,13 @@ class techno_GeneralProducts extends core_Master {
 	public function renderShortView($id, $data)
     {
     	// Зареждане на щаблона за краткото представяне
+    	if(empty($data->rec->template)){
+    		
+    		// За старите записи, които нямат шаблон
+    		$templates = doc_TplManager::getTemplates($this->getClassId());
+    		$data->rec->template = key($templates);
+    	}
+    	
     	$tpl = doc_TplManager::getTemplate($data->rec->template);
     	$tpl->push('techno/tpl/GeneralProductsStyles.css', 'CSS');
     	$tpl->placeObject($data->row);
