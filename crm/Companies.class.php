@@ -168,6 +168,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'powerUser';
+    
+    
+    /**
      * Поле на модела съдържащо списък с групите, в които е включена фирмата.
      * 
      * Използва се от плъгина @link groups_Extendable 

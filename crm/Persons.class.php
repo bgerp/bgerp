@@ -154,6 +154,12 @@ class crm_Persons extends core_Master
     
     
     /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'powerUser';
+    
+    
+    /**
      * Кой  може да групира "С избраните"?
      */
     var $canGrouping = 'ceo,crm';
