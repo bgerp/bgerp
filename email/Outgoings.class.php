@@ -156,17 +156,17 @@ class email_Outgoings extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote)', 'caption=Съобщение,mandatory');
         
-        //Данни за адресанта
-        $this->FLD('email', 'emails', 'caption=Адресант->Имейл, width=100%');
-        $this->FLD('emailCc', 'emails', 'caption=Адресант->Копие,  width=100%');
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone,class=contactData');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=pCode');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData');
+        //Данни за адресата
+        $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%');
+        $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие,  width=100%');
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
+        $this->FLD('fax', 'varchar', 'caption=Адресат->Факс,class=contactData');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=pCode');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData');
     }
 
 
@@ -267,7 +267,7 @@ class email_Outgoings extends core_Master
         // Генерираме списък с документи, избрани за прикачане
         $docsArr = static::getAttachedDocuments($options);
         
-        // Имейлите от адресант
+        // Имейлите от адресат
         $rEmails = $rec->email;
         
         // Имейлите от получател
@@ -282,7 +282,7 @@ class email_Outgoings extends core_Master
             $groupEmailsArr['to'][0] = $oEmails;
         } else {
             
-            // Масив с имейлите от адресанта
+            // Масив с имейлите от адресата
             $rEmailsArr = type_Emails::toArray($rEmails);
             
             // Масив с имейлите от получателя
@@ -291,16 +291,16 @@ class email_Outgoings extends core_Master
             // Събираме в група всички имейли, които се ги има и в двата масива
             $intersectArr = array_intersect($oEmailsArr, $rEmailsArr);
             
-            // Вземаме имейлите, които ги няма в адресанта, но ги има в получатели
+            // Вземаме имейлите, които ги няма в адресата, но ги има в получатели
             $diffArr = array_diff($oEmailsArr, $rEmailsArr);
 
-            // Добавяме имейлите, които са в адресант и в получател
+            // Добавяме имейлите, които са в адресат и в получател
             // Те ще се изпращат заедно с CC
             if ($intersectArr) {
                 $groupEmailsArr['to'][0] = type_Emails::fromArray($intersectArr);    
             }
             
-            // Обхождаме всички имейли, които ги няма в адресант, но ги има в получател
+            // Обхождаме всички имейли, които ги няма в адресат, но ги има в получател
             foreach ($diffArr as $diff) {
                 
                 // Добавяме ги в масива, те ще се изпращат самостоятелно
@@ -810,7 +810,7 @@ class email_Outgoings extends core_Master
                 
                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                 if (!trim($form->rec->email)) {
-                    $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресант->Имейл|*</b>.");    
+                    $form->setError('email', "За да изпратите имейла, трябва да попълните полето|* <b>|Адресат->Имейл|*</b>.");    
                 }
             }
         }
@@ -1223,7 +1223,7 @@ class email_Outgoings extends core_Master
         // Ако отговаряме на конкретен имейл
         if ($emailTo) {
             
-            // Попълваме полето Адресант->Имейл със съответния имейл
+            // Попълваме полето Адресат->Имейл със съответния имейл
             $rec->email = $emailTo;     
         }
         
@@ -1642,7 +1642,7 @@ class email_Outgoings extends core_Master
     
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща данните за адресанта
+     * Връща данните за адресата
      */
     static function getContragentData($id)
     {
