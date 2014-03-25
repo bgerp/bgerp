@@ -450,7 +450,7 @@ class marketing_Inquiries extends core_Master
     		$row->createdBy = '@anonym';
     	}
     	
-    	if (!Mode::is('text', 'plain')){
+    	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
     	    $row->email = "<div class='email'>{$row->email}</div>";
     	}
     	
