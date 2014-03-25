@@ -162,17 +162,16 @@ class acc_ReportDetails extends core_Manager
 	    		}
 	    	}
 	    	
-	    	$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
-	    	$histUrl['ent1Id'] = $dRec->ent1Id;
-	    	$histUrl['ent2Id'] = $dRec->ent2Id;
-	    	$histUrl['ent3Id'] = $dRec->ent3Id;
-	    	
 	    	// Ако има повече от едно перо, несе показва това на мениджъра
 	    	if(count($row) > 1) {
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
 	    	
-	    	if(acc_Balances::haveRightFor('read')){
+	    	if(acc_BalanceDetails::haveRightFor('history', $dRec)){
+	    		$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
+		    	$histUrl['ent1Id'] = $dRec->ent1Id;
+		    	$histUrl['ent2Id'] = $dRec->ent2Id;
+		    	$histUrl['ent3Id'] = $dRec->ent3Id;
 	    		$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
 	    	}
 	    	

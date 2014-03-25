@@ -83,6 +83,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Кой има достъп до хронологичната справка
+     */
+    var $canHistory = 'powerUser';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -134,6 +140,49 @@ class acc_BalanceDetails extends core_Detail
             if (!empty($groupBy)) {
                 $mvc->doGrouping($data, $groupBy);
             }
+        }
+        
+        // При детайлна справка, и потребителя няма роли acc, ceo скриваме
+        // записите до които няма достъп
+        if($mvc->isDetailed() && !haveRole('ceo,acc')){
+        	$recs = &$data->recs;
+        	$rows = &$data->rows;
+        	
+        	if(empty($rows)) return;
+        	
+        	foreach ($rows as $id => $row){
+        		
+        		// Ако потребителя неможе да вижда записа него показваме
+        		if(!$mvc->canReadRecord($recs[$id])){
+        			unset($rows[$id]);
+        		}
+        	}
+        }
+    }
+    
+    
+    /**
+     * Дали потребителя може да вижда детайл от баланса, може ако има достъп
+     * до всички негови пера
+     * 
+     * @param stdClass $rec - запис от модела
+     * @return boolean 
+     */
+    private function canReadRecord($rec)
+    {
+    	foreach (range(1,3) as $i){
+        	$ent = $rec->{"ent{$i}Id"};
+        	if(empty($ent)) continue;
+        	
+        	$itemRec = acc_Items::fetch($ent);
+    		if($itemRec->classId){
+    			$AccRegMan = cls::get($itemRec->classId);
+    			if(!$AccRegMan->haveRightFor('single', $itemRec->objectId)){
+    				return FALSE;
+    			}
+    		}
+    		
+    		return TRUE;
         }
     }
     
@@ -802,8 +851,14 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if (!in_array($action, array('list', 'read'))) {
+        if (!in_array($action, array('list', 'read', 'history'))){
             $requiredRoles = 'no_one';
+        }
+        
+        if($action == 'history' && isset($rec)){
+        	if(!haveRole('ceo, acc') && !$mvc->canReadRecord($rec)){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
 
@@ -887,7 +942,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public function act_History()
     {
-    	acc_Balances::requireRightFor('read');
+    	$this->requireRightFor('history');
     	
     	expect($accId = Request::get('accId', 'int'));
     	$from = Request::get('fromDate');
@@ -914,6 +969,8 @@ class acc_BalanceDetails extends core_Detail
     	$data->rec->ent2Id = $ent2;
     	$data->rec->ent3Id = $ent3;
     	$data->rec->accountNum = acc_Accounts::fetchField($accId, 'num');
+    	
+    	$this->requireRightFor('history', $data->rec);
     	
     	$data->balanceRec = $balanceRec;
     	$data->fromDate = $from;
@@ -1272,9 +1329,11 @@ class acc_BalanceDetails extends core_Detail
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	
     	if(!Mode::is('printing')){
-    		$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
-	    	$tpl->append($btn, 'SingleToolbar');
-	    
+    		if(acc_Balances::haveRightFor('read')){
+    			$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+	    		$tpl->append($btn, 'SingleToolbar');
+    		}
+    		
     		$printUrl = getCurrentUrl();
 	    	$printUrl['Printing'] = 'yes';
 	    	$printBtn = ht::createBtn('Печат', $printUrl, FALSE, TRUE, 'id=btnPrint,row=2,ef_icon = img/16/printer.png,title=Печат на страницата');
