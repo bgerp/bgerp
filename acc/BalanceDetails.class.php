@@ -889,32 +889,21 @@ class acc_BalanceDetails extends core_Detail
     {
     	acc_Balances::requireRightFor('read');
     	
-    	expect($from = Request::get('fromDate', 'date'));
-    	expect($to = Request::get('toDate', 'date'));
     	expect($accId = Request::get('accId', 'int'));
+    	$from = Request::get('fromDate');
+    	$to = Request::get('toDate');
     	$ent1 = Request::get('ent1Id', 'int');
     	$ent2 = Request::get('ent2Id', 'int');
     	$ent3 = Request::get('ent3Id', 'int');
-    	
-    	if($to < $from){
-    		$tmp = $from;
-    		$from = $to;
-    		$to = $tmp;
-    	}
     	
     	$bQuery = $this->Master->getQuery();
     	$cloneQuery = clone $bQuery;
     	$bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
     	$bQuery->orderBy('id', 'ASC');
-    	
-    	if(!$balanceId = $bQuery->fetch()->id){
-    		$balanceId = $cloneQuery->fetch()->id;
-    	}
+    	$balanceId = $bQuery->fetch()->id;
     	expect($balanceRec = $this->Master->fetch($balanceId));
     	
     	$this->title = 'Хронологична справка';
-    	
-    	
     	
     	// Подготвяне на данните
     	$data = new stdClass();
@@ -929,6 +918,9 @@ class acc_BalanceDetails extends core_Detail
     	$data->balanceRec = $balanceRec;
     	$data->fromDate = $from;
     	$data->toDate = $to;
+    	
+    	// Подготовка на филтъра
+    	$this->prepareHistoryFilter($data);
     	
     	// Подготовка на историята
     	$this->prepareHistory($data);
@@ -1018,9 +1010,6 @@ class acc_BalanceDetails extends core_Detail
     	$Date = cls::get('type_Date');
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
-    	
-    	// Подготовка на филтъра
-    	$this->prepareHistoryFilter($data);
     	
     	// Подготовка на вербалното представяне
     	$row = new stdClass();
@@ -1189,16 +1178,14 @@ class acc_BalanceDetails extends core_Detail
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$filter->class = 'simpleForm';
     	
-    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=10em');
-    	$filter->FNC('toDate', 'date', 'caption=До,input,width=10em');
+    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=14em');
+    	$filter->FNC('toDate', 'date', 'caption=До,input,width=14em');
     	$filter->FNC('accId', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
     	$filter->FNC('ent3Id', 'int', 'input=hidden');
     	$filter->showFields = 'fromDate,toDate';
     	
-    	$filter->setDefault('fromDate', $data->fromDate);
-    	$filter->setDefault('toDate', $data->toDate);
     	$filter->setDefault('accId', $data->rec->accountId);
     	$filter->setDefault('ent1Id', $data->rec->ent1Id);
     	$filter->setDefault('ent2Id', $data->rec->ent2Id);
@@ -1215,8 +1202,10 @@ class acc_BalanceDetails extends core_Detail
     		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
     	}
     	
-    	$filter->setSuggestions('fromDate', $optionsFrom);
-    	$filter->setSuggestions('toDate', $optionsTo);
+    	$filter->setOptions('fromDate', $optionsFrom);
+    	$filter->setOptions('toDate', $optionsTo);
+    	$filter->setDefault('fromDate', $data->fromDate);
+    	$filter->setDefault('toDate', $data->toDate);
     	
     	// Активиране на филтъра
         $filter->input();
