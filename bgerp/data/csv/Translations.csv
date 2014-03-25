@@ -125,7 +125,8 @@ en,title,title
 en,Автор,Author
 en,Администриране,Admin
 en,Адрес,Address
-en,Адресант,Recipient
+en,Адресант,Addressee
+en,Адресат,Recipient
 en,Активиране,Activation
 en,Активно,Active
 en,Банки,Banks
@@ -627,7 +628,7 @@ en,Ползване от,Use of
 en,Считано,Regarded
 en,неплатен,unpaid
 en,платен,paid
-en,Информация->Вид,Information-> Type
+en,Информация->Вид,Information->Type
 en,Считано->До,Regarded->To
 en,Считано->От,Regarded->From
 en,Молби,Applications
@@ -1031,6 +1032,7 @@ en,изпращане,sending
 en,Изтича,Expires
 en,Мета информация,Meta information
 en,Адресант->Имейл,Addressee->Email
+en,Адресат->Имейл,Recipient->Email
 en,За да изпратит_e780e,You must fill the field
 en,Потребителски _842c,User Data
 en,Промяна на пер_ca722,Change the personalization
