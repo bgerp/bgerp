@@ -23,7 +23,12 @@ class drdata_PhoneType extends type_Varchar {
     function toVerbal_($telNumber)
     {
         if(!$telNumber) return NULL;
-
+        
+        if (Mode::is('text', 'plain')) {
+            
+            return $telNumber;
+        }
+        
         $parsedTel = static::toArray($telNumber, $this->params);
 
         $telNumber = parent::toVerbal_($telNumber);
@@ -64,7 +69,7 @@ class drdata_PhoneType extends type_Varchar {
             		$title = str_replace(' ', '&nbsp;', $t->original);
         		}
         
-                $res->append(ht::createLink($title, "tel:+" . $value, NULL, $attr));
+                $res->append(ht::createLink($title, "tel: +" . $value, NULL, $attr));
 
                 if($t->internal) {
                     $res->append(tr('вътр.') . $t->internal) ;
