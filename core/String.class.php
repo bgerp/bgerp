@@ -147,7 +147,7 @@ class core_String
      */
     static function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
     {
-        
+    
         return static::crop($str, $beginMark, $endMark, $caseSensitive);
     }
     
