@@ -67,7 +67,7 @@ class doc_Threads extends core_Manager
     var $doWithSelected = 'open=Отваряне,close=Затваряне,restore=Възстановяване,reject=Оттегляне,move=Преместване';
     
     /**
-     * Данните на адресанта, с най - много попълнени полета
+     * Данните на адресата, с най - много попълнени полета
      */
     static $contragentData = NULL;
     
