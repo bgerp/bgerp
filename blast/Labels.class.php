@@ -25,43 +25,43 @@ class blast_Labels extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, blast';
+    var $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, blast';
+    var $canEdit = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, blast';
+    var $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, blast';
+    var $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, blast';
+    var $canList = 'ceo, blast';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, blast';
+    var $canDelete = 'ceo, blast';
     
     
     /**
-     * Кой може да праша информационните съобщения?
+     * Кой може да праща информационните съобщения?
      */
-    var $canBlast = 'admin, blast';
+    var $canBlast = 'ceo, blast';
     
     
     /**
@@ -84,7 +84,7 @@ class blast_Labels extends core_Manager
      */
     function act_Default()
     {
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
     	$text = tr('В процес на разработка');
     	$underConstructionImg = "<h2>$text</h2><img src=". sbf('img/under_construction.png') .">";

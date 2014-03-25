@@ -124,7 +124,7 @@ class blast_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "admin, ceo, blast"),
+            array(1.36, 'Указател', 'Разпращане', 'blast_Lists', 'default', "ceo, blast"),
         );   
 
         

@@ -74,37 +74,37 @@ class blast_Emails extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, blast';
+    var $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, blast';
+    var $canEdit = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, blast';
+    var $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, blast';
+    var $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, blast';
+    var $canList = 'ceo, blast';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'blast,admin';
+	var $canSingle = 'blast,ceo';
 	
 	
     /**
@@ -116,13 +116,13 @@ class blast_Emails extends core_Master
     /**
      * Кой може да праша информационните съобщения?
      */
-    var $canBlast = 'admin, blast';
+    var $canBlast = 'ceo, blast';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'blast, admin, ceo';
+    var $canChangerec = 'blast, ceo, admin';
     
     
     /**
@@ -740,7 +740,7 @@ class blast_Emails extends core_Master
     function act_Activation()
     {
         // Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         $id = Request::get('id', 'int');
         
@@ -964,7 +964,7 @@ class blast_Emails extends core_Master
     function act_Stop()
     {
         //Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         //Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));

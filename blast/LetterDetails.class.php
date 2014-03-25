@@ -32,19 +32,19 @@ class blast_LetterDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'blast,admin';
+    var $canRead = 'blast,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,admin';
+    var $canReject = 'blast,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'blast, admin';
+    var $canDelete = 'blast, ceo';
     
     
     /**

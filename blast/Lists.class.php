@@ -57,31 +57,31 @@ class blast_Lists extends core_Master
     /**
      * Кой може да чете?
      */
-    var $canRead = 'blast,admin';
+    var $canRead = 'blast,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'blast,admin';
+    var $canWrite = 'blast,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,admin';
+    var $canReject = 'blast,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'blast,admin';
+	var $canList = 'blast,ceo';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'blast,admin';
+	var $canSingle = 'blast,ceo';
     
     
     /**

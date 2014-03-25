@@ -33,32 +33,32 @@ class blast_ListDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'blast,admin';
+    var $canRead = 'blast,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'blast,admin';
+    var $canWrite = 'blast,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'blast,admin';
+    var $canReject = 'blast,ceo';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'blast, admin';
+    var $canDelete = 'blast, ceo';
     
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'blast,admin';
+	var $canList = 'blast,ceo';
     
 	
     /**
@@ -333,7 +333,7 @@ class blast_ListDetails extends core_Detail
     static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
     {
         if($action == 'edit' || $action == 'add') {
-            $roles = 'blast,admin';
+            $roles = 'blast,ceo';
         }
         
         // Ако листа не е използван никъде тогава може да се изтрива
