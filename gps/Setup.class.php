@@ -60,8 +60,8 @@ class gps_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
             'LOCAL_IP' => array ('ip', 'mandatory, caption=IP от което ще се четат данните'),
-            'PORT' => array ('int', 'mandatory, caption=IP от което ще се четат данните'),
-            'PROTOCOL' => array ('utp=utp, tcp=tcp', 'mandatory, caption=Протокол'),
+            'PORT' => array ('int', 'mandatory, caption=Порт'),
+            'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
     );
     
     /**
