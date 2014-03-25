@@ -170,20 +170,22 @@ class acc_BalanceDetails extends core_Detail
      */
     private function canReadRecord($rec)
     {
-    	foreach (range(1,3) as $i){
+    	foreach (range(2,3) as $i){
         	$ent = $rec->{"ent{$i}Id"};
         	if(empty($ent)) continue;
         	
         	$itemRec = acc_Items::fetch($ent);
+        	
     		if($itemRec->classId){
     			$AccRegMan = cls::get($itemRec->classId);
+    			
     			if(!$AccRegMan->haveRightFor('single', $itemRec->objectId)){
     				return FALSE;
     			}
     		}
-    		
-    		return TRUE;
         }
+        
+        return TRUE;
     }
     
     
