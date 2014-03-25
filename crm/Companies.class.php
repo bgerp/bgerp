@@ -135,6 +135,18 @@ class crm_Companies extends core_Master
      */
     var $canGrouping = 'ceo,crm';
 
+    
+    /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'powerUser';
+ 
+	
+    /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'powerUser';
+ 
 	
     /**
      * Детайли, на модела
@@ -165,12 +177,6 @@ class crm_Companies extends core_Master
      * @var crm_Groups
      */
     var $Groups;
-    
-    
-    /**
-     * Кой може да оттегля
-     */
-    var $canReject = 'powerUser';
     
     
     /**
