@@ -255,6 +255,12 @@ class acc_plg_Contable extends core_Plugin
                 	}
                 }
             }
+        } elseif ($action == 'restore') {
+        	
+        	// Ако потрбеителя неможе да контира документа, неможе и да го възстановява
+            if(!haveRole($mvc->getRequiredRoles('conto'))){
+                $requiredRoles = 'no_one';
+            }
         } elseif ($action == 'correction') {
         	
         	// Кой може да създава коригиращ документ
