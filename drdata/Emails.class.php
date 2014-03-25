@@ -72,7 +72,7 @@ class drdata_Emails extends core_BaseClass
         list($user, $domain) = split('@', $email);
         
         if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
-            $result['error'] = "Сгрешен домейн|* {$user}@<b>{$domain}</b>";
+            $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
             
             return;
         }
