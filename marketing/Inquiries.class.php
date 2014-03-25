@@ -548,6 +548,15 @@ class marketing_Inquiries extends core_Master
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
     		
+            /* 
+             * Ако не е зададено е 8bit
+             * Проблема се появява при дълъг стринг - без интервали и на кирилица.
+             * Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
+             * 
+             * @see #Sig281
+             */
+            $PML->Encoding = "quoted-printable";
+    		
     		Mode::push('printing', TRUE);
     		
     		Mode::push('text', 'plain');
