@@ -168,7 +168,7 @@ class acc_ReportDetails extends core_Manager
 	    	}
 	    	
 	    	if(acc_BalanceDetails::haveRightFor('history', $dRec)){
-	    		$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
+	    		$histUrl = array('acc_BalanceDetails', 'History', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
 		    	$histUrl['ent1Id'] = $dRec->ent1Id;
 		    	$histUrl['ent2Id'] = $dRec->ent2Id;
 		    	$histUrl['ent3Id'] = $dRec->ent3Id;
