@@ -176,74 +176,32 @@ class core_FieldSet extends core_BaseClass
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
             
-            if (!empty($params['after'])) {
-                $this->moveAfter($name, $params['after']);
-            }
-            if (!empty($params['before'])) {
-                $this->moveBefore($name, $params['before']);
-            }
+            if($params['before'] || $params['after']) {
+                $newFields = array();
+                $isSet = FALSE;
+                foreach($this->fields as $exName => $exFld) {
+                    
+                    if($params['before'] == $exName) {
+                        $isSet = TRUE;
+                        $newFields[$name] = &$this->fields[$name];
+                    }
+                    
+                    if(!$isSet || ($exName != $name)) {
+                        $newFields[$exName] = &$this->fields[$exName];
+                    }
 
+                    if($params['after'] == $exName) {
+                        $newFields[$name] = &$this->fields[$name];
+                        $isSet = TRUE;
+                    }
+
+                }
+                $this->fields = $newFields;
+            }
         }
     }
     
-    
-    /**
-     * Премества полето $field на определен брой позиции преди или след друго поле
-     * 
-     * @param string $field поле за преместване
-     * @param string $refField поле-отправна точка за преместването
-     * @param int $offset колко позиции след $refField (или преди, ако е $offset < 0) да бъде 
-     *                     преместено полето $field. 0 означава веднага след $afterField, 1 - 
-     *                     през едно поле и т.н.; -1 означава "премести $field точно преди 
-     *                     $refField"
-     */
-    public function moveField($field, $refField, $offset)
-    {
-        if (empty($this->fields[$refField]) || empty($this->fields[$field])) {
-            return;
-        }
-        
-        $fieldObj = $this->fields[$field];
-        unset($this->fields[$field]);
-        
-        $afterFieldIndex = array_search($refField, array_keys($this->fields)) + $offset;
-        
-        if ($afterFieldIndex <= 0) {
-            $afterFieldIndex = 0;
-        } elseif ($afterFieldIndex > count($this->fields)) {
-            $afterFieldIndex = count($this->fields);
-        }
-        
-        $this->fields = 
-            array_slice($this->fields, 0, $afterFieldIndex) 
-            + array($field=>$fieldObj) 
-            + array_slice($this->fields, $afterFieldIndex);
-    }
-    
-    
-    /**
-     * Премества полето $fields след друго, вече съществуващо поле $afterField
-     * 
-     * @param string $field
-     * @param string $afterField
-     */
-    public function moveAfter($field, $afterField)
-    {
-        $this->moveField($field, $afterField, 0);
-    }
-    
-    
-    /**
-     * Премества полето $fields след друго, вече съществуващо поле $beforeField
-     * 
-     * @param string $field
-     * @param string $beforeField
-     */
-    public function moveBefore($field, $beforeField)
-    {
-        $this->moveField($field, $beforeField, -1);
-    }
-    
+     
     
     /**
      * Създава ново поле
