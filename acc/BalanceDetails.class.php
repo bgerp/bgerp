@@ -945,13 +945,27 @@ class acc_BalanceDetails extends core_Detail
     public function act_History()
     {
     	$this->requireRightFor('history');
+    	$this->currentTab = 'Хронология';
     	
     	expect($accId = Request::get('accId', 'int'));
+    	expect(acc_Accounts::fetch($accId));
     	$from = Request::get('fromDate');
     	$to = Request::get('toDate');
+    	
     	$ent1 = Request::get('ent1Id', 'int');
+    	if($ent1){
+    		expect(acc_Items::fetch($ent1));
+    	}
+    	
     	$ent2 = Request::get('ent2Id', 'int');
+    	if($ent2){
+    		expect(acc_Items::fetch($ent2));
+    	}
+    	
     	$ent3 = Request::get('ent3Id', 'int');
+    	if($ent3){
+    		expect(acc_Items::fetch($ent3));
+    	}
     	
     	$bQuery = $this->Master->getQuery();
     	$cloneQuery = clone $bQuery;
