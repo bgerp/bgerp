@@ -179,13 +179,13 @@ class acc_BalanceDetails extends core_Detail
     		if($itemRec->classId){
     			$AccRegMan = cls::get($itemRec->classId);
     			
-    			if(!$AccRegMan->haveRightFor('single', $itemRec->objectId)){
-    				return FALSE;
+    			if($AccRegMan->haveRightFor('single', $itemRec->objectId)){
+    				return TRUE;
     			}
     		}
         }
         
-        return TRUE;
+        return FALSE;
     }
     
     
