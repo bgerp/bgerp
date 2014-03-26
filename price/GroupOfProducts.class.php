@@ -194,6 +194,14 @@ class price_GroupOfProducts extends core_Detail
         // За опции се слагат само продаваемите продукти
         $products = cat_Products::getByProperty('canSell');
         expect(count($products), 'Няма продаваеми продукти');
+        $now = dt::now();
+        foreach ($products as $id => &$product){
+        	if($groupId = $mvc->getGroup($id, $now)){
+        		$groupTitle = price_Groups::getTitleById($groupId);
+        		$product .=  " " . tr('група') . " {$groupTitle}";
+        	}
+        }
+        
         $data->form->setOptions('productId', $products);
 
         if($data->masterMvc instanceof cat_Products) {
