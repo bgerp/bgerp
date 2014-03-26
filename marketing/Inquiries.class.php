@@ -174,7 +174,7 @@ class marketing_Inquiries extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон');
-    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=pCode,hint=Вашият пощенски код');
+    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=contactData,hint=Вашият пощенски код');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес');
     
@@ -206,7 +206,7 @@ class marketing_Inquiries extends core_Master
     	// Взимаме формата
     	$form = $this->prepareForm($drvId);
     	$form->rec->params = $params;
-    	$form->rec->country = $this->getDefaultCountry($form->rec);
+    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	
     	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
     	if(core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
@@ -240,7 +240,12 @@ class marketing_Inquiries extends core_Master
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
-    			$this->save($rec);
+    			$id = $this->save($rec);
+    			
+    			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
+    			if(!core_Users::getCurrent('id', FALSE)){
+    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
+    			}
     			
     			if ($this->isSended) {
     			    status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
@@ -277,9 +282,10 @@ class marketing_Inquiries extends core_Master
     	$form->setField('drvId', 'input=hidden');
     	
     	$form->title = 'Запитване за поръчков продукт';
+    	$cu = core_Users::getCurrent('id', FALSE);
     	
     	// Ако има логнат потребител
-    	if($cu = core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
+    	if($cu && !haveRole('powerUser')){
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
     		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
@@ -299,7 +305,26 @@ class marketing_Inquiries extends core_Master
     		$form->setDefault('name', $personRec->name);
     	}
     	
+    	// Ако няма потребител, но има бискйвитка зареждаме данни от нея
+    	if(!$cu && isset($_COOKIE['inquiryCookie']['inquiryId'])){
+    		$this->setFormDefaultFromCookie($form);
+    	}
+    	
     	return $form;
+    }
+    
+    
+    /**
+     * Ако има бисквитка с последно запитване, взима контактите данни от нея
+     */
+    private function setFormDefaultFromCookie(&$form)
+    {
+    	$inquiryId = str::checkHash($_COOKIE['inquiryCookie']['inquiryId'], 10);
+    	$lastInquiry = $this->fetch($inquiryId);
+    	$contactFields = $this->selectFields("#class == 'contactData'");
+    	foreach ($contactFields as $name => $fld){
+    		$form->rec->{$name} = $lastInquiry->{$name};
+    	}
     }
     
     
@@ -673,7 +698,7 @@ class marketing_Inquiries extends core_Master
 	    	// Ако може да се създава лица от запитването се слага бутон
 	    	if($mvc->haveRightFor('makeperson', $rec)){
 	    		$companyId = doc_Folders::fetchCoverId($rec->folderId);
-	    		$data->toolbar->addBtn('Направи визитка', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+	    		$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
 	    	}
     	}
     }
