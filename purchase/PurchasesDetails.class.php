@@ -240,7 +240,7 @@ class purchase_PurchasesDetails extends core_Detail
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . '&nbsp;' . $shortUomName . '</small>';
+                    $row->packagingId .= '&nbsp;<small class="quiet">' . $row->quantityInPack . '&nbsp;' . $shortUomName . '</small>';
                 }
                 
                 $row->quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');
