@@ -73,7 +73,7 @@ class crm_Companies extends core_Master
     /**
      * Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
     
     
     /**
@@ -135,6 +135,18 @@ class crm_Companies extends core_Master
      */
     var $canGrouping = 'ceo,crm';
 
+    
+    /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'powerUser';
+ 
+	
+    /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'powerUser';
+ 
 	
     /**
      * Детайли, на модела
@@ -379,6 +391,11 @@ class crm_Companies extends core_Master
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
         }
+        
+        // Неможе да се променят номенклатурите от формата
+    	if($form->fields['lists']){
+        	$form->setField('lists', 'input=none');
+        }
     }
     
     
@@ -537,9 +554,6 @@ class crm_Companies extends core_Master
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
         
-        $row->addressBox = $row->country;
-        $row->addressBox .= ($pCode || $place) ? "<br>" : "";
-        
         $row->addressBox .= $pCode ? "{$pCode} " : "";
         $row->addressBox .= $place;
         
@@ -563,15 +577,27 @@ class crm_Companies extends core_Master
             // Добавяме линк към профила на потребителя, който е inCharge на визитката
             $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
         }
-        
-        $row->title =  $mvc->getTitleById($rec->id);
+     
+        $ownCompany = crm_Companies::fetchOurCompany();
+        if($ownCompany->country != $rec->country){
+        	$country =  $row->country;
+        } else {
+        	$currentCountry = $mvc->getVerbal($rec, 'place');
+        	$country = $currentCountry;
+        }
+      
+       	$currentId = $mvc->getVerbal($rec, 'id');
+        $row->nameList = "&nbsp;№ " . $currentId . '<span class="custom-rowtools">' . $row->id . '</span><span class="namelist">'. $row->nameList. '</span>';
+        $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-top:5px;'>{$country}</div>" : ""); 
         
         $vatType = new drdata_VatType();
+        $row->title .=  $mvc->getTitleById($rec->id);
         
         $vat = $vatType->toVerbal($rec->vatId);
+        $row->vat = $vat;
         
-        $row->title .= ($vat ? "&nbsp;&nbsp;<div style='display:inline-block'>{$vat}</div>" : "");
-        $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
+        $row->title .= "<div style='display:inline-block;float:right'>№ {$currentId}</div>";
+      
     }
     
     
@@ -987,7 +1013,7 @@ class crm_Companies extends core_Master
         $self = cls::get(__CLASS__);
         
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>' . tr('неизвестно') . '</i>';
         }

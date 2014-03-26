@@ -88,7 +88,7 @@ class currency_Currencies extends core_Master {
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,currency';
+	var $canSingle = 'ceo,currency,powerUser';
 	
 	
 	/**
@@ -353,7 +353,7 @@ class currency_Currencies extends core_Master {
         $self = cls::get(__CLASS__);
         
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
+        	$result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>' . tr('неизвестно') . '</i>';
         }

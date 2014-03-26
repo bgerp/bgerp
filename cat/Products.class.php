@@ -187,7 +187,7 @@ class cat_Products extends core_Master {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#] ([#code#])';
+	public $recTitleTpl = '[#name#]&nbsp;(&nbsp;[#code#]&nbsp;)';
 	
 	
     /**
@@ -200,7 +200,7 @@ class cat_Products extends core_Master {
         $this->FLD('eanCode', 'gs1_TypeEan', 'input,caption=EAN,width=15em');
 		$this->FLD('info', 'richtext(bucket=Notes)', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи,maxColumns=2');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи,maxColumns=2,remember');
        	$this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         $this->setDbUnique('code');
@@ -220,6 +220,11 @@ class cat_Products extends core_Master {
                     $data->form->rec->code = $newCode;
                 }
             }
+        }
+        
+    	// Неможе да се променят номенклатурите от формата
+    	if($data->form->fields['lists']){
+        	$data->form->setField('lists', 'input=none');
         }
     }
     
@@ -423,8 +428,11 @@ class cat_Products extends core_Master {
      */
     static function getLinkToObj($objectId)
     {
+        $self = cls::get(__CLASS__);
+        $self->recTitleTpl = NULL;
+    	
         if ($rec = self::fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array(__CLASS__, 'Single', $objectId));
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>' . tr('неизвестно') . '</i>';
         }
@@ -1061,6 +1069,7 @@ class cat_Products extends core_Master {
     {
     	$rows = &$data->balanceRows;
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
+    	$data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
     	
     	foreach ($rows as &$arrs){
     		if(count($arrs)){
@@ -1079,6 +1088,8 @@ class cat_Products extends core_Master {
      * @return stdClass - обект с информация
      * 				->name     - име на опаковката
      * 				->quantity - к-во на продукта в опаковката
+     * 				->classId  - ид на cat_Packagings или cat_UoM
+     * 				->id       - на опаковката/мярката
      */
     public function getBasePackInfo($id)
     {
@@ -1086,11 +1097,16 @@ class cat_Products extends core_Master {
     	if($basePack){
     		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
     		$arr['quantity'] = $basePack->quantity;
+    		$arr['classId'] = cat_Packagings::getClassId();
+    		$arr['id'] = $basePack->packagingId;
     	} else {
-    		$arr['name'] = cat_UoM::getTitleById($this->fetchField($id, 'measureId'));
+    		$measureId = $this->fetchField($id, 'measureId');
+    		$arr['name'] = cat_UoM::getTitleById($measureId);
     		$arr['quantity'] = 1;
+    		$arr['classId'] = cat_UoM::getClassId();
+    		$arr['id'] = $measureId;
     	}
-    	
+    		
     	return (object)$arr;
     }
 }

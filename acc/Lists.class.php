@@ -225,7 +225,7 @@ class acc_Lists extends core_Manager {
      */
     static function updateSummary($id)
     {
-        expect($rec = self::fetch($id));
+        $rec = self::fetch($id);
         
         $itemsQuery = acc_Items::getQuery();
         $itemsQuery->where("#state = 'active'");

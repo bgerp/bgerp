@@ -539,6 +539,24 @@ class callcenter_Talks extends core_Master
             
             // Добавяме грешката
             $errArr[] = 'Грешка при записване';
+        } else {
+            
+            // Ако не е изходящо обаждане
+            if (!$outgoing) {
+                
+                // Ако няма данни
+                if (!$cRecArr[0]) {
+                    
+                    // Да се използва номера
+                    $externalData = $externalNum;
+                } else {
+                    
+                    $externalData = $cRecArr;
+                }
+                
+                // Нотифицираме потребителя, за входящото обаждане
+                static::notifyUsersForIncoming($externalData, $dRecArr, $savedId);
+            }
         }
         
         // Ако има грешки, ги записваме в лога
@@ -707,6 +725,113 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Нотифицира потребителите за входящо обождане
+     * 
+     * @param mixed $externalData - Масив с данните за позвъняващия
+     * @param array $internalDataArr - Масив с данни за търсените
+     * @param integer $id - id на записа
+     */
+    static function notifyUsersForIncoming($externalData, $internalDataArr, $id)
+    {
+        // Обхождаме масива с вътрешните номера
+        foreach ((array)$internalDataArr as $intData) {
+            
+            // Масив с номерата на позвъняващия
+            $numbersArr = array();
+            
+            // Ако няма клас или контрагент за вътрешните номера
+            if (!$intData->classId || !$intData->contragentId) continue;
+            
+            // Инстанция на класа
+            $class = cls::get($intData->classId);
+            
+            // Ако класа не е профил, прескачаме
+            if (!($class instanceof crm_Profiles)) continue;
+            
+            // id на потребител, който е от отговорниците за номера
+            $userId = crm_Profiles::fetchField($intData->contragentId, 'userId');
+            
+            if (is_array($externalData)) {
+            
+                // Обхождаме всички външни номера / по принцип трябва да е един
+                foreach ((array)$externalData as $data) {
+                    
+                    // Името на позвъняващия
+                    $name = callcenter_Numbers::getCallerName($data->id, $userId);
+                    
+                    // Ако има име
+                    if ($data->classId && $data->contragentId && $name) {
+                        
+                        $extClass = cls::get($data->classId);
+                        
+                        // Ако имаме права за сингъл до името
+                        if ($extClass->haveRightFor('single', $data->contragentId, $userId)) {
+                            
+                            // Името да сочи към сингъла
+                            $number = ht::createLink($name, array($extClass, 'single', $data->contragentId));
+                        }
+                    }
+                    
+                    // Ако нямаме права до сингъла
+                    if (!$number) {
+                        
+                        // Номера
+                        $number = $data->number;
+                        
+                        // Ако имамем достъп до сингъла на записа
+                        if (static::haveRightFor('single', $id, $userId)) {
+                            
+                            // Линка да сочи там
+                            $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
+                        } elseif (static::haveRightFor('list', NULL, $userId)) {
+                            
+                            // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
+                            $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                        }
+                    }
+                    
+                    // Масив с номерата
+                    $numbersArr[] = $number;
+                }
+            } else {
+                
+                // Ако не е подаден и номер
+                if ($externalData) {
+                    
+                    $number = $externalData;
+                } else {
+                    
+                    $number = tr('Скрит номер');
+                }
+                
+                // Ако имамем достъп до сингъла на записа
+                if (static::haveRightFor('single', $id, $userId)) {
+                    
+                    // Линка да сочи там
+                    $number = ht::createLink($number, array('callcenter_Talks', 'single', $id));
+                } elseif (static::haveRightFor('list', NULL, $userId)) {
+                    
+                    // Ако имаме права за листване, но нямаме права до сингъла, линка до сочи към листовия изглед
+                    $number = ht::createLink($number, array('callcenter_Talks', 'list'));
+                }
+                
+                // Масив с номерата
+                $numbersArr[] = $number;
+            }
+            
+            // Стринг с номерата
+            $numbersStr = implode(', ', $numbersArr);
+            
+            // Съобщението, което да се покаже
+            $text = "|Входящо обаждане от|*: " . $numbersStr;
+            
+            // Добавяме известие към съответния потребител
+            status_Messages::newStatus($text, 'notice', $userId);
+        }
+    }
+    
+    
+    /**
      * Записва грешките в масива в лога
      * 
      * @param array $errArr
@@ -840,7 +965,7 @@ class callcenter_Talks extends core_Master
             while ($nRec = $query->fetch()) {
                 
                 // Името, на позвъняващия
-                $callerName = callcenter_Numbers::getCallerName($nRec->externalData);
+                $callerName = callcenter_Numbers::getCallerName($nRec->externalData, $user);
                 
                 // Ако не може да се определи име
                 if (!$callerName) {
@@ -1460,8 +1585,8 @@ class callcenter_Talks extends core_Master
             'Act' => 'RegisterCall',
             'p' => $conf->CALLCENTER_PROTECT_KEY,
             'starttime' => $startTime,
-            'extension' => '540',
-            'callerId' => '539',
+            'extension' => '540', // Вътрешен номер
+            'callerId' => '539', // Позвъняващ
             'uniqueId' => $uniqId,
 //            'outgoing' => 'outgoing',
         );

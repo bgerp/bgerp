@@ -158,6 +158,18 @@ class crm_Persons extends core_Master
      */
     var $canGrouping = 'ceo,crm';
 
+    
+    /**
+     * Кой може да оттегля
+     */
+    var $canReject = 'powerUser';
+ 
+	
+    /**
+     * Кой може да го възстанови?
+     */
+    var $canRestore = 'powerUser';
+ 
 	
     /**
      * Шаблон за единичния изглед
@@ -305,7 +317,9 @@ class crm_Persons extends core_Master
         if($orderCond) {
             $data->query->orderBy($orderCond);
         }
-         
+        if($data->listFilter->rec->order == 'birthday'){
+        	$mvc->birthdayFilter = TRUE;
+        }
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
@@ -558,7 +572,9 @@ class crm_Persons extends core_Master
                     $dateType = 'Роден(а)';
                 }
             }
-            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+            if($mvc->birthdayFilter){
+            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+            }
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
@@ -903,7 +919,7 @@ class crm_Persons extends core_Master
         $self = cls::get(__CLASS__);
 
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>' . tr('неизвестно') . '</i>';
         }
@@ -1617,7 +1633,7 @@ class crm_Persons extends core_Master
     {
         $conf = core_Packs::getConfig('crm');
     	
-        $form = $data->form;
+        $form = &$data->form;
         
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
@@ -1631,6 +1647,11 @@ class crm_Persons extends core_Master
             
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
+        }
+        
+    	// Неможе да се променят номенклатурите от формата
+    	if($form->fields['lists']){
+        	$form->setField('lists', 'input=none');
         }
     }
     

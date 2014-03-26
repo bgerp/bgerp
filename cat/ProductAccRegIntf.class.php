@@ -156,6 +156,8 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @return stdClass - обект с информация
      * 				->name     - име на опаковката
      * 				->quantity - к-во на продукта в опаковката
+     * 				->classId  - ид на cat_Packagings или cat_UoM
+     * 				->id       - на опаковката/мярката
      */
     public function getBasePackInfo($productId)
     {

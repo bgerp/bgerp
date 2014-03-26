@@ -74,37 +74,37 @@ class blast_Emails extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, blast';
+    var $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, blast';
+    var $canEdit = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, blast';
+    var $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, blast';
+    var $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, blast';
+    var $canList = 'ceo, blast';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'blast,admin';
+	var $canSingle = 'blast,ceo';
 	
 	
     /**
@@ -116,13 +116,13 @@ class blast_Emails extends core_Master
     /**
      * Кой може да праша информационните съобщения?
      */
-    var $canBlast = 'admin, blast';
+    var $canBlast = 'ceo, blast';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'blast, admin, ceo';
+    var $canChangerec = 'blast, ceo, admin';
     
     
     /**
@@ -189,16 +189,16 @@ class blast_Emails extends core_Master
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
-        //Данни на адресанта - антетка
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма,class=contactData, changable');
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf,class=contactData, changable');
-        $this->FLD('email', 'varchar', 'caption=Адресант->Имейл,class=contactData, changable');
-        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,class=contactData, changable');
-        $this->FLD('fax', 'varchar', 'caption=Адресант->Факс,class=contactData, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава,class=contactData, changable');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код,class=contactData, changable');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с,class=contactData, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес,class=contactData, changable');
+        //Данни на адресата - антетка
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData, changable');
+        $this->FLD('email', 'varchar', 'caption=Адресат->Имейл,class=contactData, changable');
+        $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,class=contactData, changable');
+        $this->FLD('fax', 'varchar', 'caption=Адресат->Факс,class=contactData, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код,class=contactData, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с,class=contactData, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес,class=contactData, changable');
         
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),
@@ -387,7 +387,7 @@ class blast_Emails extends core_Master
             }
         }
         
-        //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
+        //Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
         if ((!$rec->id) && (!Request::get('clone'))) {
             $rec->recipient = '[#company#]';
@@ -740,7 +740,7 @@ class blast_Emails extends core_Master
     function act_Activation()
     {
         // Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         $id = Request::get('id', 'int');
         
@@ -964,7 +964,7 @@ class blast_Emails extends core_Master
     function act_Stop()
     {
         //Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         //Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));

@@ -163,10 +163,24 @@ class acc_Articles extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->FNC('dateFrom', 'date', 'input,caption=От');
+    	$data->listFilter->FNC('dateTo', 'date', 'input,caption=До');
+    	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
+		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
     	
-        $data->listFilter->input(NULL, 'silent');
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+    	$data->listFilter->showFields = 'dateFrom,dateTo,search';
+    	$data->listFilter->input(NULL, 'silent');
+    	
+    	$data->query->orderBy('id', 'DESC');
+    	
+    	if($data->listFilter->rec->dateFrom){
+    		$data->query->where(array("#valior >= '[#1#]'", $data->listFilter->rec->dateFrom));
+    	}
+    	
+    	if($data->listFilter->rec->dateTo){
+    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $data->listFilter->rec->dateTo));
+    	}
     }
     
     

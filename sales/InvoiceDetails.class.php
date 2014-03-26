@@ -263,7 +263,7 @@ class sales_InvoiceDetails extends core_Detail
     	if($rec->packagingId){
     		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
-    		$row->packagingId .= " <small style='color:gray'>{$row->quantityInPack} {$measureShort}</small>";
+    		$row->packagingId .= "&nbsp;<small style='color:gray'>{$row->quantityInPack}&nbsp;{$measureShort}</small>";
     	} else {
     		$row->packagingId = cat_UoM::getTitleById($pInfo->productRec->measureId);
     	}

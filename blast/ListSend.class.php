@@ -25,7 +25,7 @@ class blast_ListSend extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, blast';
+    var $canRead = 'ceo,blast,admin';
     
     
     /**
@@ -43,13 +43,13 @@ class blast_ListSend extends core_Detail
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, blast';
+    var $canView = 'ceo,blast,admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, blast';
+    var $canList = 'ceo,blast,admin';
     
     
     /**
@@ -59,9 +59,9 @@ class blast_ListSend extends core_Detail
     
     
     /**
-     * Кой може да праша информационните съобщения?
+     * Кой може да праща информационните съобщения?
      */
-    var $canBlast = 'admin, blast';
+    var $canBlast = 'ceo,blast,admin';
     
     
     /**

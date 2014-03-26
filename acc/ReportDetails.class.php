@@ -108,6 +108,11 @@ class acc_ReportDetails extends core_Manager
     	// Полета за таблицата
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
     	
+    	$data->reportTableMvc = cls::get('core_Mvc');
+    	$data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
+    	$data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
+    	$data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+    		
     	// Перото с което мастъра фигурира в счетоводството
     	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
     	
@@ -157,17 +162,16 @@ class acc_ReportDetails extends core_Manager
 	    		}
 	    	}
 	    	
-	    	$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
-	    	$histUrl['ent1Id'] = $dRec->ent1Id;
-	    	$histUrl['ent2Id'] = $dRec->ent2Id;
-	    	$histUrl['ent3Id'] = $dRec->ent3Id;
-	    	
 	    	// Ако има повече от едно перо, несе показва това на мениджъра
 	    	if(count($row) > 1) {
 	    		unset($row["ent{$gPos}Id"]);
 	    	}
 	    	
-	    	if(acc_Balances::haveRightFor('read')){
+	    	if(acc_BalanceDetails::haveRightFor('history', $dRec)){
+	    		$histUrl = array('acc_BalanceDetails', 'history', 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate, 'accId' => $dRec->accountId);
+		    	$histUrl['ent1Id'] = $dRec->ent1Id;
+		    	$histUrl['ent2Id'] = $dRec->ent2Id;
+		    	$histUrl['ent3Id'] = $dRec->ent3Id;
 	    		$row['tools'] = ht::createLink(' ', $histUrl, NULL, $attr);
 	    	}
 	    	
@@ -202,17 +206,20 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако има какво да се показва
     	if($data->balanceRows){
-    		$tMvc = cls::get('core_Mvc');
-    		$tMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
-    		$tMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-    		$tMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-    		$table = cls::get('core_TableView', array('mvc' => $tMvc));
+    		
+    		$table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
+    		
+    		$lastBalance = acc_Balances::getLastBalance();
     		
     		// За всички записи групирани по сметки
     		foreach ($data->balanceRows as $accId => $rows){
     			
     			// Името на сметката и нейните групи
     			$accNum = acc_Accounts::getTitleById($accId);
+    			if(acc_Balances::haveRightFor('read')){
+    				$accNum = ht::createLink($accNum, array('acc_Balances', 'single', $lastBalance->id, 'accId' => $accId));
+    			}
+    			
     			$accGroups = acc_Accounts::getAccountInfo($accId)->groups;
     			
     			// Името на сметката излиза над таблицата

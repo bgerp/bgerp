@@ -174,7 +174,7 @@ class marketing_Inquiries extends core_Master
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма');
     	$this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни дани->Телефони,class=contactData,hint=Вашият телефон');
-    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=pCode,hint=Вашият пощенски код');
+    	$this->FLD('pCode', 'varchar(16)', 'caption=Контактни дани->П. код,class=contactData,hint=Вашият пощенски код');
         $this->FLD('place', 'varchar(64)', 'caption=Контактни дани->Град,class=contactData,hint=Населено място: град или село и община');
         $this->FLD('address', 'varchar(255)', 'caption=Контактни дани->Адрес,class=contactData,hint=Вашият адрес');
     
@@ -206,7 +206,7 @@ class marketing_Inquiries extends core_Master
     	// Взимаме формата
     	$form = $this->prepareForm($drvId);
     	$form->rec->params = $params;
-    	$form->rec->country = $this->getDefaultCountry($form->rec);
+    	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	
     	// Извикване на евента, за да се закъчи cond_plg_DefaultValues
     	if(core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
@@ -240,8 +240,21 @@ class marketing_Inquiries extends core_Master
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
-    			$this->save($rec);
+    			$id = $this->save($rec);
+    			
+    			$cu = core_Users::getCurrent('id', FALSE);
+    			
+    			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
+    			if(!$cu){
+    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
+    			}
+    			
     			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
+    			
+    			// Ако има грешка при изпращане, тя се показва само на powerUser-и
+    			if (!$this->isSended && $cu && haveRole('powerUser')) {
+    			    status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
+    			}
     			
     			return followRetUrl();
     		}
@@ -272,9 +285,10 @@ class marketing_Inquiries extends core_Master
     	$form->setField('drvId', 'input=hidden');
     	
     	$form->title = 'Запитване за поръчков продукт';
+    	$cu = core_Users::getCurrent('id', FALSE);
     	
     	// Ако има логнат потребител
-    	if($cu = core_Users::getCurrent('id', FALSE) && !haveRole('powerUser')){
+    	if($cu && !haveRole('powerUser')){
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
     		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
@@ -294,7 +308,26 @@ class marketing_Inquiries extends core_Master
     		$form->setDefault('name', $personRec->name);
     	}
     	
+    	// Ако няма потребител, но има бискйвитка зареждаме данни от нея
+    	if(!$cu && isset($_COOKIE['inquiryCookie']['inquiryId'])){
+    		$this->setFormDefaultFromCookie($form);
+    	}
+    	
     	return $form;
+    }
+    
+    
+    /**
+     * Ако има бисквитка с последно запитване, взима контактите данни от нея
+     */
+    private function setFormDefaultFromCookie(&$form)
+    {
+    	$inquiryId = str::checkHash($_COOKIE['inquiryCookie']['inquiryId'], 10);
+    	$lastInquiry = $this->fetch($inquiryId);
+    	$contactFields = $this->selectFields("#class == 'contactData'");
+    	foreach ($contactFields as $name => $fld){
+    		$form->rec->{$name} = $lastInquiry->{$name};
+    	}
     }
     
     
@@ -445,7 +478,9 @@ class marketing_Inquiries extends core_Master
     		$row->createdBy = '@anonym';
     	}
     	
-    	$row->email = "<div class='email'>{$row->email}</div>";
+    	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
+    	    $row->email = "<div class='email'>{$row->email}</div>";
+    	}
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -467,10 +502,6 @@ class marketing_Inquiries extends core_Master
 					$row->{"quantity{$i}"} .= " {$uomId}";
 				}
 			}
-    	}
-    	
-    	if(Mode::is('text', 'plain')){
-    		$row->email = $rec->email;
     	}
     	
     	$row->time = core_DateTime::mysql2verbal($rec->createdOn);
@@ -515,7 +546,7 @@ class marketing_Inquiries extends core_Master
     {
     	// Нотифициращ имейл се изпраща само след първоначално активиране
     	if($rec->state == 'active' && empty($rec->brState)){
-    		$mvc->sendNotificationEmail($rec);
+    		$mvc->isSended = $mvc->sendNotificationEmail($rec);
     	}
     }
     
@@ -539,42 +570,82 @@ class marketing_Inquiries extends core_Master
     		$sentFrom = email_Inboxes::fetchField($sentFrom, 'email');
     		
     		// Тяло на имейла html и text
-    		$tpl = getTplFromFile($this->emailNotificationFile);
-    		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
+    		
     		$fields = $this->selectFields();
-    		
-    		Mode::push('text', 'plain');
-    		$rowPlain = $this->recToVerbal($rec, $fields);
-    		
-    		// Рендиране на бодито
-    		Mode::push('printing', TRUE);
-    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
-    		Mode::pop('printing');
-    		Mode::pop('text', 'plain');
-    		
-    		$row = $this->recToVerbal($rec, $fields);
-    		$tpl->placeObject($row);
-    		$tplAlt->placeObject($rowPlain);
-    		
-    		// Извличане на прикачените файлове
-    		$Driver = cls::get($rec->drvId);
-    		$files = $Driver->getAttachedFiles((object)$rec->data);
-    		
-    		// Рендиране на алт бодито
-    		Mode::push('text', 'xhtml');
-    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
-    		Mode::pop('text');
     		
     		// Изпращане на имейл с phpmailer
     		$PML = cls::get('phpmailer_Instance');
+    		
+            /* 
+             * Ако не е зададено е 8bit
+             * Проблема се появява при дълъг стринг - без интервали и на кирилица.
+             * Понеже е entity се режи грешно от phpmailer -> class.smtpl.php - $max_line_length = 998;
+             * 
+             * @see #Sig281
+             */
+            $PML->Encoding = "quoted-printable";
+    		
+    		Mode::push('printing', TRUE);
+    		
+    		Mode::push('text', 'plain');
+    		
+    		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
+    		// Рендиране на бодито
+    		$this->renderInquiryParams($tplAlt, $rec->data, $rec->drvId, TRUE);
+    		$rowPlain = $this->recToVerbal($rec, $fields);
+    		$tplAlt->placeObject($rowPlain);
+    		$PML->AltBody = $tplAlt->getContent();
+    		
+    		Mode::pop('text');
+    		
+    		// Рендиране на алт бодито
+    		Mode::push('text', 'xhtml');
+    		$tpl = getTplFromFile($this->emailNotificationFile);
+    		$this->renderInquiryParams($tpl, $rec->data, $rec->drvId);
+    		$row = $this->recToVerbal($rec, $fields);
+    		$tpl->placeObject($row);
+    		
+    		$res = $tpl;
+    		
+    		//Създаваме HTML частта на документа и превръщаме всички стилове в inline
+    		//Вземаме всичките css стилове
+    		
+    		$css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+    			"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+    		
+    		$res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+    		
+    		// Вземаме пакета
+    		$conf = core_Packs::getConfig('csstoinline');
+    		
+    		// Класа
+    		$CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+    		
+    		// Инстанция на класа
+    		$inst = cls::get($CssToInline);
+    		
+    		// Стартираме процеса
+    		$res =  $inst->convert($res, $css);
+    		
+    		$res = str::cut($res, '<div id="begin">', '<div id="end">');
+    		
+    		$PML->Body = $res;
+        	$PML->IsHTML(TRUE);
+        	
+        	// Ембедване на изображенията
+        	email_Sent::embedSbfImg($PML);
+        	
+    		Mode::pop('text');
+    		
+    		Mode::pop('printing');
     		
     		// Име на фирма/лице / име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
     		
-    		$PML->Body = $tpl->getContent();
-            $PML->AltBody = $tplAlt->getContent();
-        	$PML->IsHTML(TRUE);
+    		// Извличане на прикачените файлове
+    		$Driver = cls::get($rec->drvId);
+    		$files = $Driver->getAttachedFiles((object)$rec->data);
         	
         	// Ако има прикачени файлове, добавяме ги
         	if($files){
@@ -593,8 +664,10 @@ class marketing_Inquiries extends core_Master
         	$PML->SetFrom($sentFrom);
         	
         	// Изпращане
-	        $PML->Send();
-    	}
+	        return $PML->Send();
+    	} 
+    	
+    	return TRUE;
     }
     
     
@@ -630,7 +703,7 @@ class marketing_Inquiries extends core_Master
 	    	// Ако може да се създава лица от запитването се слага бутон
 	    	if($mvc->haveRightFor('makeperson', $rec)){
 	    		$companyId = doc_Folders::fetchCoverId($rec->folderId);
-	    		$data->toolbar->addBtn('Направи визитка', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+	    		$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
 	    	}
     	}
     }

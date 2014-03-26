@@ -630,6 +630,18 @@ div.mobile {
 	top: 2px;
 	margin-right: 5px;
 }
+
+.custom-rowtools{
+    display: inline-block;
+    margin-left: 10px;
+    position: relative;
+    top:2px;
+
+}
+.namelist{
+    margin-top: 5px;
+    display: block;
+}
 /*край на стилове за CRM*/
 
 option.team {
@@ -652,6 +664,7 @@ div.acc-detail {
  
  .accCell{
     padding-left: 10px !important;
+    width: 130px;
  }
  
  .accToolsCell{
@@ -1712,12 +1725,18 @@ fieldset.sharing-history {
 	padding:40px;
 }
 
-.wide #login-form .formTable{
+.wide #login-form .formTable {
 	margin: 0;
+	input[type='text'], input[type='password']{
+	   min-width: 15em;
+	}
 }
 
 .narrow #login-form {
 	padding: 10px;
+	.formTable{
+	   width: auto !important;
+	}
 }
 
 #cmsNavigation div.nav_item {
@@ -2183,6 +2202,19 @@ fieldset.sharing-history {
     }
 }
 
+.half-detail{
+	width: 43%;
+	float: left;
+	text-align: center;
+	&.first-part{
+	   margin-right: 4%;
+	}
+}
+.counter-link{
+	font-weight: bold;
+	font-size: 24px;
+	font-family: courier new; 
+}
 
 .narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
 	-webkit-appearance: none;
@@ -2732,6 +2764,13 @@ div.location.public {
 	position:relative;
 	top:1px;
 	display: inline-block;
+}
+
+.price_ListRules .state-closed {
+	color: #888;
+	font, a{
+	   color: #888 !important;
+	}
 }
 /*край на бъгфиксове*/
 
@@ -3353,6 +3392,12 @@ body.narrow {
     #all h1{
         font-size: 1.72em;
     }
+    .narrow .half-detail{
+    float:none;
+    width:auto;
+    margin:0;
+    margin-bottom: 10px;
+}
 }
 
 

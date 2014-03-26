@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'doc_ContragentDataIntf' - Интерфейс за данните на адресанта
+ * Клас 'doc_ContragentDataIntf' - Интерфейс за данните на адресата
  *
  *
  * @category  bgerp
@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Интерфейс за данните на адресанта
+ * @title     Интерфейс за данните на адресата
  */
 class doc_ContragentDataIntf
 {

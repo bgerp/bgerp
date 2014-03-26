@@ -122,8 +122,8 @@ class dec_Declarations extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'statements'   => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    	'note'   => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'note'       => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -155,8 +155,7 @@ class dec_Declarations extends core_Master
 		
 		// бланка
 		$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
-
-    }
+	}
 
     
      /**
@@ -205,8 +204,7 @@ class dec_Declarations extends core_Master
     		$personId = core_Users::getCurrent('id');
     		$personName = crm_Persons::fetchField($personId, 'name');
     		$data->form->setDefault('declaratorName', $personName);
-
-    	}
+		}
     	
     	// ако не е указана дата взимаме днешната
     	if (!$data->form->rec->date) {
@@ -216,17 +214,16 @@ class dec_Declarations extends core_Master
     }
     
     
-    function on_AfterInputEditForm($mvc, $form) {
-    	//bp($form->rec);
-    }
-    
-    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->doc = doc_Containers::getLinkForSingle($rec->doc);
+    	try{
+        	$row->doc = doc_Containers::getLinkForSingle($rec->doc);
+        } catch(Exception $e){
+        	$row->doc = tr("Проблем при показването");
+        }
     }
     
     
@@ -238,7 +235,7 @@ class dec_Declarations extends core_Master
     	$row = &$data->row;
         $rec = &$data->rec;
         $recDec = $tpl->rec;
-      // bp($recDec, $rec);
+      
         // Зареждаме бланката в шаблона на документа
         $row->content = new ET (dec_DeclarationTypes::fetchField($rec->typeId, 'script'));
         // взимаме съдържанието на бланката
@@ -252,11 +249,12 @@ class dec_Declarations extends core_Master
         if ($address && !empty($ownCompanyData->address)) {
             $address .= '&nbsp;' . $ownCompanyData->address;
         } 
-        $row->MyCompany = $ownCompanyData->company;
-        $row->MyCountry = $ownCompanyData->country;
-        $row->MyAddress = $address;
-
         
+        $Varchar = cls::get('type_Varchar');
+        $row->MyCompany = crm_Companies::getTitleById($ownCompanyData->companyId);
+        $row->MyCountry = $ownCompanyData->country;
+        $row->MyAddress = $Varchar->toVerbal($address);
+
         // Ват номера й
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
@@ -316,14 +314,14 @@ class dec_Declarations extends core_Master
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
 	            $addressContragent .= '&nbsp;' . $rec->contragentAddress;
-	        }  
-	        $row->contragentCompany = $rec->contragentName;
+	        }
+	        $row->contragentCompany = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 	        $row->contragentCountry = drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg');
-	        $row->contragentAddress = $addressContragent;
+	        $row->contragentAddress = $Varchar->toVerbal($addressContragent);
 	        
 	        $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
 	        if ($uic != $rec->contragentVatNo) {
-	        	$row->contragentCompanyVatNo = $rec->contragentVatNo;
+	        	$row->contragentCompanyVatNo = $Varchar->toVerbal($rec->contragentVatNo);
 	    	} 
 	    	$row->contragentUicId = $uicContragent;
     		
@@ -430,7 +428,7 @@ class dec_Declarations extends core_Master
         $self = cls::get(__CLASS__);
         
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink(static::getVerbal($rec, 'typeId'), array($self, 'Single', $objectId));
+            $result = $self->getHyperlink($objectId);
         } else {
             $result = '<i>неизвестно</i>';
         }

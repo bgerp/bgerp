@@ -125,7 +125,8 @@ en,title,title
 en,Автор,Author
 en,Администриране,Admin
 en,Адрес,Address
-en,Адресант,Recipient
+en,Адресант,Addressee
+en,Адресат,Recipient
 en,Активиране,Activation
 en,Активно,Active
 en,Банки,Banks
@@ -627,7 +628,7 @@ en,Ползване от,Use of
 en,Считано,Regarded
 en,неплатен,unpaid
 en,платен,paid
-en,Информация->Вид,Information-> Type
+en,Информация->Вид,Information->Type
 en,Считано->До,Regarded->To
 en,Считано->От,Regarded->From
 en,Молби,Applications
@@ -1031,6 +1032,7 @@ en,изпращане,sending
 en,Изтича,Expires
 en,Мета информация,Meta information
 en,Адресант->Имейл,Addressee->Email
+en,Адресат->Имейл,Recipient->Email
 en,За да изпратит_e780e,You must fill the field
 en,Потребителски _842c,User Data
 en,Промяна на пер_ca722,Change the personalization
@@ -1187,7 +1189,7 @@ en,Рожден ден,Birthday
 en,Запис и Нов,Save and New
 en,Всички изходящ_92b1,All outgoing e-mails
 en,всички,all
-en,добави,add
+en,добави,added
 en,За,Re
 en,коментар,comment
 en,сподели,share
@@ -1645,7 +1647,7 @@ en,Липсваща кутия,Missing inbox
 en,на сървъра,on the server
 en,Възможен е проблем със сървъра,There is possible problem with the server
 en,Сгрешен домейн,Wrong domein
-en,Наистина ли имейл-а започва с, Are you sure that the email begins with
+en,Наистина ли имейла започва с, Are you sure that the email begins with
 en,Сървъра на, The server
 en,не отговаря. Проверете имейл-а, doesn't respond, Check the email
 en,Благодарим ви за запитването, Thank you for the inquiry
@@ -1679,3 +1681,4 @@ en,Вашият телефон,Your phone number
 en,Вашият пощенски код,Your post code
 en,Вашият адрес,Your address
 en,"Моля, изберете текущ/а","Please, choose current"
+en,"Възможен е проблем с домейна","Possible problem with the domain"

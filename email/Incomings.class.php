@@ -1209,7 +1209,7 @@ class email_Incomings extends core_Master
     
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща данните за адресанта
+     * Връща данните за адресата
      */
     static function getContragentData($id)
     {

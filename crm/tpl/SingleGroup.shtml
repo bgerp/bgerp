@@ -2,26 +2,23 @@
 [#SingleToolbar#]
 	<div class="folder-cover">
 		<div class="inner-folder">
+
 	<div class="block_title state-active special-title">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></div>
-	<fieldset class="detail-info">
-	<div class="groupList">
-			<table>
-				<tr>
-					<td class='dt'>|Съдържание|*:</td>
-					<td> [#allow#]</td>
-				</tr>
-				<tr>
-					<td class='dt'>|Брой компании|*:</td>
-					<td> [#companiesCnt#]</td>
-				</tr>
-				<tr>
-					<td class='dt'>|Брой лица|*:</td>
-					<td> [#personsCnt#]</td>
-				</tr>
-			</table>
-		</div>
+	<fieldset class="detail-info half-detail first-part" >
+		<div class="groupList ">
+		  <div>|Фирми|*:</div>
+	      <div class='counter-link'> [#companiesCnt#]</div>
+	   </div>
 	</fieldset>
-	<!--ET_BEGIN info-->
+
+	<fieldset class="detail-info half-detail">
+	    <div class="groupList">
+	        <div>|Лица|*:</div>
+	        <div class='counter-link'> [#personsCnt#]</div> 
+	    </div>
+    </fieldset>
+    <div class='clearfix21'></div>
+        <!--ET_BEGIN info-->
 	<fieldset class="detail-info">
 		<legend class="groupTitle">|Бележки|*</legend>
 		<div class="groupList">[#info#]</div>

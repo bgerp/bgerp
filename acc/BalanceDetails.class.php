@@ -83,6 +83,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Кой има достъп до хронологичната справка
+     */
+    var $canHistory = 'powerUser';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -93,14 +99,14 @@ class acc_BalanceDetails extends core_Detail
         $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
         $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
         $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
-        $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=accCell');
-        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=accCell');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=accCell');
-        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума,tdClass=accCell');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество,tdClass=accCell');
-        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=accCell');
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество,tdClass=accCell');
-        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=accCell');
+        $this->FLD('baseQuantity', 'double', 'caption=База->Количество,tdClass=ballance-field');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума,tdClass=ballance-field');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество,tdClass=ballance-field');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума,tdClass=ballance-field');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество,tdClass=ballance-field');
+        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума,tdClass=ballance-field');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->Количество,tdClass=ballance-field');
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума,tdClass=ballance-field');
     }
     
     
@@ -135,6 +141,51 @@ class acc_BalanceDetails extends core_Detail
                 $mvc->doGrouping($data, $groupBy);
             }
         }
+        
+        // При детайлна справка, и потребителя няма роли acc, ceo скриваме
+        // записите до които няма достъп
+        if($mvc->isDetailed() && !haveRole('ceo,acc')){
+        	$recs = &$data->recs;
+        	$rows = &$data->rows;
+        	
+        	if(empty($rows)) return;
+        	
+        	foreach ($rows as $id => $row){
+        		
+        		// Ако потребителя неможе да вижда записа него показваме
+        		if(!$mvc->canReadRecord($recs[$id])){
+        			unset($rows[$id]);
+        		}
+        	}
+        }
+    }
+    
+    
+    /**
+     * Дали потребителя може да вижда детайл от баланса, може ако има достъп
+     * до всички негови пера
+     * 
+     * @param stdClass $rec - запис от модела
+     * @return boolean 
+     */
+    private function canReadRecord($rec)
+    {
+    	foreach (range(1,3) as $i){
+        	$ent = $rec->{"ent{$i}Id"};
+        	if(empty($ent)) continue;
+        	
+        	$itemRec = acc_Items::fetch($ent);
+        	
+    		if($itemRec->classId){
+    			$AccRegMan = cls::get($itemRec->classId);
+    			
+    			if($AccRegMan->haveRightFor('single', $itemRec->objectId)){
+    				return TRUE;
+    			}
+    		}
+        }
+        
+        return FALSE;
     }
     
     
@@ -297,13 +348,13 @@ class acc_BalanceDetails extends core_Detail
         
         if ($bShowQuantities) {
             $data->listFields += array(
-                'baseQuantity' => 'Начално салдо->ДК->Количество',
+                'baseQuantity' => 'Начално салдо->ДК->К-во',
                 'baseAmount' => 'Начално салдо->ДК->Сума',
-                'debitQuantity' => 'Обороти->Дебит->Количество',
+                'debitQuantity' => 'Обороти->Дебит->К-во',
                 'debitAmount' => 'Обороти->Дебит->Сума',
-                'creditQuantity' => 'Обороти->Кредит->Количество',
+                'creditQuantity' => 'Обороти->Кредит->К-во',
                 'creditAmount' => 'Обороти->Кредит->Сума',
-                'blQuantity' => 'Крайно салдо->ДК->Количество',
+                'blQuantity' => 'Крайно салдо->ДК->К-во',
                 'blAmount' => 'Крайно салдо->ДК->Сума',
             );
         } else {
@@ -802,8 +853,14 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if (!in_array($action, array('list', 'read'))) {
+        if (!in_array($action, array('list', 'read', 'history'))){
             $requiredRoles = 'no_one';
+        }
+        
+        if($action == 'history' && isset($rec)){
+        	if(!haveRole('ceo, acc') && !$mvc->canReadRecord($rec)){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
 
@@ -887,31 +944,23 @@ class acc_BalanceDetails extends core_Detail
      */
     public function act_History()
     {
-    	acc_Balances::requireRightFor('read');
+    	$this->requireRightFor('history');
     	
-    	expect($from = Request::get('fromDate', 'date'));
-    	expect($to = Request::get('toDate', 'date'));
     	expect($accId = Request::get('accId', 'int'));
+    	$from = Request::get('fromDate');
+    	$to = Request::get('toDate');
     	$ent1 = Request::get('ent1Id', 'int');
     	$ent2 = Request::get('ent2Id', 'int');
     	$ent3 = Request::get('ent3Id', 'int');
     	
-    	if($to < $from){
-    		$tmp = $from;
-    		$from = $to;
-    		$to = $tmp;
-    	}
-    	
     	$bQuery = $this->Master->getQuery();
+    	$cloneQuery = clone $bQuery;
     	$bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
     	$bQuery->orderBy('id', 'ASC');
-    	
     	$balanceId = $bQuery->fetch()->id;
     	expect($balanceRec = $this->Master->fetch($balanceId));
     	
     	$this->title = 'Хронологична справка';
-    	
-    	requireRole('ceo,acc');
     	
     	// Подготвяне на данните
     	$data = new stdClass();
@@ -923,9 +972,14 @@ class acc_BalanceDetails extends core_Detail
     	$data->rec->ent3Id = $ent3;
     	$data->rec->accountNum = acc_Accounts::fetchField($accId, 'num');
     	
+    	$this->requireRightFor('history', $data->rec);
+    	
     	$data->balanceRec = $balanceRec;
     	$data->fromDate = $from;
     	$data->toDate = $to;
+    	
+    	// Подготовка на филтъра
+    	$this->prepareHistoryFilter($data);
     	
     	// Подготовка на историята
     	$this->prepareHistory($data);
@@ -1015,9 +1069,6 @@ class acc_BalanceDetails extends core_Detail
     	$Date = cls::get('type_Date');
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
-    	
-    	// Подготовка на филтъра
-    	$this->prepareHistoryFilter($data);
     	
     	// Подготовка на вербалното представяне
     	$row = new stdClass();
@@ -1186,16 +1237,14 @@ class acc_BalanceDetails extends core_Detail
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$filter->class = 'simpleForm';
     	
-    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=10em');
-    	$filter->FNC('toDate', 'date', 'caption=До,input,width=10em');
+    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=14em');
+    	$filter->FNC('toDate', 'date', 'caption=До,input,width=14em');
     	$filter->FNC('accId', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
     	$filter->FNC('ent3Id', 'int', 'input=hidden');
     	$filter->showFields = 'fromDate,toDate';
     	
-    	$filter->setDefault('fromDate', $data->fromDate);
-    	$filter->setDefault('toDate', $data->toDate);
     	$filter->setDefault('accId', $data->rec->accountId);
     	$filter->setDefault('ent1Id', $data->rec->ent1Id);
     	$filter->setDefault('ent2Id', $data->rec->ent2Id);
@@ -1212,8 +1261,10 @@ class acc_BalanceDetails extends core_Detail
     		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
     	}
     	
-    	$filter->setSuggestions('fromDate', $optionsFrom);
-    	$filter->setSuggestions('toDate', $optionsTo);
+    	$filter->setOptions('fromDate', $optionsFrom);
+    	$filter->setOptions('toDate', $optionsTo);
+    	$filter->setDefault('fromDate', $data->fromDate);
+    	$filter->setDefault('toDate', $data->toDate);
     	
     	// Активиране на филтъра
         $filter->input();
@@ -1280,9 +1331,11 @@ class acc_BalanceDetails extends core_Detail
     	$tpl = getTplFromFile('acc/tpl/SingleLayoutBalanceHistory.shtml');
     	
     	if(!Mode::is('printing')){
-    		$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
-	    	$tpl->append($btn, 'SingleToolbar');
-	    
+    		if(acc_Balances::haveRightFor('read')){
+    			$btn = ht::createBtn("Обобщена", array($this->Master, 'single', $data->balanceRec->id, 'accId' => $data->rec->accountId), FALSE, FALSE, "row=2,title=Обобщена оборотна ведомост");
+	    		$tpl->append($btn, 'SingleToolbar');
+    		}
+    		
     		$printUrl = getCurrentUrl();
 	    	$printUrl['Printing'] = 'yes';
 	    	$printBtn = ht::createBtn('Печат', $printUrl, FALSE, TRUE, 'id=btnPrint,row=2,ef_icon = img/16/printer.png,title=Печат на страницата');
@@ -1301,7 +1354,7 @@ class acc_BalanceDetails extends core_Detail
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$data->listFields = array('valior'   	   => 'Вальор',
                 				  'docId'          => 'Документ',
-    							  'reason'		   => 'Основание',
+    							  'reason'		   => 'Забележки',
                 				  'debitQuantity'  => 'Дебит->К-во',
                 			      'debitAmount'    => 'Дебит->Сума',
                 				  'creditQuantity' => 'Кредит->К-во',

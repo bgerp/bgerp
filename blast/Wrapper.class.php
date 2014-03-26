@@ -24,15 +24,15 @@ class blast_Wrapper extends plg_ProtoWrapper
     {
         
         
-        $this->TAB('blast_Lists', 'Списъци', 'blast,admin');
-        $this->TAB('blast_Emails', 'Имейли', 'admin, blast');
+        $this->TAB('blast_Lists', 'Списъци', 'blast,ceo,admin');
+        $this->TAB('blast_Emails', 'Имейли', 'ceo, blast');
         $this->TAB('blast_Sms', 'SMS-и');
         $this->TAB('blast_Faxes', 'Факсове');
-        $this->TAB('blast_Letters', 'Писма', 'admin, blast');
+        $this->TAB('blast_Letters', 'Писма', 'ceo, blast');
         $this->TAB('blast_Labels', 'Етикети');
         
         
-        $this->TAB('blast_Blocked', 'Блокирани', 'admin, blast');
+        $this->TAB('blast_Blocked', 'Блокирани', 'ceo,blast,admin');
         
       
         

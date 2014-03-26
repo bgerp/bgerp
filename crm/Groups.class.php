@@ -207,13 +207,16 @@ class crm_Groups extends core_Master
         // Ако няма стойности
         if (!$rec->companiesCnt) $rec->companiesCnt=0;
         if (!$rec->personsCnt) $rec->personsCnt=0;
-        
+       
         $row->companiesCnt = $mvc->getVerbal($rec, 'companiesCnt');
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
         
-        $row->companiesCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
-        $row->personsCnt = new ET("<b style='font-size:14px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
-        
+        if($fields['-single']){
+	        $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
+	        $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
+        }
+        $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
         $row->name = "<b>$row->name</b>";
         
         if($fields['-list']){

@@ -44,7 +44,7 @@ class cat_products_Params extends cat_products_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys';
+    var $loadList = 'cat_Wrapper, plg_RowTools, plg_LastUsedKeys, plg_SaveAndNew';
     
     
     /**

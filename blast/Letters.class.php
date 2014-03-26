@@ -57,37 +57,37 @@ class blast_Letters extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, blast';
+    var $canRead = 'ceo, blast';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, blast';
+    var $canEdit = 'ceo, blast';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, blast';
+    var $canAdd = 'ceo, blast';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, blast';
+    var $canView = 'ceo, blast';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, blast';
+    var $canList = 'ceo, blast';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'admin, blast';
+	var $canSingle = 'ceo, blast';
 	
     
     /**
@@ -99,13 +99,13 @@ class blast_Letters extends core_Master
     /**
      * Кой може да праша информационните съобщения?
      */
-    var $canBlast = 'admin, blast';
+    var $canBlast = 'ceo, blast';
     
     
     /**
      * Кой може да променя активирани записи
      */
-    var $canChangerec = 'blast, admin, ceo';
+    var $canChangerec = 'blast, ceo, admin';
     
     
     
@@ -181,13 +181,13 @@ class blast_Letters extends core_Master
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
         
-        $this->FLD('attn', 'varchar', 'caption=Адресант->Лице, width=100%, changable');
-        $this->FLD('position', 'varchar', 'caption=Адресант->Длъжност, width=100%, changable');
-        $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма, width=100%, changable');
-        $this->FLD('address', 'varchar', 'caption=Адресант->Адрес, width=100%, changable');
-        $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код, width=100%, changable');
-        $this->FLD('place', 'varchar', 'caption=Адресант->Град/с, width=100%, changable');
-        $this->FLD('country', 'varchar', 'caption=Адресант->Държава, width=100%, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице, width=100%, changable');
+        $this->FLD('position', 'varchar', 'caption=Адресат->Длъжност, width=100%, changable');
+        $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма, width=100%, changable');
+        $this->FLD('address', 'varchar', 'caption=Адресат->Адрес, width=100%, changable');
+        $this->FLD('pcode', 'varchar', 'caption=Адресат->П. код, width=100%, changable');
+        $this->FLD('place', 'varchar', 'caption=Адресат->Град/с, width=100%, changable');
+        $this->FLD('country', 'varchar', 'caption=Адресат->Държава, width=100%, changable');
     }
 
     /**
@@ -283,7 +283,7 @@ class blast_Letters extends core_Master
             }
         }
         
-        //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
+        //Ако създаваме нов, тогава попълва данните за адресата по - подразбиране
         $rec = $data->form->rec;
         
         // Ако създаваме нов
@@ -612,7 +612,7 @@ class blast_Letters extends core_Master
     function act_Activation()
     {
         // Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         // Очакваме да има такъв запис
         expect($id = Request::get('id', 'int'));
@@ -883,7 +883,7 @@ class blast_Letters extends core_Master
     function act_Stop()
     {
         // Права за работа с екшън-а
-        requireRole('blast, admin');
+        requireRole('blast, ceo');
         
         // Очаква да има въведено id
         expect($id = Request::get('id', 'int'));

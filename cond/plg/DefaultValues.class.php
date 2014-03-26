@@ -258,6 +258,7 @@ class cond_plg_DefaultValues extends core_Plugin
 	    	
     		// Ако документа няма такъв метод, се взимат контрагент данните от корицата
 	    	$data = static::getCoverMethod($rec->folderId, 'getContragentData');
+	    	if(empty($data)) return;
 	    	
 	    	$conf = core_Packs::getConfig('crm');
 	    	if(!$data->country){
@@ -303,14 +304,10 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getCoverMethod($folderId, $name)
     {
-    	if(empty($folderId)){
-    		$cu = core_Users::getCurrent('id');
-    		$cId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
-    		$Class = cls::get('crm_Persons');
-    	} else {
-    		$cId = doc_Folders::fetchCoverId($folderId);
-    		$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
-    	}
+    	if(empty($folderId)) return;
+    	
+    	$cId = doc_Folders::fetchCoverId($folderId);
+    	$Class = cls::get(doc_Folders::fetchCoverClassId($folderId));
     	
     	if(cls::existsMethod($Class, $name)){
 	    	
