@@ -348,13 +348,13 @@ class acc_BalanceDetails extends core_Detail
         
         if ($bShowQuantities) {
             $data->listFields += array(
-                'baseQuantity' => 'Начално салдо->ДК->Количество',
+                'baseQuantity' => 'Начално салдо->ДК->К-во',
                 'baseAmount' => 'Начално салдо->ДК->Сума',
-                'debitQuantity' => 'Обороти->Дебит->Количество',
+                'debitQuantity' => 'Обороти->Дебит->К-во',
                 'debitAmount' => 'Обороти->Дебит->Сума',
-                'creditQuantity' => 'Обороти->Кредит->Количество',
+                'creditQuantity' => 'Обороти->Кредит->К-во',
                 'creditAmount' => 'Обороти->Кредит->Сума',
-                'blQuantity' => 'Крайно салдо->ДК->Количество',
+                'blQuantity' => 'Крайно салдо->ДК->К-во',
                 'blAmount' => 'Крайно салдо->ДК->Сума',
             );
         } else {
