@@ -160,15 +160,15 @@ class core_Users extends core_Manager
             $this->FLD('nick', 'email(link=no)', 'caption=Ник,notNull, input=none');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=100%');
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=15em');
         }
         
-        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
+        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=15em');
         
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=15em');
         
         $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
@@ -237,12 +237,12 @@ class core_Users extends core_Manager
 
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},width=100%");
+        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},width=15em");
         $data->form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
         $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
-        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=100%");
+        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=15em");
 
         self::setUserFormJS($data->form);
 
@@ -369,7 +369,7 @@ class core_Users extends core_Manager
             ));
         
         // Парола за ауторизация (логване)
-        $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=100%");
+        $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=15em");
  
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('core_Browser', 'close'), 'local'));
@@ -379,7 +379,6 @@ class core_Users extends core_Manager
         $form->setHidden('time', time());
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
-        
        
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
        
