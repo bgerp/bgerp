@@ -382,34 +382,6 @@ class marketing_Inquiries extends core_Master
     
     
     /**
-     * Създава визитка на фирма и форсира папката и
-     * 
-     * @param stdClass $rec - запис на запитване
-     * @return int $folderId - папка на фирма
-     */
-    private function forceCompany($rec)
-    {
-    	// Имали фирма с това име и имейл
-    	$compId = crm_Companies::fetchField("#name = '{$rec->company}' AND #email LIKE '%{$rec->email}%'", 'id');
-    	
-    	// Ако няма фирма
-    	if(empty($compId)){
-    		$cRec = new stdClass();
-	    	$cRec->name = $rec->company;
-	    	foreach (array('email', 'country', 'pCode', 'address', 'place', 'tel') as $fld){
-	    		$cRec->$fld = $rec->$fld;
-	    	}
-	    	
-	    	// Запис на фирмата
-	    	$compId = crm_Companies::save($cRec);
-    	}
-    	
-    	// Форсиране на папка на фирмата
-    	return crm_Companies::forceCoverAndFolder($compId);
-    }
-    
-    
-    /**
      * Извлича данните за драйвъра от формата
      * 
      * @param core_Form $form - форма
