@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, rule=Правило, validFrom, validUntil, createdOn, createdBy';
+    var $listFields = 'id, domain=Обхват, rule=Правило, validFrom, validUntil, createdOn, createdBy';
     
     
     /**
@@ -96,11 +96,18 @@ class price_ListRules extends core_Detail
     {
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценоразпис,input=hidden,silent');
         $this->FLD('type', 'enum(value,discount,groupDiscount)', 'caption=Тип,input=hidden,silent');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'caption=Опаковка');
-        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory');
+        
+        // Цена за продукт 
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
         $this->FLD('price', 'double', 'caption=Цена,mandatory');
-        $this->FLD('discount', 'percent(decimals=2)', 'caption=Отстъпка,mandatory,placeholder=%');
+        $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
+        $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС,noChange'); 
+        
+        // Марж за група
+        $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory,remember=info');
+        $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
+        $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
+
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До');
     }
@@ -135,29 +142,25 @@ class price_ListRules extends core_Detail
      * Връща цената за посочения продукт
      */
     static function getPrice($listId, $productId, $packagingId = NULL, $datetime = NULL)
-    {
+    {  
+        // echo "<li> $listId, $productId, $packagingId = NULL, $datetime ";
+
         price_ListToCustomers::canonizeTime($datetime);
 
         $datetime = price_History::canonizeTime($datetime);
-
-        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
         
-        if(!$productGroup) {
+        // В коя ценова група се е намирал продукта към посочената дата?
+        $productGroup = price_GroupOfProducts::getGroup($productId, $datetime);
 
-            return NULL;
-        }
-
+        if(!$productGroup) return;
+ 
         $query = self::getQuery();
         
         // Общи ограничения
         $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil > '{$datetime}')");
 
         // Конкретни ограничения
-        if($packagingId) {
-            $query->where("(#productId = $productId AND (#packagingId = $packagingId OR #packagingId IS NULL)) OR (#groupId = $productGroup)");
-        } else {
-            $query->where("(#productId = $productId AND #packagingId IS NULL) OR (#groupId = $productGroup)");
-        }
+        $query->where("(#productId = {$productId}) OR (#groupId = {$productGroup})");
         
         // Вземаме последното правило
         $query->orderBy("#validFrom,#id", "DESC");
@@ -167,30 +170,51 @@ class price_ListRules extends core_Detail
  
         if($rec) {
             if($rec->type == 'value') {
-                $price = $rec->price; // TODO конвертиране
+                
+                $price = $rec->price;
+
                 $listRec = price_Lists::fetch($listId);
                 list($date, $time) = explode(' ', $datetime);
+                // echo "<li> Row $price";
+
+                // В каква цена е този ценоразпис?
                 $currency = $listRec->currency;
                 if(!$currency) {
                     $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
                 }
+                
+                // Конвертираме в базова валута
                 $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
-                if($listRec->vat == 'yes') {
-
+                // echo "<li> CC $price";
+                // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
+                if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
+                    // TODO: Тук трябва да се извади VAT, защото се смята, че тези цени са без VAT
+                    $vat = cat_Products::getVat($productId, $date);
+                    $price = $price / (1 + $vat);
                 }
+                // echo "<li> VAT $price";
+
+
             } else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
-                $price  = self::getPrice($parent, $productId, $packagingId, $datetime); 
-                $price  = $price * (1 - $rec->discount); 
+                $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
+                
+                if($rec->calculation == 'reverse') {
+                    $price  = $price / (1 + $rec->discount);
+                } else {
+                    $price  = $price * (1 - $rec->discount);
+                }
+
             }
         } else {
             if($parent = price_Lists::fetchField($listId, 'parent')) {
-            	$conf = core_Packs::getConfig('price');
+            	
             	if($parent == price_ListRules::PRICE_LIST_COST){
             		
             		// Ако няма запис за продукта или групата
             		// му и бащата на ценоразписа е "себестойност"
             		// връщаме NULL
+                    // Дали е необходима тази защита или тя може да създаде проблеми?
             		return NULL;
             	}
             	
@@ -198,6 +222,8 @@ class price_ListRules extends core_Detail
             }
         }
         
+        $price = round($price, 10);
+
         // Записваме току-що изчислената цена в историята;
         price_History::setPrice($price, $listId, $datetime, $productId, $packagingId);
 
@@ -214,13 +240,14 @@ class price_ListRules extends core_Detail
 		$rec = &$form->rec;
 
         $type = $rec->type;
-
-    	if(!$rec->id){
-    		$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form); document.forms['{$form->formAttr['id']}'].elements['packagingId'].value ='';this.form.submit();"));
-    	}
     	
         $masterRec = price_Lists::fetch($rec->listId);
 		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
+
+        if($masterRec->parent) {
+            $parentRec = price_Lists::fetch($masterRec->parent);
+		    $parentTitle = price_Lists::getVerbal($parentRec, 'title');
+        }
 		
         $availableProducts = price_GroupOfProducts::getAllProducts();
         if(count($availableProducts)){
@@ -232,19 +259,32 @@ class price_ListRules extends core_Detail
     	if(Request::get('productId') && $form->rec->type == 'value' && $form->cmd != 'refresh'){
 			$form->setReadOnly('productId');
 		}
-		
+        
+        $form->FNC('targetPrice', 'double', 'caption=Желана цена,after=discount,input');
+
+        if($type == 'groupDiscount' || $type == 'discount') {
+            $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
+            $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
+            $form->setOptions('calculation', $calcOpt);
+        }
+ 		
         switch($type) {
             case 'groupDiscount' :
-                $form->setField('productId,packagingId,price', 'input=none');
-                $title = "Групова отстъпка в ценова политика|* \"$masterTitle\"";
+                $form->setField('productId,price,currency,vat,targetPrice', 'input=none');
+                $title = "Правило за групов марж в ценова политика|* \"$masterTitle\"";
                 break;
             case 'discount' :
-                $form->setField('groupId,price', 'input=none');
-                $title = "Продуктова отстъпка в ценова политика|* \"$masterTitle\"";
+                $form->setField('groupId,price,currency,vat', 'input=none');
+                $title = "Правило за марж в ценова политика|* \"$masterTitle\"";
                 break;
             case 'value' :
-                $form->setField('groupId,discount', 'input=none');
+                $form->setField('groupId,discount,calculation,targetPrice', 'input=none');
                 $title = "Продуктова цена в ценова политика|* \"$masterTitle\"";
+                if(!$rec->id){
+                    $form->setDefault('currency', $masterRec->currency);
+                    $form->setDefault('vat', $masterRec->vat);
+                }
+
                 break;
         }
 
@@ -266,13 +306,11 @@ class price_ListRules extends core_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
-    	if($rec->productId){
-    		$form->setOptions('packagingId', cat_Products::getPacks($rec->productId));
-        }
     	
     	if($form->isSubmitted()) {
             $now = dt::verbal2mysql();
             
+
             if(!$rec->validFrom) {
                 $rec->validFrom = $now;
                 Mode::setPermanent('PRICE_VALID_FROM', NULL);
@@ -280,6 +318,47 @@ class price_ListRules extends core_Detail
 
             if($rec->validFrom < $now) {
                 $form->setError('validFrom', 'Не могат да се задават правила за минал момент');
+            }
+            
+            // Проверка за грешки и изчисляване на отстъпката, ако е зададена само желаната цена
+            if($rec->type == 'discount' || $rec->type == 'groupDiscount') {
+                if(!$rec->discount && !$rec->targetPrice) {
+                    $form->setError('discount,targetPrice', 'Трябва да се зададе стойност или за отстъка или за желана цена');
+                } elseif($rec->discount && $rec->targetPrice) {
+                    $form->setError('discount,targetPrice', 'Не може да се зададе стойност едновременно за отстъка и за желана цена');
+                } elseif($rec->targetPrice) {
+                    $listRec = price_Lists::fetch($rec->listId);
+                    expect($listRec->parent);
+                    $parentPrice = self::getPrice($listRec->parent, $rec->productId,  NULL, $rec->validFrom);                
+
+                    if(!$parentPrice) {
+                        $parentRec = price_Lists::fetch($listRec->parent);
+                        $parentTitle = price_Lists::getVerbal($parentRec, 'title');
+                        $form->setError('targetPrice', "Липсва цена за продукта от политика|* \"{$parentTitle}\"");
+                    } else {
+                         
+                        // Начисляваме VAT, ако политиката е с начисляване
+                        if($listRec->vat == 'yes') {
+                            $vat         = cat_Products::getVat($rec->productId, $rec->validFrom);
+                            $parentPrice = $parentPrice * (1 + $vat);
+                        }
+                        // В каква валута е този ценоразпис?
+                        $currency = $listRec->currency;
+                        if(!$currency) {
+                            $currency = acc_Periods::getBaseCurrencyCode($listRec->validFrom);
+                        }
+                        
+                        // Конвертираме в базова валута
+                        $parentPrice = currency_CurrencyRates::convertAmount($parentPrice, $listRec->validFrom, $currency);
+                        $parentPrice = round($parentPrice, 10);
+     
+                        if($rec->calculation == 'reverse') {
+                            $rec->discount = $parentPrice/$rec->targetPrice - 1;
+                        } else {
+                            $rec->discount = $rec->targetPrice/$parentPrice - 1;
+                        }
+                    }
+                }
             }
 
             if($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
@@ -293,12 +372,6 @@ class price_ListRules extends core_Detail
             if(!$form->gotErrors()) {
                 Mode::setPermanent('PRICE_VALID_UNTIL', $rec->validUntil);
             }
-			
-            if($rec->productId){
-	            if(!cat_Products::getProductInfo($rec->productId, $rec->packagingId)){
-	            	$form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
-	            }
-            }
         }
     }
 
@@ -311,8 +384,8 @@ class price_ListRules extends core_Detail
         $data->toolbar->removeBtn('*'); 
         $data->toolbar->addBtn('Стойност', array($mvc, 'add', 'type' => 'value', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
         if($data->masterData->rec->parent) {
-            $data->toolbar->addBtn('Отстъпка', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
-            $data->toolbar->addBtn('Групова отстъпка', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Марж', array($mvc, 'add', 'type' => 'discount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Групов марж', array($mvc, 'add', 'type' => 'groupDiscount', 'listId' => $data->masterData->rec->id, 'ret_url' => TRUE));
         }
     }
 
@@ -375,12 +448,10 @@ class price_ListRules extends core_Detail
                 if($productGroup) {
                     $pgCond = "#groupId = $productGroup OR ";
                 }
+
                 expect($rec->productId);
-                if($rec->productId && $rec->packagingId) {
-                    $query->where("{$pgCond}(#productId = $rec->productId AND (#packagingId = $rec->packagingId OR #packagingId IS NULL))");
-                } else {
-                    $query->where("{$pgCond}(#productId = $rec->productId AND #packagingId IS NULL)");
-                }
+
+                $query->where("{$pgCond}(#productId = $rec->productId)");
             }
 
             expect($actRec = $query->fetch());
@@ -402,42 +473,54 @@ class price_ListRules extends core_Detail
         
         $price = $mvc->fields['price']->type->toVerbal($rec->price);
         
-        $discount = $mvc->getVerbal($rec, 'discount');
         
-        if($rec->discount < 0) {
-        	$rec->discount *= -1;
-        	$discount = $mvc->getVerbal($rec, 'discount');
-        	$discount = "|Надценка|* <font color='#000066'>{$discount}</font>";
-        } else {
-            $discount = "|Отстъпка|*  <font color='#660000'>{$discount}</font>";
-        }
         
+
+        // Област
         if($rec->productId) {
-            $product = cat_Products::getTitleById($rec->productId);
-            $product = ht::createLink($product, array('cat_Products', 'single', $rec->productId));
-        }
-
-        if($rec->packagingId) {
-            $packaging = mb_strtolower($mvc->getVerbal($rec, 'packagingId'));
-            $product = "{$packaging} $product";
+            $row->domain = cat_Products::getTitleById($rec->productId);
+            $row->domain = ht::createLink($row->domain, array('cat_Products', 'single', $rec->productId));
+        } elseif($rec->groupId) {
+            $row->domain = 'група ' . $mvc->getVerbal($rec, 'groupId');
+            $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
         }
         
-        if($rec->groupId) {
-            $group = 'група ' . $mvc->getVerbal($rec, 'groupId');
-            $group = ht::createLink($group, array('price_Groups', 'single', $rec->groupId));
+
+
+        $masterRec = price_Lists::fetch($rec->listId);
+		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
+
+        if($masterRec->parent) {
+            $parentRec = price_Lists::fetch($masterRec->parent);
+		    $parentTitle = price_Lists::getVerbal($parentRec, 'title');
         }
 
-        $currency = price_Lists::fetchField($rec->listId, 'currency');
 
         switch($rec->type) {
             case 'groupDiscount' :
-                $row->rule = tr("{$discount} |за|* {$group}");
+            case 'discount':
+                
+            $discount = $mvc->getVerbal($rec, 'discount');
+
+                $signDiscount = ($discount > 0 ? "+ " : "- ") . abs($discount);
+                if($rec->calculation == 'reverse') {
+                    $row->rule = "[{$parentTitle}] = [{$masterTitle}] " . $signDiscount . '%';
+                } else {
+                     $row->rule = "[{$masterTitle}] = [{$parentTitle}] " . $signDiscount . '%';
+                }
                 break;
-            case 'discount' :
-                $row->rule = tr("{$discount} |за|* {$product}");
-                break;
+
             case 'value' :
-                $row->rule = tr("|Цена|* {$price} {$currency} |за|* {$product}");
+                if(!$currency = $rec->currency) {
+                    $currency = price_Lists::fetchField($rec->listId, 'currency');
+                }
+                if(!$vat = $rec->vat) {
+                    $vat = price_Lists::fetchField($rec->listId, 'vat');
+                }
+
+                $vat = ($vat == 'yes') ? "с ДДС" : "без ДДС";
+
+                $row->rule = tr("|[{$masterTitle}] =|* {$price} {$currency} |{$vat}");
                 break;
         }        
         
@@ -482,7 +565,7 @@ class price_ListRules extends core_Detail
             }
             $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
         } else {
-                $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
         
         return $res;
@@ -525,7 +608,7 @@ class price_ListRules extends core_Detail
 	{
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=В сила->От,validUntil=В сила->До");
+		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=В сила->От,validUntil=В сила->До");
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl){
