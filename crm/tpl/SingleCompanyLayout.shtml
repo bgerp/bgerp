@@ -31,6 +31,9 @@
                 <!--ET_BEGIN website-->
                 <div>|Web сайт|*: <b>[#website#]</b></div>
                 <!--ET_END website-->
+                <!--ET_BEGIN vat-->
+                <div>VAT: <b>[#vat#]</b></div>
+                <!--ET_END vat-->
             </div>
         </fieldset>
         <!--ET_END address-->
