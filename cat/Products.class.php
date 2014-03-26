@@ -221,6 +221,11 @@ class cat_Products extends core_Master {
                 }
             }
         }
+        
+    	// Неможе да се променят номенклатурите от формата
+    	if($data->form->fields['lists']){
+        	$data->form->setField('lists', 'input=none');
+        }
     }
     
     
