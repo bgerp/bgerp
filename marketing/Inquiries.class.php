@@ -242,14 +242,17 @@ class marketing_Inquiries extends core_Master
     		if($this->haveRightFor('new')){
     			$id = $this->save($rec);
     			
+    			$cu = core_Users::getCurrent('id', FALSE);
+    			
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
-    			if(!core_Users::getCurrent('id', FALSE)){
+    			if(!$cu){
     				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
     			}
     			
-    			if ($this->isSended) {
-    			    status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
-    			} else {
+    			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
+    			
+    			// Ако има грешка при изпращане, тя се показва само на powerUser-и
+    			if (!$this->isSended && $cu && haveRole('powerUser')) {
     			    status_Messages::newStatus(tr('Грешка при изпращане'), 'error');
     			}
     			
@@ -662,7 +665,9 @@ class marketing_Inquiries extends core_Master
         	
         	// Изпращане
 	        return $PML->Send();
-    	}
+    	} 
+    	
+    	return TRUE;
     }
     
     
