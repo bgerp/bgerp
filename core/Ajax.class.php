@@ -110,9 +110,8 @@ class core_Ajax extends core_Mvc
      * @param array $urlArr - Масив, от който ще се генерира локално URL
      * @param string $name - Уникално име
      * @param double $interval - Интервал на извикване в секунди
-     * @param integer $periodModul - През колко цикъла да се изпълнява функцията
      */
-    static function subscribe(&$tpl, $urlArr, $name, $interval=5, $periodModul=1)
+    static function subscribe(&$tpl, $urlArr, $name, $interval=5)
     {
         // Масив с всички използвани имена
         static $nameArr=array();
@@ -149,7 +148,7 @@ class core_Ajax extends core_Mvc
         $localUrl = urlencode($localUrl);
                 
         // Добавяме стринга, който субскрайбва съответното URL
-        $subscribeStr = "\n runOnLoad(function(){getEfae().subscribe('{$name}', '{$localUrl}', {$interval}, {$periodModul});});";
+        $subscribeStr = "\n runOnLoad(function(){getEfae().subscribe('{$name}', '{$localUrl}', {$interval});});";
         
         // Добавяме само веднъж
         $tpl->appendOnce($subscribeStr, 'SCRIPTS');

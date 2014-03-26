@@ -703,7 +703,8 @@ class core_Html
 	static function createLinkRef($title, $url = FALSE, $warning = FALSE, $attr = array())
 	{
 		$link = static::createLink("<span class='anchor-arrow'></span>", $url, $warning, $attr);
-		return "{$title} {$link}";
+		
+		return "{$title}&nbsp;{$link}";
 	}
 	
 	

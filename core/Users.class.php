@@ -157,18 +157,18 @@ class core_Users extends core_Manager
         //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
         if (EF_USSERS_EMAIL_AS_NICK) {
             //Ако използваме имейлите вместо никове, скриваме полето ник
-            $this->FLD('nick', 'email(link=no)', 'caption=Ник,notNull, input=none,width=15em');
+            $this->FLD('nick', 'email(link=no)', 'caption=Ник,notNull, input=none');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=15em');
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
-        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=15em');
+        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
         
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');
         
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=15em');
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
         
         $this->FLD('rolesInput', 'keylist(mvc=core_Roles,select=role,groupBy=type, autoOpenGroups=team|rang)', 'caption=Роли');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Експандирани роли,input=none');
@@ -237,12 +237,12 @@ class core_Users extends core_Manager
 
         // Нова парола и нейния производен ключ
         $minLenHint = 'Паролата трябва да е минимум|* ' . EF_USERS_PASS_MIN_LEN . ' |символа';
-        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},width=15em");
+        $data->form->FNC('passNew', 'password(allowEmpty,autocomplete=off)', "caption=Парола,input,hint={$minLenHint},width=100%");
         $data->form->FNC('passNewHash', 'varchar', 'caption=Хеш на новата парола,input=hidden');
         
         // Повторение на новата парола
         $passReHint = 'Въведете отново паролата за потвърждение, че сте я написали правилно';
-        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=15em");
+        $data->form->FNC('passRe', 'password(allowEmpty,autocomplete=off)', "caption=Парола (пак),input,hint={$passReHint},width=100%");
 
         self::setUserFormJS($data->form);
 
@@ -369,7 +369,7 @@ class core_Users extends core_Manager
             ));
         
         // Парола за ауторизация (логване)
-        $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=15em");
+        $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=100%");
  
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('core_Browser', 'close'), 'local'));
@@ -380,7 +380,7 @@ class core_Users extends core_Manager
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
         
-        $form->addAttr('nick,pass,email', array('style' => 'width:240px;' ));
+       
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
        
         $httpUrl = core_App::getSelfURL();
@@ -964,7 +964,6 @@ class core_Users extends core_Manager
             if(!$teams) return NULL;
             
             $query = self::getQuery();
-            $query->where("#state = 'active'");
             $query->likeKeylist('roles', $teams);
             
             while($rec = $query->fetch()) {
