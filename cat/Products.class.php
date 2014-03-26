@@ -187,7 +187,7 @@ class cat_Products extends core_Master {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#] (&nbsp;[#code#]&nbsp;)';
+	public $recTitleTpl = '[#name#]&nbsp;(&nbsp;[#code#]&nbsp;)';
 	
 	
     /**
