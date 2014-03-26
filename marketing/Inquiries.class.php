@@ -452,6 +452,7 @@ class marketing_Inquiries extends core_Master
     	
     	if (!Mode::is('text', 'plain') && !Mode::is('text', 'xhtml')){
     	    $row->email = "<div class='email'>{$row->email}</div>";
+    	    $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
     	}
     	
     	if($fields['-list']){
