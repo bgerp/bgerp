@@ -1633,7 +1633,7 @@ class crm_Persons extends core_Master
     {
         $conf = core_Packs::getConfig('crm');
     	
-        $form = $data->form;
+        $form = &$data->form;
         
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
@@ -1647,6 +1647,11 @@ class crm_Persons extends core_Master
             
             // Да има само 2 колони
             $data->form->setField('groupList', array('maxColumns' => 2));    
+        }
+        
+    	// Неможе да се променят номенклатурите от формата
+    	if($form->fields['lists']){
+        	$form->setField('lists', 'input=none');
         }
     }
     
