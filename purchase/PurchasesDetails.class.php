@@ -296,7 +296,7 @@ class purchase_PurchasesDetails extends core_Detail
     	if($form->rec->productId){
     		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
     		
-    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
+    		$baseInfo = $ProductMan->getBasePackInfo($form->rec->productId);
     		if($baseInfo->classId == cat_Packagings::getClassId()){
     			$form->rec->packagingId = $baseInfo->id;
     		}
