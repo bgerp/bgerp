@@ -317,7 +317,9 @@ class crm_Persons extends core_Master
         if($orderCond) {
             $data->query->orderBy($orderCond);
         }
-         
+        if($data->listFilter->rec->order == 'birthday'){
+        	$mvc->birthdayFilter = TRUE;
+        }
         if($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
@@ -570,7 +572,9 @@ class crm_Persons extends core_Master
                     $dateType = 'Роден(а)';
                 }
             }
-            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+            if($mvc->birthdayFilter){
+            	$row->nameList .= "<div style='font-size:0.8em;margin:3px;'>$dateType:&nbsp;{$birthday}</div>";
+            }
         } elseif($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
