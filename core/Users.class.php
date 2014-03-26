@@ -964,7 +964,6 @@ class core_Users extends core_Manager
             if(!$teams) return NULL;
             
             $query = self::getQuery();
-            $query->where("#state = 'active'");
             $query->likeKeylist('roles', $teams);
             
             while($rec = $query->fetch()) {
