@@ -690,11 +690,12 @@ class marketing_Inquiries extends core_Master
     	$rec = $this->fetch($id);
     	
         $row = new stdClass();
-        $row->title = $this->getTitle($rec);
-        $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'email');
-        $row->state = $rec->state;
-		$row->recTitle = $row->title;
+        $row->title       = $this->getTitle($rec);
+        $row->authorId    = $rec->createdBy;
+        $row->author      = $rec->email;
+        $row->authorEmail = $rec->email;
+        $row->state       = $rec->state;
+		$row->recTitle    = $row->title;
 		
         return $row;
     }
