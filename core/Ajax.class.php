@@ -195,7 +195,7 @@ class core_Ajax extends core_Mvc
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
-        if (!method_exists('jquery_Jquery', 'run')) {
+        if (method_exists('jquery_Jquery', 'run')) {
             
             // Стартираме извикването на `run` фунцкцията на efae
             jquery_Jquery::run($tpl, "\n getEfae().run();", TRUE);
