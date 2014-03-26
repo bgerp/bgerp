@@ -286,7 +286,8 @@ class sales_SalesDetails extends core_Detail
                     }
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
-                    $row->packagingId .= '&nbsp;<small class="quiet">' . $row->quantityInPack . '&nbsp;' . $shortUomName . '</small>';
+                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
                 }
                 
                 $quantity = new core_ET('<!--ET_BEGIN packQuantityDelivered-->[#packQuantityDelivered#] /<!--ET_END packQuantityDelivered--> [#packQuantity#]');

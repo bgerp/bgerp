@@ -207,7 +207,8 @@ class purchase_ServicesDetails extends core_Detail
                 } else {
                     $shortUomName = cat_UoM::getShortName($rec->uomId);
                     $row->quantityInPack = $mvc->fields['quantityInPack']->type->toVerbal($rec->quantityInPack);
-                    $row->packagingId .= '&nbsp;<small class="quiet">' . $row->quantityInPack . '&nbsp;' . $shortUomName . '</small>';
+                    $row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+                	$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
                 }
             }
         }
