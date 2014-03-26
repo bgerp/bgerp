@@ -91,10 +91,10 @@ class plg_RefreshRows extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        $res = array();
-        
         // Ако екшъна не е за обновяване на редовете, да не се изпълнява
         if ($action != 'ajaxrefreshrows') return ;
+        
+        $res = array();
         
         $ajaxMode = Request::get('ajax_mode');
         
