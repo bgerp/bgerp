@@ -160,7 +160,7 @@
 				     </tr>
 				     <!--ET_BEGIN vatAmount-->
 				     <tr class='nowrap'>
-				    	<td align='right'>VAT &nbsp;<b>[#vat#]</b> :</td>
+				    	<td align='right'>VAT <b>[#vat#]</b> :</td>
 				    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
 				    	<td align='right'><b>[#vatAmount#]</b></td>
 				     </tr>

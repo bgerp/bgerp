@@ -138,7 +138,7 @@
 				     </tr>
 				     <!--ET_BEGIN vatAmount-->
 				     <tr class='nowrap'>
-				    	<td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
+				    	<td align='right'>|ДДС|* <b>[#vat#]</b> :</td>
 				    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
 				    	<td align='right'><b>[#vatAmount#]</b></td>
 				     </tr>
