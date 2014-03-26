@@ -293,12 +293,13 @@ class purchase_PurchasesDetails extends core_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	$ProductMan = cls::get($form->rec->classId);
-    	if($form->rec->productId){
+    	if($form->rec->productId && $form->cmd == 'refresh'){
     		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
     		
     		$baseInfo = $ProductMan->getBasePackInfo($form->rec->productId);
     		if($baseInfo->classId == cat_Packagings::getClassId()){
-    			$form->rec->packagingId = $baseInfo->id;
+    			$form->defPack = $baseInfo->id;
+    			$form->setDefault('packagingId', $baseInfo->id);
     		}
         }
         

@@ -356,7 +356,7 @@ class sales_SalesDetails extends core_Detail
         
         /* @var $ProductMan core_Manager */
         expect($ProductMan = cls::get($rec->classId));
-    	if($form->rec->productId){
+    	if($form->rec->productId  && $form->cmd == 'refresh'){
     		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
     		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
     		if($baseInfo->classId == cat_Packagings::getClassId()){
