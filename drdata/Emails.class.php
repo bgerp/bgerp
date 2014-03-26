@@ -71,7 +71,8 @@ class drdata_Emails extends core_BaseClass
         // Проверка на MX записа на домейна
         list($user, $domain) = split('@', $email);
         
-        if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
+//        if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
+        if (($mxhosts = $this->mxAndARecordsValidate($domain)) === FALSE) {
             $result['warning'] = "Възможен е проблем с домейна|* {$user}@<b>{$domain}</b>";
             
             return;
@@ -149,8 +150,25 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
+     * Връща масив с MX и A записите на домейна, ако няма такива връща FALSE
+     * 
+     * @param string $domain
+     */
+    function mxAndARecordsValidate($domain)
+    {
+        $hosts = dns_get_record($domain, DNS_A + DNS_MX, $audthns, $addtl);
+        
+        if (!$hosts) {
+            
+            return FALSE;
+        }
+        
+        return $hosts;
+    }
+    
+    
+    /**
      * Връща масив с MX записите на домейна, ако няма такива връща FALSE
-     * /
      */
     function mxRecordsValidate($domain)
     {
