@@ -18,7 +18,7 @@ defIfNot('PROTOCOL', 'udp');
 
 
 /**
- * Клас 'gps_Setup' - 
+ * Клас 'gps_Setup'
  *
  * @category  vendors
  * @package   gps

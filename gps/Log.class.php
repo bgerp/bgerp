@@ -25,7 +25,14 @@ class gps_Log extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'gps';
+    public $title = 'gps';
+    
+    /**
+     * Плъгини за зареждане
+     *
+     * var string|array
+     */
+    public $loadList = 'plg_Created';    
     
     /**
      * Описание на модела
@@ -40,12 +47,62 @@ class gps_Log extends core_Manager
         
     /**
      * Входна точка за взимане на данни по http заявка
-     * Очаква масив с данните от тракера
+     * Очаква разбити данни от тракера
      */
-    public function act_getData()
-    {   
-        return $fh;
+    public function act_Log()
+    {
+        $trackerId = Request::get('trackerId', 'varchar');
+        $data = Request::get('data', 'varchar');
+        $remoteIp = Request::get('remoteIp', 'varchar');
+        
+        // Махаме порта от IP адреса
+        $remoteIp = substr($remoteIp, 0, strpos($remoteIp, ':'));
+        $rec->trackerId = $trackerId;
+        $rec->data = $data;
+        $rec->remoteIp = $remoteIp;
+        $rec->gpsTime = date("Y-m-d H:i:s");
+        
+        $this->save($rec);
+        
+        // return "$trackerId <br> $data <br> $remoteIp <br>";
     }
     
     
+    /**
+     * Връща GPS данните
+     *
+     * @param string стринг с данните - GPRMC + другите от тракера
+     * @return array с елементи от GPRMS
+     */
+    private function parseGPSData($data)
+    {
+        
+        return $res;
+    }
+
+    
+    /**
+     * Връща Tracker данните
+     * 
+     * @param string стринг с данните - GPRMC + другите от тракера
+     * @return array с елементи данните от тракера
+     */
+    private function parseTrackerData($data)
+    {
+        
+        return $res;
+    }
+
+    
+    /**
+     * Връща Tracker данните
+     * 
+     * @param string GPRMC стринг
+     * @return boolean - валидна ли е CRC сумата
+     */
+    private function checkCRC($dataGPS)
+    {
+        
+        return $res;
+    }
 }
