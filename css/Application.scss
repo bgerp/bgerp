@@ -2202,6 +2202,19 @@ fieldset.sharing-history {
     }
 }
 
+.half-detail{
+	width: 43%;
+	float: left;
+	text-align: center;
+	&.first-part{
+	   margin-right: 4%;
+	}
+}
+.counter-link{
+	font-weight: bold;
+	font-size: 24px;
+	font-family: courier new; 
+}
 
 .narrow .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
 	-webkit-appearance: none;
@@ -3372,6 +3385,12 @@ body.narrow {
     #all h1{
         font-size: 1.72em;
     }
+    .narrow .half-detail{
+    float:none;
+    width:auto;
+    margin:0;
+    margin-bottom: 10px;
+}
 }
 
 
