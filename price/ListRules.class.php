@@ -276,8 +276,8 @@ class price_ListRules extends core_Detail
         $form->FNC('targetPrice', 'double', 'caption=Желана цена,after=discount,input');
 
         if($type == 'groupDiscount' || $type == 'discount') {
-            $calcOpt['forward'] = "[{$masterTitle} без ДДС] = [{$parentTitle} без ДДС] ± %";
-            $calcOpt['reverse'] = "[{$parentTitle} без ДДС] = [{$masterTitle} без ДДС] ± %";
+            $calcOpt['forward'] = "[{$masterTitle}] = [{$parentTitle}] ± %";
+            $calcOpt['reverse'] = "[{$parentTitle}] = [{$masterTitle}] ± %";
             $form->setOptions('calculation', $calcOpt);
         }
  		
@@ -518,9 +518,9 @@ class price_ListRules extends core_Detail
 
                 $signDiscount = ($discount > 0 ? "+ " : "- ") . abs($discount);
                 if($rec->calculation == 'reverse') {
-                    $row->rule = "[{$parentTitle} <span class='notBolded'>" . tr('без ДДС') . "</span>] = [{$masterTitle} <span class='notBolded'>" . tr('без ДДС') . "</span>] " . $signDiscount . '%';
+                    $row->rule = "[{$parentTitle}] = [{$masterTitle}] " . $signDiscount . '%';
                 } else {
-                     $row->rule = "[{$masterTitle} <span class='notBolded'>" . tr('без ДДС') . "</span>] = [{$parentTitle} <span class='notBolded'>". tr('без ДДС') ."</span>] " .  $signDiscount . '%';
+                     $row->rule = "[{$masterTitle}] = [{$parentTitle}] " . $signDiscount . '%';
                 }
                 break;
 
