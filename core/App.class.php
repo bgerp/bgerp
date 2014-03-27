@@ -445,18 +445,25 @@ class core_App
      */
     public static function getCurrentUrl()
     {
-        global $_GET;
-
-        if (count($_GET)) {
-            $get = $_GET;
-            unset($get['virtual_url'], $get['ajax_mode']);
+        // Всички параметри в рекуеста
+        $params = Request::getParams();
+        
+        // Ако има параметри
+        if ($params) {
             
-            if(($id = $get['id']) && ($ctr = $get['Ctr'])) {
-                $mvc = cls::get($ctr);
-                $get['id'] = $mvc->unprotectId($id);
+            $ajaxMode = $params['ajax_mode'];
+            $parentUrl = $params['parentUrl'];
+            
+            // Премахваме ненужните
+            unset($params['virtual_url'], $params['ajax_mode']);
+            
+            // Ако се вика по AJAX и е зададено URL на таба, който го вика
+            if ($parentUrl && $ajaxMode) {
+                
+                return parseLocalUrl($parentUrl);
             }
-
-            return $get;
+            
+            return $params;
         }
     }
 
