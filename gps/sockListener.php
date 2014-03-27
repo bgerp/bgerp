@@ -23,7 +23,6 @@ if (!$socket) {
 do {
     $string = stream_socket_recvfrom($socket, 149, 0, $peer);
 
-    $now = time();
     $res[] = $string;
     
     // Ако има външна команда
@@ -35,8 +34,7 @@ do {
         break;
         case "STARTED?":
             stream_socket_sendto($socket, "STARTED?_OK", 0, $peer);
-            array_pop($res);
-           // stream_socket_sendto($socket, EOF, 0, $peer);   
+            array_pop($res); // Вадим командата
         break;
         case "GET!":
             foreach ($res as $data) {
@@ -48,7 +46,7 @@ do {
             unset($res);
 //            stream_socket_sendto($socket, EOF, 0, $peer);
         break;
-        default : // Ако са данни различни от команда ги проверяваме дали са валидни по контролни суми
+        default : // Ако са данни различни от команда ги пращаме към bgERP-a
             $url = "http://bgerp.local/gps_Log/Log/?";
             $trackerData = splitData($string);
             $params = array('trackerId'=>$trackerData['ID'],
@@ -72,22 +70,14 @@ do {
 
 function splitData($string)
 {
-    // Първите  9 след $$ трябва да се покажат в HEX код
-    // махаме $$
-    $start = substr($string, 0, 2);
-    $L = substr($string, 2, 2);
-    $ID = substr($string, 4, 6); // Последното от ID-то е винаги ff - и го прескачаме
-    $CMD = substr($string, 11, 3);
-    $CRC = substr($string, strlen($string) - 4, 2);
-    $data = substr($string, 13, strlen($string) - 4 - 13);
-
     $res = array();
-    $res['start'] = $start;
-    $res['L'] = dechex(ord($L{0})) . " " . dechex(ord($L{1}));
-    $res['ID'] = dechex(ord($ID{0})) . dechex(ord($ID{1})) . dechex(ord($ID{2})) . dechex(ord($ID{3})) . dechex(ord($ID{4})) . dechex(ord($ID{5}));
-    $res['CMD'] = dechex(ord($CMD{0})) . " " . dechex(ord($CMD{1})) . " " . dechex(ord($CMD{2}));
-    $res['data'] = $data;
-    $res['CRC'] = toHex($CRC);
+
+    $res['start'] = substr($string, 0, 2); // Винаги трябва да е $$
+    $res['L'] = toHex(substr($string, 2, 2)); // Дължина на целия пакет данни
+    $res['ID'] = toHex(substr($string, 4, 6)); // Последното от ID-то е винаги ff - и го прескачаме
+    $res['CMD'] = toHex(substr($string, 11, 3)); // Команда
+    $res['data'] = substr($string, 13, strlen($string) - 4 - 13); // Основни данни - тракер + GPRMC sentense
+    $res['CRC'] = toHex(substr($string, strlen($string) - 4, 2)); // Контролна сума
 
     return $res;
 }
@@ -96,7 +86,8 @@ function toHex ($str) {
     $res = '';
     for ($i = 0; $i<strlen($str); $i++) {
         $input = dechex(ord($str{$i}));
-        $res .= str_pad($input, 2, "0", STR_PAD_LEFT) . " ";
+//      $res .= str_pad($input, 2, "0", STR_PAD_LEFT) . " ";
+        $res .= str_pad($input, 2, "0", STR_PAD_LEFT);
     }
 
     return $res;
