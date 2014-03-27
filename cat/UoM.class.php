@@ -26,12 +26,6 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Кой има право да го изтрие?
-     */
-    var $canDelete = 'no_one';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'cat,ceo';
