@@ -228,6 +228,30 @@ class core_Request
     
     
     /**
+     * Връща масив с всички парамтри в рекуеста
+     * 
+     * @return array
+     */
+    static function getParams()
+    {
+        $paramsArr = array();
+        
+        foreach ((array)self::$vars as $dummy=> $arr) {
+            
+            foreach ((array)$arr as $name=>$val) {
+                
+                // Ако преди не е сетната стойността, тогава я добавяме в масива
+                if (!isset($paramsArr[$name])) {
+                    $paramsArr[$name] = $val;
+                }
+            }
+        }
+        
+        return $paramsArr;
+    }
+    
+    
+    /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
     static function push($array, $name = NULL)
