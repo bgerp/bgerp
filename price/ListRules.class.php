@@ -42,6 +42,12 @@ class price_ListRules extends core_Detail
     
     
     /**
+     * Брой елементи на страница
+     */
+    var $listItemsPerPage = 40;
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, price_Wrapper, plg_Search, plg_LastUsedKeys, plg_SaveAndNew';
@@ -236,8 +242,8 @@ class price_ListRules extends core_Detail
 
         return $price;
     }
-
-
+    
+    
     /**
      * Подготвя формата за въвеждане на правила
      */
@@ -469,7 +475,6 @@ class price_ListRules extends core_Detail
                 $state = 'closed';
             }
         }
-
 
         // Ако цената има повече от 2 дробни цифри, показва се до 5-я знак, иначе до втория
         if(strlen(substr(strrchr($rec->price, "."), 1) > 2)){
