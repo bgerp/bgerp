@@ -513,14 +513,15 @@ class price_ListRules extends core_Detail
         switch($rec->type) {
             case 'groupDiscount' :
             case 'discount':
+                $signDiscount = ($rec->discount > 0 ? "+ " : "- ");
+                $rec->discount = abs($rec->discount);
+                $discount = $mvc->getVerbal($rec, 'discount');
+                $signDiscount = $signDiscount . $discount;
                 
-            $discount = $mvc->getVerbal($rec, 'discount');
-
-                $signDiscount = ($discount > 0 ? "+ " : "- ") . abs($discount);
                 if($rec->calculation == 'reverse') {
-                    $row->rule = "[{$parentTitle}] = [{$masterTitle}] " . $signDiscount . '%';
+                    $row->rule = "[{$parentTitle}] = [{$masterTitle}] " . $signDiscount;
                 } else {
-                     $row->rule = "[{$masterTitle}] = [{$parentTitle}] " . $signDiscount . '%';
+                     $row->rule = "[{$masterTitle}] = [{$parentTitle}] " . $signDiscount;
                 }
                 break;
 
