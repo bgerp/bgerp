@@ -139,9 +139,11 @@ class cms_Page extends page_Html {
             }
         }
 
-        $headerImg = sbf($path, '');
-
-        return $headerImg;
+        $conf = core_Packs::getConfig('core');
+        
+        $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => $conf->EF_APP_TITLE, 'id' => 'headerImg'));
+        
+        return $img;
     }
 
     
