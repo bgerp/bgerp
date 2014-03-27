@@ -32,6 +32,12 @@ class core_Ajax extends core_Mvc
         // Декодираме масива
         $subscribedArr = json_decode($subscribed);
         
+        // URL от който се вика AJAX
+        $parentUrl = Request::get('parentUrl');
+        
+        // Дали се вика по ajax
+        $ajaxMode = Request::get('ajax_mode');
+        
         // Ако няма нищо в масив, прекъсваме функцията
         if (!$subscribed) shutdown();
         
@@ -48,7 +54,7 @@ class core_Ajax extends core_Mvc
             $urlArr = core_App::parseLocalUrl($url);
             
             // Добавяме параметър, който указва, че е стартиран по AJAX
-            $urlArr['ajax_mode'] = 1;
+            $urlArr['ajax_mode'] = $ajaxMode;
             
             // Ако е зададен hitTime
             if ($hitTime) {
@@ -59,6 +65,9 @@ class core_Ajax extends core_Mvc
             
             // Да се добави в URL-то
             $urlArr['idleTime'] = $idleTime;
+            
+            // Добавяме URL-то в заявката
+            $urlArr['parentUrl'] = $parentUrl;
             
             try {
                 // Извикваме URL-то
@@ -191,8 +200,14 @@ class core_Ajax extends core_Mvc
         // URL, което сочи към екшъна за извличане на данни по AJAX
         $url = toUrl(array('core_Ajax', 'Get'));
         
-        // Добавяме променливата
+        // Добавяме URL-то за сваляне на ajax
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');
+        
+        // URL от който ще се вика айакса
+        $parentUrl = toUrl(getCurrentUrl(), 'local');
+        
+        // Задаваме УРЛ-то
+        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {

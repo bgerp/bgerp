@@ -1494,6 +1494,9 @@ function efae()
 	
 	// Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
 	efae.prototype.isSendedAfterRefresh = false;
+
+	// УРЛ, от което се вика AJAX-a - отворения таб
+	Experta.prototype.parentUrl;
 }
 
 
@@ -1589,6 +1592,16 @@ efae.prototype.process = function()
 			// Добавяме в масива
 			dataObj['idleTime'] = getEO().getIdleTime();
 		}
+		
+		// Ако е зададено URL-то
+		if (typeof(this.getParentUrl()) != 'undefined') {
+			
+			// Добавяме в масива
+			dataObj['parentUrl'] = this.getParentUrl();
+		}
+		
+		// Добавяме флаг, който указва, че заявката е по AJAX
+		dataObj['ajax_mode'] = 1;
 		
 		// Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
 		$.ajax({
@@ -1730,6 +1743,28 @@ efae.prototype.getUrl = function()
 	return this.url;
 }
 
+
+/**
+ * Задаваме URL-то, от което се вика AJAX-а
+ * 
+ * @param string - Локолното URL, което да се извика по AJAX
+ */
+efae.prototype.setParentUrl = function(parentUrl)
+{
+	this.parentUrl = parentUrl;
+}
+
+
+/**
+ * Връща URL-то, от което се вика AJAX-а
+ * 
+ * @return - Локолното URL, което да се извикa по AJAX
+ */
+efae.prototype.getParentUrl = function()
+{
+	
+	return this.parentUrl;
+}
 
 /**
  * Увеличава времето за стартиране 
