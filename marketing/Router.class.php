@@ -203,9 +203,7 @@ class marketing_Router extends core_Manager
 			$rec->$param = ${$param};
 		}
 		
-		$id = crm_Persons::save($rec);
-		
-		return crm_Persons::forceCoverAndFolder((object)array('id' => $id, 'inCharge' => $inCharge));
+		return crm_Persons::forceCoverAndFolder($rec);
 	}
 	
 	
@@ -229,9 +227,7 @@ class marketing_Router extends core_Manager
 			$rec->$param = ${$param};
 		}
 		
-		$id = crm_Companies::save($rec);
-		
-		return crm_Companies::forceCoverAndFolder((object)array('id' => $id, 'inCharge' => $inCharge));
+		return crm_Companies::forceCoverAndFolder($rec);
 	}
 	
 	
