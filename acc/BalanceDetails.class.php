@@ -971,8 +971,9 @@ class acc_BalanceDetails extends core_Detail
     	$cloneQuery = clone $bQuery;
     	$bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
     	$bQuery->orderBy('id', 'ASC');
-    	$balanceId = $bQuery->fetch()->id;
-    	expect($balanceRec = $this->Master->fetch($balanceId));
+    	if($balanceId = $bQuery->fetch()->id){
+    		$balanceRec = $this->Master->fetch($balanceId);
+    	}
     	
     	$this->title = 'Хронологична справка';
     	
@@ -1264,7 +1265,7 @@ class acc_BalanceDetails extends core_Detail
     	$filter->setDefault('ent2Id', $data->rec->ent2Id);
     	$filter->setDefault('ent3Id', $data->rec->ent3Id);
     	
-    	$optionsTo = $optionsFrom = array('' => '');
+    	$optionsTo = $optionsFrom = array();
     	
     	// За начална и крайна дата, слагаме по пдоразбиране, датите на периодите
     	// за коиот има изчислени оборотни ведомости
@@ -1282,10 +1283,14 @@ class acc_BalanceDetails extends core_Detail
     	
     	// Активиране на филтъра
         $filter->input();
+        if($filter->isSubmitted()){
+        	if($filter->rec->fromDate > $filter->rec->toDate){
+        		$filter->setError('fromDate,toDate', 'Началната дата е по-голяма от крайната');
+        	}
+        }
         
         // Ако има изпратени данни
         if($filter->rec){
-        	
         	if($filter->rec->from){
         		$data->fromDate = $filter->rec->from;
         	}
