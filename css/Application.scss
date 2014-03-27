@@ -3733,5 +3733,8 @@ body.narrow {
 	background-image: url('../img/16/feather.png');
 	@include btn-style();
 }
-
+.notBolded{
+	font-weight: normal;
+	font-size: 0.9em;
+}
 @import "partials/sales";
