@@ -676,7 +676,7 @@ class marketing_Inquiries extends core_Master
 	    	// Ако може да се създава лица от запитването се слага бутон
 	    	if($mvc->haveRightFor('makeperson', $rec)){
 	    		$companyId = doc_Folders::fetchCoverId($rec->folderId);
-	    		$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
+	    		$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
 	    	}
     	}
     }
