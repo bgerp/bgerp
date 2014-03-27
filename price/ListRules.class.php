@@ -194,7 +194,6 @@ class price_ListRules extends core_Detail
                     $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
                 }
                
-                
                 // Конвертираме в базова валута
                 $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
 
@@ -207,8 +206,7 @@ class price_ListRules extends core_Detail
                 }
                 // echo "<li> VAT $price";
 
-
-            } else {
+			} else {
                 expect($parent = price_Lists::fetchField($listId, 'parent'));
                 $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
                 
@@ -217,7 +215,6 @@ class price_ListRules extends core_Detail
                 } else {
                     $price  = $price * (1 + $rec->discount);
                 }
-
             }
         } else {
             if($parent = price_Lists::fetchField($listId, 'parent')) {
@@ -487,28 +484,21 @@ class price_ListRules extends core_Detail
         
         $price = $mvc->fields['price']->type->toVerbal($rec->price);
         
-        
-        
-
         // Област
         if($rec->productId) {
-            $row->domain = cat_Products::getTitleById($rec->productId);
-            $row->domain = ht::createLink($row->domain, array('cat_Products', 'single', $rec->productId));
+        	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
         } elseif($rec->groupId) {
-            $row->domain = 'група ' . $mvc->getVerbal($rec, 'groupId');
+            $row->domain = tr('група ') . $mvc->getVerbal($rec, 'groupId');
             $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
         }
         
-
-
-        $masterRec = price_Lists::fetch($rec->listId);
+		$masterRec = price_Lists::fetch($rec->listId);
 		$masterTitle = price_Lists::getVerbal($masterRec, 'title');
 
         if($masterRec->parent) {
             $parentRec = price_Lists::fetch($masterRec->parent);
 		    $parentTitle = price_Lists::getVerbal($parentRec, 'title');
         }
-
 
         switch($rec->type) {
             case 'groupDiscount' :
@@ -545,7 +535,7 @@ class price_ListRules extends core_Detail
 
         // Линк към продукта
         if($rec->productId) {
-            $row->productId = ht::createLink($row->productId, array('cat_Products', 'Single', $rec->productId));
+            $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
         }
 
         $row->ROW_ATTR['class'] .= " state-{$state}";
@@ -565,7 +555,7 @@ class price_ListRules extends core_Detail
                     if($groupId = price_Groups::fetchField("#title = '{$csvRow[0]}'", 'id')){
                             
                             if(!$gRec = static::fetch("#discount = '$csvRow[2]' AND #listId = " . price_ListRules::PRICE_LIST_CATALOG . " AND #groupId = {$groupId}")){
-                                    $rec = new stdClass();
+                                 $rec = new stdClass();
                                  $rec->listId = price_ListRules::PRICE_LIST_CATALOG;
                                  $rec->groupId = $groupId;
                                  $rec->discount = $csvRow[2]; // Задаваме груповата наддценка в проценти
