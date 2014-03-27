@@ -134,7 +134,7 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
+        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)), $objectId, $logKeepDays);
         
         return $tpl;
     }
@@ -806,7 +806,7 @@ class core_Manager extends core_Mvc
     /**
      * Добавя запис в лога
      */
-    static function log($detail, $objectId = NULL, $logKeepDays = NULL)
+    static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
     {
         if (!$logKeepDays) {
             $logKeepDays = static::$logKeepDays;
