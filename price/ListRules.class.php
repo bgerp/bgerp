@@ -213,7 +213,7 @@ class price_ListRules extends core_Detail
                 $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
                 
                 if($rec->calculation == 'reverse') {
-                    $price  = $price / (1 - $rec->discount);
+                    $price  = $price / (1 + $rec->discount);
                 } else {
                     $price  = $price * (1 + $rec->discount);
                 }
