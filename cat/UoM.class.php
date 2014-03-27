@@ -50,6 +50,18 @@ class cat_UoM extends core_Manager
 
     
     /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'admin,ceo';
+  
+
+    /**
+     * Кой има право да го изтрие?
+     */
+    var $canDelete = 'admin,ceo';
+ 
+
+    /**
      * Заглавие
      */
     var $title = 'Мерни единици';
