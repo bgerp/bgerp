@@ -178,13 +178,20 @@ class price_ListRules extends core_Detail
                 // echo "<li> Row $price";
 
                 // В каква цена е този ценоразпис?
-                $currency = $listRec->currency;
+                $currency = $rec->currency;
+
+                if(!$currency) {
+                    $currency = $listRec->currency; 
+                }
+
                 if(!$currency) {
                     $currency = acc_Periods::getBaseCurrencyCode($listRec->createdOn);
                 }
+               
                 
                 // Конвертираме в базова валута
                 $price = currency_CurrencyRates::convertAmount($price, $date, $currency);
+
                 // echo "<li> CC $price";
                 // Ако правилото е с включен ват или не е зададен, но ценовата оферта е с VAT, той трябва да се извади
                 if($rec->vat == 'yes' || (!$rec->vat && $listRec->vat == 'yes')) {
@@ -200,9 +207,9 @@ class price_ListRules extends core_Detail
                 $price  = self::getPrice($parent, $productId, $packagingId, $datetime);
                 
                 if($rec->calculation == 'reverse') {
-                    $price  = $price / (1 + $rec->discount);
+                    $price  = $price / (1 - $rec->discount);
                 } else {
-                    $price  = $price * (1 - $rec->discount);
+                    $price  = $price * (1 + $rec->discount);
                 }
 
             }
