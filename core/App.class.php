@@ -41,7 +41,7 @@ class core_App
         {
             if($e->class == 'core_Db' && core_Db::databaseEmpty()) {
                 // При празна база редиректваме безусловно към сетъп-а
-                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey'=>setupKey())));
+                 redirect(core_Url::addParams(getSelfURL(), array('SetupKey' => setupKey())));
             }
             
             // Ако възникне грешка в core_Message
@@ -1060,31 +1060,17 @@ class core_App
     public static function _bp($html, $stack)
     {
         $breakFile = $breakLine = NULL;
-
-        $stack = static::prepareStack($stack, $breakFile, $breakLine);
-
+	
         // Ако сме в работен, а не тестов режим, не показваме прекъсването
         if (!static::isDebug()) {
             error_log("Breakpoint on line $breakLine in $breakFile");
             return;
         }
 
-
-        $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-        "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
-        "<font color=red>$breakFile</font></h1>";
-
-        $errHtml .= $html;
-
-        $errHtml .= "<h2>Стек</h2>";
-
-        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
-
-        $errHtml .= static::renderStack($stack);
-
+        $errHtml = static::getErrorHtml($html, $stack, $breakFile, $breakLine);
+        
         $errHtml .= core_Debug::getLog();
-
+        
         if (!file_exists(EF_TEMP_PATH) && !is_dir(EF_TEMP_PATH)) {
     		mkdir(EF_TEMP_PATH, 0777, TRUE);    
 		}
@@ -1099,11 +1085,34 @@ class core_App
 
         echo($errHtml);
         
-       exit(-1);
+        exit(-1);
     }
 
+    
+    /**
+     * Връща html-a на грешката
+     */
+	public static function getErrorHtml($html, $stack, $breakFile = NULL, $breakLine = NULL)
+	{
+		$stack = static::prepareStack($stack, $breakFile, $breakLine);
 
+        $errHtml .= "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
+        "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
+        "<font color=red>$breakFile</font></h1>";
 
+        $errHtml .= $html;
+
+        $errHtml .= "<h2>Стек</h2>";
+
+        $errHtml .= core_Exception_Expect::getTraceAsHtml($stack);
+		
+        $errHtml .= static::renderStack($stack);
+        
+        return $errHtml;
+	}
+
+	
     /**
      * Показва грешка и спира изпълнението.
      */
