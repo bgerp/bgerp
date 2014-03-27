@@ -2242,6 +2242,31 @@ Experta.prototype.addEvent = function(elem, event, func)
 
 
 /**
+ * Скролва до зададеното id
+ * 
+ * @param integer id
+ */
+Experta.prototype.scrollTo = function(id)
+{
+	// Ако е зададен id, скролваме до него
+	if (typeof id != 'undefined') {
+		
+		el = get$(id);
+		
+		// Ако има такъв елемент
+		if (el && el != 'undefined' && el.scrollIntoView) {
+			
+			el.scrollIntoView();
+		}
+	} else {
+		
+		// Скролваме в края на екрана
+		window.scroll(0, 1000000);
+	}
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
