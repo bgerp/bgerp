@@ -41,7 +41,13 @@ class cat_UoM extends core_Manager
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'cat,ceo';
-	
+
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'admin,ceo';
+
     
     /**
      * Заглавие
