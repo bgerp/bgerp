@@ -215,8 +215,19 @@ class crm_Groups extends core_Master
 	        $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
 	        $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
-        $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
-        $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
+        
+        if (!$rec->companiesCnt && $fields['-single']) {
+        	unset($row->companiesCnt);
+        } else {
+        	$row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        }
+        
+        if (!$rec->personsCnt && $fields['-single']) {
+        	unset($row->personsCnt);
+        } else {
+        	$row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        }
+        
         $row->name = "<b>$row->name</b>";
         
         if($fields['-list']){
