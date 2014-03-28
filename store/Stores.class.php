@@ -336,4 +336,17 @@ class store_Stores extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($fields['-single']){
+    		if($rec->locationId){
+    			$row->locationId = crm_Locations::getHyperLink($rec->locationId);
+    		}
+    	}
+    }
 }
