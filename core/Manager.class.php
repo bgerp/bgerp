@@ -134,7 +134,7 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)), $objectId, $logKeepDays);
+        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
         
         return $tpl;
     }
