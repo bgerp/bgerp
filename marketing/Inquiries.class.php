@@ -766,4 +766,27 @@ class marketing_Inquiries extends core_Master
      		$res .= " " . plg_Search::normalizeText($Driver->getProductTitle((object)$rec->data));
      	}
      }
+     
+    
+	/**
+	 * Връща прикачените файлове
+     * 
+     * @param object $rec - Запис
+     */
+    function getLinkedFiles($rec)
+    {
+        $fhArr = array();
+        
+        // Ако е подадено id вместо запис
+        if (is_numeric($rec)) {
+            
+            // Вземаме записа
+            $rec = static::fetch($rec);
+        }
+        
+        // Вземаме прикачените файлове
+        $fhArr = fileman_RichTextPlg::getFiles($rec->data['description']);
+        
+        return $fhArr;
+    }
 }
