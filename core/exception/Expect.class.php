@@ -28,7 +28,6 @@ class core_exception_Expect extends Exception
 
     public function getAsHtml()
     {
-    	
     	$msg = $this->getMessage();
     	 
     	if (isDebug() && isset($this->debug)) { 
@@ -42,6 +41,8 @@ class core_exception_Expect extends Exception
     		$p1 .= core_Html::arrayToHtml(array($this->errorTitle, $msg, $this->debug));
         
             core_App::_bp($p1, $this->getTrace());
+        } else {
+        	$this->logError();
         }
  
         $text = core_App::isDebug() ? $msg : $this->errorTitle;
@@ -50,6 +51,22 @@ class core_exception_Expect extends Exception
     }
 
 
+    /**
+     * Записва грешка в core_Logs ако има грешка приз аписа, записва се в error file-a
+     */
+    public function logError()
+    {
+    	$p1 = core_Html::arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug));
+        $html = core_App::getErrorHtml($p1, $this->getTrace());
+        
+        try{
+        	core_Logs::log($html);
+        } catch(core_exception_Expect $e){
+        	file_put_contents(EF_TEMP_PATH . '/err.log',  "\n\n" . 'Стек: ' . $html . "\n\n", FILE_APPEND);
+        }
+    }
+    
+    
     public static function getTraceAsHtml($trace)
     {
         $trace = static::prepareTrace($trace);
