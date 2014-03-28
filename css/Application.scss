@@ -2437,6 +2437,13 @@ div.location.public {
 	max-width: 800px;
 }
 
+.core_Logs table.listTable > tbody > tr > td:last-child {
+	max-width: 600px;
+    table td{
+	   word-break:break-all;
+    }
+}
+
 .singleView h2 {
 	margin: 10px 0;
 }
