@@ -131,13 +131,13 @@ class store_Stores extends core_Master
     /**
 	 * Кое поле отговаря на кой работи с даден склад
 	 */
-	var $inChargeField = 'chiefId';
+	var $inChargeField = 'chiefs';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, chiefId';
+    var $listFields = 'id, name, chiefs';
     
     
     /**
@@ -171,7 +171,7 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('chiefId', 'user(roles=store|ceo)', 'caption=Отговорник,mandatory');
+        $this->FLD('chiefs', 'userList(roles=store|ceo)', 'caption=Отговорници,mandatory');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Товарачи');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Локация');
         $this->FLD('strategy', 'class(interface=store_iface_ArrangeStrategyIntf)', 'caption=Стратегия');
@@ -260,7 +260,7 @@ class store_Stores extends core_Master
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
-			$data->query->where("#chiefId = {$cu}");
+			$data->query->orLike('chiefs', "|$cu|");
 			$data->query->orLike('workersIds', "|$cu|");
 		}
 	}
@@ -288,7 +288,7 @@ class store_Stores extends core_Master
     {
     	if($action == 'select' && $rec){
     		$cu = core_Users::getCurrent();
-    		if($rec->chiefId == $cu || keylist::isIn($cu, $rec->workersIds)){
+    		if(keylist::isIn($cu, $rec->chiefs) || keylist::isIn($cu, $rec->workersIds)){
     			$res = 'ceo,storeWorker';
     		}
     	}

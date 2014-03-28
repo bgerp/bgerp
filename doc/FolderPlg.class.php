@@ -218,7 +218,7 @@ class doc_FolderPlg extends core_Plugin
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
             if($bForce && (!$rec->folderId || !doc_Folders::fetch($rec->folderId))) {
             	
-            	// Очакваме да не е подаден празеб stdClass
+            	// Очакваме да не е подаден празен stdClass
             	// Така се подсигуряваме да не се създаде празна корица
             	expect(count((array)$rec), 'Опит за създаване на празна корица');
             	$rec->folderId = doc_Folders::createNew($mvc);

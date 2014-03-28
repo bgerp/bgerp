@@ -1068,8 +1068,8 @@ class sales_Sales extends core_Master
     		
     	// Ако има склад, се нотифицира отговорника му
     	if($rec->shipmentStoreId){
-    		$chiefId = store_Stores::fetchField($rec->shipmentStoreId, 'chiefId');
-    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $chiefId);
+    		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
+    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $toChiefs);
     	}
     		
     	// Ако има каса се нотифицира касиера
