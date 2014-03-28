@@ -159,20 +159,32 @@ class email_Router extends core_Manager
         
         $folderId = NULL;
         
-        if ($rec) {
+        if ($rec && $rec->objectId) {
             // от $rec->objectType и $rec->objectId изваждаме folderId
             switch ($rec->objectType) {
                 case 'document' :
                     $folderId = doc_Containers::fetchField($rec->objectId, 'folderId');
                     break;
                 case 'person' :
-                    $folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
+                    if(crm_Persons::fetch($rec->objectId)) {
+                        $folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
+                    }
                     break;
                 case 'company' :
-                    $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
+                    if(crm_Companies::fetch($rec->objectId)) {
+                        $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
+                    }
                     break;
                 default :
                 expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
+            }
+            
+            // Ако не сме успели да намерим $folderId значи обекта в правилото е невалиден 
+            // Изтриваме правилото и отново извикваме тази функция
+            if(!$folderId) {
+                self::delete($rec->id);
+
+                return self::route($fromEmail, $toEmail, $type);
             }
         }
         
