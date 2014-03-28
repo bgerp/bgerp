@@ -292,11 +292,16 @@ class marketing_Inquiries extends core_Master
     		$personId = crm_Profiles::fetchField("#userId = {$cu}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
     		$inCharge = marketing_Router::getInChargeUser($rec->place, $rec->country);
-    		
+	    	
     		// Ако лицето е обвързано с фирма, документа отива в нейната папка
     		if($personCompanyId = $personRec->buzCompanyId){
     			$form->rec->folderId = crm_Companies::forceCoverAndFolder((object)array('id' => $personCompanyId, 'inCharge' => $inCharge));
     		} else {
+	    		try{
+					expect($personRec || $personId, "Няма визитка на контрактор {$personId}");
+				} catch(core_exception_Expect $e){
+					$e->logError();
+				}
     			
     			// иначе отива в личната папка на лицето
     			$form->rec->folderId = crm_Persons::forceCoverAndFolder((object)array('id' => $personId, 'inCharge' => $inCharge));

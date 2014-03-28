@@ -24,7 +24,11 @@ class marketing_InquiryRouter extends core_Manager
 		
 		// Ако има компания
 		if(empty($rec->company)){
-			
+			try{
+				expect($rec->name, $rec);
+			} catch(core_exception_Expect $e){
+				$e->logError();
+			}
 			// Рутиране на запитване от лице
 			$folderId = $this->routeInquiryFromPerson($rec, $inCharge);
 		} else {

@@ -178,6 +178,12 @@ class marketing_Router extends core_Manager
 		
 		if($person = $query->fetch()){
 			
+			try{
+				expect($person, $person);
+			} catch(core_exception_Expect $e){
+				$e->logError();
+			}
+			
 			return crm_Persons::forceCoverAndFolder((object)array('id' => $person->id, 'inCharge' => $inCharge));
 		}
 	}
@@ -203,6 +209,12 @@ class marketing_Router extends core_Manager
 			$rec->$param = ${$param};
 		}
 		
+		try{
+			expect($rec->name, $rec);
+		} catch(core_exception_Expect $e){
+			$e->logError();
+		}
+				
 		return crm_Persons::forceCoverAndFolder($rec);
 	}
 	
@@ -225,6 +237,12 @@ class marketing_Router extends core_Manager
 		$rec = new stdClass();
 		foreach (array('name', 'email', 'country', 'tel', 'pCode', 'place', 'address', 'inCharge') as $param){
 			$rec->$param = ${$param};
+		}
+		
+		try{
+			expect($rec->name, $rec);
+		} catch(core_exception_Expect $e){
+			$e->logError();
 		}
 		
 		return crm_Companies::forceCoverAndFolder($rec);
@@ -253,6 +271,11 @@ class marketing_Router extends core_Manager
 		}
 		
 		if($company = $query->fetch()){
+			try{
+				expect($company, $company);
+			} catch(core_exception_Expect $e){
+				$e->logError();
+			}
 			
 			return crm_Companies::forceCoverAndFolder((object)array('id' => $company->id, 'inCharge' => $inCharge));
 		}
