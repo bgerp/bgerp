@@ -13,8 +13,8 @@
 							<td> [#id#]</td>
 						</tr>
 						<tr>
-							<td class='dt'>|Отговорник|*:</td>
-							<td> <b>[#chiefId#]</b></td>
+							<td class='dt'>|Отговорници|*:</td>
+							<td> <b>[#chiefs#]</b></td>
 						</tr>
 						<!--ET_BEGIN workersIds-->
 						<tr>
