@@ -10,7 +10,7 @@
 	       <!--ET_BEGIN companiesCnt-->
 	       <td>
 			    <fieldset class="detail-info half-detail " >
-			     <legend>|Фирми|*</legend>
+			     <legend  align="center">|Фирми|*</legend>
 			        <div class="groupList ">
 			         
 			          <div class='counter-link'> [#companiesCnt#]</div>
@@ -22,7 +22,7 @@
 			<!--ET_BEGIN personsCnt-->
 			<td>  
 			    <fieldset class="detail-info half-detail">
-			     <legend>|Лица|*</legend>
+			     <legend  align="center">|Лица|*</legend>
 			        <div class="groupList">
 			            <div class='counter-link'> [#personsCnt#]</div> 
 			        </div>
