@@ -1666,6 +1666,12 @@ efae.prototype.getSubscribed = function()
 	// Обект с резултатите
 	resObj = new Object();
 	
+	// Броя на елементите
+	var cnt = Object.keys(this.subscribedArr).length;
+	
+	// Ако няма елементи, няма нужда да се изпълнява
+	if (!cnt) return resObj;
+	
 	// Текущото време
 	var now = new Date();
 	
