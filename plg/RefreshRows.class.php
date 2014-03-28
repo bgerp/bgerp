@@ -16,6 +16,12 @@ class plg_RefreshRows extends core_Plugin
     
     
     /**
+     * Колко дни да стои в лога
+     */
+    static $logKeepDays = 10;
+    
+    
+    /**
      * Добавя след таблицата
      *
      * @param core_Mvc $mvc
@@ -147,6 +153,9 @@ class plg_RefreshRows extends core_Plugin
             $resObj->arg = array('id'=>$divId, 'html' => $status, 'replace' => TRUE);
             
             $res = array($resObj);
+            
+            // Добавяме в лога
+            core_Logs::add($mvc, NULL, 'AJAX list: ' . $mvc->title, static::$logKeepDays);
         }
         
         return FALSE;
@@ -280,11 +289,7 @@ class plg_RefreshRows extends core_Plugin
         // Ако заявката е по AJAX
         if (Request::get('ajax_mode')) {
             
-            // Добавяме към стринга
-            $detail = 'AJAX: ' . $detail;
-            
-            // Колко дни да стои в лога
-            $logKeepDays = 3;
+            return FALSE;
         }
     }
 }
