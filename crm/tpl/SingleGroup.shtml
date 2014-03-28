@@ -5,6 +5,8 @@
 
 	<div class="block_title state-active special-title">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></div>
 
+<!--ET_BEGIN specialTable-->
+[#specialTable#]
 	<table width=100% class='special-table'>
 	   <tr>
 	       <!--ET_BEGIN companiesCnt-->
@@ -31,7 +33,7 @@
 		    <!--ET_END personsCnt-->
 	   </tr>	
 	</table>
-  
+ <!--ET_END specialTable--> 
 
         <!--ET_BEGIN info-->
 	<fieldset class="detail-info">
