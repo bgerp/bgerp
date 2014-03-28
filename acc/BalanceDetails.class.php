@@ -1092,7 +1092,7 @@ class acc_BalanceDetails extends core_Detail
     	
     	foreach(range(1, 3) as $i){
     		if ($accountRec->{"groupId{$i}"}) {
-    			$row->{"ent{$i}Id"} = acc_Items::getTitleById($rec->{"ent{$i}Id"});
+    			$row->{"ent{$i}Id"} = acc_Items::fetchField($rec->{"ent{$i}Id"}, 'numTitleLink');
     		}
     	}
     	
