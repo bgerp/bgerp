@@ -81,14 +81,14 @@ class core_Ajax extends core_Mvc
             }
             
             // Ако няма масив или масива не е масива
-            if (!is_array($resArr)) {
+//             if (!is_array($resArr)) {
                 
-                // Записваме в лога резултата
-                $resStr = core_Type::mixedToString($resArr);
-                core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr");
+//                 // Записваме в лога резултата
+//                 $resStr = core_Type::mixedToString($resArr);
+//                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr");
                 
-                continue;
-            }
+//                 continue;
+//             }
             
             // Обединяваме масивите
             $jResArr = array_merge($jResArr, $resArr);
