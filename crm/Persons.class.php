@@ -644,13 +644,6 @@ class crm_Persons extends core_Master
         
         // Обновяме номерата
         $mvc->updateNumbers($rec);
-        
-        if(!$rec->name){
-        	try{expect(FALSE);}
-        	catch(core_exception_Expect $e){
-        		$e->logError();
-        	}
-        }
     }
     
     
