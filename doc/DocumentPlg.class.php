@@ -123,8 +123,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->addBtn('Оттегляне', array(
                     $mvc,
                     'reject',
-                    $data->rec->id,
-                    'ret_url' => TRUE
+                    $data->rec->id
                 ),
                 'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32,title=Оттегляне на документа');
         }
@@ -134,8 +133,7 @@ class doc_DocumentPlg extends core_Plugin
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
                     'restore',
-                    $data->rec->id,
-                    'ret_url' => TRUE
+                    $data->rec->id
                 ),
                 'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
         }
