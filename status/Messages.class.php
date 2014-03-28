@@ -243,6 +243,9 @@ class status_Messages extends core_Manager
             // Вземаме непоказаните статус съобщения
             $html = static::getStatusesDiv($hitTime, $idleTime);
             
+            // Ако няма нищо за показване
+            if (!$html) return array();
+            
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'html';

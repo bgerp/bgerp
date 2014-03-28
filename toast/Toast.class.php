@@ -79,6 +79,9 @@ class toast_Toast extends core_Plugin
             // Всички активни статуси за текущия потребител, след съответното време
             $toastJs = static::getStatusesJS($hitTime, $idleTime);
             
+            // Ако няма нищо за показване
+            if (!$toastJs) return array();
+            
             // Добавяме резултата
             $resObj = new stdClass();
             $resObj->func = 'js';
