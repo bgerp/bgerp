@@ -1252,8 +1252,8 @@ class acc_BalanceDetails extends core_Detail
     	$filter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$filter->class = 'simpleForm';
     	
-    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=14em');
-    	$filter->FNC('toDate', 'date', 'caption=До,input,width=14em');
+    	$filter->FNC('fromDate', 'date', 'caption=От,input,width=15em');
+    	$filter->FNC('toDate', 'date', 'caption=До,input,width=15em');
     	$filter->FNC('accId', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
