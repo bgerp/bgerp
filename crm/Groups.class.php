@@ -217,13 +217,17 @@ class crm_Groups extends core_Master
         }
         
         if (!$rec->companiesCnt && $fields['-single']) {
-        	unset($row->companiesCnt);
+        	if ($rec->allow == 'persons') {
+        		unset($row->companiesCnt);
+        	}
         } else {
         	$row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         }
         
         if (!$rec->personsCnt && $fields['-single']) {
-        	unset($row->personsCnt);
+        	if ($rec->allow == 'companies') {
+        		unset($row->personsCnt);
+        	}
         } else {
         	$row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
         }
