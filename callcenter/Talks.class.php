@@ -1615,4 +1615,21 @@ class callcenter_Talks extends core_Master
         // Извикваме линка
         exec("wget -q --spider '{$url}'");
     }
+    
+    
+    /**
+     * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
+     * 
+     * @param string $status
+     * 
+     * @return string
+     * @see plg_RefreshRows
+     */
+    function getContentHash($status)
+    {
+        // Премахваме всички тагове
+        $hash = md5(strip_tags($status));
+        
+        return $hash;
+    }
 }
