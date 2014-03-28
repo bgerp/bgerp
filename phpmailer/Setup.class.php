@@ -68,8 +68,34 @@ defIfNot('PML_HOST', $_SERVER['SERVER_NAME']);
 defIfNot('PML_PORT', 25);
 
 
+/**
+ * Оторизация за SMTP
+ */
+defIfNot('PML_SMTPAUTH', 'FALSE');
+
+
+/**
+ * ПОтребител за SMTP
+ */
+defIfNot('PML_USERNAME', '');
+
+
+/**
+ * Парола за SMTP
+ */
+defIfNot('PML_PASSWORD', '');
+
+
+/**
+ * Парола за SMTP
+ */
+defIfNot('PML_SMTPSECURE', 0);
+
+
+
 // Зареждаме кода на на PHP_Mailer
 require_once(PML_CLASS);
+
 
 /**
  * class phpmailer_Setup
