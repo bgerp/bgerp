@@ -670,6 +670,12 @@ div.acc-detail {
  
  .accToolsCell{
     width: 1%;
+    a.linkWithIcon{
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        padding: 0 !important;
+    }
  }
  
 /*детайли*/
