@@ -119,7 +119,7 @@ class bgerp_Setup {
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,cal,fconv,log,fconv,cms,blogm,forum,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
-                  callcenter,social,hyphen,distro,dec,status";
+                  callcenter,social,hyphen,distro,dec,status,phpmailer";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if(defined('EF_PRIVATE_PATH')) {
