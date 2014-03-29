@@ -97,10 +97,10 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Съкратено име на плащането
-        $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Име,width=100%,  mandatory');
 
         // Текстово описание
-        $this->FLD('description', 'text', 'caption=Описание, mandatory,width=100%');
+        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory,width=100%, ');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,width=7em,hint=Процент,oldFieldName=payAdvanceShare');
@@ -109,7 +109,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('paymentBeforeShipping', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payBeforeReceiveShare');
         
         // Плащане при получаване
-        $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане преди получаване->Дял,width=7em,hint=Процент,oldFieldName=payOnDeliveryShare');
+        $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,width=7em,hint=Процент,oldFieldName=payOnDeliveryShare');
         
         // Колко дни след фактуриране да е балансовото плащане?
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=веднага|15 дни|30 дни|60 дни)', 'caption=Плащане след фактуриране->Срок,width=7em,hint=дни,oldFieldName=payBeforeInvTerm');
@@ -183,9 +183,9 @@ class cond_PaymentMethods extends core_Master
             $res['paymentOnDelivery'] = $rec->paymentOnDelivery * $amount;
         }
 
-        $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipment - $rec->downpayment;
+        $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         
-        if($paymentAfterInvoice > 0) {
+        if($paymentAfterInvoice * $amount > 0) {
             $res['paymentAfterInvoice']       = $paymentAfterInvoice * $amount;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
         }
@@ -205,8 +205,17 @@ class cond_PaymentMethods extends core_Master
 	        	}
 	        }
         }
-        
+         //bp($res, $rec, $amount, $invoiceDate, $verbal, $paymentAfterInvoice);
         return $res;
+    }
+
+
+    /**
+     * Рендиране на условията за плащане
+     */
+    static function renderPaymentPlan($paymentPlanArr) 
+    {
+        
     }
     
     
