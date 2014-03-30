@@ -229,7 +229,7 @@ class crm_Groups extends core_Master
         		unset($row->personsCnt);
         	}
         } else {
-        	$row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Companies', 'groupId' => $rec->id, 'users' => 'all_users')));
+        	$row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id, 'users' => 'all_users')));
         }
         
         $row->name = "<b>$row->name</b>";
