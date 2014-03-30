@@ -48,10 +48,17 @@ class type_Keylist extends core_Type {
         if(empty($value)) return NULL;
         
         $vals = explode($value{0}, $value);
+        if($this->params['makeLinks'] && $mvc = $this->params['mvc']) {
+            $mvc = cls::get($mvc);
+        }
         
         foreach($vals as $v) {
             if($v) {
-                $res .= ($res ? ", " : '') . $this->getVerbal($v);
+                $name = $this->getVerbal($v);
+                if((!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
+                    $name = ht::createLink($name, array($mvc, 'Single', $v));
+                }
+                $res .= ($res ? ", " : '') . $name;
             }
         }
         
