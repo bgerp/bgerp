@@ -594,9 +594,17 @@ class core_App
      *
      * $param string $type Може да бъде relative|absolute|internal
      */
-    public static function toUrl($params = array(), $type = 'relative', $protect = TRUE)
+    public static function toUrl($params = array(), $type = NULL, $protect = TRUE)
     {
         if(!$params) $params = array();
+        
+        if($type === NULL) {
+            if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+                $type = 'absolute';
+            } else {
+                $type = 'relative';
+            }
+        }
 
         // TRUE == 'absolute', FALSE == 'relative'
         if($type === TRUE) {
