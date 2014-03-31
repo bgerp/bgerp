@@ -223,10 +223,10 @@ class core_Ajax extends core_Mvc
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');
         
         // URL от който ще се вика айакса
-        $parentUrl = toUrl(getCurrentUrl(), 'local');
+//        $parentUrl = toUrl(getCurrentUrl(), 'local');
         
         // Задаваме УРЛ-то
-        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
+//        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {
