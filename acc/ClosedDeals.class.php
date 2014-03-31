@@ -306,11 +306,17 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'restore' || $action == 'reject') && isset($rec)){
-    		if(!haveRole('ceo,sales')){
-    			$res = 'no_one';
-    		}
-    	}
+    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
+    	if($action == 'conto' && isset($rec)){
+    		
+	    	$origin = $mvc->getOrigin($rec);
+    		if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
+	    		$originState = $origin->fetchField('state');
+	    		if($originState === 'closed'){
+		        	$res = 'no_one';
+		        }
+	    	}
+        }
     }
     
     
