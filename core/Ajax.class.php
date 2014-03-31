@@ -51,6 +51,15 @@ class core_Ajax extends core_Mvc
         // Резултатния масив
         $jResArr = array();
         
+        // Стойности, които да се игнорират
+        Request::ignoreParams(array('subscribed' => TRUE,
+                					'parentUrl' => TRUE,
+                					'idleTime' => TRUE,
+                					'hitTime' => TRUE,
+                					'ajax_mode' => TRUE,
+                					'refreshUrl' => TRUE,
+                					'divId' => TRUE));
+        
         // Обхождаме всички подадедени локални URL-та
         foreach ((array)$subscribedArr as $name=>$url) {
             
@@ -100,6 +109,9 @@ class core_Ajax extends core_Mvc
             // Обединяваме масивите
             $jResArr = array_merge($jResArr, $resArr);
         }
+        
+        // Нулираме масива за игнориране
+        Request::resetIgnoreParams();
         
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
