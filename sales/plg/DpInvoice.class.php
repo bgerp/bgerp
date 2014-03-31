@@ -23,7 +23,7 @@ class sales_plg_DpInvoice extends core_Plugin
      */
     function on_AfterDescription(core_Mvc $mvc)
     {
-    	if($mvc instanceof sales_Invoices){
+    	if($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices){
     		
     		// Сума на авансовото плащане (ако има)
 	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
@@ -43,7 +43,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	$rec = &$form->rec;
     	
     	// Ако е детайла на фактурата не правим нищо
-        if(!($mvc instanceof sales_Invoices)) return;
+        if(!($mvc instanceof sales_Invoices && $mvc instanceof purchase_Invoices)) return;
     	 
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;

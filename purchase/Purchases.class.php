@@ -311,7 +311,14 @@ class purchase_Purchases extends core_Master
     		if(bank_IncomeDocuments::haveRightFor('add')){
 		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
 		    }
-    	}
+		    
+    		// Ако експедирането е на момента се добавя бутон за нова фактура
+	        $actions = type_Set::toArray($rec->contoActions);
+	    	
+	        if($actions['ship'] && purchase_Invoices::haveRightFor('add') && purchase_Invoices::canAddToThread($rec->threadId)){
+	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
+		    }
+		}
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');

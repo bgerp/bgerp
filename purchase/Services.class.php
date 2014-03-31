@@ -329,6 +329,11 @@ class purchase_Services extends core_Master
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');
     	}
+    	
+    	if($rec->state == 'active' && purchase_Invoices::haveRightFor('add') && purchase_Invoices::canAddToThread($rec->threadId)){
+    		$originId = doc_Threads::getFirstContainerId($rec->threadId);
+	    	$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $originId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
+	    }
 	}
     
     
