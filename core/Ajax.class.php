@@ -42,7 +42,8 @@ class core_Ajax extends core_Mvc
         $parentUrl = Request::get('parentUrl');
         
         // Дали се вика по ajax
-        $ajaxMode = Request::get('ajax_mode');
+//        $ajaxMode = Request::get('ajax_mode');
+        $ajaxMode = 1;
         
         // Ако няма нищо в масив, прекъсваме функцията
         if (!$subscribed) shutdown();
