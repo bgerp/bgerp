@@ -227,7 +227,7 @@ class sales_Proformas extends core_Master
 	    	$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    }
     	
-	    $row->header = "Проформа №<b>{$rec->id}</b> ({$row->state})" ;
+	    $row->header = "{$this->singleTitle} #<b>{$this->abbr}{$rec->id}</b> ({$row->state})" ;
 	    $userRec = core_Users::fetch($rec->createdBy);
 		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
 		
