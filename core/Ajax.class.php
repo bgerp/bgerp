@@ -16,6 +16,12 @@ class core_Ajax extends core_Mvc
     
     
     /**
+     * Колко дни да остане в лога
+     */
+    static $logKeepDays = 3;
+    
+    
+    /**
      * Екшън, който се вика по AJAX и извиква всички подадени URL-та
      */
     function act_Get()
@@ -75,20 +81,20 @@ class core_Ajax extends core_Mvc
             } catch (Exception $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}");
+                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}", static::$logKeepDays);
                 
                 continue;
             }
             
             // Ако няма масив или масива не е масива
-//             if (!is_array($resArr)) {
+             if (!is_array($resArr)) {
                 
-//                 // Записваме в лога резултата
-//                 $resStr = core_Type::mixedToString($resArr);
-//                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr");
+                 // Записваме в лога резултата
+                 $resStr = core_Type::mixedToString($resArr);
+                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr", static::$logKeepDays);
                 
-//                 continue;
-//             }
+                 continue;
+             }
             
             // Обединяваме масивите
             $jResArr = array_merge($jResArr, $resArr);
@@ -131,7 +137,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'");
+            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'", static::$logKeepDays);
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
@@ -182,7 +188,7 @@ class core_Ajax extends core_Mvc
         } else {
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `enable` в `jquery_Jquery`');
+            core_Logs::add('core_Ajax', NULL, 'Липсва метода `enable` в `jquery_Jquery`', static::$logKeepDays);
         }
         
         // Стартираме извикването на `run` фунцкцията на efae
@@ -222,7 +228,7 @@ class core_Ajax extends core_Mvc
             $tpl->prependOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`');
+            core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`', static::$logKeepDays);
         }
     }
 }
