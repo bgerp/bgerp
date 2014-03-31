@@ -25,6 +25,13 @@ class core_Request
      */
     static $vars = array();
     
+    
+    /**
+     * Масив с променливи, които трябва да се игнорират при вземането с getParams()
+     */
+    protected static $ignoreArr = array();
+    
+    
     /**
      * Масив с имена на променливи, които ще се предават/получават от клиента
      * чрез защита, непозволяваща тяхното манипулиране
@@ -241,8 +248,8 @@ class core_Request
             
             foreach ((array)$arr as $name=>$val) {
                 
-                // Ако преди не е сетната стойността, тогава я добавяме в масива
-                if (!isset($paramsArr[$name])) {
+                // Ако преди не е сетната стойността и не е игнорирана, тогава я добавяме в масива
+                if (!isset($paramsArr[$name]) && !isset(self::$ignoreArr[$name])) {
                     $paramsArr[$name] = $val;
                 }
             }
@@ -265,6 +272,26 @@ class core_Request
         }
         
         self::$vars = array_merge($element, self::$vars);
+    }
+    
+    
+    /**
+     * Добавя елементи които да се игнораират при вземането с getParams
+     * 
+     * @param array $array
+     */
+    static function ignoreParams($array)
+    {
+        self::$ignoreArr = array_merge($array, self::$ignoreArr);
+    }
+    
+    
+    /**
+     * Нулира масива за игнориране
+     */
+    static function resetIgnoreParams()
+    {
+        static $ignoreArr = array();
     }
     
     
