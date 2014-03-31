@@ -212,7 +212,7 @@ class acc_plg_Contable extends core_Plugin
             }
             
             // Не може да се контира, ако документа не генерира валидна транзакция
-            if ($rec->isContable == 'no'){
+            if (isset($rec) && $rec->isContable == 'no'){
             	$requiredRoles = 'no_one';
             }
 
