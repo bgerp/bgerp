@@ -477,7 +477,7 @@ class purchase_Purchases extends core_Master
 	    }
 	    
 	    if($fields['-single']){
-		    $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+		    $row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 		    
 	    	$mvc->prepareHeaderInfo($row, $rec);
 	    	

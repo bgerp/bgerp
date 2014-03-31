@@ -324,7 +324,7 @@ class purchase_Services extends core_Master
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
-    	$data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
+    	$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'DealInfo', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг');

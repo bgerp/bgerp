@@ -470,7 +470,7 @@ class marketing_Inquiries extends core_Master
     	}
     	
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . "&nbsp;№<b>{$row->id}</b>" . " ({$row->state})";
+    		$row->header = $mvc->singleTitle . "&nbsp;#<b>{$mvc->abbr}{$row->id}</b>" . " ({$row->state})";
     	
     		// До всяко количество се слага unit с мярката на продукта
     		$Driver = cls::get($rec->drvId);
