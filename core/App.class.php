@@ -451,17 +451,8 @@ class core_App
         // Ако има параметри
         if ($params) {
             
-            $ajaxMode = $params['ajax_mode'];
-            $parentUrl = $params['parentUrl'];
-            
             // Премахваме ненужните
             unset($params['virtual_url'], $params['ajax_mode']);
-            
-            // Ако се вика по AJAX и е зададено URL на таба, който го вика
-            if ($parentUrl && $ajaxMode) {
-                
-                return parseLocalUrl($parentUrl);
-            }
             
             return $params;
         }
