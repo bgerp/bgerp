@@ -43,11 +43,11 @@ class sales_plg_DpInvoice extends core_Plugin
     	$rec = &$form->rec;
     	
     	// Ако е детайла на фактурата не правим нищо
-        if(!($mvc instanceof sales_Invoices && $mvc instanceof purchase_Invoices)) return;
-    	 
+        if(!($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices)) return;
+    	
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;
-        
+        //bp($rec);
         // Намиране на пораждащия се документ
         $origin         = $mvc->getOrigin($rec);
         $originRec      = $origin->fetch();
