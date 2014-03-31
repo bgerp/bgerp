@@ -903,12 +903,13 @@ class sales_Sales extends core_Master
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
-        
+       
         if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
         } else {
-        	// Колко е очакваото авансово плащане
+        	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
+			
         }
         
         // Кои са позволените операции за последващите платежни документи

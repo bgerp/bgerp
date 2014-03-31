@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_plg_DpInvoice extends core_Plugin
+class acc_plg_DpInvoice extends core_Plugin
 {
     
     
@@ -47,7 +47,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;
-        //bp($rec);
+        
         // Намиране на пораждащия се документ
         $origin         = $mvc->getOrigin($rec);
         $originRec      = $origin->fetch();
@@ -155,6 +155,10 @@ class sales_plg_DpInvoice extends core_Plugin
         		
         		$downpayment = (empty($paid->downpayment)) ? $agreed->downpayment : $paid->downpayment;
         		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+        		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    				$vat = 0;
+    			}
+        		
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
         		
 	        	if($rec->dpAmount > $downpayment){
@@ -190,6 +194,7 @@ class sales_plg_DpInvoice extends core_Plugin
     private static function getDpWithoutVat($downpayment, $rec)
     {
     	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+    	
     	$vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($downpayment) * $vat / (1 + $vat) : 0;
     	
     	return  $downpayment - $vatAmount;

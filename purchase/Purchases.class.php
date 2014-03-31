@@ -698,7 +698,7 @@ class purchase_Purchases extends core_Master
         		      $allowedPaymentOperations['supplierAdvance2case'],
         		      $allowedPaymentOperations['bank2supplierAdvance']);
         	} else {
-        		// Колко е очакваото авансово плащане
+        		// Колко е очакваното авансово плащане
         		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
         		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
