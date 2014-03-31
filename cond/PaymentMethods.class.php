@@ -184,10 +184,12 @@ class cond_PaymentMethods extends core_Master
         }
 
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
+        $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
         
-        if($paymentAfterInvoice * $amount > 0) {
-            $res['paymentAfterInvoice']       = $paymentAfterInvoice * $amount;
-            $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
+        if($paymentAfterInvoice > 0) {
+        	
+            $res['paymentAfterInvoice']       = $paymentAfterInvoice;
+            $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate);
         }
         
         return $res;
