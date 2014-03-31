@@ -157,8 +157,8 @@ class fileman_Upload extends core_Manager {
         header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
         
         if(function_exists('uploadprogress_get_info')) {
-            if (@$_GET['id']) {
-                echo json_encode(uploadprogress_get_info($_GET['id']));
+            if (Request::get('progressKey')) {
+                echo json_encode(uploadprogress_get_info(Request::get('progressKey')));
             }
         }
         
@@ -547,7 +547,7 @@ class fileman_Upload extends core_Manager {
             function beginUpload() { 
                 $('#uploadprogressbar').fadeIn();
                 document.getElementById('progress_key').value = document.getElementById('progress_key').value + makeid();
-                setTimeout('showUpload(0)', 2000);
+                setTimeout(function(){showUpload(0);}, 2000);
             }
 
             function makeid()
@@ -568,8 +568,8 @@ class fileman_Upload extends core_Manager {
             function showUpload(i) { 
                 
                      var progress_key = document.getElementById('progress_key').value;
-                 
-                    $.get('{$url}?id=' + progress_key, function(data) {  
+
+                    $.get('{$url}?progressKey=' + progress_key, function(data) {  
                     
                         if (!data)
                             return;
