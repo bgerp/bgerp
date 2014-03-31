@@ -167,7 +167,7 @@ class cond_PaymentMethods extends core_Master
      * 		['paymentAfterInvoice']       - сума за плащане след фактуриране
      * 		['deadlineForBalancePayment'] - крайна дата за окончателно плащане
      */
-    public static function getPaymentPlan($pmId, $amount, $invoiceDate, $verbal = FALSE)
+    public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
         expect($rec = self::fetch($pmId));
 		
@@ -189,33 +189,47 @@ class cond_PaymentMethods extends core_Master
             $res['paymentAfterInvoice']       = $paymentAfterInvoice * $amount;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeForBalancePayment, $invoiceDate);
         }
-
-        if($verbal) {
-        	if(!count($res)) return $res;
-        	
-        	$Double = cls::get('type_Double');
-        	$Double->params['decimals'] = 2;
-        	$Date = cls::get('type_Date');
-        	
-	        foreach($res as $key => &$value){
-	        	if($key != 'deadlineForBalancePayment'){
-	        		$value = $Double->toVerbal($value);
-	        	} else {
-	        		$value = $Date->toVerbal($value);
-	        	}
-	        }
-        }
-         //bp($res, $rec, $amount, $invoiceDate, $verbal, $paymentAfterInvoice);
+        
         return $res;
     }
 
 
+	/**
+     * Подготвя условията за плащане
+     */
+    public static function preparePaymentPlan(&$data, $pmId, $amount, $invoiceDate, $currencyId) 
+    {
+        $planArr = self::getPaymentPlan($pmId, $amount, $invoiceDate);
+        
+        if(count($planArr)){
+        	$Double = cls::get('type_Double');
+        	$Double->params['smartRound'] = 'smartRound';
+        	$Date = cls::get('type_Date');
+        	
+	        foreach($planArr as $key => &$value){
+	        	if($key != 'deadlineForBalancePayment'){
+	        		$value = $Double->toVerbal($value);
+	        		$value = "<span class='cCode'>{$currencyId}</span> {$value}";
+	        	} else {
+	        		$value = $Date->toVerbal($value);
+	        	}
+	        }
+	        
+	        $data->paymentPlan = $planArr;
+        }
+    }
+    
+    
     /**
      * Рендиране на условията за плащане
      */
-    static function renderPaymentPlan($paymentPlanArr) 
+    public static function renderPaymentPlan($paymentArr) 
     {
-        
+    	if(count($paymentArr)){
+    		$tpl = getTplFromFile('cond/tpl/PaymentPlanBlock.shtml');
+    		
+    		return $tpl->placeArray($paymentArr);
+    	}
     }
     
     

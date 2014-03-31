@@ -648,6 +648,10 @@ class sales_Invoices extends core_Master
     	}
     	
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	
+    	if($data->paymentPlan){
+    		$tpl->replace(cond_PaymentMethods::renderPaymentPlan($data->paymentPlan), 'PAYMENT_PLAN');
+    	}
     }
     
     
@@ -792,13 +796,7 @@ class sales_Invoices extends core_Master
     		
     	 	if($rec->paymentMethodId && $rec->type == 'invoice') {
     	 		$total = $rec->_total->amount + $rec->_total->vat - $rec->_total->discount;
-                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $total, $rec->date, TRUE);
-                
-                if(count($plan)){
-                    foreach ($plan as $pName => $pValue){
-                        $data->row->$pName = ($pName != 'deadlineForBalancePayment') ? "<span class='cCode'>{$rec->currencyId}</span>" . " {$pValue}" : $pValue;
-                    }
-                }
+                cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
             }
     	}
     }
