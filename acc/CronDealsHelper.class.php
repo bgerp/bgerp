@@ -143,8 +143,8 @@ class acc_CronDealsHelper
     			$clId = $ClosedDeals->create($this->className, $rec);
     			
     			// Контиране на документа
-    			$ClosedDeals->conto($clId);
-	    
+    			acc_Journal::saveTransaction($ClosedDeals->getClassId(), $clId);
+    			
     			// Продажбата/покупката се отбелязват като птиключени и платени
     			$rec->state = 'closed';
     			$rec->paymentState = 'paid';
