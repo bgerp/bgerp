@@ -500,9 +500,9 @@ class acc_Items extends core_Manager
      */
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
-    	if (!empty($data->form->toolbar->buttons['Запис и Нов'])) {
+    	if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
     		if($data->form->rec->classId && $data->form->rec->objectId){
-    			$data->form->toolbar->removeBtn('Запис и Нов');
+    			$data->form->toolbar->removeBtn('saveAndNew');
     		}
     	}
     }
@@ -797,7 +797,7 @@ class acc_Items extends core_Manager
     	$query = $Class->getQuery();
     	$query->where("#state != 'rejected'");
     	if(count($items)){
-    		$query->notIn('#id', $items);
+    		$query->notIn('id', $items);
     	}
     	$query->show('id');
     	

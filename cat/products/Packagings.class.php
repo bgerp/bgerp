@@ -173,7 +173,7 @@ class cat_products_Packagings extends cat_products_Detail
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if(!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)){
-    		$data->form->toolbar->removeBtn('Запис и Нов');
+    		$data->form->toolbar->removeBtn('saveAndNew');
     	}
     }
     

@@ -82,7 +82,7 @@ class hr_WorkingCycleDetails extends core_Detail
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {           	
     	if(count($data->form->fields['day']->options) <= 1) {
-    		$data->form->toolbar->removeBtn('Запис и Нов');
+    		$data->form->toolbar->removeBtn('saveAndNew');
     	}
     }
 

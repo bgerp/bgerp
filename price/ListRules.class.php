@@ -322,6 +322,19 @@ class price_ListRules extends core_Detail
 
     
     /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if($rec->type == 'groupDiscount'){
+    		$data->form->toolbar->setWarning('save', 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!');
+    		$data->form->toolbar->setWarning('saveAndNew', 'aaaaaaaaa');
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc
