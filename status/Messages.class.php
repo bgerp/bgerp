@@ -216,7 +216,7 @@ class status_Messages extends core_Manager
         if (haveRole('user')) {
             
             // Абонираме статус съобщенията
-            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5);
+            core_Ajax::subscribe($res, array('status_Messages', 'getStatuses'), 'status', 5000);
         }
         
         // Извлича статусите веднага след обновяване на страницата
