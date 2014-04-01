@@ -1,20 +1,19 @@
 <?php
 
 
-
 /**
- * Клас 'editwatch_Plugin' -
+ * Клас 'editwatch_Plugin' - Показвай кой друг освен текущия потребител редактират записа
  *
  *
  * @category  vendors
  * @package   editwatch
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
-class editwatch_Plugin extends core_Plugin {
+class editwatch_Plugin extends core_Plugin
+{
     
     
     /**
@@ -22,10 +21,8 @@ class editwatch_Plugin extends core_Plugin {
      */
     function on_AfterPrepareEditForm(&$mvc, $data)
     {
-        $Editors = cls::get('editwatch_Editors');
-        
-        if(isset($data->form->rec->id) && haveRole('user')) {
-            $data->editedBy = $Editors->getAndSetCurrentEditors($mvc, $data->form->rec->id);
+        if (isset($data->form->rec->id) && haveRole('user')) {
+            $data->editedBy = editwatch_Editors::getAndSetCurrentEditors($mvc, $data->form->rec->id);
         }
     }
     
@@ -33,43 +30,78 @@ class editwatch_Plugin extends core_Plugin {
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    function on_AfterPrepareEditToolbar($mvc, &$tpl, $data)
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if(!$recId = $data->form->rec->id) return TRUE;
+        // id на записа
+        if (!($recId = $data->form->rec->id)) return TRUE;
         
-        if(count($data->editedBy)) {
-            $info = $this->renderStatus($data->editedBy, $mvc, $recId);
+        // Съобщението
+        $status = static::renderStatus($data->editedBy);
+        
+        // Ако не е бил сетнат
+        if (!Mode::get('hitTime')) {
+            
+            // Записваме времето на извикване
+            Mode::set('hitTime', dt::nowTimestamp());
         }
         
-        // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
+        // Времето на извикване на страницата
+        $hitTime = Mode::get('hitTime');
+        
+        // Текущото URL, което ще се използва за обновяване
+        $refreshUrlLocal = toUrl(getCurrentUrl(), 'local');
+        
+        // Вземаме кеша за името
+        $nameHash = static::getNameHash($refreshUrlLocal, $hitTime);
+        
+        // Кеша за съобщението
+        $statusHash = static::getStatusHash($status);
+        
+        // Записваме кеша на съдържанието към името
+        // за да не се използва след обновяване
+        Mode::setPermanent($nameHash, $statusHash);
+        
+        // Ако не е зададено, рефрешът се извършва на всеки 5 секунди
         $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
         
-        $info = new ET("<div id='editStatus'>[#1#]</div>", $info);
+        // Шаблон за информацията
+        $info = new ET("<div id='editStatus'>[#1#]</div>", $status);
         
-        $url = toUrl(array($mvc, 'ajaxGetEditwatchStatus', $recId, 'ajax_mode' => 1));
+        $time = $time / 1000;
         
-        $info->appendOnce("\n runOnLoad(function(){setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'editStatus');}, {$time});});", 'JQRUN');
+        // Абонираме процеса
+        core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
+        // Добавяме информация
         $data->form->info = new core_ET($data->form->info);
         $data->form->info->append($info);
     }
     
     
     /**
-     * @todo Чака за документация...
+     * HTML стринг с хората, които редактират записа, освен текущия потребител
+     * 
+     * @param array $editedBy
+     * 
+     * @return string
      */
-    function renderStatus($editedBy, $mvc, $recId)
+    static function renderStatus($editedBy)
     {
         $info = '<span></span>';
         
-        if(count($editedBy)) {
-            $Users = cls::get('core_Users');
-            $info = "Този запис се редактира също и от: ";
+        if (count($editedBy)) {
+            $info = tr("Този запис се редактира също и от|*: ");
+            $sign = '';
             
-            foreach($editedBy as $userId => $last) {
-                $info .= $sign . "<b>" . $Users->fetchField($userId, 'nick') . "</b>";
+            // Всички потребители, които в момента редактират
+            foreach((array)$editedBy as $userId => $last) {
+                
+                // Линкове към профилите
+                $nick = crm_Profiles::createLink($userId);
+                $info .= $sign . $nick;
                 $sign = ', ';
             }
+            
             $info = "<span class='warningMsg'>$info</span>";
         }
         
@@ -82,42 +114,89 @@ class editwatch_Plugin extends core_Plugin {
      */
     function on_BeforeAction($mvc, &$res, $act)
     {
-        if($act != 'ajaxgeteditwatchstatus') return;
+        if ($act != 'showeditwatchstatus') return;
         
-        if(!haveRole('user')) {
+        $res = array();
+        
+        if (!Request::get('ajax_mode')) return ;
+        
+        $hitTime = Request::get('hitTime', 'int');
+        
+        $refreshUrl = Request::get('refreshUrl');
+        
+        // Ако не е логнат потребител
+        if (!haveRole('user')) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис.');
             $status = "<span class='errorMsg'>$status</span>";
         } else {
             
             $recId = Request::get('id', 'int');
-            $Editors = cls::get('editwatch_Editors');
             $editedBy = array();
             
-            if(isset($recId)) {
-                $editedBy = $Editors->getAndSetCurrentEditors($mvc, $recId);
+            if (isset($recId)) {
+                $editedBy = editwatch_Editors::getAndSetCurrentEditors($mvc, $recId);
             }
             
-            $status = $this->renderStatus($editedBy, $mvc, $recId);
+            $status = static::renderStatus($editedBy);
         }
         
-        $statusHash  = md5($status);
+        // Хеша на съобщението
+        $statusHash = static::getStatusHash($status);
         
-        $savedName    = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
-        $savedHash    = Mode::get($savedName);
+        // Хеша на името
+        $nameHash    = static::getNameHash($refreshUrl, $hitTime);
+        
+        // Вземаме съдържанието от предишния запис
+        $savedHash = Mode::get($nameHash);
         
         if(empty($savedHash)) $savedHash = md5($savedHash);
         
-        if($statusHash != $savedHash) {
+        // Ако са различни
+        if ($statusHash != $savedHash) {
             
-            Mode::setPermanent($savedName, $statusHash);
+            // Записваме в сесията
+            Mode::setPermanent($nameHash, $statusHash);
             
-            $res = new stdClass();
-
-            $res->content = $status;
+            // Добавяме резултата
+            $resObj = new stdClass();
+            $resObj->func = 'html';
+            $resObj->arg = array('id'=>'editStatus', 'html' => $status, 'replace' => TRUE);
             
-            echo json_encode($res);
+            $res = array($resObj);
         }
         
-        die;
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща хеша от URL-то и времето на извикване на страницата
+     * 
+     * @param array $refreshUrl
+     * @param integer $hitTime
+     */
+    static function getNameHash($refreshUrl, $hitTime)
+    {
+        // От URL-то и hitTime генерираме хеша за името
+        $nameHash = md5(toUrl($refreshUrl) . $hitTime);
+        
+        // Името на хеша, с който е записан в сесията
+        $nameHash = "REFRESH_ROWS_" . $nameHash;
+        
+        return $nameHash;
+    }
+    
+    
+    /**
+     * Връща хеша за съответния текст
+     * 
+     * @param string $status
+     * 
+     * @return string
+     */
+    static function getStatusHash($status)
+    {
+        
+        return md5($status);
     }
 }

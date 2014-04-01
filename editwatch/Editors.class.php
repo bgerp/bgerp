@@ -31,17 +31,17 @@ class editwatch_Editors extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function getAndSetCurrentEditors($mvcName, $recId, $userId = NULL)
+    static function getAndSetCurrentEditors($mvcName, $recId, $userId = NULL)
     {
         
-        return $this->getCurrentEditors($mvcName, $recId, $userId, TRUE);
+        return static::getCurrentEditors($mvcName, $recId, $userId, TRUE);
     }
     
     
     /**
      * @todo Чака за документация...
      */
-    function getCurrentEditors($mvcName, $recId, $userId = NULL, $setEditor = FALSE)
+    static function getCurrentEditors($mvcName, $recId, $userId = NULL, $setEditor = FALSE)
     {
         $res = array();
         
@@ -56,15 +56,15 @@ class editwatch_Editors extends core_Manager {
         
         if($setEditor) {
             $rec = new stdClass();
-            $rec->id = $this->fetchField("#userId = {$userId} AND #mvcName = '{$mvcName}' AND #recId = {$recId}", 'id');
+            $rec->id = static::fetchField("#userId = {$userId} AND #mvcName = '{$mvcName}' AND #recId = {$recId}", 'id');
             $rec->lastEdit = DT::verbal2mysql();
             $rec->userId = $userId;
             $rec->recId = $recId;
             $rec->mvcName = $mvcName;
-            $this->save($rec);
+            static::save($rec);
         }
         
-        $query = $this->getQuery();
+        $query = static::getQuery();
         
         $before1min = dt::timestamp2Mysql(time()-7);
         
