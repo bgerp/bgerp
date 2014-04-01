@@ -735,7 +735,7 @@ class purchase_Invoices extends core_Master
     		$data->summary = price_Helper::prepareSummary($rec->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     		
-    	 	if($rec->paymentMethodId && $rec->type == 'invoice') {
+    	 	if($rec->paymentMethodId && $rec->type == 'invoice' && $rec->dpOperation != 'accrued') {
     	 		$total = $rec->_total->amount + $rec->_total->vat - $rec->_total->discount;
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
             }
