@@ -1628,7 +1628,7 @@ class callcenter_Talks extends core_Master
     function getContentHash($status)
     {
         // Премахваме всички тагове
-        $hash = md5(strip_tags($status));
+        $hash = md5(trim(strip_tags($status)));
         
         return $hash;
     }
