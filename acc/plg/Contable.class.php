@@ -116,14 +116,13 @@ class acc_plg_Contable extends core_Plugin
 
         if ($mvc->haveRightFor('conto', $rec)) {
 
-        	// Ако документа е в бъдещ/затворен или несъществуващ период,
-        	// бутона става не-активен
+        	// Ако документа е в бъдещ/затворен или несъществуващ период, бутона става не-активен
         	$docPeriod = acc_Periods::fetchByDate($rec->valior);
         	if($docPeriod){
 	        	if($docPeriod->state == 'closed'){
-	        		$error = ",error=Не може да се контира в затворен сч. период";
-	        	} elseif($docPeriod->end > acc_Periods::getPeriodEnd()){
-	        		$error = ",error=Не може да се контира в бъдещ сч. период";
+	        		$error = ",error=Не може да се контира в затворения сч. период \'{$docPeriod->title}\'";
+	        	} elseif($docPeriod->state == 'draft'){
+	        		$error = ",error=Не може да се контира в бъдещия сч. период \'{$docPeriod->title}\'";
 	        	}
         	} else {
         		$error = ",error=Не може да се контира в несъществуващ сч. период";
@@ -133,8 +132,7 @@ class acc_plg_Contable extends core_Plugin
             
         	// Урл-то за контиране
         	$contoUrl = $mvc->getContoUrl($rec->id);
-        	
-            $data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+        	$data->toolbar->addBtn($caption, $contoUrl, "id=btnConto,warning=Наистина ли желаете документа да бъде контиран?{$error}", 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
         }
         
         if ($mvc->haveRightFor('revert', $rec)) {
@@ -347,7 +345,7 @@ class acc_plg_Contable extends core_Plugin
     
     
 	/**
-     * Ре контиране на счетоводен документ
+     * Ре-контиране на счетоводен документ
      * 
      * @param core_Mvc $mvc
      * @param mixed $res
