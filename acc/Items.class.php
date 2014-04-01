@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -101,7 +101,7 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=nameLink)', 'caption=Номенклатури,input');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
@@ -194,7 +194,6 @@ class acc_Items extends core_Manager
             $num = str_replace('&nbsp;', '', $num);
         }
     }
-    
     
     
     /**
@@ -558,7 +557,7 @@ class acc_Items extends core_Manager
         $tpl->append(tr('Номенклатури'), 'title');
         
         if($data->canChange && !Mode::is('printing')) {
-            $url = array(get_called_class(), 'edit', 'classId'=>$masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
+            $url = array(get_called_class(), 'edit', 'classId' => $masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
             $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16' />";
             $tpl->append(
                 ht::createLink(
@@ -776,7 +775,7 @@ class acc_Items extends core_Manager
     			}
     		}
     		
-    		return followRetUrl(NULL, 'Перата са добавени успешно');
+    		return followRetUrl(NULL, tr('Перата са добавени успешно'));
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
