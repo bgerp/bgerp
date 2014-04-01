@@ -420,6 +420,37 @@ class acc_Items extends core_Manager
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'add' && isset($rec->lists)){
+    		if(!is_array($rec->lists)) return;
+    		
+    		// Ако избраната номенклатура има изискване за интерфейси
+    		$listRec = acc_Lists::fetch(reset($rec->lists));
+    		if($listRec->regInterfaceId){
+	    		$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
+    			$options = core_Classes::getOptionsByInterface($intName);
+	    		
+    			// Ако е само един наличния мениджър и той има 'autoList' с тази
+    			// номенклатура, неможе да се добавя перо от тук.
+    			if(count($options) == 1){
+	    			$Class = cls::get(reset($options));
+	    			if(isset($Class->autoList) && $Class->autoList == $listRec->systemId){
+	    				$res = 'no_one';
+	    			}
+	    		}
+	    	}
+    	}
+    	
+    	// Дали може да се импортират данни от мениджъри отговарящи на наличния интерфейс
+    	if($action == 'insert' && isset($rec->listId)){
+    		$res = $mvc->getRequiredRoles('add', (object)array('lists' => arr::make($rec->listId, TRUE)));
+    		$listRec = acc_Lists::fetch($rec->listId);
+    		
+    		// Ако избраната номенклатура, няма интерфейс - не може
+    		if(empty($listRec->regInterfaceId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -473,25 +504,28 @@ class acc_Items extends core_Manager
     }
     
     
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
+	/**
+     * Предефиниране на подготовката на лентата с инструменти за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    function prepareListToolbar_(&$data)
     {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-    		if($listId = $mvc->getCurrentListId()){
-    			expect($listRec = acc_Lists::fetch($listId));
-    			
-	    		if($listRec->regInterfaceId){
-	    			$data->toolbar->removeBtn('btnAdd');
-	    			if(haveRole('ceo,accMaster')){
-	    				$data->toolbar->addBtn("Избор", array($mvc, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
-	    			}
-	    		} else {
-	    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
-	    		}
-    		}
-    	}
+        $data->toolbar = cls::get('core_Toolbar');
+        
+        $listId = $this->getCurrentListId();
+        if($listId){
+        	// Проверка можели да добавяме записи пък това перо
+	        if ($this->haveRightFor('add', (object)array('lists' => arr::make($listId, TRUE)))) {
+	            $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+	        }
+	        
+	        // Можели да импортираме от модел, ако да махаме бутона за нормално добавяне
+        	if($this->haveRightFor('insert', (object)array('listId' => $listId))){
+	    		$data->toolbar->removeBtn('btnAdd');
+        		$data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
+	    	}
+        }
+        
+        return $data;
     }
     
     
@@ -714,8 +748,8 @@ class acc_Items extends core_Manager
      */
     function act_Insert()
     {
-    	requireRole('ceo,accMaster');
     	expect($listId = Request::get('listId', 'int'));
+    	$this->requireRightFor('insert', (object)array('listId' => $listId));
     	expect($listRec = acc_Lists::fetch($listId));
     	expect($listRec->regInterfaceId);
     	
