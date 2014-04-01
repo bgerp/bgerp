@@ -137,9 +137,9 @@ class core_Ajax extends core_Mvc
      * @param core_ET $tpl - Щаблон, към който ще се добавя
      * @param array $urlArr - Масив, от който ще се генерира локално URL
      * @param string $name - Уникално име
-     * @param double $interval - Интервал на извикване в секунди
+     * @param int $interval - Интервал на извикване в секунди
      */
-    static function subscribe(&$tpl, $urlArr, $name, $interval=5)
+    static function subscribe(&$tpl, $urlArr, $name, $interval=5000)
     {
         // Масив с всички използвани имена
         static $nameArr=array();
@@ -165,9 +165,6 @@ class core_Ajax extends core_Mvc
         
         // Добавяме необходимите неща за стартиране на efae
         static::enable($tpl);
-        
-        // Интервала в милисекунди
-        $interval *= 1000;
         
         // Локално URL
         $localUrl = toUrl($urlArr, 'local');
