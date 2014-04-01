@@ -751,14 +751,13 @@ class acc_Items extends core_Manager
     	expect($listId = Request::get('listId', 'int'));
     	$this->requireRightFor('insert', (object)array('listId' => $listId));
     	expect($listRec = acc_Lists::fetch($listId));
-    	expect($listRec->regInterfaceId);
     	
     	$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
     	$options = core_Classes::getOptionsByInterface($intName);
     	$listTitle = acc_Lists::fetchField($listId, 'name');
     	
     	$form = cls::get('core_Form');
-    	$form->title = "Добавяне на пера към номенклатура '{$listTitle}'";
+    	$form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
     	foreach ($options as $className){
     		$this->prepareInsertForm($form, $className, $listId);
     	}
