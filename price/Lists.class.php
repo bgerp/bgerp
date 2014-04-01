@@ -39,7 +39,7 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, parent, createdOn, createdBy';
+    var $listFields = 'id, title, public, parent, createdOn, createdBy';
     
     
     /**
@@ -161,9 +161,8 @@ class price_Lists extends core_Master
 	        if($rec->cId && $rec->cClass){
 	        	$rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
 	            $cond = "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')";
-	        	if(haveRole('price,ceo')) {
-	        		$cond .= " OR #public = 'no' OR #public IS NULL";
-	        	}
+	        	$cond .= " OR #public = 'no' OR #public IS NULL";
+	        	
 	            $parentOptions = self::makeArray4select('title', $cond);
 	            $form->setOptions('parent', $parentOptions);
 	        } else {
