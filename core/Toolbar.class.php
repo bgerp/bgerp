@@ -128,6 +128,44 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
+     * Добавя атрибут 'warning' на избраните бутони
+     * 
+     * @param mixed $ids - масив с ид-та на бутони
+     * @param string $error - съобщение за грешка
+     */
+    function setWarning($ids, $warning)
+    {
+    	$ids = arr::make($ids, TRUE);
+    	expect(count($ids));
+    	
+    	$buttons = (isset($ids['*'])) ? $this->buttons : $ids;
+    	foreach($buttons as $id => $btn){
+    		expect($this->buttons[$id]);
+    	 	$this->buttons[$id]->warning = $warning;
+    	}
+    }
+    
+    
+    /**
+     * Добавя атрибут 'error' на избраните бутони
+     * 
+     * @param mixed $ids - масив с ид-та на бутони
+     * @param string $error - съобщение за грешка
+     */
+	function setError($ids, $error)
+    {
+    	$ids = arr::make($ids, TRUE);
+    	expect(count($ids));
+    	
+    	$buttons = (isset($ids['*'])) ? $this->buttons : $ids;
+    	foreach($buttons as $id => $btn){
+    		expect($this->buttons[$id]);
+    	 	$this->buttons[$id]->error = $error;
+    	}
+    }
+    
+    
+    /**
      * Добавя hidden input полета до лентата с инструменти
      */
     function setHidden($arr)
