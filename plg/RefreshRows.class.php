@@ -53,9 +53,6 @@ class plg_RefreshRows extends core_Plugin
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
             $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
             
-            // Времето за рефреш
-            $time = $time/1000;
-            
             // Името с което ще се добави в масива
             $name = $mvc->className . '_RefreshRows';
             
