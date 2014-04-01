@@ -51,7 +51,7 @@ class toast_Toast extends core_Plugin
         if (haveRole('user')) {
             
             // Абонираме статус съобщенията
-            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5);
+            core_Ajax::subscribe($tpl, array('toast_Toast', 'getStatuses'), 'status', 5000);
         }
         
         // Извлича статусите веднага след обновяване на страницата
