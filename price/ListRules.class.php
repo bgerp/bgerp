@@ -328,8 +328,9 @@ class price_ListRules extends core_Detail
     {
     	$rec = $data->form->rec;
     	if($rec->type == 'groupDiscount'){
-    		$data->form->toolbar->setWarning('save', 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!');
-    		$data->form->toolbar->setWarning('saveAndNew', 'aaaaaaaaa');
+    		$msg = 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!';
+    		$data->form->toolbar->setWarning('save', $msg);
+    		$data->form->toolbar->setWarning('saveAndNew', $msg);
     	}
     }
     
