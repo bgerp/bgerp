@@ -450,7 +450,7 @@ class bgerp_Notifications extends core_Manager
     {
         $tpl = new ET();
         
-        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5);
+        core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5000);
         
         return $tpl;
     }
