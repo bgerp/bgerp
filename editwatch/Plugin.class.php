@@ -67,8 +67,6 @@ class editwatch_Plugin extends core_Plugin
         // Шаблон за информацията
         $info = new ET("<div id='editStatus'>[#1#]</div>", $status);
         
-        $time = $time / 1000;
-        
         // Абонираме процеса
         core_Ajax::subscribe($info, array($mvc, 'showEditwatchStatus', $recId, 'refreshUrl' => $refreshUrlLocal), 'editwatch', $time);
         
