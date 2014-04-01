@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId, price';
+    var $searchFields = 'productId, groupId, price';
     
     
     /**
@@ -119,6 +119,18 @@ class price_ListRules extends core_Detail
     }
     
     
+    /**
+     * След генериране на ключовите думи
+     */
+    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+     	if($rec->productId){
+     		$code = cat_Products::getVerbal($rec->productId, 'code');
+     		$res .= " " . plg_Search::normalizeText($code);
+     	}
+    }
+     
+     
     /**
 	 *  Подготовка на филтър формата
 	 */
@@ -488,7 +500,7 @@ class price_ListRules extends core_Detail
         if($rec->productId) {
         	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
         } elseif($rec->groupId) {
-            $row->domain = tr('група ') . $mvc->getVerbal($rec, 'groupId');
+            $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
             $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
         }
         
