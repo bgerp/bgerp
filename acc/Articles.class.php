@@ -394,24 +394,16 @@ class acc_Articles extends core_Master
      */
     function act_RevertArticle()
     {
-    	expect($this->haveRightFor('write'));
+    	$this->requireRightFor('write');
     	expect($docClassId = Request::get('docType', 'int'));
     	expect($docId = Request::get('docId', 'int'));
     	
     	$DocClass = cls::get($docClassId);
-    	expect($DocClass->haveRightFor('correction', $docId));
+    	$DocClass->requireRightFor('correction', $docId);
     	expect($journlRec = acc_Journal::fetchByDoc($docClassId, $docId));
 		expect($result = static::createReverseArticle($journlRec));
     	
-    	if(cls::haveInterface('doc_DocumentIntf', $docClassId)){
-    		
-    		// Ако е документ ориджина на обратната статия, редирект към сингъла му
-    		return Redirect(array(cls::get($docClassId), 'single', $docId), FALSE, "Създаден е успешно обратен Мемориален ордер");
-    	} else {
-    		
-    		// Ако не е документ, редирект към сингъла на създадената статия в папка "Сторно"
-    		return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
-    	}
+    	return Redirect(array('acc_Articles', 'single', $result[1]), FALSE, "Създаден е успешно обратен Мемориален ордер");
     }
     
     
