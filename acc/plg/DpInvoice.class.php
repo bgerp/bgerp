@@ -70,7 +70,7 @@ class acc_plg_DpInvoice extends core_Plugin
     	}
     	
         // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} без ДДС");
+        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} |без ДДС|*");
         $form->setField('dpOperation','input');
         
         // Показване на закръглената сума
@@ -162,7 +162,7 @@ class acc_plg_DpInvoice extends core_Plugin
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
         		
 	        	if($rec->dpAmount > $downpayment){
-	            	$form->setError('dpAmount', "Въведената сума е по-голяма от очаквания аванс от '{$downpayment}' без ДДС");
+	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
 	            
         		if($rec->dpAmount < 0){
@@ -175,7 +175,7 @@ class acc_plg_DpInvoice extends core_Plugin
         		}
         		
         		if(empty($invoiced->downpayment)){
-        			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ддс за аванс');
+        			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
         		} else {
         			if(abs($rec->dpAmount) > ($invoiced->downpayment - $invoiced->downpaymentDeducted)){
         				$form->setWarning('dpAmount', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
