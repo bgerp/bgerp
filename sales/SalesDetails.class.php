@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -424,7 +424,7 @@ class sales_SalesDetails extends core_Detail
                 );
             
                 if (empty($policyInfo->price)) {
-                    $form->setError('price', "Артикула няма цена към дата '{$priceAtDate}'");
+                    $form->setError('price', "Артикула няма цена към дата|* '{$priceAtDate}'");
                 }
                 
                 $rec->price = $policyInfo->price;

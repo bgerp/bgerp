@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -310,7 +310,7 @@ class purchase_PurchasesDetails extends core_Detail
             $rec = &$form->rec;
 
     		if($rec->packQuantity == 0){
-    			$form->setError('packQuantity', 'Количеството не може да е "0"');
+    			$form->setError('packQuantity', 'Количеството не може да е|* "0"');
     		}
     		
             $masterRec  = purchase_Purchases::fetch($rec->{$mvc->masterKey});
@@ -346,7 +346,7 @@ class purchase_PurchasesDetails extends core_Detail
             } else {
                 // Покупка на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', "Артикула няма цена към дата '{$masterRec->date}'");
+                    $form->setError('packagingId', "Артикула няма цена към дата|* '{$masterRec->date}'");
                     return;
                 }
                 
