@@ -76,6 +76,9 @@ class gps_Log extends core_Manager
      */
     private function parseGPSData($data)
     {
+        // Взимаме GPRMC sentence 
+        $dataGPS = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
+        $CRC = substr($data, strpos($data, '*'), 2);
         
         return $res;
     }
@@ -95,14 +98,20 @@ class gps_Log extends core_Manager
 
     
     /**
-     * Връща Tracker данните
+     * Изчислява CRC
      * 
      * @param string GPRMC стринг
-     * @return boolean - валидна ли е CRC сумата
+     * @return string - CRC сумата
      */
-    private function checkCRC($dataGPS)
+    private function getCRC($dataGPS)
     {
+        $crc = 0;
+        $len = strlen($dataGPS);
+        for ($i=0; $i<$len; $i++) {
+            $crc ^= ord($dataGPS[$i]);
+            //echo ("<li>$dataGPS[$i]  --  " . $crc . "  ------ " . dechex($crc));
+        }
         
-        return $res;
+        return dechex($crc);
     }
 }

@@ -49,12 +49,19 @@ do {
         default : // Ако са данни различни от команда ги пращаме към bgERP-a
             $url = "http://bgerp.local/gps_Log/Log/?";
             $trackerData = splitData($string);
+            
+            if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
+                // Гласим параметрите за URL-то да пратят грешка
+                $trackerData['ID'] = 'CRC Error';
+                $trackerData['data'] = '';
+            }
+            
             $params = array('trackerId'=>$trackerData['ID'],
                     'data'=>$trackerData['data'],
                     'remoteIp'=>$peer);
             
             $url .= http_build_query($params);
-            //die($url);
+            
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -77,13 +84,17 @@ function splitData($string)
     $res['ID'] = toHex(substr($string, 4, 6)); // Последното от ID-то е винаги ff - и го прескачаме
     $res['CMD'] = toHex(substr($string, 11, 3)); // Команда
     $res['data'] = substr($string, 13, strlen($string) - 4 - 13); // Основни данни - тракер + GPRMC sentense
-    $res['CRC'] = toHex(substr($string, strlen($string) - 4, 2)); // Контролна сума
+    $res['CRC'] = toHex(substr($string, hexdec($res['L']) - 4, 2)); // Контролна сума
+    $res['allData'] = substr($string, 0, hexdec($res['L']) - 4);
 
     return $res;
 }
 
-function toHex ($str) {
+function toHex ($str)
+{
+
     $res = '';
+    
     for ($i = 0; $i<strlen($str); $i++) {
         $input = dechex(ord($str{$i}));
 //      $res .= str_pad($input, 2, "0", STR_PAD_LEFT) . " ";
@@ -91,4 +102,18 @@ function toHex ($str) {
     }
 
     return $res;
+}
+
+function crc16($data)
+{
+    $crc = 0xFFFF;
+    
+    for ($i = 0; $i < strlen($data); $i++)
+    {
+        $x = (($crc >> 8) ^ ord($data[$i])) & 0xFF;
+        $x ^= $x >> 4;
+        $crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
+    }
+    
+   return dechex($crc);
 }
