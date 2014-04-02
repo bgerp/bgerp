@@ -390,7 +390,7 @@ class cat_Products extends core_Master {
         }
         
         if ($data->listFilter->rec->groupId) {
-            $data->query->where("#groups LIKE '|{$data->listFilter->rec->groupId}|'");
+            $data->query->where("#groups LIKE '%|{$data->listFilter->rec->groupId}|%'");
         }
         
         if ($data->listFilter->rec->meta && $data->listFilter->rec->meta != 'all') {
