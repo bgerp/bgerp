@@ -761,6 +761,10 @@ class purchase_Purchases extends core_Master
             $p->volume  = $ProductMan->getVolume($p->productId);
             
             $result->agreed->products[] = $p;
+            
+        	if (isset($actions['ship'])) {
+            	$result->shipped->products[] = clone $p;
+            }
         }
         
         return $result;
