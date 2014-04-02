@@ -630,7 +630,7 @@ class purchase_Purchases extends core_Master
     	// Ако има склад, се нотифицира отговорника му
     	if(empty($actions['ship']) && $rec->shipmentStoreId){
     		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $toChiefs);
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
     	}
     		
     	// Ако има каса се нотифицира касиера
