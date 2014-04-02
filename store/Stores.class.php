@@ -53,7 +53,7 @@ class store_Stores extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,store';
+    var $canEdit = 'ceo,storeMaster';
     
     
     /**
@@ -260,7 +260,7 @@ class store_Stores extends core_Master
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
-			$data->query->orLike('chiefs', "|$cu|");
+			$data->query->like('chiefs', "|$cu|");
 			$data->query->orLike('workersIds', "|$cu|");
 		}
 	}
