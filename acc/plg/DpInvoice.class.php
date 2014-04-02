@@ -70,7 +70,7 @@ class acc_plg_DpInvoice extends core_Plugin
     	}
     	
         // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} |без ДДС|*");
+        $form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
         $form->setField('dpOperation','input');
         
         // Показване на закръглената сума

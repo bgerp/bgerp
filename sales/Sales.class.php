@@ -1066,15 +1066,16 @@ class sales_Sales extends core_Master
     {
     	// Кои потребители ще се нотифицират
     	$rec->sharedUsers = '';
-    		
+		$actions = type_Set::toArray($rec->contoActions);
+    	
     	// Ако има склад, се нотифицира отговорника му
-    	if($rec->shipmentStoreId){
+    	if(empty($actions['ship']) && $rec->shipmentStoreId){
     		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $toChiefs);
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if($rec->caseId){
+    	if(empty($actions['pay']) && $rec->caseId){
     		$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
     	}
