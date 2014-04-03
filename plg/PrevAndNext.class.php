@@ -87,7 +87,7 @@ class plg_PrevAndNext extends core_Plugin
 		        $mvc->requireRightFor('single');
 		    }
 		        
-	        $mvc->requireRightFor('edit', $data->rec);
+	        $mvc->requireRightFor('single', $data->rec);
 				
 	        $data->buttons = new stdClass();
         	$data->buttons->prevId = $this->getNeighbour($mvc, $data->rec, -1);
