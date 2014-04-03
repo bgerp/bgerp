@@ -93,7 +93,7 @@ class sales_Sales extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
+    public $listFields = 'id, valior, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
@@ -569,7 +569,8 @@ class sales_Sales extends core_Master
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    }
+	    	$row->paymentState = ($rec->paymentState == 'overdue') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
+    	}
 	    
 	    if($fields['-single']){
 	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
