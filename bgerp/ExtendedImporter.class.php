@@ -112,6 +112,6 @@ class bgerp_ExtendedImporter extends core_Manager {
      */
     public function isApplicable($className)
     {
-    	return $className == 'cat_Products';
+    	return TRUE;
     }
 }
