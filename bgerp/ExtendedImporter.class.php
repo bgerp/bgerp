@@ -77,23 +77,25 @@ class bgerp_ExtendedImporter extends core_Manager {
     	
     	foreach ($rows as $row){
     		$rec = new stdClass();
-    		$where = '';
+    		
     		foreach($fields as $name => $position){
     			if($position != -1){
     				$value = $row[$position];
     				$rec->{$name} = $value;
-    				$where .= (($where) ? ' AND ' : ' ') . "#{$name} = '{$value}'";
     			}
     		}
     		
-    		if($rec->id = $this->mvc->fetchField($where, 'id')){
+    		// Ако записа е уникален, създаваме нов, ако не е обновяваме стария
+    		$fieldsUn = array();
+    		if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
+    			$rec->id = $exRec->id;
     			$updated++;
     		} else {
     			$created++;
     		}
     		
+    		// Запис в модела
     		$this->mvc->save($rec);
-    		
     	}
     	
     	core_Debug::stopTimer('import');
@@ -110,6 +112,6 @@ class bgerp_ExtendedImporter extends core_Manager {
      */
     public function isApplicable($className)
     {
-    	return TRUE;
+    	return $className == 'cat_Products';
     }
 }
