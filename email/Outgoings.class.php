@@ -1664,7 +1664,7 @@ class email_Outgoings extends core_Master
             $rec->state = 'closed';
             
             // Записваме само състоянието
-            if (static::save($rec, 'state')) {
+            if ($mvc->save_($rec, 'state')) {
                 
                 // Увеличаваме броя на направените записи
                 $sCnt++;
