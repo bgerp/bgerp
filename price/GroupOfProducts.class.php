@@ -198,7 +198,7 @@ class price_GroupOfProducts extends core_Detail
         foreach ($products as $id => &$product){
         	if($groupId = $mvc->getGroup($id, $now)){
         		$groupTitle = price_Groups::getTitleById($groupId);
-        		$product .=  " " . tr('група') . " {$groupTitle}";
+        		$product .=  " -- " . tr('група') . " {$groupTitle}";
         	}
         }
         
