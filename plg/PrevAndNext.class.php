@@ -4,6 +4,7 @@
 
 /**
  * Клас 'plg_PrevAndNext' - Добавя бутони за предишен и следващ във форма за редактиране
+ * и при разглеждането на няколко записа
  *
  *
  * @category  ef
@@ -21,6 +22,7 @@ class plg_PrevAndNext extends core_Plugin
     {
         $mvc->doWithSelected = arr::make($mvc->doWithSelected, TRUE);
         $mvc->doWithSelected['edit'] = 'Редактиране';
+        $mvc->doWithSelected['browse'] = 'Преглед';
     }
 
     /**
@@ -46,19 +48,80 @@ class plg_PrevAndNext extends core_Plugin
     
     
     /**
+     * Позволява преглед на няколко избрани записа на техните сингли
+     */
+    function on_BeforeAction(core_Manager $mvc, &$res, $action)
+    {
+        if ($action == 'browse') {
+        	
+        	$mvc->requireRightFor('browse');
+        	
+	        $selKey = static::getModeKey($mvc);
+			$id = Request::get('id', 'int');
+	        
+	        if($sel = Request::get('Selected')) {
+				$data = new stdClass();
+	        	
+	            // Превръщаме в масив, списъка с избраниуте id-та
+	            $selArr = arr::make($sel);
+	
+	            // Записваме масива в сесията, под уникален за модела ключ
+	            Mode::setPermanent($selKey, $selArr);
+	            
+	            // Зареждаме id-то на първия запис за редактиране
+	            expect(ctype_digit($id = $selArr[0]));
+	            
+	        } elseif(Request::get('PrevAndNext')) {
+				
+	            // Изтриваме в сесията, ако има избрано множество записи 
+	            Mode::setPermanent($selKey, NULL);
+	            
+	        }
+        	
+	        expect($data->rec = $mvc->fetch($id));
+	            
+	        // Трябва да има $rec за това $id
+		      if(!($data->rec)) { 
+		            
+		        // Имаме ли въобще права за единичен изглед?
+		        $mvc->requireRightFor('single');
+		    }
+		        
+	        $mvc->requireRightFor('edit', $data->rec);
+				
+	        $data->buttons = new stdClass();
+        	$data->buttons->prevId = $this->getNeighbour($mvc, $data->rec, -1);
+        	$data->buttons->nextId = $this->getNeighbour($mvc, $data->rec, +1);
+        		
+	        // Подготвяме данните за единичния изглед
+		    $mvc->prepareSingle($data);
+		        
+		    // Рендираме изгледа
+		    $tpl = $mvc->renderSingle($data);
+		        
+		    // Опаковаме изгледа
+		    $tpl = $mvc->renderWrapping($tpl, $data);
+		        
+		    $res = $tpl;
+		        
+        	return FALSE;
+   		}
+    }
+    
+    /**
      * Връща id на съседния запис в зависимост next/prev
      *
      * @param stdClass $data
      * @param string $dir
      */
-    private function getNeighbour($mvc, $data, $dir)
-    {   
-        $id = $data->form->rec->id;
+    private function getNeighbour($mvc, $rec, $dir)
+    { 
+        $id = $rec->id;
         if(!$id) return;
 
         $selKey = static::getModeKey($mvc);
         $selArr = Mode::get($selKey);
-
+		
         if(!count($selArr)) return;
         $selId = array_search($id, $selArr);
         if($selId === FALSE) return;
@@ -86,7 +149,7 @@ class plg_PrevAndNext extends core_Plugin
 
             // Превръщаме в масив, списъка с избраниуте id-та
             $selArr = arr::make($sel);
-
+			
             // Записваме масива в сесията, под уникален за модела ключ
             Mode::setPermanent($selKey, $selArr);
             
@@ -103,10 +166,10 @@ class plg_PrevAndNext extends core_Plugin
             // Изтриваме в сесията, ако има избрано множество записи 
             Mode::setPermanent($selKey, NULL);
         }
-
+		
         $data->buttons = new stdClass();
-        $data->buttons->prevId = $this->getNeighbour($mvc, $data, -1);
-        $data->buttons->nextId = $this->getNeighbour($mvc, $data, +1);
+        $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
+        $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
     }
     
     
@@ -137,11 +200,58 @@ class plg_PrevAndNext extends core_Plugin
     }
 
 
+	/**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+     	$selKey = static::getModeKey($mvc);
+        
+        if(Mode::is($selKey)) {
+            if (isset($data->buttons->nextId)) {
+                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=fright noicon');
+            } else {
+                $data->toolbar->addBtn('»»»', array(), 'class=fright btn-disabled noicon,disabled');
+            }
+            
+            if (isset($data->buttons->prevId)) {
+                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=fright noicon', array('style' => 'margin-left:5px;'));
+            } else {
+                $data->toolbar->addBtn('«««', array(), 'class=fright btn-disabled noicon,disabled', array('style' => 'margin-left:5px;'));
+            }
+        }
+    }
+    
+    
     /**
      * Връща ключа за кеша, който се определя от сесията и модела
      */
     static function getModeKey($mvc) 
     {
         return $mvc->className . '_PrevAndNext';
+    }
+    
+    
+	/**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *   
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($action == 'browse' && $requiredRoles != 'no_one') {
+            if(!$mvc->haveRightFor('single', $rec, $userId)) {
+                 $requiredRoles = 'no_one';
+            } else {
+                 $requiredRoles = $mvc->getRequiredRoles('single', $rec);
+            }
+        }
     }
 }
