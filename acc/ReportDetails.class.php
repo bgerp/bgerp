@@ -108,7 +108,10 @@ class acc_ReportDetails extends core_Manager
     	// Полета за таблицата
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
     	
+    	// Създаване на нова инстанция на core_Mvc за задаване на td - класове
+    	// Създава се с new за да сме сигурни че обекта е нова празна инстанция
     	$data->reportTableMvc = new core_Mvc;
+    	
     	$data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
     	$data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
     	$data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
