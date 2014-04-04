@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценоразписи
@@ -134,6 +134,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
+    	$this->FLD('showInUom', 'enum(yes=Показвай,no=Не показвай)', 'caption=Продукти->Oсновна мярка,width=15em,notNull,value=yes,maxRadio=2');
     }
     
     
@@ -299,7 +300,7 @@ class price_ListDocs extends core_Master
     		// Изчисляваме цената за продукта в основна мярка
     		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
     		
-    		if( $product->price) {
+    		if($product->price && $rec->showInUom == 'yes') {
     			$rec->details->rows[] = $product;
     		}
     		
@@ -311,6 +312,7 @@ class price_ListDocs extends core_Master
     			}
     		}
     	}
+    	
     	unset($rec->details->products);
     }
     
@@ -338,6 +340,7 @@ class price_ListDocs extends core_Master
     		
     		return $clone;
     	}
+    	
     	return FALSE;
     }
     
