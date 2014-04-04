@@ -6,6 +6,11 @@
  */
 defIfNot('GPS_LOG_TEMP_DIR', EF_TEMP_PATH . "/gps");
 
+/**
+ * IP на хост от който се приемат данни
+ */
+defIfNot('GPS_DATA_SENDER', '127.0.0.1');
+
 
 /**
  * Съхранява хронологични данни от gps тракери
@@ -34,6 +39,8 @@ class gps_Log extends core_Manager
      */
     public $loadList = 'plg_Created';    
     
+    public $listFields = 'trackerId, text, remoteIp';
+    
     /**
      * Описание на модела
      */
@@ -41,16 +48,37 @@ class gps_Log extends core_Manager
     {
         $this->FLD('trackerId', 'varchar(12)', 'caption=Тракер Id');
         $this->FLD('data', 'blob', 'caption=gps данни');
-        $this->FLD('gpsTime', 'datetime', 'caption=gps време');
+        $this->FNC('text', 'html', 'caption=gps данни');
         $this->FLD('remoteIp', 'ip', 'caption=Tракер IP');
     }
+    
+    
+    public function on_CalcText($mvc, $rec)
+    {
+        $data = self::parseGPSData($rec->data);
         
+        $dateTimeGPS = substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
+                . " " . substr($data['time'],0,2) . ":" . substr($data['time'],2,2) . ":" . substr($data['time'],4,2); 
+                
+        $rec->text = "Дата: " . $dateTimeGPS . "<br>";
+        $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
+        $rec->text .= "Ширина: " . $data['latitude'] . "<br>";
+        $rec->text .= "Дължина: " . $data['longitude'] . "<br>";
+        $rec->text .= "Скорост: " . $data['speed'] . " км/ч<br>";
+        $rec->text .= "Посока: " . $data['heading'] . "<br>";
+    }
+    
+    
     /**
      * Входна точка за взимане на данни по http заявка
      * Очаква разбити данни от тракера
      */
     public function act_Log()
     {
+        if ($_SERVER['REMOTE_ADDR'] != GPS_DATA_SENDER) {
+            exit;
+        }
+        
         $trackerId = Request::get('trackerId', 'varchar');
         $data = Request::get('data', 'varchar');
         $remoteIp = Request::get('remoteIp', 'varchar');
@@ -60,7 +88,6 @@ class gps_Log extends core_Manager
         $rec->trackerId = $trackerId;
         $rec->data = $data;
         $rec->remoteIp = $remoteIp;
-        $rec->gpsTime = date("Y-m-d H:i:s");
         
         $this->save($rec);
         
@@ -77,8 +104,17 @@ class gps_Log extends core_Manager
     private function parseGPSData($data)
     {
         // Взимаме GPRMC sentence 
-        $dataGPS = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
-        $CRC = substr($data, strpos($data, '*'), 2);
+        $res['dataGPS'] = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
+        $res['CRC'] = substr($data, strpos($data, '*'), 3);
+        $arrData = explode(',', $res['dataGPS']);
+        $res['time'] = substr($arrData[0], 0, 6); // хилядните от времето не ни интересуват засега
+        $res['status'] = $arrData[1]; // A=valid, V=invalid 
+        $res['latitude'] = $arrData[2] . $arrData[3];
+        $res['longitude'] = $arrData[4] . $arrData[5];
+        $res['speed'] = $arrData[6];
+        $res['heading'] = $arrData[7];
+        $res['date'] = $arrData[8];
+        
         
         return $res;
     }

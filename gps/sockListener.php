@@ -85,7 +85,7 @@ function splitData($string)
     $res['CMD'] = toHex(substr($string, 11, 3)); // Команда
     $res['data'] = substr($string, 13, strlen($string) - 4 - 13); // Основни данни - тракер + GPRMC sentense
     $res['CRC'] = toHex(substr($string, hexdec($res['L']) - 4, 2)); // Контролна сума
-    $res['allData'] = substr($string, 0, hexdec($res['L']) - 4);
+    $res['allData'] = substr($string, 0, hexdec($res['L']) - 4); // Данните без контролната сума
 
     return $res;
 }
