@@ -329,8 +329,8 @@ class store_Stores extends core_Master
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
     	
     	foreach ($rows as &$arrs){
-    		if(count($arrs)){
-    			foreach ($arrs as &$row){
+    		if(count($arrs['rows'])){
+    			foreach ($arrs['rows'] as &$row){
     				$row['packId'] = $data->uomNames[$row['id']];
     			}
     		}

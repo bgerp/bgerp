@@ -184,8 +184,11 @@ class acc_ReportDetails extends core_Manager
 	    		$row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
 	    	}
 	    	
+	    	$row['amountRec'] = $dRec->blAmount;
 	    	$row['id'] = $dRec->id;
-	    	$rows[$dRec->accountId][] = $row;
+	    	
+	    	$rows[$dRec->accountId]['rows'][] = $row;
+	    	$rows[$dRec->accountId]['total'] += $dRec->blAmount;
     	}
 	  	
     	// Връщане на извлечените данни
@@ -209,13 +212,17 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако има какво да се показва
     	if($data->balanceRows){
+    		$Double = cls::get('type_Double');
+	    	$Double->params['decimals'] = 2;
     		
     		$table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
     		
     		$lastBalance = acc_Balances::getLastBalance();
     		
     		// За всички записи групирани по сметки
-    		foreach ($data->balanceRows as $accId => $rows){
+    		foreach ($data->balanceRows as $accId => $arr){
+    			$rows = $arr['rows'];
+    			$total = $arr['total'];
     			
     			// Името на сметката и нейните групи
     			$accNum = acc_Accounts::getTitleById($accId);
@@ -243,8 +250,14 @@ class acc_ReportDetails extends core_Manager
     				}
     			}
     			
+    			$tableHtml = $table->get($rows, $fields);
+    			$colspan = count($fields) - 2;
+    			$totalHtml = "<tr style='background-color:rgb(241, 241, 241)'><td colspan='{$colspan}'></td><td style='text-align:right'>" . tr('Общо') . ":</td><td style='text-align:right;font-weight:bold'>{$Double->toVerbal($total)}</td></tr>";
+    			$tableHtml->replace($totalHtml, 'ROW_AFTER');
+    			$tableHtml->removeBlocks;
+    			
     			// Добавяне на таблицата в шаблона
-    			$content->append($table->get($rows, $fields));
+    			$content->append($tableHtml);
     			$tpl->append($content . "</br />", 'CONTENT');
     		}
     	} else {

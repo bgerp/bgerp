@@ -1072,8 +1072,8 @@ class cat_Products extends core_Master {
     	$data->reportTableMvc->FLD('packId', 'varchar', 'tdClass=small-field');
     	
     	foreach ($rows as &$arrs){
-    		if(count($arrs)){
-    			foreach ($arrs as &$row){
+    		if(count($arrs['rows'])){
+    			foreach ($arrs['rows'] as &$row){
     				$row['packId'] = $data->packName;
     			}
     		}
