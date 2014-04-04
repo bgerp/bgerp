@@ -129,7 +129,30 @@ class vislog_Referer extends core_Manager {
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $cnt = vislog_History::count(array("#ip = '[#1#]'", $rec->ip));
-        $row->ip = ht::createLink($row->ip . "&nbsp;({$cnt})", array('vislog_History', 'ip' => $rec->ip));
+         $row->ip =  vislog_History::decorateIp($rec->ip, $rec->createdOn);
     }
+
+
+    /**
+     * Показва съкратена информация за реферера, ако има такъв
+     */
+    static function getReferer($ip, $time)
+    {
+        $rec = self::fetch(array("#ip = '[#1#]' AND #createdOn = '[#2#]'", $ip, $time));
+
+        if($rec) {
+            $parse = parse_url($rec->referer);
+            
+            $res = $parse['host'];
+
+            if($rec->query) {
+                $res .= ": " . self::getVerbal($rec, 'query');
+            }
+            
+            return $res;
+        }
+
+    }
+
+
 } 

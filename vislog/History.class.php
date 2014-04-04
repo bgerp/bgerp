@@ -176,14 +176,45 @@ class vislog_History extends core_Manager {
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
+       // $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         
         // Ако имаме име на това ip - слагаме го като префикс, ако не - държавата
-        if($ipName = vislog_IpNames::fetchField(array("#ip = '[#1#]'", $rec->ip), 'name')) {
-            $name = $ipName;
-        } else {
-            $name = $mvc->IpToCountry->get($rec->ip);
+       // if($ipName = vislog_IpNames::fetchField(array("#ip = '[#1#]'", $rec->ip), 'name')) {
+       //     $name = $ipName;
+       // } else {
+        //    $name = $mvc->IpToCountry->get($rec->ip);
+       // }
+
+        $row->ip = self::decorateIp($rec->ip, $rec->createdOn);
+        
+        $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
+
+        if($ref) {
+            $row->ip->append("<br>$ref");
         }
-        $row->ip->prepend($name . "&nbsp;");
+    }
+
+
+
+    /**
+     * Декорира ip адреса
+     */
+    static function decorateIp($ip, $time)
+    {   
+        $cnt = self::count(array("#ip = '[#1#]'", $ip));
+        $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
+        
+        $color = sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0); 
+
+        $count = ht::createLink("<span style='font-size:0.8em;padding:2px;border:solid 1px #ccc;background-color:#eee;color:#{$color};'>{$old}/{$cnt}</span>", 
+                    array('vislog_History', 'ip' => $ip));
+        
+
+        $country = drdata_IpToCountry::get($ip);
+        $country = ht::createLink($country, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank'));
+        
+        $res = new ET("[#1#]&nbsp;{$ip}&nbsp;[#2#]", $country, $count);
+
+        return $res;
     }
 }
