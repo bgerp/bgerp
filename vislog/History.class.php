@@ -190,7 +190,7 @@ class vislog_History extends core_Manager {
         $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
 
         if($ref) {
-            $row->ip->append("<br>$ref");
+            $row->ip->append("<br><span style='font-size:0.6em;'>{$ref}</span>");
         }
     }
 
