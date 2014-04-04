@@ -143,7 +143,7 @@ class vislog_Referer extends core_Manager {
         if($rec) {
             $parse = parse_url($rec->referer);
             
-            $res = $parse['host'];
+            $res = str_replace('www.', '', strtolower($parse['host']));
 
             if($rec->query) {
                 $res .= ": " . self::getVerbal($rec, 'query');
