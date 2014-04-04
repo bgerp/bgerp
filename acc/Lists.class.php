@@ -135,8 +135,11 @@ class acc_Lists extends core_Manager {
     static function on_CalcNameLink($mvc, $rec)
     {
         $name = $mvc->getVerbal($rec, 'name');
+        $rec->nameLink = $name;
         
-        $rec->nameLink = ht::createLink($name, array ('acc_Items', 'list', 'listId' => $rec->id));
+        if(acc_Lists::haveRightFor('list')){
+        	$rec->nameLink = ht::createLink($rec->nameLink, array ('acc_Items', 'list', 'listId' => $rec->id));
+        }
     }
     
     

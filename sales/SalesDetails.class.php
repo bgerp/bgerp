@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -357,11 +357,15 @@ class sales_SalesDetails extends core_Detail
         
         /* @var $ProductMan core_Manager */
         expect($ProductMan = cls::get($rec->classId));
-    	if($form->rec->productId  && $form->cmd == 'refresh'){
+    	if($form->rec->productId){
     		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-    		if($baseInfo->classId == cat_Packagings::getClassId()){
-    			$form->rec->packagingId = $baseInfo->id;
+    		
+    		// Само при рефреш слагаме основната опаковка за дефолт
+    		if($form->cmd == 'refresh'){
+	    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
+	    		if($baseInfo->classId == cat_Packagings::getClassId()){
+	    			$form->rec->packagingId = $baseInfo->id;
+	    		}
     		}
         }
     	
@@ -424,7 +428,7 @@ class sales_SalesDetails extends core_Detail
                 );
             
                 if (empty($policyInfo->price)) {
-                    $form->setError('price', "Артикула няма цена към дата '{$priceAtDate}'");
+                    $form->setError('price', "Артикула няма цена към дата|* '{$priceAtDate}'");
                 }
                 
                 $rec->price = $policyInfo->price;
@@ -448,6 +452,14 @@ class sales_SalesDetails extends core_Detail
             
             // Записваме основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
+            
+            // При редакция, ако е променена опаковката слагаме преудпреждение
+            if($rec->id){
+            	$oldPack = $mvc->fetchField($rec->id, 'packagingId');
+            	if($rec->packagingId != $oldPack){
+            		$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+            	}
+            }
         }
     }
     

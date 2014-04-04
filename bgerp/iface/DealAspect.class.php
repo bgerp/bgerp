@@ -232,7 +232,9 @@ class bgerp_iface_DealAspect
         expect(in_array($filter, array('storable', 'services', 'all')));
         
         if($productId && $classId){
-        	$options["{$classId}|{$productId}|{$packagingId}"] = cls::get($classId)->getTitleById($productId);
+        	$title = cls::get($classId)->getTitleById($productId);
+        	$title .= ($packagingId) ? (" - " . cat_Packagings::getTitleById($packagingId)) : '';
+        	$options["{$classId}|{$productId}|{$packagingId}"] = $title;
         	
         	return $options;
         }
@@ -252,8 +254,7 @@ class bgerp_iface_DealAspect
         		$title .= " - " . cat_Packagings::getTitleById($p->packagingId);
         	}
             
-            // Използваме стойността на select box-а за да предадем едновременно две стойности -
-            // ид на политика и ид на продукт.
+            // Използваме стойността на select box-а за да предадем едновременно две стойности - ид на политика и ид на продукт.
             $options["{$p->classId}|{$p->productId}|{$p->packagingId}"] = $title;
         }
        

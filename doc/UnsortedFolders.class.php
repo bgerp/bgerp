@@ -103,7 +103,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
+    var $canList = 'admin,ceo';
     
     
     /**

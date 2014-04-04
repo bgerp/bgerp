@@ -3,17 +3,17 @@
 
 
 /**
- * Фактури
+ * Входящи фактури
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   purchase
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_Invoices extends core_Master
+class purchase_Invoices extends core_Master
 {
     
     
@@ -32,19 +32,19 @@ class sales_Invoices extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Фактури за продажби';
+    public $title = 'Входящи фактури';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Фактура';
+    public $singleTitle = 'Входяща фактура';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv, plg_Search,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,acc_plg_DpInvoice,
                     doc_plg_BusinessDoc, doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary';
     
@@ -64,13 +64,7 @@ class sales_Invoices extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'sales_InvoiceDetails' ;
-    
-    
-    /**
-     * Старо име на класа
-     */
-    public $oldClassName = 'acc_Invoices';
+    public $details = 'purchase_InvoiceDetails' ;
     
     
     /**
@@ -94,7 +88,7 @@ class sales_Invoices extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales';
+	public $canList = 'ceo,purchase';
 
 
 	/**
@@ -130,7 +124,7 @@ class sales_Invoices extends core_Master
     /**
      * Нов темплейт за показване
      */
-    public $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutInvoice.shtml';
     
     
     /**
@@ -189,7 +183,8 @@ class sales_Invoices extends core_Master
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%, mandatory');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
@@ -222,7 +217,7 @@ class sales_Invoices extends core_Master
         );
         
         $this->FLD('type', 
-            'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
+            'enum(invoice=Входяща фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input=hidden,silent'
         );
         
@@ -231,7 +226,7 @@ class sales_Invoices extends core_Master
         
         $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
         
-        $this->setDbUnique('number');
+        $this->setDbUnique('folderId,number');
     }
     
     
@@ -254,24 +249,6 @@ class sales_Invoices extends core_Master
 		
 		$data->query->orderBy('#number', 'DESC');
 	}
-	
-	
-	/**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
-    	
-    	$skipped = $added = $updated = 0;
-    	foreach ($tplArr as $arr){
-    		$arr['docClassId'] = $mvc->getClassId();
-    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
-    	}
-    	
-    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
-    }
     
     
     /**
@@ -304,7 +281,7 @@ class sales_Invoices extends core_Master
     public function updateMaster($id)
     {
     	$rec = $this->fetchRec($id);
-    	$query = $this->sales_InvoiceDetails->getQuery();
+    	$query = $this->purchase_InvoiceDetails->getQuery();
         $query->where("#invoiceId = '{$id}'");
         $recs = $query->fetchAll();
         if(count($recs)){
@@ -313,7 +290,7 @@ class sales_Invoices extends core_Master
 	        }
         }
     	
-        $this->sales_InvoiceDetails->calculateAmount($recs, $rec);
+        $this->purchase_InvoiceDetails->calculateAmount($recs, $rec);
         
         $rec->dealValue = $rec->_total->amount * $rec->rate;
         $rec->vatAmount = $rec->_total->vat * $rec->rate;
@@ -348,9 +325,6 @@ class sales_Invoices extends core_Master
     {
         $form = &$data->form;
         $form->rec->date = dt::today();
-        if(!haveRole('ceo,acc')){
-        	$form->setField('number', 'input=none');
-        }
         
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -389,7 +363,7 @@ class sales_Invoices extends core_Master
         	}
         }
 	        
-	    if($origin->className  == 'sales_Invoices'){
+	    if($origin->className  == 'purchase_Invoices'){
 	        $mvc->populateNoteFromInvoice($form, $origin);
 	        $flag = TRUE;
 	    }
@@ -459,12 +433,6 @@ class sales_Invoices extends core_Master
 	        	$rec->dealValue = $rec->changeAmount;
 	        	$rec->dealValue *= $rec->rate;
 	        }
-	        
-	        if($rec->number){
-		        if(!$mvc->isNumberInRange($rec->number)){
-					$form->setError('number', "Номер '{$rec->number}' е извън позволения интервал");
-				}
-	        }
         }
 
         acc_Periods::checkDocumentDate($form);
@@ -473,9 +441,8 @@ class sales_Invoices extends core_Master
 	
 	/**
 	 * Генерира фактура от пораждащ документ: може да се породи от:
-	 * 1. Продажба (@see sales_Sales)
-	 * 2. POS Продажба (@see pos_Receipts)
-	 * 3. Фактура (@see sales_Invoices) - тоест се прави ДИ или КИ
+	 * 1. Продажба (@see purchase_Purchases)
+	 * 2. Фактура (@see purchase_Invoices) - тоест се прави ДИ или КИ
 	 */
 	public static function on_AfterCreate($mvc, $rec)
     {
@@ -503,7 +470,7 @@ class sales_Invoices extends core_Master
 		    		$dRec->quantityInPack = $packQuantity;
 		    		$dRec->quantity       = $product->quantity / $packQuantity;
 		    		
-		    		$mvc->sales_InvoiceDetails->save($dRec);
+		    		$mvc->purchase_InvoiceDetails->save($dRec);
 		    	}
     		}
     	}
@@ -519,11 +486,6 @@ class sales_Invoices extends core_Master
     	
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->docType && $rec->docId) {
-    		// Ако се генерира от пос продажба
-    		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
     	if($rec->threadId){
@@ -564,24 +526,6 @@ class sales_Invoices extends core_Master
             );
         }
     }
-    
-    
-    /**
-     * Валидиране на полето 'number' - номер на фактурата
-     * 
-     * Предупреждение при липса на ф-ра с номер едно по-малко от въведения.
-     */
-    public function on_ValidateNumber(core_Mvc $mvc, $rec, core_Form $form)
-    {
-        if (empty($rec->number)) {
-            return;
-        }
-        
-        $prevNumber = intval($rec->number)-1;
-        if (!$mvc->fetchField("#number = {$prevNumber}")) {
-            $form->setWarning('number', 'Липсва фактура с предходния номер!');
-        }
-    }
 
 
     /**
@@ -617,9 +561,6 @@ class sales_Invoices extends core_Master
         }
         
         if($rec->state == 'active'){
-        	if(empty($rec->number)){
-        		$rec->number = static::getNexNumber();
-        	}
         	
 	        if(empty($rec->place) && $rec->state == 'active'){
 	        	$inCharge = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'inCharge');
@@ -647,7 +588,7 @@ class sales_Invoices extends core_Master
     		$tpl->removeBlock('header');
     	}
     	
-    	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+    	$tpl->push('purchase/tpl/invoiceStyles.css', 'CSS');
     	
     	if($data->paymentPlan){
     		$tpl->replace(cond_PaymentMethods::renderPaymentPlan($data->paymentPlan), 'PAYMENT_PLAN');
@@ -828,7 +769,7 @@ class sales_Invoices extends core_Master
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
     	$invArr['reason'] = tr("|{$caption} към фактура|* #{$invHandle} |издадена на|* {$invDate}");
         
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'fileHnd') as $key){
         	 unset($invArr[$key]);
         }
         
@@ -860,7 +801,7 @@ class sales_Invoices extends core_Master
      * Данните на контрагент, записани в съществуваща фактура
      * Интерфейсен метод на @see doc_ContragentDataIntf.
      * 
-     * @param int $id key(mvc=sales_Invoices)
+     * @param int $id key(mvc=purchase_Invoices)
      * @return stdClass @see doc_ContragentDataIntf::getContragentData()
      *  
      */
@@ -939,11 +880,11 @@ class sales_Invoices extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof sales_Sales){
+    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof purchase_Purchases){
     		
     		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
     		return TRUE;
-    	} elseif($firstDoc->instance instanceof sales_Invoices && $docState == 'active') {
+    	} elseif($firstDoc->instance instanceof purchase_Invoices && $docState == 'active') {
     		
     		// или към нишка с начало активирана продажба
     		return TRUE;
@@ -1032,7 +973,7 @@ class sales_Invoices extends core_Master
         $contragentId    = doc_Folders::fetchCoverId($cloneRec->folderId);
         
         $result = (object)array(
-            'reason'  => "Фактура №{$rec->id}", // основанието за ордера
+            'reason'  => "Входяща фактура №{$rec->number}", // основанието за ордера
             'valior'  => $rec->date,   // датата на ордера
         	'entries' => array(),
         );
@@ -1048,22 +989,22 @@ class sales_Invoices extends core_Master
         if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
-    	$debitAccId  = '411';
-	    $creditAccId = '4532';
+    	$debitAccId  = '4531';
+	    $creditAccId = '401';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
                 'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
-                'debit' => array(
-                    $debitAccId, // дебитната сметка
+                'credit' => array(
+                    $creditAccId, // дебитната сметка
                         array($contragentClass, $contragentId),
                         array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 ),
                 
-                'credit' => array(
-                    $creditAccId, // кредитна сметка;
+                'debit' => array(
+                    $debitAccId, // кредитна сметка;
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 )
     	    );
@@ -1085,8 +1026,8 @@ class sales_Invoices extends core_Master
     public function getUsedDocs_($id)
     {
     	$res = array();
-    	$dQuery = $this->sales_InvoiceDetails->getQuery();
-    	$dQuery->EXT('state', 'sales_Invoices', 'externalKey=invoiceId');
+    	$dQuery = $this->purchase_InvoiceDetails->getQuery();
+    	$dQuery->EXT('state', 'purchase_Invoices', 'externalKey=invoiceId');
     	$dQuery->where("#invoiceId = '{$id}'");
     	$dQuery->groupBy('productId,classId');
     	while($dRec = $dQuery->fetch()){
@@ -1109,7 +1050,7 @@ class sales_Invoices extends core_Master
      */
     public function getDealInfo($id)
     {
-        $rec = new sales_model_Invoice($id);
+        $rec = new purchase_model_Invoice($id);
         
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $result = new bgerp_iface_DealResponse();
@@ -1134,8 +1075,8 @@ class sales_Invoices extends core_Master
         	}
         }
         
-        /* @var $dRec sales_model_InvoiceProduct */
-        foreach ($rec->getDetails('sales_InvoiceDetails') as $dRec) {
+        /* @var $dRec purchase_model_InvoiceProduct */
+        foreach ($rec->getDetails('purchase_InvoiceDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
             $p->classId     = $dRec->classId;
@@ -1185,40 +1126,6 @@ class sales_Invoices extends core_Master
     
     
     /**
-     * Дали подадения номер е в позволения диапазон за номера на фактури
-     * @param $number - номера на фактурата
-     */
-    private static function isNumberInRange($number)
-    {
-    	expect($number);
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	return ($conf->SALE_INV_MIN_NUMBER <= $number && $number <= $conf->SALE_INV_MAX_NUMBER);
-    }
-    
-    
-    /**
-     * Ф-я връщаща следващия номер на фактурата, ако той е в границите
-     * @return int - следващия номер на фактура
-     */
-    private static function getNexNumber()
-    {
-    	$conf = core_Packs::getConfig('sales');
-    	
-    	$query = static::getQuery();
-    	$query->XPR('maxNum', 'int', 'MAX(#number)');
-    	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->SALE_INV_MIN_NUMBER;
-    	}
-    	$nextNum = $maxNum + 1;
-    	
-    	if($nextNum > $conf->SALE_INV_MAX_NUMBER) return NULL;
-    	
-    	return $nextNum;
-    }
-    
-    
-    /**
      * Документа неможе да се активира ако има детайл с количество 0
      */
     public static function on_AfterCanActivate($mvc, &$res, $rec)
@@ -1236,7 +1143,7 @@ class sales_Invoices extends core_Master
     		return;
     	}
     	
-    	$dQuery = $mvc->sales_InvoiceDetails->getQuery();
+    	$dQuery = $mvc->purchase_InvoiceDetails->getQuery();
     	$dQuery->where("#invoiceId = {$rec->id}");
     	$dQuery->where("#quantity = 0");
     	
@@ -1257,7 +1164,7 @@ class sales_Invoices extends core_Master
      	$detailsKeywords = '';
 
      	// заявка към детайлите
-     	$query = sales_InvoiceDetails::getQuery();
+     	$query = purchase_InvoiceDetails::getQuery();
      	// точно на тази фактура детайлите търсим
      	$query->where("#invoiceId = '{$rec->id}'");
      	
@@ -1297,10 +1204,15 @@ class sales_Invoices extends core_Master
     	// Обикновения продавач неможе да създава ДИ и КИ
     	if($action == 'add' && isset($rec)){
     		if($rec->type != 'invoice'){
-    			$res = 'ceo,sales';
+    			$res = 'ceo,purchase';
     		}
-    	}
+    	} 
     	
+    	//@TODO тестово докато стане готов документа
+	    if($action == 'add'){
+	        $res = 'ceo';
+	    }
+	        
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
 	    	$originState = $mvc->getOrigin($rec)->fetchField('state');
@@ -1308,5 +1220,23 @@ class sales_Invoices extends core_Master
 	        	$res = 'no_one';
 	        }
         }
+    }
+    
+    
+	/**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $mvc->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }

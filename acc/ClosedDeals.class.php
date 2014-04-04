@@ -277,7 +277,8 @@ abstract class acc_ClosedDeals extends core_Master
 	        $row->docId = $firstDoc->getLink();
 	    }
 	    
-	    $row->header = cls::get(get_called_class())->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+	    $abbr = cls::get(get_called_class())->abbr;
+	    $row->header = cls::get(get_called_class())->singleTitle . " #<b>{$abbr}{$row->id}</b> ({$row->state})";
 	    
 	    return $row;
     }
@@ -305,11 +306,24 @@ abstract class acc_ClosedDeals extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'restore' || $action == 'reject') && isset($rec)){
-    		if(!haveRole('ceo,sales')){
-    			$res = 'no_one';
-    		}
-    	}
+    	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
+    	if($action == 'conto' && isset($rec)){
+    		
+	    	$origin = $mvc->getOrigin($rec);
+    		if($origin && $origin->haveInterface('bgerp_DealAggregatorIntf')){
+	    		$originState = $origin->fetchField('state');
+	    		if($originState === 'closed'){
+		        	$res = 'no_one';
+		        }
+	    	}
+        }
+        
+        // неможе да се възстанови оттеглен документ, ако има друг неоттеглен в треда
+        if($action == 'restore' && isset($rec)){
+        	if($mvc->fetch("#threadId = {$rec->threadId} AND #state != 'rejected'")){
+        		$res = 'no_one';
+        	}
+        }
     }
     
     

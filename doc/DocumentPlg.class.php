@@ -1103,10 +1103,30 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Проверяваме за сингъл права в папката
                     $haveRightForClone = doc_Folders::haveRightFor('single', $oRec->folderId);
+                    
+                    // Ако има права
+                    if ($haveRightForClone) {
+                        
+                        // Инстанция на документа
+                        $docMvc = doc_Containers::getDocument($oRec->containerId);
+                        
+                        // Ако може да е начало на нишка
+                        $haveRightForClone = $docMvc->instance->canAddToFolder($oRec->folderId);
+                    }
                 } else {
                     
                     // За останалите, проверяваме за сингъл в нишката
                     $haveRightForClone = doc_Threads::haveRightFor('single', $oRec->threadId);
+                    
+                    // Ако има права
+                    if ($haveRightForClone) {
+                        
+                        // Инстанция на документа
+                        $docMvc = doc_Containers::getDocument($oRec->containerId);
+                        
+                        // Ако може да се добавя в нишката
+                        $haveRightForClone = $docMvc->instance->canAddToThread($oRec->threadId);
+                    }
                 }
                 
                 // Ако един от двата начина върне, че имаме права

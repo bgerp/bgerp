@@ -93,7 +93,7 @@ class sales_Sales extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid, 
+    public $listFields = 'id, valior, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, 
                              dealerId, initiatorId,paymentState,
                              createdOn, createdBy';
 
@@ -569,10 +569,11 @@ class sales_Sales extends core_Master
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    }
+	    	$row->paymentState = ($rec->paymentState == 'overdue') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
+    	}
 	    
 	    if($fields['-single']){
-	    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
 	        
@@ -903,12 +904,13 @@ class sales_Sales extends core_Master
         // Ако платежния метод няма авансова част, авансовите операции 
         // не са позволени за платежните документи
         $allowedPaymentOperations = array_combine($allowedPaymentOperations, $allowedPaymentOperations);
-        
+       
         if(!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)){
         	unset($allowedPaymentOperations['customer2caseAdvance'], $allowedPaymentOperations['customer2bankAdvance'],$allowedPaymentOperations['caseAdvance2customer'],$allowedPaymentOperations['bankAdvance2customer']);
         } else {
-        	// Колко е очакваото авансово плащане
+        	// Колко е очакваното авансово плащане
         	$downPayment = cond_PaymentMethods::getDownpayment($rec->paymentMethodId, $rec->amountDeal);
+			
         }
         
         // Кои са позволените операции за последващите платежни документи
@@ -1065,15 +1067,16 @@ class sales_Sales extends core_Master
     {
     	// Кои потребители ще се нотифицират
     	$rec->sharedUsers = '';
-    		
+		$actions = type_Set::toArray($rec->contoActions);
+    	
     	// Ако има склад, се нотифицира отговорника му
-    	if($rec->shipmentStoreId){
+    	if(empty($actions['ship']) && $rec->shipmentStoreId){
     		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $toChiefs);
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if($rec->caseId){
+    	if(empty($actions['pay']) && $rec->caseId){
     		$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
     	}

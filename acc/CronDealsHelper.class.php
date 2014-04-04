@@ -75,9 +75,18 @@ class acc_CronDealsHelper
     				
     				// Извлича се платежния план
     				$plan = cond_PaymentMethods::getPaymentPlan($mId, $rec->amountDeal, $date);
+    					
+    				try{
+    					$isOverdue = cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid);
+    				} catch(Exception $e){
+    					
+	    				// Ако има проблем при извличането се продължава
+	    				core_Logs::add($Class, $rec->id, "Несъществуващ платежен план': '{$e->getMessage()}'");
+	    				continue;
+    				}
     				
     				// Проверка дали продажбата е просрочена
-    				if(cond_PaymentMethods::isOverdue($plan, $rec->amountDelivered - $rec->amountPaid)){
+    				if($isOverdue){
     				
     					// Ако да, то продажбата се отбелязва като просрочена
     					$rec->paymentState = 'overdue';
@@ -143,8 +152,8 @@ class acc_CronDealsHelper
     			$clId = $ClosedDeals->create($this->className, $rec);
     			
     			// Контиране на документа
-    			$ClosedDeals->conto($clId);
-	    
+    			acc_Journal::saveTransaction($ClosedDeals->getClassId(), $clId);
+    			
     			// Продажбата/покупката се отбелязват като птиключени и платени
     			$rec->state = 'closed';
     			$rec->paymentState = 'paid';

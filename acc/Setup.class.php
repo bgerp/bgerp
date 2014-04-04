@@ -145,21 +145,6 @@ class acc_Setup extends core_ProtoSetup
 
         return $html;
     }
-
-
-    /**
-     * Инициализране на началните данни
-     */
-    function loadSetupData()
-    {
-    	$html = parent::loadSetupData();
-    	
-        $Periods = cls::get('acc_Periods');
-
-        //$html .= $Periods->loadSetupData();
-        
-        return $html;
-    }
     
     
     /**

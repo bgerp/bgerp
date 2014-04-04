@@ -7,12 +7,12 @@
  * 
  * @category  bgerp
  * @package   bgerp
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Stefan Arsov <stefan.arsov@mail.bg>
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class bgerp_BaseImporter extends core_Manager {
+class bgerp_ExtendedImporter extends core_Manager {
     
     
     /**
@@ -24,7 +24,7 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Стандартен импорт";
+    var $title = "Разширен импорт";
     
     
     /*
@@ -44,7 +44,7 @@ class bgerp_BaseImporter extends core_Manager {
     /**
      * Функция, връщаща полетата в които ще се вкарват данни
      * в мениджъра-дестинация
-     * Не връща полетата които са hidden, input=none,enum,key и keylist
+     * Не връща полетата които са hidden, input=none и enum
      */
     public function getFields()
     {
@@ -53,8 +53,7 @@ class bgerp_BaseImporter extends core_Manager {
     	
     	foreach($Dfields as $name => $fld){
     		if($fld->input != 'none' && $fld->input != 'hidden' &&
-    		   $fld->kind != 'FNC' && !($fld->type instanceof type_Enum) &&
-    		   !($fld->type instanceof type_Key) && !($fld->type instanceof type_KeyList)){
+    		   $fld->kind != 'FNC'){
     				$fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
     		}
     	}
@@ -95,8 +94,8 @@ class bgerp_BaseImporter extends core_Manager {
     			$created++;
     		}
     		
+    		// Запис в модела
     		$this->mvc->save($rec);
-    		
     	}
     	
     	core_Debug::stopTimer('import');

@@ -89,7 +89,7 @@ class purchase_Purchases extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId, amountDeal, amountDelivered, amountPaid,dealerId,paymentState,createdOn, createdBy';
+    public $listFields = 'id, valior, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid,dealerId,paymentState,createdOn, createdBy';
 
 
     /**
@@ -311,7 +311,14 @@ class purchase_Purchases extends core_Master
     		if(bank_IncomeDocuments::haveRightFor('add')){
 		    	$data->toolbar->addBtn("РБД", array('bank_SpendingDocuments', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/bank_rem.png,title=Създаване на нов разходен банков документ');
 		    }
-    	}
+		    
+    		// Ако експедирането е на момента се добавя бутон за нова фактура
+	        $actions = type_Set::toArray($rec->contoActions);
+	    	
+	        if($actions['ship'] && purchase_Invoices::haveRightFor('add') && purchase_Invoices::canAddToThread($rec->threadId)){
+	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
+		    }
+		}
     	
     	if(haveRole('debug')){
     		$data->toolbar->addBtn("Бизнес инфо", array($mvc, 'AggregateDealInfo', $data->rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
@@ -474,10 +481,11 @@ class purchase_Purchases extends core_Master
         
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-	    }
+	    	$row->paymentState = ($rec->paymentState == 'overdue') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
+    	}
 	    
 	    if($fields['-single']){
-		    $row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+		    $row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 		    
 	    	$mvc->prepareHeaderInfo($row, $rec);
 	    	
@@ -618,15 +626,16 @@ class purchase_Purchases extends core_Master
     {
     	// Кои потребители ще се нотифицират
     	$rec->sharedUsers = '';
-    		
+    	$actions = type_Set::toArray($rec->contoActions);
+    	
     	// Ако има склад, се нотифицира отговорника му
-    	if($rec->shipmentStoreId){
+    	if(empty($actions['ship']) && $rec->shipmentStoreId){
     		$toChiefs = store_Stores::fetchField($rec->shipmentStoreId, 'chiefs');
-    		$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $toChiefs);
+    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toChiefs);
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if($rec->caseId){
+    	if(empty($actions['pay']) && $rec->caseId){
 	    	$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
 	    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
     	}
@@ -691,7 +700,7 @@ class purchase_Purchases extends core_Master
         		      $allowedPaymentOperations['supplierAdvance2case'],
         		      $allowedPaymentOperations['bank2supplierAdvance']);
         	} else {
-        		// Колко е очакваото авансово плащане
+        		// Колко е очакваното авансово плащане
         		$paymentRec = cond_PaymentMethods::fetch($rec->paymentMethodId);
         		$downPayment = $paymentRec->downpayment * $rec->amountDeal;
         	}
@@ -753,6 +762,10 @@ class purchase_Purchases extends core_Master
             $p->volume  = $ProductMan->getVolume($p->productId);
             
             $result->agreed->products[] = $p;
+            
+        	if (isset($actions['ship'])) {
+            	$result->shipped->products[] = clone $p;
+            }
         }
         
         return $result;

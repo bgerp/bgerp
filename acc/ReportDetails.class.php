@@ -108,11 +108,14 @@ class acc_ReportDetails extends core_Manager
     	// Полета за таблицата
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
     	
-    	$data->reportTableMvc = cls::get('core_Mvc');
+    	// Създаване на нова инстанция на core_Mvc за задаване на td - класове
+    	// Създава се с new за да сме сигурни че обекта е нова празна инстанция
+    	$data->reportTableMvc = new core_Mvc;
+    	
     	$data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
     	$data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
     	$data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-    		
+    	
     	// Перото с което мастъра фигурира в счетоводството
     	$items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
     	
@@ -181,8 +184,11 @@ class acc_ReportDetails extends core_Manager
 	    		$row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
 	    	}
 	    	
+	    	$row['amountRec'] = $dRec->blAmount;
 	    	$row['id'] = $dRec->id;
-	    	$rows[$dRec->accountId][] = $row;
+	    	
+	    	$rows[$dRec->accountId]['rows'][] = $row;
+	    	$rows[$dRec->accountId]['total'] += $dRec->blAmount;
     	}
 	  	
     	// Връщане на извлечените данни
@@ -206,13 +212,17 @@ class acc_ReportDetails extends core_Manager
     	
     	// Ако има какво да се показва
     	if($data->balanceRows){
+    		$Double = cls::get('type_Double');
+	    	$Double->params['decimals'] = 2;
     		
     		$table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
     		
     		$lastBalance = acc_Balances::getLastBalance();
     		
     		// За всички записи групирани по сметки
-    		foreach ($data->balanceRows as $accId => $rows){
+    		foreach ($data->balanceRows as $accId => $arr){
+    			$rows = $arr['rows'];
+    			$total = $arr['total'];
     			
     			// Името на сметката и нейните групи
     			$accNum = acc_Accounts::getTitleById($accId);
@@ -240,8 +250,16 @@ class acc_ReportDetails extends core_Manager
     				}
     			}
     			
+    			$tableHtml = $table->get($rows, $fields);
+    			$colspan = count($fields) - 1;
+    			$totalRow = $Double->toVerbal($total);
+    			$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
+    			$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
+    			$tableHtml->replace($totalHtml, 'ROW_AFTER');
+    			$tableHtml->removeBlocks;
+    			
     			// Добавяне на таблицата в шаблона
-    			$content->append($table->get($rows, $fields));
+    			$content->append($tableHtml);
     			$tpl->append($content . "</br />", 'CONTENT');
     		}
     	} else {

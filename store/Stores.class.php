@@ -53,7 +53,7 @@ class store_Stores extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,store';
+    var $canEdit = 'ceo,storeMaster';
     
     
     /**
@@ -260,7 +260,7 @@ class store_Stores extends core_Master
 			
 			// Показват се само записите за които отговаря потребителя
 			$cu = core_Users::getCurrent();
-			$data->query->orLike('chiefs', "|$cu|");
+			$data->query->like('chiefs', "|$cu|");
 			$data->query->orLike('workersIds', "|$cu|");
 		}
 	}
@@ -329,8 +329,8 @@ class store_Stores extends core_Master
     	$data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,packId=Мярка,blQuantity=К-во,blAmount=Сума");
     	
     	foreach ($rows as &$arrs){
-    		if(count($arrs)){
-    			foreach ($arrs as &$row){
+    		if(count($arrs['rows'])){
+    			foreach ($arrs['rows'] as &$row){
     				$row['packId'] = $data->uomNames[$row['id']];
     			}
     		}

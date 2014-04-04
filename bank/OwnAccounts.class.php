@@ -159,12 +159,12 @@ class bank_OwnAccounts extends core_Master {
     {
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
         $this->FLD('type', 'enum(current=Разплащателна,
-            deposit=Депозитна,
-            loan=Кредитна,
-            personal=Персонална,
-            capital=Набирателна)', 'caption=Тип,mandatory');
+            					 deposit=Депозитна,
+            				     loan=Кредитна,
+            					 personal=Персонална,
+            					 capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
-        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име,mandatory');
+        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name, makeLinks)', 'caption=Титуляри->Име,mandatory');
         $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
     }
@@ -176,20 +176,7 @@ class bank_OwnAccounts extends core_Master {
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
-    }
-    
-    
-    /**
-     * Наша банкова сметка по подразбиране според клиента
-     *
-     * @see doc_ContragentDataIntf
-     * @param stdClass $contragentInfo
-     * @return int key(mvc=bank_OwnAccounts)
-     */
-    public static function getDefault($contragentInfo)
-    {
-        // @TODO
-        return static::fetchField(1, 'id'); // За тест
+    	$row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
     }
     
     
@@ -223,11 +210,11 @@ class bank_OwnAccounts extends core_Master {
     function getTitulars()
     {
     	$options = array();
-    	$groupId = crm_Groups::fetchField("#name = 'Управители'", 'id');
+    	$groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
     	$personQuery = crm_Persons::getQuery();
     	$personQuery->where("#groupList LIKE '%|{$groupId}|%'");
     	while($personRec = $personQuery->fetch()) {
-    		$options[$personRec->id] = $personRec->name;
+    		$options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
     	}   	
     	
     	if(count($options) == 0) {

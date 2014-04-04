@@ -18,7 +18,7 @@
 					
 					<!--ET_BEGIN sales_InvoiceDetails-->
 						<div class='details'>
-							[#sales_InvoiceDetails#]
+							[#purchase_InvoiceDetails#]
 						</div>
 					<!--ET_END sales_InvoiceDetails-->
 					
@@ -92,6 +92,8 @@
                                <div>|Бележки|* / <i>Notes</i></div>
                                <div>[#additionalInfo#]</div>
                                 <!--ET_END additionalInfo-->
+                            <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Оригинален документ|* / <i>Original document</i></b></div>
+                            [#fileHnd#]
 		                    
 		                </td>
 		                <td id='invoice-info' width='40%'>

@@ -1637,6 +1637,51 @@ class email_Outgoings extends core_Master
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
+        
+        // @todo - може да се премахне след като се разнесе
+        
+        // Брой променени записи
+        $sCnt = 0;
+        
+        // Вземаме всички имейли с активно състояние
+        $query = static::getQuery();
+        $query->where("#state = 'active'");
+        
+        // Обхождаме резултата
+        while($rec = $query->fetch()) {
+            
+            if (!$rec->containerId) continue ;
+            
+            // Вземаме всички записи за изпращания в лога за този контейнер
+            $logQuery = log_Documents::getQuery();
+            $logQuery->where(array("#action = '[#1#]'", log_Documents::ACTION_SEND));
+            $logQuery->where(array("#containerId = '[#1#]'", $rec->containerId));
+            
+            // Ако не е бил пратен, няма какво да направим
+            if (!$logQuery->count()) continue;
+            
+            // Променяме състоянието да е затвореное
+            $rec->state = 'closed';
+            
+            // Записваме само състоянието
+            if ($mvc->save_($rec, 'state')) {
+                
+                // Увеличаваме броя на направените записи
+                $sCnt++;
+            }
+        }
+        
+        if ($sCnt) {
+            
+            if ($sCnt == 1) {
+                $text = "активиран и изратен имейл";
+            } else {
+                $text = "активирани и изпратени имейли";
+            }
+            
+            // Добавяме в резултата
+            $res .= "<li><font color='green'>Променено е състоянието в затворено на {$sCnt} {$text}.</font>";
+        }
     }
     
     

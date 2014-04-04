@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sales_plg_DpInvoice extends core_Plugin
+class acc_plg_DpInvoice extends core_Plugin
 {
     
     
@@ -23,7 +23,7 @@ class sales_plg_DpInvoice extends core_Plugin
      */
     function on_AfterDescription(core_Mvc $mvc)
     {
-    	if($mvc instanceof sales_Invoices){
+    	if($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices){
     		
     		// Сума на авансовото плащане (ако има)
 	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
@@ -43,8 +43,8 @@ class sales_plg_DpInvoice extends core_Plugin
     	$rec = &$form->rec;
     	
     	// Ако е детайла на фактурата не правим нищо
-        if(!($mvc instanceof sales_Invoices)) return;
-    	 
+        if(!($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices)) return;
+    	
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;
         
@@ -70,7 +70,7 @@ class sales_plg_DpInvoice extends core_Plugin
     	}
     	
         // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount',"input,mandatory,unit={$rec->currencyId} без ДДС");
+        $form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
         $form->setField('dpOperation','input');
         
         // Показване на закръглената сума
@@ -155,10 +155,14 @@ class sales_plg_DpInvoice extends core_Plugin
         		
         		$downpayment = (empty($paid->downpayment)) ? $agreed->downpayment : $paid->downpayment;
         		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+        		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
+    				$vat = 0;
+    			}
+        		
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 2);
         		
 	        	if($rec->dpAmount > $downpayment){
-	            	$form->setError('dpAmount', "Въведената сума е по-голяма от очаквания аванс от '{$downpayment}' без ДДС");
+	            	$form->setError('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
 	            
         		if($rec->dpAmount < 0){
@@ -171,7 +175,7 @@ class sales_plg_DpInvoice extends core_Plugin
         		}
         		
         		if(empty($invoiced->downpayment)){
-        			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ддс за аванс');
+        			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
         		} else {
         			if(abs($rec->dpAmount) > ($invoiced->downpayment - $invoiced->downpaymentDeducted)){
         				$form->setWarning('dpAmount', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
@@ -190,6 +194,7 @@ class sales_plg_DpInvoice extends core_Plugin
     private static function getDpWithoutVat($downpayment, $rec)
     {
     	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
+    	
     	$vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($downpayment) * $vat / (1 + $vat) : 0;
     	
     	return  $downpayment - $vatAmount;

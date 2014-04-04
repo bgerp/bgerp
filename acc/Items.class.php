@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -101,7 +101,7 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=nameLink)', 'caption=Номенклатури,input');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
@@ -194,7 +194,6 @@ class acc_Items extends core_Manager
             $num = str_replace('&nbsp;', '', $num);
         }
     }
-    
     
     
     /**
@@ -420,6 +419,37 @@ class acc_Items extends core_Manager
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'add' && isset($rec->lists)){
+    		if(!is_array($rec->lists)) return;
+    		
+    		// Ако избраната номенклатура има изискване за интерфейси
+    		$listRec = acc_Lists::fetch(reset($rec->lists));
+    		if($listRec->regInterfaceId){
+	    		$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
+    			$options = core_Classes::getOptionsByInterface($intName);
+	    		
+    			// Ако е само един наличния мениджър и той има 'autoList' с тази
+    			// номенклатура, неможе да се добавя перо от тук.
+    			if(count($options) == 1){
+	    			$Class = cls::get(reset($options));
+	    			if(isset($Class->autoList) && $Class->autoList == $listRec->systemId){
+	    				$res = 'no_one';
+	    			}
+	    		}
+	    	}
+    	}
+    	
+    	// Дали може да се импортират данни от мениджъри отговарящи на наличния интерфейс
+    	if($action == 'insert' && isset($rec->listId)){
+    		$res = $mvc->getRequiredRoles('add', (object)array('lists' => arr::make($rec->listId, TRUE)));
+    		$listRec = acc_Lists::fetch($rec->listId);
+    		
+    		// Ако избраната номенклатура, няма интерфейс - не може
+    		if(empty($listRec->regInterfaceId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -473,25 +503,28 @@ class acc_Items extends core_Manager
     }
     
     
-    /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
+	/**
+     * Предефиниране на подготовката на лентата с инструменти за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    function prepareListToolbar_(&$data)
     {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-    		if($listId = $mvc->getCurrentListId()){
-    			expect($listRec = acc_Lists::fetch($listId));
-    			
-	    		if($listRec->regInterfaceId){
-	    			$data->toolbar->removeBtn('btnAdd');
-	    			if(haveRole('ceo,accMaster')){
-	    				$data->toolbar->addBtn("Избор", array($mvc, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
-	    			}
-	    		} else {
-	    			$data->toolbar->buttons['btnAdd']->url['listId'] = $listId;
-	    		}
-    		}
-    	}
+        $data->toolbar = cls::get('core_Toolbar');
+        
+        $listId = $this->getCurrentListId();
+        if($listId){
+        	// Проверка можели да добавяме записи пък това перо
+	        if ($this->haveRightFor('add', (object)array('lists' => arr::make($listId, TRUE)))) {
+	            $data->toolbar->addBtn('Нов запис', array($this, 'add', 'listId' => $listId), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
+	        }
+	        
+	        // Можели да импортираме от модел, ако да махаме бутона за нормално добавяне
+        	if($this->haveRightFor('insert', (object)array('listId' => $listId))){
+	    		$data->toolbar->removeBtn('btnAdd');
+        		$data->toolbar->addBtn("Избор", array($this, 'Insert', 'listId' => $listId, 'ret_url' => TRUE), 'ef_icon=img/16/table-import-icon.png,title=Бърз избор на кои записи да станат пера');
+	    	}
+        }
+        
+        return $data;
     }
     
     
@@ -500,9 +533,9 @@ class acc_Items extends core_Manager
      */
     static function on_AfterPrepareEditToolbar($mvc, $data)
     {
-    	if (!empty($data->form->toolbar->buttons['Запис и Нов'])) {
+    	if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
     		if($data->form->rec->classId && $data->form->rec->objectId){
-    			$data->form->toolbar->removeBtn('Запис и Нов');
+    			$data->form->toolbar->removeBtn('saveAndNew');
     		}
     	}
     }
@@ -524,7 +557,7 @@ class acc_Items extends core_Manager
         $tpl->append(tr('Номенклатури'), 'title');
         
         if($data->canChange && !Mode::is('printing')) {
-            $url = array(get_called_class(), 'edit', 'classId'=>$masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
+            $url = array(get_called_class(), 'edit', 'classId' => $masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
             $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16' />";
             $tpl->append(
                 ht::createLink(
@@ -714,17 +747,16 @@ class acc_Items extends core_Manager
      */
     function act_Insert()
     {
-    	requireRole('ceo,accMaster');
     	expect($listId = Request::get('listId', 'int'));
+    	$this->requireRightFor('insert', (object)array('listId' => $listId));
     	expect($listRec = acc_Lists::fetch($listId));
-    	expect($listRec->regInterfaceId);
     	
     	$intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');
     	$options = core_Classes::getOptionsByInterface($intName);
     	$listTitle = acc_Lists::fetchField($listId, 'name');
     	
     	$form = cls::get('core_Form');
-    	$form->title = "Добавяне на пера към номенклатура '{$listTitle}'";
+    	$form->title = "Добавяне на пера към номенклатура|* '{$listTitle}'";
     	foreach ($options as $className){
     		$this->prepareInsertForm($form, $className, $listId);
     	}
@@ -743,7 +775,7 @@ class acc_Items extends core_Manager
     			}
     		}
     		
-    		return followRetUrl(NULL, 'Перата са добавени успешно');
+    		return followRetUrl(NULL, tr('Перата са добавени успешно'));
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
@@ -797,7 +829,7 @@ class acc_Items extends core_Manager
     	$query = $Class->getQuery();
     	$query->where("#state != 'rejected'");
     	if(count($items)){
-    		$query->notIn('#id', $items);
+    		$query->notIn('id', $items);
     	}
     	$query->show('id');
     	

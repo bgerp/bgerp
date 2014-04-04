@@ -92,7 +92,7 @@ class price_ListRules extends core_Detail
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'productId, price';
+    var $searchFields = 'productId, groupId, price';
     
     
     /**
@@ -114,11 +114,23 @@ class price_ListRules extends core_Detail
         $this->FLD('calculation', 'enum(forward,reverse)', 'caption=Изчисляване,remember');
         $this->FLD('discount', 'percent(decimals=2)', 'caption=Марж,placeholder=%');
 
-        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От');
-        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До');
+        $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->От,remember');
+        $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00)', 'caption=В сила->До,remember');
     }
     
     
+    /**
+     * След генериране на ключовите думи
+     */
+    function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+     	if($rec->productId){
+     		$code = cat_Products::getVerbal($rec->productId, 'code');
+     		$res .= " " . plg_Search::normalizeText($code);
+     	}
+    }
+     
+     
     /**
 	 *  Подготовка на филтър формата
 	 */
@@ -310,6 +322,20 @@ class price_ListRules extends core_Detail
 
     
     /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    function on_AfterPrepareEditToolbar($mvc, &$res, &$data)
+    {
+    	$rec = $data->form->rec;
+    	if($rec->type == 'groupDiscount'){
+    		$msg = 'Правилото ще анулира всички индивидуални правила за артикулите, включени в групата!';
+    		$data->form->toolbar->setWarning('save', $msg);
+    		$data->form->toolbar->setWarning('saveAndNew', $msg);
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc
@@ -488,7 +514,7 @@ class price_ListRules extends core_Detail
         if($rec->productId) {
         	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
         } elseif($rec->groupId) {
-            $row->domain = tr('група ') . $mvc->getVerbal($rec, 'groupId');
+            $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
             $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
         }
         

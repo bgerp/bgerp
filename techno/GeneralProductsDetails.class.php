@@ -129,7 +129,7 @@ class techno_GeneralProductsDetails extends core_Detail {
     {
     	if (empty($data->form->rec->id)) {
     		if(!(count(static::getRemainingOptions($data->form->rec->generalProductId)) - 1)){
-    			$data->form->toolbar->removeBtn('Запис и Нов');
+    			$data->form->toolbar->removeBtn('saveAndNew');
     		}
     	}
     }
