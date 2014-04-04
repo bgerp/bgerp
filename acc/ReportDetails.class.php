@@ -251,8 +251,10 @@ class acc_ReportDetails extends core_Manager
     			}
     			
     			$tableHtml = $table->get($rows, $fields);
-    			$colspan = count($fields) - 2;
-    			$totalHtml = "<tr style='background-color:rgb(241, 241, 241)'><td colspan='{$colspan}'></td><td style='text-align:right'>" . tr('Общо') . ":</td><td style='text-align:right;font-weight:bold'>{$Double->toVerbal($total)}</td></tr>";
+    			$colspan = count($fields) - 1;
+    			$totalRow = $Double->toVerbal($total);
+    			$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
+    			$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
     			$tableHtml->replace($totalHtml, 'ROW_AFTER');
     			$tableHtml->removeBlocks;
     			
