@@ -125,6 +125,7 @@ class acc_plg_DealsChooseOperation extends core_Plugin
 	    		// обновяване на записа с избраните операции
 	    		$form->rec->action = 'activate' . (($form->rec->action) ? "," : "") . $form->rec->action;
 	    		$rec->contoActions = $form->rec->action;
+	    		$rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
 	    		$mvc->save($rec);
 	    		
 	    		// Ако се експедира и има склад, форсира се логване
