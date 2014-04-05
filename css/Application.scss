@@ -3752,3 +3752,16 @@ body.narrow {
 	font-size: 0.9em;
 }
 @import "partials/sales";
+
+
+.weblog {
+	font-size:0.8em;
+	white-space:nowrap;
+	padding-bottom:5px;
+}
+
+.weblog-cnt,  .weblog-ip, .weblog-country {
+	padding:2px;
+	border:solid 1px #ccc;
+	background-color:#eee;
+}

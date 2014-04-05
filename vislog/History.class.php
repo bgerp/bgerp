@@ -190,7 +190,7 @@ class vislog_History extends core_Manager {
         $ref = vislog_Referer::getReferer($rec->ip, $rec->createdOn);
 
         if($ref) {
-            $row->ip->append("<br><span style='font-size:0.6em;'>{$ref}</span>");
+            $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
     }
 
@@ -206,14 +206,29 @@ class vislog_History extends core_Manager {
         
         $color = sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0); 
 
-        $count = ht::createLink("<span style='font-size:0.8em;padding:2px;border:solid 1px #ccc;background-color:#eee;color:#{$color};'>{$old}/{$cnt}</span>", 
-                    array('vislog_History', 'ip' => $ip));
+        $count = ht::createLink("{$old}/{$cnt}", 
+                    array('vislog_History', 'ip' => $ip),
+                    NULL,
+                    array('class' => 'weblog-cnt', 'style' => "color:#{$color};"));
         
 
-        $country = drdata_IpToCountry::get($ip);
-        $country = ht::createLink($country, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank'));
+        $country2 = 'BG'; //= drdata_IpToCountry::get($ip);
+        $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
+
+        $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'weblog-ip', 'title' => $countryName));
         
-        $res = new ET("[#1#]&nbsp;{$ip}&nbsp;[#2#]", $country, $count);
+
+        $ipRec = vislog_IpNames::fetch(array("#ip = '[#1#]'", $ip));
+
+        if($ipRec) {
+            $name = vislog_IpNames::getVerbal($ipRec, 'name');
+        }
+
+        if(!$name) {
+            $name = $ip;
+        }
+ 
+        $res = new ET("<div class='weblog'>[#1#]&nbsp;<span class='weblog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);
 
         return $res;
     }
