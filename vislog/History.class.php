@@ -74,7 +74,7 @@ class vislog_History extends core_Manager {
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Query');
                 
-        $this->setDbUnique('ip,HistoryResourceId,createdBy');
+        // $this->setDbUnique('ip,HistoryResourceId,createdBy');
     }
     
     
@@ -160,13 +160,15 @@ class vislog_History extends core_Manager {
         }
         
         
-        // Ако имаме такъв запис - връщаме ИСТИНА, за да не продължи обработката
-        if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
+        // Ако имаме такъв запис в последните 5 минути - връщаме FALSE, за да не продължи обработката
+        $last5 = dt::addSecs(-5*60);
+        if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'")) {
+
             return FALSE;
         }
-	
-	// Записваме данните за Referer-а
-	$Referer = cls::get('vislog_Referer');
+        
+        // Записваме данните за Referer-а
+        $Referer = cls::get('vislog_Referer');
         $Referer->add($rec->HistoryResourceId);
     }
     
