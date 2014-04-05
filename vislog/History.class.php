@@ -212,7 +212,7 @@ class vislog_History extends core_Manager {
                     array('class' => 'weblog-cnt', 'style' => "color:#{$color};"));
         
 
-        $country2 = 'BG'; //= drdata_IpToCountry::get($ip);
+        $country2 =  drdata_IpToCountry::get($ip);
         $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
 
         $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'weblog-ip', 'title' => $countryName));
