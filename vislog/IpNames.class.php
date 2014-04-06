@@ -38,7 +38,7 @@ class vislog_IpNames extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "vislog_Wrapper";
+    var $loadList = "vislog_Wrapper,plg_RowTools";
     
     
     /**
@@ -74,6 +74,5 @@ class vislog_IpNames extends core_Manager {
         $this->FLD('name', 'varchar(15)', 'caption=Име');
         
         $this->setDbUnique('ip');
-        $this->setDbUnique('name');
     }
 }

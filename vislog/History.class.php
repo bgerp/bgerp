@@ -74,7 +74,7 @@ class vislog_History extends core_Manager {
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Query');
                 
-        // $this->setDbUnique('ip,HistoryResourceId,createdBy');
+        $this->setDbIndex('ip');
     }
     
     
@@ -121,7 +121,8 @@ class vislog_History extends core_Manager {
         $data->listFilter->input('ip', 'silent');
         
         if($ip = $data->listFilter->rec->ip){
-            $data->query->where("#ip LIKE '{$ip}%'");
+            $ip = str_replace('*', '%', $ip);
+            $data->query->where(array("#ip LIKE '[#1#]'", $ip));
         }
         
         if($HistoryResourceId = $data->listFilter->rec->HistoryResourceId){
@@ -219,8 +220,10 @@ class vislog_History extends core_Manager {
 
         $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'weblog-ip', 'title' => $countryName));
         
-
-        $ipRec = vislog_IpNames::fetch(array("#ip = '[#1#]'", $ip));
+        list($p1, $p2, $p3, $p4) = explode('.', $ip);
+        $ip3 = "{$p1}.{$p2}.{ip3}.*";
+        $ip2 = "{$p1}.{$p2}.*.*";
+        $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));
 
         if($ipRec) {
             $name = vislog_IpNames::getVerbal($ipRec, 'name');
