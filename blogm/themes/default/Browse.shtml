@@ -1,7 +1,7 @@
 <div class='blogm-browse'>
 	
 	<!--ET_BEGIN BROWSE_HEADER-->
-	<div id='blog-browse-header'>
+	<div class='blog-browse-header'>
 		[#BROWSE_HEADER#]
 	</div>
 	<!--ET_END BROWSE_HEADER-->

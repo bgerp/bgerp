@@ -46,11 +46,6 @@ class blogm_Articles extends core_Master {
 	var $listFields ='id, title, categories, author, language, createdOn, createdBy, modifiedOn, modifiedBy';
 	
         
-	/**
-	 *  Брой статии на страница 
-	 */
-	var $listItemsPerPage = "4";
-	
 	
 	/**
 	 * Коментари на статията
@@ -342,13 +337,15 @@ class blogm_Articles extends core_Master {
       
         Mode::set('SOC_TITLE', $data->ogp->siteInfo['Title']);
         Mode::set('SOC_SUMMARY', $data->ogp->siteInfo['Description']);
-        
+               
+
 		// Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
         
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
-				        
+		$tpl->prepend($data->ogp->siteInfo['Title'] . ' » ', 'PAGE_TITLE');
+
 		// Генерираме и заместваме OGP информацията в шаблона
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         
@@ -562,6 +559,9 @@ class blogm_Articles extends core_Master {
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
         
+        // Поставяме титлата
+        $tpl->prepend( strip_tags($data->title) . ' » ', 'PAGE_TITLE');
+
         // Добавяме стиловете от темата
         $tpl->push($data->ThemeClass->getStyles(), 'CSS');
 
@@ -569,8 +569,12 @@ class blogm_Articles extends core_Master {
         $ogpHtml = ograph_Factory::generateOgraph($data->ogp);
         $tpl->append($ogpHtml);
         
+        if(core_Packs::fetch("#name = 'vislog'")) {
+            vislog_History::add($data->title ? str_replace('&nbsp;', ' ', strip_tags($data->title)) : tr('БЛОГ'));
+        }
+
 		// Записваме, че потребителя е разглеждал този списък
-		$this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
+		$this->log('List: ' . ($data->log ? $data->log : $data->title));
 		
 		return $tpl;
 	}
@@ -626,6 +630,27 @@ class blogm_Articles extends core_Master {
         if($this->haveRightFor('list')) {
             $data->workshop = array('blogm_Articles', 'list');
         }
+
+        // Определяне на титлата
+		// Ако е посочено заглавие по-което се търси
+        if(isset($data->q)) {
+            if(!count($data->rows)) {
+   			    $data->title = tr('Няма резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+            } else {
+			    $data->title = tr('Резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+            }
+		} elseif( isset($data->archive)) {  
+   			$data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
+        } elseif( isset($data->category) && !count($data->rows)) {
+            $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
+   			$data->title = tr('Няма статии в') .  '&nbsp;"<b>' . $category . '</b>"';
+        } elseif(isset($data->category)) {
+            $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
+   			$data->title = tr('Статии в') .  '&nbsp;"<b>' . $category . '</b>"';
+        } else {
+            $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
+        }
+
 		
         // Подготвяме OpenGraphProtocol обекта
         $this->prepareOgraph($data);
@@ -651,23 +676,10 @@ class blogm_Articles extends core_Master {
             }
         }   
         
-		// Ако е посочено заглавие по-което се търси
-        if(isset($data->q)) {
-			$title = tr('Резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
-		} elseif( isset($data->archive)) {  
-   			$title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
-        } elseif( isset($data->category) && !count($data->rows)) {
-            $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$title = tr('Няма статии в') .  '&nbsp;"<b>' . $category . '</b>"';
-        }
         
-        $layout->replace($title, 'BROWSE_HEADER');
+        $layout->replace($data->title, 'BROWSE_HEADER');
         $layout->append($data->pager->getPrevNext("« по-стари", "по-нови »"));
         
-        if(core_Packs::fetch("#name = 'vislog'")) {
-            vislog_History::add($title ? str_replace('&nbsp;', ' ', strip_tags($title)) : 'БЛОГ');
-        }
-
         // Рендираме навигацията
         $layout->replace($this->renderNavigation($data), 'NAVIGATION');
         
