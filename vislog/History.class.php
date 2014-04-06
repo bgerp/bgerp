@@ -222,7 +222,7 @@ class vislog_History extends core_Manager {
         $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'weblog-ip', 'title' => $countryName));
         
         list($p1, $p2, $p3, $p4) = explode('.', $ip);
-        $ip3 = "{$p1}.{$p2}.{$ip3}.*";
+        $ip3 = "{$p1}.{$p2}.{$p3}.*";
         $ip2 = "{$p1}.{$p2}.*.*";
         $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));
 
