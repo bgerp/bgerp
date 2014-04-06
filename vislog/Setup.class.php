@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ *  Време в което не се логва заявка от същото ip/ресурс
+ */
+defIfNot('VISLOG_ALLOW_SAME_IP', 5*60);
+
 
 /**
  * Клас 'vislog_Setup' -
@@ -51,8 +56,13 @@ class vislog_Setup extends core_ProtoSetup
             'vislog_Referer',
             'vislog_IpNames',
         );
+    
 
-        
+    var $configDescription = array(
+			'VISLOG_ALLOW_SAME_IP' => array ('time', 'caption=Време за недопускане на запис за едни и същи ip/ресурс->Време'),
+        );
+
+         
     /**
      * Роли за достъп до модула
      */
