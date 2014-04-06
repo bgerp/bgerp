@@ -575,6 +575,44 @@ class cms_Articles extends core_Master
 
 
     /**
+     * Връща кратко URL към съдържание на статия
+     */
+    function getShortUrl($url)
+    { 
+        $vid = urldecode($url['id']);
+ 
+        if($vid) {
+            $id = cms_VerbalId::fetchId($vid, 'cms_Articles'); 
+
+            if(!$id) {
+                $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            }
+
+            if(!$id && is_numeric($vid)) {
+                $id = $vid;
+            }
+
+            if($id) {
+                $rec = self::fetch($id);
+                $lg = cms_Content::fetchField($rec->menuId, 'lang');
+                if($lg) {
+                    $ctr = ucfirst($lg);
+                    if(cls::load($ctr)) {
+                        $url['Ctr'] = $ctr;
+                        unset($url['Act']);
+                    }
+                    $url['id'] = $id;
+                }
+            }
+        }
+
+        unset($url['PU']);
+
+        return $url;
+    }
+
+
+    /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */
     function getWorkshopUrl($menuId)

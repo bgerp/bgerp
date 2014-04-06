@@ -94,8 +94,8 @@ class social_Sharings extends core_Master
         $cntUrl  = toUrl($cUrl, 'absolute');
         $selfUrl = substr(rawurlencode($cntUrl), 4);
 
-        $selfTitle   = rawurlencode(Mode::get('SOC_TITLE'));
-        $selfSummary = toUrl(str::truncate(rawurlencode(Mode::get('SOC_SUMMARY')), 200), 'absolute');
+        $selfTitle   = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE')));
+        $selfSummary = rawurlencode(str::truncate(html_entity_decode(Mode::get('SOC_SUMMARY')), 200));
     	
         // Взимаме всяко tpl, в което сме 
     	// сложили прейсхолдер [#social_Sharings::getButtons#]

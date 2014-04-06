@@ -267,7 +267,7 @@ class blogm_Articles extends core_Master {
 	 *  Екшън за публично преглеждане и коментиране на блог-статия
 	 */
 	function act_Article()
-	{
+	{  
 		// Имаме ли въобще права за Article екшън?			
 		$this->requireRightFor('article');
 
@@ -339,7 +339,7 @@ class blogm_Articles extends core_Master {
                 return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
             }
         }
-        
+      
         Mode::set('SOC_TITLE', $data->ogp->siteInfo['Title']);
         Mode::set('SOC_SUMMARY', $data->ogp->siteInfo['Description']);
         
@@ -945,29 +945,33 @@ class blogm_Articles extends core_Master {
     }
 
 
-
     /**
-     * Връща кратко URL към съдържание, което се линква чрез този редиректор
+     * Връща кратко URL към статия от блога
      */
     function getShortUrl($url)
     {
-        $a = strtoupper($url['Act']);
+        $vid = urldecode($url['id']);
+        $act = strtolower($url['Act']);
 
-        if($a == 'ARTICLE') {
+        if($vid && $act == 'article') {
+            $id = cms_VerbalId::fetchId($vid, 'blogm_Articles'); 
 
-            $vid = urldecode($url['id']);
-
-            if($vid ) {
-                $id = cms_VerbalId::fetchId($vid, $cls); 
-
-                if(!$id) {
-                    $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
-                }
-                
-                $url['id'] = $id;            
+            if(!$id) {
+                $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
             }
-        } 
- 
+            
+            if(!$id && is_numeric($vid)) {
+                $id = $vid;
+            }
+
+
+            if($id) {
+                $url['Ctr'] = 'A';
+                $url['Act'] = 'b';
+                $url['id'] = $id;
+            }
+        }
+
         unset($url['PU']);
 
         return $url;

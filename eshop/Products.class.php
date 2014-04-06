@@ -337,6 +337,9 @@ class eshop_Products extends core_Master
             $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
             $data->row->editLink = ht::createLink($editImg, array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => TRUE));
         }
+ 
+        Mode::set('SOC_TITLE', $data->row->name);
+        Mode::set('SOC_SUMMARY', $data->row->info);
 
     }
 
@@ -376,6 +379,39 @@ class eshop_Products extends core_Master
         
         return $url;
     }
+    
+    
+    /**
+     * Връща кратко URL към продукт
+     */
+    function getShortUrl($url)
+    { 
+        $vid = urldecode($url['id']);
+        $act = strtolower($url['Act']);
+
+        if($vid && $act == 'show') {
+            $id = cms_VerbalId::fetchId($vid, 'eshop_Products'); 
+
+            if(!$id) {
+                $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            }
+            
+            if(!$id && is_numeric($vid)) {
+                $id = $vid;
+            }
+
+            if($id) {
+                $url['Ctr'] = 'A';
+                $url['Act'] = 'p';
+                $url['id'] = $id;
+            }
+        }
+
+        unset($url['PU']);
+
+        return $url;
+    }
+
 
     
 	/**

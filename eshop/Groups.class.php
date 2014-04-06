@@ -290,6 +290,9 @@ class eshop_Groups extends core_Master
         }
 
         $row->description = $this->getVerbal($rec, 'info');
+
+        Mode::set('SOC_TITLE', $row->name);
+        Mode::set('SOC_SUMMARY', $row->info);
         
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
@@ -444,6 +447,38 @@ class eshop_Groups extends core_Master
 
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
         
+        return $url;
+    }
+    
+    
+    /**
+     * Връща кратко URL към продуктова група
+     */
+    function getShortUrl($url)
+    {
+        $vid = urldecode($url['id']);
+        $act = strtolower($url['Act']);
+
+        if($vid && $act == 'show') {
+            $id = cms_VerbalId::fetchId($vid, 'eshop_Groups'); 
+
+            if(!$id) {
+                $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            }
+            
+            if(!$id && is_numeric($vid)) {
+                $id = $vid;
+            }
+
+            if($id) {
+                $url['Ctr'] = 'A';
+                $url['Act'] = 'g';
+                $url['id'] = $id;
+            }
+        }
+
+        unset($url['PU']);
+
         return $url;
     }
 
