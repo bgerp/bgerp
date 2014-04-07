@@ -156,6 +156,12 @@ class sales_model_Sale extends core_Model
     
     
     /**
+     * enum(pending=Чакащо,overdue=Просроченo,paid=Платенo)
+     */
+    public $paymentState;
+    
+    
+    /**
      * Обновява БД с агрегирана бизнес информация за продажба 
      * 
      * @param bgerp_iface_DealResponse $aggregateDealInfo
@@ -166,6 +172,14 @@ class sales_model_Sale extends core_Model
         $this->amountPaid      = $aggregateDealInfo->paid->amount;
         $this->amountDelivered = $aggregateDealInfo->shipped->amount;
         $this->amountInvoiced  = $aggregateDealInfo->invoiced->amount;
+        
+        if($this->amountPaid && $this->amountDelivered && $this->paymentState != 'overdue'){
+        	if($this->amountPaid >= $this->amountDelivered){
+        		$this->paymentState = 'paid';
+        	} else {
+        		$this->paymentState = 'pending';
+        	}
+        }
         
         $saleProducts = $this->getDetails('sales_SalesDetails', 'sales_model_SaleProduct');
         
