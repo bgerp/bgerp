@@ -93,6 +93,12 @@ class acc_Operations extends core_Manager
     
     
     /**
+     * Полета за търсене
+     */
+    var $searchFields = 'name,debitAccount,creditAccount';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -260,7 +266,7 @@ class acc_Operations extends core_Manager
 	/**
      * За NULL-ява празните systemId
      */
-    function on_BeforeSetupMvc($mvc, &$res) 
+    function on_BeforeSetupMvc1($mvc, &$res) 
     {
         if($mvc->db->tableExists($mvc->dbTableName)) {
             $query = $mvc->getQuery();
