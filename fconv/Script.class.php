@@ -187,7 +187,7 @@ class fconv_Script
         if (stristr(PHP_OS, 'WIN')) {
         
         } else {
-            $cmdLine = "wget -q --spider '{$url}'";
+            $cmdLine = "wget -q --spider --no-check-certificate '{$url}'";
         }
         
         $this->lineExec($cmdLine);
