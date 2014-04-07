@@ -163,9 +163,9 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	/**
      * Дали разликата на доставеното - платеното е в допустимите граници
      */
-    public static function isSaleDiffAllowed($saleRec)
+    public static function isPurchaseDiffAllowed($purchaseRec)
     {
-    	$diff = round($saleRec->amountDelivered - $saleRec->amountPaid, 2);
+    	$diff = round($purchaseRec->amountDelivered - $purchaseRec->amountPaid, 2);
     	$conf = core_Packs::getConfig('purchase');
     	$res = ($diff >= -1 * $conf->PURCHASE_CLOSE_TOLERANCE && $diff <= $conf->PURCHASE_CLOSE_TOLERANCE);
     	
@@ -191,7 +191,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     			
 	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    		// потребителя да има по-големи права за да създаде документа
-	    		if(!self::isSaleDiffAllowed($originRec)){
+	    		if(!self::isPurchaseDiffAllowed($originRec)){
 	    			$res = 'ceo,purchaseMaster';
 	    		} else {
 	    			$res = 'ceo,purchase';

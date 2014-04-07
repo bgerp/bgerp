@@ -1,17 +1,17 @@
 <table class="innerTable"  cellpadding="5" cellspacing="0" width="100%">
 	<tbody>
 		<tr>
-			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|* / <i>Buyer</i></b></td>
+			<td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|*</b></td>
 		    <td class="cell" rowspan="3" align="center" width="30%">
 		        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>[#type#]</span></div>
-		        <div class='invInfo'>|Номер|* / Number</div>
+		        <div class='invInfo'>|Номер|* </div>
 		        <div class="bigData">[#number#]</div>
-		        <div class='invInfo'>|Дата|* / Date</div>
+		        <div class='invInfo'>|Дата|*</div>
 		        <div class="bigData">[#date#]</div>
-		    	<div class='invInfo'>|Място|* / Place</div>
+		    	<div class='invInfo'>|Място|*</div>
                 <div class="bigData">[#place#]</div>
 				<div class='invInfo bigData'>
-		            <div class='original'>|ОРИГИНАЛ|*/<i>ORIGINAL</i></div>
+		            <div class='original'>|ОРИГИНАЛ|*</div>
 		            	<!--ET_BEGIN POS-->
 		                <span style='font-weight:normal;'>[#POS#]</span>
 		                <!--ET_END POS-->
@@ -25,7 +25,7 @@
                   <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                <!--ET_END state-->
 		    </td>
-		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Доставчик|* / <i>Seller</i></b> </td>
+		    <td class="cell custom-header-bg" width="35%" style='vertical-align:middle !important'><b>|Получател|*</b> </td>
 		</tr>           
 		<tr>
 		    <td class="cell">
@@ -44,7 +44,7 @@
 		            <tbody>
 		               <!--ET_BEGIN contragentVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
+		                   <td><small><b>|номер по ЗДДС|*</b></small></td>
 		               </tr>
 		               <tr>
 		                   <td class="bigData">[#contragentVatNo#]</td>
@@ -64,14 +64,14 @@
 		            <tbody>
 		               <!--ET_BEGIN MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|номер по ЗДДС|* / <i>VAT ID</i></b></small></td>
+		                   <td><small><b>|номер по ЗДДС|*</b></small></td>
 		               </tr>
 		               <tr>
 		                   <td class="bigData">[#MyCompanyVatNo#]</td>
 		               </tr>
 		               <!--ET_END MyCompanyVatNo-->
 		               <tr>
-		                   <td><small><b>|ЕИК|* / <i>UIC</i></b></small></td>
+		                   <td><small><b>|ЕИК|*</b></small></td>
 		               </tr>
 		               <tr>
 		                    <td class="bigData">[#uicId#]</td>

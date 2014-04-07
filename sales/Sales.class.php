@@ -191,7 +191,7 @@ class sales_Sales extends core_Master
         // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
-        $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
@@ -605,6 +605,10 @@ class sales_Sales extends core_Master
 					break;
 			}
 			$row->$fld = ' ';
+			
+			if($rec->makeInvoice == 'no'){
+				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
+			}
 	    }
     }
     

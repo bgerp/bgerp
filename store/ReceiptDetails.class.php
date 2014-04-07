@@ -114,7 +114,7 @@ class store_ReceiptDetails extends core_Detail
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума,input=none');
-        $this->FNC('packQuantity', 'double(smartRound,decimals=2)', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0,decimals=2)', 'caption=К-во,input=input,mandatory');
         $this->FNC('packPrice', 'double', 'caption=Цена,input=none');
         $this->FLD('discount', 'percent', 'caption=Отстъпка,input=none');
     }

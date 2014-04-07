@@ -3,7 +3,7 @@
 
 
 /**
- * Входящи фактури
+ * Входящи фактури към покупки
  *
  *
  * @category  bgerp
@@ -64,7 +64,7 @@ class purchase_Invoices extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'purchase_InvoiceDetails' ;
+    public $details = 'purchase_InvoiceDetails';
     
     
     /**
@@ -184,7 +184,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory');
-        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%, mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
@@ -207,7 +207,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
-		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
+		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
@@ -220,9 +220,6 @@ class purchase_Invoices extends core_Master
             'enum(invoice=Входяща фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 
             'caption=Вид, input=hidden,silent'
         );
-        
-        $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
-        $this->FLD('docId', 'int', 'input=hidden,silent');
         
         $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
         
@@ -361,6 +358,14 @@ class purchase_Invoices extends core_Master
         		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
+        	
+        	if($aggregateInfo->agreed->payment->bankAccountId){
+        		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
+        	}
+        	
+        	if($aggregateInfo->agreed->payment->caseId){
+        		$form->rec->caseId = $aggregateInfo->agreed->payment->caseId;
+        	}
         }
 	        
 	    if($origin->className  == 'purchase_Invoices'){
@@ -379,7 +384,7 @@ class purchase_Invoices extends core_Master
 	   	
 	   	$form->setReadOnly('vatRate');
 	   	
-	   	// Метод който да бъде прихванат от sales_plg_DpInvoice
+	   	// Метод който да бъде прихванат от acc_plg_DpInvoice
 	   	$mvc->prepareDpInvoicePlg($data);
     }
     
@@ -619,19 +624,15 @@ class purchase_Invoices extends core_Master
     	}
     	
     	if($fields['-single']){
-    		
-	    	if($rec->docType && $rec->docId){
-	    		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
-	    	}
 	    	
 	    	if($rec->originId && $rec->type != 'invoice'){
 	    		unset($row->deliveryPlaceId, $row->deliveryId);
 	    	}
     		
 	    	if(doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons'){
-    			$row->cNum = tr('|ЕГН|* / <i>Personal №</i>');
+    			$row->cNum = tr('|ЕГН|*');
     		} else {
-	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
+	    		$row->cNum = tr('|ЕИК|*');
     		}
 	    	
 	    	if($rec->accountId){
@@ -644,8 +645,6 @@ class purchase_Invoices extends core_Master
 	    	$row->header = "{$row->type} #<b>{$mvc->abbr}{$rec->id}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
-    		
-			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
 			
 			if($rec->type != 'invoice'){
 				$originRec = $mvc->getOrigin($rec)->fetch();
@@ -862,11 +861,7 @@ class purchase_Invoices extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        if(Request::get('docType', 'int') && Request::get('docId', 'int')){
-        	return TRUE;
-        }
-        
-    	return FALSE;
+        return FALSE;
     }
     
     
@@ -880,13 +875,9 @@ class purchase_Invoices extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof purchase_Purchases){
+    	if($firstDoc->instance instanceof purchase_Purchases && $docState == 'active'){
     		
-    		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
-    		return TRUE;
-    	} elseif($firstDoc->instance instanceof purchase_Invoices && $docState == 'active') {
-    		
-    		// или към нишка с начало активирана продажба
+    		// Може да се добавя към активирана покупка
     		return TRUE;
     	}
     	
@@ -954,13 +945,9 @@ class purchase_Invoices extends core_Master
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  При фактура основана на ПРОДАЖБА:
-   	 *  		Dt: 411  - Вземания от клиенти
-   	 *  		Ct: 4532 - Начислен ДДС за продажбите
    	 *  
-   	 *  При фактура основана на ПОКУПКА:
-   	 *  		Dt: 401  - Задължения към доставчици
-   	 *  		Ct: 4531 - Начислен ДДС за покупките
+   	 *  Dt: 4531 - Начислен ДДС за покупките
+   	 *  Ct: 401  - Задължения към доставчици
    	 */
     public static function getTransaction($id)
     {
@@ -984,9 +971,6 @@ class purchase_Invoices extends core_Master
         	$type = static::getVerbal($rec, 'type');
         	$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
         }
-        
-        // Ако фактурата е от пос продажба не се контира ддс
-        if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
     	$debitAccId  = '4531';
@@ -1055,7 +1039,7 @@ class purchase_Invoices extends core_Master
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $result = new bgerp_iface_DealResponse();
         
-        $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
+        $result->dealType 			= bgerp_iface_DealResponse::TYPE_PURCHASE;
         $result->invoiced->amount   = ($rec->type == 'credit_note') ? -1 * $total : $total;
         $result->invoiced->currency = $rec->currencyId;
         $result->invoiced->rate 	= $rec->rate;

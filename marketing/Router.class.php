@@ -10,7 +10,7 @@
  * @since     v 0.1
  *
  */
-class marketing_Router extends core_Manager
+class marketing_Router
 {
 	
 	
