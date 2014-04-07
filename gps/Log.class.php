@@ -39,7 +39,7 @@ class gps_Log extends core_Manager
      */
     public $loadList = 'plg_Created';    
     
-    public $listFields = 'trackerId, text, remoteIp';
+    public $listFields = 'trackerId, text, remoteIp, createdOn';
     
     /**
      * Описание на модела
@@ -56,14 +56,16 @@ class gps_Log extends core_Manager
     public function on_CalcText($mvc, $rec)
     {
         $data = self::parseGPSData($rec->data);
-        
-        $dateTimeGPS = substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
+
+        $dateTimeGPS = "20" . substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
                 . " " . substr($data['time'],0,2) . ":" . substr($data['time'],2,2) . ":" . substr($data['time'],4,2); 
                 
         $rec->text = "Дата: " . $dateTimeGPS . "<br>";
         $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
         $rec->text .= "Ширина: " . $data['latitude'] . "<br>";
         $rec->text .= "Дължина: " . $data['longitude'] . "<br>";
+        $rec->text .= "Ширина DD: " . self::DMSToDD($data['latitude']) . "<br>";
+        $rec->text .= "Дължина DD: " . self::DMSToDD($data['longitude']) . "<br>";
         $rec->text .= "Скорост: " . $data['speed'] . " км/ч<br>";
         $rec->text .= "Посока: " . $data['heading'] . "<br>";
     }
@@ -121,17 +123,41 @@ class gps_Log extends core_Manager
 
     
     /**
-     * Връща Tracker данните
+     * Превръща от DMS (degrees, minutes, secondes) към DD (decimal degrees)
      * 
+     * @param string  - стринг с данните - в стил DMS ()
+     * @return double  - decimal degrees
+     */
+    private function DMSToDD($data)
+    {
+        // Махаме последния символ
+        $sign = substr($data, -1);
+        $data = substr($data, 0, -1);
+        $min = substr($data, strpos($data, '.') - 2);
+        $deg = substr($data, 0, strpos($data, $min));
+        $res = $deg+($min/60);
+        if ($sign == 'N' || $sign == 'E') {
+            // $res - непроменено
+        } else {
+            $res *= -1;
+        }
+
+        return $res;
+    }
+
+    
+    /**
+     * Връща Tracker данните
+     *
      * @param string стринг с данните - GPRMC + другите от тракера
      * @return array с елементи данните от тракера
      */
     private function parseTrackerData($data)
     {
-        
+    
         return $res;
     }
-
+    
     
     /**
      * Изчислява CRC
