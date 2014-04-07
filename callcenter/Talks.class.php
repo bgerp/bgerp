@@ -1595,7 +1595,7 @@ class callcenter_Talks extends core_Master
         $url = toUrl($urlArr, 'absolute');
         
         // Извикваме линка
-        exec("wget -q --spider '{$url}'");
+        exec("wget -q --spider --no-check-certificate '{$url}'");
         
         // Масив за линка
         $urlArr = array(
@@ -1613,7 +1613,7 @@ class callcenter_Talks extends core_Master
         $url = toUrl($urlArr, 'absolute');
         
         // Извикваме линка
-        exec("wget -q --spider '{$url}'");
+        exec("wget -q --spider --no-check-certificate '{$url}'");
     }
     
     
