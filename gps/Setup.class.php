@@ -70,7 +70,19 @@ class gps_Setup extends core_ProtoSetup
     var $managers = array(
             'gps_Log',
         );
-        
+
+    /**
+     * Роли за достъп до модула
+     */
+    var $roles = 'gps';
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    var $menuItems = array(
+            array(3.4, 'Мониторинг', 'GPS', 'gps_Log', 'default', "gps,ceo,admin"),
+    );
+    
 
     /**
      * Де-инсталиране на пакета

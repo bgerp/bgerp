@@ -92,8 +92,6 @@ class gps_Log extends core_Manager
         $rec->remoteIp = $remoteIp;
         
         $this->save($rec);
-        
-        // return "$trackerId <br> $data <br> $remoteIp <br>";
     }
     
     
