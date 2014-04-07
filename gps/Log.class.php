@@ -107,7 +107,7 @@ class gps_Log extends core_Manager
         $res['dataGPS'] = substr($data, 0, strpos($data, '*')); // до този знак е изречението, 2 знака след това - CRC-то
         $res['CRC'] = substr($data, strpos($data, '*'), 3);
         $arrData = explode(',', $res['dataGPS']);
-        $res['time'] = substr($arrData[0], 0, 6); // хилядните от времето не ни интересуват засега
+        $res['time'] = substr($arrData[0], strpos($arrData[0], '.')-6, 6); // хилядните от времето не ни интересуват засега
         $res['status'] = $arrData[1]; // A=valid, V=invalid 
         $res['latitude'] = $arrData[2] . $arrData[3];
         $res['longitude'] = $arrData[4] . $arrData[5];
