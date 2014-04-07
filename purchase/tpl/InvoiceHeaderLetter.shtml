@@ -5,7 +5,6 @@
 	    <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
 		<div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div>
 		<div class='title-subInfo original'>|ОРИГИНАЛ|* </div>
-		<div style='font-weight:normal;'>[#POS#]</div>
 		<!--ET_BEGIN originInv-->
 		<div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
 		<!--ET_END originInv-->

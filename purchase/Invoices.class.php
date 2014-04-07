@@ -221,9 +221,6 @@ class purchase_Invoices extends core_Master
             'caption=Вид, input=hidden,silent'
         );
         
-        $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
-        $this->FLD('docId', 'int', 'input=hidden,silent');
-        
         $this->FLD('isFull', 'enum(yes,no)', 'input=none,caption=Тегло,notNull,default=yes');
         
         $this->setDbUnique('folderId,number');
@@ -627,10 +624,6 @@ class purchase_Invoices extends core_Master
     	}
     	
     	if($fields['-single']){
-    		
-	    	if($rec->docType && $rec->docId){
-	    		$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
-	    	}
 	    	
 	    	if($rec->originId && $rec->type != 'invoice'){
 	    		unset($row->deliveryPlaceId, $row->deliveryId);
@@ -868,11 +861,7 @@ class purchase_Invoices extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        if(Request::get('docType', 'int') && Request::get('docId', 'int')){
-        	return TRUE;
-        }
-        
-    	return FALSE;
+        return FALSE;
     }
     
     
@@ -990,9 +979,6 @@ class purchase_Invoices extends core_Master
         	$type = static::getVerbal($rec, 'type');
         	$result->reason = "{$type} към Фактура №" . str_pad($origin->fetchField('number'), '10', '0', STR_PAD_LEFT);
         }
-        
-        // Ако фактурата е от пос продажба не се контира ддс
-        if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
     	$debitAccId  = '4531';
