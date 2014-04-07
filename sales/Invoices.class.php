@@ -212,7 +212,7 @@ class sales_Invoices extends core_Master
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
-		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
+		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
@@ -386,6 +386,14 @@ class sales_Invoices extends core_Master
         	if($aggregateInfo->agreed->delivery->location){
         		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
+        	}
+        	
+        	if($aggregateInfo->agreed->payment->bankAccountId){
+        		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
+        	}
+        	
+        	if($aggregateInfo->agreed->payment->caseId){
+        		$form->rec->caseId = $aggregateInfo->agreed->payment->caseId;
         	}
         }
 	        

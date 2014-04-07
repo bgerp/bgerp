@@ -191,7 +191,7 @@ class purchase_Purchases extends core_Master
         // Плащане
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethod');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
-        $this->FLD('currencyRate', 'double', 'caption=Плащане->Курс');
+        $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
@@ -199,7 +199,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('dealerId', 'user(rolesForAll=purchase|ceo,allowEmpty,roles=ceo|purchase)', 'caption=Наш персонал->Закупчик');
 
         // Допълнително
-        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки', array('attr' => array('rows' => 3)));
+        $this->FLD('note', 'text(rows=4)', 'caption=Допълнително->Бележки,width=100%', array('attr' => array('rows' => 3)));
     	$this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Допълнително->ДДС');
         $this->FLD('makeInvoice', 'enum(yes=Да,no=Не,monthend=Периодично)', 'caption=Допълнително->Фактуриране,maxRadio=3,columns=3');
         
