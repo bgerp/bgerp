@@ -3,7 +3,7 @@
 
 
 /**
- * Входящи фактури
+ * Входящи фактури към покупки
  *
  *
  * @category  bgerp
@@ -64,7 +64,7 @@ class purchase_Invoices extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'purchase_InvoiceDetails' ;
+    public $details = 'purchase_InvoiceDetails';
     
     
     /**
@@ -875,13 +875,9 @@ class purchase_Invoices extends core_Master
         $firstDoc = doc_Threads::getFirstDocument($threadId);
     	$docState = $firstDoc->fetchField('state');
     
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof purchase_Purchases){
+    	if($firstDoc->instance instanceof purchase_Purchases && $docState == 'active'){
     		
-    		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
-    		return TRUE;
-    	} elseif($firstDoc->instance instanceof purchase_Invoices && $docState == 'active') {
-    		
-    		// или към нишка с начало активирана продажба
+    		// Може да се добавя към активирана покупка
     		return TRUE;
     	}
     	
@@ -949,13 +945,9 @@ class purchase_Invoices extends core_Master
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
-   	 *  При фактура основана на ПРОДАЖБА:
-   	 *  		Dt: 411  - Вземания от клиенти
-   	 *  		Ct: 4532 - Начислен ДДС за продажбите
    	 *  
-   	 *  При фактура основана на ПОКУПКА:
-   	 *  		Dt: 401  - Задължения към доставчици
-   	 *  		Ct: 4531 - Начислен ДДС за покупките
+   	 *  Dt: 4531 - Начислен ДДС за покупките
+   	 *  Ct: 401  - Задължения към доставчици
    	 */
     public static function getTransaction($id)
     {
