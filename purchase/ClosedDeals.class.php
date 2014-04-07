@@ -191,7 +191,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     			
 	    		// Ако разликата между доставеното/платеното е по голяма, се изисква
 	    		// потребителя да има по-големи права за да създаде документа
-	    		if(!self::isSaleDiffAllowed($originRec)){
+	    		if(!self::isPurchaseDiffAllowed($originRec)){
 	    			$res = 'ceo,purchaseMaster';
 	    		} else {
 	    			$res = 'ceo,purchase';
