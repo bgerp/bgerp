@@ -48,12 +48,6 @@ class acc_CronDealsHelper
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	
     	while($rec = $query->fetch()){
-    		if($rec->state == 'closed'){
-    			
-    			// Ако състоянието е затворено, то приема че сделката е платена
-    			$rec->paymentState = 'paid';
-    			$Class->save($rec);
-    		} else {
     			try{
     				// Намира се метода на плащане от интерфейса
     				$dealInfo = $Class->getAggregateDealInfo($rec->id);
@@ -101,7 +95,6 @@ class acc_CronDealsHelper
     				}
     			}
     		}
-    	}
     }
     
     
