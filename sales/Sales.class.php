@@ -605,6 +605,10 @@ class sales_Sales extends core_Master
 					break;
 			}
 			$row->$fld = ' ';
+			
+			if($rec->makeInvoice == 'no'){
+				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
+			}
 	    }
     }
     
