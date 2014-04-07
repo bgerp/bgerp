@@ -289,7 +289,7 @@ class purchase_Purchases extends core_Master
 	    	} else {
 	    		
 	    		// Ако разликата е над допустимата но потребителя има права 'purchase', той вижда бутона но неможе да го използва
-	    		if(!purchase_ClosedDeals::isSaleDiffAllowed($rec) && haveRole('purchase')){
+	    		if(!purchase_ClosedDeals::isPurchaseDiffAllowed($rec) && haveRole('purchase')){
 	    			$data->toolbar->addBtn('Приключване', $closeArr, "ef_icon=img/16/closeDeal.png,title=Приключване на покупката,error=Нямате право да приключите покупка с разлика над допустимото");
 	    		}
 	    	}
