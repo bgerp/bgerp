@@ -112,7 +112,7 @@ class docoffice_Setup extends core_ProtoSetup
         if (docoffice_Office::startOffice()) {
             $html .= "<li style='color:green'>Офис пакета работи коректно.";  
         } else {
-            $html .= "<li style='color:red'>Не може да бъде стартиране офис пакета.";
+            $html .= "<li style='color:red'>Не може да бъде стартиран офис пакета.";
         }
         
         // Конфигурационните константи
