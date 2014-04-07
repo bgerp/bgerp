@@ -184,7 +184,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory');
-        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%, mandatory');
+        $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
         $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
@@ -207,7 +207,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
         $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
-		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width:100%');
+		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
         $this->FLD('vatAmount', 'double(decimals=2)', 'caption=Стойност ДДС, input=none,summary=amount');
         $this->FLD('discountAmount', 'double(decimals=2)', 'caption=Отстъпка->Обща, input=none,summary=amount');
@@ -361,6 +361,14 @@ class purchase_Invoices extends core_Master
         		$form->rec->deliveryPlaceId = $aggregateInfo->agreed->delivery->location;
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
+        	
+        	if($aggregateInfo->agreed->payment->bankAccountId){
+        		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
+        	}
+        	
+        	if($aggregateInfo->agreed->payment->caseId){
+        		$form->rec->caseId = $aggregateInfo->agreed->payment->caseId;
+        	}
         }
 	        
 	    if($origin->className  == 'purchase_Invoices'){
@@ -379,7 +387,7 @@ class purchase_Invoices extends core_Master
 	   	
 	   	$form->setReadOnly('vatRate');
 	   	
-	   	// Метод който да бъде прихванат от sales_plg_DpInvoice
+	   	// Метод който да бъде прихванат от acc_plg_DpInvoice
 	   	$mvc->prepareDpInvoicePlg($data);
     }
     
@@ -629,9 +637,9 @@ class purchase_Invoices extends core_Master
 	    	}
     		
 	    	if(doc_Folders::fetchCoverClassName($rec->folderId) == 'crm_Persons'){
-    			$row->cNum = tr('|ЕГН|* / <i>Personal №</i>');
+    			$row->cNum = tr('|ЕГН|*');
     		} else {
-	    		$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
+	    		$row->cNum = tr('|ЕИК|*');
     		}
 	    	
 	    	if($rec->accountId){
@@ -644,8 +652,6 @@ class purchase_Invoices extends core_Master
 	    	$row->header = "{$row->type} #<b>{$mvc->abbr}{$rec->id}</b> ({$row->state})" ;
 	    	$userRec = core_Users::fetch($rec->createdBy);
 			$row->username = core_Users::recToVerbal($userRec, 'names')->names;
-    		
-			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
 			
 			if($rec->type != 'invoice'){
 				$originRec = $mvc->getOrigin($rec)->fetch();
@@ -1055,7 +1061,7 @@ class purchase_Invoices extends core_Master
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $result = new bgerp_iface_DealResponse();
         
-        $result->dealType 			= bgerp_iface_DealResponse::TYPE_SALE;
+        $result->dealType 			= bgerp_iface_DealResponse::TYPE_PURCHASE;
         $result->invoiced->amount   = ($rec->type == 'credit_note') ? -1 * $total : $total;
         $result->invoiced->currency = $rec->currencyId;
         $result->invoiced->rate 	= $rec->rate;

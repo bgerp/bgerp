@@ -38,19 +38,19 @@
                                 <!--ET_END vatDate-->  
                                 
                                 <!--ET_BEGIN rate--> 
-                                 <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
+                                 <span class='quiet'>|Курс|*:</span>  [#rate#]
                                 <!--ET_END rate-->  
                                
-		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Плащане|* / <i>Payment</i></b></div>
+		                        <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Плащане|*</b></div>
 		                        <!--ET_BEGIN paymentMethodId-->
-		                        <div><span class='quiet'>|Начин|* / <i>Method</i>:</span>  [#paymentMethodId#]</div>
+		                        <div><span class='quiet'>|Начин|* :</span>  [#paymentMethodId#]</div>
 		                        <!--ET_END paymentMethodId-->
 		                        
 		                        <!--ET_BEGIN deadline-->
 		                        [#deadline#]
 		                        <div>
 			                        <!--ET_BEGIN DUE_DATE-->
-			                        <span class='quiet'>|Краен срок за плащане|* / <i>Due date</i>:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
+			                        <span class='quiet'>|Краен срок за плащане|*:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
 			                        <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
 	                                <span class="smallData">|Лихва за просрочено плащане|*: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
 	                                <!--ET_END OVERDUE_INTEREST_RATE-->
@@ -61,6 +61,9 @@
 		                        [#PAYMENT_PLAN#]
 		                        <!--ET_END PAYMENT_PLAN-->
 		                        <hr>
+		                        <!--ET_BEGIN caseId-->
+		                        <span class='quiet'>|Каса|*:</span> [#caseId#]
+		                        <!--ET_END caseId-->
 		                        <!--ET_BEGIN accountId-->
 		                        <div>
 			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
@@ -77,7 +80,7 @@
 		                       
 		                       <!--ET_BEGIN deliveryInfo-->
 		                       [#deliveryInfo#]
-		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|* / <i>Delivery</i></b></div>
+		                       <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Доставка|*</b></div>
                                
                                <!--ET_BEGIN deliveryId-->
                                [#deliveryId#]
@@ -89,30 +92,27 @@
                                
                              <!--ET_BEGIN additionalInfo-->
                              <hr>
-                               <div>|Бележки|* / <i>Notes</i></div>
+                               <div>|Бележки|*</div>
                                <div>[#additionalInfo#]</div>
                                 <!--ET_END additionalInfo-->
-                            <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em'><b>|Оригинален документ|* / <i>Original document</i></b></div>
-                            [#fileHnd#]
-		                    
-		                </td>
+                        </td>
 		                <td id='invoice-info' width='40%'>
 				          <table border='0'cellpadding='3px' cellspacing='0px' style='margin-bottom: 20px;' id='business-doc-summary-table' width='100%' >
 						     <tr class='nowrap'>
-						      <td align='right'>|Стойност|* / <i>Subtotal</i>:</td>
+						      <td align='right'>|Стойност|*:</td>
 						      <td class='info-right' width='1%'><span class='cCode'>[#currencyId#]</span></td>
 						      <td align='right' width='1%'> <b>[#value#]</b></td>
 						     </tr>
 						     <!--ET_BEGIN discount-->
 						     <tr class='nowrap'>
-						     	<td align='right'>|Отстъпка|* / <i>Discount</i>:</td>
+						     	<td align='right'>|Отстъпка|* :</td>
 						     	<td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
 						     	<td align='right'><b>[#discount#]</b></td>
 						     </tr>
 						     <!--ET_END discount-->
 						     <!--ET_BEGIN neto-->
 						     <tr class='nowrap'>
-						     	<td align='right'>|Нето|* / <i>Neto</i>:</td>
+						     	<td align='right'>|Нето|* :</td>
 						     	<td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
 						     	<td align='right'><b>[#neto#]</b></td>
 						     </tr>
@@ -120,7 +120,7 @@
 						     
 						     <!--ET_BEGIN baseAmount-->
 						     <tr class='nowrap'>
-						     	<td align='right'>|Данъчна основа|* / <i>Tax base</i> :</td>
+						     	<td align='right'>|Данъчна основа|*  :</td>
 						     	<td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
 						     	<td align='right'><b>[#baseAmount#]</b></td>
 						     </tr>
@@ -131,7 +131,7 @@
 						     </tr>
 						     <!--ET_BEGIN vatAmount-->
 						     <tr class='nowrap'>
-						    	<td align='right'>|ДДС|* / <i>VAT</i> &nbsp;<b>[#vat#]</b> :</td>
+						    	<td align='right'>|ДДС|* &nbsp;<b>[#vat#]</b> :</td>
 						    	<td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
 						    	<td align='right'><b>[#vatAmount#]</b></td>
 						     </tr>
@@ -139,7 +139,7 @@
 						     
 						    
 						     <tr class='nowrap'>
-						    	<td align='right'>|Общо|* / <i>Total</i>:</td>
+						    	<td align='right'>|Общо|* :</td>
 						    	<td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
 						    	<td align='right'><b>[#total#]</b></td>
 						     </tr>
@@ -154,28 +154,15 @@
 						     </tr>
 						     
 						  </table>
+						   <!--ET_BEGIN fileHnd-->
 						   <hr>
-						   
-						      <table align=center width='100%'>
-                                   <tr>
-                                        <td width='50%' align=center style='border-right:1px solid #999'>|Получил|*:</td><td align=center>|Съставил|*:</td>
-                                    </tr>
-                                    <tr>
-                                        <td style='height:40px;border-right:1px solid #999'>&nbsp;</td><td></td>
-                                    </tr>
-                                    <tr>
-                                       
-                                        <td align=center style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                          <td class='nowrap' align=center><span class="sign_names">[#username#]</span></td>
-                                        
-                                    </tr>           
-                                </table> 
-                            
+                            <div style= 'background-color:rgba(200, 200, 200, 0.4);padding:0.2em;margin-bottom:0.2em;margin-top:0.5em;text-align:right'><b>|Оригинален документ|*</b></div>
+                            <span style='float:right'>[#fileHnd#]</span>
+                            <!--ET_END fileHnd-->
 		                </td>
 		                </tr>
 		                </tbody>
 		            </table>
-		           
 		        </td>
 		    </tr>
 		    </tbody> 
@@ -186,5 +173,4 @@
 				[#DETAILS#]
 			</div>
 		<!--ET_END DETAILS-->
-	
 </div>
