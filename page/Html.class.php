@@ -72,6 +72,10 @@ class page_Html extends core_ET {
         
         $css = $invoker->getArray('CSS');
         
+        $inst = cls::get(get_called_class());
+        
+        $css = $inst->prepareCssFiles($css);
+        
         if(is_array($css)) {
             foreach($css as $file) {
                 if(!preg_match('#^[^/]*//#', $file)) {
@@ -83,6 +87,8 @@ class page_Html extends core_ET {
         }
         
         $js = $invoker->getArray('JS');
+        
+        $js = $inst->prepareJsFiles($js);
         
         if(is_array($js)) {
             foreach($js as $file) {
@@ -160,5 +166,29 @@ class page_Html extends core_ET {
     {
         // 
         $tpl->appendOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
+    }
+    
+    
+    /**
+     * Ако няма кой да прихване извикването на функцията
+     * 
+     * @param array $css
+     */
+    function prepareCssFiles_($css)
+    {
+        
+        return $css;
+    }
+    
+    
+    /**
+     * Ако няма кой да прихване извикването на функцията
+     * 
+     * @param array $css
+     */
+    function prepareJsFiles_($css)
+    {
+        
+        return $css;
     }
 }
