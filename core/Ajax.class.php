@@ -16,6 +16,12 @@ class core_Ajax extends core_Mvc
     
     
     /**
+     * Колко дни да остане в лога
+     */
+    static $logKeepDays = 3;
+    
+    
+    /**
      * Екшън, който се вика по AJAX и извиква всички подадени URL-та
      */
     function act_Get()
@@ -36,13 +42,23 @@ class core_Ajax extends core_Mvc
         $parentUrl = Request::get('parentUrl');
         
         // Дали се вика по ajax
-        $ajaxMode = Request::get('ajax_mode');
+//        $ajaxMode = Request::get('ajax_mode');
+        $ajaxMode = 1;
         
         // Ако няма нищо в масив, прекъсваме функцията
         if (!$subscribed) shutdown();
         
         // Резултатния масив
         $jResArr = array();
+        
+        // Стойности, които да се игнорират
+        Request::ignoreParams(array('subscribed' => TRUE,
+                					'parentUrl' => TRUE,
+                					'idleTime' => TRUE,
+                					'hitTime' => TRUE,
+                					'ajax_mode' => TRUE,
+                					'refreshUrl' => TRUE,
+                					'divId' => TRUE));
         
         // Обхождаме всички подадедени локални URL-та
         foreach ((array)$subscribedArr as $name=>$url) {
@@ -75,24 +91,27 @@ class core_Ajax extends core_Mvc
             } catch (Exception $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}");
+                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}", static::$logKeepDays);
                 
                 continue;
             }
             
             // Ако няма масив или масива не е масива
-//             if (!is_array($resArr)) {
+             if (!is_array($resArr)) {
                 
-//                 // Записваме в лога резултата
-//                 $resStr = core_Type::mixedToString($resArr);
-//                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr");
+                 // Записваме в лога резултата
+                 $resStr = core_Type::mixedToString($resArr);
+                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr", static::$logKeepDays);
                 
-//                 continue;
-//             }
+                 continue;
+             }
             
             // Обединяваме масивите
             $jResArr = array_merge($jResArr, $resArr);
         }
+        
+        // Нулираме масива за игнориране
+        Request::resetIgnoreParams();
         
         // За да не се кешира
         header("Expires: Sun, 19 Nov 1978 05:00:00 GMT");
@@ -118,9 +137,9 @@ class core_Ajax extends core_Mvc
      * @param core_ET $tpl - Щаблон, към който ще се добавя
      * @param array $urlArr - Масив, от който ще се генерира локално URL
      * @param string $name - Уникално име
-     * @param double $interval - Интервал на извикване в секунди
+     * @param int $interval - Интервал на извикване в секунди
      */
-    static function subscribe(&$tpl, $urlArr, $name, $interval=5)
+    static function subscribe(&$tpl, $urlArr, $name, $interval=5000)
     {
         // Масив с всички използвани имена
         static $nameArr=array();
@@ -131,7 +150,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'");
+            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'", static::$logKeepDays);
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
@@ -146,9 +165,6 @@ class core_Ajax extends core_Mvc
         
         // Добавяме необходимите неща за стартиране на efae
         static::enable($tpl);
-        
-        // Интервала в милисекунди
-        $interval *= 1000;
         
         // Локално URL
         $localUrl = toUrl($urlArr, 'local');
@@ -182,7 +198,7 @@ class core_Ajax extends core_Mvc
         } else {
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `enable` в `jquery_Jquery`');
+            core_Logs::add('core_Ajax', NULL, 'Липсва метода `enable` в `jquery_Jquery`', static::$logKeepDays);
         }
         
         // Стартираме извикването на `run` фунцкцията на efae
@@ -204,10 +220,10 @@ class core_Ajax extends core_Mvc
         $tpl->appendOnce("\n runOnLoad(function(){getEfae().setUrl('{$url}');});", 'SCRIPTS');
         
         // URL от който ще се вика айакса
-        $parentUrl = toUrl(getCurrentUrl(), 'local');
+//        $parentUrl = toUrl(getCurrentUrl(), 'local');
         
         // Задаваме УРЛ-то
-        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
+//        $tpl->appendOnce("\n runOnLoad(function(){getEfae().setParentUrl('{$parentUrl}');});", 'SCRIPTS');
         
         // Този пакет е във vendors - ако липсва
         if (method_exists('jquery_Jquery', 'run')) {
@@ -222,7 +238,7 @@ class core_Ajax extends core_Mvc
             $tpl->prependOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`');
+            core_Logs::add('core_Ajax', NULL, 'Липсва метода `run` в `jquery_Jquery`', static::$logKeepDays);
         }
     }
 }

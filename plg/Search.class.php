@@ -308,12 +308,12 @@ class plg_Search extends core_Plugin
                         
                         // Записваме само определени полета, от масива
                         $mvc->save($rec, $saveFields);
+                        $i++;
                     }
                     
                 } catch(Exception $e) {
             		continue;
             	}
-            	$i++;
             }
         }
 

@@ -82,9 +82,9 @@ class type_Users extends type_Keylist
             $defUser = trim($defUser, '|');
             if(is_numeric($defUser) && $defUser > 0) { 
                 $defUserCond = " || (#id = {$defUser})";
-            } 
-                
-            if ($defUser != 'all') {
+            }
+            
+            if ($defUser != 'all' || $defUser != 'all_users') {
                 $uQuery->where("(#state != 'rejected'){$defUserCond}");
             }
             

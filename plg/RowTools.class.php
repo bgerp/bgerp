@@ -19,6 +19,12 @@ class plg_RowTools extends core_Plugin
     
     
     /**
+     * Шаблон за съзване на rowTools
+     */
+    static $rowToolsTpl = "<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>";
+    
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
@@ -107,7 +113,7 @@ class plg_RowTools extends core_Plugin
         	}
         }
         
-        $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
+        $tpl = new ET(static::$rowToolsTpl);
         $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
         
         if ($singleLink || $editLink || $deleteLink || $restoreLink) {
@@ -194,9 +200,12 @@ class plg_RowTools extends core_Plugin
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
         if(count($data->rows)) {
+            $rowToolsTpl = new ET(static::$rowToolsTpl);
+            
             foreach($data->rows as $row) {
                 
-                if($row->{$field}) return;
+                // Ако в някой от полетата има промяна по шаблона
+                if ($rowToolsTpl->content != $row->{$field}->content) return ;
             }
         }
         
