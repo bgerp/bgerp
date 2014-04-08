@@ -308,9 +308,10 @@ class sales_SalesDetails extends core_Detail
      */
     static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	expect($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)'));
-    	$data->ProductManager = cls::get($classId);
-    	$mvc->fields['productId']->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
+    	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
+    		$data->ProductManager = cls::get($classId);
+    		$mvc->fields['productId']->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
+    	}
     }
     
     
@@ -324,7 +325,7 @@ class sales_SalesDetails extends core_Detail
     {
         $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
-       	$ProductManager = $data->ProductManager;
+       	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
        	
        	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
