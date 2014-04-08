@@ -369,18 +369,16 @@ class core_App
     public static function shutdown($sendOutput = TRUE)
     {
         if (!static::isDebug() && $sendOutput) {
-            // Изпращаме хедърите и казваме на браузъра да затвори връзката
-            ob_end_flush();
+            
             $size = ob_get_length();
             header("Content-Length: {$size}");
             header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
             header('Pragma: no-cache'); // HTTP 1.0.
             header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Proxies.
             header('Connection: close');
+            
             // Изпращаме съдържанието на изходния буфер
             ob_end_flush();
-            ob_flush();
-            flush();
         }
 
         // Освобождава манипулатора на сесията. Ако трябва да се правят
