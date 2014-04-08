@@ -977,9 +977,12 @@ class sales_Sales extends core_Master
             
             if (isset($actions['ship'])) {
             	
-            	// Отбелязваме че има ддс за начисляване от експедирането
-            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            $result->invoiced->vatToCharge += $dRec->price * $dRec->quantity * $vat;
+            	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
+            		// Отбелязваме че има ддс за начисляване от експедирането
+	            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+		            $result->invoiced->vatToCharge += $dRec->price * $dRec->quantity * $vat;
+            	}
+            	
             	$result->shipped->products[] = clone $p;
             }
         }
