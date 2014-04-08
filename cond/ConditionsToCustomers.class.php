@@ -169,7 +169,7 @@ class cond_ConditionsToCustomers extends core_Manager
     public static function renderCustomerSalecond($data)
     {
       	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $tpl->append(tr('Условия на продажба'), 'title');
+        $tpl->append(tr('Търговски условия'), 'title');
         
         if(isset($data->addBtn)){
         	$tpl->append($data->addBtn, 'title');

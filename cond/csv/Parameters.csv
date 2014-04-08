@@ -1,4 +1,6 @@
 Минимална надценка,percent,minSurplusCharge,0.2
 Максимална надценка,percent,maxSurplusCharge,0.4
-Условие на доставка,delCond,deliveryTerm
-Начин на плащане,payMethod,paymentMethod
+Условие на доставка (продажба),delCond,deliveryTermSale
+Начин на плащане (продажба),payMethod,paymentMethodSale
+Условие на доставка (покупка),delCond,deliveryTermPurchase
+Начин на плащане (покупка),payMethod,paymentMethodPurchase
