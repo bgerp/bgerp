@@ -16,6 +16,12 @@ class compactor_Plugin extends core_Plugin
     
     
     /**
+     * Пътя до файла, който се използва за базов за генериране абсолютни линкове от URL-тата във файла
+     */
+    protected $filePath = '';
+    
+    
+    /**
      * Обединява зададените CSS файлове
      * 
      * @param core_Mvc $mvc
@@ -102,7 +108,7 @@ class compactor_Plugin extends core_Plugin
         $newFileName = $nameHash . '.css';
         
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr);
+        $newPath = static::compactFilesFromArr($newFileName, $sArr, TRUE);
         
         // Ако файла не съществува
         if (!$newPath) return ;
@@ -177,7 +183,7 @@ class compactor_Plugin extends core_Plugin
         $newFileName = $nameHash . '.js';
         
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr);
+        $newPath = static::compactFilesFromArr($newFileName, $sArr, FALSE);
         
         // Ако файла не съществува
         if (!$newPath) return ;
@@ -231,10 +237,11 @@ class compactor_Plugin extends core_Plugin
      * 
      * @param string $newFileName
      * @param array $sArr
+     * @param boolean $linkToAbsolute
      * 
      * @return string
      */
-    static function compactFilesFromArr($newFileName, $sArr)
+    static function compactFilesFromArr($newFileName, $sArr, $linkToAbsolute=TRUE)
 	{
         $conf = core_Packs::getConfig('compactor');
         
@@ -249,7 +256,7 @@ class compactor_Plugin extends core_Plugin
             foreach ((array)$sArr as $ePath) {
                 
                 // Вземаме съдържанието
-                $content .= @file_get_contents(sbf($ePath, '', TRUE)) . "\n";
+                $content .= static::getContentFromPath($ePath, $linkToAbsolute) . "\n";
             }
             
             // Добавяме във файла
@@ -278,4 +285,99 @@ class compactor_Plugin extends core_Plugin
 	    
 	    return $arr;
 	}
+	
+	
+	/**
+	 * Взема съдържанието на зададения файл
+	 * 
+	 * @param string $path
+	 * @param boolean $toAbsolutePath
+	 * 
+	 * @return string
+	 */
+	static function getContentFromPath($path, $toAbsolutePath=FALSE)
+	{
+	    // Съдържанието на файла
+	    $content = @file_get_contents(sbf($path, '', TRUE));
+	    
+	    // Ако е зададено да се преобразуват локоалните линкове от съдържанието в абсолютни
+	    if ($toAbsolutePath) {
+	        
+	        // Инстанция на този клас
+	        $me = cls::get(get_called_class());
+	        
+	        // Преобразуваме линковете
+	        $content = $me->localeToAbsolutePath($content, $path);
+	    }
+	    
+	    return $content;
+	}
+	
+	
+	/**
+	 * Преобразуват локоалните линкове от съдържанието в абсолютни
+	 * 
+	 * @param string $text
+	 * @param string $path
+	 * 
+	 * @return string
+	 */
+	protected function localeToAbsolutePath($text, $path)
+	{
+        // Задаваме пътя до файла
+        $this->filePath = $path;
+	    
+        // Шаблон за намиране на всички линкове, към файлове
+        // Трябва да започават с ../
+        // Да завършват с .css, .jpg, .jpeg, .png или .gif
+        $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
+        
+        // Заместваме локалните линкове към файловете с абсолютни
+	    $text = preg_replace_callback($pattern, array($this, 'replaceLocaleWithAbsolutePath'), $text);
+        
+	    return $text;
+	}
+	
+	
+	/**
+	 * Замества откритите локални линкове с абсолютни
+	 * 
+	 * @param array $matches
+	 * 
+	 * @return string
+	 */
+    protected function replaceLocaleWithAbsolutePath($matches)
+    {
+        // Ако не е задаен пътя до файла
+        if (!($path = $this->filePath)) return $matches[0];
+        
+        // Открития файла
+        $file = $matches[0];
+        
+        // Директорията
+        $dir = dirname($path);
+        
+        // Докато има файл за връщане назад
+        while(strpos($file, '../') !== FALSE) {
+            
+            // Изрязваме началото
+            $file = (str::crop($file, '../'));
+            
+            // Вземаме директорията
+            $dir = dirname($dir);
+        }
+        
+        // Ако сме достигнали до края
+        if ($dir == '.') {
+            $dir = '';
+        }
+        
+        // Новия път да е остатъка от директорията и остатъка от файла
+        $file = $dir . DIRECTORY_SEPARATOR . $file;
+        
+        // Вземаме целия път
+        $filePath = sbf($file, '', TRUE);
+        
+        return $filePath;
+    }
 }
