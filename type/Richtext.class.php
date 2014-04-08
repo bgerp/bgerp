@@ -245,13 +245,10 @@ class type_Richtext extends type_Blob
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
 
-        // Обработваме хипервръзките, зададени в явен вид
-        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
         
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
-        // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
         
         // Вземаме шаблона за намиране на текста, който ще се болдва
         $patternBold = static::getRichTextPatternForBold();
@@ -265,18 +262,23 @@ class type_Richtext extends type_Blob
         
         $html = $this->replaceTags($html);   
 
-        
         // Обработваме елементите [color=????]  
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
         
         // Обработваме елементите [bg=????]  
         $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
+        // Поставяме емотиконите на местата с елемента [em=????]
+        $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+
+
         // Обработваме елемента [li]
         $html = preg_replace_callback("/\[li](.*?)((<br>)|(\n)|($))/is", array($this, '_catchLi'), $html);
         
-        // Поставяме емотиконите на местата с елемента [em=????]
-        $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+
+        // Обработваме хипервръзките, зададени в явен вид
+        $html = preg_replace_callback(static::getUrlPattern(), array($this, '_catchUrls'), $html);
+
         
         // Обработваме [bQuote=????] ... [/bQuote] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[bQuote(=([a-zA-Z0-9]+))?\](.*?)\[\/bQuote\]/s", array($this, '_catchBQuote'), $html);
