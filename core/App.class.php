@@ -940,6 +940,8 @@ class core_App
                 $rPath = $newFile;
             }
         }
+        
+        $rPath = ltrim($rPath, '/');
 
         return $qt . static::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
     }
