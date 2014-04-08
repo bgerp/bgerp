@@ -304,6 +304,17 @@ class sales_SalesDetails extends core_Detail
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	expect($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)'));
+    	$data->ProductManager = cls::get($classId);
+    	$mvc->fields['productId']->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -313,7 +324,7 @@ class sales_SalesDetails extends core_Detail
     {
         $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
-       	$ProductManager = cls::get($rec->classId);
+       	$ProductManager = $data->ProductManager;
        	
        	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";

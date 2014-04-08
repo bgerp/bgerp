@@ -1022,7 +1022,7 @@ class sales_Invoices extends core_Master
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
    	 *  
-   	 *  Dt: 411  - Вземания от клиенти
+   	 *  Dt: 411  - ДДС за начисляване
    	 *  Ct: 4532 - Начислен ДДС за продажбите
    	 */
     public static function getTransaction($id)
@@ -1052,22 +1052,18 @@ class sales_Invoices extends core_Master
         if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
-    	$debitAccId  = '411';
-	    $creditAccId = '4532';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
                 'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
-                    $debitAccId, // дебитната сметка
-                        array($contragentClass, $contragentId),
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
+                    '4530', // дебитната сметка
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // кредитна сметка;
+                    '4532', // кредитна сметка;
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 )
     	    );
@@ -1125,6 +1121,8 @@ class sales_Invoices extends core_Master
         $result->invoiced->valior   = $rec->date;
         $result->invoiced->vatType  = $rec->vatRate;
         $result->invoiced->payment->method  = $rec->paymentMethodId;
+        $result->invoiced->vatToCharge  += -1 * $rec->vatAmount;
+        
         if(isset($rec->dpAmount)){
         	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
     		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){

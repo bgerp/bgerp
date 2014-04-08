@@ -574,6 +574,7 @@ class store_ShipmentOrders extends core_Master
         $result->shipped->delivery->time     = $rec->deliveryTime;
         $result->shipped->delivery->storeId  = $rec->storeId;
         
+        
         /* @var $dRec store_model_ShipmentOrder */
         foreach ($rec->getDetails('store_ShipmentOrderDetails') as $dRec) {
             $p = new bgerp_iface_DealProduct();
@@ -587,6 +588,11 @@ class store_ShipmentOrders extends core_Master
             $p->uomId       = $dRec->uomId;
             $p->weight      = $dRec->weight;
             $p->volume      = $dRec->volume;
+            
+            // Отбелязваме че има ддс за начисляване от експедирането
+            $ProductMan = cls::get($dRec->classId);
+            $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+            $result->invoiced->vatToCharge += $dRec->price * $dRec->quantity * $vat;
             
             $result->shipped->products[] = $p;
         }
