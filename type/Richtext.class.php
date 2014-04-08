@@ -227,10 +227,10 @@ class type_Richtext extends type_Blob
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
-        // Обработваме [gread=http://????] ... [/gread] елементите, които представят картинки с надписи под тях
+        // Обработваме [gread=http://????] ... [/gread] елементите, които ифрейм на google read
         $html = preg_replace_callback("/\[gread(=([^\]]*)|)\](.*?)\[\/gread\]/is", array($this, '_catchGread'), $html);
         
-        // Обработваме [link=http://????] ... [/link] елементите, които задават фон за буквите на текста между тях
+        // Обработваме [link=http://????] ... [/link] елементите, които представляват описания на хипервръзки
         $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
         
         // Обработваме [hide=caption] ... [/hide] елементите, които скриват/откриват текст
@@ -263,24 +263,8 @@ class type_Richtext extends type_Blob
             $html = preg_replace_callback($patternBold, array($this, '_catchBold'), $html);   
         }
         
-        // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
-        // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+        $html = $this->replaceTags($html);   
 
-        if($textMode != 'plain') { 
-            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
-               // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
-        } elseif(Mode::is('ClearFormat')) {
-           $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
-            // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
-        } else {
-            $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
-            // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
-        }
-   
-
-        $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
@@ -397,6 +381,29 @@ class type_Richtext extends type_Blob
         
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
+        return $html;
+    }
+
+
+    function replaceTags($html)
+    {
+        // Нормализираме знаците за край на ред и обработваме елементите без параметри
+        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
+        // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
+
+        if($textMode != 'plain') { 
+            $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
+               // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
+        } elseif(Mode::is('ClearFormat')) {
+           $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+            // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
+        } else {
+            $to   = array("\n",   "\n",   "\n",  "\n", "    ", '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n" , "\n", "\n", "\n", "\n",);
+            // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
+        }
+
+        $html = str_replace($from, $to, $html);
+
         return $html;
     }
     
@@ -758,7 +765,7 @@ class type_Richtext extends type_Blob
         }
         
         // Ако имаме само http:// значи линка е празен
-        if($url == 'http://') {
+        if($url == 'http://' || $url == 'https://') {
             $url = '';
         }
         
@@ -841,6 +848,15 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = $domain;
             $title = $domain;
         } else {
+            // Правим обработка на елементите, които може да са вътре в линка
+            $title = $this->replaceTags($title);
+            $title = str_replace(
+                array('[h1]', '[h2]', '[h3]', '[h4]', '[h5]', '[h6]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]'), 
+                array('<b>', '<b>', '<b>', '<b>', '<b>', '<b>', '</b>', '</b>', '</b>', '</b>', '</b>', '</b>'), 
+                $title);
+            // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
+            $title = preg_replace_callback("/\[img(=([^#][^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $title);
+
             $this->_htmlBoard[$titlePlace] = $title;    
         }
             
@@ -851,10 +867,10 @@ class type_Richtext extends type_Blob
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
 
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">{$title}</a>";  
-              
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out linkWithIcon\" style=\"[#{$bgPlace}#]\">[#{$titlePlace}#]</a>";  
+
         } else {
-            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">{$title}</a>";
+            $link = "<a href=\"[#{$place}#]\" target=\"_blank\" class=\"out\">[#{$titlePlace}#]</a>";
         }
         
         return $link;
