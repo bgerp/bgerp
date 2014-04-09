@@ -978,9 +978,18 @@ class sales_Sales extends core_Master
             if (isset($actions['ship'])) {
             	
             	if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
-            		// Отбелязваме че има ддс за начисляване от експедирането
+            		
+            		// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
 	            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-		            $result->invoiced->vatToCharge += $dRec->price * $dRec->quantity * $vat;
+	            	$meta = $ProductMan->getProductInfo($dRec->productId, $dRec->packagingId)->meta;
+	            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
+	            	if(!isset($meta['canStore'])) {
+	            		$result->invoiced->vatToCharge['service'] += $vatAmount;
+	            	} elseif(isset($meta['canConvert'])){
+	            		$result->invoiced->vatToCharge['goods'] += $vatAmount;
+	            	} else {
+	            		$result->invoiced->vatToCharge['products'] += $vatAmount;
+	            	}
             	}
             	
             	$result->shipped->products[] = clone $p;

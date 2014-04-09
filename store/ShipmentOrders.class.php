@@ -594,7 +594,14 @@ class store_ShipmentOrders extends core_Master
             	// Отбелязваме че има ддс за начисляване от експедирането
 	            $ProductMan = cls::get($dRec->classId);
 	            $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            $result->invoiced->vatToCharge += $dRec->price * $dRec->quantity * $vat;
+	            $meta = $ProductMan->getProductInfo($dRec->productId, $dRec->packagingId)->meta;
+            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
+	            
+            	if(isset($meta['canConvert'])){
+	            	$result->invoiced->vatToCharge['goods'] += $vatAmount;
+	            } else {
+	            	$result->invoiced->vatToCharge['products'] += $vatAmount;
+	            }
             }
             
             $result->shipped->products[] = $p;

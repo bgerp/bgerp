@@ -1121,7 +1121,6 @@ class sales_Invoices extends core_Master
         $result->invoiced->valior   = $rec->date;
         $result->invoiced->vatType  = $rec->vatRate;
         $result->invoiced->payment->method  = $rec->paymentMethodId;
-        $result->invoiced->vatToCharge  += -1 * $rec->vatAmount;
         
         if(isset($rec->dpAmount)){
         	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
@@ -1145,6 +1144,23 @@ class sales_Invoices extends core_Master
             $p->packagingId = $dRec->packagingId;
             $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
             $p->price       = $dRec->price;
+            
+        	if($rec->vatRate == 'yes' || $rec->vatRate == 'separate'){
+            		 
+            	// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
+	            $ProductMan = cls::get($dRec->classId);
+        		$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+	            $meta = $ProductMan->getProductInfo($dRec->productId, $dRec->packagingId)->meta;
+	            $vatAmount = $dRec->price * $p->quantity * $vat;
+	            
+	            if(!isset($meta['canStore'])) {
+	            	$result->invoiced->vatToCharge['service'] += -1 * $vatAmount;
+	            } elseif(isset($meta['canConvert'])){
+	            	$result->invoiced->vatToCharge['goods'] += -1 * $vatAmount;
+	            } else {
+	            	$result->invoiced->vatToCharge['products'] += -1 * $vatAmount;
+	            }
+            }
             
             $result->invoiced->products[] = $p;
         }

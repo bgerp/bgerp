@@ -145,8 +145,9 @@ class bgerp_iface_DealAspect
         }
         
         if($aspect->vatToCharge){
-        	$this->vatToCharge += $aspect->vatToCharge;
-        	$this->vatToCharge = round($this->vatToCharge, 4);
+        	foreach ($aspect->vatToCharge as $type => $vatAmount){
+        		$this->vatToCharge[$type] += $vatAmount;
+        	}
         }
         
         if (isset($aspect->delivery)) {
