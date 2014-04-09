@@ -26,11 +26,10 @@ defIfNot('GPS_DATA_SENDER', '127.0.0.1');
 class gps_Log extends core_Manager
 {
     
-    
     /**
      * Заглавие
      */
-    public $title = 'gps';
+    public $title = 'GPS';
     
     /**
      * Плъгини за зареждане
@@ -39,6 +38,11 @@ class gps_Log extends core_Manager
      */
     public $loadList = 'plg_Created';    
     
+    /**
+     * Полета за показване
+     *
+     * var string|array
+     */
     public $listFields = 'trackerId, text, remoteIp, createdOn';
     
     /**
@@ -68,6 +72,9 @@ class gps_Log extends core_Manager
         $rec->text .= "Дължина DD: " . self::DMSToDD($data['longitude']) . "<br>";
         $rec->text .= "Скорост: " . $data['speed'] . " км/ч<br>";
         $rec->text .= "Посока: " . $data['heading'] . "<br>";
+        $rec->text .= "Карта: <a href=\"https://maps.google.com/?q="
+            . self::DMSToDD($data['latitude'])
+            . "," . self::DMSToDD($data['longitude']) . "\">виж</a><br>";
     }
     
     
