@@ -518,11 +518,13 @@ class sales_Services extends core_Master
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
             
-            // Отбелязваме че има ддс за начисляване от експедирането
-	        $ProductMan = cls::get($dRec->classId);
-	        $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	        $vatAmount = $dRec->price * $dRec->quantity * $vat;
-	        $result->invoiced->vatToCharge['service'] += $vatAmount;
+            if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
+            	// Отбелязваме че има ддс за начисляване от експедирането
+		        $ProductMan = cls::get($dRec->classId);
+		        $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+		        $vatAmount = $dRec->price * $dRec->quantity * $vat;
+		        $result->invoiced->vatToCharge['service'] += $vatAmount;
+            }
 	        
             $result->shipped->products[] = $p;
         }
