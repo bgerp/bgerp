@@ -889,7 +889,7 @@ class core_App
                     if(!@mkdir($dir, 0777, TRUE)) {
                         
                         // Ако възникне грешка при създаването, записваме в лога
-                        core_Debug::log("Не може да се създаде: {$dir}");
+                        core_Logs::add(get_called_class(), NULL, "Не може да се създаде: {$dir}");
                     }
                 }
                 
@@ -902,7 +902,7 @@ class core_App
                     $css = core_Converter::convertSass($f, 'scss');  
                     
                     // Записваме в лога, след конвертиране
-                    core_Logs::log("Конвертиране на 'scss' към 'css' - {$nPath}");
+                    core_Logs::add(get_called_class(), NULL, "Конвертиране на 'scss' към 'css' - {$nPath}");
                     
                     // Ако няма програма за конвертиране
                     if ($css !== FALSE) {
@@ -911,7 +911,7 @@ class core_App
                         if (!trim($css)) {
                             
                             // Записваме в лога
-                            core_Logs::log("Генерирания CSS от '{$nPath}' е празен стринг.");
+                            core_Logs::add(get_called_class(), NULL, "Генерирания CSS от '{$nPath}' е празен стринг.");
                         } 
     
                         // Записваме файла
@@ -922,7 +922,7 @@ class core_App
                         } else {
                             
                              // Записваме в лога
-                            core_Logs::log("Генерирания CSS не може да се запише в '$newPath'.");
+                            core_Logs::add(get_called_class(), NULL, "Генерирания CSS не може да се запише в '$newPath'.");
                         }    
                     }
                 } else {
@@ -934,11 +934,11 @@ class core_App
                         $rPath = $newFile;
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
-                        core_Logs::log("Генериране на файл в 'sbf' за '{$rPath}'");
+                        core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'");
                     } else {
                         
                          // Записваме в лога
-                        core_Logs::log("Файла не може да се запише в '$newPath'.");
+                        core_Logs::add(get_called_class(), NULL, "Файла не може да се запише в '$newPath'.");
                     }   
                 }
             } else {
