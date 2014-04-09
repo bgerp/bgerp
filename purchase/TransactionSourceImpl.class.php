@@ -177,7 +177,15 @@ class purchase_TransactionSourceImpl
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+         	if($rec->chargeVat == 'yes'){
+	        	$ProductManager = cls::get($detailRec->classId);
+	            $vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
+	            $amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
+	        } else {
+	        	$amount = $detailRec->amount;
+	        }
+	        
+        	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
     		if(empty($pInfo->meta['canStore'])){
     			$entries[] = array(
@@ -199,6 +207,25 @@ class purchase_TransactionSourceImpl
     		}
         }
         
+    	if($rec->_total->vat){
+	        $vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
+	        $entries[] = array(
+	             'amount' => $vatAmount, // В основна валута
+	                
+	             'credit' => array(
+	                   '401',
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+	                ),
+	                
+	                'debit' => array(
+	                    '4530', 
+	                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
+	                ),
+	         );
+        }
+	        
         return $entries;
     }
     
