@@ -492,15 +492,15 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($row->accountId && strlen($row->accountNum) >= 3) {
+        $masterRec = $mvc->Master->fetch($rec->balanceId);
+    	if ($row->accountId && strlen($row->accountNum) >= 3) {
             $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
             
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
                     array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
             } else{
-            	$balance = $mvc->Master->fetch($rec->balanceId);
-            	$row->accountId = ht::createLink($row->accountId, array('acc_BalanceDetails', 'History', 'fromDate' => $balance->fromDate, 'toDate' => $balance->toDate, 'accId' => $rec->accountId));
+            	$row->accountId = ht::createLink($row->accountId, array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum));
             }
         }
         
@@ -508,9 +508,8 @@ class acc_BalanceDetails extends core_Detail
         
         // Бутон за детайлизиран преглед на историята
         $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
-        $masterRec = $mvc->Master->fetch($rec->balanceId);
         
-        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
         $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
         
@@ -932,8 +931,9 @@ class acc_BalanceDetails extends core_Detail
     	$this->requireRightFor('history');
     	$this->currentTab = 'Хронология';
     	
-    	expect($accId = Request::get('accId', 'int'));
-    	expect(acc_Accounts::fetch($accId));
+    	expect($accNum = Request::get('accNum', 'int'));
+    	expect($accId = acc_Accounts::fetchField("#num = '{$accNum}'", 'id'));
+    	
     	$from = Request::get('fromDate');
     	$to = Request::get('toDate');
     	
@@ -970,7 +970,7 @@ class acc_BalanceDetails extends core_Detail
     	$data->rec->ent1Id = $ent1;
     	$data->rec->ent2Id = $ent2;
     	$data->rec->ent3Id = $ent3;
-    	$data->rec->accountNum = acc_Accounts::fetchField($accId, 'num');
+    	$data->rec->accountNum = $accNum;
     	
     	$this->requireRightFor('history', $data->rec);
     	
@@ -1239,13 +1239,13 @@ class acc_BalanceDetails extends core_Detail
     	
     	$filter->FNC('fromDate', 'date', 'caption=От,input,width=15em');
     	$filter->FNC('toDate', 'date', 'caption=До,input,width=15em');
-    	$filter->FNC('accId', 'int', 'input=hidden');
+    	$filter->FNC('accNum', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
     	$filter->FNC('ent3Id', 'int', 'input=hidden');
     	$filter->showFields = 'fromDate,toDate';
     	
-    	$filter->setDefault('accId', $data->rec->accountId);
+    	$filter->setDefault('accNum', $data->rec->accountNum);
     	$filter->setDefault('ent1Id', $data->rec->ent1Id);
     	$filter->setDefault('ent2Id', $data->rec->ent2Id);
     	$filter->setDefault('ent3Id', $data->rec->ent3Id);
