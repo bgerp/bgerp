@@ -262,7 +262,17 @@ class compactor_Plugin extends core_Plugin
             // Добавяме във файла
             if (!@file_put_contents($tempPath, $content)) {
                 
+                // Записваме грешката
+                core_Logs::add(get_called_class(), NULL, "Грешка при записване в '{$tempPath}'");
+                
                 return FALSE;
+            } else {
+                
+                // Имената на файловете
+                $filesStr = implode(', ', $sArr);
+                
+                // Записваме в лога 
+                core_Logs::add(get_called_class(), NULL, "Компактиране на '{$filesStr}'");
             }
         }
         
