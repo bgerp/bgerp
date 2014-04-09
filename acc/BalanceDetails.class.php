@@ -227,7 +227,7 @@ class acc_BalanceDetails extends core_Detail
         return;
         
         // Извличаме записите за номенклатурите, по които имаме групиране
-        foreach (array_keys($by) as $i) {bp($i);
+        foreach (array_keys($by) as $i) {
         	if($listId = $this->Master->accountRec->{"groupId{$i}"}){
         		$listRec[$i] = $this->Lists->fetch($listId);
         	}
@@ -452,11 +452,11 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // @TODO Dummy
-        $dummy = array();
+        /*$dummy = array();
         $dummy[] = (object)array('title' => tr('Свойства'), 'group' => TRUE);
     	$dummy['Свойство 1'] = 'Свойство 1';
         $dummy['Свойство 2'] = 'Свойство 2';
-        $dummy['Свойство 3'] = 'Свойство 3';
+        $dummy['Свойство 3'] = 'Свойство 3';*/
         
     	$form = cls::get('core_Form');
         
@@ -467,7 +467,7 @@ class acc_BalanceDetails extends core_Detail
         $showFields = '';
         foreach ($listRecs as $i => $listRec) {
         	$options = acc_Items::makeArray4Select('title', "#lists LIKE '%|$listRec->id|%' AND #state = 'active'");
-        	$options = array('' => $listRec->name) + $options + $dummy;
+        	$options = array('' => $listRec->name) + $options;// + $dummy;
         	$form->FNC("grouping{$i}", 'varchar',"silent,caption={$listRec->name},width=300px,input");
         	$form->setOptions("grouping{$i}", $options);
         	$showFields .= "grouping{$i},";
