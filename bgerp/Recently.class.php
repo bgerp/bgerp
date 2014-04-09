@@ -341,12 +341,56 @@ class bgerp_Recently extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = $mvc->searchInputField;
-    	$data->listFilter->input();
+    	
     	if(strtolower(Request::get('Act')) == 'show'){
+    	    
+    	    $data->listFilter->showFields = $mvc->searchInputField;
+    	    
         	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     	} else {
+    	    
+            // Добавяме поле във формата за търсене
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            
+            // Кои полета да се показват
+            $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
+            
+            // Инпутваме полетата
+            $data->listFilter->input();
+            
+            // Добавяме бутон за филтриране
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+            // Ако не е избран потребител по подразбиране
+            if(!$data->listFilter->rec->usersSearch) {
+                
+                // Да е текущия
+                $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+            }
+        	
+        	// Ако има филтър
+            if($filter = $data->listFilter->rec) {
+                
+                // Ако се търси по всички и има права ceo
+    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+    			    // Търсим всичко
+                } else {
+                    
+                    // Масив с потребителите
+                    $usersArr = type_Keylist::toArray($filter->usersSearch);
+                    
+                    // Ако има избрани потребители
+                    if (count((array)$usersArr)) {
+                        
+                        // Показваме всички потребители
+        			    $data->query->orWhereArr('userId', $usersArr);
+                    } else {
+                        
+                        // Не показваме нищо
+                        $data->query->where("1=2");
+                    }
+                }
+            }
     	}
     	
     	$data->query->orderBy("#last", 'DESC');  
