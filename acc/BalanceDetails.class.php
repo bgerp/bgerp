@@ -498,6 +498,9 @@ class acc_BalanceDetails extends core_Detail
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
                     array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
+            } else{
+            	$balance = $mvc->Master->fetch($rec->balanceId);
+            	$row->accountId = ht::createLink($row->accountId, array('acc_BalanceDetails', 'History', 'fromDate' => $balance->fromDate, 'toDate' => $balance->toDate, 'accId' => $rec->accountId));
             }
         }
         
@@ -753,8 +756,8 @@ class acc_BalanceDetails extends core_Detail
         $ent1Id = !empty($rec->{"{$type}Item1"}) ? $rec->{"{$type}Item1"} : NULL;
         $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : NULL;
         $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : NULL;
-         
-        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL) {
+        
+        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL || $this->historyFor) {
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
@@ -771,6 +774,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Ако е посочено за кои пера да се помнят записите
             if($this->historyFor && $accId == $this->historyFor['accId'] && $ent1Id == $this->historyFor['item1'] && $ent2Id == $this->historyFor['item2'] && $ent3Id == $this->historyFor['item3']){
+            	
             	$this->history[$rec->id] = array('id'            => $rec->id, 
             							         'docType'       => $rec->docType, 
             					                 'docId'         => $rec->docId,
