@@ -596,7 +596,7 @@ class store_ShipmentOrders extends core_Master
 	            $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
 	            $meta = $ProductMan->getProductInfo($dRec->productId, $dRec->packagingId)->meta;
             	$vatAmount = $dRec->price * $dRec->quantity * $vat;
-	            $code = $dRec->classId . "|" . $dRec->productId;
+	            $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
 	            $result->invoiced->vatToCharge[$code] += $vatAmount;
             }
             

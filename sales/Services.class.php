@@ -523,7 +523,7 @@ class sales_Services extends core_Master
 		        $ProductMan = cls::get($dRec->classId);
 		        $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
 		        $vatAmount = $dRec->price * $dRec->quantity * $vat;
-		        $code = $dRec->classId . "|" . $dRec->productId;
+		        $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
 	            $result->invoiced->vatToCharge[$code] += $vatAmount;
             }
 	        

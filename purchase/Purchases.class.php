@@ -774,7 +774,7 @@ class purchase_Purchases extends core_Master
             		// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
 	            	$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
 	            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
-	            	$code = $dRec->classId . "|" . $dRec->productId;
+	            	$code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
 	            	$result->invoiced->vatToCharge[$code] += $vatAmount;
             	}
             	
