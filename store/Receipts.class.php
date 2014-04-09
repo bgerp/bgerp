@@ -585,14 +585,9 @@ class store_Receipts extends core_Master
             	// Отбелязваме че има ддс за начисляване от експедирането
 	            $ProductMan = cls::get($dRec->classId);
 	            $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
-	            $meta = $ProductMan->getProductInfo($dRec->productId, $dRec->packagingId)->meta;
-            	$vatAmount = $dRec->price * $dRec->quantity * $vat;
-	            
-            	if(isset($meta['canConvert'])){
-	            	$result->invoiced->vatToCharge['goods'] += $vatAmount;
-	            } else {
-	            	$result->invoiced->vatToCharge['products'] += $vatAmount;
-	            }
+	            $vatAmount = $dRec->price * $dRec->quantity * $vat;
+	            $code = $dRec->classId . "|" . $dRec->productId;
+	            $result->invoiced->vatToCharge[$code] += $vatAmount;
             }
             
             $result->shipped->products[] = $p;
