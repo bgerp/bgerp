@@ -24,15 +24,15 @@ class bgerp_Recently extends core_Manager
     
     
     /**
-     * 
+     * @see bgerp_RefreshRowsPlg
      */
-    var $refreshRowsTime = 15000;
+    var $bgerpRefreshRowsTime = 15000;
     
     
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, plg_RefreshRows';
+    var $loadList = 'bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
 
 
     /**
@@ -244,7 +244,7 @@ class bgerp_Recently extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    static function render($userId = NULL)
+    static function render_($userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
@@ -298,12 +298,21 @@ class bgerp_Recently extends core_Manager
         
         // Ако се вика по AJAX
         if (!Request::get('ajax_mode')) {
+            
+            $divId = $Recently->getDivId();
+            
             $tpl = new ET("
                 <div class='clearfix21 portal' style='background-color:#f8f8ff'>
                 <div style='background-color:#eef' class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
-                [#PortalTable#]
+                
+                <div id='{$divId}'>
+                    <!--ET_BEGIN PortalTable-->
+                    	[#PortalTable#]
+                    <!--ET_END PortalTable-->
+                </div>
+                
                 [#PortalPagerBottom#]
                 </div>
             ");
@@ -473,18 +482,12 @@ class bgerp_Recently extends core_Manager
     
     
     /**
-     * Променя URL-то, което ще се вика по AJAX Вика се от plg_RefreshRows
+     * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      * 
-     * @param array $url
-     * 
-     * @return array
-     * @see plg_RefreshRows
+     * @return string
      */
-    function prepareRefreshRowsUrl($url)
+    function getDivId()
     {
-        $url['Ctr'] = 'bgerp_Recently';
-        $url['Act'] = 'render';
-
-        return $url;
+        return $this->className . '_PortalTable';
     }
 }
