@@ -141,8 +141,10 @@ class acc_JournalDetails extends core_Detail
      * @param mixed $items1     - списък с пера, от които поне един може да е на първа позиция
      * @param mixed $items2     - списък с пера, от които поне един може да е на втора позиция
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
+     * @param boolean $strict   - ако перата са NULL да се търсят записи в журнала със стойност NULL,
+     * 							  иначе приема че не трябва да се търсят пера
      */
-	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+	public static function filterQuery(core_Query &$query, $from, $to, $accs = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL, $strict = FALSE)
     {
     	expect($query->mvc instanceof acc_JournalDetails);
     	
@@ -170,8 +172,16 @@ class acc_JournalDetails extends core_Detail
     	foreach (range(1, 3) as $i){
     		$var = ${"items{$i}"};
     		
-    		// Ако е NULL продалжаваме
-    		if(!$var) continue;
+    		if(!$var){
+    			if($strict){
+    				
+    				// Ако търсенето е стриктно и стойността на перото е NULL се търси за запис с NULl
+		    		$query->where("#debitItem{$i} IS NULL");
+		    		$query->orWhere("#creditItem{$i} IS NULL");
+    			}
+    			continue;
+    		}
+    		
     		$varArr = arr::make($var);
     		
     		// За перата се изисква поне едно от тях да е на текущата позиция
