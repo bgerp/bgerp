@@ -947,7 +947,11 @@ class type_Richtext extends type_Blob
             $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px;' height=15 width=15/>";
         }
         
-        return $res;
+        $place = $this->getPlace();
+            
+        $this->_htmlBoard[$place] = $res;
+        
+        return "[#{$place}#]";
     }
     
     
