@@ -201,19 +201,29 @@ class vislog_History extends core_Manager {
 
 
     /**
-     * Декорира ip адреса
+     * Декорира ip адреса с html връзки
      */
     static function decorateIp($ip, $time)
     {   
+        // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
+        if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
+
+            return $ip;
+        }
+
         $cnt = self::count(array("#ip = '[#1#]'", $ip));
         $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
         
         $color = sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0); 
-
-        $count = ht::createLink("{$old}/{$cnt}", 
-                    array('vislog_History', 'ip' => $ip),
-                    NULL,
-                    array('class' => 'weblog-cnt', 'style' => "color:#{$color};"));
+        
+        if(self::haveRightFor('list')) {
+            $count = ht::createLink("{$old}/{$cnt}", 
+                        array('vislog_History', 'ip' => $ip),
+                        NULL,
+                        array('class' => 'weblog-cnt', 'style' => "color:#{$color};"));
+        } else {
+            $count = '';
+        }
         
 
         $country2 =  drdata_IpToCountry::get($ip);
