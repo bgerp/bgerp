@@ -1,0 +1,87 @@
+<?php
+
+
+
+
+/**
+ * Клас 'gps_ListenerControl'
+ *
+ * @category  vendors
+ * @package   gps
+ * @author    Dimitar Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2014 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class gps_ListenerControl extends core_Manager
+{
+
+
+    /**
+     * Име
+     */
+    public $title = 'Демон контрол';
+
+    /**
+     * Кой има право да чете?
+     */
+    public $canRead = 'ceo,admin,gps';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canEdit = 'ceo,admin,gps';
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    public $canView = 'ceo,admin,gps';
+    
+    
+    /**
+     * Входна точка за спиране и пускане на листенер-а
+     *
+     */
+    public function act_ListenerControl()
+    {
+        return ("heh");
+    }
+    
+
+    /**
+     * Пуска листенер-а
+     *
+     * @return bool
+     */
+    private function Start()
+    {
+        
+        return ($res);
+    }
+
+
+    /**
+     * Спира листенер-а
+     * 
+     * @return bool 
+     */
+    private function Stop()
+    {
+        
+        return ($res);
+    }
+
+    
+    /**
+     * Стартиран ли е листенер-а
+     *
+     * @return bool
+     */
+    private function Stated()
+    {
+        
+        return ($res);
+    }
+}

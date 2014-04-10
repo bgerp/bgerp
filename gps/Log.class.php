@@ -36,7 +36,7 @@ class gps_Log extends core_Manager
      *
      * var string|array
      */
-    public $loadList = 'plg_Created';    
+    public $loadList = 'plg_Created, gps_Wrapper';    
     
     /**
      * Полета за показване

@@ -34,31 +34,31 @@ class gps_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'gps_Log';
+    public $startCtr = 'gps_Log';
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Log с GPS данни от тракери";
+    public $info = "Log с GPS данни от тракери";
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
             'LOCAL_IP' => array ('ip', 'mandatory, caption=IP от което ще се четат данните'),
             'PORT' => array ('int', 'mandatory, caption=Порт'),
             'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
@@ -67,19 +67,20 @@ class gps_Setup extends core_ProtoSetup
     /**
      * Списък с мениджърите, които съдържа пакета
      */
-    var $managers = array(
+    public $managers = array(
             'gps_Log',
+            'gps_ListenerControl'
         );
 
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'gps';
+    public $roles = 'gps';
     
     /**
      * Връзки от менюто, сочещи към модула
      */
-    var $menuItems = array(
+    public $menuItems = array(
             array(3.4, 'Мониторинг', 'GPS', 'gps_Log', 'default', "gps,ceo,admin"),
     );
     
