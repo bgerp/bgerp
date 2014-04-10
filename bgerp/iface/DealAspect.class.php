@@ -87,6 +87,14 @@ class bgerp_iface_DealAspect
     
     
     /**
+     * Оставащо ДДС за начисляване
+     *
+     * @var double
+     */
+    public $vatToCharge = NULL;
+    
+    
+    /**
      * Информация за доставката
      *
      * @var bgerp_iface_DealDelivery
@@ -134,6 +142,12 @@ class bgerp_iface_DealAspect
     	foreach ($aspect->downpayments as $currencyId => $d) {
     		$this->downpayments[$currencyId]['amount'] += $d['amount'];
             $this->downpayments[$currencyId]['amountBase'] += $d['amountBase'];
+        }
+        
+        if($aspect->vatToCharge){
+        	foreach ($aspect->vatToCharge as $type => $vatAmount){
+        		$this->vatToCharge[$type] += $vatAmount;
+        	}
         }
         
         if (isset($aspect->delivery)) {

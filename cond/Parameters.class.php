@@ -143,6 +143,29 @@ class cond_Parameters extends core_Master
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
     	
+    	// @TODO Миграция да се махне след като се разнесе
+    	$oldDelCond = $mvc->fetchField('#sysId = "deliveryTerm"', 'id');
+    	$oldPayCond = $mvc->fetchField('#sysId = "paymentMethod"', 'id');
+    	
+    	if(empty($oldDelCond) || empty($oldPayCond)) return;
+    	
+    	$newDelCond = $mvc->fetchField('#sysId = "deliveryTermSale"', 'id');
+    	$newPayCond = $mvc->fetchField('#sysId = "paymentMethodSale"', 'id');
+    	
+    	$condQuery = cond_ConditionsToCustomers::getQuery();
+    	$condQuery->where("#conditionId = {$oldDelCond} || #conditionId = {$oldPayCond}");
+    	while($condRec = $condQuery->fetch()){
+    		if($condRec->conditionId == $oldDelCond){
+    			$condRec->conditionId = $newDelCond;
+    		} else {
+    			$condRec->conditionId = $newPayCond;
+    		}
+    		cond_ConditionsToCustomers::save($condRec);
+    	}
+    	
+    	cond_Parameters::delete($oldDelCond);
+    	cond_Parameters::delete($oldPayCond);
+    	
     	return $res;
     }
     

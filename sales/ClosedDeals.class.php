@@ -29,7 +29,7 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=acc_ClosedDealsTransactionImpl';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -96,15 +96,9 @@ class sales_ClosedDeals extends acc_ClosedDeals
     /**
      * Какви ще са контировките на надплатеното/отписаното и авансите
      */
-    public $contoAccounts = array('income' => array(
-    										'debit' => '411', 
-    										'credit' => '7911'),
-    							  'spending' => array(
-    								 		'debit' => '6911', 
-    								 		'credit' => '411'),
-    							  'downpayments' => array(
+    public $contoAccounts = array('downpayments' => array(
     										'debit' => '412',
-    										'credit' => '411'));
+    										'credit' => '411'),);
     
     
     /**
@@ -217,5 +211,88 @@ class sales_ClosedDeals extends acc_ClosedDeals
     			}
     		}
     	}
+    }
+    
+    
+ 	/**
+     * Връща записа за начисляване на извънредния приход/разход
+     * ------------------------------------------------------
+     * Надплатеното: Dt:  411. Вземания от клиенти (Клиенти, Валути)
+     * 				 Ct: 7911. Надплатени по продажби
+     * 
+     * Недоплатеното: Dt: 6911. Отписани вземания по продажби
+     * 				  Ct:  411. Вземания от клиенти (Клиенти, Валути)
+     */
+    protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType)
+    {
+    	$entry = array();
+    	$accounts = $this->contoAccounts;
+    	
+    	if($amount < 0){
+    		
+    		// Записа за извънреден разход
+	    	$entry = array(
+	    		'amount' => $totalAmount,
+	    		'debit'  => array('6911', 'quantity' => $totalAmount),
+	    		'credit' => array('411',
+	    							array($docRec->contragentClassId, $docRec->contragentId), 
+	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+	                       		'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
+	    	);
+    	} elseif($amount > 0){
+    		
+    		// Записа за извънреден приход
+    		$entry = array(
+	    		'amount' => $totalAmount,
+	    		'debit'  => array('411',
+	    							array($docRec->contragentClassId, $docRec->contragentId), 
+	                        		array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+	                       		  'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
+	            'credit' => array('7911', 'quantity' => $totalAmount),
+    		);	
+    	}
+    	
+    	// Връщане на записа
+    	return $entry;
+    }
+    
+    
+	/**
+     * Прехвърля не неначисленото ДДС
+     * За Продажба:
+     * 		Dt: 4530. ДДС за начисляване
+     * 		
+     * 		Ct: 701. Приходи от продажби на Стоки и Продукти     (Клиенти, Стоки и Продукти)
+     * 			703. Приходи от продажби на услуги			     (Клиенти, Услуги)
+     * 			706. Приходи от продажба на суровини/материали   (Клиенти, Суровини и Материали)
+     * 
+     */
+    protected function transferVatNotCharged($dealInfo, $docRec, &$total)
+    {
+    	$vatToCharge = $dealInfo->invoiced->vatToCharge;
+    	
+    	$total = 0;
+    	$entries = array();
+    	foreach ($vatToCharge as $type => $amount){
+    		if($amount){
+    			$amount = currency_Currencies::round($amount);
+    			$total += $amount;
+    			list($classId, $productId, $packagingId) = explode("|", $type);
+    			$meta = cls::get($classId)->getProductInfo($productId)->meta;
+    			$invProduct = $dealInfo->shipped->findProduct($productId, $classId, $packagingId);
+    			
+    			$creditAcc = (isset($meta['canStore'])) ? ((isset($meta['canConvert'])) ? '706' : '701') : '703';
+    				$entries[] = array(
+	    				'amount' => $amount,
+	    				'credit'  => array($creditAcc,
+	    									array($docRec->contragentClassId, $docRec->contragentId), 
+	                        				array($classId, $productId),
+	                       				'quantity' => $invProduct->quantity),
+	            		'debit' => array('4530', 'quantity' => $amount),
+    				);
+    		}
+    	}
+    	
+    	return $entries;
     }
 }

@@ -21,13 +21,13 @@ class bgerp_Notifications extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, plg_RefreshRows';
+    var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools, plg_GroupByDate, plg_Search, bgerp_RefreshRowsPlg';
     
     
     /**
-     * 
+     * @see bgerp_RefreshRowsPlg
      */
-    var $refreshRowsTime = 5000;
+    var $bgerpRefreshRowsTime = 5000;
     
     
     /**
@@ -278,7 +278,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Рендира блок с нотификации за текущия или посочения потребител
      */
-    static function render($userId = NULL)
+    static function render_($userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
@@ -361,12 +361,21 @@ class bgerp_Notifications extends core_Manager
         
         // Ако се вика по AJAX
         if (!Request::get('ajax_mode')) {
+            
+            $divId = $Notifications->getDivId();
+            
             $tpl = new ET("
                 <div class='clearfix21 portal' style='background-color:#fff8f8'>
                 <div style='background-color:#fee' class='legend'><div style='float:left'>[#PortalTitle#]</div>
                 [#ListFilter#]<div class='clearfix21'></div></div>
                 [#PortalPagerTop#]
-                [#PortalTable#]
+                
+                <div id='{$divId}'>
+                    <!--ET_BEGIN PortalTable-->
+                    	[#PortalTable#]
+                    <!--ET_END PortalTable-->
+                </div>
+                
                 [#PortalPagerBottom#]
                 </div>
             ");
@@ -407,12 +416,56 @@ class bgerp_Notifications extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
     	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = $mvc->searchInputField;
-    	$data->listFilter->input();
+    	
     	if(strtolower(Request::get('Act')) == 'show'){
+    	    
+    	    $data->listFilter->showFields = $mvc->searchInputField;
+    	    
         	bgerp_Portal::prepareSearchForm($mvc, $data->listFilter);
     	} else {
+    	    
+            // Добавяме поле във формата за търсене
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            
+            // Кои полета да се показват
+            $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
+            
+            // Инпутваме полетата
+            $data->listFilter->input();
+            
+            // Бутон за филтриране
     		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	    
+            // Ако не е избран потребител по подразбиране
+            if(!$data->listFilter->rec->usersSearch) {
+                
+                // Да е текущия
+                $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
+            }
+        	
+        	// Ако има филтър
+            if($filter = $data->listFilter->rec) {
+                
+                // Ако се търси по всички и има права ceo
+    			if ((strpos($filter->usersSearch, '|-1|') !== FALSE) && (haveRole('ceo'))) {
+    			    // Търсим всичко
+                } else {
+                    
+                    // Масив с потребителите
+                    $usersArr = type_Keylist::toArray($filter->usersSearch);
+                    
+                    // Ако има избрани потребители
+                    if (count((array)$usersArr)) {
+                        
+                        // Показваме всички потребители
+        			    $data->query->orWhereArr('userId', $usersArr);
+                    } else {
+                        
+                        // Не показваме нищо
+                        $data->query->where("1=2");
+                    }
+                }
+            }
     	}
     	
     	$data->query->orderBy("#modifiedOn", 'DESC');  
@@ -478,6 +531,17 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
+     * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
+     * 
+     * @return string
+     */
+    function getDivId()
+    {
+        return $this->className . '_PortalTable';
+    }
+    
+    
+    /**
      * Връща хеша за листовия изглед. Вика се от plg_RefreshRows
      * 
      * @param string $status
@@ -491,25 +555,8 @@ class bgerp_Notifications extends core_Manager
         // Това е необходимо за да определим когато има промяна в състоянието на някоя нотификация
         // Трябва да се премахват другите тагове, защото цвета се промяне през няколко секунди
         // и това би накарало всеки път да се обновяват нотификациите
-        $hash = md5(strip_tags($status, '<a>'));
+        $hash = md5(trim(strip_tags($status, '<a>')));
         
         return $hash;
-    }
-    
-    
-    /**
-     * Променя URL-то, което ще се вика по AJAX Вика се от plg_RefreshRows
-     * 
-     * @param array $url
-     * 
-     * @return array
-     * @see plg_RefreshRows
-     */
-    function prepareRefreshRowsUrl($url)
-    {
-        $url['Ctr'] = 'bgerp_Notifications';
-        $url['Act'] = 'render';
-
-        return $url;
     }
 }

@@ -132,9 +132,19 @@ class store_transactionIntf_Receipt
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         price_Helper::fillRecs($rec->details, $rec);
         
+        
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+        	
+        	if($rec->chargeVat == 'yes'){
+        		$ProductManager = cls::get($detailRec->classId);
+            	$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
+            	$amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
+        	} else {
+        		$amount = $detailRec->amount;
+        	}
+        	
+        	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
         	// Ако е вложим дебит 302 иначе 321
         	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
@@ -158,6 +168,25 @@ class store_transactionIntf_Receipt
 	        );
         }
         
+    	if($rec->_total->vat){
+        	$vatAmount = currency_Currencies::round($rec->_total->vat * $currencyRate);
+        	$entries[] = array(
+                'amount' => $vatAmount, // В основна валута
+                
+                'credit' => array(
+                    '401',
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+                ),
+                
+                'debit' => array(
+                    '4530', 
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                ),
+            );
+        }
+	        
         return $entries;
     }
     

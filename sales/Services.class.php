@@ -518,6 +518,15 @@ class sales_Services extends core_Master
             $p->price       = $dRec->price;
             $p->uomId       = $dRec->uomId;
             
+            if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
+            	// Отбелязваме че има ддс за начисляване от експедирането
+		        $ProductMan = cls::get($dRec->classId);
+		        $vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+		        $vatAmount = $dRec->price * $dRec->quantity * $vat;
+		        $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
+	            $result->invoiced->vatToCharge[$code] += $vatAmount;
+            }
+	        
             $result->shipped->products[] = $p;
         }
         
@@ -625,7 +634,15 @@ class sales_Services extends core_Master
         	price_Helper::fillRecs($detailsRec, $rec);
         	
 	        foreach ($detailsRec as $dRec) {
-	        	$amount = ($dRec->discount) ?  $dRec->amount * (1 - $dRec->discount) : $dRec->amount;
+		        if($rec->chargeVat == 'yes'){
+	        		$ProductManager = cls::get($dRec->classId);
+	            	$vat = $ProductManager->getVat($dRec->productId, $rec->valior);
+	            	$amount = $dRec->amount - ($dRec->amount * $vat / (1 + $vat));
+	        	} else {
+	        		$amount = $dRec->amount;
+	        	}
+	        	
+	        	$amount = ($dRec->discount) ?  $amount * (1 - $dRec->discount) : $amount;
 	        	
 	        	$entries[] = array(
 	                'amount' => currency_Currencies::round($amount * $rec->currencyRate), // В основна валута
@@ -645,6 +662,25 @@ class sales_Services extends core_Master
 	                ),
             	);
 	        }
+	        
+        	if($rec->_total->vat){
+	        	$vatAmount = currency_Currencies::round($rec->_total->vat * $rec->currencyRate);
+	        	$entries[] = array(
+	                'amount' => $vatAmount, // В основна валута
+	                
+	                'debit' => array(
+	                    '411',
+	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+	                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+	                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+	                ),
+	                
+	                'credit' => array(
+	                    '4530', 
+	                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+	                ),
+	            );
+        	}
         }
         
         $transaction = (object)array(

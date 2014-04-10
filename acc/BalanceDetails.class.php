@@ -135,11 +135,10 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterPrepareListRows($mvc, $data)
     {
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
-            $groupBy = array();
-            
-            if (!empty($groupBy)) {
-                $mvc->doGrouping($data, $groupBy);
-            }
+            $data->groupingForm = $groupingForm;
+        	if($data->groupingForm->isSubmitted()){
+        		$mvc->doGrouping($data, (array)$data->groupingForm->rec);
+        	}
         }
         
         // При детайлна справка, и потребителя няма роли acc, ceo скриваме
@@ -201,13 +200,40 @@ class acc_BalanceDetails extends core_Detail
         $groupedRecs = array();
         $groupedIdx = array();
         $listRec = array();
-        $registers = array();
+        
+        $show = $groupBy = array();
+        foreach (range(1, 3) as $i){
+        	if(!$by["grouping{$i}"]) continue;
+        	if(!is_numeric($by["grouping{$i}"])){
+        		$groupBy[$i] = $by["grouping{$i}"];
+        	} else {
+        		$show[$i] = $by["grouping{$i}"];
+        	}
+        }
+       
+        if(!count($groupBy)){
+        	foreach ($data->rows as $id => $row){
+        		foreach (range(1, 3) as $i){
+        			$rec = $data->recs[$id];
+        			if(isset($show[$i]) && $rec->{"ent{$i}Id"} != $show[$i]){
+        				unset($data->rows[$id]);
+        				break;
+        			}
+        		}
+        	}
+        }
+        
+        //@TODO ТЕСТОВО
+        return;
         
         // Извличаме записите за номенклатурите, по които имаме групиране
         foreach (array_keys($by) as $i) {
-            $listRec[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
+        	if($listId = $this->Master->accountRec->{"groupId{$i}"}){
+        		$listRec[$i] = $this->Lists->fetch($listId);
+        	}
         }
         
+        bp($listRec);
         foreach ($data->recs as $rec) {
             $f = array(1=>null, 2=>null, 3=>null);
             
@@ -284,7 +310,7 @@ class acc_BalanceDetails extends core_Detail
         
         $data->query->where("#accountId = {$this->Master->accountRec->id}");
         $data->query->where('#ent1Id IS NOT NULL OR #ent2Id IS NOT NULL OR #ent3Id IS NOT NULL');
-        
+       
         $groupingForm = $this->getGroupingForm($data->masterId);
         
         // Извличаме записите за номенклатурите, по които е разбита сметката
@@ -313,7 +339,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i=>$listRec) {
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             
-            if ($groupingForm && $groupingForm->rec->{"grouping{$i}"}) {
+            if ($groupingForm && $groupingForm->rec->{"grouping{$i}"} && !is_numeric($groupingForm->rec->{"grouping{$i}"})) {
                 //
                 // Групиране по признак на текущата номенклатура
                 //
@@ -378,9 +404,9 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $res = new ET("
+        	[#ListToolbar#]
+        	[#ListSummary#]
             [#ListTable#]
-            [#ListSummary#]
-            [#ListToolbar#]
         ");
     }
     
@@ -391,8 +417,8 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($mvc->isDetailed()) {
-            if ($form = $mvc->getGroupingForm($data->masterId)) {
-                $tpl->append($form->renderHtml() . '<br />');
+            if ($data->groupingForm) {
+                $tpl->append($data->groupingForm->renderHtml(), 'ListToolbar');
             }
         }
     }
@@ -405,99 +431,53 @@ class acc_BalanceDetails extends core_Detail
      */
     private function getGroupingForm($balanceId)
     {
+        expect($this->Master->accountRec);
         
-        /**
-         * Помощна променлива за кеширане на веднъж създадената форма
-         */
-        static $form;
+    	static $form;
         
         if (isset($form)) {
             return $form;
         }
         
-        $form = FALSE;
-        
-        expect($this->Master->accountRec);
-        
-        $listRecs = array();
-        $registers = array();
-        
-        foreach (range(1, 3) as $i) {
-            if ($this->Master->accountRec->{"groupId{$i}"}) {
-                $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                
-                if (empty($registers[$i]->features)) {
-                    unset($listRecs[$i], $registers[$i]);
-                }
+    	foreach (range(1, 3) as $i) {
+        	if ($groupId = $this->Master->accountRec->{"groupId{$i}"}) {
+                $listRecs[$i] = $this->Lists->fetch($groupId);
             }
         }
         
-        if (empty($listRecs)) {
-            // Нито един регистър не предлага признаци за групиране
-            return $form;
+    	if (empty($listRecs)) {
+            
+    		// Нито един регистър не предлага признаци за групиране
+            return;
         }
         
-        $form = cls::get('core_Form');
+        // @TODO Dummy
+        /*$dummy = array();
+        $dummy[] = (object)array('title' => tr('Свойства'), 'group' => TRUE);
+    	$dummy['Свойство 1'] = 'Свойство 1';
+        $dummy['Свойство 2'] = 'Свойство 2';
+        $dummy['Свойство 3'] = 'Свойство 3';*/
+        
+    	$form = cls::get('core_Form');
         
         $form->method = 'GET';
-        $form->title = 'Групиране & Филтриране';
-        
-        $form->FLD("accId", 'int', 'silent,input=hidden');
+        $form->view = 'horizontal';
+        $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", true);
-        
-        foreach ($listRecs as $i=>$listRec) {
-            $register = $registers[$i];
-            
-            expect(!empty($register->features));
-            
-            $grouping = Request::get("grouping{$i}");
-            $filter = Request::get("filter{$i}");
-            
-            $enum = $backUrl = array();
-            
-            $isGrouped = !empty($grouping);
-            $isFiltered = $isGrouped && !empty($filter);
-            
-            if ($isFiltered) {
-                $enum[] = $grouping . '=' .
-                $register->features[$grouping]->title;
-                $backUrl += array(
-                    "grouping{$i}" => $grouping,
-                );
-            } else {
-                foreach ($register->features as $featureId=>$featureObj) {
-                    $enum[] = $featureId . '=' . $featureObj->title;
-                }
-            }
-            
-            if ($isGrouped) {
-                $backUrl += array(
-                    "accId" => $form->rec->accId,
-                );
-            }
-            
-            if (!empty($enum)) {
-                array_unshift($enum, '');
-                $form->FLD("grouping{$i}", 'enum(' . implode(',', $enum) . ')',
-                    "silent,caption={$listRec->name} по,width=300px"
-                );
-            }
-            
-            if ($isFiltered) {
-                $form->FLD("filter{$i}", "enum(,{$filter}=" . $register->features[$grouping]->titleOf($filter) . ")", 'silent',
-                    array('caption'=>$register->features[$grouping]->title));
-            }
+        $showFields = '';
+        foreach ($listRecs as $i => $listRec) {
+        	$options = acc_Items::makeArray4Select('title', "#lists LIKE '%|$listRec->id|%' AND #state = 'active'");
+        	$options = array('' => $listRec->name) + $options;// + $dummy;
+        	$form->FNC("grouping{$i}", 'varchar',"silent,caption={$listRec->name},width=300px,input");
+        	$form->setOptions("grouping{$i}", $options);
+        	$showFields .= "grouping{$i},";
         }
+        
+        $form->showFields = trim($showFields, ',');
         
         $form->input(null, true);
         
-        $form->toolbar->addSbBtn('Обнови', '', '', "id=btnGroup,class=btn-group");
-        $form->toolbar->addBtn('Назад', array(
-                $this->Master,
-                'single',
-                $balanceId,
-            ) + $backUrl,
-            'id=btnBack');
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         return $form;
     }
@@ -512,12 +492,15 @@ class acc_BalanceDetails extends core_Detail
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($row->accountId && strlen($row->accountNum) >= 3) {
+        $masterRec = $mvc->Master->fetch($rec->balanceId);
+    	if ($row->accountId && strlen($row->accountNum) >= 3) {
             $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
             
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
                     array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
+            } else{
+            	$row->accountId = ht::createLink($row->accountId, array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum));
             }
         }
         
@@ -525,9 +508,8 @@ class acc_BalanceDetails extends core_Detail
         
         // Бутон за детайлизиран преглед на историята
         $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
-        $masterRec = $mvc->Master->fetch($rec->balanceId);
         
-        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accId' => $rec->accountId, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
+        $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
         $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
         
@@ -535,6 +517,7 @@ class acc_BalanceDetails extends core_Detail
             return;
         }
         
+        return;
         $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
         
         foreach (range(1, 3) as $i) {
@@ -772,8 +755,8 @@ class acc_BalanceDetails extends core_Detail
         $ent1Id = !empty($rec->{"{$type}Item1"}) ? $rec->{"{$type}Item1"} : NULL;
         $ent2Id = !empty($rec->{"{$type}Item2"}) ? $rec->{"{$type}Item2"} : NULL;
         $ent3Id = !empty($rec->{"{$type}Item3"}) ? $rec->{"{$type}Item3"} : NULL;
-         
-        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL) {
+        
+        if ($ent1Id != NULL || $ent2Id != NULL || $ent3Id != NULL || $this->historyFor) {
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
@@ -790,6 +773,7 @@ class acc_BalanceDetails extends core_Detail
             
             // Ако е посочено за кои пера да се помнят записите
             if($this->historyFor && $accId == $this->historyFor['accId'] && $ent1Id == $this->historyFor['item1'] && $ent2Id == $this->historyFor['item2'] && $ent3Id == $this->historyFor['item3']){
+            	
             	$this->history[$rec->id] = array('id'            => $rec->id, 
             							         'docType'       => $rec->docType, 
             					                 'docId'         => $rec->docId,
@@ -947,8 +931,9 @@ class acc_BalanceDetails extends core_Detail
     	$this->requireRightFor('history');
     	$this->currentTab = 'Хронология';
     	
-    	expect($accId = Request::get('accId', 'int'));
-    	expect(acc_Accounts::fetch($accId));
+    	expect($accNum = Request::get('accNum', 'int'));
+    	expect($accId = acc_Accounts::fetchField("#num = '{$accNum}'", 'id'));
+    	
     	$from = Request::get('fromDate');
     	$to = Request::get('toDate');
     	
@@ -985,7 +970,7 @@ class acc_BalanceDetails extends core_Detail
     	$data->rec->ent1Id = $ent1;
     	$data->rec->ent2Id = $ent2;
     	$data->rec->ent3Id = $ent3;
-    	$data->rec->accountNum = acc_Accounts::fetchField($accId, 'num');
+    	$data->rec->accountNum = $accNum;
     	
     	$this->requireRightFor('history', $data->rec);
     	
@@ -1031,7 +1016,7 @@ class acc_BalanceDetails extends core_Detail
         $query->orderBy('valior,id', 'ASC');
         
         // Филтриране на копието, за показване на записите за тези пера
-        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3); 
+        acc_JournalDetails::filterQuery($cloneQuery, $from, $to, $accs, $items1, $items2, $items3, TRUE); 
         $cloneQuery->orderBy('valior,id', 'DESC');
         
         // Добавяне на странициране
@@ -1254,13 +1239,13 @@ class acc_BalanceDetails extends core_Detail
     	
     	$filter->FNC('fromDate', 'date', 'caption=От,input,width=15em');
     	$filter->FNC('toDate', 'date', 'caption=До,input,width=15em');
-    	$filter->FNC('accId', 'int', 'input=hidden');
+    	$filter->FNC('accNum', 'int', 'input=hidden');
     	$filter->FNC('ent1Id', 'int', 'input=hidden');
     	$filter->FNC('ent2Id', 'int', 'input=hidden');
     	$filter->FNC('ent3Id', 'int', 'input=hidden');
     	$filter->showFields = 'fromDate,toDate';
     	
-    	$filter->setDefault('accId', $data->rec->accountId);
+    	$filter->setDefault('accNum', $data->rec->accountNum);
     	$filter->setDefault('ent1Id', $data->rec->ent1Id);
     	$filter->setDefault('ent2Id', $data->rec->ent2Id);
     	$filter->setDefault('ent3Id', $data->rec->ent3Id);

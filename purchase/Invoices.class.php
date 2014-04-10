@@ -205,7 +205,7 @@ class purchase_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
+        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС,input=hidden');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
@@ -1068,6 +1068,16 @@ class purchase_Invoices extends core_Master
             $p->packagingId = $dRec->packagingId;
             $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
             $p->price       = $dRec->price;
+            
+        	if($rec->vatRate == 'yes' || $rec->vatRate == 'separate'){
+            		 
+            	// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
+	            $ProductMan = cls::get($dRec->classId);
+        		$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+	            $vatAmount = $dRec->price * $p->quantity * $vat;
+	            $code = $dRec->classId . "|" . $dRec->productId . "|" . $dRec->packagingId;
+	            $result->invoiced->vatToCharge[$code] += -1 * $vatAmount;
+            }
             
             $result->invoiced->products[] = $p;
         }

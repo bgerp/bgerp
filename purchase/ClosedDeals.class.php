@@ -29,7 +29,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_TransactionSourceIntf=acc_ClosedDealsTransactionImpl';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
     /**
@@ -96,15 +96,9 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     /**
      * Какви ще са контировките на надплатеното/отписаното и авансите
      */
-    public $contoAccounts = array('income' => array(
-    									'debit' => '401', 
-    									'credit' => '7912'),
-    							  'spending' => array(
-    								 	'debit' => '6912', 
-    								 	'credit' => '401'),
-    							  'downpayments' => array(
+    public $contoAccounts = array('downpayments' => array(
     									'debit' => '401',
-    									'credit' => '402'));
+    									'credit' => '402'),);
     
     
     /**
@@ -198,5 +192,90 @@ class purchase_ClosedDeals extends acc_ClosedDeals
 	    		}
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща записа за начисляване на извънредния приход/разход
+     * ------------------------------------------------------
+     * Надплатеното:  Dt: 6912. Надплатени по покупки
+     * 				  Ct:  401. Задължения към доставчици (Доставчици, Валути)
+     * 
+     * Недоплатеното: Dt:  401. Задължения към доставчици (Доставчици, Валути)
+     * 				  Ct: 7912. Отписани задължения по покупки
+     */
+	protected function getCloseEntry($amount, $totalAmount, $docRec, $dealType)
+    {
+    	$entry = array();
+    	
+    	if($amount < 0){
+    		
+    		// Записа за извънреден приход
+	    	$entry = array(
+	    		'amount' => $totalAmount,
+	    		'debit'  => array('401',
+	    								array($docRec->contragentClassId, $docRec->contragentId), 
+	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
+	            'credit' => array('7912', 'quantity' => $totalAmount),
+	    	);
+    	} elseif($amount > 0){
+    		// Записа за извънреден разход
+	    	$entry = array(
+	    		'amount' => $totalAmount,
+	    		'debit'  => array('6912', 'quantity' => $totalAmount),
+	    		'credit' => array('401',
+	    								array($docRec->contragentClassId, $docRec->contragentId), 
+	                        			array('currency_Currencies', currency_Currencies::getIdByCode($docRec->currencyId)),
+	                       			'quantity' => currency_Currencies::round($totalAmount / $docRec->currencyRate)),
+	    	);
+    	}
+    	
+    	// Връщане на записа
+    	return $entry;
+    }
+    
+    
+	/**
+     * Прехвърля не неначисленото ДДС
+     * 		Dt: 302. Суровини и материали     		(Складове, Суровини и Материали)
+     * 			321. Стоки и продукти			    (Складове, Стоки и Продукти)
+     * 			602. Разходи за външни услуги       (Услуги)
+     * 
+     * 		Ct: 4530. ДДС за начисляване
+     * 
+     */
+    protected function transferVatNotCharged($dealInfo, $docRec, &$total)
+    {
+    	$vatToCharge = $dealInfo->invoiced->vatToCharge;
+    	
+    	$total = 0;
+    	$entries = array();
+    	foreach ($vatToCharge as $type => $amount){
+    		if($amount){
+    			$amount = currency_Currencies::round($amount);
+    			$total += $amount;
+    			list($classId, $productId, $packagingId) = explode("|", $type);
+    			$meta = cls::get($classId)->getProductInfo($productId)->meta;
+    			$invProduct = $dealInfo->shipped->findProduct($productId, $classId, $packagingId);
+    			
+    			if(isset($meta['canStore'])){
+    				$debitAcc = (isset($meta['canConvert'])) ? '302' : '321';
+    				$storeId = ($dealInfo->shipped->delivery->storeId) ? $dealInfo->shipped->delivery->storeId : $dealInfo->agreed->delivery->storeId;
+    				$debitEnt = array($debitAcc, array('store_Stores', $storeId),array($classId, $productId), 'quantity' => $invProduct->quantity);
+    			} else {
+    				$debitAcc = '602';
+    				$debitEnt = array($debitAcc, array($classId, $productId), 'quantity' => $invProduct->quantity);
+    			}
+    				
+    			$entries[] = array(
+	    			'amount' => $amount,
+	    			'debit'  => $debitEnt,
+	            	'credit' => array('4530', 'quantity' => $amount),
+    			);
+    		}
+    	}
+    	
+    	return $entries;
     }
 }

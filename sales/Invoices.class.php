@@ -210,7 +210,7 @@ class sales_Invoices extends core_Master
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
         $this->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС');
+        $this->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС,input=hidden');
         $this->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание'); 
 		$this->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки,width=100%');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount');
@@ -1022,7 +1022,7 @@ class sales_Invoices extends core_Master
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
    	 *  
-   	 *  Dt: 411  - Вземания от клиенти
+   	 *  Dt: 411  - ДДС за начисляване
    	 *  Ct: 4532 - Начислен ДДС за продажбите
    	 */
     public static function getTransaction($id)
@@ -1052,22 +1052,18 @@ class sales_Invoices extends core_Master
         if($cloneRec->type == 'invoice' && isset($cloneRec->docType) && isset($cloneRec->docId)) return $result;
        
         $entries = array();
-    	$debitAccId  = '411';
-	    $creditAccId = '4532';
         
     	if(isset($cloneRec->vatAmount)){
         	$entries[] = array(
                 'amount' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 
                 'debit' => array(
-                    $debitAccId, // дебитната сметка
-                        array($contragentClass, $contragentId),
-                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($cloneRec->date)),
+                    '4530', // дебитната сметка
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 ),
                 
                 'credit' => array(
-                    $creditAccId, // кредитна сметка;
+                    '4532', // кредитна сметка;
                     'quantity' => currency_Currencies::round($cloneRec->vatAmount) * (($rec->type == 'credit_note') ? -1 : 1),
                 )
     	    );
@@ -1125,6 +1121,7 @@ class sales_Invoices extends core_Master
         $result->invoiced->valior   = $rec->date;
         $result->invoiced->vatType  = $rec->vatRate;
         $result->invoiced->payment->method  = $rec->paymentMethodId;
+        
         if(isset($rec->dpAmount)){
         	$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
     		if($rec->vatRate != 'yes' && $rec->vatRate != 'separate'){
@@ -1147,6 +1144,16 @@ class sales_Invoices extends core_Master
             $p->packagingId = $dRec->packagingId;
             $p->quantity    = $dRec->quantity * $dRec->quantityInPack;
             $p->price       = $dRec->price;
+            
+        	if($rec->vatRate == 'yes' || $rec->vatRate == 'separate'){
+            		 
+            	// Отбелязваме че има ддс за начисляване от експедирането съответно за видовете продукти
+	            $ProductMan = cls::get($dRec->classId);
+        		$vat = $ProductMan->getVat($dRec->productId, $rec->valior);
+	            $vatAmount = $dRec->price * $p->quantity * $vat;
+	            $code = $dRec->classId . "|" . $dRec->productId;
+	            $result->invoiced->vatToCharge[$code] += -1 * $vatAmount;
+            }
             
             $result->invoiced->products[] = $p;
         }

@@ -133,6 +133,12 @@ class store_transactionIntf_ShipmentOrder
      *    Ct: 701  - Приходи от продажби на Стоки и Продукти  (Клиенти, Стоки и Продукти)
      *    	  706  - Приходи от продажба на Суровини и Материали (Клиенти, Суровини и материали)
      * 
+     * ДДС за начисляване
+     * 
+     *    Dt: 411. Вземания от клиенти                   (Клиент, Валута)
+     *    
+     *    Ct: 4530 - ДДС за начисляване
+     *    
      * @param stdClass $rec
      * @return array
      */
@@ -147,7 +153,15 @@ class store_transactionIntf_ShipmentOrder
         price_Helper::fillRecs($rec->details, $rec);
         
         foreach ($rec->details as $detailRec) {
-        	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+        	if($rec->chargeVat == 'yes'){
+        		$ProductManager = cls::get($detailRec->classId);
+            	$vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
+            	$amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
+        	} else {
+        		$amount = $detailRec->amount;
+        	}
+        	
+        	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
@@ -167,6 +181,25 @@ class store_transactionIntf_ShipmentOrder
                      $creditAccId, 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     	array($detailRec->classId, $detailRec->productId), // Перо 2 - Артикул
+                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                ),
+            );
+        }
+        
+        if($rec->_total->vat){
+        	$vatAmount = currency_Currencies::round($rec->_total->vat * $currencyRate);
+        	$entries[] = array(
+                'amount' => $vatAmount, // В основна валута
+                
+                'debit' => array(
+                    '411',
+                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                        array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->valior)), // Перо 2 - Валута
+                    'quantity' => $vatAmount, // "брой пари" във валутата на продажбата
+                ),
+                
+                'credit' => array(
+                    '4530', 
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
