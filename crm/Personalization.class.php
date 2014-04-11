@@ -36,7 +36,7 @@ class crm_Personalization extends core_Detail
     /**
      * 
      */
-    var $currentTab = 'Персонализация';
+    var $currentTab = 'Профили';
     
     
     /**
