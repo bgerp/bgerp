@@ -4,7 +4,7 @@
 /**
  * JS файловете
  */
-defIfNot('COMPACTOR_JS_FILES', 'js/efCommon.js, jquery/1.7.1/jquery.min.js, toast/0.3.0f/javascript/jquery.toastmessage.js');
+defIfNot('COMPACTOR_JS_FILES', 'jquery/1.7.1/jquery.min.js, js/efCommon.js, toast/0.3.0f/javascript/jquery.toastmessage.js');
 
 
 /**

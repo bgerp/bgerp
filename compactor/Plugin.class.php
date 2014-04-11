@@ -130,9 +130,6 @@ class compactor_Plugin extends core_Plugin
         // Резултатния масив
         $resArr = $jsArr;
         
-        // Резултатния масив
-        $resArr = $jsArr;
-        
         // Ако няма подададени JS файлове
         if (!$jsArr) return ;
         
@@ -189,7 +186,7 @@ class compactor_Plugin extends core_Plugin
         if (!$newPath) return ;
         
         // Добавяме файла в масива
-        $resArr = static::addNewFileToArr($newPath, $jsArr);//bp($resArr);
+        $resArr = static::addNewFileToArr($newPath, $jsArr);
     }
     
 	
@@ -257,6 +254,13 @@ class compactor_Plugin extends core_Plugin
                 
                 // Вземаме съдържанието
                 $content .= static::getContentFromPath($ePath, $linkToAbsolute) . "\n";
+            }
+            
+            // Ако директорията не съществува
+            if(!is_dir($conf->COMPACTOR_TEMP_PATH)) {
+                
+                // Създаваме директорията
+                mkdir($conf->COMPACTOR_TEMP_PATH, 0777, TRUE);
             }
             
             // Добавяме във файла
