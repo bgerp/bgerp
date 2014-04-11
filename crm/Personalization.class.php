@@ -63,6 +63,7 @@ class crm_Personalization extends core_Detail
     public function description()
     {
         $this->FLD('profileId', 'key(mvc=crm_Profiles)', 'input=hidden,silent');
+        $this->FLD('inbox', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Имейл->Кутия,hint=Кутия по подразбиране');
         $this->FLD('signature', 'text', 'caption=Писмо->Подпис');
         $this->FLD('header', 'text', 'caption=Писмо->Привет');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Бланка->Български');
@@ -120,10 +121,7 @@ class crm_Personalization extends core_Detail
         $rec = $data->Personalization->rec;
         
         // Ако има една от стойностите
-        if ($rec->signature || $rec->header || $rec->logo || $rec->logoEn) {
-            
-            // Флаг, указващ, че има записи
-            $haveRec = TRUE;
+        if ($rec->signature || $rec->header || $rec->logo || $rec->logoEn || $rec->inbox) {
             
             // Шаблона
             $idCardTpl = new ET(tr("|*" . getFileContent('crm/tpl/Personalization.shtml')));
@@ -141,7 +139,7 @@ class crm_Personalization extends core_Detail
         if (!Mode::is('printing')) {
             
             // Ако има записи
-            if ($haveRec) {
+            if ($rec->id) {
                 
                 // URL за промяна
                 $url = array('crm_Personalization', 'edit', $rec->id, 'ret_url' => TRUE);
@@ -246,6 +244,26 @@ class crm_Personalization extends core_Detail
         
         // Връщаме подписа на потребителя
         return $rec->header;
+    }
+    
+
+    /**
+     * Връща кутията по подразбиране
+     * 
+     * @param integer $userId - id' то на съответния потребител
+     * 
+     * @return integer
+     */
+    static function getInboxId($userId = NULL)
+    {
+        // Вземаме записа
+        $rec = static::getRec($userId);
+        
+        // Ако няма запис, връщаме
+        if (!$rec) return ;
+        
+        // Връщаме подписа на потребителя
+        return $rec->inbox;
     }
     
     

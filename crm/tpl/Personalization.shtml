@@ -1,4 +1,11 @@
 <table>
+	<!--ET_BEGIN inbox-->
+	<tr>
+	    <td class='dt'>|Кутия|*</td>
+	    <td>[#inbox#]</td>
+	</tr>
+	<!--ET_END inbox-->
+	
 	<!--ET_BEGIN signature-->
 	<tr>
 	    <td class='dt'>|Подпис|*</td>

@@ -502,9 +502,13 @@ class email_Inboxes extends core_Master
      */
     function on_BeforePrepareKeyOptions($mvc, &$options, $type)
     {  
-        if($folderId = $type->params['folderId']) {
+        $folderId = $type->params['folderId'];
             
-            $options = $mvc->getFromEmailOptions($folderId);
+        $options = $mvc->getFromEmailOptions($folderId);
+        
+        // Ако може да има празен запис
+        if ($type->params['allowEmpty']) {
+            $options = array('' => '') + $options;
         }
     }
 
@@ -517,11 +521,13 @@ class email_Inboxes extends core_Master
     static function getFromEmailOptions($folderId)
     {
         $options = array();
-
-        // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
-        $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
-        if($rec && email_Accounts::canSendEmail($rec->accountId)) {
-            $options[$rec->id] = $rec->email;
+        
+        if ($folderId) {
+            // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+            $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
+            if($rec && email_Accounts::canSendEmail($rec->accountId)) {
+                $options[$rec->id] = $rec->email;
+            }
         }
 
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
