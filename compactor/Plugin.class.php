@@ -130,9 +130,6 @@ class compactor_Plugin extends core_Plugin
         // Резултатния масив
         $resArr = $jsArr;
         
-        // Резултатния масив
-        $resArr = $jsArr;
-        
         // Ако няма подададени JS файлове
         if (!$jsArr) return ;
         
