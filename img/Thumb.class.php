@@ -140,7 +140,7 @@ class img_Thumb
             }
         }
         
-        setIfNot($this->quality, 90);
+        setIfNot($this->quality, 95);
         setIfNot($this->timeout, 3);
         setIfNot($this->sourceType, $sourceType);
 
