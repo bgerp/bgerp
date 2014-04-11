@@ -91,6 +91,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_JournalDetails',
         	'acc_Operations',
     		'acc_OpenDeals',
+    		'acc_Features',
         );
     
 
