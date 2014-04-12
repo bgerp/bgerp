@@ -108,7 +108,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     protected static function getRetUrl(core_Mvc $mvc)
     {
         if (!$retUrl = getRetUrl()) {
-            $retUrl = toUrl(array($mvc, 'list'));
+            $retUrl = toUrl(array($mvc, 'list'), 'local');
         }
         
         return $retUrl;
