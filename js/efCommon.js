@@ -260,6 +260,7 @@ function comboSelectOnChange(id, value, suffix)
 	}
 
 	get$(id).focus();
+	get$(id).onchange();
 	var selCombo = get$(id + suffix);
 	selCombo.value = '?';
 }
@@ -276,6 +277,24 @@ function setInnerHtml(element, html)
 		element.innerHTML = html;
 	}
 }
+
+
+/**
+ * Проверява дали зададената опция е съществува в посочения с id селект
+ */
+function isOptionExists(selectId, option)
+{   console.log(selectId + ' - ' + option);
+	for (i = 0; i < document.getElementById(selectId).length; ++i){
+		if (document.getElementById(selectId).options[i].value == option){
+
+		  return true;
+		}
+	}
+
+	return false;
+}
+
+
 
 function focusSelect(event, id)
 {
@@ -327,7 +346,7 @@ function ajaxAutoRefreshOptions(id, selectId, input, params)
 
 			
 			if(xmlHttpReq.responseText.length > 0) {
- 				jsonGetContent(xmlHttpReq.responseText, function(c) {setInnerHtml( get$(selectId),  c); input.savedValue = input.value; } );
+ 				jsonGetContent(xmlHttpReq.responseText, function(c) {setInnerHtml( get$(selectId),  c); input.savedValue = input.value; input.onchange(); } );
 			}
 		}
 	}
@@ -1311,11 +1330,21 @@ function addCmdRefresh(form)
 	
 	input.setAttribute("type", "hidden");
 
-	input.setAttribute("name", "Cmd");
+	input.setAttribute("name", "Cmd[refresh]");
 
-	input.setAttribute("value", "refresh");
+	input.setAttribute("value", "1");
 
 	form.appendChild(input);
+}
+
+
+/**
+ * Рефрешва посочената форма
+ */
+function refreshForm(form)
+{
+	addCmdRefresh(form);
+	form.submit();
 }
 
 

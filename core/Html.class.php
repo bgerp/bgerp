@@ -95,7 +95,7 @@ class core_Html
         $attr['name'] = $name;
 
         ht::setUniqId($attr);
-
+ 
         $attr['class'] .= ' combo';
         $attr['value'] = $value;
         $id = $attr['id'];
@@ -103,6 +103,9 @@ class core_Html
         if ($attr['ajaxAutoRefreshOptions']) {
             $attr['onkeydown'] = "focusSelect(event, '{$id}{$suffix}');";
             $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  document.getElementById('" . $id . "').onchange();\", 1500); ";
+            if($attr['onchange']) {
+                $attr['onchange'] = "if(isOptionExists('" . $id . $suffix . "', this.value)) {" . $attr['onchange'] . "} ";
+            }
             $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$id}{$suffix}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
             unset($attr['ajaxAutoRefreshOptions']);
         }
