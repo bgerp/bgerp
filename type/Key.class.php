@@ -277,8 +277,16 @@ class type_Key extends type_Int {
 
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\", ajax_mode:1}";
-                 
-                $tpl = ht::createCombo($name, self::getOptionTitle($options[$value]), $attr, $selOpt); 
+                
+                // Ако е id определяме стойността която ще се показва, като вербализираме
+                // Иначе - запазваме предходния вариянт. Работил ли е някога?
+                if(is_numeric($value)) {
+                    $setVal = $this->toVerbal($value); 
+                } else {
+                    $setVal = self::getOptionTitle($options[$value]);
+                }
+
+                $tpl = ht::createCombo($name, $setVal, $attr, $selOpt); 
             } else {
                 
                 if(count($options) == 0 && $mvc->haveRightFor('list')) {
