@@ -203,7 +203,7 @@ class vislog_History extends core_Manager {
     /**
      * Декорира ip адреса с html връзки
      */
-    static function decorateIp($ip, $time)
+    static function decorateIp($ip, $time = NULL)
     {   
         // Ако показваме чист текст или подготвяме HTML за навън - лишаваме се от декорациите
         if(Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) {
@@ -212,17 +212,23 @@ class vislog_History extends core_Manager {
         }
 
         $cnt = self::count(array("#ip = '[#1#]'", $ip));
-        $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
-        
-        $color = sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0); 
-        
+
+        if($time) {
+            $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
+            $style = 'color:#' . sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0) . ';';
+            $titleCnt = "{$old}/{$cnt}";
+        } else {
+            $style = '';
+            $titleCnt = "{$cnt}";
+        }
+                
         if(self::haveRightFor('list')) {
-            $count = ht::createLink("{$old}/{$cnt}", 
+            $count = ht::createLink($titleCnt, 
                         array('vislog_History', 'ip' => $ip),
                         NULL,
-                        array('class' => 'weblog-cnt', 'style' => "color:#{$color};"));
+                        array('class' => 'weblog-cnt', 'style' => $style));
         } else {
-            $count = '';
+            $count = $titleCnt;
         }
         
 
