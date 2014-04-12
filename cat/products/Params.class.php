@@ -78,6 +78,12 @@ class cat_products_Params extends cat_products_Detail
     
     
     /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -89,32 +95,26 @@ class cat_products_Params extends cat_products_Detail
         $this->setDbUnique('productId,paramId');
     }
     
-     
-    /**
+    
+	/**
      * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterPrepareListRows($mvc, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $recs = &$data->recs;
-        if ($recs) {
-            $rows = &$data->rows;
-            foreach ($recs as $i=>$rec) {
-                
-                $row = $rows[$i];
-                $paramRec = cat_Params::fetch($rec->paramId);
-                if($paramRec->type != 'enum'){
-                	$Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
-            		$row->paramValue = $Type->toVerbal($rec->paramValue);
-                }
-            	if($paramRec->type != 'percent'){
-            		$row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
-            	}
-            }
+    	$paramRec = cat_Params::fetch($rec->paramId);
+        if($paramRec->type != 'enum'){
+              $Type = cls::get(cat_Params::$typeMap[$paramRec->type]);
+              $row->paramValue = $Type->toVerbal($rec->paramValue);
         }
+        
+        if($paramRec->type != 'percent'){
+              $row->paramValue .=  ' ' . cat_Params::getVerbal($paramRec, 'suffix');
+        }
+       
     }
     
     
@@ -246,5 +246,50 @@ class cat_products_Params extends cat_products_Detail
         }
 
         return  $this->renderDetail($data);
+    }
+    
+    
+	/**
+     * Добавяне на свойтвата към обекта
+     */
+    public function getFeatures($class, $objectId, $features)
+    {
+    	$classId = cls::get($class)->getClassId();
+    	$query = $this->getQuery();
+    	
+    	$query->where("#productId = '{$objectId}'");
+    	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
+    	$query->where("#isFeature = 'yes'");
+    	
+    	while($rec = $query->fetch()){
+    		$row = $this->recToVerbal($rec, 'paramId,paramValue');
+    		$features[$row->paramId] = $row->paramValue;
+    	}
+    	
+    	return $features;
+    }
+    
+    
+	/**
+     * След запис се обновяват свойствата на перата
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
+    		acc_Features::syncFeatures($mvc->Master->getClassId(), $rec->productId);
+    	}
+    }
+    
+    
+	/**
+     * Преди изтриване се обновяват свойствата на перата
+     */
+    public static function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+        	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
+        		acc_Features::syncFeatures($mvc->Master->getClassId(), $rec->productId);
+        	}
+        }
     }
 }

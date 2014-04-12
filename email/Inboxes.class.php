@@ -502,9 +502,13 @@ class email_Inboxes extends core_Master
      */
     function on_BeforePrepareKeyOptions($mvc, &$options, $type)
     {  
-        if($folderId = $type->params['folderId']) {
+        $folderId = $type->params['folderId'];
             
-            $options = $mvc->getFromEmailOptions($folderId);
+        $options = $mvc->getFromEmailOptions($folderId);
+        
+        // Ако може да има празен запис
+        if ($type->params['allowEmpty']) {
+            $options = array('' => '') + $options;
         }
     }
 
@@ -517,11 +521,13 @@ class email_Inboxes extends core_Master
     static function getFromEmailOptions($folderId)
     {
         $options = array();
-
-        // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
-        $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
-        if($rec && email_Accounts::canSendEmail($rec->accountId)) {
-            $options[$rec->id] = $rec->email;
+        
+        if ($folderId) {
+            // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
+            $rec = self::fetch("#folderId = {$folderId} && #state = 'active'");
+            if($rec && email_Accounts::canSendEmail($rec->accountId)) {
+                $options[$rec->id] = $rec->email;
+            }
         }
 
         // Намираме сметка за входящи писма от корпоративен тип, с домейла на имейла
@@ -541,27 +547,45 @@ class email_Inboxes extends core_Master
             if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
                 $options[$rec->id] = $rec->email;
             }
+            
+            //2a. Общия корпоративен
+            //2b. Корпоративния на потребителя
         }
 
-        // 4. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
+        // 3. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
+        // 3а. Имейлите, на които сме inCharge
+        // 3b. Имейлите, които ни са споделени
         $cu = core_Users::getCurrent();
         $query = self::getQuery();
         $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
         $query->where("#state = 'active'");
- 
+        
+        $inChargeEmailArr = array();
+        $sharedEmailArr = array();
+        
         while($rec = $query->fetch()) {
             if(email_Accounts::canSendEmail($rec->accountId)) {
-                if(!$options[$rec->id]) {
-                    $options[$rec->id] = $rec->email;
+                
+                // Ако потребителя е отговорник
+                if ($rec->inCharge == $cu) {
+                    $inChargeEmailArr[$rec->id] = $rec->email;
+                } else {
+                    
+                    // Ако е споделен
+                    
+                    $sharedEmailArr[$rec->id] = $rec->email;
                 }
             }
         }
- 
-        // 5. TODO
+        
+        // Добавяме в резултатния масив
+        $options = $options + $inChargeEmailArr + $sharedEmailArr;
+        
+        // Вече трябва да има открита поне една кутия
 
-         expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
+        expect(count($options), 'Липсват възможности за изпращане на писма. Настройте поне една сметка в Документи->Имейли->Сметки');
 
-         return $options;
+        return $options;
     }
 
 

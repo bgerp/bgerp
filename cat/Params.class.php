@@ -104,8 +104,9 @@ class cat_Params extends core_Manager
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
-        $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване');
+        $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Използвай като признак за групиране->Избор,notNull,default=no,maxRadio=2,value=no,hint=Да служили параметъра като признак за групиране');
         
         $this->setDbUnique('name, suffix');
         $this->setDbUnique("sysId");

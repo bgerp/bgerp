@@ -226,6 +226,8 @@ class acc_Items extends core_Manager
         	$rec->objectId = $rec->id;
         	$mvc->save($rec);
         }
+        
+        acc_Features::syncItem($id);
     }
     
     

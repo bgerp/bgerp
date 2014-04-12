@@ -387,14 +387,12 @@ class cal_Holidays extends core_Master
     		5 => "title",
     		6 => "type", 
     		7 => "csv_info", 
-    		8 => "nameday", 
-    		
+    		8 => "nameday",
     	);
-    	
     	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;

@@ -408,15 +408,18 @@ class cat_Products extends core_Master {
     static function getItemRec($objectId)
     {
         $result = NULL;
+        $self = cls::get(__CLASS__);
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->code,
                 'title' => $rec->name,
                 'uomId' => $rec->measureId,
-                'features' => 'foobar' // @todo!
+                'features' => array()
             );
         }
+        
+        $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
         
         return $result;
     }

@@ -60,6 +60,12 @@ class cond_ConditionsToCustomers extends core_Manager
     
     
     /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    var $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -140,16 +146,6 @@ class cond_ConditionsToCustomers extends core_Manager
         	// Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->id] = $rec;
             $row = static::recToVerbal($rec);
-            
-            $type = cond_Parameters::fetchField($rec->conditionId, 'type');
-            if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
-            	$Type = cls::get("type_{$type}");
-            	$row->value = $Type->toVerbal($rec->value);
-            } elseif($type == 'delCond'){
-            	$row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
-            } elseif($type == 'payMethod'){
-            	$row->value = cond_paymentMethods::getTitleById($rec->value);
-            }
             $data->rows[$rec->id] = $row; 
         }
         
@@ -163,6 +159,27 @@ class cond_ConditionsToCustomers extends core_Manager
 	}
     
 
+	/**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$type = cond_Parameters::fetchField($rec->conditionId, 'type');
+        if($type != 'enum' && $type != 'delCond' && $type != 'payMethod'){
+            $Type = cls::get("type_{$type}");
+            $row->value = $Type->toVerbal($rec->value);
+        } elseif($type == 'delCond'){
+            $row->value = cond_DeliveryTerms::recToVerbal($rec->value, 'codeName')->codeName;
+        } elseif($type == 'payMethod'){
+            $row->value = cond_paymentMethods::getTitleById($rec->value);
+        }
+    }
+    
+    
     /**
      * Рендира екстеншъна с условия на офертата
      */
@@ -234,5 +251,50 @@ class cond_ConditionsToCustomers extends core_Manager
        			$res = 'no_one';
        		}
        }
+    }
+    
+    
+    /**
+     * Добавяне на свойтвата към обекта
+     */
+    public function getFeatures($class, $objectId, $features)
+    {
+    	$classId = cls::get($class)->getClassId();
+    	$query = $this->getQuery();
+    	
+    	$query->where("#cClass = '{$classId}' AND #cId = '{$objectId}'");
+    	$query->EXT('isFeature', 'cond_Parameters', 'externalName=isFeature,externalKey=conditionId');
+    	$query->where("#isFeature = 'yes'");
+    	
+    	while($rec = $query->fetch()){
+    		$row = $this->recToVerbal($rec, 'conditionId,value');
+    		$features[$row->conditionId] = $row->value;
+    	}
+    	
+    	return $features;
+    }
+    
+    
+	/**
+     * След запис се обновяват свойствата на перата
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
+    		acc_Features::syncFeatures($rec->cClass, $rec->cId);
+    	}
+    }
+    
+    
+	/**
+     * Преди изтриване се обновяват свойствата на перата
+     */
+    public static function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+        	if(cond_Parameters::fetchField("#id='{$rec->conditionId}'", 'isFeature') == 'yes'){
+        		acc_Features::syncFeatures($rec->cClass, $rec->cId);
+        	}
+        }
     }
 }

@@ -657,6 +657,10 @@ class email_Outgoings extends core_Master
         // По подразбиране кои да са избрани
         $data->form->setDefault('emailsTo', $data->rec->email);
         $data->form->setDefault('emailsCc', $data->rec->emailCc);
+        
+        // Стойността на полето От, дефинирано в персонализацията на профилите
+        $defaultBoxFromId = crm_Personalization::getInboxId();
+        $data->form->setDefault('boxFrom', $defaultBoxFromId);
     }
     
     
@@ -857,7 +861,14 @@ class email_Outgoings extends core_Master
             
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($rec->folderId);
             
-            $boxFromId = key($fromEmailOptions);
+            
+            $defaultBoxFromId = crm_Personalization::getInboxId();
+            
+            if ($defaultBoxFromId && $fromEmailOptions[$defaultBoxFromId]) {
+                $boxFromId = $defaultBoxFromId;
+            } else {
+                $boxFromId = key($fromEmailOptions);
+            }
             
             $options['boxFrom'] = $boxFromId;
             $options['encoding'] = 'utf-8';

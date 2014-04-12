@@ -166,7 +166,7 @@ class price_Groups extends core_Master
     	    	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL, TRUE); 
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
