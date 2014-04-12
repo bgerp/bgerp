@@ -161,7 +161,7 @@ class plg_PrevAndNext extends core_Plugin
             
             $mvc->requireRightFor('edit', $data->form->rec);
 
-        } elseif( !($Cmd['save_n_next'] || $Cmd['save_n_prev'] || Request::get('PrevAndNext'))) {
+        } elseif( !($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
 
             // Изтриваме в сесията, ако има избрано множество записи 
             Mode::setPermanent($selKey, NULL);
