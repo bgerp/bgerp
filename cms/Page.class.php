@@ -32,7 +32,7 @@ class cms_Page extends page_Html {
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
         $this->prepend(tr($conf->EF_APP_TITLE), 'PAGE_TITLE');
-    	echo "<li> "  . tr($conf->EF_APP_TITLE);
+
         // Ако е логнат потребител
         if (haveRole('user')) {
             
