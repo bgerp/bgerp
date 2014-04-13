@@ -328,8 +328,10 @@ class type_Key extends type_Int {
         
         $q = Request::get('q');
         
-        $q = strtolower(str::utf2ascii(trim($q)));
+        $q = plg_Search::normalizeText($q);
         
+        $q = '/ ' . str_replace(' ', '.* ', $q) . '/';
+
         core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
         
         if (!$hnd) {
@@ -356,8 +358,8 @@ class type_Key extends type_Int {
             foreach ($options as $id => $title) {
                 
                 $attr = array();
-                
-                if($q && (strpos(" " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group))) continue;
+         
+                if((!is_object($title) && !isset($title->group)) && $q && (!preg_match($q, ' ' . $id)) ) continue;
                 
                 $element = 'option';
                 
