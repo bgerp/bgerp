@@ -225,9 +225,12 @@ class plg_Rejected extends core_Plugin
      * @param stdClass $data
      */
     function on_AfterPrepareListFilter($mvc, $data)
-    {
+    { 
+        
         // Добавяме скрито полето за оттегляне
-        $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
+        if(!isset($data->listFilter->fields['Rejected'])) {
+            $data->listFilter->FNC('Rejected', 'varchar', 'input=hidden,silent');
+        }
         
         // Ако е зададено
         if ($rejectedId = Request::get('Rejected', 'int')) {
