@@ -284,7 +284,7 @@ class cat_products_Params extends cat_products_Detail
 	/**
      * Преди изтриване се обновяват свойствата на перата
      */
-    public static function on_AfterDelete($mvc, &$res, $query)
+    public static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->getDeletedRecs() as $rec) {
         	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
