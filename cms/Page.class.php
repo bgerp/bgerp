@@ -31,8 +31,8 @@ class cms_Page extends page_Html {
     	
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
-        $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
-    	
+        $this->prepend(tr($conf->EF_APP_TITLE), 'PAGE_TITLE');
+    	echo "<li> "  . tr($conf->EF_APP_TITLE);
         // Ако е логнат потребител
         if (haveRole('user')) {
             
@@ -141,7 +141,7 @@ class cms_Page extends page_Html {
 
         $conf = core_Packs::getConfig('core');
         
-        $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => $conf->EF_APP_TITLE, 'id' => 'headerImg'));
+        $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => tr($conf->EF_APP_TITLE), 'id' => 'headerImg'));
         
         return $img;
     }
