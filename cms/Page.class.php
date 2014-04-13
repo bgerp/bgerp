@@ -71,7 +71,12 @@ class cms_Page extends page_Html {
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
         
-        $this->replace(new ET(getFileContent('cms/tpl/Page.shtml')), 'PAGE_CONTENT');
+        $pageTpl = getFileContent('cms/tpl/Page.shtml');
+        if(isDebug() && Request::get('Debug') && haveRole('debug')) {
+            $pageTpl .= '[#Debug::getLog#]';
+        }
+
+        $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
         
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
