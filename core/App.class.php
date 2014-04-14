@@ -452,9 +452,11 @@ class core_App
             
             // Премахваме ненужните
             unset($params['virtual_url'], $params['ajax_mode']);
-            
-            return $params;
+        } else {
+            $params = array();
         }
+        
+        return $params;
     }
 
 
