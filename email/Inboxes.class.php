@@ -501,14 +501,16 @@ class email_Inboxes extends core_Master
      *
      */
     function on_BeforePrepareKeyOptions($mvc, &$options, $type)
-    {  
+    {
         $folderId = $type->params['folderId'];
-            
-        $options = $mvc->getFromEmailOptions($folderId);
         
-        // Ако може да има празен запис
-        if ($type->params['allowEmpty']) {
-            $options = array('' => '') + $options;
+        if ($folderId) {
+            $options = $mvc->getFromEmailOptions($folderId);
+            
+            // Ако може да има празен запис
+            if ($type->params['allowEmpty']) {
+                $options = array('' => '') + $options;
+            }
         }
     }
 
@@ -518,9 +520,13 @@ class email_Inboxes extends core_Master
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания
      */
-    static function getFromEmailOptions($folderId)
+    static function getFromEmailOptions($folderId, $userId=NULL)
     {
         $options = array();
+        
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
         
         if ($folderId) {
             // 1. Ако папката в която се намира документа е кутия към сметка, която може да изпраща писма - имейла на кутията
@@ -542,7 +548,7 @@ class email_Inboxes extends core_Master
                 $options[$rec->id] = $rec->email;
             }
 
-            $userEmail = email_Inboxes::getUserEmail();
+            $userEmail = email_Inboxes::getUserEmail($userId);
 
             if($userEmail && ($rec = self::fetch("#email = '{$userEmail}' && #state = 'active'"))) {
                 $options[$rec->id] = $rec->email;
@@ -555,9 +561,8 @@ class email_Inboxes extends core_Master
         // 3. Всички шернати инбокс-имейли, които са към сметки, които могат да изпращат писма
         // 3а. Имейлите, на които сме inCharge
         // 3b. Имейлите, които ни са споделени
-        $cu = core_Users::getCurrent();
         $query = self::getQuery();
-        $query->where("#inCharge = {$cu} OR #shared LIKE '%|{$cu}|%'");
+        $query->where("#inCharge = {$userId} OR #shared LIKE '%|{$userId}|%'");
         $query->where("#state = 'active'");
         
         $inChargeEmailArr = array();
@@ -567,7 +572,7 @@ class email_Inboxes extends core_Master
             if(email_Accounts::canSendEmail($rec->accountId)) {
                 
                 // Ако потребителя е отговорник
-                if ($rec->inCharge == $cu) {
+                if ($rec->inCharge == $userId) {
                     $inChargeEmailArr[$rec->id] = $rec->email;
                 } else {
                     
