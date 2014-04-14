@@ -624,6 +624,8 @@ class blogm_Articles extends core_Master {
 
             $row->author = $this->getVerbal($rec, 'author');
             $row->createdOn = $this->getVerbal($rec, 'createdOn');
+            
+            $row->categories = $this->getVerbal($rec, 'categories');
 
 		    $row->title = $this->getVerbal($rec, 'title');
             $url = self::getUrl($rec);
