@@ -234,11 +234,11 @@ class compactor_Plugin extends core_Plugin
      * 
      * @param string $newFileName
      * @param array $sArr
-     * @param boolean $linkToAbsolute
+     * @param boolean $changePath
      * 
      * @return string
      */
-    static function compactFilesFromArr($newFileName, $sArr, $linkToAbsolute=TRUE)
+    static function compactFilesFromArr($newFileName, $sArr, $changePath=TRUE)
 	{
         $conf = core_Packs::getConfig('compactor');
         
@@ -253,7 +253,7 @@ class compactor_Plugin extends core_Plugin
             foreach ((array)$sArr as $ePath) {
                 
                 // Вземаме съдържанието
-                $content .= static::getContentFromPath($ePath, $linkToAbsolute) . "\n";
+                $content .= static::getContentFromPath($ePath, $changePath) . "\n";
             }
             
             // Ако директорията не съществува
@@ -305,23 +305,23 @@ class compactor_Plugin extends core_Plugin
 	 * Взема съдържанието на зададения файл
 	 * 
 	 * @param string $path
-	 * @param boolean $toAbsolutePath
+	 * @param boolean $changePath
 	 * 
 	 * @return string
 	 */
-	static function getContentFromPath($path, $toAbsolutePath=FALSE)
+	static function getContentFromPath($path, $changePath=FALSE)
 	{
 	    // Съдържанието на файла
 	    $content = @file_get_contents(sbf($path, '', TRUE));
 	    
 	    // Ако е зададено да се преобразуват локоалните линкове от съдържанието в абсолютни
-	    if ($toAbsolutePath) {
+	    if ($changePath) {
 	        
 	        // Инстанция на този клас
 	        $me = cls::get(get_called_class());
 	        
 	        // Преобразуваме линковете
-	        $content = $me->localeToAbsolutePath($content, $path);
+	        $content = $me->changePaths($content, $path);
 	    }
 	    
 	    return $content;
@@ -336,7 +336,7 @@ class compactor_Plugin extends core_Plugin
 	 * 
 	 * @return string
 	 */
-	protected function localeToAbsolutePath($text, $path)
+	protected function changePaths($text, $path)
 	{
         // Задаваме пътя до файла
         $this->filePath = $path;
@@ -347,7 +347,7 @@ class compactor_Plugin extends core_Plugin
         $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
         
         // Заместваме локалните линкове към файловете с абсолютни
-	    $text = preg_replace_callback($pattern, array($this, 'replaceLocaleWithAbsolutePath'), $text);
+	    $text = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
 	    return $text;
 	}
@@ -360,7 +360,7 @@ class compactor_Plugin extends core_Plugin
 	 * 
 	 * @return string
 	 */
-    protected function replaceLocaleWithAbsolutePath($matches)
+    protected function changeImgPaths($matches)
     {
         // Ако не е задаен пътя до файла
         if (!($path = $this->filePath)) return $matches[0];
@@ -390,7 +390,7 @@ class compactor_Plugin extends core_Plugin
         $file = $dir . DIRECTORY_SEPARATOR . $file;
         
         // Вземаме целия път
-        $filePath = sbf($file, '', TRUE);
+        $filePath = sbf($file, '', FALSE);
         
         return $filePath;
     }
