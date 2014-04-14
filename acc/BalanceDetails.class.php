@@ -89,6 +89,12 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -195,56 +201,67 @@ class acc_BalanceDetails extends core_Detail
      * @param array $by масив от признаци - $by[N]: признак за групиране по N-тата аналитичност
      * N = 1,2,3
      */
-    private function doGrouping($data, $by)
+    private function doGrouping(&$data, $by)
     {
-        $groupedRecs = array();
-        $groupedIdx = array();
-        $listRec = array();
+        // Ако няма записи не правим нищо
+    	if(!count($data->recs)) return;
         
-        $show = $groupBy = array();
-        foreach (range(1, 3) as $i){
-        	if(!$by["grouping{$i}"]) continue;
-        	if(!is_numeric($by["grouping{$i}"])){
-        		$groupBy[$i] = $by["grouping{$i}"];
-        	} else {
+    	$show = $groupedBy = array();
+
+    	foreach (range(1, 3) as $i){
+        	if($by["grouping{$i}"]){
         		$show[$i] = $by["grouping{$i}"];
+        	}
+        	if($by["feat{$i}"]){
+        		$groupedBy[$i] = $by["feat{$i}"];
+        		$data->listFields["ent{$i}Id"] = $groupedBy[$i];
         	}
         }
        
-        if(!count($groupBy)){
-        	foreach ($data->rows as $id => $row){
+        // Ако няма филтриране или групиране не правим нищо
+        if(!count($show) && !count($groupedBy)) return;
+        
+        // Ако има избрано филтриране, махаме тези записи които нямат съответното перо
+        if(count($show)){
+        	foreach ($data->recs as $id => $rec){
         		foreach (range(1, 3) as $i){
-        			$rec = $data->recs[$id];
         			if(isset($show[$i]) && $rec->{"ent{$i}Id"} != $show[$i]){
-        				unset($data->rows[$id]);
+        				unset($data->recs[$id]);
         				break;
         			}
         		}
         	}
         }
         
-        //@TODO ТЕСТОВО
-        return;
-        
-        // Извличаме записите за номенклатурите, по които имаме групиране
-        foreach (array_keys($by) as $i) {
-        	if($listId = $this->Master->accountRec->{"groupId{$i}"}){
-        		$listRec[$i] = $this->Lists->fetch($listId);
-        	}
-        }
-        
-        bp($listRec);
+        // Извличаме всички записани свойства за показваните пера
+        $queryFeat = acc_Features::getQuery();
+    	$queryFeat->in('itemId', static::$cache);
+    	$featuresArr = $queryFeat->fetchAll();
+    	
+    	// Групираме записите спрямо стойностите на избраните свойства
+        $groupedRecs = $groupedIdx = array();
         foreach ($data->recs as $rec) {
-            $f = array(1=>null, 2=>null, 3=>null);
-            
-            foreach ($by as $i=>$featureId) {
-                $f[$i] = $this->Lists->getGroupOf(
-                    $listRec[$i],
-                    $rec->{"ent{$i}Id"},
-                    $featureId
-                );
+            $f = array(1 => NULL, 2 => NULL, 3 => NULL);
+           
+            // За всяко групиране
+            foreach ($groupedBy as $i => $feature) {
+            	$itemId = $rec->{"ent{$i}Id"};
+            	
+            	// Намираме стойността съответстваща на избраното свойство
+            	$result = array_filter($featuresArr, function($val) use ($itemId, $feature) {
+    													if($val->feature == $feature && $val->itemId == $itemId){
+									    					return $val;
+									    				}});
+	            // Изпозлваме за индекс на групиране
+				$f[$i] = $result[key($result)]->value;
+	            if(empty($f[$i])){
+	            	
+	            	// Ако няма стойност влиза в други
+	            	$f[$i] = 'others';
+	            }
             }
             
+            // Записваме в масив с индекс стойностите на груприането за всяко перо
             $r = &$groupedIdx[$f[1]][$f[2]][$f[3]];
             
             if (!isset($r)) {
@@ -254,21 +271,28 @@ class acc_BalanceDetails extends core_Detail
                 $groupedRecs[] = &$r;
             }
             
-            $r->baseQuantity += $rec->baseQuantity;
-            $r->baseAmount += $rec->baseAmount;
-            $r->debitQuantity += $rec->debitQuantity;
-            $r->debitAmount += $rec->debitAmount;
+            foreach (range(1, 3) as $i){
+            	if(!isset($r->{"grouping{$i}"})){
+            		$r->{"ent{$i}Id"} = $rec->{"ent{$i}Id"};
+            	}
+            }
+            
+            $r->balanceId = $rec->balanceId;
+            $r->baseQuantity   += $rec->baseQuantity;
+            $r->baseAmount     += $rec->baseAmount;
+            $r->debitQuantity  += $rec->debitQuantity;
+            $r->debitAmount    += $rec->debitAmount;
             $r->creditQuantity += $rec->creditQuantity;
-            $r->creditAmount += $rec->creditAmount;
-            $r->blQuantity += $rec->blQuantity;
-            $r->blAmount += $rec->blAmount;
+            $r->creditAmount   += $rec->creditAmount;
+            $r->blQuantity     += $rec->blQuantity;
+            $r->blAmount       += $rec->blAmount;
         }
         
+        unset($data->listFields['history']);
         $data->recs = $groupedRecs;
         
         // Конвертираме групираните записи към вербални стойности
         $data->rows = array();
-        
         foreach ($data->recs as $rec) {
             $data->rows[] = $this->recToVerbal($rec, $data->listFields);
         }
@@ -339,28 +363,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i=>$listRec) {
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             
-            if ($groupingForm && $groupingForm->rec->{"grouping{$i}"} && !is_numeric($groupingForm->rec->{"grouping{$i}"})) {
-                //
-                // Групиране по признак на текущата номенклатура
-                //
-                if ($groupingForm->rec->{"filter{$i}"}) {
-                    //
-                    // Има зададен филтър - не правим групиране, а само филтриране на
-                    // обектите за които зададения признак има зададената във филтъра стойност
-                    //
-                    $data->listFields["ent{$i}Id"] = $listRec->name;
-                    $itemIds = $this->Lists->getItemsByGroup(
-                        $listRec,
-                        $groupingForm->rec->{"grouping{$i}"},
-                        $groupingForm->rec->{"filter{$i}"}
-                    );
-                    array_unshift($itemIds, -1);
-                    $data->query->where("#ent{$i}Id IN (" . implode(',', $itemIds) . ")");
-                } else {
-                    $this->FNC("grouping{$i}", 'varchar', 'caption=' . $listRec->name);
-                    $data->listFields["grouping{$i}"] = $listRec->name;
-                }
-            } else {
+            
                 $data->listFields["ent{$i}Id"] = $listRec->name;
                 
                 if (!$flag) {
@@ -369,7 +372,6 @@ class acc_BalanceDetails extends core_Detail
                     $data->query->EXT("ent{$i}Num", 'acc_Items', "externalName=num,externalKey=ent{$i}Id");
                     $data->query->orderBy("#ent{$i}Num", 'ASC');
                 }
-            }
         }
         
         if ($bShowQuantities) {
@@ -418,6 +420,10 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed()) {
             if ($data->groupingForm) {
+            	jquery_Jquery::enable($tpl);
+		    	$tpl->push(('acc/js/balance.js'), 'JS');
+		    	jquery_Jquery::run($tpl, "chosenrefresh();");
+    	
                 $tpl->append($data->groupingForm->renderHtml(), 'ListToolbar');
             }
         }
@@ -445,43 +451,63 @@ class acc_BalanceDetails extends core_Detail
             }
         }
         
-    	if (empty($listRecs)) {
-            
-    		// Нито един регистър не предлага признаци за групиране
-            return;
-        }
-        
-        // @TODO Dummy
-        /*$dummy = array();
-        $dummy[] = (object)array('title' => tr('Свойства'), 'group' => TRUE);
-    	$dummy['Свойство 1'] = 'Свойство 1';
-        $dummy['Свойство 2'] = 'Свойство 2';
-        $dummy['Свойство 3'] = 'Свойство 3';*/
+    	if(empty($listRecs)) return;
         
     	$form = cls::get('core_Form');
         
         $form->method = 'GET';
         $form->view = 'horizontal';
+        $form->fieldsLayout = getTplFromFile("acc/tpl/BalanceFilterFormFields.shtml");
         $form->FNC("accId", 'int', 'silent,input=hidden');
         $form->input("accId", true);
         $showFields = '';
         foreach ($listRecs as $i => $listRec) {
-        	$options = acc_Items::makeArray4Select('title', "#lists LIKE '%|$listRec->id|%' AND #state = 'active'");
-        	$options = array('' => $listRec->name) + $options;// + $dummy;
-        	$form->FNC("grouping{$i}", 'varchar',"silent,caption={$listRec->name},width=300px,input");
-        	$form->setOptions("grouping{$i}", $options);
-        	$showFields .= "grouping{$i},";
+        	$this->setGroupingForField($i, $listRec, $form);
         }
-        
-        $form->showFields = trim($showFields, ',');
+        $form->showFields = trim($form->showFields, ',');
         
         $form->input(null, true);
         
-        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        if($form->isSubmitted()){
+        	foreach (range(1,3) as $i){
+        		if($form->rec->{"grouping{$i}"} && $form->rec->{"feat{$i}"}){
+        			$form->setError("grouping{$i},feat{$i}", "Неможе да са избрани едновременно перо и свойтво за една позиция");
+        		}
+        	}
+        }
+        
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,style=margin-top:6px;');
         
         return $form;
     }
     
+    
+    /**
+     * 
+     * Enter description here ...
+     * @param unknown_type $i
+     * @param unknown_type $listRec
+     * @param unknown_type $form
+     */
+    private function setGroupingForField($i, $listRec, &$form)
+    {
+    	$form->formAttr['id'] = 'groupForm';
+    	$options = acc_Items::makeArray4Select('title', "#lists LIKE '%|{$listRec->id}|%' AND #state = 'active'");
+        static::$cache = array_merge(static::$cache, array_keys($options));
+    	
+    	$features = acc_Features::getFeatureOptions(array_keys($options));
+        $features = array('' => '') + $features;
+    	$options = array('' => '') + $options;
+    	
+    	$form->FNC("grouping{$i}", 'key(mvc=acc_Items)', "silent,caption={$listRec->name},width=300px,input,class=balance-grouping");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['feat{$i}'].value ='';")));
+        $form->FNC("feat{$i}", 'varchar', "silent,caption={$listRec->name}->Свойства,width=300px,input,class=balance-feat");//, array('attr' => array('onchange' => "document.forms['groupForm'].elements['grouping{$i}'].value ='';")));
+        $form->setOptions("grouping{$i}", $options);
+        $form->setOptions("feat{$i}", $features);
+        $form->showFields .= "grouping{$i},";
+        if(count($features) > 1){
+        	 $form->showFields .= "feat{$i}," ;
+        }
+    }
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -517,35 +543,21 @@ class acc_BalanceDetails extends core_Detail
             return;
         }
         
-        return;
         $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
         
         foreach (range(1, 3) as $i) {
-            if (property_exists($row, "grouping{$i}")) {
-                if (!empty($row->{"grouping{$i}"})) {
-                    if ($this->Master->accountRec->{"groupId{$i}"}) {
-                        $listRec = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                        $featureId = $groupingRec->{"grouping{$i}"};
-                        $featureObj = $register->features[$featureId];
-                        $row->{"grouping{$i}"} =
-                        ht::createLink(
-                            $featureObj->titleOf($row->{"grouping{$i}"}),
-                            array_merge(
-                                getCurrentUrl(),
-                                array("filter{$i}" => $rec->{"grouping{$i}"})
-                            )
-                        );
-                    }
-                } else {
-                    $row->{"grouping{$i}"} = '<i>Други</i>';
-                }
-            }
+        	if(isset($rec->{"grouping{$i}"})){
+        		$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
+        		if($row->{"ent{$i}Id"} == 'others'){
+        			$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
+        		}
+        	}
         }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Дали разглеждаме детайлизираната справка
      */
     private function isDetailed()
     {

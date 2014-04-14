@@ -1,0 +1,12 @@
+<table cellpadding='2px'>
+<tr>
+	<td>[#grouping1#]</td>
+	<td>[#grouping2#]</td>
+	<td>[#grouping3#]</td>
+</tr>
+<tr>
+	<td>[#feat1#]</td>
+	<td>[#feat2#]</td>
+	<td>[#feat3#]</td>
+</tr>
+</table>
