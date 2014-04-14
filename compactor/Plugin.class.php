@@ -108,7 +108,7 @@ class compactor_Plugin extends core_Plugin
         $newFileName = $nameHash . '.css';
         
         // Директрояи за съхранение на компактирания css файл
-        $tempDir = EF_SBF_PATH . DIRECTORY_SEPARATOR . 'css';
+        $tempDir = EF_SBF_PATH . '/css';
         
         // Пътя до новия файл
         $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE);
@@ -183,7 +183,7 @@ class compactor_Plugin extends core_Plugin
         $newFileName = $nameHash . '.js';
         
         // Директрояи за съхранение на компактирания css файл
-        $tempDir = EF_SBF_PATH . DIRECTORY_SEPARATOR . 'js';
+        $tempDir = EF_SBF_PATH . '/js';
         
         // Пътя до новия файл
         $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE);
