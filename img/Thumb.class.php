@@ -304,10 +304,19 @@ class img_Thumb
     {
         // Ако не са зададени
         if(!$this->width || !$this->height) {
-            if($gdRes = $this->getGdRes()) {
+            
+            $handler = $this->getHash();
+            
+            // Опитваме се да вземем размерите от кеша, ако не - от изображението
+            if($sArr = core_Cache::get('imgSizes', $handler)) {  
+                $this->width  = $sArr[0];
+                $this->height = $sArr[1];
+            } elseif($gdRes = $this->getGdRes()) {
                 $this->width  = imagesx($gdRes);
                 $this->height = imagesy($gdRes);
-            }
+
+                core_Cache::set('imgSizes', $handler, array($this->width, $this->height), 100000);
+             }
         }
     }
     
