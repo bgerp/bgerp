@@ -34,7 +34,7 @@ class page_InternalFooter extends core_ET {
             $this->append("<a href='#top'>" . tr('Горе') . "</a>");
             
             $this->append("&nbsp;|&nbsp;");
-            $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => toUrl(getRetUrl() + array('Cmd' => 'refresh'), 'local') )));
+            $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local') )));
             
             // Добавяме превключване между езиците
             $this->addLgChange();
@@ -49,9 +49,9 @@ class page_InternalFooter extends core_ET {
             
             $this->append('&nbsp;');
             $this->append(dt::mysql2verbal(dt::verbal2mysql()));
-            
+      
             $this->append(" | ");
-            $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => toUrl(getRetUrl() + array('Cmd' => 'refresh'), 'local'))));
+            $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local'))));
             
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
@@ -86,7 +86,7 @@ class page_InternalFooter extends core_ET {
  
         if(count($langArr)) {
             foreach($langArr as $lg => $title) {
-                $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => toUrl(getRetUrl() + array('Cmd' => 'refresh'), 'local')));
+                $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => toUrl(getCurrentUrl() + array('Cmd' => 'refresh'), 'local')));
                 $lg{0} = strtoupper($lg{0});
                 $this->append("&nbsp;|&nbsp;<a href='{$url}' title='{$title}'>{$lg}</a>");
             }
