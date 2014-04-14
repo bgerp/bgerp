@@ -144,9 +144,9 @@ class acc_Journal extends core_Master
     	
     	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
 		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
-    	$data->listFilter->FNC('document', 'varchar', 'input,caption=Документ,placeholder=Хендлър на документ');
+    	$data->listFilter->FNC('document', 'varchar', 'input,caption=Документ,placeholder=Хендлър на документ', array('attr' => array('onchange' => "this.form.submit();")));
 		
-    	$data->listFilter->showFields = 'dateFrom,dateTo,search,document';
+		$data->listFilter->showFields = 'dateFrom,dateTo,search,document';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
     	
     	// Активиране на филтъра
@@ -208,6 +208,7 @@ class acc_Journal extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
+        $origMvc = $mvc;
         
         if($rec->docType && cls::load($rec->docType, TRUE)) {
             $mvc = cls::get($rec->docType);
@@ -217,6 +218,20 @@ class acc_Journal extends core_Master
                 $row->docType = $doc->getLink();
             }
         }
+        
+        $dQuery = acc_JournalDetails::getQuery();
+        $dQuery->where("#journalId = {$rec->id}");
+        $details = $dQuery->fetchAll();
+        
+        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"font-weight:bold; text-align:right;background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\"linkWithIcon\"> </a>";
+        
+        $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
+        foreach ($details as $decRec){
+        	$dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
+        	$cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
+        	$row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
+        }
+        $row->docType .= "</ol>";
     }
    
     
