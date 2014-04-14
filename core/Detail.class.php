@@ -70,6 +70,9 @@ class core_Detail extends core_Manager
         // Подготвяме филтъра
         $this->prepareListFilter($data);
         
+        // Подготвяме заявката за резюме/обощение
+        $this->prepareListSummary($data);
+        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
