@@ -35,6 +35,15 @@ class gps_ListenerControl extends core_Manager
     
     
     /**
+     * Описание на модела
+     */
+    function description()
+    {
+        $this->FLD('pid', 'varchar(12)', 'caption=UID');
+        $this->FLD('data', 'blob', 'caption=Параметри');
+    }
+    
+    /**
      * Кой може да го види?
      */
     public $canView = 'ceo,admin,gps';
@@ -46,7 +55,12 @@ class gps_ListenerControl extends core_Manager
      */
     public function act_ListenerControl()
     {
-        return ("heh");
+        $res  = "<li>Статус: " . (self::Started()?'<font color=green>Стартиран</font>':'<font color=red>Спрян</font>'). "</li>";
+        $res .= "<li><a href=''>Стартиране</a></li>";
+        $res .= "<li><a href=''>Спиране</a></li>";
+        self::Start();
+        
+        return ($res);
     }
     
 
@@ -57,6 +71,15 @@ class gps_ListenerControl extends core_Manager
      */
     private function Start()
     {
+        $conf = core_Packs::getConfig('gps');
+//        if (!$self->Started()) {
+            $command = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
+            . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
+            . " " . $conf->PORT
+            . " " . $conf->DOMAIN; bp($command);
+            
+            exec($command, $output, $returnVar); 
+//        }
         
         return ($res);
     }
@@ -79,8 +102,9 @@ class gps_ListenerControl extends core_Manager
      *
      * @return bool
      */
-    private function Stated()
+    private function Started()
     {
+        $conf = core_Packs::getConfig('gps');
         
         return ($res);
     }

@@ -16,6 +16,15 @@ defIfNot('PORT', '8500');
  */
 defIfNot('PROTOCOL', 'udp');
 
+/**
+ * IP на хост от който се приемат данни // IP на демона, от където праща данните
+ */
+defIfNot('DATA_SENDER', '127.0.0.1');
+
+/**
+ * Домейн на системата
+ */
+defIfNot('DOMAIN', 'bgerp.local');
 
 /**
  * Клас 'gps_Setup'
@@ -52,7 +61,7 @@ class gps_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "Log с GPS данни от тракери";
+    public $info = "Точки от GPS данни от тракери";
     
     
     /**
@@ -62,7 +71,10 @@ class gps_Setup extends core_ProtoSetup
             'LOCAL_IP' => array ('ip', 'mandatory, caption=IP от което ще се четат данните'),
             'PORT' => array ('int', 'mandatory, caption=Порт'),
             'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
+            'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
+            'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн')
     );
+    
     
     /**
      * Списък с мениджърите, които съдържа пакета

@@ -1,25 +1,27 @@
 <?php
 
-if ($argc < 4) {
-    die("Usage: <Protocol TCP/UDP> <IP> <Port>\n");
+if ($argc < 5) {
+    die("Usage: <Protocol TCP/UDP> <IP> <Port> <Domain>\n");
 }
 
 // $argv[0]; Url=udp://11.0.0.64:8500
 $protocol = $argv[1];
 $ip = $argv[2];
 $port = $argv[3];
+$domain = $argv[4];
 
 $url = $protocol . "://" . $ip . ":" . $port;
-
 
 $socket = stream_socket_server($url, $errno, $errstr, STREAM_SERVER_BIND);
 
 if (!$socket) {
-    die("$errstr ($errno)");
+    fwrite(STDOUT,"$errstr ($errno)");
+    
+    exit;
 }
 
-//fwrite(STDOUT, getmypid());
-
+fwrite(STDOUT, "OK|" . getmypid());
+        
 do {
     $string = stream_socket_recvfrom($socket, 149, 0, $peer);
 
@@ -47,7 +49,7 @@ do {
 //            stream_socket_sendto($socket, EOF, 0, $peer);
         break;
         default : // Ако са данни различни от команда ги пращаме към bgERP-a
-            $url = "http://bgerp.local/gps_Log/Log/?";
+            $url = "http://{$domain}/gps_Log/Log/?";
             $trackerData = splitData($string);
             
             if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
@@ -61,7 +63,7 @@ do {
                     'remoteIp'=>$peer);
             
             $url .= http_build_query($params);
-            
+            //fwrite(STDOUT, $url);
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_URL, $url);
