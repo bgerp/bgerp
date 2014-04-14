@@ -14,12 +14,6 @@ defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/0.3.
 
 
 /**
- * Временната папка
- */
-defIfNot('COMPACTOR_TEMP_PATH', EF_TEMP_PATH . "/compactor");
-
-
-/**
  * 
  *
  * @category  compactor
@@ -67,24 +61,6 @@ class compactor_Setup extends core_ProtoSetup
         
         // Инсталираме плъгина за показване на статусите като toast съобщения
         $html .= $Plugins->installPlugin('Компактиране на файлове', 'compactor_Plugin', 'page_Html', 'private');
-        
-    	$conf = core_Packs::getConfig('compactor');
-    	
-        //Създаваме рекурсивно папката
-        $d = $conf->COMPACTOR_TEMP_PATH;
-        
-        $caption = 'За временни файлове на compactor';
-        
-        // Ако директорията липсва, правим опит да я създадем
-        if(!is_dir($d)) {
-            if(mkdir($d, 0777, TRUE)) {
-                $html .= "<li style='color:green;'> Директорията <b>{$d}</b> е създадена ({$caption})</li>";
-            } else {
-                $html .= "<li style='color:red;'> Директорията <b>{$d}</b> не може да бъде създадена ({$caption})</li>";
-            }
-        } else {
-            $html .= "<li> Директорията <b>{$d}</b> съществува от преди ({$caption})</li>";
-        }
         
         return $html;
     }

@@ -107,8 +107,11 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.css';
         
+        // Директрояи за съхранение на компактирания css файл
+        $tempDir = EF_SBF_PATH . DIRECTORY_SEPARATOR . 'css';
+        
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, TRUE);
+        $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE);
         
         // Ако файла не съществува
         if (!$newPath) return ;
@@ -179,8 +182,11 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.js';
         
+        // Директрояи за съхранение на компактирания css файл
+        $tempDir = EF_SBF_PATH . DIRECTORY_SEPARATOR . 'js';
+        
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, FALSE);
+        $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE);
         
         // Ако файла не съществува
         if (!$newPath) return ;
@@ -234,16 +240,15 @@ class compactor_Plugin extends core_Plugin
      * 
      * @param string $newFileName
      * @param array $sArr
+     * @param string $tempDir
      * @param boolean $changePath
      * 
      * @return string
      */
-    static function compactFilesFromArr($newFileName, $sArr, $changePath=TRUE)
+    static function compactFilesFromArr($newFileName, $sArr, $tempDir, $changePath=TRUE)
 	{
-        $conf = core_Packs::getConfig('compactor');
-        
         // Пътя до временния файл
-        $tempPath = $conf->COMPACTOR_TEMP_PATH . DIRECTORY_SEPARATOR . $newFileName;
+        $tempPath = $tempDir . DIRECTORY_SEPARATOR . $newFileName;
         
         // Ако файла не съществува
         if (!file_exists($tempPath)) {
@@ -257,10 +262,10 @@ class compactor_Plugin extends core_Plugin
             }
             
             // Ако директорията не съществува
-            if(!is_dir($conf->COMPACTOR_TEMP_PATH)) {
+            if(!is_dir($tempDir)) {
                 
                 // Създаваме директорията
-                mkdir($conf->COMPACTOR_TEMP_PATH, 0777, TRUE);
+                mkdir($tempDir, 0777, TRUE);
             }
             
             // Добавяме във файла
