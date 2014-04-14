@@ -154,7 +154,7 @@ class pos_TransactionSourceImpl
     /**
      * Връща часта контираща ддс-то
      * 
-     * 		Dt: 501.  Каси                       (Каси, Валути)
+     * 		Dt: 411.  Взимания от клиенти           (Клиенти, Валути)
      * 
      * 		Ct: 4532. Начислен ДДС за продажбите
      * 
@@ -169,9 +169,9 @@ class pos_TransactionSourceImpl
 	         'amount' => currency_Currencies::round($totalVat), // равностойноста на сумата в основната валута
 	            
 	         'debit' => array(
-	              '501',  
-	            	 array('cash_Cases', $posRec->caseId), // Перо 1 - Каса
-	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), 
+	              '411',  
+	            	 array($rec->contragentClass, $rec->contragentObjectId), // Перо 1 - Клиент
+	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), // Валута в основна мярка
 	              'quantity' => currency_Currencies::round($totalVat), 
 	            ),
 	            
