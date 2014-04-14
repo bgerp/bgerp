@@ -619,12 +619,31 @@ class blogm_Articles extends core_Master {
 		
         while($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
+
+            $row = new stdClass();
+
+            $row->author = $this->getVerbal($rec, 'author');
+            $row->createdOn = $this->getVerbal($rec, 'createdOn');
+
+		    $row->title = $this->getVerbal($rec, 'title');
             $url = self::getUrl($rec);
+            $row->title = ht::createLink($row->title, $url);
+
+            $txt = explode("\n", $rec->body, 2);
+
+            if(count($txt) > 1) {
+                $rec->body = trim($txt[0]); 
+                $rec->body .=   " [link=" . toUrl(self::getUrl($rec), 'absolute') . "][" . tr('още') . "][/link]";
+            }
+
+            $row->body = $this->getVerbal($rec, 'body');
+
+            $row->commentsCnt = $this->getVerbal($rec, 'commentsCnt');
+
             if($data->q) {
                 $url += array('q' => $data->q);
             }
-            $data->rows[$rec->id]->title = ht::createLink($data->rows[$rec->id]->title, $url);
+            $data->rows[$rec->id] = $row;
         }
 
         if($this->haveRightFor('list')) {
