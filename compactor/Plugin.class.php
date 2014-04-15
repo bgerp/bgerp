@@ -394,8 +394,16 @@ class compactor_Plugin extends core_Plugin
         // Новия път да е остатъка от директорията и остатъка от файла
         $file = $dir . DIRECTORY_SEPARATOR . $file;
         
-        // Вземаме целия път
-        $filePath = sbf($file, '', FALSE);
+        // Ако съществува такъв файл
+        if (getFullPath($file)) {
+            
+            // Вземаме целия път
+            $filePath = sbf($file, '', FALSE);
+        } else {
+            
+            // Ако няма файла, не се правят промени
+            $filePath = $matches[0];
+        }
         
         return $filePath;
     }
