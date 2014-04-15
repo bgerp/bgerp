@@ -321,7 +321,7 @@ if (isset($_GET['SetupKey'])) {
 
 // Стартира записа в буфера, като по възможност компресира съдържанието
 ob_start();
-ob_start('ob_gzhandler');
+//ob_start('ob_gzhandler');
 
 // Вътрешно кодиране
 mb_internal_encoding("UTF-8");
