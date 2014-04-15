@@ -1,15 +1,6 @@
 <?php 
 
 
-/**
- * Дефинира име на папка в която ще се ползва за временна директория
- */
-defIfNot('GPS_LOG_TEMP_DIR', EF_TEMP_PATH . "/gps");
-
-/**
- * IP на хост от който се приемат данни
- */
-defIfNot('GPS_DATA_SENDER', '127.0.0.1');
 
 
 /**
@@ -64,7 +55,7 @@ class gps_Log extends core_Manager
         $dateTimeGPS = "20" . substr($data['date'],4,2) . "-" . substr($data['date'],2,2) . "-" . substr($data['date'],0,2)
                 . " " . substr($data['time'],0,2) . ":" . substr($data['time'],2,2) . ":" . substr($data['time'],4,2); 
                 
-        $rec->text = "Дата: " . $dateTimeGPS . "<br>";
+        $rec->text  = "Дата: " . $dateTimeGPS . "<br>";
         $rec->text .= "Статус: " . (($data['status'] == 'A')?'Валиден':'Невалиден'). "<br>";
         $rec->text .= "Ширина: " . $data['latitude'] . "<br>";
         $rec->text .= "Дължина: " . $data['longitude'] . "<br>";
@@ -74,7 +65,7 @@ class gps_Log extends core_Manager
         $rec->text .= "Посока: " . $data['heading'] . "<br>";
         $rec->text .= "Карта: <a href=\"https://maps.google.com/?q="
             . self::DMSToDD($data['latitude'])
-            . "," . self::DMSToDD($data['longitude']) . "\">виж</a><br>";
+            . "," . self::DMSToDD($data['longitude']) . "\" target=_new>виж</a><br>";
     }
     
     
@@ -84,7 +75,9 @@ class gps_Log extends core_Manager
      */
     public function act_Log()
     {
-        if ($_SERVER['REMOTE_ADDR'] != GPS_DATA_SENDER) {
+        $conf = core_Packs::getConfig('gps');
+        if ($_SERVER['REMOTE_ADDR'] != $conf->DATA_SENDER) {
+
             exit;
         }
         

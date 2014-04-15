@@ -107,11 +107,17 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.css';
         
-        // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, TRUE);
+        // Име на папката
+        $cssDirName = 'css';
         
-        // Ако файла не съществува
-        if (!$newPath) return ;
+        // Директрояи за съхранение на компактирания css файл
+        $tempDir = EF_SBF_PATH . '/' . $cssDirName;
+        
+        // Пътя до новия файл
+        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE)) return ;
+        
+        // Пътя до файла
+        $newPath = $cssDirName . '/' . $newFileName;
         
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $cssArr);
@@ -179,11 +185,17 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.js';
         
-        // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, FALSE);
+        // Име на директорията
+        $jsDirName = 'js';
         
-        // Ако файла не съществува
-        if (!$newPath) return ;
+        // Директрояи за съхранение на компактирания css файл
+        $tempDir = EF_SBF_PATH . '/' . $jsDirName;
+        
+        // Пътя до новия файл
+        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE)) return ;
+        
+        // Пътя до файла
+        $newPath = $jsDirName . '/' . $newFileName;
         
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $jsArr);
@@ -234,16 +246,15 @@ class compactor_Plugin extends core_Plugin
      * 
      * @param string $newFileName
      * @param array $sArr
-     * @param boolean $linkToAbsolute
+     * @param string $tempDir
+     * @param boolean $changePath
      * 
      * @return string
      */
-    static function compactFilesFromArr($newFileName, $sArr, $linkToAbsolute=TRUE)
+    static function compactFilesFromArr($newFileName, $sArr, $tempDir, $changePath=TRUE)
 	{
-        $conf = core_Packs::getConfig('compactor');
-        
         // Пътя до временния файл
-        $tempPath = $conf->COMPACTOR_TEMP_PATH . DIRECTORY_SEPARATOR . $newFileName;
+        $tempPath = $tempDir . '/' . $newFileName;
         
         // Ако файла не съществува
         if (!file_exists($tempPath)) {
@@ -253,14 +264,14 @@ class compactor_Plugin extends core_Plugin
             foreach ((array)$sArr as $ePath) {
                 
                 // Вземаме съдържанието
-                $content .= static::getContentFromPath($ePath, $linkToAbsolute) . "\n";
+                $content .= static::getContentFromPath($ePath, $changePath) . "\n";
             }
             
             // Ако директорията не съществува
-            if(!is_dir($conf->COMPACTOR_TEMP_PATH)) {
+            if(!is_dir($tempDir)) {
                 
                 // Създаваме директорията
-                mkdir($conf->COMPACTOR_TEMP_PATH, 0777, TRUE);
+                mkdir($tempDir, 0777, TRUE);
             }
             
             // Добавяме във файла
@@ -305,23 +316,23 @@ class compactor_Plugin extends core_Plugin
 	 * Взема съдържанието на зададения файл
 	 * 
 	 * @param string $path
-	 * @param boolean $toAbsolutePath
+	 * @param boolean $changePath
 	 * 
 	 * @return string
 	 */
-	static function getContentFromPath($path, $toAbsolutePath=FALSE)
+	static function getContentFromPath($path, $changePath=FALSE)
 	{
 	    // Съдържанието на файла
 	    $content = @file_get_contents(sbf($path, '', TRUE));
 	    
 	    // Ако е зададено да се преобразуват локоалните линкове от съдържанието в абсолютни
-	    if ($toAbsolutePath) {
+	    if ($changePath) {
 	        
 	        // Инстанция на този клас
 	        $me = cls::get(get_called_class());
 	        
 	        // Преобразуваме линковете
-	        $content = $me->localeToAbsolutePath($content, $path);
+	        $content = $me->changePaths($content, $path);
 	    }
 	    
 	    return $content;
@@ -336,7 +347,7 @@ class compactor_Plugin extends core_Plugin
 	 * 
 	 * @return string
 	 */
-	protected function localeToAbsolutePath($text, $path)
+	protected function changePaths($text, $path)
 	{
         // Задаваме пътя до файла
         $this->filePath = $path;
@@ -347,7 +358,7 @@ class compactor_Plugin extends core_Plugin
         $pattern = '/(\.\.\/)+(.)+((\.css)+|(\.jpg)+|(\.jpeg)+|(\.png)+|(\.gif)+)+/i';
         
         // Заместваме локалните линкове към файловете с абсолютни
-	    $text = preg_replace_callback($pattern, array($this, 'replaceLocaleWithAbsolutePath'), $text);
+	    $text = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
 	    return $text;
 	}
@@ -360,7 +371,7 @@ class compactor_Plugin extends core_Plugin
 	 * 
 	 * @return string
 	 */
-    protected function replaceLocaleWithAbsolutePath($matches)
+    protected function changeImgPaths($matches)
     {
         // Ако не е задаен пътя до файла
         if (!($path = $this->filePath)) return $matches[0];
@@ -387,10 +398,18 @@ class compactor_Plugin extends core_Plugin
         }
         
         // Новия път да е остатъка от директорията и остатъка от файла
-        $file = $dir . DIRECTORY_SEPARATOR . $file;
+        $file = $dir . '/' . $file;
         
-        // Вземаме целия път
-        $filePath = sbf($file, '', TRUE);
+        // Ако съществува такъв файл
+        if (getFullPath($file)) {
+            
+            // Вземаме целия път
+            $filePath = sbf($file, '', FALSE);
+        } else {
+            
+            // Ако няма файла, не се правят промени
+            $filePath = $matches[0];
+        }
         
         return $filePath;
     }
