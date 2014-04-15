@@ -691,7 +691,7 @@ class crm_Persons extends core_Master
         $classId = static::getClassId();
         
         // Добавяме номерата в КЦ
-        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
+        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
     }
 
 
