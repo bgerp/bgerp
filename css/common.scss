@@ -2263,6 +2263,55 @@ div.richtext ol ol {
 	font-size: 0.9em;
 }
 
+
+.richtext-question, .richtext-info, .richtext-error, .richtext-success, .richtext-warning, .richtext-tip, .richtext-text {
+	h1{
+	   font-size: 1.8em;
+	}
+	h1, h2, h3, h4, h5, h6{
+	   line-height:1;
+	   margin: 0 !important;
+	}
+	.header{
+       padding: 0 !important;
+       display: block;
+       clear: both;
+       margin: 1em 0 1em 0!important;
+    }
+	.header:first-child{
+	   padding: 0 !important;
+	   display: block;
+	   margin: 0.2em 0 0.5em 0 !important;
+	}
+	h1 {
+       margin-top: 0.17em !important;
+    }
+    h2 {
+      margin-top: -0.15em !important ;
+    }
+    h3 {
+       margin-top: 0.6em !important;
+    }
+    h4 {
+       margin-top: 0.7em !important;
+    }
+    h5 {
+       margin-top: 0.9em !important;
+    }
+    h6 {
+       margin-top: 1.2em !important;
+    }
+}
+
+.document {
+	.richtext-question, .richtext-info, .richtext-error, .richtext-success, .richtext-warning, .richtext-tip, .richtext-text {
+	    .header:first-child h2 {
+	       margin-top: 0.35em !important;
+	       margin-bottom: 0.3em !important;
+	    }
+    }
+}
+
 .richtext-question a[href], .richtext-info a[href], .richtext-error a[href], .richtext-success a[href],
 .richtext-warning a[href], .richtext-tip a[href], .richtext-text a[href] {
 	color: inherit;
@@ -2273,8 +2322,8 @@ div.richtext ol ol {
 	}
 }
 
-.richtext .richtext-info:last-of-type, .richtext .richtext-tip:last-of-type, .richtext .richtext-warning:last-of-type, .richtext .richtext-error:last-of-type,
-.richtext .richtext-success:last-of-type, .richtext .richtext-success:last-of-type, .richtext .richtext-question:last-of-type {
+.richtext > .richtext-info:last-of-type, .richtext > .richtext-tip:last-of-type, .richtext > .richtext-warning:last-of-type, .richtext > .richtext-error:last-of-type,
+.richtext > .richtext-success:last-of-type, .richtext > .richtext-success:last-of-type, .richtext > .richtext-question:last-of-type {
     margin-bottom: -15px;
 }
 

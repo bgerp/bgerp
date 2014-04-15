@@ -933,7 +933,7 @@ class core_App
                     if(@copy($f, $newPath)) {
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
-                        core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'");
+                        core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
                         
                         // Пътя до новия файл
                         $rPath = $newFile;
@@ -951,7 +951,7 @@ class core_App
         }
         
         $rPath = ltrim($rPath, '/');
-
+        
         return $qt . static::getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
     }
 

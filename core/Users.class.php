@@ -380,7 +380,7 @@ class core_Users extends core_Manager
         $form->setHidden('hash', '');
         $form->setHidden('loadTime', '');
         
-        $form->addAttr('nick,pass,email', array('style' => 'min-width:15em;' ));
+        $form->addAttr('nick,pass,email', array('style' => 'min-width:14em;' ));
         
         $form->toolbar->addSbBtn('Вход', 'default', NULL,  array('class' => 'noicon'));
        
