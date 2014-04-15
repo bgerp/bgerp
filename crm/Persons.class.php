@@ -906,6 +906,11 @@ class crm_Persons extends core_Master
             						'Град' => static::getVerbal($rec, 'place'),)
             );
             
+        	if($rec->groupList){
+            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
+            
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
         }
 

@@ -996,9 +996,14 @@ class crm_Companies extends core_Master
             $result = (object)array(
                 'num' => $rec->id,
                 'title' => $rec->name,
-                'features' => array('Държава' => static::getVerbal($rec, 'country'),
-            						'Град' => static::getVerbal($rec, 'place'),)
+                'features' => array('Държава' => $self->getVerbal($rec, 'country'),
+            						'Град' => $self->getVerbal($rec, 'place'),)
             );
+            
+            if($rec->groupList){
+            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
         }
