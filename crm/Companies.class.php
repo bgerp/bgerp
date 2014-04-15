@@ -587,7 +587,7 @@ class crm_Companies extends core_Master
         }
       
        	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='smaller-font'>(". $currentId .")</span> <span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList = '<span class="namelist">'. $row->nameList.  "  (". $currentId .")<span class='custom-rowtools'>". $row->id .' </span></span>';
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
         $vatType = new drdata_VatType();
