@@ -1749,6 +1749,12 @@ fieldset.sharing-history {
 	.formTable{
 	   width: auto !important;
 	}
+	input[type='text'], input[type='password']{
+       font-size:20px;
+    }
+    input[type='submit']{
+        font-size: 16px;
+    }
 }
 
 #cmsNavigation div.nav_item {
