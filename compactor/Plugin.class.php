@@ -107,14 +107,17 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.css';
         
+        // Име на папката
+        $cssDirName = 'css';
+        
         // Директрояи за съхранение на компактирания css файл
-        $tempDir = EF_SBF_PATH . '/css';
+        $tempDir = EF_SBF_PATH . '/' . $cssDirName;
         
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE);
+        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, TRUE)) return ;
         
-        // Ако файла не съществува
-        if (!$newPath) return ;
+        // Пътя до файла
+        $newPath = $cssDirName . '/' . $newFileName;
         
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $cssArr);
@@ -182,14 +185,17 @@ class compactor_Plugin extends core_Plugin
         // Добавяме разширение
         $newFileName = $nameHash . '.js';
         
+        // Име на директорията
+        $jsDirName = 'js';
+        
         // Директрояи за съхранение на компактирания css файл
-        $tempDir = EF_SBF_PATH . '/js';
+        $tempDir = EF_SBF_PATH . '/' . $jsDirName;
         
         // Пътя до новия файл
-        $newPath = static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE);
+        if (!static::compactFilesFromArr($newFileName, $sArr, $tempDir, FALSE)) return ;
         
-        // Ако файла не съществува
-        if (!$newPath) return ;
+        // Пътя до файла
+        $newPath = $jsDirName . '/' . $newFileName;
         
         // Добавяме файла в масива
         $resArr = static::addNewFileToArr($newPath, $jsArr);
@@ -248,7 +254,7 @@ class compactor_Plugin extends core_Plugin
     static function compactFilesFromArr($newFileName, $sArr, $tempDir, $changePath=TRUE)
 	{
         // Пътя до временния файл
-        $tempPath = $tempDir . DIRECTORY_SEPARATOR . $newFileName;
+        $tempPath = $tempDir . '/' . $newFileName;
         
         // Ако файла не съществува
         if (!file_exists($tempPath)) {
@@ -392,7 +398,7 @@ class compactor_Plugin extends core_Plugin
         }
         
         // Новия път да е остатъка от директорията и остатъка от файла
-        $file = $dir . DIRECTORY_SEPARATOR . $file;
+        $file = $dir . '/' . $file;
         
         // Ако съществува такъв файл
         if (getFullPath($file)) {
