@@ -394,7 +394,7 @@ $layout =
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=2\">
-<title>bgERP - настройване на системата (стъпка [#currentStep#] ". BGERP_GIT_BRANCH .")</title>
+<title>bgERP - настройване на системата (стъпка [#currentStep#] )</title>
 [#styles#]
 
 
@@ -467,8 +467,18 @@ if($step == 2) {
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case FALSE :
-            // Показваме бутони за ъпдейтване 
-            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »";
+            
+            if(defined('EF_PRIVATE_PATH')) {
+                $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+            } else {
+                $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+            }
+            
+            foreach($repos as $repoPath) {
+                $reposLastDate .= "<div>" . basename($repoPath).": " . gitLastCommitDate($repoPath, $log) . " </div> ";
+            }            
+            // Показваме бутони за ъпдейтване и информация за състоянието
+            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||<div style='font-size=6pt;'><div>Бранч: " . BGERP_GIT_BRANCH . "</div> $reposLastDate</div>";
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
         case TRUE : 
@@ -546,7 +556,7 @@ if($step == 2) {
         }
         
     
-    $texts['body'] = linksToHtml($links);
+    $texts['body'] = linksToHtml($links);// bp($texts['body']);
             
     // Статистика за различните класове съобщения
     $stat = array();
@@ -970,9 +980,9 @@ function logToHtml($log, &$stat)
 function linksToHtml($links)
 {
     foreach($links as $l) {
-        list($class, $url, $text, $target) = array_pad(explode('|', $l, 4), 4, '');
+        list($class, $url, $text, $target, $info) = array_pad(explode('|', $l, 5), 5, '');
         $html .= "\n<ul class='msg stats'><li>" .
-            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n</li></ul><br>";
+            "\n<a href='{$url}' class='{$class}' target='{$target}'>{$text}</a>\n{$info}</li></ul><br>";
     }
 
     return $html;
@@ -987,6 +997,27 @@ function gitExec($cmd, &$output)
     
     return ($returnVar == 0);    
 }
+
+
+/**
+ * Връща датата на последния комит на дадено репозитори
+ */
+function gitLastCommitDate($repoPath, &$log)
+{
+
+    $command = " --git-dir=\"{$repoPath}/.git\" log -1 --pretty=format:'%ci'";
+
+    $repoName = basename($repoPath);
+
+    // Първият ред съдържа резултата
+    if (gitExec($command, $res)) {
+
+        return trim($res[0]);
+    }
+
+    return FALSE;
+}
+
 
 /**
  * Връща текущият бранч на репозиторито или FALSE ако не е сетнат
