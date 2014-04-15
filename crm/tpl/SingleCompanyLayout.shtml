@@ -35,6 +35,9 @@
                 <!--ET_BEGIN vat-->
                 <div>VAT: <b>[#vat#]</b></div>
                 <!--ET_END vat-->
+                <!--ET_BEGIN uicId-->
+                <div>|Нац.|* №: <b>[#uicId#]</b></div>
+                <!--ET_END uicId-->
             </div>
         </fieldset>
         <!--ET_END address-->

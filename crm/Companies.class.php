@@ -597,7 +597,10 @@ class crm_Companies extends core_Master
         $row->vat = $vat;
         
         $row->title .= "<div style='display:inline-block;float:right;margin-left:10px;'>№ {$currentId}</div>";
-      
+        
+        if ($rec->vatId) {
+        	unset($row->uicId);
+        }
     }
     
     
