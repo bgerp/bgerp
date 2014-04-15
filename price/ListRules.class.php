@@ -535,9 +535,9 @@ class price_ListRules extends core_Detail
                 $signDiscount = $signDiscount . $discount;
                 
                 if($rec->calculation == 'reverse') {
-                    $row->rule = "[{$parentTitle}] = [{$masterTitle}] " . $signDiscount;
+                    $row->rule = tr("|*[|{$parentTitle}|*] = [|{$masterTitle}|*] " . $signDiscount);
                 } else {
-                     $row->rule = "[{$masterTitle}] = [{$parentTitle}] " . $signDiscount;
+                    $row->rule = tr("|*[|{$masterTitle}|*] = [|{$parentTitle}|*] " . $signDiscount);
                 }
                 break;
 
@@ -551,7 +551,7 @@ class price_ListRules extends core_Detail
 
                 $vat = ($vat == 'yes') ? "с ДДС" : "без ДДС";
 
-                $row->rule = tr("|[{$masterTitle}] =|* {$price} {$currency} |{$vat}");
+                $row->rule = tr("|*[|{$masterTitle}|*] = {$price} {$currency} |{$vat}");
                 break;
         }        
         
