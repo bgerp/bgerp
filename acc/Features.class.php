@@ -212,13 +212,23 @@ class acc_Features extends core_Manager
         }
     }
     
+    
+    /**
+     * Връща всички свойства на зададените пера, ако не са зададени пера, връща всички
+     * 
+     * @param array $array - масив с ид-та на пера
+     * @return array $options - опции със свойства
+     */
     public static function getFeatureOptions($array)
     {
     	$options = array();
     	
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
-    	$query->in('itemId', $array);
+    	if(count($array)){
+    		$query->in('itemId', $array);
+    	}
+    	
     	$query->groupBy("feature");
     	while($rec = $query->fetch()){
     		$options[$rec->feature] = static::getVerbal($rec, 'feature');
