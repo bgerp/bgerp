@@ -14,8 +14,19 @@
  */
 class fileman_GalleryRichTextPlg extends core_Plugin
 {
-    
-    
+
+    /**
+     * Регулярен израз за картинките
+     */
+    const IMG_PATTERN = "/\[img=\#(([^\]]*)|)\]\s*/si";
+
+
+    /**
+     * Регулярен израз за галериите
+     */
+    const GALLERY_PATTERN = "/\[gallery(=\#([^\]]*)|)\]\s*/si";
+
+
     /**
      * Обработваме елементите линковете, които сочат към докоментната система
      */
@@ -26,8 +37,8 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         // Обработваме елементите [images=????]  
-        $html = preg_replace_callback("/\[img=\#(([^\]]*)|)\]\s*/si", array($this, 'catchImages'), $html);
-        $html = preg_replace_callback("/\[gallery(=\#([^\]]*)|)\]\s*/si", array($this, 'catchGallery'), $html);
+        $html = preg_replace_callback(self::IMG_PATTERN, array($this, 'catchImages'), $html);
+        $html = preg_replace_callback(self::GALLERY_PATTERN, array($this, 'catchGallery'), $html);
     }
 
     
