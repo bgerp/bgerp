@@ -27,6 +27,11 @@ defIfNot('DATA_SENDER', '127.0.0.1');
 defIfNot('DOMAIN', 'bgerp.local');
 
 /**
+ * Период на рестартиране на сървиса
+ */
+defIfNot('RESTART_PERIOD', '3600');
+        
+/**
  * Клас 'gps_Setup'
  *
  * @category  vendors
@@ -72,7 +77,8 @@ class gps_Setup extends core_ProtoSetup
             'PORT' => array ('int', 'mandatory, caption=Порт'),
             'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
             'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
-            'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн')
+            'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн'),
+            'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт')
     );
     
     
@@ -81,7 +87,8 @@ class gps_Setup extends core_ProtoSetup
      */
     public $managers = array(
             'gps_Log',
-            'gps_ListenerControl'
+            'gps_ListenerControl',
+            'gps_Trackers'
         );
 
     /**
