@@ -410,11 +410,11 @@ class blogm_Articles extends core_Master {
         
         
         if($data->rec->body) {
-            $pattern = "/\[img=\#(?'imgHnd'[a-z0-9\_\-]{4,128})\]/is";
+            $pattern = fileman_GalleryRichTextPlg::IMG_PATTERN;
         
             preg_match($pattern, $data->rec->body, $matches);
-
-            if($iHnd = $matches['imgHnd']) {
+ 
+            if($iHnd = $matches[1]) {
                 $iRec = fileman_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
                 $fileSrc = $iRec->src;
             }
