@@ -93,10 +93,14 @@ class drdata_PhoneType extends type_Varchar {
     public static function toArray($str, $params = array())
     {
         $Phones = cls::get('drdata_Phones');
-
-        $conf = core_Packs::getConfig('drdata');
         
-        $code = $conf->COUNTRY_PHONE_CODE;
+        // Ако не е подаден телефонния код на държавата, ще се използва от конфигурационната константа
+        if (!($code = $params['countryPhoneCode'])) {
+            
+            $conf = core_Packs::getConfig('drdata');
+        
+            $code = $conf->COUNTRY_PHONE_CODE;
+        }
         
         $result = $Phones->parseTel($str, $code);
 
