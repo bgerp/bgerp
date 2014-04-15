@@ -634,15 +634,20 @@ div.mobile {
 
 .custom-rowtools{
     display: inline-block;
-    margin-left: 10px;
+    margin-left: 5px;
     position: relative;
     top:2px;
-
 }
+
 .namelist{
-    margin-top: 5px;
+    margin-bottom: 3px;
     display: block;
 }
+
+.smaller-font{
+	font-size: 0.9em;
+}
+
 /*край на стилове за CRM*/
 
 option.team {

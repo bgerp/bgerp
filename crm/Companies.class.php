@@ -587,8 +587,8 @@ class crm_Companies extends core_Master
         }
       
        	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = "&nbsp;№ " . $currentId . '<span class="custom-rowtools">' . $row->id . '</span><span class="namelist">'. $row->nameList. '</span>';
-        $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-top:5px;'>{$country}</div>" : ""); 
+        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='smaller-font'>(". $currentId .")</span> <span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
         $vatType = new drdata_VatType();
         $row->title .=  $mvc->getTitleById($rec->id);
@@ -1443,7 +1443,7 @@ class crm_Companies extends core_Master
     	if($rec->country){
     		$adress .= crm_Persons::getVerbal($rec, 'country');
     	}
-    	
+    
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
     			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;
