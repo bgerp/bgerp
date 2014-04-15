@@ -875,13 +875,6 @@ class core_App
                 }
             }
             
-            // Ако подадения път е от sbf
-            if (strpos($filePath, EF_SBF_PATH) === 0) {
-                
-                // Пътя до файла след sbf директорията
-                $filePath = str_replace(EF_SBF_PATH, '', $filePath);
-            }
-            
             // Новия файл
             $newFile = $filePath . "_" . date("mdHis", $time) . $ext;
             
