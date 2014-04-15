@@ -201,10 +201,11 @@ class callcenter_Numbers extends core_Manager
      * @param array $numbersArr - Масив с номерата, които ще добавяме - tel, fax, mobile
      * @param int $classId - id на класа
      * @param int $docId - id на документа
+     * @param int $countryId - id на държавата
      * 
      * @return array $retArr - Масив с броя на изтрите и добавените резултати
      */
-    public static function addNumbers($numbersArr, $classId, $docId)
+    public static function addNumbers($numbersArr, $classId, $docId, $countryId=NULL)
     {
         // Резултата, който ще връщаме
         $retArr = array();
@@ -215,6 +216,16 @@ class callcenter_Numbers extends core_Manager
         // Вземаме всички записи за документа и класа
         $existRecsArr = static::getRecsForDoc($classId, $docId);
         
+        // Параметри за определяне на номера
+        $phoneParams = array();
+        
+        // Ако е подадена държава
+        if ($countryId) {
+            
+            // Вземаме номера от държавата
+            $phoneParams['countryPhoneCode'] = drdata_Countries::fetchField($countryId, 'telCode');
+        }
+        
         // Обхождаме записите
         foreach ((array)$numbersArr as $type => $numberArr) {
             
@@ -222,7 +233,7 @@ class callcenter_Numbers extends core_Manager
             foreach ((array)$numberArr as $number) {
                 
                 // Вземаме детайлна информация за номерата
-                $numberDetArr = drdata_PhoneType::toArray($number);
+                $numberDetArr = drdata_PhoneType::toArray($number, $phoneParams);
                 
                 // Обхождаме масива с номера
                 foreach ($numberDetArr as $numberDetObj) {
