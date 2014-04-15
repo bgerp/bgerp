@@ -419,6 +419,11 @@ class cat_Products extends core_Master {
             );
         }
         
+    	if($rec->groups){
+            $groups = strip_tags($self->getVerbal($rec, 'groups'));
+            $result->features = $result->features + arr::make($groups, TRUE);
+        }
+            
         $result->features = $self->Params->getFeatures($self, $objectId, $result->features);
         
         return $result;

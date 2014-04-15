@@ -45,7 +45,7 @@ class marketing_Inquiries extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, marketing_Wrapper, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=marketing_InquiryRouter';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues, doc_plg_BusinessDoc,Router=marketing_InquiryRouter, drdata_PhonePlg';
     
     
     /**
@@ -88,6 +88,14 @@ class marketing_Inquiries extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = TRUE;
+    
+    
+    /**
+     * Кои полета да се използват за телефонни номера
+     * 
+     * @see drdata_PhonePlg
+     */
+    var $phoneFields = 'tel';
     
     
     /**

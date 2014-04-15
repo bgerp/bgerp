@@ -23,7 +23,7 @@ class purchase_ClosedDeals extends acc_ClosedDeals
     /**
      * Абревиатура
      */
-    public $abbr = 'Cd';
+    public $abbr = 'Cdp';
     
     
     /**

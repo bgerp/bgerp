@@ -214,29 +214,26 @@ class acc_Features extends core_Manager
     
     
     /**
-     * Връща перата, отговарящи на дадено свойство
+     * Връща всички свойства на зададените пера, ако не са зададени пера, връща всички
      * 
-     * @param string $feature
-     * @return array $arr - масив с ид на перата
+     * @param array $array - масив с ид-та на пера
+     * @return array $options - опции със свойства
      */
-    public static function getItemsByFeature($feature)
+    public static function getFeatureOptions($array)
     {
-    	$arr = array();
+    	$options = array();
     	
     	$query = static::getQuery();
-    	$query->where(array("#feature LIKE '[#1#]'", $feature));
-    	$query->show('id,feature');
     	$query->where("#state = 'active'");
-    	while($rec = $query->fetch()){
-    		$arr[] = $rec->id;
+    	if(count($array)){
+    		$query->in('itemId', $array);
     	}
     	
-    	return $arr;
+    	$query->groupBy("feature");
+    	while($rec = $query->fetch()){
+    		$options[$rec->feature] = static::getVerbal($rec, 'feature');
+    	}
+    	
+    	return $options;
     }
-    
-    /*public function act_Test(){
-    	$feature = 'AAAAA';
-    	$l = static::getItemsByFeature($feature);
-    	bp($l);
-    }*/
 }

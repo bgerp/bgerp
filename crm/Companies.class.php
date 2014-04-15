@@ -67,7 +67,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select,bgerp_plg_Import';
+                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
     
     
     /**
@@ -587,8 +587,8 @@ class crm_Companies extends core_Master
         }
       
        	$currentId = $mvc->getVerbal($rec, 'id');
-        $row->nameList = "&nbsp;№ " . $currentId . '<span class="custom-rowtools">' . $row->id . '</span><span class="namelist">'. $row->nameList. '</span>';
-        $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-top:5px;'>{$country}</div>" : ""); 
+        $row->nameList = '<span class="namelist">'. $row->nameList.  "  (". $currentId .")<span class='custom-rowtools'>". $row->id .' </span></span>';
+        $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : ""); 
         
         $vatType = new drdata_VatType();
         $row->title .=  $mvc->getTitleById($rec->id);
@@ -596,8 +596,11 @@ class crm_Companies extends core_Master
         $vat = $vatType->toVerbal($rec->vatId);
         $row->vat = $vat;
         
-        $row->title .= "<div style='display:inline-block;float:right'>№ {$currentId}</div>";
-      
+        $row->title .= "<div style='display:inline-block;float:right;margin-left:10px;'>№ {$currentId}</div>";
+        
+        if ($rec->vatId) {
+        	unset($row->uicId);
+        }
     }
     
     
@@ -644,7 +647,7 @@ class crm_Companies extends core_Master
         $classId = static::getClassId();
         
         // Добавяме в КЦ
-        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
+        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
     }
     
     
@@ -996,9 +999,14 @@ class crm_Companies extends core_Master
             $result = (object)array(
                 'num' => $rec->id,
                 'title' => $rec->name,
-                'features' => array('Държава' => static::getVerbal($rec, 'country'),
-            						'Град' => static::getVerbal($rec, 'place'),)
+                'features' => array('Държава' => $self->getVerbal($rec, 'country'),
+            						'Град' => $self->getVerbal($rec, 'place'),)
             );
+            
+            if($rec->groupList){
+            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
         }
@@ -1443,7 +1451,7 @@ class crm_Companies extends core_Master
     	if($rec->country){
     		$adress .= crm_Persons::getVerbal($rec, 'country');
     	}
-    	
+    
     	foreach (array('pCode', 'place', 'address') as $fld){
     		if($rec->$fld){
     			$adress .= ((strlen($adress) && $fld != 'place') ? ", " : " ") . $rec->$fld;

@@ -111,7 +111,7 @@ class pos_ReceiptDetails extends core_Detail {
 	    }
 	    
         // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
-	    if (!empty($data->masterData->toolbar->buttons['btnConto']) ) {
+	    if ($this->Master->haveRightFor('conto', $data->masterData->rec)) {
 	    	$contoUrl = array('pos_Receipts', 'close', $data->masterData->rec->id);
 	    	$hint = tr("Приключи продажбата");
 	    	$hintInv = tr("Приключи и издай фактура");

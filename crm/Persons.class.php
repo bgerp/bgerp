@@ -78,7 +78,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import';
+                     bgerp_plg_Import, drdata_PhonePlg';
 
 
     /**
@@ -127,6 +127,14 @@ class crm_Persons extends core_Master
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    
+    
+    /**
+     * Кои полета да се използват за телефонни номера
+     * 
+     * @see drdata_PhonePlg
+     */
+    var $phoneFields = 'tel, fax, mobile, buzTel, buzFax';
     
     
     /**
@@ -208,8 +216,8 @@ class crm_Persons extends core_Master
         'birthday'      => array('Рожден ден', '#birthday=DESC'),
         'website'       => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),
         );
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -691,7 +699,7 @@ class crm_Persons extends core_Master
         $classId = static::getClassId();
         
         // Добавяме номерата в КЦ
-        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id);
+        return callcenter_Numbers::addNumbers($numbersArr, $classId, $rec->id, $rec->country);
     }
 
 
@@ -905,6 +913,11 @@ class crm_Persons extends core_Master
                 'features' => array('Държава' => static::getVerbal($rec, 'country'),
             						'Град' => static::getVerbal($rec, 'place'),)
             );
+            
+        	if($rec->groupList){
+            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
+            	$result->features = $result->features + arr::make($groups, TRUE);
+            }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
         }
