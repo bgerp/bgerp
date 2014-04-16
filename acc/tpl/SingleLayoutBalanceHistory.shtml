@@ -1,9 +1,9 @@
 <div class="singleView">
       [#SingleToolbar#]
-      <h2 style='margin-bottom:0'><span class='quiet'>|Хронологична справка|* </span> </h2>
-      <h3 style='margin-top:0'><b style='font-size: 1.2em'>[#accountId#]</b> <br>
-      <!--ET_BEGIN ent1Id--><b class='feather-icon'>[#ent1Id#]</b> <br><!--ET_END ent1Id-->
-      <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <br><!--ET_END ent2Id-->
+     
+      <h3 style='margin-top:15px'><b style='font-size: 1.2em'>[#accountId#]</b>
+      <!--ET_BEGIN ent1Id--><b class='feather-icon'>[#ent1Id#]</b> <!--ET_END ent1Id-->
+      <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <!--ET_END ent2Id-->
       <!--ET_BEGIN ent3Id--><b class='feather-icon'>[#ent3Id#]</b><!--ET_END ent3Id--></h3>
      
      

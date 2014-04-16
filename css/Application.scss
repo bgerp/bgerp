@@ -3766,6 +3766,8 @@ body.narrow {
 .feather-icon{
 	background-image: url('../img/16/feather.png');
 	@include btn-style();
+	margin-top: 7px;
+	display: block;
 }
 .notBolded{
 	font-weight: normal;
