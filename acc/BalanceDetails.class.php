@@ -174,6 +174,7 @@ class acc_BalanceDetails extends core_Detail
     private function prepareSummary(&$data)
     {
     	if(!count($data->recs)) return;
+    	if(!$this->isDetailed()) return;
     	
     	$recs = $data->recs;
     	
