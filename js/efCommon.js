@@ -1557,8 +1557,11 @@ efae.prototype.run = function()
 		// Увеличаваме брояча
 		this.increaseTimeout();
 		
+		// Вземаме всички URL-та, които трябва да се извикат в този цикъл
+		var subscribedObj = this.getSubscribed();
+		
 		// Стартираме процеса
-		this.process();
+		this.process(subscribedObj);
 		
 	} catch(err) {
 		
@@ -1577,12 +1580,11 @@ efae.prototype.run = function()
 /**
  * Извиква URL, който стартира абонираните URL-та на които им е дошло времето да се стартират
  * и рендира функциите от резултата
+ * 
+ * @param object subscribedObj - Обект с URL-то, което трябва да се вика
  */
-efae.prototype.process = function()
+efae.prototype.process = function(subscribedObj)
 {
-	// Вземаме всички URL-та, които трябва да се извикат в този цикъл
-	var subscribedObj = this.getSubscribed();
-	
 	// Ако няма URL, което трябва да се извика, връщаме
 	if (!Object.keys(subscribedObj).length) return;
 	
