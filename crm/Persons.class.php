@@ -84,7 +84,7 @@ class crm_Persons extends core_Master
     /**
      * Полета, които се показват в листови изглед
      */
-    var $listFields = 'id=№,id,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,name=';
 
 
     /**
@@ -561,7 +561,10 @@ class crm_Persons extends core_Master
                 $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
             }
         }
-        
+        $currentId = $mvc->getVerbal($rec, 'id');
+        $row->nameList = '<span class="namelist">'. $row->nameList.  "  <span class='number-block'>". $currentId .
+        "</span><span class='custom-rowtools'>". $row->id .' </span></span>';
+      
         $row->title =  $mvc->getTitleById($rec->id);
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
