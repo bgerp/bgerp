@@ -1582,8 +1582,9 @@ efae.prototype.run = function()
  * и рендира функциите от резултата
  * 
  * @param object subscribedObj - Обект с URL-то, което трябва да се вика
+ * @param object otherData - Обект с допълнителни параметри, които ще се пратят по POST
  */
-efae.prototype.process = function(subscribedObj)
+efae.prototype.process = function(subscribedObj, otherData)
 {
 	// Ако няма URL, което трябва да се извика, връщаме
 	if (!Object.keys(subscribedObj).length) return;
@@ -1607,8 +1608,18 @@ efae.prototype.process = function(subscribedObj)
 		// Преобразуваме обекта в JSON вид
 		var subscribedStr = JSON.stringify(subscribedObj);
 		
+		// Обект с параметри, които се пращат по POST
+		var dataObj = new Object();
+		
+		// Ако е дефиниран
+		if (typeof otherData != 'undefined') {
+			
+			// Добавяме към обекта
+			dataObj = otherData;
+		}
+		
 		// Обекст с данните, които ще изпращаме
-		var dataObj = {subscribed : subscribedStr};
+		dataObj['subscribed'] = subscribedStr;
 		
 		// Ако е зададено времето на извикване на страницата
 		if (typeof(hitTime) != 'undefined') {
