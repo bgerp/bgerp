@@ -616,7 +616,7 @@ if($step == 3) {
     // Необходими модули на Apache
     $log[] = 'h:Проверка за необходимите Apache модули:';
 
-    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite');
+    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite', 'mod_deflate');
     
     $activeApacheModules = apache_get_modules();
     
