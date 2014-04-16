@@ -52,6 +52,8 @@ class label_Setup extends core_ProtoSetup
      */
     function install()
     {   
+        $html = parent::install();
+        
         // Инсталиране на мениджърите
         $managers = array(
             'label_Labels',
