@@ -559,7 +559,7 @@ if($step == 2) {
     $stat = array();
     
     $texts['body'] .= logToHtml($log, $stat);
-    $texts['body'] .= "<div style='font-size:14px;margin-top: 10px'> $reposLastDate</div>";
+    $texts['body'] .= "<div style='font-size:14px;margin-top: 10px; clear:both;'> $reposLastDate</div>";
     
 }
 
