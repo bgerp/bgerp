@@ -392,7 +392,9 @@ class type_Richtext extends type_Blob
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]', '[ul]', '[/ul]', '[ol]', '[/ol]', '[bInfo]', '[/bInfo]', '[bTip]', '[/bTip]', '[bOk]', '[/bOk]', '[bWarn]', '[/bWarn]', '[bQuestion]', '[/bQuestion]', '[bError]', '[/bError]', '[bText]', '[/bText]',); 
         // '[table]', '[/table]', '[tr]', '[/tr]', '[td]', '[/td]', '[th]', '[/th]');
-
+        
+        $textMode = Mode::get('text');
+        
         if($textMode != 'plain') { 
             $to = array("\n", "\n", "\n", "<br>\n", "<span style='padding-left:3em'></span>", '</span>', '</span>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<hr>', '<ul>', '</ul>', '<ol>', '</ol>', '<div class="richtext-info">', '</div>' , '<div class="richtext-tip">', '</div>' , '<div class="richtext-success">', '</div>', '<div class="richtext-warning">', '</div>', '<div class="richtext-question">', '</div>', '<div class="richtext-error">', '</div>', '<div class="richtext-text">', '</div>',);
                // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
