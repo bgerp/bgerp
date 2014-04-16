@@ -223,7 +223,7 @@ class acc_Journal extends core_Master
         $dQuery->where("#journalId = {$rec->id}");
         $details = $dQuery->fetchAll();
         
-        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"font-weight:bold; text-align:right;background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\"linkWithIcon\"> </a>";
+        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon\"> </a>";
         
         $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
         foreach ($details as $decRec){
