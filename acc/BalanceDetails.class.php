@@ -163,6 +163,32 @@ class acc_BalanceDetails extends core_Detail
         		}
         	}
         }
+        
+        $mvc->prepareSummary($data);
+    }
+    
+    
+    /**
+     * Подготвя обобщаващите данни
+     */
+    private function prepareSummary(&$data)
+    {
+    	if(!count($data->recs)) return;
+    	
+    	$recs = $data->recs;
+    	
+    	$arr = array('debitAmount', 'baseAmount', 'creditAmount', 'baseAmount', 'blAmount');
+    	$debitQuantity = $debitAmount = $creditQuantity = $creditAmount = $baseQuantity = $baseAmount = $blAmount = $blQuantity = 0;
+    	foreach ($recs as $rec){
+    		foreach ($arr as $param){
+    			${$param} += $rec->{$param};
+    		}
+    	}
+    	
+    	$data->summary = new stdClass();
+    	foreach ($arr as $param){
+    		$data->summary->$param = $this->fields[$param]->type->toVerbal(${$param});
+    	}
     }
     
     
@@ -519,29 +545,32 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $masterRec = $mvc->Master->fetch($rec->balanceId);
-    	if ($row->accountId && strlen($row->accountNum) >= 3) {
+    	
+        // Бутон за детайлизиран преглед на историята
+        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
+        
+        if ($row->accountId && strlen($row->accountNum) >= 3) {
+        	$attr['class'] = 'linkWithIcon';
+    		$attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+        	
             $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
             
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
-                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
+                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/view.png') . ');'));
             } else{
-            	$row->accountId = ht::createLink($row->accountId, array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum));
+            	$row->accountId = ht::createLink($row->accountId,
+                    array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum), NULL, array('class' => 'linkWithIcon', 'style' => 'background-image:url(' . sbf('img/16/clock_history.png') . ');'));
             }
         }
         
         $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
-        // Бутон за детайлизиран преглед на историята
-        $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
+        if(!$mvc->isDetailed()) return;
         
         $url = array('acc_BalanceDetails', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
         $row->history = ht::createLink($histImg, $url, NULL, 'title=Подробен преглед');
         $row->history = "<span style='margin:0 4px'>{$row->history}</span>";
-        
-        if (!$mvc->isDetailed()) {
-            return;
-        }
         
         $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
         
@@ -591,7 +620,7 @@ class acc_BalanceDetails extends core_Detail
      * Зарежда в сингълтона баланса с посоченото id
      */
     function loadBalance($balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
-    {  
+    {
         $query = $this->getQuery();
         
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
@@ -639,7 +668,7 @@ class acc_BalanceDetails extends core_Detail
         
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
-            $this->addEntry($rec, 'debit');
+        	$this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
         }
     }
@@ -1408,5 +1437,23 @@ class acc_BalanceDetails extends core_Detail
         
         // Връщаме шаблона
     	return $tpl; 
+    }
+    
+    
+	/**
+	 * След рендиране на List Summary-то
+	 */
+	static function on_AfterRenderListSummary($mvc, &$tpl, $data)
+    {
+    	if($data->summary){
+    		$table = getTplFromFile('acc/tpl/BalanceSummary.shtml');
+    		$table->placeObject($data->summary);
+    		
+    		if(empty($tpl)){
+    			$tpl = new ET("");
+    		}
+    		
+    		$tpl->append($table, 'ListSummary');
+    	}
     }
 }

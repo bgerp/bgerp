@@ -1,0 +1,22 @@
+<table>
+<tr>
+<td></td>
+<td>|Сума|*</td>
+</tr>
+<tr>
+<td>|Начално салдо|*</td>
+<td>[#baseAmount#]</td>
+</tr>
+<tr>
+<td>|Дебит|*</td>
+<td>[#debitAmount#]</td>
+</tr>
+<tr>
+<td>|Кредит|*</td>
+<td>[#creditAmount#]</td>
+</tr>
+<tr>
+<td>|Крайно салдо|*</td>
+<td>[#blAmount#]</td>
+</tr>
+</table>
