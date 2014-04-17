@@ -31,7 +31,19 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'no_one';
+    var $canAdd = 'pos, ceo';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canEdit = 'pos, ceo';
+    
+    
+    /**
+     * Кой може да променя?
+     */
+    var $canWrite = 'pos, ceo';
     
     
     /**
@@ -40,6 +52,12 @@ class pos_ReceiptDetails extends core_Detail {
     var $canList = 'no_one';
     
 
+    /**
+     * Кой може да променя?
+     */
+    var $canDelete = 'pos, ceo';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -105,15 +123,15 @@ class pos_ReceiptDetails extends core_Detail {
     		return array();
     	}
     	
+    	// Трябва да може да се редактира записа
+    	if(!$this->haveRightFor('edit', $rec)) return array();
+    	
     	$discount = Request::get('amount');
     	$discount = $this->fields['discountPercent']->type->fromVerbal($discount);
     	if(!isset($discount)){
     		core_Statuses::newStatus('Не е въведено валидна процентна отстъпка !', 'error');
     		return array();
     	}
-    	
-    	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('edit', $rec)) return array();
     	
     	// Записваме променената отстъпка
     	$rec->discountPercent = $discount;
@@ -174,6 +192,9 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да има такъв запис
     	if(!$rec = $this->fetch($recId)) return array();
     	
+    	// Трябва да може да се редактира записа
+    	if(!$this->haveRightFor('edit', $rec)) return array();
+    	
     	$quantityId = Request::get('amount');
     	
     	// Трябва да е подадено валидно количество
@@ -182,9 +203,6 @@ class pos_ReceiptDetails extends core_Detail {
     		core_Statuses::newStatus('Не е въведено валидно количество !', 'error');
     		return array();
     	}
-    	
-    	// Трябва да може да се редактира записа
-    	if(!$this->haveRightFor('edit', $rec)) return array();
     	
     	// Преизчисляваме сумата
     	$rec->quantity = $quantityId;
@@ -212,15 +230,15 @@ class pos_ReceiptDetails extends core_Detail {
     	// Трябва да е избрана бележка
     	if(!$recId = Request::get('receiptId', 'int')) return array();
     	
+    	// Можем ли да добавяме към бележката
+    	if(!$this->haveRightFor('add', (object)array('receiptId' => $recId)))  return array();
+    	
     	// Трябва да има избран запис на бележка
     	if(!$receipt = $this->Master->fetch($recId)) return array();
     	
     	// Трябва да е подаден валидно ид на начин на плащане
     	$type = Request::get('type');
     	if(!pos_Payments::fetch($type))  return array();
-    	
-    	// Можем ли да добавяме към бележката
-    	if(!$this->haveRightFor('add', (object)array('receiptId' => $recId)))  return array();
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
@@ -269,6 +287,7 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	// Трябва да можем да изтриваме от бележката
     	if(!$this->haveRightFor('delete', $rec))  return array();
+    	
     	$receiptId = $rec->receiptId;
     	
     	if($this->delete($rec->id)){
@@ -425,7 +444,8 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$vat = cat_Products::getVat($rec->productId, $receiptDate);
     	$rec->price = $rec->price * (1 - $rec->discountPercent);
-    	$row->price = $double->toVerbal($rec->price + ($rec->price * $vat));
+    	$rec->price += ($rec->price * $vat);
+    	$row->price = $double->toVerbal($rec->price);
     	$row->amount = $double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
     		$row->discountPercent = "+" . trim($row->discountPercent, '-');
@@ -615,10 +635,10 @@ class pos_ReceiptDetails extends core_Detail {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->receiptId)) {
-			$materRec = $mvc->Master->fetch($rec->receiptId);
+			$masterRec = $mvc->Master->fetch($rec->receiptId);
 			
-			if($materRec->state == 'draft') {
-				$res = 'pos, ceo';
+			if($masterRec->state != 'draft') {
+				$res = 'no_one';
 			}
 		}
 	}

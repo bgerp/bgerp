@@ -19,7 +19,7 @@ class pos_Receipts extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'acc_TransactionSourceIntf, bgerp_DealAggregatorIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
+    var $interfaces = 'bgerp_DealAggregatorIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
     
     
     /**
@@ -33,7 +33,7 @@ class pos_Receipts extends core_Master {
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
-                     acc_plg_Contable,plg_Modified';
+                     plg_Modified';
 
     
     /**
@@ -83,18 +83,6 @@ class pos_Receipts extends core_Master {
      */
     var $canEdit = 'pos, ceo';
     
-	
-	/**
-     * Файл с шаблон за единичен изглед на статия
-     */
-    //var $singleLayoutFile = 'pos/tpl/SingleReceipt.shtml';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'pos,ceo';
-    
     
     /**
 	 * Полета които да са достъпни след изтриване на дъска
@@ -138,16 +126,16 @@ class pos_Receipts extends core_Master {
     	$id = Request::get('id', 'int');
     	if($action == 'terminal' && !$id) {
     		
-    			// Ако не е зададено Ид, намираме кой е последно добавената бележка
-	    		$cu = core_Users::getCurrent();
-    			$query = static::getQuery();
-	    		$query->where("#createdBy = {$cu}");
-	    		$query->where("#state = 'draft'");
-	    		$query->orderBy("#createdOn", "DESC");
-	    		if($rec = $query->fetch()) {
+    		// Ако не е зададено Ид, намираме кой е последно добавената бележка
+	    	$cu = core_Users::getCurrent();
+    		$query = static::getQuery();
+	    	$query->where("#createdBy = {$cu}");
+	    	$query->where("#state = 'draft'");
+	    	$query->orderBy("#createdOn", "DESC");
+	    	if($rec = $query->fetch()) {
 	    			
-	    			return Redirect(array($mvc, 'terminal', $rec->id));
-	    		}
+	    		return Redirect(array($mvc, 'terminal', $rec->id));
+	    	}
     		
 	    	// Ако няма последно добавена бележка създаваме нова
     		return Redirect(array($mvc, 'new'));
@@ -307,8 +295,8 @@ class pos_Receipts extends core_Master {
     		switch($action[0]) {
     			case 'sale':
     				$vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
-    				$rec->total += $dRec->amount + ($dRec->amount * $vat);
-    				$rec->productCount += $rec->quantity;
+    				$rec->total += $dRec->quantity * $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
+    				$rec->productCount += $dRec->quantity;
     				break;
     			case 'payment':
     				$rec->paid += $dRec->amount;
@@ -358,7 +346,7 @@ class pos_Receipts extends core_Master {
 		
 		// Можем да контираме бележки само когато те са чернови и платената
 		// сума е по-голяма или равна на общата или общата сума е <= 0
-		if($action == 'conto' && isset($rec->id)) {
+		if($action == 'close' && isset($rec->id)) {
 			if($rec->total == 0 || $rec->paid < $rec->total) {
 				$res = 'no_one';
 			}
@@ -601,7 +589,7 @@ class pos_Receipts extends core_Master {
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
-	    if ($this->haveRightFor('conto', $rec)) {
+	    if ($this->haveRightFor('close', $rec)) {
 	    	$contoUrl = array('pos_Receipts', 'close', $rec->id);
 	    	$hint = tr("Приключи продажбата");
 	    	$hintInv = tr("Приключи и издай фактура");
@@ -703,7 +691,7 @@ class pos_Receipts extends core_Master {
     
     
     /**
-     * Контира документа и ако е зададено пренасочва към създаването на нова фактура
+     * Активира документа и ако е зададено пренасочва към създаването на нова фактура
      */
     function act_Close()
     {
@@ -712,10 +700,10 @@ class pos_Receipts extends core_Master {
     	expect($rec->state == 'draft');
     	$makeInvoice = Request::get('makeInvoice', 'int');
     	
-    	$this->requireRightFor('conto', $rec);
+    	$this->requireRightFor('close', $rec);
     	
-    	// Контиране на документа
-    	$this->conto($id);
+    	$rec->state = 'active';
+    	$this->save($rec);
     	
     	// Ако не трябва да се прави фактура редирект към новата бележка
     	if(empty($makeInvoice)){
