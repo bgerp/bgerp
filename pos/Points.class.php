@@ -175,7 +175,7 @@ class pos_Points extends core_Master {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$urlArr = toUrl(array('pos_Receipts', 'single'));
+    		$urlArr = toUrl(array('pos_Receipts', 'Terminal'));
     		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
     	}
     }

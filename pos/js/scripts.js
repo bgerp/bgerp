@@ -1,62 +1,162 @@
 function posActions() {
-	updateContainer();
-	
-	
-	$(window).resize(function() {
-        updateContainer();
-    });
 
-	
-	if($('tr').is('#last-row')) {
-		$("#last-row").css("background-color", "#FFFF99");
-	}
-	
-	$('input[name=ean]').focus();
-	
-	$('#incBtn').live("click", function() {
-		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) + 1);
-		$("select[name=action]").val('sale|code');
+	// Засветяване на избрания ред и запис в хидън поле
+	$(".pos-sale").live("click", function() {
+		var id = $(this).attr("data-id");
+		$(".pos-sale td").removeClass('pos-hightligted');
+		$('[data-id="'+ id +'"] td').addClass('pos-hightligted');
+		$("input[name=rowId]").val(id);
 	});
 	
-	$('#decBtn').live("click", function() {
-		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
-		$("select[name=action]").val('sale|code');
-	});
-	
-	$('#subBtn').live("click", function() {
-		$('input[name=quantity]').val(parseInt($("input[name=quantity]").val()) - 1);
-	});
-	
-	$('.actionBtn').live("click", function() {
-		var value = $(this).attr("data-type");
-		$("select[name=action]").val(value);
-		$(".actionBtn").not(this).removeClass('selectedPayButton');
-		if($("input[name=ean]").val() != '') {
-			$("#receipt-details-form form").submit();
-		} 
+	// Използване на числата за въвеждане в пулта
+	$(".numPad").live("click", function() {
+		var val = $(this).val();
 		
+		var inpVal = $("input[name=ean]").val();
+		if(val == '.'){
+			if(inpVal.length == 0){
+				inpVal = 0;
+			}
+			
+			if(inpVal.indexOf(".")  != -1){
+				return;
+			}
+		}
+		
+		inpVal += val;
+		$("input[name=ean]").val(inpVal);
 	});
-	if($("#last-row").length){
-		scrollToActiveElement(); 
-	}
 	
-	if($(".formError").length){
-		scrollToError(); 
-	}
-	
-    $(function(){
-	        if (typeof(window.WebScan) == "undefined" ) {
-	            $('.webscan').hide();
-	        }
+	// Използване на числата за въвеждане на суми за плащания
+	$(".numPad2").live("click", function() {
+		var val = $(this).val();
+		
+		var inpVal = $("input[name=paysum]").val();
+		if(val == '.'){
+			if(inpVal.length == 0){
+				inpVal = 0;
+			}
+			
+			if(inpVal.indexOf(".")  != -1){
+				return;
+			}
+		}
+		
+		inpVal += val;
+		$("input[name=paysum]").val(inpVal);
 	});
 	
-	$("form input[type=button]").live("hover", function(){$(this).toggleClass('button_hover');});
-	$("form input[type=submit]").live("hover", function(){$(this).toggleClass('submit_hover');});
+	// Триене на числа в пулта
+	$(".numBack").live("click", function() {
+		var inpValLength = $("input[name=ean]").val().length;
+		var newVal = $("input[name=ean]").val().substr(0, inpValLength-1);
+		
+		$("input[name=ean]").val(newVal);
+	});
 	
-	$("input[disabled=disabled]").addClass("disabledBtn");
-
+	// Триене на числа при плащанията
+	$(".numBack2").live("click", function() {
+		var inpValLength = $("input[name=paysum]").val().length;
+		var newVal = $("input[name=paysum]").val().substr(0, inpValLength-1);
+		
+		$("input[name=paysum]").val(newVal);
+	});
+	
+	// Модифициране на количество
+	$("#tools-modify").live("click", function() {
+		var inpVal = $("input[name=ean]").val();
+		var rowVal = $("input[name=rowId]").val();
+		
+		var url = $(this).attr("data-url");
+		var data = {recId:rowVal, amount:inpVal};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+		$("input[name=ean]").val("");
+	});
+	
+	// Добавя продукт при събмит на формата
+	$("#toolsForm").on("submit",function(event){
+	    var url = $("#toolsForm").attr("action");
+		var code = $("input[name=ean]").val();
+		var receiptId = $("input[name=receiptId]").val();
+		var data = {receiptId:receiptId, ean:code};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj, data);
+		
+		$("input[name=ean]").val("");
+		event.preventDefault();
+	    return false; 
+	});
+	
+	// Добавя продукт от комбо бокса
+	$("#searchForm").on("submit",function(event){
+		var url = $("#searchForm").attr("action");
+		var productId = $("#searchForm select[name=productId]").val();
+		var receiptId = $("#searchForm input[name=receiptId]").val();
+		var data = {receiptId:receiptId, productId:productId};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj, data);
+		
+		event.preventDefault();
+	    return false;
+	});
+	
+	// Направата на плащане след натискане на бутон
+	$(".paymentBtn").live("click", function() {
+		var url = $(this).attr("data-url");
+		var type = $(this).attr("data-type");
+		var amount = $("input[name=paysum]").val();
+		var receiptId = $("input[name=receiptId]").val();
+		
+		var data = {receiptId:receiptId, amount:amount, type:type};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj, data);
+		$("input[name=paysum]").val("");
+	});
+	
+	// Бутоните за приключване приключват бележката
+	$(".closeBtns").live("click", function(event) {
+		var url = $(this).attr("data-url");
+		var receiptId = $("input[name=receiptId]").val();
+		
+		if(!url){
+			return;
+		}
+		
+		var data = {receipt:receiptId};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+	});
+	
+	// Добавяне на продукти от бързите бутони
+	$('.pos-product').live("click", function(event) {
+		var url = $(this).attr("data-url");
+		var productId = $(this).attr("data-id");
+		var receiptId = $("input[name=receiptId]").val();
+		
+		var data = {receiptId:receiptId,productId:productId};
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		
+		getEfae().process(resObj, data);
+	});
+	
+	// Скриване на бързите бутони спрямо избраната категория
 	$(".pos-product-category[data-id='']").addClass('active');
-	$('.pos-product-category').click(function() {
+	$('.pos-product-category').live("click", function(event) {
 		var value = $(this).attr("data-id");
 		
 		$(this).addClass('active');
@@ -78,62 +178,19 @@ function posActions() {
 		}
 	});
 	
-	$('.pos-product').click(function vote() {
-		var rId = $('input[name=receiptId]').val();
-		var action = "sale|code";
-		var quantity = $('input[name=quantity]').val();
-		var ean = $(this).attr("data-code");
-		var cmd ={'default':1};
-		var data = {receiptId:rId, quantity:quantity, ean:ean, action:action, Cmd:cmd, ajax_mode:1};
-		
-		$.ajax({
-   	     type: "POST",
-   	     data: data,
-   	     dataType: 'json',
-   	     success: function(result)
-   	     { 
-   	    	$(".single-receipt-wrapper").replaceWith(result);
-   	    	$("#last-row").css("background-color", "#FFFF99");
-   	    	if($("#last-row").length){
-   	    		scrollToActiveElement(); 
-   	    	}
-   	    	if($(".formError").length){
-	   	 		scrollToError(); 
-	   	 	}
-   	    	$("input[disabled=disabled]").addClass("disabledBtn");
-   	    	$("input.disabledBtn").attr('title', 'Не може да приключите бележката, докато не е платена');
-   	    	if (typeof(window.WebScan) == "undefined" ) {
-	            $('.webscan').hide();
-	        }
-   	     },
-   	     error: function(result)
-   	     {
-   	       alert('проблем със записването');
-   	     }
-   	     });
+	// При клик на бутон изтрива запис от бележката
+	$('.pos-del-btn').live("click", function(event) {
+		var warning = $(this).attr("data-warning");
+		var url = $(this).attr("data-url");
+		var recId = $(this).attr("data-recId");
+		if (!confirm(warning)){
+			return false; 
+		} else {
+			
+			resObj = new Object();
+			resObj['url'] = url;
+			
+			getEfae().process(resObj, {recId:recId});
+		}
 	});
-	
-}
-
-
-function scrollToActiveElement(){
-	$('html, body').animate({
-        scrollTop: $("#last-row").offset().top - $("#last-row").outerHeight()
-    }, 10);
-}
-
-function scrollToError(){
-	$('html, body').animate({
-       scrollTop: $(".formError").offset().top
-    }, 10);
-}
-
-function updateContainer(){
-	var winWidth = $(window).width();
-	var leftSide = $('#single-receipt').outerWidth();
-	var rightSide = parseInt(winWidth) - parseInt(leftSide) - 50;
-	if(rightSide > 120){ 
-		$('.pos-bar-holder').css('width',rightSide);
-		$('.pos-bar-holder').css('left',leftSide + 40);
-	}
 }

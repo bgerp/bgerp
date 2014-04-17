@@ -1,0 +1,59 @@
+<!--ET_BEGIN TAB_TOOLS-->
+<div class='pos-tab-content' id = 'tools-form'>
+<form method='POST' action='[#ACT1#]' id='toolsForm'>
+[#INPUT_FLD#]<br /><br />
+<div style='float:left;width:50%;'>
+<input class="buttonForm button numPad" type="button" value="1"></input>
+<input class="buttonForm button numPad" type="button" value="2"></input>
+<input class="buttonForm button numPad" type="button" value="3"></input>
+<br />
+<input class="buttonForm button numPad" type="button" value="4"></input>
+<input class="buttonForm button numPad" type="button" value="5"></input>
+<input class="buttonForm button numPad" type="button" value="6"></input>
+<br />
+<input class="buttonForm button numPad" type="button" value="7"></input>
+<input class="buttonForm button numPad" type="button" value="8"></input>
+<input class="buttonForm button numPad" type="button" value="9"></input>
+<br />
+<input class="buttonForm button numPad" type="button" value="."></input>
+<input class="buttonForm button numPad" type="button" value="0"></input>
+<input class="buttonForm button numBack" type="button" value="<<"></input>
+</div>
+<div style='float:right;width:45%'>
+[#FIRST_TOOLS_ROW#]
+</div>
+</form>
+</div>
+<!--ET_END TAB_TOOLS-->
+
+<!--ET_BEGIN CHOOSE_DIV-->
+<div class='pos-tab-content' id = 'tools-choose' style='display:'>
+[#CHOOSE_DIV#]
+</div>
+<!--ET_END CHOOSE_DIV-->
+
+<!--ET_BEGIN SEARCH_DIV-->
+<div class='pos-tab-content' id = 'tools-search' style='display:'>
+[#SEARCH_DIV#]
+</div>
+<!--ET_END SEARCH_DIV-->
+
+<!--ET_BEGIN PAYMENTS_BLOCK-->
+<div class='pos-tab-content' id = 'tools-payment' style='display:'>[#PAYMENTS#]
+<input class="buttonForm button numPad2" type="button" value="1"></input>
+<input class="buttonForm button numPad2" type="button" value="2"></input>
+<input class="buttonForm button numPad2" type="button" value="3"></input>
+<br />
+<input class="buttonForm button numPad2" type="button" value="4"></input>
+<input class="buttonForm button numPad2" type="button" value="5"></input>
+<input class="buttonForm button numPad2" type="button" value="6"></input>
+<br />
+<input class="buttonForm button numPad2" type="button" value="7"></input>
+<input class="buttonForm button numPad2" type="button" value="8"></input>
+<input class="buttonForm button numPad2" type="button" value="9"></input>
+<br />
+<input class="buttonForm button numPad2" type="button" value="."></input>
+<input class="buttonForm button numPad2" type="button" value="0"></input>
+<input class="buttonForm button numBack2" type="button" value="<<"></input>
+</div>
+<!--ET_END PAYMENTS_BLOCK-->

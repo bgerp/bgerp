@@ -1,0 +1,27 @@
+<div class='single-receipt-wrapper'>
+		<div id='single-receipt-holder'>
+			<div id='single-receipt'>
+				[#RECEIPT#]
+				<div class="clearfix21"></div>			
+				<div id='tools-holder'>
+				<ul id ='tools-tabs'>[#TABS#]</ul>
+				<!--ET_BEGIN TOOLS-->
+				<div class='pos-tab-content'>
+				[#TOOLS#]
+				</div>
+				<!--ET_END TOOLS-->
+				</div>
+				<a name = 'form'></a>
+			</div>
+		</div>
+	<div class="clearfix21"></div>
+</div>
+<div id='tools-wide-holder' class='pos-bar-holder'>
+	<ul id ='tools-wide-tabs'>[#TABS_WIDE#]</ul>
+	<!--ET_BEGIN PRODUCTS-->
+	<div class='tools-wide-select-content'>
+	[#PRODUCTS#]
+	</div>
+	<!--ET_END PRODUCTS-->
+	[#SEARCH#]
+</div>
