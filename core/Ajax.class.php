@@ -92,13 +92,13 @@ class core_Ajax extends core_Mvc
             } catch (Exception $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}", static::$logKeepDays);
+                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", static::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
                     
                     // Показваме статус съобщение
-                    core_Statuses::newStatus("|Грешка при вземане на данни за|* {$url}", 'warning');
+                    core_Statuses::newStatus("|Грешка при вземане на данни за|* {$url} - {$e->getMessage()}", 'warning');
                 }
                 
                 continue;
