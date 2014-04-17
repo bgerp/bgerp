@@ -285,6 +285,7 @@ class pos_Receipts extends core_Master {
      */
     function updateReceipt($id)
     {
+    	
     	expect($rec = $this->fetch($id));
     	$rec->total = $rec->paid = $rec->change = $rec->productCount = 0;
     	
