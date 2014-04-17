@@ -490,7 +490,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = "<li>Пулт</li>";
+    	$tab = "<li><a href='#tools-form'>Пулт</a></li>";
     	$tpl->append($this->renderToolsTab($id), 'TOOLS');
     	
     	// Ако сме в тесен режим
@@ -501,14 +501,14 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'TOOLS');
-    		$tab .= "<li>Избор</li><li>Търсене</li>";
+    		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
     	}
     	
     	// Добавяне на таба за плащане
     	$tpl->append($this->renderPaymentTab($id), 'TOOLS');
     	
     	// Добавяне на заглавията на табовете
-    	$tab .= "<li>Плащане</li>";
+    	$tab .= "<li><a href='#tools-choose'>Плащане</a></li>";
     	$tpl->append($tab, 'TABS');
     	
    		return $tpl;
