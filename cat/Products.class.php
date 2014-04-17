@@ -996,7 +996,7 @@ class cat_Products extends core_Master {
     	}
     	
     	if(!$weight){
-    		$weight = $this->getParam($productId, 'weight');
+    		$weight = $this->getParam($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1019,7 +1019,7 @@ class cat_Products extends core_Master {
     	}
     	
     	if(!$volume){
-    		$volume = $this->getParam($productId, 'volume');
+    		$volume = $this->getParam($productId, 'transportVolume');
     	}
     	
     	return $volume;
