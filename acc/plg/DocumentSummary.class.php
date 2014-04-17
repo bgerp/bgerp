@@ -88,7 +88,9 @@ class acc_plg_DocumentSummary extends core_Plugin
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
 		$data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
-		$data->listFilter->FNC('Rejected', 'int', 'input=hidden');
+		if(!isset($data->listFilter->fields['Rejected'])) {
+		 	$data->listFilter->FNC('Rejected', 'int', 'input=hidden');
+		}
 		$data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
 		$data->listFilter->setDefault('from', date('Y-m-01'));
 		$data->listFilter->setDefault('to', date("Y-m-t", strtotime(dt::now())));
