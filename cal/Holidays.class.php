@@ -85,7 +85,7 @@ class cal_Holidays extends core_Master
      */
     function description()
     {
-        $this->FLD('key', 'varchar(16)', 'caption=Ключ,export');
+        $this->FLD('key', 'varchar(32)', 'caption=Ключ,export');
         $this->FLD('day', 'int', 'caption=Ден,export');
         $this->FLD('base', 'enum(0=,
         						 01=Януари,

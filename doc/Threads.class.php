@@ -1164,7 +1164,13 @@ class doc_Threads extends core_Manager
             
             // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
             if($bestContragentData->countryId && !$bestContragentData->country) {
-                $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
+                
+                // Ако езика е на български
+                if (core_Lg::getCurrent() == 'bg') {
+                    $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonNameBg');
+                } else {
+                    $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
+                }
             }
             
             // Попълваме вербалното или индексното представяне на фирмата, ако е налично другото
@@ -1174,11 +1180,15 @@ class doc_Threads extends core_Manager
             
             // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
             if(!$bestContragentData->countryId && $bestContragentData->country) {
-                $bestContragentData->countryId = drdata_Countries::fetchField(array("#commonName LIKE '%[#1#]%'", $bestContragentData->country), 'id');
+                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
             }
             
             if(!$bestContragentData->countryId && $bestContragentData->country) {
-                $bestContragentData->countryId = drdata_Countries::fetchField(array("#formalName LIKE '%[#1#]%'", $bestContragentData->country), 'id');
+                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+            }
+            
+            if(!$bestContragentData->countryId && $bestContragentData->country) {
+                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
             }
             
             $cashe[$threadId] = $bestContragentData;

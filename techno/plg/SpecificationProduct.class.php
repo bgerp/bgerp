@@ -341,7 +341,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     static function on_AfterGetWeight($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
-    		$res = $mvc->getParam($id, 'weight');
+    		$res = $mvc->getParam($id, 'transportWeight');
     	}
     }
     
@@ -352,7 +352,7 @@ class techno_plg_SpecificationProduct extends core_Plugin
     static function on_AfterGetVolume($mvc, $res, $id, $packagingId)
     {
     	if(!$res){
-    		$res = $mvc->getParam($id, 'volume');
+    		$res = $mvc->getParam($id, 'transportVolume');
     	}
     }
     

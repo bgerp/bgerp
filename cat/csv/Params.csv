@@ -7,4 +7,6 @@
 Цвят,varchar,,color
 ДДС,percent,%,vat
 Н. такси,double,лв,bTax
+Транспортно Тегло,weight,,transportWeight
+Транспортен Обем,volume,,transportVolume
 title_EN,varchar,,titleEN

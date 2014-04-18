@@ -325,16 +325,18 @@ class bank_Accounts extends core_Master {
     
     /**
      * Връща банковите сметки на даден контрагент
-     * @param int $contragendId - Id на контрагента
-     * @param int $contragentClassId - ClassId  на контрагента
+     * 
+     * @param int $contragentId - контрагент
+     * @param mixed $contragentClass - класа на контрагента
      * @return array() $suggestions - Масив от сметките на клиента
      */
-    static function getContragentIbans($contragentId, $contragentClassId)
+    static function getContragentIbans($contragentId, $contragentClass)
     {
+    	$Contragent = cls::get($contragentClass);
     	$suggestions[''] = '';
     	$query = static::getQuery();
     	$query->where("#contragentId = {$contragentId}");
-    	$query->where("#contragentCls = {$contragentClassId}");
+    	$query->where("#contragentCls = {$Contragent->getClassId()}");
     	
     	while($rec = $query->fetch()) {
     		$iban = static::getVerbal($rec, 'iban');

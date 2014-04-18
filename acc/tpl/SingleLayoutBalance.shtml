@@ -6,6 +6,8 @@
                 [#accountId#]
             </h3>
             <!--ET_END accountId-->
+            <div class='fleft'>
+            
             <table class="styled-table">
 				<tr>
 					<td class="title-style">|Период|*</td>

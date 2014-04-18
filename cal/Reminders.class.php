@@ -503,7 +503,7 @@ class cal_Reminders extends core_Master
     	     	 
     	 while($rec = $query->fetch()){
              
-    	 	 $rec->message  = tr("Напомняне \"" . self::getVerbal($rec, 'title') . "\"");
+    	 	 $rec->message  = "|Напомняне|* \"" . self::getVerbal($rec, 'title') . "\"";
     	 	 $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
     	 	 $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
     	 	 

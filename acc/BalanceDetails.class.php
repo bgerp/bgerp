@@ -174,6 +174,7 @@ class acc_BalanceDetails extends core_Detail
     private function prepareSummary(&$data)
     {
     	if(!count($data->recs)) return;
+    	if(!$this->isDetailed()) return;
     	
     	$recs = $data->recs;
     	
@@ -432,8 +433,9 @@ class acc_BalanceDetails extends core_Detail
     static function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $res = new ET("
-        	[#ListToolbar#]
-        	[#ListSummary#]
+        	[#ListToolbar#]</div>
+        	<div class='fright'>[#ListSummary#]</div>
+        	<div class='clearfix21'></div>
             [#ListTable#]
         ");
     }
@@ -446,6 +448,9 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed()) {
             if ($data->groupingForm) {
+            	if(!$tpl){
+            		$tpl = new ET("");
+            	}
             	jquery_Jquery::enable($tpl);
 		    	$tpl->push(('acc/js/balance.js'), 'JS');
 		    	jquery_Jquery::run($tpl, "chosenrefresh();");
