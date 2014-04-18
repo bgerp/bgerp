@@ -16,6 +16,7 @@
  */
 class drdata_Address extends core_MVC
 {
+    static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $noStart;
 
     /**
      * Конвертира дадения текст към масив от не-празни, тримнати линии
@@ -27,8 +28,9 @@ class drdata_Address extends core_MVC
         $lines = explode("\n", $text);
 
         foreach($lines as $l) {
-            $l = trim($l);
-            $res[] = $l;
+            if($l = trim($l)) {
+                $res[] = $l;
+            }
         }
 
         return $res;
@@ -46,7 +48,7 @@ class drdata_Address extends core_MVC
         $words = explode(' ', $line);
 
         foreach($words as $w) {
-            if($w = trim($w)) {
+            if($w = trim($w, " \t.;'\"-*!:/\\")) {
                 $res[] = $w;
             }
         }
@@ -58,11 +60,24 @@ class drdata_Address extends core_MVC
     /**
      * Извлича телефонни номера
      */
-    static function extractTelNumbers($line)
+    static function extractTelNumbers($line, $negativeList = array())
     {
         preg_match_all("/[^a-zA-Z]([\d\(\+][\d\- \,\(\)\.\+\/]{7,27}[\d\)])/", " {$line} ", $matches);
+        
+        $res = array();
 
-        return self::filterTel($matches[1]);
+        if(is_array($matches[1])) {
+
+            foreach($matches[1] as $id => $tel) {
+                if(!$negativeList[$tel]) {
+                    $res[$id] = $tel;
+                }
+            } 
+            
+            return self::filterTel($res);
+        }
+
+       
     }
     
     
@@ -118,6 +133,247 @@ class drdata_Address extends core_MVC
         
         return $ret;
     }
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Извлича данните за контакт от даден текст
+     * 
+     * @param $text string текста за конвертиране
+     * @param $assumed array масив с предварително очаквани данни за контрагента
+     * @param $avoid array масив с данни за контрагенти, които не би трябвало да са сред извлечените
+     */
+    function extractContact1($text, $assumed = array(), $avoid = array())
+    {
+        // Добавяме стринговете, които се избягват в адреса от конфигурационните данни
+        $conf = core_Packs::getConfig('drdata');
+        if($avoidLines = $conf->DRDATA_AVOID_IN_EXT_ADDRESS) {
+            $avoidLines = explode("\n", $avoidLines);
+            foreach($avoidLines as $l) {
+                $avoid[] = trim($l, "\r");
+            }
+        }
+
+
+        // Какви неща ще откриваме?
+        // $obj->regards - Поздрав
+        // $obj->company - Компания
+        // $obj->person - Лице
+        // $obj->job - Позиция
+        // $obj->country - Държава
+        // $obj->place   - Място
+        // $obj->code    - Код
+        // $obj->address - Адрес
+        // $obj->tel     - Телефон
+        // $obj->fax     - Факс
+        // $obj->web     - Сайт
+        // $obj->email   - Имейл
+
+
+        // Зареждане на масивите
+        static $regards, $companyTypes, $companyWords, $givenNames, $addresses, $titles, $regards, $noStart;
+        
+         
+        
+        if(empty($givenNames)) {
+        	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
+        }
+        
+        if(empty($givenNames)) {
+        	$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
+        }
+
+        if(empty($addresses)) {
+        	$addresses = ' ' . getFileContent('drdata/data/addresses.txt');
+        }
+        
+        if(empty($titles)) {
+        	$titles = ' ' . getFileContent('drdata/data/titles.txt');
+        }
+        
+        if(empty($regards)) {
+        	$regards =  ' ' . str::utf2ascii(getFileContent('drdata/data/regards.txt'));
+        }
+
+        // Парсираме по линии
+        $lines = self::textToLines($text);
+
+        foreach($lines as $l) {
+            $obj = new stdClass();
+            
+            $obj->line = $l;
+            
+            $obj->line = preg_replace("/[ \t]+/", ' ', $obj->line);
+            $obj->_lineLat = trim(str::utf2ascii($obj->line), ' *');
+            $obj->_lineLower = strtolower($obj->_lineLat);
+
+            $obj->_words = self::lineToWords($obj->line);
+            $obj->_wordsLat = self::lineToWords($obj->_lineLat);
+            $obj->_wordsLower = self::lineToWords($obj->_lineLower);
+
+            preg_match_all("/\b([A-Z][a-z]+)\b/", $obj->_lineLat, $matches);
+            $obj->titleCaseCnt = count($matches[1]);
+            
+            preg_match_all("/\b([A-Z]{2,})\b/", $obj->_lineLat, $matches);
+            $obj->upperCaseCnt = count($matches[1]);
+
+            // Проверка за фирми
+            self::rateCompany($obj);
+            
+            // Рейтинг за име на човек
+            self::rateName($obj);
+            
+            // Рейтинг за поздрави
+            self::rateRegards($obj);
+
+            // Ако рейтинга за поздрави е по-голям от 40 и е по-голям от фирмания или персоналния рейтинг, той ги подтиска
+            if($obj->regardsRate > 40) {
+                $obj->companyRate = round($obj->companyRate / (1 + 2*$obj->regardsRate/100));
+                $obj->personRate  = round($obj->personRate  / (1 + 2*$obj->regardsRate/100));
+            }
+
+            $obj->fax = self::extractFaxNumbers($obj->_lineLower);
+            $obj->mob = self::extractMobNumbers($obj->_lineLower, $obj->fax);
+            $obj->tel = self::extractTelNumbers($obj->_lineLower, $obj->fax + $obj->mob);
+            $obj->email = type_Email::extractEmails($obj->_lineLower);
+            $obj->web = core_Url::extractWebAddress($obj->_lineLower);
+
+            $res[] = $obj;
+        }
+
+        $tbl = self::renderTable($res);
+
+        echo $tbl;
+        bp();
+    }
+
+
+    /**
+     * Определяне на рейтинг на текста за име на фирма
+     */
+    static function rateCompany(&$obj)
+    {
+        if(empty(self::$companyTypes)) {
+        	self::$companyTypes = ' ' . getFileContent('drdata/data/companyTypes.txt');
+        }
+        
+        if(empty(self::$companyWords)) {
+        	self::$companyWords = ' ' . getFileContent('drdata/data/companyWords.txt'); 
+        }
+        
+        foreach($obj->_wordsLower as $w) {
+            if(strpos(self::$companyTypes, "|$w|")) {
+                $cnt += 3; 
+            } elseif(strpos(self::$companyWords, "|$w|")) {
+                $cnt += 1;
+            }
+        }
+
+        if($obj->titleCaseCnt) {
+            $cnt += 1;
+        }
+
+        if($obj->upperCaseCnt) {
+            $cnt += 1;
+        }
+
+        if($c = ($obj->upperCaseCnt + $obj->titleCaseCnt)) {
+             $cnt *= ($c / count($obj->_wordsLower) + 0.5);
+        }
+
+        $obj->companyRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
+    }
+
+
+    /**
+     * Определя рейтинга дали даден текст е име на човек
+     */
+    static function rateName($obj)
+    {
+
+        if(empty(self::$givenNames)) {
+        	self::$givenNames = ' ' . getFileContent('drdata/data/givenNames.txt');
+        }
+        
+        if(empty(self::$titles)) {
+        	self::$titles = ' ' . getFileContent('drdata/data/titles.txt'); 
+        }
+        
+        foreach($obj->_wordsLower as $w) {
+
+            if(strpos(self::$givenNames, "|$w|")) { 
+                $cnt += 3;
+            } elseif(strpos(self::$titles, "|$w|")) {
+                $cnt += 2;
+            } elseif(strpos($titles, "|$w|")) {
+                $cnt += 2;
+            } elseif(preg_match("/[a-zA-Z]{2,15}(ov|ova|ev|eva)$/", $w)) {
+                $cnt += 2;
+            } elseif(preg_match("/^[A-Z][a-z]{0,2}\.$/", $w)) {
+                $cnt += 2;
+            } elseif(strlen($w) == 1 || strlen($w) > 15) {
+                $cnt -= 2;
+            }
+        }
+
+        if($obj->titleCaseCnt) {
+            $cnt += ($obj->titleCaseCnt / count($obj->_wordsLower)) * 2;
+            $cnt *= ($obj->titleCaseCnt / count($obj->_wordsLower) + 0.5);
+        }
+
+        if(preg_match("/^(zdravey|zdraveyte|dear|hi|uvazhaemi|hello)/", $obj->_lineLower) ) { 
+            $cnt /= 10;
+        }
+        
+        $obj->personRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
+
+    }
+
+
+
+    /**
+     * Определя рейтинга дали даден текст е име на човек
+     */
+    static function rateRegards($obj)
+    {
+
+        if(empty(self::$regards)) {
+        	self::$regards = ' ' . getFileContent('drdata/data/regards.txt');
+        }
+        
+         
+        foreach($obj->_wordsLower as $w) {
+            if(strpos(self::$regards, "|$w|")) {  
+                $cnt += 2;
+            }
+        }
+
+        if($obj->titleCaseCnt) {
+            $cnt *= 2;
+        }
+
+        if(preg_match("/^(sardechni pozdravi|kind regards|best regards|pozdravi|pozdrav|mit freundlichen|saludos)/", $obj->_lineLower) ) { 
+            $cnt += 10;  
+        }
+        
+        $obj->regardsRate += round(min(100, 15 * ($cnt / count($obj->_wordsLower))));
+
+    }
+
+
+
+
+
+
+
 
    
     /**
@@ -185,8 +441,8 @@ class drdata_Address extends core_MVC
 
         foreach($lines as $id => $l) {
             
-            $aL = trim(str::utf2ascii($l), ' *');
             $aL = preg_replace("/[ \t]+/", ' ', $aL);
+            $aL = trim(str::utf2ascii($l), ' *');
             $lN = strtolower($aL);
             $res[$id] = new drdata_AddrRec($avoid);
             $res[$id]->distance = (strlen($aL) + 20) / 20;
@@ -312,7 +568,7 @@ class drdata_Address extends core_MVC
                     if(strpos($addresses, "|$w|")) {  
                         $addressCnt += $strlen > 1 ? 1 : 0.2;
                     }
-                    
+                    // echo "<li> $w";
                     if(strpos($regards, "|$w|")) {  
                         $regardsCnt += $strlen > 6 ? 1.2 : 1;
                     }
@@ -388,6 +644,11 @@ class drdata_Address extends core_MVC
                     $res[$id]->add('regards', array(trim($l)), round($r, 2));
                     $expected['name'] = 2;
                     $expected['country'] = 12;
+                    
+                    $companyCnt -= 3.2;
+                    $addressCnt -= 3.2;
+                    $nameCnt -= 1.2;
+
                 }
 
                 if(($r = ($companyCnt + 0.03 * $titleCaseCnt + 0.1 * $upperCaseCnt)/(($i == $wordsCnt) ? ($i*($i/10)) : $i) + ($expected['company'] ? 0.2 : 0)) > 0.65) {
@@ -541,7 +802,7 @@ class drdata_Address extends core_MVC
 
         if(is_array($maxBlock) && count($maxBlock)) {
             if(is_array($maxBlock['company']) && count($maxBlock['company'])) {
-                $res->company = $maxBlock['company'][0];
+                $res->company = trim($maxBlock['company'][0], '*;,-#$');
             }
             if(is_array($maxBlock['tel']) && count($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
@@ -568,7 +829,7 @@ class drdata_Address extends core_MVC
                 $res->web = $maxBlock['web'][0];
             }
             if(is_array($maxBlock['name']) && count($maxBlock['name'])) {
-                $res->person = $maxBlock['name'][0];
+                $res->person = trim($maxBlock['name'][0], '*;,-#$');
             }
             if(is_array($maxBlock['mob']) && count($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
@@ -591,5 +852,50 @@ class drdata_Address extends core_MVC
 
             return $matches[1];
         }
+    }
+
+    /**
+     * Функция, която рендира резултатния масив от обекти
+     */
+    static function renderTable($arr)
+    {
+        // Определяне на заглавията
+        $headers = array(); 
+        foreach($arr as $obj) {
+            $names = get_object_vars($obj);
+            foreach($names as $n => $v) {
+                if(($n{0} != '_') && (!in_array($n, $headers))) {
+                    $headers[] = $n;
+                }
+            }
+        }
+
+        // Започваме таблицата
+        $res = "\n<table border='1' cellpadding='3' style='border-collapse: collapse;' class='listTable'>";
+
+        // Отпечатваме заглавията
+        $res .= "\n<tr>";
+        foreach($headers as $h) {
+            $res .= "<th align=left>{$h}</th>";
+        }
+        $res .= "</tr>";
+        
+        
+        // Отпечатваме съдържанието
+        foreach($arr as $obj) {
+            $res .= "\n<tr>";
+            foreach($headers as $h) {
+                if(is_array($obj->{$h})) {
+                    $obj->{$h} = implode(', ', $obj->{$h});
+                }
+                $res .= "<td>" . ($obj->{$h} ?  $obj->{$h} : '&nbsp;') . "</td>";
+            }
+            $res .= "</tr>";
+        }
+        
+        // Завършваме таблицата
+        $res .= "\n</table>";
+
+        return $res;
     }
 }

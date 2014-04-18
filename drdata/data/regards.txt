@@ -10,3 +10,7 @@
 |sporen|
 |sporna|
 |nice|
+|zdrave|
+|uspehi|
+|saludos|
+|gruessen|
