@@ -984,9 +984,8 @@ class email_Mime extends core_BaseClass
         
         if(trim($text, " \n\r\t" . chr(194) . chr(160))) {
             $textRate += 1; 
-            $words = preg_replace('/[^\d\pL\p{Zs}]+/u', ' ', $text);
-            $words = str_replace(' ', '', $words);
-            $textRate += mb_strlen($words);
+            $notWords = preg_replace('/(\pL{2,})/iu', '', $text);
+            $textRate += mb_strlen($text) - mb_strlen($notWords);
         }
 
         return $textRate;
