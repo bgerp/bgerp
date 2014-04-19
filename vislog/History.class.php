@@ -211,31 +211,30 @@ class vislog_History extends core_Manager {
             return $ip;
         }
 
-        $cnt = self::count(array("#ip = '[#1#]'", $ip));
-
-        if($time) {
-            $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
-            $style = 'color:#' . sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0) . ';';
-            $titleCnt = "{$old}/{$cnt}";
-        } else {
-            $style = '';
-            $titleCnt = "{$cnt}";
+        if($cnt = self::count(array("#ip = '[#1#]'", $ip))) {
+            if($time) {
+                $old = self::count(array("#ip = '[#1#]' AND #createdOn <= '[#2#]'", $ip, $time));
+                $style = 'color:#' . sprintf("%02X%02X%02X", min(($old / $cnt) * ($old / $cnt) * ($old / $cnt) * 255, 255),0,0) . ';';
+                $titleCnt = "{$old}/{$cnt}";
+            } else {
+                $style = '';
+                $titleCnt = "{$cnt}";
+            }
+            if(self::haveRightFor('list')) {
+                $count = ht::createLink($titleCnt, 
+                            array('vislog_History', 'ip' => $ip),
+                            NULL,
+                            array('class' => 'vislog-cnt', 'style' => $style));
+            } else {
+                $count = $titleCnt;
+            }
         }
                 
-        if(self::haveRightFor('list')) {
-            $count = ht::createLink($titleCnt, 
-                        array('vislog_History', 'ip' => $ip),
-                        NULL,
-                        array('class' => 'weblog-cnt', 'style' => $style));
-        } else {
-            $count = $titleCnt;
-        }
-        
 
         $country2 =  drdata_IpToCountry::get($ip);
         $countryName = drdata_Countries::fetchField("#letterCode2 = '" . strtoupper($country2) . "'", 'commonName' . (core_Lg::getCurrent() == 'bg' ? 'Bg' : ''));
 
-        $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'weblog-ip', 'title' => $countryName));
+        $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
         
         list($p1, $p2, $p3, $p4) = explode('.', $ip);
         $ip3 = "{$p1}.{$p2}.{$p3}.*";
@@ -250,7 +249,7 @@ class vislog_History extends core_Manager {
             $name = $ip;
         }
  
-        $res = new ET("<div class='weblog'>[#1#]&nbsp;<span class='weblog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);
+        $res = new ET("<div class='vislog'>[#1#]&nbsp;<span class='vislog-ip'>{$name}</span>&nbsp;[#2#]</div>", $country, $count);
 
         return $res;
     }
