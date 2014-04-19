@@ -355,23 +355,32 @@ class email_Salutations extends core_Manager
     
     
     /**
-     * 
+     * Подготвя вербалните стойности за показване
+     * Изпълнява се след основния метод за вербализиране
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Документа
         $doc = doc_Containers::getDocument($rec->containerId);
         
-        // Полетата на документа във вербален вид
-        $docRow = $doc->getDocumentRow();
-        
-        // Документа да е линк към single' а на документа
-        $row->threadId = ht::createLink(str::limitLen($docRow->title,35), array($doc, 'single', $doc->that), NULL, $attr);
-        
-        // Записите за папката
-        $folderRec = doc_Folders::fetch($rec->folderId);
-        
-        // Вземаме линка към папката
-        $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
+        try {
+            // Полетата на документа във вербален вид
+            $docRow = $doc->getDocumentRow();
+            
+            // Документа да е линк към single' а на документа
+            $row->threadId = ht::createLink(str::limitLen($docRow->title, 35), array($doc, 'single', $doc->that), NULL, $attr);
+        } catch(Exception $e) {
+            $row->threadId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+        }
+
+        try {
+            // Записите за папката
+            $folderRec = doc_Folders::fetch($rec->folderId);
+            
+            // Вземаме линка към папката
+            $row->folderId = doc_Folders::recToVerbal($folderRec)->title;
+        } catch(Exception $e) {
+            $row->folderId = "<span style='color:red'>" . tr('Проблем с показването') . "</span>";
+        }
     }
 }
