@@ -141,6 +141,7 @@ class type_Richtext extends type_Blob
         
         if (Mode::is('text', 'plain')) {
             $res = strip_tags($this->toHtml($value));
+            $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
         } else {
             $res = $this->toHtml($value);
         }
