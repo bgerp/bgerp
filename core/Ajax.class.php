@@ -88,23 +88,38 @@ class core_Ajax extends core_Mvc
             try {
                 // Извикваме URL-то
                 $resArr = Request::forward($urlArr);
+                
             } catch (Exception $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url}", static::$logKeepDays);
+                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", static::$logKeepDays);
+                
+                // Ако сме в дебъг режим и сме логнат
+                if (isDebug() && haveRole('user')) {
+                    
+                    // Показваме статус съобщение
+                    core_Statuses::newStatus("|Грешка при вземане на данни за|* {$url} - {$e->getMessage()}", 'warning');
+                }
                 
                 continue;
             }
             
             // Ако няма масив или масива не е масива
-             if (!is_array($resArr)) {
+            if (!is_array($resArr)) {
                 
-                 // Записваме в лога резултата
-                 $resStr = core_Type::mixedToString($resArr);
-                 core_Logs::add($this, NULL, "Некоректен резултат за {$url} - $resStr", static::$logKeepDays);
+                // Записваме в лога резултата
+                $resStr = core_Type::mixedToString($resArr);
+                core_Logs::add($this, NULL, "Некоректен резултат за {$url} - {$resStr}", static::$logKeepDays);
                 
+                // Ако сме в дебъг режим и сме логнат
+                if (isDebug() && haveRole('user')) {
+                    
+                    // Показваме статус съобщение
+                    core_Statuses::newStatus("|Некоректен резултат за|* {$url}", 'warning');
+                }
+                 
                  continue;
-             }
+            }
             
             // Обединяваме масивите
             $jResArr = array_merge($jResArr, $resArr);

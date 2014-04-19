@@ -464,21 +464,23 @@ if($step == 2) {
      
     $log = array();
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
+
+    if(defined('EF_PRIVATE_PATH')) {
+        $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+    } else {
+        $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
+    }
     switch ($checkUpdate) {
         // Не се изисква сетъп
         case FALSE :
-            
-            if(defined('EF_PRIVATE_PATH')) {
-                $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-            } else {
-                $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-            }
-            
+            $reposLastDate = "<table>";
+            $reposLastDate  .= "<tr><td align='right' >Бранч: </td><td align='left' style='font-weight: bold;'>" . BGERP_GIT_BRANCH . "</td></tr>";
             foreach($repos as $repoPath) {
-                $reposLastDate .= "<div>" . basename($repoPath).": " . gitLastCommitDate($repoPath, $log) . " </div> ";
-            }            
+                $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . "</td></tr> ";
+            }
+            $reposLastDate .= "</table>";             
             // Показваме бутони за ъпдейтване и информация за състоянието
-            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||<div style='font-size=6pt;'><div>Бранч: " . BGERP_GIT_BRANCH . "</div> $reposLastDate</div>";
+            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
         case TRUE : 
@@ -499,11 +501,6 @@ if($step == 2) {
             // Ако нито едно от горните не е вярно, да се изведе:
             // 1. Имате най-новата версия на bgERP, може да продължите (отива на следваща стъпка)
             
-            if(defined('EF_PRIVATE_PATH')) {
-                $repos = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-            } else {
-                $repos = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
-            }
             
             // Парамерти от Request, команди => репозиторита
             $update = $_GET['update'];
@@ -562,6 +559,7 @@ if($step == 2) {
     $stat = array();
     
     $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] .= "<div style='font-size:14px;margin-top: 10px; clear:both;'> $reposLastDate</div>";
     
 }
 
@@ -618,7 +616,7 @@ if($step == 3) {
     // Необходими модули на Apache
     $log[] = 'h:Проверка за необходимите Apache модули:';
 
-    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite');
+    $requiredApacheModules = array('core', 'mod_headers', 'mod_mime', 'mod_php5', 'mod_rewrite', 'mod_deflate');
     
     $activeApacheModules = apache_get_modules();
     
@@ -1012,7 +1010,7 @@ function gitLastCommitDate($repoPath, &$log)
     // Първият ред съдържа резултата
     if (gitExec($command, $res)) {
 
-        return trim($res[0]);
+        return trim(substr($res[0], 0, strpos($res[0], " +")));
     }
 
     return FALSE;
