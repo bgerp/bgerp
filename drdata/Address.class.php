@@ -136,14 +136,6 @@ class drdata_Address extends core_MVC
 
 
 
-
-
-
-
-
-
-
-
     /**
      * Извлича данните за контакт от даден текст
      * 
@@ -151,7 +143,7 @@ class drdata_Address extends core_MVC
      * @param $assumed array масив с предварително очаквани данни за контрагента
      * @param $avoid array масив с данни за контрагенти, които не би трябвало да са сред извлечените
      */
-    function extractContact1($text, $assumed = array(), $avoid = array())
+    static function extractContact1($text, $assumed = array(), $avoid = array())
     {
         // Добавяме стринговете, които се избягват в адреса от конфигурационните данни
         $conf = core_Packs::getConfig('drdata');
@@ -229,11 +221,11 @@ class drdata_Address extends core_MVC
             self::rateCompany($obj);
             
             // Рейтинг за име на човек
-            self::rateName($obj);
+            self::ratePerson($obj);
             
             // Рейтинг за поздрави
             self::rateRegards($obj);
-
+            
             // Ако рейтинга за поздрави е по-голям от 40 и е по-голям от фирмания или персоналния рейтинг, той ги подтиска
             if($obj->regardsRate > 40) {
                 $obj->companyRate = round($obj->companyRate / (1 + 2*$obj->regardsRate/100));
@@ -245,14 +237,23 @@ class drdata_Address extends core_MVC
             $obj->tel = self::extractTelNumbers($obj->_lineLower, $obj->fax + $obj->mob);
             $obj->email = type_Email::extractEmails($obj->_lineLower);
             $obj->web = core_Url::extractWebAddress($obj->_lineLower);
+            
+            // Ако рейтинга за поздрави е по-голям от 40 и е по-голям от фирмания или персоналния рейтинг, той ги подтиска
+            if($obj->fax || $obj->mob || $obj->email || $obj->web) {
+                $obj->companyRate = 0;
+                $obj->personRate  = 0;
+            }
+
+            // Проверяваме за начален поздрав
+            self::rateGreeting($obj);
 
             $res[] = $obj;
         }
 
         $tbl = self::renderTable($res);
 
-        echo $tbl;
-        bp();
+       return $tbl;
+ 
     }
 
 
@@ -269,6 +270,8 @@ class drdata_Address extends core_MVC
         	self::$companyWords = ' ' . getFileContent('drdata/data/companyWords.txt'); 
         }
         
+        if(!is_array($obj->_wordsLower)) return;
+
         foreach($obj->_wordsLower as $w) {
             if(strpos(self::$companyTypes, "|$w|")) {
                 $cnt += 3; 
@@ -282,7 +285,7 @@ class drdata_Address extends core_MVC
         }
 
         if($obj->upperCaseCnt) {
-            $cnt += 1;
+            $cnt += 2;
         }
 
         if($c = ($obj->upperCaseCnt + $obj->titleCaseCnt)) {
@@ -296,7 +299,7 @@ class drdata_Address extends core_MVC
     /**
      * Определя рейтинга дали даден текст е име на човек
      */
-    static function rateName($obj)
+    static function ratePerson($obj)
     {
 
         if(empty(self::$givenNames)) {
@@ -307,6 +310,8 @@ class drdata_Address extends core_MVC
         	self::$titles = ' ' . getFileContent('drdata/data/titles.txt'); 
         }
         
+        if(!is_array($obj->_wordsLower)) return;
+
         foreach($obj->_wordsLower as $w) {
 
             if(strpos(self::$givenNames, "|$w|")) { 
@@ -325,13 +330,10 @@ class drdata_Address extends core_MVC
         }
 
         if($obj->titleCaseCnt) {
-            $cnt += ($obj->titleCaseCnt / count($obj->_wordsLower)) * 2;
+            $cnt += ($obj->titleCaseCnt / count($obj->_wordsLower)) * 1.5;
             $cnt *= ($obj->titleCaseCnt / count($obj->_wordsLower) + 0.5);
         }
 
-        if(preg_match("/^(zdravey|zdraveyte|dear|hi|uvazhaemi|hello)/", $obj->_lineLower) ) { 
-            $cnt /= 10;
-        }
         
         $obj->personRate += round(min(100, 25 * ($cnt / count($obj->_wordsLower))));
 
@@ -349,7 +351,8 @@ class drdata_Address extends core_MVC
         	self::$regards = ' ' . getFileContent('drdata/data/regards.txt');
         }
         
-         
+        if(!is_array($obj->_wordsLower)) return;
+
         foreach($obj->_wordsLower as $w) {
             if(strpos(self::$regards, "|$w|")) {  
                 $cnt += 2;
@@ -365,6 +368,20 @@ class drdata_Address extends core_MVC
         }
         
         $obj->regardsRate += round(min(100, 15 * ($cnt / count($obj->_wordsLower))));
+
+    }
+
+
+    static function rateGreeting($obj)
+    {
+        if(preg_match("/^(zdravey|zdraveyte|dear|hi|uvazhaemi|hello)/", $obj->_lineLower) ) { 
+            $obj->greetingRate = 50;
+            $obj->companyRate -= 10;
+            if($obj->personRate > 50) {  
+                $obj->personRate = round($obj->personRate / 3);
+                $obj->companyRate = round($obj->companyRate / 3);
+            }
+        }
 
     }
 
