@@ -819,7 +819,7 @@ class drdata_Address extends core_MVC
 
         if(is_array($maxBlock) && count($maxBlock)) {
             if(is_array($maxBlock['company']) && count($maxBlock['company'])) {
-                $res->company = trim($maxBlock['company'][0], '*;,-#$');
+                $res->company = trim($maxBlock['company'][0], '*;,-#$<>');
             }
             if(is_array($maxBlock['tel']) && count($maxBlock['tel'])) {
                 $res->tel = implode(', ', $maxBlock['tel']);
@@ -846,7 +846,7 @@ class drdata_Address extends core_MVC
                 $res->web = $maxBlock['web'][0];
             }
             if(is_array($maxBlock['name']) && count($maxBlock['name'])) {
-                $res->person = trim($maxBlock['name'][0], '*;,-#$');
+                $res->person = trim($maxBlock['name'][0], '*;,-#$<>');
             }
             if(is_array($maxBlock['mob']) && count($maxBlock['mob'])) {
                 $res->mob = implode(', ', $maxBlock['mob']);
