@@ -741,7 +741,7 @@ class marketing_Inquiries extends core_Master
         $date = dt::mysql2verbal($rec->createdOn, 'd-M');
         $time = dt::mysql2verbal($rec->createdOn, 'H:i');
 
-        $tpl = new ET(tr("Благодаря за Вашето запитване, получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт." ));
+        $tpl = new ET(tr("Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт."), $date, $time);
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
