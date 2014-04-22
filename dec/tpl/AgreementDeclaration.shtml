@@ -1,5 +1,5 @@
 <div class='dec-document'>
-
+<div class='scrolling-holder'>
 <br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--></div><!--ET_END manager-->
 <div>представляващ производителя/доставчика:
 [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#],<!--ET_END MyCompanyVatNo--></div>
@@ -54,5 +54,5 @@
      </table>
      
 
-
+</div>
 </div>

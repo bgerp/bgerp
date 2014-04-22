@@ -8,7 +8,7 @@
 	<h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
 	<p class='centered'>№ [#id#] / [#createdDate#]</p>
 	<br>
-	
+	<div class='scrolling-holder'>
 	<table class='border-table' border=1 cellpadding="5" width=100%>
 	   <tr>
 	       <th>
@@ -40,4 +40,5 @@
        </tr>
        <!--ET_END notes-->
 	</table>
+	</div>
 </div>
