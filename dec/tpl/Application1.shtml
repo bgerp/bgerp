@@ -18,7 +18,7 @@
         
         <tr>
         	<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Седалище на фирмата:  </td>
-        	<td><!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--></td>
+        	<td><!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#]<!--ET_END MyAddress--></td>
         </tr>
 </table>
 </div>

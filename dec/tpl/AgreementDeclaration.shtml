@@ -1,12 +1,12 @@
 <div class='dec-document'>
 <div class='scrolling-holder'>
-<br><div class='indent'>Долуподписаният, [#manager#] <!--ET_BEGIN manager--></div><!--ET_END manager-->
+<br><div class='indent'>Долуподписаният, [#manager#],  <!--ET_BEGIN manager--></div><!--ET_END manager-->
 <div>представляващ производителя/доставчика:
-[#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> номер по ЗДДС / VAT ID [#MyCompanyVatNo#] <!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->ЕИК / UIC[#uicId#],<!--ET_END uicId--></div>
+[#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> номер по ЗДДС / VAT ID [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->ЕИК / UIC[#uicId#],<!--ET_END uicId--></div>
 
 	
 
-<div>във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на продуктите 
+<div>във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на продуктите:
 
 	<!--ET_BEGIN products-->
 			[#products#]
@@ -18,7 +18,7 @@
 
 <div><b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
 <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
-<!--ET_BEGIN contragentCompanyVatNo-->номер по ЗДДС / VAT ID[#contragentCompanyVatNo#]<br>ЕИК / UIC[#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
+<!--ET_BEGIN contragentCompanyVatNo-->номер по ЗДДС / VAT ID[#contragentCompanyVatNo#], ЕИК / UIC[#contragentUicId#],<!--ET_END contragentCompanyVatNo--> 
 </div>
 <br><br>
 <p class="centered"><b>Д Е К Л А Р И Р А М</b> </p>
