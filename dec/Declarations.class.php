@@ -257,11 +257,14 @@ class dec_Declarations extends core_Master
 
         // Ват номера й
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
-        if($uic != $ownCompanyData->vatNo){
-        	$row->MyCompanyVatNo = $ownCompanyData->vatNo;
+        if ($uic != $ownCompanyData->vatNo){
+        	$row->MyCompanyVatNo = ' ' . $ownCompanyData->vatNo;
 
     	} 
-    	$row->uicId = $uic;
+    	
+    	if ($uic) {
+    		$row->uicId = ' ' . $uic;
+    	}
     	
     	// информация за управителя/декларатора
     	if ($recDec->declaratorName) {
