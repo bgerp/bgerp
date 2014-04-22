@@ -91,6 +91,12 @@ class doc_TplManager extends core_Master
 
     
     /**
+     * Файл с шаблон за единичен изглед
+     */
+    var $singleLayoutFile = 'doc/tpl/SingleTemplateLayout.shtml';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, name, docClassId, createdOn, createdBy, state';
@@ -235,7 +241,10 @@ class doc_TplManager extends core_Master
     		}
     	}
     }
-    
+    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	//bp($data->rec, $data->singleFields, $data);
+    }
     
     /**
      * Всяко едно допълнително поле се обработва и информацията
