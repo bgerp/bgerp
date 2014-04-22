@@ -84,6 +84,12 @@ class dec_DeclarationTypes extends core_Master
 
     
     /**
+     * Файл с шаблон за единичен изглед
+     */
+    var $singleLayoutFile = 'dec/tpl/SingleDeclarationTemplateLayout.shtml';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
