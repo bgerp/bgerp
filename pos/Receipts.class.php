@@ -529,13 +529,13 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
     	
-    	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct')), 'ACT1');
+    	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
     	$block->append(ht::createElement('input', array('name' => 'ean', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
     	
-    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'));
-    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'));
+    	$modQUrl = toUrl(array('pos_ReceiptDetails', 'setQuantity'), 'local');
+    	$discUrl = toUrl(array('pos_ReceiptDetails', 'setDiscount'), 'local');
     	$block->append(ht::createSbBtn('Код', 'default', NULL, NULL, array('class' => 'buttonForm')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-modify', 'data-url' => $modQUrl)), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => 'buttonForm', 'id' => 'tools-modify', 'data-url' => $discUrl)), 'FIRST_TOOLS_ROW');
