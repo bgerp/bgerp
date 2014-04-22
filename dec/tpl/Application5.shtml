@@ -9,7 +9,7 @@
 <table>
         <tr>
         	<td class='nowrap' width= 1% align='right' style='padding-right:20px;'>Производител/доставчик:</td>
-        	<td class='nowrap'>[#MyCompany#],<!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#]<!--ET_END MyCompanyVatNo--></td>
+        	<td class='nowrap'>[#MyCompany#],<!--ET_BEGIN MyCompanyVatNo-->, с ЕИН [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId--></td>
         </tr>
         
         <tr>
