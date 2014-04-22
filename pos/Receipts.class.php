@@ -285,7 +285,6 @@ class pos_Receipts extends core_Master {
      */
     function updateReceipt($id)
     {
-    	
     	expect($rec = $this->fetch($id));
     	$rec->total = $rec->paid = $rec->change = $rec->productCount = 0;
     	
@@ -558,7 +557,7 @@ class pos_Receipts extends core_Master {
     	$formChoose->view = 'horizontal';
     	$formChoose->formAttr['id'] = 'searchForm';
     	$formChoose->method = 'POST';
-    	$formChoose->action = array('pos_ReceiptDetails', 'addProduct');
+    	$formChoose->action = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
     	$formChoose->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input,placeholder=Продукт');
     	$formChoose->setOptions('productId', cat_Products::getByProperty('canSell'));
     	$formChoose->FLD('receiptId', 'key(mvc=pos_Receipts)', 'input=hidden');
@@ -580,11 +579,10 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
     	
-    	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'));
+    	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
     	$block->append(ht::createElement('input', array('name' => 'paysum', 'style' => 'text-align:right')) . "<br />", 'PAYMENTS');
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
-	    	$url = json_encode(array($this->className, 'makePayment'));
 	    	$attr = array('class' => 'actionBtn paymentBtn', 'data-type' => "$payment->id", 'data-url' => $payUrl);
 	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENTS');
 	    }

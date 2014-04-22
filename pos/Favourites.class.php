@@ -264,7 +264,7 @@ class pos_Favourites extends core_Manager {
 		$attr = array('isAbsolute' => FALSE, 'qt' => '');
         $size = array(80, 'max' => TRUE);
     	foreach($products as $row) {
-    		$row->url = toUrl(array('pos_ReceiptDetails', 'addProduct'));
+    		$row->url = toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local');
     		if($row->image){
     			$imageUrl = thumbnail_Thumbnail::getLink($row->image, $size, $attr);
     			$row->image = ht::createElement('img', array('src' => $imageUrl, 'width'=>'90px', 'height'=>'90px'));
