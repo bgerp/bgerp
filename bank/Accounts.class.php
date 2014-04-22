@@ -328,9 +328,10 @@ class bank_Accounts extends core_Master {
      * 
      * @param int $contragentId - контрагент
      * @param mixed $contragentClass - класа на контрагента
+     * @param int $intKeys - дали ключовете да са инт
      * @return array() $suggestions - Масив от сметките на клиента
      */
-    static function getContragentIbans($contragentId, $contragentClass)
+    static function getContragentIbans($contragentId, $contragentClass, $intKeys = FALSE)
     {
     	$Contragent = cls::get($contragentClass);
     	$suggestions[''] = '';
@@ -340,7 +341,8 @@ class bank_Accounts extends core_Master {
     	
     	while($rec = $query->fetch()) {
     		$iban = static::getVerbal($rec, 'iban');
-	    	$suggestions[$iban] = $iban;
+    		$key = ($intKeys) ? $rec->id : $rec->iban;
+	    	$suggestions[$key] = $iban;
 	    }
 	    
 	    return $suggestions;
