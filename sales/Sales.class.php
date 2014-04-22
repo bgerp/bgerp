@@ -192,7 +192,7 @@ class sales_Sales extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Начин,salecondSysId=paymentMethodSale');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
         // Наш персонал
@@ -423,9 +423,13 @@ class sales_Sales extends core_Master
     protected static function setDefaults(core_Mvc $mvc, core_Form $form)
     {
         $form->setDefault('valior', dt::now());
+        $myCompany = crm_Companies::fetchOwnCompany();
+        
+        $form->setOptions('bankAccountId',  bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE));
         
         if(empty($form->rec->id)){
-        	$form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
+        	
+        	$form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('bankAccountId', FALSE));
 	        $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
 	        $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         }

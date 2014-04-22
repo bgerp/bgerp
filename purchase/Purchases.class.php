@@ -192,7 +192,7 @@ class purchase_Purchases extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)', 'caption=Плащане->Начин,salecondSysId=paymentMethodPurchase');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Плащане->Валута');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова сметка');
+        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Банкова сметка');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
         
         // Наш персонал
@@ -221,12 +221,12 @@ class purchase_Purchases extends core_Master
         $form = &$data->form;
         $form->setDefault('valior', dt::now());
         
-        $form->setDefault('bankAccountId',bank_OwnAccounts::getCurrent('id', FALSE));
+        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
+        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
+        $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('caseId', cash_Cases::getCurrent('id', FALSE));
         $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', FALSE));
         
-        $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
-        $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         
         if (empty($data->form->rec->makeInvoice)) {
             $form->setDefault('makeInvoice', 'yes');
@@ -620,6 +620,19 @@ class purchase_Purchases extends core_Master
     		// Записване на покупката като отворена сделка
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
+    	
+    	// Ако има въведена банкова сметка, която я няма в системата я вкарваме
+    	if(isset($rec->bankAccountId)){
+    		if(!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))){
+    			$newAcc = new stdClass();
+    			$newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+    			$newAcc->iban = $rec->bankAccountId;
+    			$newAcc->contragentCls = $rec->contragentClassId;
+    			$newAcc->contragentId = $rec->contragentId;
+    			bank_Accounts::save($newAcc);
+    			core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
+    		}
+    	}
     }
     
     
@@ -642,12 +655,6 @@ class purchase_Purchases extends core_Master
     	if(empty($actions['pay']) && $rec->caseId){
 	    	$toCashiers = cash_Cases::fetchField($rec->caseId, 'cashiers');
 	    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $toCashiers);
-    	}
-    		
-    	// Ако има б. сметка се нотифицират операторите и
-    	if($rec->bankAccountId){
-    		$operators = bank_OwnAccounts::fetchField($rec->bankAccountId, 'operators');
-    		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
     	}
     		
     	// Текущия потребител се премахва от споделянето
@@ -723,7 +730,7 @@ class purchase_Purchases extends core_Master
         $result->agreed->delivery->storeId      = $rec->shipmentStoreId;
         $result->agreed->delivery->time         = $rec->deliveryTime;
         $result->agreed->payment->method        = $rec->paymentMethodId;
-        $result->agreed->payment->bankAccountId = $rec->bankAccountId;
+        $result->agreed->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
         $result->agreed->payment->caseId        = $rec->caseId;
         
     	if (isset($actions['pay'])) {
@@ -733,7 +740,7 @@ class purchase_Purchases extends core_Master
             $result->paid->rate                   = $rec->currencyRate;
             $result->paid->vatType 				  = $rec->chargeVat;
             $result->paid->payment->method        = $rec->paymentMethodId;
-            $result->paid->payment->bankAccountId = $rec->bankAccountId;
+            $result->paid->payment->bankAccountId = bank_Accounts::fetchField("#iban = '{$rec->bankAccountId}'", 'id');
             $result->paid->payment->caseId        = $rec->caseId;
         }
 
