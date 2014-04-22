@@ -247,7 +247,7 @@ class dec_Declarations extends core_Master
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
-            $address .= '&nbsp;' . $ownCompanyData->address;
+            $address .= ' ' . $ownCompanyData->address;
         } 
         
         $Varchar = cls::get('type_Varchar');
@@ -313,7 +313,7 @@ class dec_Declarations extends core_Master
     		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
-	            $addressContragent .= '&nbsp;' . $rec->contragentAddress;
+	            $addressContragent .= ' ' . $rec->contragentAddress;
 	        }
 	        $row->contragentCompany = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 	        $row->contragentCountry = drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg');
