@@ -2128,10 +2128,14 @@ p.richtext {
 	font-size: 0.9em;
 }
 
-.richtext h1, .richtext h2, .richtext h3 {
+.richtext h1, .richtext h2, .richtext h3, .richtext h4, .richtext h5, .richtext h6{
 	margin-top: 0px;
 	margin-bottom: 5px;
 	line-height: normal;
+}
+
+a.header{
+       padding: 0 !important;
 }
 
 .narrow .richtext h1 {
@@ -2276,7 +2280,7 @@ div.richtext ol ol {
        padding: 0 !important;
        display: block;
        clear: both;
-       margin: 1em 0 1em 0!important;
+       margin: 1em 0 1em 0 !important;
     }
 	.header:first-child{
 	   padding: 0 !important;
