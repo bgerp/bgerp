@@ -241,10 +241,7 @@ class doc_TplManager extends core_Master
     		}
     	}
     }
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-    	//bp($data->rec, $data->singleFields, $data);
-    }
+    
     
     /**
      * Всяко едно допълнително поле се обработва и информацията
