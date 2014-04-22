@@ -642,33 +642,44 @@ class pos_ReceiptDetails extends core_Detail {
 			}
 		}
 	}
-    
-    
+	
+	
     /**
+     * Използва се от репортите за извличане на данни за продажбата
+     * 
      * @param int $receiptId - ид на бележка
-     * @return array $result - масив от всички
-     * плащания и продажби на бележката;
+     * @return array $result - масив от всички плащания и продажби на бележката;
      */
     static function fetchReportData($receiptId)
     {
     	expect($masterRec = pos_Receipts::fetch($receiptId));
+    	$storeId = pos_Points::fetchField($masterRec->pointId, 'storeId');
+    	$cashId = pos_Points::fetchField($masterRec->pointId, 'caseId');
+    	
     	$result = array();
     	$query = static::getQuery();
+    	$query->EXT('contragentClsId', 'pos_Receipts', 'externalName=contragentClass,externalKey=receiptId');
+    	$query->EXT('contragentId', 'pos_Receipts', 'externalName=contragentObjectId,externalKey=receiptId');
     	$query->where("#receiptId = {$receiptId}");
     	$query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
+    	
     	while($rec = $query->fetch()) {
     		$arr = array();
+    		$obj = new stdClass();
     		if($rec->productId) {
     			$arr['action'] = 'sale';
     			$arr['value'] = $rec->productId;
     			($rec->value) ? $arr['pack'] = $rec->value : $arr['pack'] = 0;
+    			$obj->storeId = $storeId;
     		} else {
     			$arr['action'] = 'payment';
     			list(, $arr['value']) = explode('|', $rec->action);
     			$arr['pack'] = 0;
+    			$obj->cashId = $cashId;
     		}
     		$index = implode('|', $arr);
-    		$obj = new stdClass();
+    		$obj->contragentClassId = $rec->contragentClsId;
+    		$obj->contragentId = $rec->contragentId;
     		$obj->action = $arr['action'];
     		$obj->quantity = $rec->quantity;
     		$obj->amount = $rec->amount + ($rec->amount * $rec->param);
