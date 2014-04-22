@@ -4,22 +4,24 @@
 <br><h3><p class="centered">ДЕКЛАРАЦИЯ ЗА СЪОТВЕТСТВИЕ<br></p></h3><p class="centered"><b>с изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки</b></p>
 
 <br><br>
-<table class='indent'>
+<div class='scrolling-holder'>
+<table>
         <tr>
-        	<td class='nowrap' width=10%>Производител/доставчик:</td>
-        	<td class='nowrap' width=10%>[#MyCompany#],<!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#]<!--ET_END MyCompanyVatNo--></td>
+        	<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Производител/доставчик:</td>
+        	<td>[#MyCompany#],<!--ET_BEGIN MyCompanyVatNo--> с ЕИН [#MyCompanyVatNo#][#uicId#]<!--ET_END MyCompanyVatNo--></td>
         </tr>
         
         <tr>
-       		<td class='nowrap' width=10%>Представляван от:</td>
-        	<td class='nowrap' width=10%><!--ET_BEGIN manager-->[#manager#]<!--ET_END manager--></td>
+       		<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Представляван от:</td>
+        	<td><!--ET_BEGIN manager-->[#manager#]<!--ET_END manager--></td>
         </tr>
         
         <tr>
-        	<td class='nowrap' width=10%>Седалище на фирмата:  </td>
-        	<td class='nowrap' width=10%><!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--></td>
+        	<td class='nowrap'  width= 1%  align='right' style='padding-right:20px;'>Седалище на фирмата:  </td>
+        	<td><!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--></td>
         </tr>
 </table>
+</div>
 <br><br>
 <p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
 <br>
@@ -50,6 +52,7 @@
  <br>
  <br>
  <br>
+  <div class='scrolling-holder'>
      <table class='signiture'>
         <tr>
         <td width=1%>Декларатор: </td>
@@ -60,4 +63,5 @@
         <td class='nowrap' width=1%><span class="sign_names"><!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo--></span></td>
         </tr>
      </table>
+  </div>
 </div>
