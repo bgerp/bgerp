@@ -642,8 +642,12 @@ class pos_ReceiptDetails extends core_Detail {
 			}
 		}
 	}
-	
-	
+    
+    function act_Test(){
+    	$id = '51';
+    	$data = static::fetchReportData($id);
+    	bp($data);
+    }
     /**
      * Използва се от репортите за извличане на данни за продажбата
      * 
@@ -654,7 +658,7 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	expect($masterRec = pos_Receipts::fetch($receiptId));
     	$storeId = pos_Points::fetchField($masterRec->pointId, 'storeId');
-    	$cashId = pos_Points::fetchField($masterRec->pointId, 'caseId');
+    	$caseId = pos_Points::fetchField($masterRec->pointId, 'caseId');
     	
     	$result = array();
     	$query = static::getQuery();
@@ -667,24 +671,23 @@ class pos_ReceiptDetails extends core_Detail {
     		$arr = array();
     		$obj = new stdClass();
     		if($rec->productId) {
-    			$arr['action'] = 'sale';
-    			$arr['value'] = $rec->productId;
-    			($rec->value) ? $arr['pack'] = $rec->value : $arr['pack'] = 0;
+    			$obj->action  = 'sale';
+    			$obj->pack    = ($rec->value) ?  $rec->value : NULL;
+    			$obj->value   = $rec->productId;
     			$obj->storeId = $storeId;
     		} else {
-    			$arr['action'] = 'payment';
-    			list(, $arr['value']) = explode('|', $rec->action);
-    			$arr['pack'] = 0;
-    			$obj->cashId = $cashId;
+    			$obj->action = 'payment';
+    			list(, $obj->value) = explode('|', $rec->action);
+    			$obj->pack = NULL;
+    			$obj->caseId = $caseId;
     		}
-    		$index = implode('|', $arr);
     		$obj->contragentClassId = $rec->contragentClsId;
-    		$obj->contragentId = $rec->contragentId;
-    		$obj->action = $arr['action'];
-    		$obj->quantity = $rec->quantity;
-    		$obj->amount = $rec->amount + ($rec->amount * $rec->param);
-    		$obj->date = $masterRec->createdOn;
-    		$result[$index] = $obj;
+    		$obj->contragentId      = $rec->contragentId;
+    		$obj->quantity          = $rec->quantity;
+    		$obj->amount            = $rec->amount + ($rec->amount * $rec->param);
+    		$obj->date              = $masterRec->createdOn;
+    		
+    		$result[] = $obj;
     	}
     	
     	return $result;

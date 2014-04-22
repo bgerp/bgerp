@@ -289,7 +289,7 @@ class pos_Reports extends core_Master {
     	arr::orderA($detail->receiptDetails, 'action');
 	    
     	// Табличната информация и пейджъра на плащанията
-	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}),placeId=Място";
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
@@ -316,7 +316,7 @@ class pos_Reports extends core_Master {
     		 for($i = 0; $i < count($detail->rows); $i++){
     		 	if($i >= $start && $i <= $end){
     		 		$keys = array_keys($detail->rows);
-    		 		$newRows[] = $this->getVerbalDetail($keys[$i], $detail->rows[$keys[$i]]);
+    		 		$newRows[] = $this->getVerbalDetail($detail->rows[$keys[$i]]);
     		 	}
     		 }
     		 
@@ -334,42 +334,40 @@ class pos_Reports extends core_Master {
      * @param stdClass $rec-> запис на продажба или плащане
      * @return stdClass $row-> вербалния вид на записа
      */
-    private function getVerbalDetail($index, $obj)
+    private function getVerbalDetail($obj)
     {
     	$row = new stdClass();
-    	list($row->action, $row->value, $row->pack) = explode('|', $index);
-    	list(, $row->quantity, $row->amount,$row->createdOn) = array_values((array)$obj);
     	
     	$varchar = cls::get("type_Varchar");
     	$double = cls::get("type_Double");
     	$double->params['decimals'] = 2;
-    	$row->amount = $double->toVerbal($row->amount); 
-    	$currencyCode = acc_Periods::getBaseCurrencyCode($row->createdOn);
+    	
+    	$currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
     	$double->params['decimals'] = 0;
-    	if($row->action == 'sale') {
+    	if($obj->action == 'sale') {
     		
     		// Ако детайла е продажба
     		$row->ROW_ATTR['class'] = 'report-sale';
-    		$info = cat_Products::getProductInfo($row->value, $row->pack);
+    		$info = cat_Products::getProductInfo($obj->value, $obj->pack);
     		$product = $info->productRec;	
-    		if($row->pack){
-    			$row->pack = cat_Packagings::getTitleById($row->pack);
-    		} else {
-    			$row->pack = cat_UoM::getTitleById($product->measureId);
-    		}
+    		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($product->measureId);
     		$icon = sbf("img/16/wooden-box.png");
     		$row->value = $product->code . " - " . $product->name;
     		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $row->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
+    		$row->placeId = store_Stores::getHyperLink($obj->storeId, TRUE);
     	} else {
     		
     		// Ако детайла е плащане
     		$row->pack = $currencyCode;
-    		$value = pos_Payments::getTitleById($row->value);
+    		$value = pos_Payments::getTitleById($obj->value);
     		$row->value = tr("Плащания") . ": &nbsp;<i>{$value}</i>";
     		$row->ROW_ATTR['class'] = 'report-payment';
+    		$row->placeId = cash_Cases::getHyperLink($obj->caseId, TRUE);
     	}
     	
-    	$row->quantity = $double->toVerbal($row->quantity);
+    	//$row->client = "<span style='white-space:nowrap;'>" . cls::get($obj->contragentClassId)->getHyperLink($obj->contragentId, TRUE) . "</span>";
+    	$row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . "</span>";
+    	$row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . "</span>"; 
     	
     	return $row;
     }
@@ -443,12 +441,13 @@ class pos_Reports extends core_Master {
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
-	    	foreach($data as $index => $obj){
+	    	foreach($data as $obj){
+	    		$index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
 	    		if (!array_key_exists($index, $results)) {
 	    			$results[$index] = $obj;
 	    		} else {
 	    			$results[$index]->quantity += $obj->quantity; 
-	    			$results[$index]->amount += $obj->amount; 
+	    			$results[$index]->amount += $obj->amount;
 	    		}
 	    	}
     	}
