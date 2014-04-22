@@ -1101,7 +1101,7 @@ class sales_Sales extends core_Master
     		
     	// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
-    		$operators = bank_OwnAccounts::fetchField($rec->bankAccountId,'operators');
+    		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
     		$rec->sharedUsers = keylist::merge($rec->sharedUsers, $operators);
     	}
     		
