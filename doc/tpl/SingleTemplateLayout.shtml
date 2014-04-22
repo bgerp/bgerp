@@ -21,10 +21,6 @@
                     <td> [#lang#]</td>
                 </tr>
                 <tr>
-                    <td class="title-style">hash</td>
-                    <td>[#hash#]</td>
-                </tr>
-                <tr>
                     <td class="title-style" width="150px">|Видимост|*</td>
                     <td> [#state#]</td>
                 </tr>
