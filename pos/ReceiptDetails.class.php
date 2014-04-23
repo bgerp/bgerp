@@ -673,8 +673,11 @@ class pos_ReceiptDetails extends core_Detail {
     		if($rec->productId) {
     			$obj->action  = 'sale';
     			$obj->pack    = ($rec->value) ?  $rec->value : NULL;
+    			$pInfo = cat_Products::getProductInfo($rec->productId, 1);
+    			$obj->quantityInPack = ($info->packagingRec) ? $info->packagingRec->quantity : 1;
     			$obj->value   = $rec->productId;
     			$obj->storeId = $storeId;
+    			$obj->param   = $rec->param;
     		} else {
     			$obj->action = 'payment';
     			list(, $obj->value) = explode('|', $rec->action);
@@ -684,7 +687,7 @@ class pos_ReceiptDetails extends core_Detail {
     		$obj->contragentClassId = $rec->contragentClsId;
     		$obj->contragentId      = $rec->contragentId;
     		$obj->quantity          = $rec->quantity;
-    		$obj->amount            = $rec->amount + ($rec->amount * $rec->param);
+    		$obj->amount            = $rec->amount * (1 - $rec->discountPercent);
     		$obj->date              = $masterRec->createdOn;
     		
     		$result[] = $obj;

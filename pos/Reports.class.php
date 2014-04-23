@@ -19,7 +19,7 @@ class pos_Reports extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl';
     
     
     /**
@@ -37,8 +37,8 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, 
-   					bgerp_plg_Blank, doc_ActivatePlg, plg_Sorting';
+   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, 
+   					bgerp_plg_Blank, plg_Sorting';
    
     
     /**
@@ -74,7 +74,7 @@ class pos_Reports extends core_Master {
 	/**
      * Абревиатура
      */
-    var $abbr = "Otch";
+    var $abbr = "Otc";
  
     
     /**
@@ -97,9 +97,9 @@ class pos_Reports extends core_Master {
     
 	
     /**
-     * Кой има право да активира?
+     * Кой има право да контира?
      */
-    var $canActivate = 'pos, ceo';
+    var $canConto = 'pos, ceo';
     
     
     /**
@@ -121,7 +121,7 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * 
+     * Поле за филтриране по дата
      */
     var $filterDateField = 'createdOn';
     
@@ -168,13 +168,13 @@ class pos_Reports extends core_Master {
 		
 		if($filter = $data->listFilter->rec) {
 				
-				if($filter->user) {
-	    			$data->query->where("#cashier = {$filter->user}");
-	    		}
+			if($filter->user) {
+	    		$data->query->where("#cashier = {$filter->user}");
+	    	}
 	    		
-	    		if($filter->point) {
-	    			$data->query->where("#pointId = {$filter->point}");
-	    		}
+	    	if($filter->point) {
+	    		$data->query->where("#pointId = {$filter->point}");
+	    	}
 	    }
 	}
 	
@@ -197,11 +197,15 @@ class pos_Reports extends core_Master {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	
-    	$storeId = pos_Points::fetchField($rec->pointId, 'storeId');
-    	$row->storeId = store_Stores::getTitleById($storeId);
-    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	$row->title = "Отчет за POS продажба №{$rec->id}";
+    	
+    	if($fields['-single']) {
+    		$pointRec = pos_Points::fetch($rec->pointId);
+    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+	    	$row->storeId = store_Stores::getHyperLink($pointRec->storeId, TRUE);
+	    	$row->caseId = cash_Cases::getHyperLink($pointRec->caseId, TRUE);
+	    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+    	}
     	
     	if($fields['-list']) {
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
@@ -231,7 +235,7 @@ class pos_Reports extends core_Master {
     		}
     		
     		$form->rec->folderId = pos_Points::forceCoverAndFolder($form->rec->pointId);
-    	}
+    	}	
     }
     
     
@@ -241,7 +245,7 @@ class pos_Reports extends core_Master {
      * активация на документа
      * @param stdClass $rec - запис от модела
      */
-    private function extractData(&$rec)
+    public function extractData(&$rec)
     {
     	// Извличаме информацията от бележките
     	$reportData = $this->fetchData($rec->pointId, $rec->cashier);
@@ -289,7 +293,7 @@ class pos_Reports extends core_Master {
     	arr::orderA($detail->receiptDetails, 'action');
 	    
     	// Табличната информация и пейджъра на плащанията
-	    $detail->listFields = "value=Действие, pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency}),placeId=Място";
+	    $detail->listFields = "value=Действие,client=Контрагент,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
@@ -343,18 +347,16 @@ class pos_Reports extends core_Master {
     	$double->params['decimals'] = 2;
     	
     	$currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
-    	$double->params['decimals'] = 0;
+    	$row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . "</span>";
     	if($obj->action == 'sale') {
     		
     		// Ако детайла е продажба
     		$row->ROW_ATTR['class'] = 'report-sale';
     		$info = cat_Products::getProductInfo($obj->value, $obj->pack);
-    		$product = $info->productRec;	
-    		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($product->measureId);
+    		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($info->productRec->measureId);
     		$icon = sbf("img/16/wooden-box.png");
-    		$row->value = $product->code . " - " . $product->name;
-    		$row->value = ht::createLink($row->value, array("cat_Products", 'single', $row->value), NULL, array('style' => "background-image:url({$icon})", 'class' => 'linkWithIcon'));
-    		$row->placeId = store_Stores::getHyperLink($obj->storeId, TRUE);
+    		$row->value = cat_Products::getHyperlink($obj->value, TRUE);
+    		$obj->amount *= 1 + $obj->param;
     	} else {
     		
     		// Ако детайла е плащане
@@ -362,11 +364,10 @@ class pos_Reports extends core_Master {
     		$value = pos_Payments::getTitleById($obj->value);
     		$row->value = tr("Плащания") . ": &nbsp;<i>{$value}</i>";
     		$row->ROW_ATTR['class'] = 'report-payment';
-    		$row->placeId = cash_Cases::getHyperLink($obj->caseId, TRUE);
+    		unset($row->quantity);
     	}
     	
-    	//$row->client = "<span style='white-space:nowrap;'>" . cls::get($obj->contragentClassId)->getHyperLink($obj->contragentId, TRUE) . "</span>";
-    	$row->quantity = "<span style='float:right'>" . $double->toVerbal($obj->quantity) . "</span>";
+    	$row->client = "<span style='white-space:nowrap;'>" . cls::get($obj->contragentClassId)->getHyperLink($obj->contragentId, TRUE) . "</span>";
     	$row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . "</span>"; 
     	
     	return $row;
@@ -378,13 +379,13 @@ class pos_Reports extends core_Master {
      */
     function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
-    	$title = "Отчет за POS продажба №{$rec->id}";
-        $row = new stdClass();
-        $row->title = $title;
+    	$rec           = $this->fetch($id);
+    	$title         = "Отчет за POS продажба №{$rec->id}";
+        $row           = new stdClass();
+        $row->title    = $title;
         $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->state = $rec->state;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
+        $row->state    = $rec->state;
 		$row->recTitle = $title;
 		
         return $row;
@@ -463,14 +464,16 @@ class pos_Reports extends core_Master {
     {
     	// Обновяваме информацията в репорта, ако има промени
     	$mvc->extractData($rec);
+    	$count = 0;
     	
     	// Всяка бележка в репорта се "затваря"
     	foreach($rec->details['receipts'] as $receiptRec){
     		$receiptRec->state = 'closed';
     		pos_Receipts::save($receiptRec);
+    		$count++;
     	}
     	
-    	$mvc->save($rec);
+    	core_Statuses::newStatus(tr("|Приключени са|* '{$count}' |бележки за продажба|*"));
     }
     
     
