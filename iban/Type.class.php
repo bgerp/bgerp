@@ -126,8 +126,10 @@ class iban_Type extends type_Varchar
      */
     function toVerbal($value)
     {
-        $value = $this->removeDs($value);
-         
+        if(empty($value)) return NULL;
+        
+    	$value = $this->removeDs($value);
+        
         return type_Varchar::escape($value);
     }
     
