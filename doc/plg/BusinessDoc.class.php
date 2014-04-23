@@ -108,7 +108,13 @@ class doc_plg_BusinessDoc extends core_Plugin
     protected static function getRetUrl(core_Mvc $mvc)
     {
         if (!$retUrl = getRetUrl()) {
-            $retUrl = array($mvc, 'list');
+            
+            // Ако има права за листване
+            if ($mvc->haveRightFor('list')) {
+                $retUrl = array($mvc, 'list');
+            } else {
+                $retUrl = FALSE;
+            }
         }
         
         return $retUrl;
