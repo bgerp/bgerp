@@ -211,9 +211,6 @@ class fileman_Setup extends core_ProtoSetup
             }
         }
         
-        //Инсталиране на плъгина за проверка на разширенията
-        $setExtPlg = cls::get('fileman_SetExtensionPlg');
-        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
