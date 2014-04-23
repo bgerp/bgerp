@@ -5,6 +5,6 @@
 Резервни части,Резервни части за поддръжка и ремонт,replacements,"canBuy,canConvert,canStore",public
 Стоки,Стоки за препродажба,goods,"canBuy,canSell,canStore",public
 Продукти,Произвеждани стандартни продукти по каталог,products,"canManifacture,canSell,canStore",public
-Заготовки,Полуготови (междинни) продукти за влагане в производството,prefabrications,"canManifacture,canStore",public
-Услуги,Предлагани от фирмата услуги,services,"canManifacture,canSell",public
+Заготовки,Полуготови (междинни) продукти за влагане в производството,prefabrications,"canManifacture,canStore,canConvert",public
+Услуги,Предлагани от фирмата услуги,services,"canManifacture,canConvert,canSell",public
 Дълготрайни активи,"Машини, съоръжения, оборудване, инструменти ...",fixedAssets,"canBuy,canSell,fixedAsset",public
