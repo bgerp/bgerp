@@ -152,7 +152,7 @@ class bank_SpendingDocuments extends core_Master
     	$this->FLD('rate', 'double(smartRound)', 'caption=Курс,width=6em');
     	$this->FNC('tempRate', 'double', 'caption=Валута->Курс,width=6em');
     	$this->FLD('reason', 'richtext(rows=2)', 'caption=Основание,width=100%,mandatory');
-    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Б. сметка,mandatory,width=16em');
+    	$this->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=bankAccountId)', 'caption=От->Банк. сметка,mandatory,width=16em');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory,width=16em');
     	$this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка,width=16em'); 
     	$this->FLD('contragentId', 'int', 'input=hidden,notNull');

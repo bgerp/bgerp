@@ -145,7 +145,7 @@ class cash_InternalMoneyTransfer extends core_Master
     	$this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)','caption=От->Каса,width=300px');
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Б. Сметка,width=20em,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,width=20em,input=none');
     	$this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
