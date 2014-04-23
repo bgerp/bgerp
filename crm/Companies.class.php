@@ -91,7 +91,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,Id';
+    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,id';
     
 
     /**
