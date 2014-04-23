@@ -108,7 +108,7 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    var $searchFields = 'name,egn,country,place,email,info';
+    var $searchFields = 'name,egn,country,place,email,info,Id';
 
 
     /**
