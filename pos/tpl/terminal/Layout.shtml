@@ -5,7 +5,7 @@
 				<div class="clearfix21"></div>			
 				<div id='tools-holder'>
 				<ul id ='tools-tabs' class='pos-tabs'>[#TABS#]</ul>
-				<!--ET_BEGIN TOOLS-->
+				<!--ET_BEGIN TOOLS-->[#TOOLS#]
 					<div class='pos-tab-content tabs-holder-content'>
 					
 						<div class='tab-content active' id = 'tools-form'> [#TAB_TOOLS#]</div>
@@ -36,7 +36,7 @@
 </div>
 <div id='tools-wide-holder' class='tabs-holder'>
 	<ul id ='tools-wide-tabs' class='pos-tabs'>[#TABS_WIDE#]</ul>
-	
+	<!--ET_BEGIN WIDE_RIGHT_PANEL-->[#WIDE_RIGHT_PANEL#]
 	<div class='tools-wide-select-content tabs-holder-content'>
 	               <!--ET_BEGIN CHOOSE_DIV_WIDE-->
                     <div class='tab-content active' id = 'tools-choose'>
@@ -50,4 +50,5 @@
                     </div>
                     <!--ET_END SEARCH_DIV_WIDE-->
 	</div>
+	<!--ET_END WIDE_RIGHT_PANEL-->
 </div>
