@@ -150,7 +150,7 @@ class sales_SalesDetails extends core_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double', 'caption=Цена,input');
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
+        $this->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
     }
     
     
