@@ -332,8 +332,9 @@ class cash_InternalMoneyTransfer extends core_Master
     		if($rec->rate != '1') {
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
-	    		$row->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
-    			$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
+	    		$equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
+    			$row->equals = $mvc->fields['amount']->type->toVerbal($equals);
+	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
     		
     		// Показваме заглавието само ако не сме в режим принтиране
