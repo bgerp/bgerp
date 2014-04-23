@@ -517,6 +517,10 @@ class purchase_Purchases extends core_Master
 	    	if($rec->makeInvoice == 'no'){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
+			
+			if(!$rec->bankAccountId){
+				unset($row->bankAccountId);
+			}
 	    }
     }
 
