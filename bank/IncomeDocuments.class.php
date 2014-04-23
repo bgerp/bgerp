@@ -449,6 +449,7 @@ class bank_IncomeDocuments extends core_Master
                     'debit' => array(
                         $rec->debitAccId,
                             array('bank_OwnAccounts', $rec->ownAccount),
+                            array('currency_Currencies', $rec->currencyId),
                         'quantity' => $rec->amount,
                     ),
                     

@@ -459,6 +459,7 @@ class bank_SpendingDocuments extends core_Master
                     'credit' => array(
                         $rec->creditAccId,
                             array('bank_OwnAccounts', $rec->ownAccount),
+                            array('currency_Currencies', $rec->currencyId),
                         'quantity' => $rec->amount,
                     ),
                 ),
