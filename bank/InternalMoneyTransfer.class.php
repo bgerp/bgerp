@@ -389,13 +389,13 @@ class bank_InternalMoneyTransfer extends core_Master
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
         $entry = array(
             'amount' => $amount,
-            'debit' => array(
+            'credit' => array(
                 $rec->creditAccId,
         		array('bank_OwnAccounts', $rec->creditBank),
         		array('currency_Currencies', $rec->currencyId),
                 'quantity' => $rec->amount
             ),
-            'credit' => array(
+            'debit' => array(
                 $rec->debitAccId,
             	$debitArr,
             	array('currency_Currencies', $rec->currencyId),

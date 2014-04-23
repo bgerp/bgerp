@@ -371,13 +371,13 @@ class cash_InternalMoneyTransfer extends core_Master
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
         $entry = array(
             'amount' => $amount,
-            'debit' => array(
+            'credit' => array(
                 $rec->creditAccId,
         		array('cash_Cases', $rec->creditCase),
         		array('currency_Currencies', $rec->currencyId),
                 'quantity' => $rec->amount
             ),
-            'credit' => array(
+            'debit' => array(
                 $rec->debitAccId,
             	$debitArr,
             	array('currency_Currencies', $rec->currencyId),
