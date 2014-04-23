@@ -14,6 +14,11 @@
 	display:inline-block;
 }
 
+.narrow #single-receipt{
+    display:block;
+    max-width: 600px;
+}
+
 .narrow .single-receipt-wrapper{
 	 padding:9px;
 	 min-height: auto;
@@ -334,11 +339,9 @@ form #point {
 
 /*tabs */
 
-
-
-.tabs-holder-content{
+.tabs-holder-content {
     1border:1px solid #ccc;
-    width:500px;
+   
     height:260px;
     1background: #CDCDCD;
     background: #f1f1f1;
@@ -348,14 +351,24 @@ form #point {
 
 }
 
-.tab{
+.wide .tabs-holder-content {
+	 width:500px;
+}
+.narrow .tabs-holder-content{
+	1min-width:280px;
+	width: 100%;
+}
+
+.tabs-holder .tab{
 	width:100%; 
 	display:inline-block; 
 }
+
 .pos-tabs{
 	margin: 20px 0 0 0; 
 	padding: 0;
 }
+
 .pos-tabs:after{ 
 	display:block; 
 	clear:both; 
@@ -387,7 +400,10 @@ form #point {
 	border-bottom:#ccc;
 	box-shadow: 2px -1px 3px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
  }
-
+.narrow .pos-tabs a{
+	padding:4px 5px;
+	font-size: 0.9em;
+}
 .pos-tabs a:hover {
 	text-decoration:none;
 }
