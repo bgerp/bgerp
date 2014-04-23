@@ -660,7 +660,7 @@ class fileman_Files2 extends core_Master
         $recFileNameArr['ext'] = preg_quote($recFileNameArr['ext'], '/');
         
         // Регулярен израз за откриване на подобни файлове
-        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*(\." . $recFileNameArr['ext'] . ')?$';
+        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*((\.){1}" . $recFileNameArr['ext'] . ')?$';
         
         // Добавяме регулярния израз за търсене
         $query->where("LOWER(#name) REGEXP '{$regExp}'");
