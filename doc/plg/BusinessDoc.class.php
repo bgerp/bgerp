@@ -103,12 +103,12 @@ class doc_plg_BusinessDoc extends core_Plugin
      * Помощен метод за определяне на URL при успешен запис или отказ
      * 
      * @param core_Mvc $mvc
-     * @return string
+     * @return array
      */
     protected static function getRetUrl(core_Mvc $mvc)
     {
         if (!$retUrl = getRetUrl()) {
-            $retUrl = toUrl(array($mvc, 'list'), 'local');
+            $retUrl = array($mvc, 'list');
         }
         
         return $retUrl;
