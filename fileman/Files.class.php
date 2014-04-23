@@ -711,7 +711,7 @@ class fileman_Files extends core_Master
             $mvc,
             'editFile',
             'id' => $rec->fileHnd,
-            'ret_url' => TRUE
+            'ret_url' => array($mvc, 'single', $rec->fileHnd)
         );
             
         // Създаваме линка
