@@ -287,9 +287,10 @@ class bank_SpendingDocuments extends core_Master
     		 	// Ако има банкова сметка по подразбиране
 	    		if($bankId = $dealInfo->agreed->payment->bankAccountId){
 	    		 	$bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$bankId}", 'id');
-	    		 	
-	    		 	// Ако потребителя има права, логва се тихо
-	    		 	bank_OwnAccounts::selectSilent($bankId);
+	    		 	if($bankId){
+	    		 		// Ако потребителя има права, логва се тихо
+	    		 		bank_OwnAccounts::selectSilent($bankId);
+	    		 	}
 	    		 }
     		 } 
     	}

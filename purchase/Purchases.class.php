@@ -622,7 +622,7 @@ class purchase_Purchases extends core_Master
     	}
     	
     	// Ако има въведена банкова сметка, която я няма в системата я вкарваме
-    	if(isset($rec->bankAccountId)){
+    	if($rec->bankAccountId){
     		if(!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))){
     			$newAcc = new stdClass();
     			$newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
