@@ -1,5 +1,8 @@
 function posActions() {
 
+	$('#pos-producy-categories .pos-product-category').first().addClass('active');
+	
+	
 	// Засветяване на избрания ред и запис в хидън поле
 	$(".pos-sale").live("click", function() {
 		var id = $(this).attr("data-id");
@@ -159,9 +162,8 @@ function posActions() {
 	$('.pos-product-category').live("click", function(event) {
 		var value = $(this).attr("data-id");
 		
-		$(this).addClass('active');
-		$(".active").not(this).removeClass('active');
-		
+		$(this).addClass('active').siblings().removeClass('active');
+				
 		if(value) {
 			var nValue = "|" + value + "|";
 			
