@@ -1,12 +1,12 @@
 <div class='single-receipt-wrapper'>
 		<div id='single-receipt-holder'>
-			<div id='single-receipt'>
+			<div id='single-receipt' class='tabs-holder'>
 				[#RECEIPT#]
 				<div class="clearfix21"></div>			
 				<div id='tools-holder'>
-				<ul id ='tools-tabs'>[#TABS#]</ul>
+				<ul id ='tools-tabs' class='pos-tabs'>[#TABS#]</ul>
 				<!--ET_BEGIN TOOLS-->
-				<div class='pos-tab-content'>
+				<div class='pos-tab-content tabs-holder-content'>
 				[#TOOLS#]
 				</div>
 				<!--ET_END TOOLS-->
@@ -16,12 +16,13 @@
 		</div>
 	<div class="clearfix21"></div>
 </div>
-<div id='tools-wide-holder' class='pos-bar-holder'>
-	<ul id ='tools-wide-tabs'>[#TABS_WIDE#]</ul>
+<div id='tools-wide-holder' class='tabs-holder'>
+	<ul id ='tools-wide-tabs' class='pos-tabs'>[#TABS_WIDE#]</ul>
 	<!--ET_BEGIN PRODUCTS-->
-	<div class='tools-wide-select-content'>
+	<div class='tools-wide-select-content tabs-holder-content'>
 	[#PRODUCTS#]
-	</div>
+	
 	<!--ET_END PRODUCTS-->
 	[#SEARCH#]
+	</div>
 </div>

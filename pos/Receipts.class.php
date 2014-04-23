@@ -389,9 +389,9 @@ class pos_Receipts extends core_Master {
     		$toolsTpl = $this->getTools($rec);
     		$tpl->replace($toolsTpl, 'TOOLS');
     		
-    		// Добавяне на табовете показващис е в широк изглед отстрани
+    		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
-	    		$tab = "<li>Избор</li><li>Търсене</li>";
+	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
 	    		$tpl->replace($this->getSelectFavourites(), 'PRODUCTS');
 	    		$tpl->append($this->renderChooseTab($id), 'SEARCH');
 	    		$tpl->replace($tab, 'TABS_WIDE');
@@ -478,7 +478,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = "<li><a href='#tools-form'>Пулт</a></li>";
+    	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li>";
     	$tpl->append($this->renderToolsTab($id), 'TOOLS');
     	
     	// Ако сме в тесен режим
@@ -496,7 +496,7 @@ class pos_Receipts extends core_Master {
     	$tpl->append($this->renderPaymentTab($id), 'TOOLS');
     	
     	// Добавяне на заглавията на табовете
-    	$tab .= "<li><a href='#tools-choose'>Плащане</a></li>";
+    	$tab .= "<li><a href='#tools-payment'>Плащане</a></li>";
     	$tpl->append($tab, 'TABS');
     	
    		return $tpl;
@@ -510,6 +510,9 @@ class pos_Receipts extends core_Master {
     {
     	$products = pos_Favourites::prepareProducts();
     	$tpl = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
+    	if(!Mode::is('screenMode', 'narrow')){
+    		$tpl->replace('active', 'active_choose');
+    	}
     	if($products->arr) {
     		$tpl->append(pos_Favourites::renderPosProducts($products), 'CHOOSE_DIV');
 	    }

@@ -193,4 +193,14 @@ function posActions() {
 			getEfae().process(resObj, {recId:recId});
 		}
 	});
+	
+	$('.pos-tabs a ').on('click',function(e) {
+		var currentAttrValue= $(this).attr('href');
+
+		$('.tab-content' + currentAttrValue).show().siblings().hide();
+		console.log(currentAttrValue);
+		$(this).parent('li').addClass('active').siblings().removeClass('active');
+
+		e.preventDefault();
+	}); 
 }
