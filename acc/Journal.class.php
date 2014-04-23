@@ -205,7 +205,7 @@ class acc_Journal extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         $origMvc = $mvc;
@@ -213,25 +213,26 @@ class acc_Journal extends core_Master
         if($rec->docType && cls::load($rec->docType, TRUE)) {
             $mvc = cls::get($rec->docType);
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
-            
             if($doc) {
                 $row->docType = $doc->getLink();
             }
         }
         
-        $dQuery = acc_JournalDetails::getQuery();
-        $dQuery->where("#journalId = {$rec->id}");
-        $details = $dQuery->fetchAll();
-        
-        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon\"> </a>";
-        
-        $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
-        foreach ($details as $decRec){
-        	$dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
-        	$cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
-        	$row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
+        if($fields['-list']){
+        	$dQuery = acc_JournalDetails::getQuery();
+	        $dQuery->where("#journalId = {$rec->id}");
+	        $details = $dQuery->fetchAll();
+	        
+	        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon\"> </a>";
+	        
+	        $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
+	        foreach ($details as $decRec){
+	        	$dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
+	        	$cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
+	        	$row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
+	        }
+	        $row->docType .= "</ol>";
         }
-        $row->docType .= "</ol>";
     }
    
     
