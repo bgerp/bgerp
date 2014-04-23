@@ -48,7 +48,6 @@
 			                  <td class="cell">
 			                  	<!--ET_BEGIN supplier-->
 			                        <b>[#MyCompany#]</b><br>
-			                        <b>[#MyCountry#]</b><br>
 			                        [#MyAddress#] <br>
 		                    	<!--ET_END supplier-->
 			                  </td>
