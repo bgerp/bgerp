@@ -32,5 +32,19 @@ class fileman_SetExtensionPlg2 extends core_Plugin
         
         // Добавяне коректно разширение за името на файла в зависимост от миме типа
         $inputFileName = fileman_mimes::addCorrectFileExt($inputFileName, $fileMimeType);
+        
+        // Ако няма разширение
+        if (!fileman_Files::getExt($inputFileName)) {
+            
+            // Разширението на файла
+            $ext = fileman::identifyFileExt($dataRec->path);
+            
+            // Ако има разширение
+            if ($ext) {
+                
+                // Добавяме след файла
+                $inputFileName .= '.' . $ext;
+            }
+        }
     }
 }

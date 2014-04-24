@@ -45,6 +45,12 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWi
 
 
 /**
+ *  Път до ImageMagic командата 'identify'
+ */
+defIfNot('FILEMAN_IDENTIFY_FILE_COMMAND', core_Os::isWindows() ? '' : 'identify');
+
+
+/**
  * Минималната големина на файла, до която ще се търси баркод
  * 15kB
  */
