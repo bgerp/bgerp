@@ -20,6 +20,12 @@ defIfNot(CALLCENTER_DRAFT_TO_NOANSWER, '3600');
 
 
 /**
+ * Максимална продължителност на разговорите
+ */
+defIfNot(CALLCENTER_MAX_CALL_DURATION, '3600');
+
+
+/**
  * Инсталиране/Деинсталиране на мениджъри свързани с callcenter модула
  *
  * @category  bgerp
@@ -73,6 +79,7 @@ class callcenter_Setup extends core_ProtoSetup
     var $configDescription = array(
        'CALLCENTER_PROTECT_KEY' => array('varchar', 'caption=Защитен ключ за регистриране на обаждания->Ключ, width=100%'),
        'CALLCENTER_DRAFT_TO_NOANSWER' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=След колко време да се промени от празно състояние в без отговор->Време, width=100px'),
+       'CALLCENTER_MAX_CALL_DURATION' => array('time(suggestions=30 мин.|1 час|2 часа)', 'caption=Максимално време на продължителност на разговорите->Време, width=100px'),
        'CALLCENTER_ALLOWED_IP_ADDRESS' => array('varchar', 'caption=Разрешени IP адреси от които да се регистрира обаждане->IP адрес'),
     );
     
