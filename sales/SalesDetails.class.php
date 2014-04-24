@@ -333,7 +333,7 @@ class sales_SalesDetails extends core_Detail
         $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         expect(count($products));
         
-        $data->form->setSuggestions('discount', arr::make('10 %,20%,30%,40%,50%,60%,70%,80%,90%,100%', TRUE));
+        $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
         
         if (empty($rec->id)) {
         	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));

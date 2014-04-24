@@ -289,7 +289,7 @@ class purchase_PurchasesDetails extends core_Detail
         }
         
         $data->form->setOptions('productId', $products);
-        $data->form->setSuggestions('discount', arr::make('10 %,20%,30%,40%,50%,60%,70%,80%,90%,100%', TRUE));
+        $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
               
         if (!empty($rec->packPrice)) {
             if ($masterRec->chargeVat == 'yes') {
