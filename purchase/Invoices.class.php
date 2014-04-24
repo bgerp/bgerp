@@ -843,26 +843,6 @@ class purchase_Invoices extends core_Master
     }
     
     
-	/**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
-    
-    	if($firstDoc->instance instanceof purchase_Purchases && $docState == 'active'){
-    		
-    		// Може да се добавя към активирана покупка
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-    
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -1193,6 +1173,15 @@ class purchase_Invoices extends core_Master
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
 	        
+    	if($action == 'add' && isset($rec->threadId)){
+    		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		 $docState = $firstDoc->fetchField('state');
+    		 
+    		 if(!($firstDoc->instance instanceof purchase_Purchases && $docState == 'active')){
+    			$res = 'no_one';
+    		}
+    	}
+    	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
 	    	$originState = $mvc->getOrigin($rec)->fetchField('state');

@@ -935,30 +935,6 @@ class sales_Invoices extends core_Master
     }
     
     
-	/**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
-    
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof sales_Sales){
-    		
-    		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
-    		return TRUE;
-    	} elseif($firstDoc->instance instanceof sales_Invoices && $docState == 'active') {
-    		
-    		// или към нишка с начало активирана продажба
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-    
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -1302,6 +1278,14 @@ class sales_Invoices extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
+    	
+    	if($action == 'add' && isset($rec->threadId)){
+    		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		 $docState = $firstDoc->fetchField('state');
+    		 if(!($firstDoc->instance instanceof sales_Sales && $docState == 'active')){
+    			$res = 'no_one';
+    		}
+    	}
     	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
