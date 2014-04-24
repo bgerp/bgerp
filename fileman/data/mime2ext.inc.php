@@ -552,6 +552,7 @@ $mime2ext = array(
     "image/x-cmx" => "cmx",
     "image/x-freehand" => "fh fhc fh4 fh5 fh7",
     "image/x-icon" => "ico",
+    "image/x-ico" => "ico",
     "image/x-pcx" => "pcx",
     "image/x-pict" => "pic pct",
     "image/x-portable-anymap" => "pnm",
@@ -643,4 +644,5 @@ $mime2ext = array(
     "image/x-cdr" => "cdr",
     "zz-application/zz-winassoc-cdr" => "cdr",
     "application/x-httpd-php" => "php",
+    "application/dicom" => "dcm",
 );
