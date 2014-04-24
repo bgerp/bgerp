@@ -524,6 +524,7 @@ class sales_Invoices extends core_Master
     public static function getOrigin($rec)
     {
     	$origin = NULL;
+    	$rec = static::fetchRec($rec);
     	
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
@@ -1315,6 +1316,23 @@ class sales_Invoices extends core_Master
 	        if($originState === 'closed'){
 	        	$res = 'no_one';
 	        }
+        }
+    }
+    
+    
+	/**
+     * След оттегляне на документа
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
     }
 }
