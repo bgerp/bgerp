@@ -191,7 +191,7 @@ class fileman_GalleryRichTextPlg extends core_Plugin
             // JS функцията
             $callback = "function {$callbackName}(title) {
                 var ta = get$('{$id}');
-                rp(\"\\n[img=#\" + title + \"]\", ta);
+                rp(\"[img=#\" + title + \"]\", ta, 1);
                 return true;
             }";
             
