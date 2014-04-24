@@ -1303,13 +1303,6 @@ class sales_Invoices extends core_Master
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
     	
-    	// Обикновения продавач неможе да създава ДИ и КИ
-    	if($action == 'add' && isset($rec)){
-    		if($rec->type != 'invoice'){
-    			$res = 'ceo,sales';
-    		}
-    	}
-    	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
 	    	$originState = $mvc->getOrigin($rec)->fetchField('state');

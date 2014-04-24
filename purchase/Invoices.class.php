@@ -920,6 +920,26 @@ class purchase_Invoices extends core_Master
     }
     
     
+	/**
+     * Намира ориджина на фактурата (ако има)
+     */
+    public static function getOrigin($rec)
+    {
+    	$origin = NULL;
+    	$rec = static::fetchRec($rec);
+    	
+    	if($rec->originId) {
+    		return doc_Containers::getDocument($rec->originId);
+    	}
+    	
+    	if($rec->threadId){
+    		return doc_Threads::getFirstDocument($rec->threadId);
+	    }
+    	
+    	return $origin;
+    }
+    
+    
     /**
    	 *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
    	 *  Създава транзакция която се записва в Журнала, при контирането
@@ -1172,13 +1192,6 @@ class purchase_Invoices extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
-    	
-    	// Обикновения продавач неможе да създава ДИ и КИ
-    	if($action == 'add' && isset($rec)){
-    		if($rec->type != 'invoice'){
-    			$res = 'ceo,purchase';
-    		}
-    	} 
 	        
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
