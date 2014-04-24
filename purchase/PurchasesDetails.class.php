@@ -297,6 +297,7 @@ class purchase_PurchasesDetails extends core_Detail
                 $rec->packPrice *= 1 + cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             }
             $rec->packPrice /= $masterRec->currencyRate;
+            $rec->packPrice = price_Helper::roundPrice($rec->packPrice);
         }
     }
     

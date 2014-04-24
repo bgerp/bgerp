@@ -354,6 +354,7 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->packPrice /= $masterRec->currencyRate;
+            $rec->packPrice = price_Helper::roundPrice($rec->packPrice);
         }
     }
     
