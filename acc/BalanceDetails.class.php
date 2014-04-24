@@ -222,11 +222,10 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Групира записите на баланс по зададен признак
+     * Групира записите на баланс по зададен признак. Данните се групират в тримерен масив
+     * с индекси избраното свойство за позицията или ако няма съответното перо
      *
-     * @param StdClass $data
-     * @param array $by масив от признаци - $by[N]: признак за групиране по N-тата аналитичност
-     * N = 1,2,3
+     * @param stdClass $data
      */
     private function doGrouping(&$data, $by)
     {
@@ -235,6 +234,7 @@ class acc_BalanceDetails extends core_Detail
         
     	$show = $groupedBy = array();
 
+    	// Намираме избраните свойства/пера
     	foreach (range(1, 3) as $i){
         	if($by["grouping{$i}"]){
         		$show[$i] = $by["grouping{$i}"];
@@ -288,23 +288,37 @@ class acc_BalanceDetails extends core_Detail
 	            }
             }
             
+            // Индекса за съответната позиция е избраното свойство ако има иначе перото
+            foreach($f as $i => &$fi){
+            	if(empty($fi)){
+            		$ent = $rec->{"ent{$i}Id"};
+            		$fi = ($ent) ? "entryId-" . $rec->{"ent{$i}Id"} : NULL;
+            	}
+            }
+            
             // Записваме в масив с индекс стойностите на груприането за всяко перо
             $r = &$groupedIdx[$f[1]][$f[2]][$f[3]];
             
+            // Ако някой от индексите е не е перо
             if (!isset($r)) {
-                $r->grouping1 = $f[1];
-                $r->grouping2 = $f[2];
-                $r->grouping3 = $f[3];
+            	foreach (range(1, 3) as $i){
+            		if(strpos($f[$i], 'entryId-') === false){
+            			$r->{"grouping{$i}"} = $f[$i];
+            		}
+            	}
+            	
                 $groupedRecs[] = &$r;
             }
             
+            // За всички позиции за които няма стойства показваме перата им
             foreach (range(1, 3) as $i){
             	if(!isset($r->{"grouping{$i}"})){
             		$r->{"ent{$i}Id"} = $rec->{"ent{$i}Id"};
             	}
             }
             
-            $r->balanceId = $rec->balanceId;
+            // Групиране на данните
+            $r->balanceId       = $rec->balanceId;
             $r->baseQuantity   += $rec->baseQuantity;
             $r->baseAmount     += $rec->baseAmount;
             $r->debitQuantity  += $rec->debitQuantity;
@@ -314,7 +328,7 @@ class acc_BalanceDetails extends core_Detail
             $r->blQuantity     += $rec->blQuantity;
             $r->blAmount       += $rec->blAmount;
         }
-        
+       
         unset($data->listFields['history']);
         $data->recs = $groupedRecs;
         
