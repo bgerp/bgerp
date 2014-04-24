@@ -913,7 +913,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         
         $textTpl = static::getDocumentBody($oRec->id, 'plain', (object)array('rec' => $oRec));
-        $text    = html_entity_decode($textTpl->getContent(), ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        $text    = $textTpl->getContent();
         
         core_Lg::pop();
         
