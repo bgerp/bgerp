@@ -788,9 +788,6 @@ class sales_Invoices extends core_Master
     {
     	parent::prepareSingle_($data);
     	$rec = &$data->rec;
-    	$address = ($rec->contragentPlace) ? $data->row->contragentPlace . ', ' : '';
-    	$address .= $data->row->contragentPCode . "<br />";
-    	$data->row->contragentAddress .= $data->row->contragentAddress;
     	
     	if(empty($data->noTotal)){
     		if($rec->type != 'invoice'){
