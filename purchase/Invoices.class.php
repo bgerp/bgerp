@@ -1179,11 +1179,6 @@ class purchase_Invoices extends core_Master
     			$res = 'ceo,purchase';
     		}
     	} 
-    	
-    	//@TODO тестово докато стане готов документа
-	    if($action == 'add'){
-	        $res = 'ceo';
-	    }
 	        
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
