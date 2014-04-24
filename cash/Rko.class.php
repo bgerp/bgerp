@@ -214,14 +214,14 @@ class cash_Rko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 	if($amount <= 0) {
     		 		$amount = 0;
     		 	}
     		 	
     		 	$defaultOperation = $mvc->getDefaultOperation($dealInfo);
     		 	if($defaultOperation == 'case2supplierAdvance'){
-    		 		$amount = $dealInfo->agreed->downpayment / $dealInfo->agreed->rate;
+    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
     		 	}
     		 	
     		 	// Ако операциите на документа не са позволени от интерфейса, те се махат
@@ -276,13 +276,13 @@ class cash_Rko extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'caseAdvance2customer' : 'case2customer';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'caseAdvance2customer' : 'case2customer';
     		} else {
     			$defaultOperation = 'case2customer';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'case2supplierAdvance' : 'case2supplier';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'case2supplierAdvance' : 'case2supplier';
     		} else {
     			$defaultOperation = 'case2supplier';
     		}

@@ -235,13 +235,13 @@ class bank_IncomeDocuments extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'supplierAdvance2bank' : 'supplier2bank';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'supplierAdvance2bank' : 'supplier2bank';
     		} else {
     			$defaultOperation = 'supplier2bank';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'customer2bankAdvance' : 'customer2bank';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'customer2bankAdvance' : 'customer2bank';
     		} else {
     			$defaultOperation = 'customer2bank';
     		}
@@ -262,7 +262,7 @@ class bank_IncomeDocuments extends core_Master
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 $dealInfo = $origin->getAggregateDealInfo();
-    		 $amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 $amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 $amount = ($amount <= 0) ? 0 : $amount;
     		 	
     		 // Ако операциите на документа не са позволени от интерфейса, те се махат
@@ -274,7 +274,7 @@ class bank_IncomeDocuments extends core_Master
 
     		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
         	 if($form->defaultOperation == 'customer2bankAdvance'){
-    		 	$amount = $dealInfo->agreed->downpayment / $dealInfo->agreed->rate;
+    		 	$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
     		 }
     		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);

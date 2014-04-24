@@ -236,13 +236,13 @@ class bank_SpendingDocuments extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_SALE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'bankAdvance2customer' : 'bank2customer';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'bankAdvance2customer' : 'bank2customer';
     		} else {
     			$defaultOperation = 'bank2customer';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'bank2supplierAdvance' : 'bank2supplier';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'bank2supplierAdvance' : 'bank2supplier';
     		} else {
     			$defaultOperation = 'bank2supplier';
     		}
@@ -263,7 +263,7 @@ class bank_SpendingDocuments extends core_Master
     	$form->setDefault('reason', "Към документ #{$origin->getHandle()}");
         if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 $dealInfo = $origin->getAggregateDealInfo();
-    		 $amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 $amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 $amount = ($amount <= 0) ? 0 : $amount;
     		 	
     		 // Ако операциите на документа не са позволени от интерфейса, те се махат
@@ -275,7 +275,7 @@ class bank_SpendingDocuments extends core_Master
     		 	
     		 $form->defaultOperation = $this->getDefaultOperation($dealInfo);
         	 if($form->defaultOperation == 'bank2supplierAdvance'){
-    		 		$amount = $dealInfo->agreed->downpayment / $dealInfo->agreed->rate;
+    		 		$amount = ($dealInfo->agreed->downpayment - $dealInfo->paid->downpayment) / $dealInfo->agreed->rate;
     		 }
     		 
     		 $form->rec->currencyId = currency_Currencies::getIdByCode($dealInfo->shipped->currency);
