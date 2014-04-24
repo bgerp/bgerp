@@ -183,7 +183,7 @@ class purchase_Invoices extends core_Master
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
