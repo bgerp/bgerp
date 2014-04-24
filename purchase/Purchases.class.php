@@ -621,17 +621,20 @@ class purchase_Purchases extends core_Master
     		acc_OpenDeals::saveRec($rec, $mvc);
     	}
     	
-    	// Ако има въведена банкова сметка, която я няма в системата я вкарваме
-    	if($rec->bankAccountId){
-    		if(!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))){
-    			$newAcc = new stdClass();
-    			$newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-    			$newAcc->iban = $rec->bankAccountId;
-    			$newAcc->contragentCls = $rec->contragentClassId;
-    			$newAcc->contragentId = $rec->contragentId;
-    			bank_Accounts::save($newAcc);
-    			core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
-    		}
+    	if($rec->state == 'draft'){
+    		
+	    	// Ако има въведена банкова сметка, която я няма в системата я вкарваме
+	    	if($rec->bankAccountId && strlen($rec->bankAccountId)){
+	    		if(!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))){
+	    			$newAcc = new stdClass();
+	    			$newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
+	    			$newAcc->iban = $rec->bankAccountId;
+	    			$newAcc->contragentCls = $rec->contragentClassId;
+	    			$newAcc->contragentId = $rec->contragentId;
+	    			bank_Accounts::save($newAcc);
+	    			core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
+	    		}
+	    	}
     	}
     }
     
