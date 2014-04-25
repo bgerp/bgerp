@@ -32,7 +32,8 @@
                         <td style='padding-top:10px;'>
                             <b>[#contragentName#]</b><br>
 							<br>
-							[#contragentAddress#]
+							[#contragentCountryId#]<!--ET_BEGIN contragentPlace-->, [#contragentPCode#]
+                 [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
                         </td>
                         <td style='padding-top:10px;' class='align-top-td'>
                             <b>[#companyName#]</b><br>
