@@ -58,6 +58,12 @@ class pos_ReceiptDetails extends core_Detail {
     var $canDelete = 'pos, ceo';
     
     
+    /**
+     * Полета за листов изглед
+     */
+    var $listFields = 'productId,value,quantity,price,discountPercent,amount';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -72,7 +78,7 @@ class pos_ReceiptDetails extends core_Detail {
         $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
-    	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка->Процент,input=none');
+    	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
         $this->FLD('fixbon', 'enum(yes=Да,no=Не)', 'caption=Фискален Бон,input=none,value=yes');
     }
     
@@ -146,6 +152,26 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	return array();
+    }
+    
+    
+	/**
+     * След подготовка на записите от базата данни
+     */
+    public function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+        // Флаг дали има отстъпка
+        $haveDiscount = FALSE;
+        
+        if(count($data->rows)) {
+            foreach ($data->rows as $i => &$row) {
+                $haveDiscount = $haveDiscount || !empty($rec->discountPercent);
+    		}
+        }
+
+        if(!$haveDiscount) {
+            unset($data->listFields['discountPercent']);
+        }
     }
     
     
@@ -400,7 +426,7 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$varchar = cls::get('type_Varchar');
     	$receiptDate = $mvc->Master->fetchField($rec->receiptId, 'createdOn');
@@ -409,10 +435,13 @@ class pos_ReceiptDetails extends core_Detail {
     	$action = $mvc->getAction($rec->action);
     	switch($action->type) {
     		case "sale":
-    			$mvc->renderSale($rec, $row, $receiptDate);
+    			$mvc->renderSale($rec, $row, $receiptDate, $fields);
     			break;
     		case "payment":
     			$row->actionValue = pos_Payments::getTitleById($action->value);
+    			if($fields['-list']){
+    				$row->productId = tr('Плащане') . ": " . $row->actionValue;
+    			}
     			break;
     		case "client":
     			$clientArr = explode("|", $rec->param);
@@ -433,38 +462,44 @@ class pos_ReceiptDetails extends core_Detail {
     /**
      * Рендира информацията за направената продажба
      */
-    function renderSale($rec, &$row, $receiptDate)
+    function renderSale($rec, &$row, $receiptDate, $fields = array())
     {
-    	$varchar = cls::get('type_Varchar');
-    	$double = cls::get('type_Double');
-    	$percent = cls::get('type_Percent');
-    	$percent->params['decimals'] = $double->params['decimals'] = 2;
+    	$Varchar = cls::get('type_Varchar');
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
     	
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	
     	$vat = cat_Products::getVat($rec->productId, $receiptDate);
     	$rec->price = $rec->price * (1 - $rec->discountPercent);
     	$rec->price += ($rec->price * $vat);
-    	$row->price = $double->toVerbal($rec->price);
-    	$row->amount = $double->toVerbal($rec->price * $rec->quantity);
+    	$row->price = $Double->toVerbal($rec->price);
+    	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
     		$row->discountPercent = "+" . trim($row->discountPercent, '-');
     	}
     	
-    	$row->productId = $varchar->toVerbal($productInfo->productRec->name);
-    	$row->code = $varchar->toVerbal($productInfo->productRec->code);
+    	$row->code = $Varchar->toVerbal($productInfo->productRec->code);
     	$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
     	
-    	$row->perPack = $double->toVerbal($productInfo->packagingRec->quantity);
+    	$row->perPack = $Double->toVerbal($productInfo->packagingRec->quantity);
     	if($rec->value) {
-    		$row->packagingId = cat_Packagings::getTitleById($rec->value);
+    		$row->value = cat_Packagings::getTitleById($rec->value);
     	} else {
-    		$row->packagingId = $row->uomId;
+    		if($fields['-list']){
+    			$row->value = cat_UoM::getTitleById($productInfo->productRec->measureId);
+    		} else {
+    			$row->value = $row->uomId;
+    		}
+    		
     		unset($row->uomId);
     	}
     	
-    	if($rec->discountPercent == 0){
-    		unset($row->discountPercent);
+    	if($fields['-list']){
+    		$row->value .= " " . $row->perPack . " " . $row->uomId;
+    		$row->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+    	} else {
+    		$row->productId = $Varchar->toVerbal($productInfo->productRec->name);
     	}
     }
     

@@ -95,6 +95,12 @@ class pos_Receipts extends core_Master {
 	 */
 	var $searchFields = 'contragentName';
 	
+	
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    public $singleLayoutFile = 'pos/tpl/SingleLayoutReceipt.shtml';
+    
     
     /**
      * Описание на модела
@@ -187,6 +193,13 @@ class pos_Receipts extends core_Master {
     	if($fields['-list']){
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
+    	}elseif($fields['-single']){
+    		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
+    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
+    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+    		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
+    		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
+    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     	}
     	
     	if($rec->state != 'draft'){
