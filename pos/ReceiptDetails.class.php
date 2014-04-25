@@ -421,7 +421,7 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	if($mvc->haveRightFor('delete', $rec)){
-    		$delUrl = toUrl(array($mvc->className, 'deleteRec'));
+    		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/delete.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
     													   'data-warning' => tr('Наистина ли искате да изтриете записа?'), 
