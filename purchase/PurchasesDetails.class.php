@@ -340,7 +340,7 @@ class purchase_PurchasesDetails extends core_Detail
             
             $productRef = new core_ObjectReference($ProductMan, $rec->productId);
             expect($productInfo = $productRef->getProductInfo());
-            
+           
             // Определяне на цена, количество и отстъпка за опаковка
             $policyInfo = $mvc->Policy->getPriceInfo(
                 $masterRec->contragentClassId, 
@@ -349,7 +349,7 @@ class purchase_PurchasesDetails extends core_Detail
                 $rec->classId,
                 $rec->packagingId,
                 $rec->packQuantity,
-                $masterRec->date
+                $masterRec->valior
             );
            
             if (empty($rec->packagingId)) {

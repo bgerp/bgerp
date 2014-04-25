@@ -404,6 +404,8 @@ class sales_SalesDetails extends core_Detail
             expect($productInfo = $productRef->getProductInfo());
             
             // Определяне на цена, количество и отстъпка за опаковка
+            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
+           
             $policyInfo = $ProductMan->getPriceInfo(
                 $masterRec->contragentClassId, 
                 $masterRec->contragentId, 
@@ -411,7 +413,7 @@ class sales_SalesDetails extends core_Detail
                 $rec->classId,
                 $rec->packagingId,
                 $rec->packQuantity,
-                $masterRec->date
+                $priceAtDate
             );
            
             if (empty($rec->packagingId)) {
