@@ -283,18 +283,4 @@ class sales_ServicesDetails extends core_Detail
             }
         }
     }
-    
-    
-	/**
-     * След подготовката на списъчните полета
-     */
-    function on_AfterPrepareListFields($mvc, $data)
-    {
-        $showPrices = Request::get('showPrices', 'int');
-    	if(Mode::is('printing') && empty($showPrices)) {
-            unset($data->listFields['packPrice'], 
-            	  $data->listFields['amount'], 
-            	  $data->listFields['discount']);
-        }
-    }
 }

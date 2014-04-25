@@ -304,18 +304,4 @@ class store_ReceiptDetails extends core_Detail
             }
         }
     }
-    
-    
-	/**
-     * След подготовката на списъчните полета
-     */
-    static function on_AfterPrepareListFields($mvc, $data)
-    {
-        $showPrices = Request::get('showPrices', 'int');
-    	if(Mode::is('printing') && empty($showPrices)) {
-            unset($data->listFields['packPrice'], 
-            	  $data->listFields['amount'], 
-            	  $data->listFields['discount']);
-        }
-    }
 }
