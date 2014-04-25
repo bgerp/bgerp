@@ -762,10 +762,28 @@ class email_Mime extends core_BaseClass
                 $nl = $c;
             }
         }
-        
+
+
+        // Отделяме хедърите от данните
         if($bestPos < strlen($data)) {
-            $data = explode($nl . $nl, $data, 2);
+ 
+            do {
+                list($line, $data) = explode($nl, $data, 2);
+
+                if(!trim($line)) {
+                    break;
+                } elseif(substr($line, 0, 3) == '--=') {
+                    $data = $line . $nl . $data;
+                    break;
+                }
+
+                $headerStr .= ($headerStr ? $nl : '') . $line;
+
+            } while ($data);
+
         }
+
+
         $p = &$this->parts[$index];
         
         if(!is_object($p)) {
@@ -773,12 +791,12 @@ class email_Mime extends core_BaseClass
         }
         
         // Записваме хедъри-те на тази част като стринг
-        $p->headersStr = $data[0];
+        $p->headersStr = $headerStr;
         
         // Записваме хедъри-те на тази част като масив (за по-лесно търсене)
         // Масивът е двумерен, защото един хедър може (макар и рядко) 
         // да се среща няколко пъти
-        $p->headersArr = $this->parseHeaders($data[0]);
+        $p->headersArr = $this->parseHeaders($headerStr);
         
         // Парсираме хедър-а 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
@@ -789,7 +807,7 @@ class email_Mime extends core_BaseClass
         $p->subType = trim($p->subType);
         
         $knownTypes = array('MULTIPART', 'TEXT', 'MESSAGE', 'APPLICATION', 'AUDIO', 'IMAGE', 'VIDEO', 'MODEL', 'X-UNKNOWN');
-        
+     
         // Ако типа не е от познатите типове, търсим ги като стринг в хедър-а 'Content-Type'
         // Ако някой познат тип се среща в хедър-а, то приемаме, че той е търсения тип
         if(!in_array($p->type, $knownTypes)) {
@@ -844,18 +862,18 @@ class email_Mime extends core_BaseClass
         }
         
         // Ако частта е съставна, рекурсивно изваждаме частите и
-        if(($p->type == 'MULTIPART') && $p->boundary) {
-            $data[1] = explode("--" . $p->boundary, $data[1]);
-            
-            $cntParts = count($data[1]);
+        if(($p->type == 'MULTIPART') && $p->boundary) {  
+            $data = explode("--" . $p->boundary, $data);
+    
+            $cntParts = count($data);
             
             if($cntParts == 2) {
                 $this->errors[] = "Само едно  boundary в MULTIPART частта ($cntParts)";
                 
-                if(strlen($data[1][0]) > strlen($data[1][1])) {
-                    unset($data[1][1]);
+                if(strlen($data[0]) > strlen($data[1])) {
+                    unset($data[1]);
                 } else {
-                    unset($data[1][0]);
+                    unset($data[0]);
                 }
             }
             
@@ -864,22 +882,22 @@ class email_Mime extends core_BaseClass
             }
             
             if($cntParts >= 3) {
-                if(strlen($data[1][0]) > 255) {
+                if(strlen($data[0]) > 255) {
                     $this->errors[] = "Твърде много текст преди първата MULTIPART част";
                 } else {
-                    unset($data[1][0]);
+                    unset($data[0]);
                 }
                 
-                if(strlen($data[1][$cntParts-1]) > 255) {
+                if(strlen($data[$cntParts-1]) > 255) {
                     $this->errors[] = "Твърде много текст след последната MULTIPART част";
                 } else {
-                    unset($data[1][$cntParts-1]);
+                    unset($data[$cntParts-1]);
                 }
             }
             
             for($i = 0; $i < $cntParts; $i++) {
-                if($data[1][$i]) {
-                    $this->parseAll($data[1][$i], $index . "." . $i);
+                if($data[$i]) {
+                    $this->parseAll(ltrim($data[$i], $nl), $index . "." . $i);  
                 }
             }
             
@@ -890,10 +908,10 @@ class email_Mime extends core_BaseClass
             // Декодиране
             switch($p->encoding) {
                 case 'BASE64' :
-                    $data[1] = imap_base64($data[1]);
+                    $data = imap_base64($data);
                     break;
                 case 'QUOTED-PRINTABLE' :
-                    $data[1] = imap_qprint($data[1]);
+                    $data = imap_qprint($data);
                     break;
                 case '8BIT' :
                 case '7BIT' :
@@ -908,7 +926,7 @@ class email_Mime extends core_BaseClass
             // Конвертиране към UTF-8
             if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && ($p->attachment != 'attachment')) {
                 
-                $text = i18n_Charset::convertToUtf8($data[1], $p->charset, $p->subType == 'HTML');
+                $text = i18n_Charset::convertToUtf8($data, $p->charset, $p->subType == 'HTML');
                 
                 // Текстовата част, без да се гледа HTML частта
                 if ($p->subType == 'PLAIN') $this->justTextPart = $text;
@@ -934,10 +952,10 @@ class email_Mime extends core_BaseClass
                 }
                 
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
-                if(($textRate < 1) && (stripos($data[1], '<img ') === FALSE)) return;
+                if(($textRate < 1) && (stripos($data, '<img ') === FALSE)) return;
                 
                 if($p->subType == 'HTML') {
-                    $p->data = $data[1];
+                    $p->data = $data;
                 } else {
                     $p->data = $text;
                 }
@@ -952,10 +970,10 @@ class email_Mime extends core_BaseClass
                     }
                     $this->bestTextRate = $textRate;
                     $this->charset = i18n_Charset::getCanonical($p->charset);
-                    $this->detectedCharset = i18n_Charset::detect($data[1], $p->charset, $p->subType == 'HTML');
+                    $this->detectedCharset = i18n_Charset::detect($data, $p->charset, $p->subType == 'HTML');
                 }
                
-                if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data[1], '<img ') === FALSE))) {
+                if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data, '<img ') === FALSE))) {
                     
                     $this->firstHtmlIndex = $index;
                 }
@@ -964,11 +982,9 @@ class email_Mime extends core_BaseClass
                 // Ако частта представлява атачнат файл, определяме името му и разширението му
                 $fileName = $this->getFileName($index);
                 $cid = trim($this->getHeader('Content-ID', $p), '<>');
-                $p->filemanId = $this->addFile($data[1], $fileName, 'inline', $cid);
+                $p->filemanId = $this->addFile($data, $fileName, 'inline', $cid);
             }
         }
-
-        
     }
     
     
@@ -984,9 +1000,8 @@ class email_Mime extends core_BaseClass
         
         if(trim($text, " \n\r\t" . chr(194) . chr(160))) {
             $textRate += 1; 
-            $words = preg_replace('/[^\d\pL\p{Zs}]+/u', ' ', $text);
-            $words = str_replace(' ', '', $words);
-            $textRate += mb_strlen($words);
+            $notWords = preg_replace('/(\pL{2,})/iu', '', $text);
+            $textRate += mb_strlen($text) - mb_strlen($notWords);
         }
 
         return $textRate;

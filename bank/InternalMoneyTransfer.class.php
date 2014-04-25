@@ -142,10 +142,10 @@ class bank_InternalMoneyTransfer extends core_Master
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,width=6em,mandatory');
     	$this->FLD('reason', 'varchar(255)', 'caption=Основание,width=20em,input,mandatory');
     	$this->FLD('creditAccId', 'acc_type_Account()','caption=Кредит,width=300px,input=none');
-    	$this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=От->Б. Сметка,width=300px');
+    	$this->FLD('creditBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=От->Банк. сметка,width=300px');
     	$this->FLD('debitAccId', 'acc_type_Account()','caption=Дебит,width=300px,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)','caption=Към->Каса,width=300px,input=none');
-    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Б. Сметка,width=300px,input=none');
+    	$this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)','caption=Към->Банк. сметка,width=300px,input=none');
         $this->FLD('state', 
             'enum(draft=Чернова, active=Активиран, rejected=Сторнирана, closed=Контиран)', 
             'caption=Статус, input=none'
@@ -349,8 +349,9 @@ class bank_InternalMoneyTransfer extends core_Master
 	    	if($rec->rate != '1') {
 	    		$double = cls::get('type_Double');
 	    		$double->params['decimals'] = 2;
-	    		$row->equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
-    			$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
+	    		$equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
+    			$row->equals = $mvc->fields['amount']->type->toVerbal($equals);
+	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
     		
     		// Показваме заглавието само ако не сме в режим принтиране
@@ -388,13 +389,13 @@ class bank_InternalMoneyTransfer extends core_Master
         $amount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
         $entry = array(
             'amount' => $amount,
-            'debit' => array(
+            'credit' => array(
                 $rec->creditAccId,
         		array('bank_OwnAccounts', $rec->creditBank),
         		array('currency_Currencies', $rec->currencyId),
                 'quantity' => $rec->amount
             ),
-            'credit' => array(
+            'debit' => array(
                 $rec->debitAccId,
             	$debitArr,
             	array('currency_Currencies', $rec->currencyId),

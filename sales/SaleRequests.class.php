@@ -481,14 +481,9 @@ class sales_SaleRequests extends core_Master
     	
     	// Данните на "Моята фирма"
         $ownCompanyData = crm_Companies::fetchOwnCompany();
-		$address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
-        if ($address && !empty($ownCompanyData->address)) {
-            $address .= '<br/>' . $ownCompanyData->address;
-        }
         
     	$row->MyCompany      = $ownCompanyData->company;
-        $row->MyCountry      = $ownCompanyData->country;
-        $row->MyAddress      = $address;
+        $row->MyAddress      = cls::get('crm_Companies')->getFullAdress($ownCompanyData->companyId);;
         $row->MyCompanyVatNo = $ownCompanyData->vatNo;
         
         $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);

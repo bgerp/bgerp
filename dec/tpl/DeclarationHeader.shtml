@@ -16,7 +16,7 @@
 <!--ET_BEGIN place-->
 	<p><b>проиведени в</b> [#place#],</p>
 <!--ET_END place-->
-<p>доставени на фирма: [#contragentCompany#], с адрес [#contragentCountry#], гр. [#contragentAddress#], с ЕИН [#contragentCompanyVatNo#][#contragentUicId#],  </p>
+<p>доставени на фирма: [#contragentCompany#], с адрес [#contragentCountry#], гр. [#contragentAddress#], с ЕИН [#contragentCompanyVatNo#] [#contragentUicId#],  </p>
 <p>с фактура <b>№ [#invoiceNo#]</b>,</p>
 <!--ET_BEGIN material-->
 	<p><b>произведени от</b> [#material#]</p>

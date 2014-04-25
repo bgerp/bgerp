@@ -27,7 +27,7 @@ class acc_Journal extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing, plg_Search,
-                     acc_Wrapper, Entries=acc_JournalDetails, plg_Sorting';
+                     acc_Wrapper, plg_Sorting';
     
     
     /**
@@ -91,12 +91,6 @@ class acc_Journal extends core_Master
     
     
     /**
-     * @var acc_JournalDetails
-     */
-    var $Entries;
-    
-    
-    /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'acc/tpl/SingleLayoutJournal.shtml';
@@ -144,9 +138,8 @@ class acc_Journal extends core_Master
     	
     	$data->listFilter->setDefault('dateFrom', date('Y-m-01'));
 		$data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
-    	$data->listFilter->FNC('document', 'varchar', 'input,caption=Документ,placeholder=Хендлър на документ', array('attr' => array('onchange' => "this.form.submit();")));
-		
-		$data->listFilter->showFields = 'dateFrom,dateTo,search,document';
+    	
+		$data->listFilter->showFields = 'dateFrom,dateTo,search';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
     	
     	// Активиране на филтъра
@@ -155,20 +148,18 @@ class acc_Journal extends core_Master
     	$data->query->orderBy('id', 'DESC');
     	
     	if($rec = $data->listFilter->rec){
-	    	if($rec->dateFrom){
-	    		$data->query->where(array("#valior >= '[#1#]'", $rec->dateFrom));
-	    	}
-	    
-	    	if($rec->dateTo){
-	    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $rec->dateTo));
-	    	}
 	    	
-	    	// Ако се търси по документ, се показват записите отговарящи на документа и на наследниците му
-	    	if($rec->document){
-	    		$doc = doc_Containers::getDocumentByHandle($rec->document);
-	    		$classId = is_object($doc) ? $doc->getClassId() : NULL;
-	    		$data->query->where("#docType = '{$classId}' AND #docId = '{$doc->that}'");
-	    		if($doc){
+	    	// Ако се търси по стринг
+	    	if($rec->search){
+	    		
+	    		// и този стринг отговаря на хендлър на документ в системата
+	    		$doc = doc_Containers::getDocumentByHandle($rec->search);
+	    		
+	    		if(is_object($doc)){
+	    			
+	    			// Показваме документа и другите документи в нишката му
+	    			$data->query->orWhere("#docType = '{$doc->getClassId()}' AND #docId = '{$doc->that}'");
+	    			
 		    		$chain = $doc->getDescendants();
 		    		if(count($chain)){
 		    			foreach ($chain as $desc){
@@ -177,12 +168,17 @@ class acc_Journal extends core_Master
 		    		}
 	    		}
 	    	}
+	    	
+	    	// Филтер по начална дата
+	    	if($rec->dateFrom){
+	    		$data->query->where(array("#valior >= '[#1#]'", $rec->dateFrom));
+	    	}
+	    	
+	    	// Филтър по крайна дата
+	    	if($rec->dateTo){
+	    		$data->query->where(array("#valior <= '[#1#] 23:59:59'", $rec->dateTo));
+	    	}
     	}
-    	
-    	
-    	
-    	
-    	
     }
     
     
@@ -205,7 +201,7 @@ class acc_Journal extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         $origMvc = $mvc;
@@ -213,25 +209,26 @@ class acc_Journal extends core_Master
         if($rec->docType && cls::load($rec->docType, TRUE)) {
             $mvc = cls::get($rec->docType);
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
-            
             if($doc) {
                 $row->docType = $doc->getLink();
             }
         }
         
-        $dQuery = acc_JournalDetails::getQuery();
-        $dQuery->where("#journalId = {$rec->id}");
-        $details = $dQuery->fetchAll();
-        
-        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon\"> </a>";
-        
-        $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
-        foreach ($details as $decRec){
-        	$dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
-        	$cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
-        	$row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
+        if($fields['-list']){
+        	$dQuery = acc_JournalDetails::getQuery();
+	        $dQuery->where("#journalId = {$rec->id}");
+	        $details = $dQuery->fetchAll();
+	        
+	        $row->docType = $row->docType . " <a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/plus.png', "'") . ");\" class=\" plus-icon\"> </a>";
+	        
+	        $row->docType .= "<ol style='margin-top:2px;margin-top:2px;margin-bottom:2px;color:#888;display:none' id='{$rec->id}inf'>";
+	        foreach ($details as $decRec){
+	        	$dAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->debitAccId);
+	        	$cAcc = $origMvc->acc_JournalDetails->Accounts->getNumById($decRec->creditAccId);
+	        	$row->docType .= "<li>" . tr('Дебит') . ": <b>{$dAcc}</b> <span style='margin-left:20px'>" . tr('Кредит') . ": <b>{$cAcc}</b></span></li>";
+	        }
+	        $row->docType .= "</ol>";
         }
-        $row->docType .= "</ol>";
     }
    
     

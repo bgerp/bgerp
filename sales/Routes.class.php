@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -85,13 +85,13 @@ class sales_Routes extends core_Manager {
     
     
     /**
-     * 
+     * Кой може да изтрива
      */
     var $canDelete = 'no_one';
     
     
     /**
-     * 
+     * Кой може да оттегля
      */
     var $canReject = 'sales,ceo';
     
@@ -115,7 +115,6 @@ class sales_Routes extends core_Manager {
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
-        
         $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
         $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
     }
@@ -123,9 +122,9 @@ class sales_Routes extends core_Manager {
     
     /**
      * Всяка локация я представяме като "<локация> « <име на контрагент>"
+     * 
      * @param stdClass $rec - запис от модела
-     * @return array $options - Масив с локациите и новото
-     * им представяне
+     * @return array $options - Масив с локациите и новото им представяне
      */
     private function getLocationOptions($rec)
     {
@@ -152,17 +151,18 @@ class sales_Routes extends core_Manager {
     /**
      * Намираме кой е търговеца по подразбиране, връщаме ид-то на
      * потребителя в следния ред:
+     * 
      * 1. Търговеца от последния маршрут за тази локация (ако има права)
      * 2. Отговорника на папката на контрагента на локацията (ако има права)
      * 3. Търговеца от последния маршрут създаден от текущия потребителя
      * 4. Текущия потребител ако има права 'sales'
      * 5. NULL - ако никое от горните не е изпълнено
+     * 
      * @param stdClass $rec - запис от модела
      * @return int - Ид на търговеца, или NULL ако няма
      */
     private function getDefaultSalesman($rec)
     {
-    	
     	// Ако имаме локация
     	if($rec->locationId){
     		$query = $this->getQuery();
@@ -234,7 +234,7 @@ class sales_Routes extends core_Manager {
     		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
     			
     		// Записа отговаря ако разликата е 0 и повторението е 0
-    		$data->query->orWhere("#dif = 0 && #repeatWeeks = 0");
+    		$data->query->where("#dif = 0 && #repeatWeeks = 0");
     			
     		// Ако разликата се дели без остатък на 7 * броя повторения
     		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
@@ -296,7 +296,11 @@ class sales_Routes extends core_Manager {
     		$results[] = (object)$routeArr;
     	}
     		
-    	$data->masterData->row->routes = $results;
+    	if($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))){
+	    	$data->addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
+    	}
+    	
+    	$data->rows = $results;
     }
     
     
@@ -337,38 +341,23 @@ class sales_Routes extends core_Manager {
     
     
 	/**
-     * След рендирането на Единичния изглед
+     * Рендираме информацията за маршрутите
      */
 	function renderRoutes($data)
     {
-    	$tpl = getTplFromFile("sales/tpl/Routes.shtml");
+    	$tpl = getTplFromFile("crm/tpl/ContragentDetail.shtml");
+    	$title = $this->title;
     	
-    	// Рендираме информацията за маршрутите
-    	if($data->masterData->rec->state != 'rejected'){
+    	if($data->addUrl){
 	    	$img = sbf('img/16/add.png');
-	    	$addUrl = array('sales_Routes', 'add', 'locationId' => $data->masterData->rec->id, 'ret_url' => TRUE);
-	    	$addBtn = ht::createLink(' ', $addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
-	    	$tpl->replace($addBtn, 'BTN');
-    	}
+	    	$title .= ht::createLink(' ', $data->addUrl, NULL, array('style' => "background-image:url({$img})", 'class' => 'linkWithIcon addRoute')); 
+	    }
 
-    	if(count($data->masterData->row->routes)){  
-    		$tpl->replace(' ', 'HEADER');
-	    	foreach($data->masterData->row->routes as $route){
-	    		$cl = $tpl->getBlock("ROW");
-	    		$cl->placeObject($route);
-	    		$cl->removeBlocks();
-	    		$cl->append2master();
-	    	}
-           
-    	} else {
-            if($data->masterData->row->haveRoutes) {
-                $tpl->append(tr('Няма бъдещи посещения'), 'INFO');
-            } else {
-    		    $tpl->append(tr('Не е включена в маршрут'), 'INFO');
-            }
-    	}
-
-        $tpl->removeBlocks();  
+    	$tpl->replace($title, 'title');
+    	
+    	$table = cls::get('core_TableView');
+    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,nextVisit=Следващо посещение,tools=Пулт');
+    	$tpl->append($tableTpl, 'content');
 
     	return $tpl;
     }
@@ -388,6 +377,12 @@ class sales_Routes extends core_Manager {
 		if($action == 'restore' && $rec->id){
 			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
 			if($locationState == 'rejected'){
+				$res = 'no_one';
+			}
+		}
+		
+		if($action == 'add' && isset($rec->locationId)){
+			if(crm_Locations::fetchField($rec->locationId, 'state') == 'rejected'){
 				$res = 'no_one';
 			}
 		}

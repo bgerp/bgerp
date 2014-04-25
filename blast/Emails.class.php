@@ -949,7 +949,7 @@ class blast_Emails extends core_Master
         
         // Добавяме към шаблона
         $preview->append($body->html, 'BLAST_HTML');
-        $preview->append($body->text, 'BLAST_TEXT');
+        $preview->append(core_Type::escape($body->text), 'BLAST_TEXT');
 
         // Добавяме изгледа към главния шаблон
         $tpl->append($preview);

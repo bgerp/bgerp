@@ -611,7 +611,7 @@ en,Бързи бутони,Shortcuts
 en,Бележки за про_9f1b5,Notes for sale
 en,Точки на Продажба,Points of Sale
 en,Маршрути,Routes
-en,Търговец,Merchant
+en,Търговец,Salesman
 en,Клиент,Customer
 en,Недоставени,Undelivered
 en,Доставени,Delivered
@@ -1682,3 +1682,4 @@ en,Вашият пощенски код,Your post code
 en,Вашият адрес,Your address
 en,"Моля, изберете текущ/а","Please, choose current"
 en,"Възможен е проблем с домейна","Possible problem with the domain"
+en,"Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт.","Thank you for your inquiry received on [#1#] at [#2#] through our web site."

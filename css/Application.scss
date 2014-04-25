@@ -938,6 +938,9 @@ td.portal-date {
 	.listTable th, .listTable td{
 		border: 1px solid #999;
 	}
+	.border-table, .pko-notes{
+	   width: 100%;
+	}
 	.border-table td, .border-table th{
 	    border:1px solid #999;
 	    padding:3px;
@@ -3784,13 +3787,17 @@ body.narrow {
     
 @import "partials/sales";
 
+.vislog {
+	white-space:nowrap;
+}
 
-.weblog {
+
+.vislog_History .vislog {
 	font-size:0.8em;
 	white-space:nowrap;
 }
 
-.weblog-cnt,  .weblog-ip, .weblog-country {
+.vislog_History .vislog-cnt, .vislog_History .vislog-ip, .vislog_History .vislog-country {
 	padding:2px;
 	border:solid 1px #ccc;
 	background-color:#eee;

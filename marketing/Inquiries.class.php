@@ -737,8 +737,11 @@ class marketing_Inquiries extends core_Master
      */
     static function getDefaultEmailBody($id)
     {
-        $handle = static::getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с вашето запитване") . ': #[#handle#]');
+        $rec = static::fetch($id);
+        $date = dt::mysql2verbal($rec->createdOn, 'd-M');
+        $time = dt::mysql2verbal($rec->createdOn, 'H:i');
+
+        $tpl = new ET(tr("Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт."), $date, $time);
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

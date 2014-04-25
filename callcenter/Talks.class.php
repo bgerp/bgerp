@@ -1538,6 +1538,43 @@ class callcenter_Talks extends core_Master
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да променя статуса на обажданията без статуси на без отговор.</li>";
         }
+        
+        // Миграция, за стари бази, където може да имаме сгрешени времена за разговорите
+        
+        $conf = core_Packs::getConfig('callcenter');
+        
+        // Всички разговори, които са над допостимата дължината
+        $query = static::getQuery();
+        $query->where(array("ADDDATE(#answerTime, INTERVAL [#1#] SECOND) < #endTime", $conf->CALLCENTER_MAX_CALL_DURATION));
+        
+        while($rec = $query->fetch()) {
+            
+            // Променяме края на разговора, да е в допустимите граници
+            $rec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $rec->answerTime);
+            
+            // Записваме промените
+            static::save($rec, 'endTime');
+            
+            // Масив с id-тата на променени разговори
+            $changedTalksArr[$rec->id] = $rec->id;
+        }
+        
+        // Ако има промение разговори
+        if ($changedTalksArr) {
+            
+            // Броя на променените разговори
+            $cnt = count($changedTalksArr);
+            
+            if ($cnt == 1) {
+                $word = 'разговор';
+            } else { 
+                $word = 'разговорa';
+            }
+            
+            $changetTalksStr = implode(', ', $changedTalksArr);
+            
+            $res .= "<li><font color='green'>Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
+        }
     }
     
     

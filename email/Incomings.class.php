@@ -696,7 +696,7 @@ class email_Incomings extends core_Master
         }
         
         if($rec->fromIp && $rec->country) {
-            $row->fromIp .= " ($row->country)";
+            $row->fromIp = vislog_History::decorateIp($rec->fromIp, $rec->createdOn);
         }
         
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
@@ -1221,8 +1221,7 @@ class email_Incomings extends core_Master
         Mode::push('text', 'plain');
         Mode::push('ClearFormat', TRUE);
         $rt = new type_Richtext();
-        $textPart = $rt->toHtml($msg->textPart);
-        $textPart = str_replace(array('&lt;', '&amp;'), array('<', '&'), $textPart);
+        $textPart = $rt->toVerbal($msg->textPart);
         Mode::pop('ClearFormat');
         Mode::pop('text');
 

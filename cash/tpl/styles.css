@@ -1,7 +1,6 @@
 .document table {
 	border-collapse:collapse;
 	border-bottom-style:none;
-	width:100%;
 }
 
 @media print {

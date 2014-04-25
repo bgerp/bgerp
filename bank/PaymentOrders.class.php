@@ -131,7 +131,7 @@ class bank_PaymentOrders extends core_Master
     	$this->FLD('moreReason', 'text(rows=2)', 'caption=Допълнително,width=100%');
     	$this->FLD('paymentSystem', 'enum(bisera=БИСЕРА,rings=РИНГС)','caption=Пл. система,default=bisera,width=6em');
     	$this->FLD('orderer', 'varchar(255)', 'caption=Наредител->Име,mandatory,width=16em');
-    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Б. Сметка,mandatory,width=16em');
+    	$this->FLD('ordererIban', 'iban_Type', 'caption=Наредител->Банк. сметка,mandatory,width=16em');
     	$this->FLD('execBank', 'varchar(255)', 'caption=Наредител->Банка,width=16em');
     	$this->FLD('execBankBic', 'varchar(12)', 'caption=Наредител->BIC,width=16em');
     	$this->FLD('execBranch', 'varchar(255)', 'caption=Наредител->Клон,width=16em');

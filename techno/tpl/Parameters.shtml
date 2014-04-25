@@ -7,7 +7,7 @@
 	[#PARAMS#]
 	<tr>
 	<td> [#paramId#]</td>
-	<td><i>[#value#]<span class='param-tools'>[#tools#]</span></i>
+	<td class='nowrap'><i class='fleft'>[#value#]</i><span class='param-tools'>[#tools#]</span><div class='clearfix21'></div>
 	</td>
 	</tr>
 	<!--ET_END PARAMS-->

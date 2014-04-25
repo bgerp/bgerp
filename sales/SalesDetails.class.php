@@ -150,7 +150,7 @@ class sales_SalesDetails extends core_Detail
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
         $this->FNC('packPrice', 'double', 'caption=Цена,input');
-        $this->FLD('discount', 'percent', 'caption=Отстъпка');
+        $this->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
     }
     
     
@@ -333,8 +333,10 @@ class sales_SalesDetails extends core_Detail
         $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId);
         expect(count($products));
         
+        $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
+        
         if (empty($rec->id)) {
-        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
 			$data->form->setOptions('productId', $products);
         	
         } else {
@@ -345,13 +347,8 @@ class sales_SalesDetails extends core_Detail
         }
         
         if (!empty($rec->packPrice)) {
-            if ($masterRec->chargeVat == 'yes') {
-                
-                // Начисляваме ДДС в/у цената
-                $rec->packPrice *= 1 + $ProductManager->getVat($rec->productId, $masterRec->valior);
-            }
-            
-            $rec->packPrice /= $masterRec->currencyRate;
+            $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+        	$rec->packPrice = price_Helper::getPriceToCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
     
@@ -381,35 +378,51 @@ class sales_SalesDetails extends core_Detail
     		}
         }
     	
-    	if ($form->isSubmitted() && !$form->gotErrors()) {
-           
-    		if(empty($rec->id)){
-    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
-    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
-    			if($id = $mvc->fetchField($where)){
-    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
-    				$rec->id = $id;
-	            	$update = TRUE;
-    			}
-            }
+    if ($form->isSubmitted() && !$form->gotErrors()) {
             
-            // Извличане на информация за продукта - количество в опаковка, единична цена
+        	// Извличане на информация за продукта - количество в опаковка, единична цена
+            $rec = &$form->rec;
+
+    		if($rec->packQuantity == 0){
+    			$form->setError('packQuantity', 'Количеството не може да е|* "0"');
+    		}
+    		
             $masterRec  = sales_Sales::fetch($rec->{$mvc->masterKey});
             $contragent = array($masterRec->contragentClassId, $masterRec->contragentId);
             
-            /* @var $productRef cat_ProductAccRegIntf */
-            $productRef  = new core_ObjectReference($ProductMan, $rec->productId);
-            $productInfo = $productRef->getProductInfo();
+        	if(empty($rec->id)){
+    			$where = "#saleId = {$rec->saleId} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
+    			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
+    			if($pRec = $mvc->fetch($where)){
+    				$form->setWarning("productId", "Има вече такъв продукт с тази опаковка. Искате ли да го обновите?");
+    				$rec->id = $pRec->id;
+    				$update = TRUE;
+    			}
+            }
             
-            expect($productInfo);
+            $productRef = new core_ObjectReference($ProductMan, $rec->productId);
+            expect($productInfo = $productRef->getProductInfo());
             
+            // Определяне на цена, количество и отстъпка за опаковка
+            $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
+           
+            $policyInfo = $ProductMan->getPriceInfo(
+                $masterRec->contragentClassId, 
+                $masterRec->contragentId, 
+                $rec->productId,
+                $rec->classId,
+                $rec->packagingId,
+                $rec->packQuantity,
+                $priceAtDate
+            );
+           
             if (empty($rec->packagingId)) {
-                // В продажба в основна мярка
+                // Покупка в основна мярка
                 $rec->quantityInPack = 1;
             } else {
-                // Продажба на опаковки
+                // Покупка на опаковки
                 if (!$packInfo = $productInfo->packagings[$rec->packagingId]) {
-                    $form->setError('packagingId', 'Избрания продукт не се предлага в тази опаковка');
+                    $form->setError('packagingId', "Артикула няма цена към дата|* '{$masterRec->date}'");
                     return;
                 }
                 
@@ -417,52 +430,39 @@ class sales_SalesDetails extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
-            // Определяне на цена, количество и отстъпка за опаковка
+            $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             
             if (!isset($rec->packPrice)) {
-                // Цената идва от ценоразписа. От ценоразписа цените идват в основна валута и 
-                // няма нужда от конвертиране.
-                
-                // Възможно е, обаче, ценоразписа да не върне цена. В този случай трябва да
-                // да сигнализираме на потребителя, че полето за цена е задължително и да не 
-                // допускаме записи без цени.
-                
-            	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
-                $policyInfo = $ProductMan->getPriceInfo(
-                    $masterRec->contragentClassId, 
-                    $masterRec->contragentId, 
-                    $rec->productId,
-                    $rec->classId,
-                    $rec->packagingId,
-                    $rec->packQuantity,
-                    $priceAtDate
-                );
-            
-                if (empty($policyInfo->price)) {
-                    $form->setError('price', "Артикула няма цена към дата|* '{$priceAtDate}'");
+            	
+            	// Ако няма последна покупна цена и не се обновява запис в текущата покупка
+                if (!isset($policyInfo->price) && empty($pRec)) {
+                    $form->setError('price', 'Продукта няма цена в избраната ценова политика');
+                } else {
+                	
+                	// Ако се обновява вече съществуващ запис
+                	if($pRec){
+                		$pRec->packPrice = price_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+        			}
+                	
+                	// Ако се обновява запис се взима цената от него, ако не от политиката
+                	$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+                	$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+                	$rec->discount = ($pRec->discount) ? $pRec->discount : $policyInfo->discount;
                 }
                 
-                $rec->price = $policyInfo->price;
             } else {
-                // Цената е въведена от потребителя. Потребителите въвеждат цените във валутата
-                // на продажбата. Конвертираме цената към основна валута по курса, зададен
-                // в мастър-продажбата.
-                $rec->packPrice *= $masterRec->currencyRate;
+            	
+            	// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
+            	if(!$update || ($update && Request::get('Ignore'))){
+            		$rec->packPrice =  price_Helper::getPriceFromCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            	}
                 
-                if ($masterRec->chargeVat == 'yes') {
-                	if(!$update || ($update && Request::get('Ignore'))){
-                		
-                		// Потребителя въвежда цените с ДДС
-                    	$rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
-                	} 
-                }
-                
-                // Изчисляваме цената за единица продукт в осн. мярка
+                // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
+                
             }
             
-            // Записваме основната мярка на продукта
+    		// Записваме основната мярка на продукта
             $rec->uomId = $productInfo->productRec->measureId;
             
             // При редакция, ако е променена опаковката слагаме преудпреждение

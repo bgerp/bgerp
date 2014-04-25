@@ -347,7 +347,7 @@ class sales_Invoices extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-        $form->rec->date = dt::today();
+        $form->setDefault('date', dt::today());
         if(!haveRole('ceo,acc')){
         	$form->setField('number', 'input=none');
         }
@@ -524,6 +524,7 @@ class sales_Invoices extends core_Master
     public static function getOrigin($rec)
     {
     	$origin = NULL;
+    	$rec = static::fetchRec($rec);
     	
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
@@ -788,9 +789,6 @@ class sales_Invoices extends core_Master
     {
     	parent::prepareSingle_($data);
     	$rec = &$data->rec;
-    	$address = ($rec->contragentPlace) ? $data->row->contragentPlace . ', ' : '';
-    	$address .= $data->row->contragentPCode . "<br />";
-    	$data->row->contragentAddress .= $data->row->contragentAddress;
     	
     	if(empty($data->noTotal)){
     		if($rec->type != 'invoice'){
@@ -933,30 +931,6 @@ class sales_Invoices extends core_Master
         	return TRUE;
         }
         
-    	return FALSE;
-    }
-    
-    
-	/**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
-    
-    	if(($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) && $docState == 'active' && $firstDoc->instance instanceof sales_Sales){
-    		
-    		// Може да се добавя към нишка с начален документ с интерфейс bgerp_DealAggregatorIntf
-    		return TRUE;
-    	} elseif($firstDoc->instance instanceof sales_Invoices && $docState == 'active') {
-    		
-    		// или към нишка с начало активирана продажба
-    		return TRUE;
-    	}
-    	
     	return FALSE;
     }
     
@@ -1305,10 +1279,11 @@ class sales_Invoices extends core_Master
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
     	
-    	// Обикновения продавач неможе да създава ДИ и КИ
-    	if($action == 'add' && isset($rec)){
-    		if($rec->type != 'invoice'){
-    			$res = 'ceo,sales';
+    	if($action == 'add' && isset($rec->threadId)){
+    		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		 $docState = $firstDoc->fetchField('state');
+    		 if(!($firstDoc->instance instanceof sales_Sales && $docState == 'active')){
+    			$res = 'no_one';
     		}
     	}
     	
@@ -1318,6 +1293,23 @@ class sales_Invoices extends core_Master
 	        if($originState === 'closed'){
 	        	$res = 'no_one';
 	        }
+        }
+    }
+    
+    
+	/**
+     * След оттегляне на документа
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
         }
     }
 }

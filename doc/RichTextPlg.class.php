@@ -316,7 +316,7 @@ class doc_RichTextPlg extends core_Plugin
             // JS функцията
             $callback = "function {$callbackName}(docHnd) {
                 var ta = get$('{$id}');
-                rp(\"\\n\" + docHnd, ta);
+                rp(docHnd, ta, 1);
                 return true;
             }";
             

@@ -302,7 +302,14 @@ class purchase_TransactionSourceImpl
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$amount = ($detailRec->discount) ?  $detailRec->amount * (1 - $detailRec->discount) : $detailRec->amount;
+       		if($rec->chargeVat == 'yes'){
+	        	$ProductManager = cls::get($detailRec->classId);
+	            $vat = $ProductManager->getVat($detailRec->productId, $rec->valior);
+	            $amount = $detailRec->amount - ($detailRec->amount * $vat / (1 + $vat));
+	        } else {
+	        	$amount = $detailRec->amount;
+	        }
+        	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){

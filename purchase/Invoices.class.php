@@ -183,18 +183,18 @@ class purchase_Invoices extends core_Master
     {
         $this->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $this->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
-        $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory');
+        $this->FLD('number', 'int', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата');
         $this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ, width=50%');
-        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
+        $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('contragentName', 'varchar', 'caption=Получател->Име, mandatory, class=contactData');
-        $this->FLD('responsible', 'varchar(255)', 'caption=Получател->Отговорник, class=contactData');
-        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Получател->Държава,mandatory,contragentDataField=countryId');
-        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Получател->VAT №,contragentDataField=vatNo');
+        $this->FLD('contragentName', 'varchar', 'caption=Доставчик->Име, mandatory, class=contactData');
+        $this->FLD('responsible', 'varchar(255)', 'caption=Доставчик->Отговорник, class=contactData');
+        $this->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'caption=Доставчик->Държава,mandatory,contragentDataField=countryId');
+        $this->FLD('contragentVatNo', 'drdata_VatType', 'caption=Доставчик->VAT №,contragentDataField=vatNo');
         $this->FLD('uicNo', 'type_Varchar', 'caption=Национален №');
-        $this->FLD('contragentPCode', 'varchar(16)', 'caption=Получател->П. код,recently,class=pCode,contragentDataField=pCode');
-        $this->FLD('contragentPlace', 'varchar(64)', 'caption=Получател->Град,class=contactData,contragentDataField=place');
-        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Получател->Адрес,class=contactData,contragentDataField=address');
+        $this->FLD('contragentPCode', 'varchar(16)', 'caption=Доставчик->П. код,recently,class=pCode,contragentDataField=pCode');
+        $this->FLD('contragentPlace', 'varchar(64)', 'caption=Доставчик->Град,class=contactData,contragentDataField=place');
+        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Доставчик->Адрес,class=contactData,contragentDataField=address');
         $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин');
@@ -321,7 +321,7 @@ class purchase_Invoices extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-        $form->rec->date = dt::today();
+        $form->setDefault('date', dt::today());
         
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -479,25 +479,6 @@ class purchase_Invoices extends core_Master
 		    	}
     		}
     	}
-    }
-    
-    
-    /**
-     * Намира ориджина на фактурата (ако има)
-     */
-    public static function getOrigin($rec)
-    {
-    	$origin = NULL;
-    	
-    	if($rec->originId) {
-    		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->threadId){
-    		return doc_Threads::getFirstDocument($rec->threadId);
-	    }
-    	
-    	return $origin;
     }
     
     
@@ -720,9 +701,6 @@ class purchase_Invoices extends core_Master
     {
     	parent::prepareSingle_($data);
     	$rec = &$data->rec;
-    	$address = ($rec->contragentPlace) ? $data->row->contragentPlace . ', ' : '';
-    	$address .= $data->row->contragentPCode . "<br />";
-    	$data->row->contragentAddress .= $data->row->contragentAddress;
     	
     	if(empty($data->noTotal)){
     		if($rec->type != 'invoice'){
@@ -865,26 +843,6 @@ class purchase_Invoices extends core_Master
     }
     
     
-	/**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-    	$docState = $firstDoc->fetchField('state');
-    
-    	if($firstDoc->instance instanceof purchase_Purchases && $docState == 'active'){
-    		
-    		// Може да се добавя към активирана покупка
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-    
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
@@ -939,6 +897,26 @@ class purchase_Invoices extends core_Master
                 $origin->getInstance()->invoke('DescendantChanged', array($origin, $rec));
             }
         }
+    }
+    
+    
+	/**
+     * Намира ориджина на фактурата (ако има)
+     */
+    public static function getOrigin($rec)
+    {
+    	$origin = NULL;
+    	$rec = static::fetchRec($rec);
+    	
+    	if($rec->originId) {
+    		return doc_Containers::getDocument($rec->originId);
+    	}
+    	
+    	if($rec->threadId){
+    		return doc_Threads::getFirstDocument($rec->threadId);
+	    }
+    	
+    	return $origin;
     }
     
     
@@ -1194,19 +1172,16 @@ class purchase_Invoices extends core_Master
     {
         // Ако резултата е 'no_one' пропускане
     	if($res == 'no_one') return;
-    	
-    	// Обикновения продавач неможе да създава ДИ и КИ
-    	if($action == 'add' && isset($rec)){
-    		if($rec->type != 'invoice'){
-    			$res = 'ceo,purchase';
-    		}
-    	} 
-    	
-    	//@TODO тестово докато стане готов документа
-	    if($action == 'add'){
-	        $res = 'ceo';
-	    }
 	        
+    	if($action == 'add' && isset($rec->threadId)){
+    		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    		 $docState = $firstDoc->fetchField('state');
+    		 
+    		 if(!($firstDoc->instance instanceof purchase_Purchases && $docState == 'active')){
+    			$res = 'no_one';
+    		}
+    	}
+    	
     	// Документа не може да се контира, ако ориджина му е в състояние 'closed'
     	if($action == 'conto' && isset($rec)){
 	    	$originState = $mvc->getOrigin($rec)->fetchField('state');
@@ -1232,5 +1207,22 @@ class purchase_Invoices extends core_Master
     	}
     	
     	$res .= "<li><font color='green'>Добавени са {$added} шаблона за фактури, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
+    }
+    
+    
+	/**
+     * След оттегляне на документа
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param object|int $id
+     */
+    public static function on_AfterReject($mvc, &$res, $id)
+    {
+        // Нотифицираме origin-документа, че някой от веригата му се е променил
+        if ($origin = $mvc->getOrigin($id)) {
+            $ref = new core_ObjectReference($mvc, $id);
+            $origin->getInstance()->invoke('DescendantChanged', array($origin, $ref));
+        }
     }
 }

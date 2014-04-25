@@ -212,7 +212,7 @@ class cash_Pko extends core_Master
     		 $form->setDefault('reason', "Към документ #{$origin->getHandle()}");
     		 if($origin->haveInterface('bgerp_DealAggregatorIntf')){
     		 	$dealInfo = $origin->getAggregateDealInfo();
-    		 	$amount = ($dealInfo->shipped->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
+    		 	$amount = ($dealInfo->agreed->amount - $dealInfo->paid->amount) / $dealInfo->shipped->rate;
     		 	if($amount <= 0) {
     		 		$amount = 0;
     		 	}
@@ -274,13 +274,13 @@ class cash_Pko extends core_Master
     	// Ако е продажба пораждащия документ
     	if($dealInfo->dealType == bgerp_iface_DealResponse::TYPE_PURCHASE){
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'supplierAdvance2case' : 'supplier2case';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'supplierAdvance2case' : 'supplier2case';
     		} else {
     			$defaultOperation = 'supplier2case';
     		}
     	} else {
     		if(isset($agreed->downpayment)){
-    			$defaultOperation = (trim($paid->downpayment) < trim($agreed->downpayment)) ? 'customer2caseAdvance' : 'customer2case';
+    			$defaultOperation = (round($paid->downpayment, 2) < round($agreed->downpayment, 2)) ? 'customer2caseAdvance' : 'customer2case';
     		} else {
     			$defaultOperation = 'customer2case';
     		}
