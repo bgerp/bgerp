@@ -609,7 +609,9 @@ class core_Manager extends core_Mvc
                 <div class='top-pager'> 
                 	[#ListPagerTop#]
                 </div>
-                [#ListTable#]
+                <!--ET_BEGIN ListTable-->
+                	[#ListTable#]
+                <!--ET_END ListTable-->
                 <div class='bottom-pager'>
                 	[#ListPagerBottom#]
                 </div>
