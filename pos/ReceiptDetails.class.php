@@ -163,8 +163,8 @@ class pos_ReceiptDetails extends core_Detail {
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
         
-        if(count($data->rows)) {
-            foreach ($data->rows as $i => &$row) {
+        if(count($data->recs)) {
+            foreach ($data->recs as $i => &$rec) {
                 $haveDiscount = $haveDiscount || !empty($rec->discountPercent);
     		}
         }
@@ -493,6 +493,11 @@ class pos_ReceiptDetails extends core_Detail {
     		}
     		
     		unset($row->uomId);
+    	}
+    	
+    	// Ако отстъпката е нула да не се показва
+    	if($rec->discountPercent == 0){
+    		unset($row->discountPercent);
     	}
     	
     	if($fields['-list']){
