@@ -321,7 +321,7 @@ class purchase_Invoices extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-        $form->rec->date = dt::today();
+        $form->setDefault('date', dt::today());
         
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);

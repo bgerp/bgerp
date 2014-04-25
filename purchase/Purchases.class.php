@@ -273,17 +273,7 @@ class purchase_Purchases extends core_Master
     	}
     }
     
-    public function act_Test(){
-    	$price = 162.98333333333;
-    	$vat = 0.2;
-    	$rate = 1.9558;
-    	$chargeVat = 'yes';
-    	
-    	$l = price_Helper::getPriceToCurrency($price, $vat, $rate, $chargeVat);
-    	bp($l);
-    	$r = price_Helper::getPriceFromCurrency($price, $vat, $rate, $chargeVat);
-    	bp($r);
-    }
+    
     /**
      * След подготовка на тулбара на единичен изглед
      */
