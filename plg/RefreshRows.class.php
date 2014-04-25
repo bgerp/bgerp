@@ -120,7 +120,7 @@ class plg_RefreshRows extends core_Plugin
         if (!$tpl) return FALSE;
         
         // Вземаме съдържанието на шаблона
-        $status = static::getContent($tpl);
+        $status = static::getContent($tpl->getBlock('ListTable'));
         
         // Вземаме кеша на съдържанието
         $statusHash = $mvc->getContentHash($status);
@@ -169,7 +169,14 @@ class plg_RefreshRows extends core_Plugin
     static function getContent($tpl)
     {
         // Ако не е обект или няма съдържание
-        if (!$tpl instanceof core_ET || !$tpl) return $tpl;
+        if (!$tpl) return ;
+        
+        // Ако не е шаблон
+        if (!$tpl instanceof core_ET) {
+            
+            // Създаваме шаблон
+            $tpl = new ET($tpl);
+        }
         
         // Клонираме, за да не променяме оригиналния обект
         $cTpl = clone $tpl;
