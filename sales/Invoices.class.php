@@ -171,7 +171,6 @@ class sales_Invoices extends core_Master
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
-    	'caseId'              => 'lastDocUser|lastDoc',
     	'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
@@ -204,8 +203,7 @@ class sales_Invoices extends core_Master
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин');
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
-		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
+		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
@@ -390,10 +388,6 @@ class sales_Invoices extends core_Master
         	
         	if($accId = $aggregateInfo->agreed->payment->bankAccountId){
         		$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
-        	}
-        	
-        	if($aggregateInfo->agreed->payment->caseId){
-        		$form->rec->caseId = $aggregateInfo->agreed->payment->caseId;
         	}
         }
 	        

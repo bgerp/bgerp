@@ -165,7 +165,6 @@ class purchase_Invoices extends core_Master
     	'contragentPlace'     => 'lastDocUser|lastDoc|clientData',
         'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
         'accountId'           => 'lastDocUser|lastDoc',
-    	'caseId'              => 'lastDocUser|lastDoc',
     	'template' 			  => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
@@ -198,9 +197,8 @@ class purchase_Invoices extends core_Master
         $this->FLD('changeAmount', 'double(decimals=2)', 'input=none,width=10em');
         $this->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description)', 'caption=Плащане->Начин');
-        $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
-		$this->FLD('caseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Плащане->Каса');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
+        $this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, width:100%, export=Csv');
+		$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,width=6em,input=hidden');
         $this->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,width=6em,input=hidden'); 
         $this->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
         $this->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
@@ -362,10 +360,6 @@ class purchase_Invoices extends core_Master
         	if($aggregateInfo->agreed->payment->bankAccountId){
         		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
         	}
-        	
-        	if($aggregateInfo->agreed->payment->caseId){
-        		$form->rec->caseId = $aggregateInfo->agreed->payment->caseId;
-        	}
         }
 	        
 	    if($origin->className  == 'purchase_Invoices'){
@@ -375,13 +369,12 @@ class purchase_Invoices extends core_Master
         	
 	    if(empty($flag)){
 	        $form->setDefault('currencyId', drdata_Countries::fetchField($form->rec->contragentCountryId, 'currencyCode'));
-			if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
-				$form->setDefault('accountId', $ownAcc);
-			}
+			
 			$locations = crm_Locations::getContragentOptions($coverClass, $coverId);
 			$form->setOptions('deliveryPlaceId',  array('' => '') + $locations);
 	    }
 	   	
+	    $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, TRUE));
 	   	$form->setReadOnly('vatRate');
 	   	
 	   	// Метод който да бъде прихванат от acc_plg_DpInvoice
@@ -618,7 +611,7 @@ class purchase_Invoices extends core_Master
 	    	
 	    	if($rec->accountId){
 	    		$Varchar = cls::get('type_Varchar');
-	    		$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+	    		$ownAcc = bank_Accounts::fetch($rec->accountId);
 	    		$row->bank = $Varchar->toVerbal($ownAcc->bank);
 	    		$row->bic = $Varchar->toVerbal($ownAcc->bic);
 	    	}

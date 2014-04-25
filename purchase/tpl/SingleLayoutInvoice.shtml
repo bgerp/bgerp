@@ -61,9 +61,6 @@
 		                        [#PAYMENT_PLAN#]
 		                        <!--ET_END PAYMENT_PLAN-->
 		                        <hr>
-		                        <!--ET_BEGIN caseId-->
-		                        <span class='quiet'>|Каса|*:</span> [#caseId#]
-		                        <!--ET_END caseId-->
 		                        <!--ET_BEGIN accountId-->
 		                        <div>
 			                        <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
