@@ -247,4 +247,51 @@ abstract class price_Helper
 		
 		return (object)$arr;
 	}
+	
+	
+	/**
+	 * Помощна ф-я обръщаща цена от от основна валута без ддс до валута
+	 * 
+	 * @param double $price - цена във валута
+	 * @param double $vat - ддс 
+	 * @param double $rate - валутен курс
+	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * @return double $price - цената във валутата
+	 */
+	static function getPriceToCurrency($price, $vat, $rate, $chargeVat)
+	{
+		// Ако няма цена, но има такъв запис се взима цената от него
+	    if ($chargeVat == 'yes') {
+	          // Начисляване на ДДС в/у цената
+	         $price *= 1 + $vat;
+	    }
+	   
+	    $price /= $rate;
+	    $price = static::roundPrice($price);
+	    
+	    return $price;
+	}
+	
+
+	/**
+	 * Помощна ф-я обръщаща цена от от сума във валута в основната валута
+	 * 
+	 * @param double $price - цена във валута
+	 * @param double $vat - ддс 
+	 * @param double $rate - валутен курс
+	 * @param enum(yes,no,separate,exempt) $chargeVat - как се начислява ддс-то
+	 * @return double $price - цената в основна валута без ддс
+	 */
+	static function getPriceFromCurrency($price, $vat, $rate, $chargeVat)
+	{
+		// Ако няма цена, но има такъв запис се взима цената от него
+	    if ($chargeVat == 'yes') {
+	          // Начисляване на ДДС в/у цената
+	         $price /= 1 + $vat;
+	    }
+	  
+	    $price *= $rate;
+	    
+	    return $price;
+	}
 }

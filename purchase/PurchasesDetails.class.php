@@ -283,7 +283,7 @@ class purchase_PurchasesDetails extends core_Detail
         expect(count($products));
         
         if (empty($rec->id)) {
-        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';this.form.submit();"));
+        	$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
         } else {
         	$products = array($rec->productId => $products[$rec->productId]);
         }
@@ -292,12 +292,8 @@ class purchase_PurchasesDetails extends core_Detail
         $data->form->setSuggestions('discount', arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
               
         if (!empty($rec->packPrice)) {
-            if ($masterRec->chargeVat == 'yes') {
-                // Начисляване на ДДС в/у цената
-                $rec->packPrice *= 1 + cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-            }
-            $rec->packPrice /= $masterRec->currencyRate;
-            $rec->packPrice = price_Helper::roundPrice($rec->packPrice);
+        	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+        	$rec->packPrice = price_Helper::getPriceToCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
     }
     
@@ -370,6 +366,7 @@ class purchase_PurchasesDetails extends core_Detail
             }
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            $vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
             
             if (!isset($rec->packPrice)) {
             	
@@ -380,13 +377,8 @@ class purchase_PurchasesDetails extends core_Detail
                 	
                 	// Ако се обновява вече съществуващ запис
                 	if($pRec){
-                		// Ако няма цена, но има такъв запис се взима цената от него
-	                	if ($masterRec->chargeVat == 'yes') {
-	                		// Начисляване на ДДС в/у цената
-	                		$pRec->packPrice *= 1 + cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-	            		}
-	            		$pRec->packPrice /= $masterRec->currencyRate;
-                	}
+                		$pRec->packPrice = price_Helper::getPriceToCurrency($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+        			}
                 	
                 	// Ако се обновява запис се взима цената от него, ако не от политиката
                 	$rec->price = ($pRec->price) ? $pRec->price : $policyInfo->price;
@@ -394,17 +386,15 @@ class purchase_PurchasesDetails extends core_Detail
                 }
                 
             } else {
-                $rec->packPrice *= $masterRec->currencyRate;
-                
-                if ($masterRec->chargeVat == 'yes') {
-                	if(!$update || ($update && Request::get('Ignore'))){
-                		// Потребителя въвежда цените с ДДС
-                    	$rec->packPrice /= 1 + $ProductMan->getVat($rec->productId, $masterRec->valior);
-                	}
-                }
+            	
+            	// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
+            	if(!$update || ($update && Request::get('Ignore'))){
+            		$rec->packPrice =  price_Helper::getPriceFromCurrency($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+            	}
                 
                 // Изчисляване цената за единица продукт в осн. мярка
                 $rec->price  = $rec->packPrice  / $rec->quantityInPack;
+                
             }
             
     		// Записваме основната мярка на продукта
