@@ -30,10 +30,13 @@
                     </tr>
                     <tr>
                         <td style='padding-top:10px;'>
-                            <b>[#contragentName#]</b>
+                            <b>[#contragentName#]</b><br>
+							<br>
+							[#contragentAddress#]
                         </td>
                         <td style='padding-top:10px;' class='align-top-td'>
-                            <b>[#companyName#]</b>
+                            <b>[#companyName#]</b><br>
+							<br>
                             [#companyAddress#]
                         </td>
                     </tr>
