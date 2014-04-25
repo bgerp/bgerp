@@ -1,7 +1,9 @@
 <div class='single-receipt-wrapper'>
 		<div id='single-receipt-holder'>
 			<div id='single-receipt' class='tabs-holder'>
+			<div class='scrolling-vertical'>
 				[#RECEIPT#]
+				</div>
 				<div class="clearfix21"></div>			
 				<div id='tools-holder'>
 				<ul id ='tools-tabs' class='pos-tabs'>[#TABS#]</ul>

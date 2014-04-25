@@ -36,5 +36,4 @@
 					<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
 				</tr>
 			</tbody>
-		</table>
-				
+		</table>			

@@ -5,23 +5,41 @@
 }
 
 .pos-product-category {
-	padding: 0.2em 0.5em 0.4em;
+	padding: 0.1em 0.5em 0.4em;
 	margin:0px 8px 5px 0;
 	max-width:90px;
-	color:black;
+	color:#fff;
+	font-family: verdana;
 	font-size:0.8em;
-	background-color:rgb(221,221,221);
 	text-align:center;
 	display:block;
 	float:left;
-	border: 1px solid rgba(0,0,0,0.2);
+	background: rgba(50,50,50,0.8);
 	border-radius:10px;
+	background-image: -webkit-gradient( linear, left bottom, left top, color-stop(0.1, rgba(0, 0, 0, 0.3)), color-stop(1, rgba(255, 255, 255, 0.2)) );
+	background-image: -moz-linear-gradient( center bottom, rgba(0,0,0,0.3) 1%, rgba(255,255,255,0.2) 100% );
+	background-image: gradient( center bottom, rgba(0,0,0,0.3) 1%, rgba(255,255,255,0.2) 100% );
+    -webkit-box-shadow: inset 0px -3px 1px rgba(0, 0, 0, 0.45), 0px 2px 2px rgba(0, 0, 0, 0.25);
+    -moz-box-shadow: inset 0px -3px 1px rgba(0, 0, 0, 0.45), 0px 2px 2px rgba(0, 0, 0, 0.25);
+    box-shadow: inset 0px -3px 1px rgba(0, 0, 0, 0.45), 0px 2px 2px rgba(0, 0, 0, 0.25);
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 1)
 }
 
 .pos-product-category:hover, .pos-product-category.active {
-	background-color:rgb(240,240,240);
-	border: 1px solid rgba(0,0,0,0.7);
 	cursor: pointer;
+	color: #fff;
+	background: rgba(50,50,50,0.8);
+	background-image: -webkit-gradient( linear, left top, left bottom, color-stop(0.1, rgba(0, 0, 0, 0.3)), color-stop(1, rgba(255, 255, 255, 0.2)) );
+	background-image: -moz-linear-gradient( center top, rgba(0,0,0,0.3) 1%, rgba(255,255,255,0.2) 100% );
+	background-image: gradient( center top, rgba(0,0,0,0.3) 1%, rgba(255,255,255,0.2) 100% );
+	 position: relative; top: 3px;
+    -webkit-box-shadow: inset 0px -3px 1px rgba(255, 255, 255, 1), inset 0 0px 3px rgba(0, 0, 0, 0.9), none;
+    -moz-box-shadow: inset 0px -3px 1px rgba(255, 255, 255, 1), inset 0 0px 3px rgba(0, 0, 0, 0.9).none;
+    box-shadow: inset 0px -3px 1px #F1F1F1, inset 0 0px 3px rgba(0, 0, 0, 0.9),none;
+
 }
 
 #pos-producy-categories {
@@ -32,8 +50,12 @@
 	margin-top:5px;
 	padding:0 7px;
 }
-
+.wide #pos-products {
+	max-height: 200px;
+    overflow-y: auto;	
+}
 .pos-product{
+	border-radius: 3px;
 	position:relative;
 	background-color:#F1F1F1;
 	width: 90px;
@@ -46,17 +68,20 @@
 	margin-bottom:5px;
 	box-shadow:0px 1px 3px rgba(0,0,0,0.8);
 }
-
+.pos-product img{
+	border-radius: 3px;
+}
 .pos-product:hover, .pos-product:hover img{
 	box-shadow:0px 0px 6px rgba(0,0,0,0.8);
 }
 
 .pos-product-title {
+	border-radius: 0 0 3px 3px;
 	position:absolute;
 	left:0px;
 	bottom:0px;
 	font-size:0.8em;
-	max-height:30px;
+	max-height:32px;
 	display:block;
 	overflow:hidden;
 	text-align:center;

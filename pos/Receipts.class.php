@@ -530,7 +530,7 @@ class pos_Receipts extends core_Master {
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
     	
     	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
-    	$block->append(ht::createElement('input', array('name' => 'ean', 'style' => 'text-align:right')), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
     	
@@ -581,11 +581,11 @@ class pos_Receipts extends core_Master {
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
 
     	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
-    	$block->append(ht::createElement('input', array('name' => 'paysum', 'style' => 'text-align:right')) . "<br />", 'INPUT_PAYMENT');
+    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => 'actionBtn paymentBtn', 'data-type' => "$payment->id", 'data-url' => $payUrl);
-	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENTS');
+	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
@@ -608,8 +608,10 @@ class pos_Receipts extends core_Master {
 	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
 	    }
 	    
-	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => '', 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
-	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => '', 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
+	    $disClass = ($contoUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
+	    $disClass = ($confInvUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
     	
 	    return $block;
     }
