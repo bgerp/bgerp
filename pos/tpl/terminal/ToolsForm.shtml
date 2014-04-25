@@ -1,8 +1,9 @@
 <!--ET_BEGIN TAB_TOOLS-->
-<div class='tab-content active' id = 'tools-form'>
+
 	<form method='POST' action='[#ACT1#]' id='toolsForm'>
-	[#INPUT_FLD#]<br /><br />
-	<div style='float:left;width:50%;'>
+	<div class='input-field'>[#INPUT_FLD#]</div>
+	<div class='clearfix21'></div>
+	<div class='num-keyboard'>
 	<input class="buttonForm button numPad" type="button" value="1"></input>
 	<input class="buttonForm button numPad" type="button" value="2"></input>
 	<input class="buttonForm button numPad" type="button" value="3"></input>
@@ -19,42 +20,48 @@
 	<input class="buttonForm button numPad" type="button" value="0"></input>
 	<input class="buttonForm button numBack" type="button" value="<<"></input>
 	</div>
-	<div style='float:right;width:45%'>
+	<div class='tools-btn'>
 	[#FIRST_TOOLS_ROW#]
 	</div>
 </form>
 <div class='clearfix21'></div>
-</div>
+
 <!--ET_END TAB_TOOLS-->
 
 <!--ET_BEGIN CHOOSE_DIV-->
-<div class='tab-content [#active_choose#]' id = 'tools-choose'>
+
 [#CHOOSE_DIV#]
-</div>
+
 <!--ET_END CHOOSE_DIV-->
 
 <!--ET_BEGIN SEARCH_DIV-->
-<div class='tab-content' id = 'tools-search'>
+
 [#SEARCH_DIV#]
-</div>
+
 <!--ET_END SEARCH_DIV-->
 
 <!--ET_BEGIN PAYMENTS_BLOCK-->
-<div class='tab-content' id = 'tools-payment'>[#PAYMENTS#]
-	<input class="buttonForm button numPad2" type="button" value="1"></input>
-	<input class="buttonForm button numPad2" type="button" value="2"></input>
-	<input class="buttonForm button numPad2" type="button" value="3"></input>
+<div class='input-field'>[#INPUT_PAYMENT#]</div>
+<div class='clearfix21'></div>
+<div class='num-keyboard'>
+	<input class="buttonForm button numPad" type="button" value="1"></input>
+	<input class="buttonForm button numPad" type="button" value="2"></input>
+	<input class="buttonForm button numPad" type="button" value="3"></input>
 	<br />
-	<input class="buttonForm button numPad2" type="button" value="4"></input>
-	<input class="buttonForm button numPad2" type="button" value="5"></input>
-	<input class="buttonForm button numPad2" type="button" value="6"></input>
+	<input class="buttonForm button numPad" type="button" value="4"></input>
+	<input class="buttonForm button numPad" type="button" value="5"></input>
+	<input class="buttonForm button numPad" type="button" value="6"></input>
 	<br />
-	<input class="buttonForm button numPad2" type="button" value="7"></input>
-	<input class="buttonForm button numPad2" type="button" value="8"></input>
-	<input class="buttonForm button numPad2" type="button" value="9"></input>
+	<input class="buttonForm button numPad" type="button" value="7"></input>
+	<input class="buttonForm button numPad" type="button" value="8"></input>
+	<input class="buttonForm button numPad" type="button" value="9"></input>
 	<br />
-	<input class="buttonForm button numPad2" type="button" value="."></input>
-	<input class="buttonForm button numPad2" type="button" value="0"></input>
-	<input class="buttonForm button numBack2" type="button" value="<<"></input>
+	<input class="buttonForm button numPad" type="button" value="."></input>
+	<input class="buttonForm button numPad" type="button" value="0"></input>
+	<input class="buttonForm button numBack" type="button" value="<<"></input>
+</div>
+<div class='narrow-possition'>
+<div class='payment-type'>[#PAYMENT_TYPE#]</div>
+<div class='close-btn'>[#CLOSE_BTNS#]</div>
 </div>
 <!--ET_END PAYMENTS_BLOCK-->

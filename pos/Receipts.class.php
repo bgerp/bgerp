@@ -392,8 +392,8 @@ class pos_Receipts extends core_Master {
     		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
 	    		$tab = "<li class='active'><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
-	    		$tpl->replace($this->getSelectFavourites(), 'PRODUCTS');
-	    		$tpl->append($this->renderChooseTab($id), 'SEARCH');
+	    		$tpl->replace($this->getSelectFavourites(), 'CHOOSE_DIV_WIDE');
+	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
 	    		$tpl->replace($tab, 'TABS_WIDE');
 	    	}
     	}
@@ -479,21 +479,21 @@ class pos_Receipts extends core_Master {
     	
     	// Рендиране на пулта
     	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li>";
-    	$tpl->append($this->renderToolsTab($id), 'TOOLS');
+    	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
     	
     	// Ако сме в тесен режим
     	if(Mode::is('screenMode', 'narrow')){
     		
     		// Добавяне на таба с бързите бутони
-    		$tpl->append($this->getSelectFavourites(), 'TOOLS');
+    		$tpl->append($this->getSelectFavourites(), 'CHOOSE_DIV');
     		
     		// Добавяне на таба с избор
-    		$tpl->append($this->renderChooseTab($id), 'TOOLS');
+    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
     		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li>";
     	}
     	
     	// Добавяне на таба за плащане
-    	$tpl->append($this->renderPaymentTab($id), 'TOOLS');
+    	$tpl->append($this->renderPaymentTab($id), 'PAYMENTS');
     	
     	// Добавяне на заглавията на табовете
     	$tab .= "<li><a href='#tools-payment'>Плащане</a></li>";
@@ -510,9 +510,7 @@ class pos_Receipts extends core_Master {
     {
     	$products = pos_Favourites::prepareProducts();
     	$tpl = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('CHOOSE_DIV');
-    	if(!Mode::is('screenMode', 'narrow')){
-    		$tpl->replace('active', 'active_choose');
-    	}
+    	
     	if($products->arr) {
     		$tpl->append(pos_Favourites::renderPosProducts($products), 'CHOOSE_DIV');
 	    }
@@ -532,7 +530,7 @@ class pos_Receipts extends core_Master {
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('TAB_TOOLS');
     	
     	$block->replace(toUrl(array('pos_ReceiptDetails', 'addProduct'), 'local'), 'ACT1');
-    	$block->append(ht::createElement('input', array('name' => 'ean', 'style' => 'text-align:right')), 'INPUT_FLD');
+    	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'size' => '4em')), 'INPUT_FLD');
     	
@@ -581,13 +579,13 @@ class pos_Receipts extends core_Master {
     {
     	expect($rec = $this->fetchRec($id));
     	$block = getTplFromFile('pos/tpl/terminal/ToolsForm.shtml')->getBlock('PAYMENTS_BLOCK');
-    	
+
     	$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
-    	$block->append(ht::createElement('input', array('name' => 'paysum', 'style' => 'text-align:right')) . "<br />", 'PAYMENTS');
+    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
     	$payments = pos_Payments::fetchSelected();
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => 'actionBtn paymentBtn', 'data-type' => "$payment->id", 'data-url' => $payUrl);
-	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENTS');
+	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
 	    }
 	    
 	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
@@ -610,8 +608,10 @@ class pos_Receipts extends core_Master {
 	    	$hint = $hintInv = tr("Не може да приключите бележката, докато не е платена");
 	    }
 	    
-	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => '', 'id' => 'btn-close','title' => $hint)), 'PAYMENTS');
-	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => '', 'id' => 'btn-inv', 'title' => $hintInv)), 'PAYMENTS');
+	    $disClass = ($contoUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Приключи', $contoUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-close','title' => $hint)), 'CLOSE_BTNS');
+	    $disClass = ($confInvUrl) ? '' : 'disabledBtn';
+	    $block->append(ht::createBtn('Фактурирай', $confInvUrl, '', '', array('class' => "{$disClass}", 'id' => 'btn-inv', 'title' => $hintInv)), 'CLOSE_BTNS');
     	
 	    return $block;
     }

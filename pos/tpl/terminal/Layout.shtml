@@ -1,14 +1,34 @@
 <div class='single-receipt-wrapper'>
 		<div id='single-receipt-holder'>
 			<div id='single-receipt' class='tabs-holder'>
+			<div class='scrolling-vertical'>
 				[#RECEIPT#]
+				</div>
 				<div class="clearfix21"></div>			
 				<div id='tools-holder'>
 				<ul id ='tools-tabs' class='pos-tabs'>[#TABS#]</ul>
-				<!--ET_BEGIN TOOLS-->
-				<div class='pos-tab-content tabs-holder-content'>
-				[#TOOLS#]
-				</div>
+				<!--ET_BEGIN TOOLS-->[#TOOLS#]
+					<div class='pos-tab-content tabs-holder-content'>
+					
+						<div class='tab-content active' id = 'tools-form'> [#TAB_TOOLS#]</div>
+						<!--ET_BEGIN CHOOSE_DIV-->
+						   <div class='tab-content [#active_choose#]' id = 'tools-choose'>
+						      [#CHOOSE_DIV#] 
+						   </div>
+						<!--ET_END CHOOSE_DIV-->
+						
+						<!--ET_BEGIN SEARCH_DIV-->
+						   <div class='tab-content' id = 'tools-search'>
+						      [#SEARCH_DIV#]
+						   </div>
+						<!--ET_END SEARCH_DIV-->
+						
+						<!--ET_BEGIN PAYMENTS_BLOCK-->
+						   <div class='tab-content' id = 'tools-payment'>
+						      [#PAYMENTS#]
+						   </div>
+						<!--ET_END PAYMENTS_BLOCK-->
+					</div>
 				<!--ET_END TOOLS-->
 				</div>
 				<a name = 'form'></a>
@@ -18,11 +38,19 @@
 </div>
 <div id='tools-wide-holder' class='tabs-holder'>
 	<ul id ='tools-wide-tabs' class='pos-tabs'>[#TABS_WIDE#]</ul>
-	<!--ET_BEGIN PRODUCTS-->
+	<!--ET_BEGIN WIDE_RIGHT_PANEL-->[#WIDE_RIGHT_PANEL#]
 	<div class='tools-wide-select-content tabs-holder-content'>
-	[#PRODUCTS#]
-	
-	<!--ET_END PRODUCTS-->
-	[#SEARCH#]
+	               <!--ET_BEGIN CHOOSE_DIV_WIDE-->
+                    <div class='tab-content active' id = 'tools-choose'>
+                        [#CHOOSE_DIV_WIDE#] 
+                    </div>
+                    <!--ET_END CHOOSE_DIV_WIDE-->
+                    
+                    <!--ET_BEGIN SEARCH_DIV_WIDE-->
+                    <div class='tab-content' id = 'tools-search'>
+                        [#SEARCH_DIV_WIDE#]
+                    </div>
+                    <!--ET_END SEARCH_DIV_WIDE-->
 	</div>
+	<!--ET_END WIDE_RIGHT_PANEL-->
 </div>

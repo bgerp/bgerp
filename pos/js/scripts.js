@@ -1,6 +1,14 @@
 function posActions() {
 
 	$('#pos-producy-categories .pos-product-category').first().addClass('active');
+	if($('body').hasClass('wide')){
+		calculateWidth();
+		$(window).resize( function() {
+			calculateWidth();
+		});
+	}
+		
+	
 	
 	
 	// Засветяване на избрания ред и запис в хидън поле
@@ -12,7 +20,7 @@ function posActions() {
 	});
 	
 	// Използване на числата за въвеждане в пулта
-	$(".numPad").live("click", function() {
+	$("#tools-form .numPad").live("click", function() {
 		var val = $(this).val();
 		
 		var inpVal = $("input[name=ean]").val();
@@ -31,7 +39,7 @@ function posActions() {
 	});
 	
 	// Използване на числата за въвеждане на суми за плащания
-	$(".numPad2").live("click", function() {
+	$("#tools-payment .numPad").live("click", function() {
 		var val = $(this).val();
 		
 		var inpVal = $("input[name=paysum]").val();
@@ -50,7 +58,7 @@ function posActions() {
 	});
 	
 	// Триене на числа в пулта
-	$(".numBack").live("click", function() {
+	$("#tools-form .numBack").live("click", function() {
 		var inpValLength = $("input[name=ean]").val().length;
 		var newVal = $("input[name=ean]").val().substr(0, inpValLength-1);
 		
@@ -58,7 +66,7 @@ function posActions() {
 	});
 	
 	// Триене на числа при плащанията
-	$(".numBack2").live("click", function() {
+	$("#tools-payment .numBack").live("click", function() {
 		var inpValLength = $("input[name=paysum]").val().length;
 		var newVal = $("input[name=paysum]").val().substr(0, inpValLength-1);
 		
@@ -90,9 +98,10 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj, data);
-		
+	
 		$("input[name=ean]").val("");
 		event.preventDefault();
+		scrollRecieptBottom();
 	    return false; 
 	});
 	
@@ -108,6 +117,7 @@ function posActions() {
 		getEfae().process(resObj, data);
 		
 		event.preventDefault();
+		scrollRecieptBottom();
 	    return false;
 	});
 	
@@ -123,7 +133,9 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj, data);
+	
 		$("input[name=paysum]").val("");
+		scrollRecieptBottom();
 	});
 	
 	// Бутоните за приключване приключват бележката
@@ -141,6 +153,7 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
+		scrollRecieptBottom();
 	});
 	
 	// Добавяне на продукти от бързите бутони
@@ -155,6 +168,7 @@ function posActions() {
 		resObj['url'] = url;
 		
 		getEfae().process(resObj, data);
+		scrollRecieptBottom();
 	});
 	
 	// Скриване на бързите бутони спрямо избраната категория
@@ -205,4 +219,40 @@ function posActions() {
 
 		e.preventDefault();
 	}); 
+}
+
+function calculateWidth(){
+	var winWidth = parseInt($(window).width());
+	var winHeight = parseInt($(window).height());
+	var padd = 2 * parseInt($('.single-receipt-wrapper').css('padding-top'));
+	var marg = 2 * parseInt($('.single-receipt-wrapper').css('margin-top'));
+	var totalOffset = marg + padd + 2;
+	$('.single-receipt-wrapper').css('height', winHeight -  totalOffset);
+	
+	var usefulWidth = winWidth - totalOffset;
+	
+	var maxColWidth = parseInt(usefulWidth/2) - 10;
+	$('#single-receipt').css('width', maxColWidth);
+	$('.tabs-holder-content').css('width', maxColWidth);
+	$('#tools-wide-holder').css('left', maxColWidth + 50);
+	
+	var comboWidth = maxColWidth - 30;
+	$('.tabs-holder-content .chzn-container').css('width',comboWidth);
+	$('.tabs-holder-content .chzn-container .chzn-drop').css('width',comboWidth - 2 );
+	$('.tabs-holder-content .chzn-container-single .chzn-search input').css('width',comboWidth - 12);
+	
+	var downPanelHeight = parseInt($('#tools-holder').outerHeight());
+	console.log(winHeight -  totalOffset - downPanelHeight);
+	$('.scrolling-vertical').css('maxHeight', winHeight -  totalOffset - downPanelHeight -30);
+	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
+	scrollRecieptBottom();
+	
+}
+
+
+function scrollRecieptBottom(){
+	var el = $('.scrolling-vertical');
+	
+	setTimeout(function(){el.scrollTop( el.get(0).scrollHeight );},500);
+	
 }
