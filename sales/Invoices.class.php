@@ -388,8 +388,8 @@ class sales_Invoices extends core_Master
         		$form->setField('deliveryPlaceId', 'input=hidden');
         	}
         	
-        	if($aggregateInfo->agreed->payment->bankAccountId){
-        		$form->rec->accountId = $aggregateInfo->agreed->payment->bankAccountId;
+        	if($accId = $aggregateInfo->agreed->payment->bankAccountId){
+        		$form->rec->accountId = bank_OwnAccounts::fetchField("#bankAccountId = {$accId}", 'id');
         	}
         	
         	if($aggregateInfo->agreed->payment->caseId){
