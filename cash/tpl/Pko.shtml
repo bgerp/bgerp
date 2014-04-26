@@ -24,7 +24,7 @@
 				</tr>
 				<tr>
 					<td style='padding-top:10px;'>
-					<b>[#contragentName#]</b>[#contragentAddress#]<br><br>[#creditAccounts#]</td>
+					<b>[#contragentName#]</b><br>[#contragentAddress#]<br><br>[#creditAccounts#]</td>
 					<td style='padding-top:10px;' class='align-top-td'>
 					<b>[#organisation#]</b><br />[#organisationAddress#]<br><br>|Каса|*<b>: [#peroCase#]</b>
 					</td>
