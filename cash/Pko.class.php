@@ -309,7 +309,7 @@ class cash_Pko extends core_Master
 	    	$rec->contragentCountry = $contragentData->country;
 	    	$rec->contragentPcode = $contragentData->pCode;
 	    	$rec->contragentPlace = $contragentData->place;
-	    	$rec->contragentAdress = $contragentData->adress;
+	    	$rec->contragentAdress = $contragentData->address;
 	    	$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 	    	
 		    if(!$rec->rate){
