@@ -24,9 +24,9 @@
 					</tr>
 					<tr>
 						<td style='padding-top:10px;'>
-						<b>[#contragentName#]</b>[#contragentAddress#]<br><br>[#debitAccounts#]</td>
+						<b>[#contragentName#]</b><br><br>[#contragentAddress#]<br><br>[#debitAccounts#]</td>
 						<td style='padding-top:10px;' class='align-top-td'>
-						<b>[#organisation#]</b>[#organisationAddress#]<br><br>|Каса|*: <b>[#peroCase#]</b>
+						<b>[#organisation#]</b><br><br>[#organisationAddress#]<br><br>|Каса|*: <b>[#peroCase#]</b>
 						</td>
 					</tr>
 					</table>
