@@ -45,6 +45,12 @@ defIfNot('FILEMAN_FILE_COMMAND', core_Os::isWindows() ? '"C:/Program Files/GnuWi
 
 
 /**
+ *  Път до ImageMagic командата 'identify'
+ */
+defIfNot('FILEMAN_IDENTIFY_FILE_COMMAND', core_Os::isWindows() ? '' : 'identify');
+
+
+/**
  * Минималната големина на файла, до която ще се търси баркод
  * 15kB
  */
@@ -211,9 +217,6 @@ class fileman_Setup extends core_ProtoSetup
             }
         }
         
-        //Инсталиране на плъгина за проверка на разширенията
-        $setExtPlg = cls::get('fileman_SetExtensionPlg');
-        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -222,6 +225,7 @@ class fileman_Setup extends core_ProtoSetup
         // Инсталираме
         if($conf->FILEMAN_FILE_COMMAND) {
             $html .= $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
+            $html .= $Plugins->installPlugin('SetExtension2', 'fileman_SetExtensionPlg2', 'fileman_Files2', 'private');
         }
         
         // Инсталираме плъгина за качване на файлове в RichEdit

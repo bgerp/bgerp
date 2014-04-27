@@ -43,7 +43,15 @@ class fileman_Files2 extends core_Master
         
         // Абсорбираме файла
         $data = fileman_Data::absorb($path, 'file');
-        $dataId = $data->id;
+        
+        // Очаквамед да има данни
+        expect($dataId = $data->id, 'Липсват данни.');
+        
+        // Инстанция на този клас
+        $me = cls::get(get_called_class());
+        
+        // Инвокваме функцията
+        $me->invoke('prepareFileName', array(&$name, $dataId));
 
         // Проверяваме дали същия файл вече съществува
         if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
@@ -79,8 +87,16 @@ class fileman_Files2 extends core_Master
         
         // Качваме файла и вземаме id' то на данните
         $data = fileman_Data::absorb($data, 'string');
+        
+        // Очаквамед да има данни
         expect($dataId = $data->id, 'Липсват данни.');
-
+        
+        // Инстанция на този клас
+        $me = cls::get(get_called_class());
+        
+        // Инвокваме функцията
+        $me->invoke('prepareFileName', array(&$name, $dataId));
+        
         // Проверяваме дали същия файл вече съществува
         if ($data->new || !($fh = static::checkFileNameExist($dataId, $bucketId, $name))) {
             
@@ -659,12 +675,20 @@ class fileman_Files2 extends core_Master
         $recFileNameArr['name'] = preg_quote($recFileNameArr['name'], '/');
         $recFileNameArr['ext'] = preg_quote($recFileNameArr['ext'], '/');
         
-        // Регулярен израз за откриване на подобни файлове
-        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*(\." . $recFileNameArr['ext'] . ')?$';
+        // Регулярният израз за откриване на подобни файлове
+        $regExp = "^" . $recFileNameArr['name'] . "(\_[0-9]+)*";
+        
+        // Ако има разширение на файла
+        if ($recFileNameArr['ext']) {
+            $regExp .= "(\." . $recFileNameArr['ext'] . '){1}';
+        }
+        
+        // Край на регулярния израз
+        $regExp .= "$";
         
         // Добавяме регулярния израз за търсене
         $query->where("LOWER(#name) REGEXP '{$regExp}'");
-
+        
         // Ако сме открили запис
         if ($rec = $query->fetch()) {
             
@@ -728,6 +752,31 @@ class fileman_Files2 extends core_Master
         
         // Връщаме mime типа
         return mb_substr($fileType, $spacePos);
+    }
+    
+    
+    /**
+     * Използва identify от ImageMagic пакета за определяне на коректното разширение на файла
+     * 
+     * @param string $path - Пътя до файла
+     * 
+     * @return string - Разширението на файла
+     */
+    static function identifyFileExt($path)
+    {
+        // Очакваме да е валиден път
+        expect(static::isCorrectPath($path));
+        
+        // Вземаме конфигурацията
+        $conf = core_Packs::getConfig('fileman');
+        
+        // Изпълняваме командата
+        $ext = exec("{$conf->FILEMAN_IDENTIFY_FILE_COMMAND} -format \"%m\" \"{$path}\"", $a, $b);
+        
+        // Разширението в долен регистър
+        $ext = strtolower($ext);
+        
+        return $ext;
     }
     
     
