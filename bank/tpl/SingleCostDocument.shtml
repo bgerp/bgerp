@@ -14,7 +14,7 @@
                     <table border='1px' class='order-table' cellpadding='4px'>
                     <tr>
                         <td class='top-head'>
-                            <b>|Получател|*</b>
+                            <b>|Организация|*</b>
                         </td>
                         <td  rowspan='2' class='title-order'>
                             <h2 style='margin-bottom:8px;margin-top:0px'>|РАЗХОДЕН|*<br> |БАНКОВ ДОКУМЕНТ|*</h2>
@@ -26,19 +26,20 @@
 			                  <br />
 			               <!--ET_END state-->
                         </td>
-                        <td class='top-head'><b>|Организация|*</b></td>
+                        <td class='top-head'><b>|Получател|*</b></td>
                     </tr>
                     <tr>
                         <td style='padding-top:10px;'>
-                            <b>[#contragentName#]</b><br>
-							<br>
-							[#contragentCountryId#]<!--ET_BEGIN contragentPlace-->, [#contragentPCode#]
-                 [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+                        <b>[#companyName#]</b><br>
+                            <br>
+                            [#companyAddress#]
                         </td>
                         <td style='padding-top:10px;' class='align-top-td'>
-                            <b>[#companyName#]</b><br>
-							<br>
-                            [#companyAddress#]
+                              <b>[#contragentName#]</b><br>
+                            <br>
+                            [#contragentCountryId#]<!--ET_BEGIN contragentPlace-->, [#contragentPCode#]
+                            [#contragentPlace#]<!--ET_END contragentPlace--><!--ET_BEGIN contragentAddress-->, [#contragentAddress#] <!--ET_END contragentAddress-->
+                          
                         </td>
                     </tr>
                     </table>

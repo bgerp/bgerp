@@ -13,20 +13,21 @@
 		<div class='display-table'>
 					<table border='1px' class='order-table' cellpadding='4px'>
 					<tr>
-						<td class='top-head'><b>|Да се изплати на|*</b></td>
+						<td class='top-head'><b>|Организация|*</b></td>
 						<td  rowspan='2' class='title-order'>
 							<h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
 							№:&nbsp;&nbsp;<b>[#number#]</b><br>
 							|Дата|*:&nbsp;&nbsp;<b>[#valior#]</b>
 							<h3 style='margin:10px'>[#state#]</h3>
 						</td>
-						<td class='top-head'><b>|Организация|*</b></td>
+						<td class='top-head'><b>|Да се изплати на|*</b></td>
 					</tr>
 					<tr>
 						<td style='padding-top:10px;'>
-						<b>[#contragentName#]</b><br>[#contragentAddress#]<br><br>[#debitAccounts#]</td>
+						  <b>[#organisation#]</b><br>[#organisationAddress#]<br><br>|Каса|*: <b>[#peroCase#]</b>
+						</td>
 						<td style='padding-top:10px;' class='align-top-td'>
-						<b>[#organisation#]</b><br>[#organisationAddress#]<br><br>|Каса|*: <b>[#peroCase#]</b>
+						  <b>[#contragentName#]</b><br>[#contragentAddress#]<br><br>[#debitAccounts#]
 						</td>
 					</tr>
 					</table>
