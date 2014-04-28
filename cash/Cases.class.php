@@ -187,7 +187,7 @@ class cash_Cases extends core_Master {
 		if($filter = $data->listFilter->rec) {
 			if($filter->case) {
 				foreach($fields as $fld){
-					$data->query->orWhere("#{$fld} = {$filter->case}");
+					$data->query->where("#{$fld} = {$filter->case}");
 				}
 			}
 		}
