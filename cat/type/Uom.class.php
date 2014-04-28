@@ -78,26 +78,35 @@ class cat_type_Uom extends type_Varchar {
     function fromVerbal_($value)
     {
     	// Ако няма стойност
-    	if(!is_array($value)) return NULL;
+    	if(!$value) return NULL;
     	
-    	// Тримване на въведената числова стойност
-    	$left = trim($value['lP']);
+    	// Ако стойността е масив
+    	if(is_array($value)){
+    		$numPart = trim($value['lP']);
+    	} else {
+    		
+    		// Ако не е масив, ако идва от Hidden поле
+    		$numPart = $value;
+    	}
     	
     	// Обръщане в невербален вид
-    	$left = $this->double->fromVerbal($left);
+    	$numPart = $this->double->fromVerbal($numPart);
     	
     	// Ако има проблем при обръщането сетва се грешка
-    	if($left === FALSE){
+    	if($numPart === FALSE){
 	        $this->error = "Не е въведено валидно число";
 	        	
 	        return FALSE;
 	    }
 	    
-	    // Конвертиране в основна мярка на числото от избраната мярка
-	    $left = cat_UoM::convertToBaseUnit($left, $value['rP']);
+	    // Конвертиране във основна мярка ако стойността е масив
+	    if(is_array($value)){
+	    	// Конвертиране в основна мярка на числото от избраната мярка
+	    	$numPart = cat_UoM::convertToBaseUnit($numPart, $value['rP']);
+	    }
 	   
 	    // Връщане на сумата в основна мярка
-	    return $left;
+	    return $numPart;
     }
     
     
