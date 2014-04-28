@@ -515,6 +515,10 @@ abstract class acc_ClosedDeals extends core_Master
         $rec = $this->fetchRec($id);
         $rec->state = 'active';
         
-        return  $this->save($rec);
+    	if ($id = $this->save($rec)) {
+            $this->invoke('AfterActivation', array($rec));
+        }
+        
+        return $id;
     }
 }
