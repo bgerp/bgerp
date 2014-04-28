@@ -514,7 +514,9 @@ class core_ET extends core_BaseClass
         if (is_object($content) && (is_a($content, "et") || is_a($content, "core_Et"))) {
             if (count($content->removableBlocks)) {
                 foreach ($content->removableBlocks as $name => $md5) {
-                    $this->removableBlocks[$name] = $md5;
+                    if (!$this->removableBlocks[$name]) {
+                        $this->removableBlocks[$name] = $md5;
+                    }
                 }
             }
         }
