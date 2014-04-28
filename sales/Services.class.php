@@ -677,7 +677,7 @@ class sales_Services extends core_Master
 	                
 	                'credit' => array(
 	                    '4530', 
-	                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+	                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
 	                ),
 	            );
         	}

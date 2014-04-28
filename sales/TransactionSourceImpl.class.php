@@ -249,7 +249,7 @@ class sales_TransactionSourceImpl
                 
                 'credit' => array(
                     '4530', 
-                    'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+                    'quantity' => $vatAmount, // Количество продукт в основната му мярка
                 ),
             );
         }
