@@ -245,6 +245,8 @@ class cash_Rko extends core_Master
     		 		$form->rec->amount = currency_Currencies::round($amount, $dealInfo->shipped->currency);
     		 	}
     		 }
+    	}  else {
+    		$defaultOperation = 'case2supplier';
     	}
     	
     	// Поставяме стойности по подразбиране
