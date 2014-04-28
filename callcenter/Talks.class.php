@@ -16,15 +16,6 @@ class callcenter_Talks extends core_Master
     
     
     /**
-     * Допустимото отклонение в секуди при регистриране на обажданията
-     * 
-     * @example - 1 час
-     */
-    const DEVIATION_BETWEEN_TIMES = 3600;
-    
-    
-    
-    /**
      * Заглавие на модела
      */
     var $title = 'Разговори';
@@ -402,6 +393,8 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterCall()
     {
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Масив с грешките
         $errArr = array();
         
@@ -427,7 +420,7 @@ class callcenter_Talks extends core_Master
             $deviationSecs = abs(dt::secsBetween($now, $startTime));
             
             // Ако разликата е над допустимите
-            if (($deviationSecs) && ($deviationSecs > static::DEVIATION_BETWEEN_TIMES)) {
+            if (($deviationSecs) && ($deviationSecs > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                 
                 // Инстанция на класа
                 $TimeInst = cls::get('type_Time');
@@ -571,6 +564,8 @@ class callcenter_Talks extends core_Master
      */
     function act_RegisterEndCall()
     {
+        $conf = core_Packs::getConfig('callcenter');
+        
         // Масив с грешките
         $errArr = array();
         
@@ -623,7 +618,7 @@ class callcenter_Talks extends core_Master
                 $deviationsSecAnswEnd = dt::secsBetween($endTime, $answerTime);
                 
                 // Ако разликата е над допустимите
-                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationAnswEndVerbal = $TimeInst->toVerbal($deviationsSecAnswEnd);
@@ -658,7 +653,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsAnsw = abs(dt::secsBetween($now, $answerTime));
             
                 // Ако разликата е над допустимите
-                if (($deviationSecsAnsw) && ($deviationSecsAnsw > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsAnsw) && ($deviationSecsAnsw > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationAnswVerbal = $TimeInst->toVerbal($deviationSecsAnsw);
@@ -678,7 +673,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsEnd = abs(dt::secsBetween($now, $endTime));
                 
                 // Ако разликата е над допустимите
-                if (($deviationSecsEnd) && ($deviationSecsEnd > static::DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsEnd) && ($deviationSecsEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
                     
                     // Разликата във вербален вид
                     $deviationEndVerbal = $TimeInst->toVerbal($deviationSecsEnd);
