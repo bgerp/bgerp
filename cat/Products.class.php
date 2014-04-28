@@ -601,6 +601,13 @@ class cat_Products extends core_Master {
     		foreach ((array)$packagings as $pack) {
     		    $res->packagings[$pack->packagingId] = $pack;
     		}
+    		
+    		// Сортираме опаковките, така че основната опаковка да е винаги първа (ако има)
+    		uasort($res->packagings, function($a, $b){
+                    if($a->isBase == $b->isBase)  return 0;
+					return $a->isBase == 'yes' ? -1 : 1;
+                });
+    		
     	} else {
     		
     		// Ако е зададена опаковка, извличаме само нейния запис
