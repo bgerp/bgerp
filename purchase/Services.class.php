@@ -567,7 +567,7 @@ class purchase_Services extends core_Master
         $rec->state = 'active';
         
         if ($this->save($rec)) {
-            $this->invoke('Activation', array($rec));
+            $this->invoke('AfterActivation', array($rec));
         }
         
         // Нотификация към пораждащия документ, че нещо във веригата му от породени документи се е променило.

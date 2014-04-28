@@ -140,7 +140,7 @@ class sales_TransactionSourceImpl
         $rec->state = 'active';
         
         if ($this->class->save($rec)) {
-            $this->class->invoke('Activation', array($rec));
+            $this->class->invoke('AfterActivation', array($rec));
         }
     }
     
