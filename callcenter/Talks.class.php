@@ -175,7 +175,7 @@ class callcenter_Talks extends core_Master
             $duration = dt::secsBetween($rec->endTime, $rec->answerTime);
             
             // Ако има
-            if ($duration) {
+            if ($duration && $duration > 0) {
                 
                 // Добавяме към записа
                 $rec->duration = $duration;
@@ -1578,6 +1578,80 @@ class callcenter_Talks extends core_Master
                 
                 $res .= "<li><font color='green'>Бяха съкратение времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
             }
+        }
+        
+        // Ако има отговорени разговори с вкарани лоши данни
+        
+        // Всички отговорени разговори с некоректни времена за endTime или answerTime
+        $nQuery = static::getQuery();
+        $unixNull = date("Y-m-d h:i:s", 0);
+        $nQuery->where("#dialStatus = 'ANSWERED'");
+        $nQuery->where("#endTime <= '{$unixNull}'");
+        $nQuery->orWhere("#answerTime <= '{$unixNull}'");
+        
+        while ($nRec = $nQuery->fetch()) {
+            
+            // Флаг, дали да се записва
+            $save = FALSE;
+            
+            // Ако времето на отговор е лошо
+            if ($nRec->answerTime <= $unixNull) {
+                
+                // Ако все пак има подадено време на край
+                if ($nRec->endTime > $unixNull) {
+                    
+                    // От крайното време определяме началото
+                    $nRec->answerTime = dt::removeSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
+                    
+                    // Вдигаме флага
+                    $save = TRUE;
+                } else {
+                    
+                    // Ако няма време на край, тогава използваме началото за позвъняване за начало на разговора
+                    $nRec->answerTime = $nRec->startTime;
+                }
+            }
+            
+            // Ако времето за край на разговора е лошо
+            if ($nRec->endTime <= $unixNull) {
+                
+                // Ако има добро време на начало на позвъняване
+                if ($nRec->answerTime > $unixNull) {
+                    
+                    // Определяме времето за край на разговора
+                    $nRec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->answerTime);
+                    
+                    // Вдигаме флага
+                    $save = TRUE;
+                }
+            }
+            
+            // Ако флага е вдигнат
+            if ($save) {
+                
+                // Записваме 
+                static::save($nRec);
+                
+                // Добавяме в масива
+                $nChangedTalksArr[$nRec->id] = $nRec->id;
+            }
+        }
+        
+        // Ако има промение разговори
+        if ($nChangedTalksArr) {
+            
+            // Броя на променените разговори
+            $cnt = count($nChangedTalksArr);
+            
+            if ($cnt == 1) {
+                $word = 'разговор';
+            } else { 
+                $word = 'разговорa';
+            }
+            
+            $changetTalksStr = implode(', ', $nChangedTalksArr);
+            
+            $res .= "<li><font color='green'>Бяха променени времената на {$cnt} {$word} - {$changetTalksStr}</font></li>";
         }
     }
     
