@@ -128,10 +128,10 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         }
         
         // Качваме съответния файл
-        $fh = $archive->getFile($index);
+        $fh = $inst->getFile($index);
         
         // Изтриваме временните файлове
-        $archive->deleteTempPath();
+        $inst->deleteTempPath();
         
         // Връщаме манипулатора на файла
         return $fh;
