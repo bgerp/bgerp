@@ -312,7 +312,7 @@ class core_Mvc extends core_FieldSet
         }
        
         if (!$this->db->query($query)) return FALSE;
-         //echo "<li> $query";
+         
         $this->dbTableUpdated();
 
         if (!$rec->id) {
