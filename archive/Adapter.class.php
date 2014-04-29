@@ -7,11 +7,17 @@
 defIfNot('ARCHIVE_TEMP_PATH', EF_TEMP_PATH . '/archive');
 
 
-
 /**
  * Пътя до 7z пакета
  */
 defIfNot('ARCHIVE_7Z_PATH', '7z');
+
+
+/**
+ * Максималната големина след разархивиране на един файл
+ * 100 mB
+ */
+defIfNot('ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT', 104857600);
 
 
 /**
@@ -92,8 +98,11 @@ class archive_Adapter
             // Заместваме разделителите за поддиректория с разделителя за дърво
             $path = str_replace(array('/', '\\'), "->", $path);
             
+            // Размер на файла след разархивиране
+            $size = $entry->getSize();
+            
             // Ако има размер
-            if ($entry->getSize()) {
+            if ($size && ($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT)) {
                 
                 $urlPath = $url;
                 
@@ -163,15 +172,20 @@ class archive_Adapter
             
             // Вземаме обекта за съответния файл
             $entry = $this->getEntries($index);
+            
+            // Размера на файла
+            $size = $entry->getSize();
+            
+            // Очакваме размера след декомпресия да е в допустимите граници
+            expect($size < ARCHIVE_MAX_FILE_SIZE_AFTER_EXTRACT);
         } catch (Exception $e) {
             
             // Ако възникне грешка
             expect(FALSE, 'Възникна грешка при свалянето на файла');
         }
-        
-        
+                
         // Ако няма размер
-        expect($entry->getSize(), 'Не е файл');
+        expect($size, 'Не е файл');
         
         try {
             
