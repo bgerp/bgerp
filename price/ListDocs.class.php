@@ -38,7 +38,7 @@ class price_ListDocs extends core_Master
      /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
+    var $loadList = 'plg_RowTools, price_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_plg_TplManager,
     	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, doc_ActivatePlg, doc_plg_BusinessDoc';
     	
     
@@ -95,12 +95,6 @@ class price_ListDocs extends core_Master
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	var $canSingle = 'sales,price,ceo';
-	
-    
-    /**
-     * Икона на единичния обект
-     */
-    //var $singleIcon = 'img/16/legend.png';
     
     
     /**
@@ -110,15 +104,15 @@ class price_ListDocs extends core_Master
     
     
     /**
-     * Шаблон за единичния изглед
-     */
-    var $singleLayoutFile = 'price/tpl/SingleLayoutListDoc.shtml';
-    
-    
-    /**
      * Заглавие
      */
     var $singleTitle = 'Ценоразпис';
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 30;
     
     
     /**
@@ -131,10 +125,9 @@ class price_ListDocs extends core_Master
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,width=8em,input');
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие,width=15em');
-    	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Продукти->Групи,columns=2');
+    	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
     	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
-    	$this->FLD('showInUom', 'enum(yes=Показвай,no=Не показвай)', 'caption=Продукти->Oсновна мярка,width=15em,notNull,value=yes,maxRadio=2');
     }
     
     
@@ -220,7 +213,7 @@ class price_ListDocs extends core_Master
     			$polRec = price_Lists::fetch($form->rec->policyId);
     			$policyName = price_Lists::getVerbal($polRec, 'title');
     			$form->rec->title = "{$mvc->singleTitle} \"{$policyName}\" {$form->rec->id}";
-    		}
+    		} 
     	}
     }
     
@@ -233,6 +226,93 @@ class price_ListDocs extends core_Master
     	// Обработваме детайлите ако ги няма записани
     	if(!$data->rec->products){
     		$mvc->prepareDetails($data);
+    		
+    		if($data->rec->productGroups){
+	    	 	$groupsArr = keylist::toArray($data->rec->productGroups);
+    	    }
+    		
+    		$data->rec->products = $mvc->groupProductsByGroups($data->rec->details->recs, $groupsArr);
+    	}
+    	
+    	$count = 0;
+    	foreach ($data->rec->products as $groupId => &$products){
+			$count += count($products);
+    	}
+    	
+    	if(!Mode::is('printing')){
+    		$Pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
+	    	$Pager->itemsCount = $count;
+	    	$Pager->calc();
+	    	$data->pager = $Pager;
+    	}
+    	
+    	$mvc->prepareDetailRows($data);
+    }
+    
+    
+    /**
+     * Изчислява оптималната десетична дължина насумите от ценоразпирса, така че те да сапдоравнени
+     */
+    private function prepareDetailRows(&$data)
+    {
+    	if(!count($data->rec->products)) return;
+    	
+    	$recs = $data->rec->products;
+    	$data->rec->products = new stdClass();
+    	$data->rec->products->recs = $recs;
+    	
+    	// Обръщаме данните във вербални
+    	$count = 0;
+    	foreach ($data->rec->products->recs as $groupId => &$products){
+			foreach ($products as $index => &$pRec){
+				$start = $data->pager->rangeStart;
+    		 	$end = $data->pager->rangeEnd - 1;
+    		 	if(empty($data->pager) || ($count >= $start && $count <= $end)){
+    		 		if($pRec->eanCode) {
+    		 			$data->showEan = TRUE;
+    		 		}
+    		 		$data->rec->products->rows[$groupId][$index] = $this->getVerbalDetail($pRec, $data);
+    		 	} else {
+    		 		unset($data->rec->products->rows[$groupId][$index]);
+    		 		unset($data->rec->products->recs[$groupId][$index]);
+    		 	}
+    		 	$count++;
+			}
+    	}
+    	
+    	// Обхождаме данните и намираме колко е максималния бройд есетични знаци
+    	$maxDecP = $maxDecM = 0;
+	    foreach ($data->rec->products->recs as $groupId => $products1){
+			foreach ($products1 as $index => $dRec){
+				if($dRec->priceM){
+					$mDecNum = strlen(substr(strrchr($dRec->priceM, "."), 1));
+					$maxDecM = ($mDecNum > $maxDecM) ? $mDecNum : $maxDecM;
+				}
+					
+				if($dRec->priceP){
+					$pDecNum = strlen(substr(strrchr($dRec->priceP, "."), 1));
+					$maxDecP = ($pDecNum > $maxDecP) ? $pDecNum : $maxDecP;
+				}
+			}
+	    }
+    	
+    	$maxDecM = min($maxDecM, 4);
+    	$maxDecP = min($maxDecP, 4);
+    	
+    	// Подравняваме сумите да са с еднакъв брой цифри след десетичния знак
+    	$Double = cls::get('type_Double');
+    	foreach ($data->rec->products->rows as $groupId => &$products2){
+			foreach ($products2 as $index => &$pRec){
+				if($pRec->priceM){
+					$Double->params['decimals'] = $maxDecM;
+					$pRec->priceM = $Double->toVerbal($recs[$groupId][$index]->priceM);
+				}
+				
+				if($pRec->priceP){
+					$Double->params['decimals'] = $maxDecP;
+					$pRec->priceP = $Double->toVerbal($recs[$groupId][$index]->priceP);
+				}
+			}
     	}
     }
     
@@ -244,12 +324,26 @@ class price_ListDocs extends core_Master
     {
     	// Подготвяме продуктите спрямо избраните групи
 	    $this->prepareProducts($data);
-	    	
+	    
 	    // Намираме цената на всички продукти
 	    $this->calculateProductsPrice($data);
+	    
+	    if($data->rec->details->recs){
+	    	usort($data->rec->details->recs, array($this, "sortResults"));
+	    }
     }
     
     
+    /**
+     * Сортира масива първо по код после по сума (ако кодовете съвпадат)
+     */
+	function sortResults($a, $b) {
+			 if($a->code == $b->code) return strcmp($b->priceM, $a->priceM);
+			 
+	         return strcmp($a->code, $b->code);
+	}
+	
+	
     /**
      * Извличаме до кои продукти имаме достъп. Ако не сме посочили ограничение
      * на групите показваме всички продукти, ако има ограничение - само тези
@@ -274,13 +368,14 @@ class price_ListDocs extends core_Master
 		    	$arr = cat_Products::fetchField($productRec->id, 'groups');
 		    	($arr) ? $arr = keylist::toArray($arr) : $arr = array('0' => '0');
 		    	
-		    	$rec->details->products[$productRec->id] = (object)array('productId' => $productRec->id,
-	    									   'code' => $productRec->code,
-	    									   'eanCode' => $productRec->eanCode,
+		    	$rec->details->products[$productRec->id] = (object)array(
+		    								   'productId' => $productRec->id,
+	    									   'code'      => $productRec->code,
+	    									   'eanCode'   => $productRec->eanCode,
 	    									   'measureId' => $productRec->measureId,
-		    								   'vat' => cat_Products::getVat($productRec->id, $rec->date),
-	    									   'pack' => NULL,
-	    									   'groups' => $arr);
+		    								   'vat'       => cat_Products::getVat($productRec->id, $rec->date),
+	    									   'pack'      => NULL,
+	    									   'groups'    => $arr);
     		}
     	}
     }
@@ -298,18 +393,48 @@ class price_ListDocs extends core_Master
     	foreach($rec->details->products as &$product){
     		
     		// Изчисляваме цената за продукта в основна мярка
-    		$product->price = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$product->priceM = price_ListRules::getPrice($rec->policyId, $product->productId, NULL, $rec->date);
+    		$product->priceM = price_Helper::roundPrice($product->priceM);
     		
-    		if($product->price && $rec->showInUom == 'yes') {
-    			$rec->details->rows[] = $product;
-    		}
+    		$productInfo = cat_Products::getProductInfo($product->productId);
     		
-    		// За всяка от избраните опаковки
-    		foreach($packArr as $packId){
-    			$object = $this->calculateProductWithPack($rec, $product, $packId);
-    			if($object) {
-    				$rec->details->rows[] = $object;
+    		// Ако има опаковки
+    		if(count($productInfo->packagings)){
+    			$count = 0;
+    			
+    			// За всяка опаковка
+    			foreach ($productInfo->packagings as $pId => $packagingRec){
+    				
+    				// Ако текущата опаковка е избрана за показване в документа, или се показват всички
+    				if(!count($packArr) || in_array($pId, $packArr)){
+    					// Изчисляване на цената
+    					$object = $this->calculateProductWithPack($rec, $product, $packagingRec);
+    					
+    					// Ако има цена
+    					if($object){
+    						
+    						// Първата опаковка я добавяме към реда на основната мярка
+    						if($count == 0){
+				    			$exRec = &$product;
+				    			$exRec->pack = $object->pack;
+				    			$exRec->perPack = $object->perPack;
+				    			$exRec->priceP = $object->priceP;
+				    			$rec->details->recs[] = $exRec;
+    						} else {
+    							
+    							// Всички останали опаковки са на нов ред, без цена
+    							unset($object->priceM);
+			    				$rec->details->recs[] = $object;
+			    			}
+    					$count++;
+    					}
+    				}
     			}
+    		} else {
+    			// Ако продукта няма опаковки и се показват всички опаковки добавяме го
+	    		if(!count($packArr) && $product->priceM){
+	    			$rec->details->recs[] = $product;
+	    		}
     		}
     	}
     	
@@ -325,39 +450,38 @@ class price_ListDocs extends core_Master
      * @param int $packId - ид на опаковката
      * @return stdClass $clone - информация за продукта с опаковката
      */
-    private function calculateProductWithPack($rec, $product, $packId)
+    private function calculateProductWithPack($rec, $product, $packagingRec)
     {
-    	if($info = cat_Products::getProductInfo($product->productId, $packId)){
-    		$clone = clone $product;
-    		$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packId, $rec->date);
-    		if(!$price) return;
-    		
-    		$clone->price = $info->packagingRec->quantity * $price;
-    		$clone->perPack = $info->packagingRec->quantity;
-    		$clone->eanCode = $info->packagingRec->eanCode;
-    		$clone->code = $info->packagingRec->customCode;
-    		$clone->pack = $packId;
-    		
-    		return $clone;
-    	}
+    	$clone = clone $product;
+    	$price = price_ListRules::getPrice($rec->policyId, $product->productId, $packagingRec->packagingId, $rec->date);
+    	if(!$price) return;
     	
-    	return FALSE;
+    	$clone->priceP  = price_Helper::roundPrice($packagingRec->quantity * $price);
+    	$clone->perPack = $packagingRec->quantity;
+    	$clone->eanCode = $packagingRec->eanCode;
+    	$clone->code    = ($packagingRec->customCode) ? $packagingRec->customCode : $product->code;
+    	$clone->pack    = $packagingRec->packagingId;
+    		
+    	return $clone;
     }
     
     
     /**
      * Обръщане на детайла във вербален вид
+     * 
      * @param stdClass $rec - запис на детайла
+     * @param stdClass $masterRec - мастъра
      * @return stdClass $row - вербално представяне на детайла
      */
-    private function getVerbalDetail($rec, $masterRec)
+    private function getVerbalDetail($rec, $data)
     {
+    	$masterRec = $data->rec;
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
-    	$double->params['decimals'] = 2;
+    	$double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getTitleById($rec->productId);
+    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
     	
     	if(!Mode::is('printing')){
 	    	$icon = sbf("img/16/wooden-box.png");
@@ -365,21 +489,26 @@ class price_ListDocs extends core_Master
 			$row->productId = ht::createLink($row->productId, $url, NULL, "style=background-image:url({$icon}),class=linkWithIcon");
     	}
     	
+    	foreach (array('priceP', 'priceM') as $priceFld) {
+    		$vat = ($masterRec->vat == 'yes') ? $rec->vat : 0;
+    		$price = $rec->$priceFld * (1 + $vat);
+    		$rec->$priceFld = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
+        	
+    		if($rec->$priceFld){
+        		$row->$priceFld = $double->toVerbal($rec->$priceFld);
+        	}
+    	}
+        
+    	$measureShort = cat_UoM::getShortName($rec->measureId);
 		if($rec->pack){
     		$row->pack = cat_Packagings::getTitleById($rec->pack);
-    		$measureShort = cat_UoM::getShortName($rec->measureId);
-    		$row->pack .= " &nbsp;({$rec->perPack} {$measureShort})";
-		} else {
-    		$row->measureId = cat_UoM::getTitleById($rec->measureId);
+    		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
+		}
+    	
+    	if($rec->measureId && $rec->priceM){
+    		$row->measureId = $measureShort;
     	}
     	
-    	if($rec->price) {
-    		$vat = ($masterRec->vat == 'yes') ? $rec->vat : 0;
-    		$price = $rec->price * (1 + $vat);
-    		$rec->price = currency_CurrencyRates::convertAmount($price, $masterRec->date, NULL, $masterRec->currencyId);
-        }
-        
-    	$row->price = $double->toVerbal($rec->price);
     	$row->code = $varchar->toVerbal($rec->code);
     	$row->eanCode = $varchar->toVerbal($rec->eanCode);
     	
@@ -405,19 +534,9 @@ class price_ListDocs extends core_Master
     	$rec = &$data->rec;
     	$detailTpl = $tpl->getBlock("GROUP");
     	
-    	if($rec->details->rows || $rec->products){
+    	if($rec->products->rows){
     		
-    	   if($rec->productGroups){
-	    		$groupsArr = keylist::toArray($rec->productGroups);
-    		}
-    		
-    		// Преподреждаме продуктите групирани по Групи
-    		if(!$rec->products){
-    			$rec->products = $this->groupProductsByGroups($rec->details->rows, $groupsArr);
-    		}
-    		
-    		krsort($rec->products);
-    		foreach ($rec->products as $groupId => $products){
+    		foreach ($rec->products->rows as $groupId => $products){
     			if(count($products) != 0){
 					
 					// Слагаме името на групата
@@ -429,19 +548,31 @@ class price_ListDocs extends core_Master
 					}
 					
 					foreach ($products as $row){
-		    			$row = $this->getVerbalDetail($row, $rec);
 		    			$rowTpl = $groupTpl->getBlock('ROW');
 			    		$rowTpl->placeObject($row);
+			    		
+			    		if($data->showEan){
+			    			$rowTpl->replace(' ', 'eanCode');
+			    		}
+			    		
 			    		$rowTpl->removeBlocks();
 			    		$rowTpl->append2master();
 			    	}
     				
     				$groupTpl->removeBlocks();
-			    	$tpl->append($groupTpl, 'GROUP');
+    				$tpl->append($groupTpl, 'GROUP');
+    				
+    				if($data->showEan){
+    					$tpl->replace(' ', 'showEAN');
+    				}
 				}
     		}
     	} else {
-    		$tpl->replace("<tr><td colspan='5'> " . tr("Няма цени") . "</td></tr>", 'GROUP');
+    		$tpl->replace("<tr><td colspan='6'> " . tr("Няма продукти") . "</td></tr>", 'GROUP');
+    	}
+    	
+    	if($data->pager){
+    		$tpl->replace($data->pager->getHtml(), 'PAGER');
     	}
     }
     
@@ -497,7 +628,7 @@ class price_ListDocs extends core_Master
 	    	$groupsArr = keylist::toArray($data->rec->productGroups);
     	}
     	
-    	$rec->products = $mvc->groupProductsByGroups($data->rec->details->rows, $groupsArr);
+    	$rec->products = $mvc->groupProductsByGroups($data->rec->details->recs, $groupsArr);
     	
     	$mvc->save($rec);
     }
@@ -602,5 +733,32 @@ class price_ListDocs extends core_Master
     		}
     	}
     	return FALSE;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+    	$mvc->setTemplates($res);
+    }
+    
+    
+	/**
+     * Зарежда шаблоните на покупката в doc_TplManager
+     */
+    private function setTemplates(&$res)
+    {
+    	$tplArr[] = array('name' => 'Ценоразпис', 'content' => 'price/tpl/templates/ListDoc.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Ценоразпис без основна мярка', 'content' => 'price/tpl/templates/ListDocWithoutUom.shtml', 'lang' => 'bg');
+    	
+    	$skipped = $added = $updated = 0;
+    	foreach ($tplArr as $arr){
+    		$arr['docClassId'] = $this->getClassId();
+    		doc_TplManager::addOnce($arr, $added, $updated, $skipped);
+    	}
+    	
+    	$res .= "<li><font color='green'>Добавени са {$added} шаблона за ценоразписи, обновени са {$updated}, пропуснати са {$skipped}</font></li>";
     }
 }
