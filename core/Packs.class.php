@@ -642,9 +642,9 @@ class core_Packs extends core_Manager
         //                                'options' => $options, 
         //                                'suggestions' => $suggestions, 
         //        'CONSTANT_NAME2' => .....
-
+               
         $conf = new core_ObjectConfiguration($setup->configDescription, $rec->configData);
-
+    
         return $conf;
     }
     
@@ -677,7 +677,7 @@ class core_Packs extends core_Manager
         $rec = static::fetch("#name = '{$packName}'");
         
         $cls = $packName . "_Setup";
-            
+           
         if (cls::load($cls, TRUE)) {
             $setup = cls::get($cls);
         } else {
@@ -699,7 +699,7 @@ class core_Packs extends core_Manager
         $form = cls::get('core_Form');
 
         $form->title = "Настройки на пакета |*<b style='color:green;'>{$packName}<//b>";
-
+ 
         foreach ($description as $field => $arguments) {
             $type   = $arguments[0];
             $params = arr::combine($arguments[1], $arguments[2]);
@@ -791,7 +791,7 @@ class core_Packs extends core_Manager
     		$rec->name = $name;
     	}
     	
-    	if($rec->configData) {
+    	if($rec->configData) { 
     		$exData = unserialize($rec->configData);
     	} else {
     		$exData = array();
@@ -849,7 +849,7 @@ class core_Packs extends core_Manager
         
         return $resArr;
     }
-    
+   
     
     /**
      * Променяме Списъчния изглед на пакетите

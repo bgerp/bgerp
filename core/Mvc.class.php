@@ -310,9 +310,9 @@ class core_Mvc extends core_FieldSet
                 $query = "INSERT  INTO `{$table}` SET {$query}";
             }
         }
-
+       
         if (!$this->db->query($query)) return FALSE;
-
+         //echo "<li> $query";
         $this->dbTableUpdated();
 
         if (!$rec->id) {
