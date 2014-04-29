@@ -166,7 +166,7 @@ class fileman_RichTextPlg extends core_Plugin
                 if (($params !== FALSE) && (strtolower($params['Ctr']) == 'fileman_files' && strtolower($params['Act']) == 'single' && $params['id'])) {
                     
                     // Вземаме данните за файла
-                    $fRec = fileman_Files::fetchByFh($params['id']);
+                    $fRec = fileman_Files::fetch($params['id']);
 
                     // Добавяме в масивa
                     $files[$fRec->fileHnd] = fileman_Files::getVerbal($fRec, 'name');
