@@ -695,7 +695,7 @@ class fileman_webdrv_Generic extends core_Manager
         try {
             
             // Инстанция на архива
-            $zip = static::getArchiveInst($fRec);
+            $zip = self::getArchiveInst($fRec);
         } catch (Exception $e) {
             
             // Ако възникне exception
@@ -732,13 +732,13 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Вземаме всики директории и файлове в текущада директория на архива
-        $filesArr = static::getFilesInArchive($zipContentArr, $path);
+        $filesArr = self::getFilesInArchive($zipContentArr, $path);
         
         // Подговаме стринга с папките
-        $dirsStr = static::prepareDirsInArchive((array)$filesArr['dirs'], $path);
+        $dirsStr = self::prepareDirsInArchive((array)$filesArr['dirs'], $path);
         
         // Подготвяме стринга с файловете
-        $filesStr = static::prepareFilesInArchive((array)$filesArr['files'], $fRec->fileHnd);
+        $filesStr = self::prepareFilesInArchive((array)$filesArr['files'], $fRec->fileHnd);
         
         // Ако има папки
         if ($dirsStr) {
@@ -860,7 +860,7 @@ class fileman_webdrv_Generic extends core_Manager
         $depth = 0;
         
         // Обхождаме масива с всички директории и файлове в архива
-        foreach ($zipContentArr as $zipContent) {
+        foreach ((array)$zipContentArr as $zipContent) {
             
             // Създаваме масив с всички директории и поддиректории
             $filesArr[$zipContent['index']] = (explode('/', $zipContent['name']));
