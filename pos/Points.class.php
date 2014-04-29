@@ -190,14 +190,20 @@ class pos_Points extends core_Master {
     	
     	if($fields['-list']){
     		$cu = core_Users::getCurrent();
-    		if(pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
-    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
-    				$reportUrl = array('pos_Reports', 'single', $repId);
-    			} else {
-    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
-    			}
+    		if(pos_Reports::haveRightFor('add')){
     			
-    			$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, 'title=Направи отчет,ef_icon=img/16/report.png');
+    			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
+	    		if(pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
+	    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
+	    				$reportUrl = array('pos_Reports', 'single', $repId);
+	    			} else {
+	    				
+	    				// Ако няма репорт слагаме бутон за създаване на нов
+	    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
+	    			}
+	    			
+	    			$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, 'title=Направи отчет,ef_icon=img/16/report.png');
+	    		}
     		}
     	}
     }
