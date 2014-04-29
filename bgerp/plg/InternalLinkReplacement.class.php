@@ -125,7 +125,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      */
     static function getNotAccessMsg()
     {
-        $text = 'Липсващ обект.';
+        $text = tr('Липсващ обект');
         if (Mode::is('text', 'plain')) {
             
             // 
