@@ -94,15 +94,29 @@ class fileman_RichTextPlg extends core_Plugin
         
         $link = fileman_Download::getDownloadLink($fh, $title);
         
-        if (is_object($link)) {
-            $content = $link->getContent();
+        if ($link) {
+            if (is_object($link)) {
+                $content = $link->getContent();
+            } else {
+                $content = $link;
+            }
         } else {
-            $content = $link;
+            $content = $this->mvc->getNotAccessMsg();
         }
+        
         $this->mvc->_htmlBoard[$place] = $content;
         $res = "[#{$place}#]";
         
         return  $res;
+    }
+
+    
+    /**
+     * Съобщението, което ще се показва ако нямаме достъп до обекта
+     */
+    static function on_AfterGetNotAccessMsg($mvc, $res)
+    {
+        $res = tr('Липсващ обект');
     }
     
     
